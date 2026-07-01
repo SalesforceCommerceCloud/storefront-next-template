@@ -49,3 +49,52 @@ export const fetchCategories = async (
     const parentCategory = await fetchCategory(context, parentId, levels);
     return parentCategory.categories || [];
 };
+
+/** The getCategories endpoint accepts at most 50 category IDs per request. */
+const CATEGORY_IDS_PER_REQUEST = 50;
+
+/**
+ * Fetch several categories by ID in as few requests as possible.
+ *
+ * The IDs are split into chunks of {@link CATEGORY_IDS_PER_REQUEST} and each chunk is fetched via a single
+ * `getCategories` call. The returned order follows the API responses and is not guaranteed to match the requested ID
+ * order — callers must key results by `Category.id`.
+ */
+export const fetchCategoriesByIds = async (
+    context: LoaderFunctionArgs['context'],
+    ids: string[],
+    levels: ShopperProducts.operations['getCategories']['parameters']['query']['levels'] = 1
+): Promise<ShopperProducts.schemas['Category'][]> => {
+    if (ids.length === 0) {
+        return [];
+    }
+
+    const logger = getLogger(context);
+    const clients = createApiClients(context);
+
+    const chunks: string[][] = [];
+    for (let i = 0; i < ids.length; i += CATEGORY_IDS_PER_REQUEST) {
+        chunks.push(ids.slice(i, i + CATEGORY_IDS_PER_REQUEST));
+    }
+
+    try {
+        const results = await Promise.all(
+            chunks.map(async (chunkIds) => {
+                const { data } = await clients.shopperProducts.getCategories({
+                    params: {
+                        query: {
+                            ids: chunkIds,
+                            levels,
+                        },
+                    },
+                });
+                return data.data ?? [];
+            })
+        );
+
+        return results.flat();
+    } catch (error) {
+        logger.error('shopperProducts.getCategories failed', { ids, levels });
+        throw new NormalizedApiError(error);
+    }
+};

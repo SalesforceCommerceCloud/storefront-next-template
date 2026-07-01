@@ -23,6 +23,7 @@ import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
 vi.mock('@/lib/api/categories.server', () => ({
     fetchCategory: vi.fn(),
+    fetchCategoriesByIds: vi.fn(),
 }));
 
 vi.mock('@/lib/page-designer/component-loader.server', () => ({
@@ -431,9 +432,10 @@ describe('_app.tsx - Default Layout Route', () => {
             await expect(result.headerComponent).resolves.toBeNull();
         });
 
-        it('should load subcategories for categories with onlineSubCategoriesCount > 0', async () => {
-            const { fetchCategory } = await import('@/lib/api/categories.server');
+        it('should fetch subcategories for categories with onlineSubCategoriesCount > 0 in a single batch call', async () => {
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
             const mockFetchCategory = vi.mocked(fetchCategory);
+            const mockFetchCategoriesByIds = vi.mocked(fetchCategoriesByIds);
 
             const mockRootCategory: ShopperProducts.schemas['Category'] = {
                 id: 'root',
@@ -457,28 +459,26 @@ describe('_app.tsx - Default Layout Route', () => {
                 categories: [{ id: 'sub3', name: 'Sub 3' }],
             };
 
-            mockFetchCategory
-                .mockResolvedValueOnce(mockRootCategory)
-                .mockResolvedValueOnce(mockSubCategory1)
-                .mockResolvedValueOnce(mockSubCategory3);
+            mockFetchCategory.mockResolvedValue(mockRootCategory);
+            // The API is not guaranteed to respond in the requested id order; the loader must not depend on it.
+            mockFetchCategoriesByIds.mockResolvedValue([mockSubCategory3, mockSubCategory1]);
 
             const mockContext = {} as any;
             const result = loader({ context: mockContext, request: new Request('https://example.test/') } as any);
 
             const subs = await result.subs;
 
-            expect(mockFetchCategory).toHaveBeenCalledTimes(3);
+            expect(mockFetchCategory).toHaveBeenCalledTimes(1);
             expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'root', 1);
-            expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'cat1', 2);
-            expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'cat3', 2);
-            expect(mockFetchCategory).not.toHaveBeenCalledWith(mockContext, 'cat2', 2);
-            expect(subs).toHaveLength(2);
-            expect(subs).toEqual([mockSubCategory1, mockSubCategory3]);
+            expect(mockFetchCategoriesByIds).toHaveBeenCalledTimes(1);
+            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, ['cat1', 'cat3'], 2);
+            expect(subs).toEqual([mockSubCategory3, mockSubCategory1]);
         });
 
         it('should handle root category without subcategories', async () => {
-            const { fetchCategory } = await import('@/lib/api/categories.server');
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
             const mockFetchCategory = vi.mocked(fetchCategory);
+            const mockFetchCategoriesByIds = vi.mocked(fetchCategoriesByIds);
 
             const mockRootCategory: ShopperProducts.schemas['Category'] = {
                 id: 'root',
@@ -487,6 +487,7 @@ describe('_app.tsx - Default Layout Route', () => {
             };
 
             mockFetchCategory.mockResolvedValue(mockRootCategory);
+            mockFetchCategoriesByIds.mockResolvedValue([]);
 
             const mockContext = {} as any;
             const result = loader({ context: mockContext, request: new Request('https://example.test/') } as any);
@@ -494,12 +495,14 @@ describe('_app.tsx - Default Layout Route', () => {
             const subs = await result.subs;
 
             expect(mockFetchCategory).toHaveBeenCalledTimes(1);
+            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2);
             expect(subs).toEqual([]);
         });
 
         it('should handle root category with undefined categories array', async () => {
-            const { fetchCategory } = await import('@/lib/api/categories.server');
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
             const mockFetchCategory = vi.mocked(fetchCategory);
+            const mockFetchCategoriesByIds = vi.mocked(fetchCategoriesByIds);
 
             const mockRootCategory: ShopperProducts.schemas['Category'] = {
                 id: 'root',
@@ -507,6 +510,7 @@ describe('_app.tsx - Default Layout Route', () => {
             };
 
             mockFetchCategory.mockResolvedValue(mockRootCategory);
+            mockFetchCategoriesByIds.mockResolvedValue([]);
 
             const mockContext = {} as any;
             const result = loader({ context: mockContext, request: new Request('https://example.test/') } as any);
@@ -514,12 +518,14 @@ describe('_app.tsx - Default Layout Route', () => {
             const subs = await result.subs;
 
             expect(mockFetchCategory).toHaveBeenCalledTimes(1);
+            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2);
             expect(subs).toEqual([]);
         });
 
         it('should return promises that can be used for streaming', async () => {
-            const { fetchCategory } = await import('@/lib/api/categories.server');
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
             const mockFetchCategory = vi.mocked(fetchCategory);
+            const mockFetchCategoriesByIds = vi.mocked(fetchCategoriesByIds);
 
             const mockRootCategory: ShopperProducts.schemas['Category'] = {
                 id: 'root',
@@ -528,6 +534,7 @@ describe('_app.tsx - Default Layout Route', () => {
             };
 
             mockFetchCategory.mockResolvedValue(mockRootCategory);
+            mockFetchCategoriesByIds.mockResolvedValue([]);
 
             const mockContext = {} as any;
             const result = loader({ context: mockContext, request: new Request('https://example.test/') } as any);

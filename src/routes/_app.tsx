@@ -19,7 +19,7 @@ import type { Route } from './+types/_app';
 import { usePageUIConfig, mainPaddingDataAttributes } from '@/lib/routes/page-ui-config';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { type ShopperProducts } from '@/scapi';
-import { fetchCategory } from '@/lib/api/categories.server';
+import { fetchCategory, fetchCategoriesByIds } from '@/lib/api/categories.server';
 import { getLogger } from '@/lib/logger.server';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
@@ -66,28 +66,24 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
 
     // Load each second-level sub categories tree as well, in case the resolved root-level category has any sub
     // categories and maxDepth allows for it. We then base this composed second-level promise on the initial root
-    // category promise to allow for parallel loading and streaming of the two main promises.
+    // category promise to allow for parallel loading and streaming of the two main promises. The sub category trees
+    // are fetched in a single (chunked) getCategories request rather than one getCategory request per root category.
     const subCategoriesPromise =
         maxDepth >= 2
-            ? rootCategoryPromise.then((rootCategory: ShopperProducts.schemas['Category']) =>
-                  Promise.all(
-                      rootCategory.categories?.reduce(
-                          (
-                              acc: Promise<ShopperProducts.schemas['Category']>[],
-                              subCategory: ShopperProducts.schemas['Category']
-                          ) => {
-                              if (
-                                  typeof subCategory.onlineSubCategoriesCount === 'number' &&
-                                  subCategory.onlineSubCategoriesCount > 0
-                              ) {
-                                  acc.push(fetchCategory(context, subCategory.id, maxDepth as 0 | 1 | 2));
-                              }
-                              return acc;
-                          },
-                          []
-                      ) ?? []
-                  )
-              )
+            ? rootCategoryPromise.then((rootCategory: ShopperProducts.schemas['Category']) => {
+                  const subCategoryIds =
+                      rootCategory.categories?.reduce((acc: string[], subCategory) => {
+                          if (
+                              typeof subCategory.onlineSubCategoriesCount === 'number' &&
+                              subCategory.onlineSubCategoriesCount > 0
+                          ) {
+                              acc.push(subCategory.id);
+                          }
+                          return acc;
+                      }, []) ?? [];
+
+                  return fetchCategoriesByIds(context, subCategoryIds, maxDepth as 0 | 1 | 2);
+              })
             : Promise.resolve([]);
 
     // Fetch header embedded component data (non-blocking, streamed to client, should be blocking once data is available from KVS to avoid layout shift)
