@@ -135,6 +135,26 @@ describe('ContentCard', () => {
     test('renders with only text (no image or button)', () => {
         const { container } = renderWithRouter(<ContentCard title="Only Title" description="Only description" />);
         expect(container.querySelector('[data-slot="card"]')).toBeInTheDocument();
+        // No image authored: title/description render directly on the card
+        // surface (not gated behind an image), so authored copy is never dropped.
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Only Title' })).toBeInTheDocument();
+        expect(screen.getByText('Only description')).toBeInTheDocument();
+        // Still no CTA when buttonText/buttonLink are absent.
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
+
+    test('renders CTA in text-only card when button is authored without an image', () => {
+        renderWithRouter(<ContentCard title="Only Title" buttonText="Go" buttonLink="/go" />);
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        const link = screen.getByRole('link', { name: 'Go' });
+        expect(link).toHaveAttribute('href', '/global/en-GB/go');
+    });
+
+    test('renders empty card when neither image nor text nor CTA is authored', () => {
+        const { container } = renderWithRouter(<ContentCard />);
+        expect(container.querySelector('[data-slot="card"]')).toBeInTheDocument();
+        expect(container.querySelector('[data-slot="card-content"]')).not.toBeInTheDocument();
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
         expect(screen.queryByRole('heading')).not.toBeInTheDocument();
         expect(screen.queryByRole('link')).not.toBeInTheDocument();

@@ -123,6 +123,59 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
         const focalY = focalPoint?.y != null ? `${focalPoint.y}%` : '50%';
         const objectPosition = `${focalX} ${focalY}`;
 
+        const hasCta = !!(buttonText && buttonLink);
+        const hasText = !!(title || description);
+        const hasContent = hasText || hasCta;
+
+        // Title/description/CTA. Shared by the image branch (rendered as a
+        // gradient overlay) and the text-only branch (rendered on the card
+        // surface) so authored copy is never silently dropped when an image is
+        // absent. `onImage` swaps the overlay-only affordances (light-on-dark
+        // text colors) for surface-appropriate ones.
+        const renderContent = (onImage: boolean) =>
+            hasContent && (
+                <div className="relative z-10">
+                    {hasText && (
+                        <div className={cn('flex-1 flex flex-col justify-end', cardDescriptionClassName)}>
+                            {/*
+                             * Source order is heading-first (<h3> before <p>) for assistive tech,
+                             * while `order-*` preserves the visual layout (description above title,
+                             * both bottom-aligned via justify-end).
+                             */}
+                            {title && (
+                                <h3
+                                    className={cn(
+                                        'order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4',
+                                        onImage ? 'text-card' : 'text-foreground'
+                                    )}>
+                                    {title}
+                                </h3>
+                            )}
+                            {description && (
+                                <p
+                                    className={cn(
+                                        'order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line',
+                                        onImage ? 'text-muted' : 'text-muted-foreground'
+                                    )}>
+                                    {description}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                    {hasCta && (
+                        <Button
+                            asChild
+                            variant="default"
+                            className={cn(
+                                'w-fit text-sm font-medium leading-5 text-primary-foreground',
+                                buttonClassName
+                            )}>
+                            <Link to={buttonLink}>{buttonText}</Link>
+                        </Button>
+                    )}
+                </div>
+            );
+
         return (
             <Card
                 ref={ref}
@@ -133,7 +186,7 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                     className
                 )}
                 {...props}>
-                {imageSrc && (
+                {imageSrc ? (
                     <CardContent className="p-0">
                         <div className="relative aspect-[4/3] overflow-hidden bg-secondary/20">
                             <img
@@ -143,48 +196,26 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                 style={{ objectPosition }}
                                 loading={loading}
                             />
-                            {(title || description || (buttonText && buttonLink)) && (
+                            {hasContent && (
                                 <div
                                     className={cn(
                                         'absolute inset-0 flex flex-col justify-end p-6 md:p-8',
                                         cardFooterClassName
                                     )}>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10" />
-                                    <div className="relative z-10">
-                                        {(title || description) && (
-                                            <div
-                                                className={cn(
-                                                    'flex-1 flex flex-col justify-end',
-                                                    cardDescriptionClassName
-                                                )}>
-                                                {description && (
-                                                    <p className="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line">
-                                                        {description}
-                                                    </p>
-                                                )}
-                                                {title && (
-                                                    <h3 className="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4">
-                                                        {title}
-                                                    </h3>
-                                                )}
-                                            </div>
-                                        )}
-                                        {buttonText && buttonLink && (
-                                            <Button
-                                                asChild
-                                                variant="default"
-                                                className={cn(
-                                                    'w-fit text-sm font-medium leading-5 text-primary-foreground',
-                                                    buttonClassName
-                                                )}>
-                                                <Link to={buttonLink}>{buttonText}</Link>
-                                            </Button>
-                                        )}
-                                    </div>
+                                    {renderContent(true)}
                                 </div>
                             )}
                         </div>
                     </CardContent>
+                ) : (
+                    hasContent && (
+                        <CardContent className="p-0">
+                            <div className={cn('flex flex-col justify-end p-6 md:p-8', cardFooterClassName)}>
+                                {renderContent(false)}
+                            </div>
+                        </CardContent>
+                    )
                 )}
             </Card>
         );

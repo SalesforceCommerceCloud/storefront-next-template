@@ -34,16 +34,16 @@ exports[`ContentCard stories snapshot > CustomClassNames story renders and match
             <div
               class="flex-1 flex flex-col justify-end description-override-sentinel"
             >
-              <p
-                class="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line"
-              >
-                This example applies custom classes to the footer, description, and button.
-              </p>
               <h3
-                class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4"
+                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
               >
                 Custom Class Names
               </h3>
+              <p
+                class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+              >
+                This example applies custom classes to the footer, description, and button.
+              </p>
             </div>
             <a
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground button-override-sentinel"
@@ -96,16 +96,16 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
             <div
               class="flex-1 flex flex-col justify-end"
             >
-              <p
-                class="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line"
-              >
-                Discover our latest collection of premium products designed for modern living.
-              </p>
               <h3
-                class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4"
+                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
               >
                 Featured Product
               </h3>
+              <p
+                class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+              >
+                Discover our latest collection of premium products designed for modern living.
+              </p>
             </div>
             <a
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
@@ -121,6 +121,17 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
       </div>
     </div>
   </div>
+</div>
+`;
+
+exports[`ContentCard stories snapshot > EmptyCard story renders and matches snapshot 1`] = `
+<div
+  style="width: 400px;"
+>
+  <div
+    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50"
+    data-slot="card"
+  />
 </div>
 `;
 
@@ -158,16 +169,16 @@ exports[`ContentCard stories snapshot > LongCopy story renders and matches snaps
             <div
               class="flex-1 flex flex-col justify-end"
             >
-              <p
-                class="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line"
-              >
-                Every piece in this collection has been selected by our editorial team for its provenance, craftsmanship, and material story. From hand-loomed textiles to single-origin ceramics, our partners share a commitment to fair-wage manufacturing, low-impact materials, and durable design that outlasts trend cycles. Browse the full assortment to find pieces that match your aesthetic and your values.
-              </p>
               <h3
-                class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4"
+                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
               >
                 Discover the Most Comprehensive Curated Collection of Sustainable, Ethically Sourced, Premium-Quality Goods Designed for the Modern Conscious Consumer
               </h3>
+              <p
+                class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+              >
+                Every piece in this collection has been selected by our editorial team for its provenance, craftsmanship, and material story. From hand-loomed textiles to single-origin ceramics, our partners share a commitment to fair-wage manufacturing, low-impact materials, and durable design that outlasts trend cycles. Browse the full assortment to find pieces that match your aesthetic and your values.
+              </p>
             </div>
             <a
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
@@ -220,16 +231,16 @@ exports[`ContentCard stories snapshot > NoBackground story renders and matches s
             <div
               class="flex-1 flex flex-col justify-end"
             >
-              <p
-                class="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line"
-              >
-                This card has no background or border for a cleaner look.
-              </p>
               <h3
-                class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4"
+                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
               >
                 Transparent Card
               </h3>
+              <p
+                class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+              >
+                This card has no background or border for a cleaner look.
+              </p>
             </div>
             <a
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
@@ -282,16 +293,16 @@ exports[`ContentCard stories snapshot > Playground story renders and matches sna
             <div
               class="flex-1 flex flex-col justify-end"
             >
-              <p
-                class="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line"
-              >
-                Discover our latest collection of premium products designed for modern living.
-              </p>
               <h3
-                class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4"
+                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
               >
                 Featured Product
               </h3>
+              <p
+                class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+              >
+                Discover our latest collection of premium products designed for modern living.
+              </p>
             </div>
             <a
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
@@ -344,16 +355,16 @@ exports[`ContentCard stories snapshot > WithoutButton story renders and matches 
             <div
               class="flex-1 flex flex-col justify-end"
             >
-              <p
-                class="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line"
-              >
-                This card has an image with text overlay but no button.
-              </p>
               <h3
-                class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4"
+                class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-card"
               >
                 Text Only Card
               </h3>
+              <p
+                class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted"
+              >
+                This card has an image with text overlay but no button.
+              </p>
             </div>
           </div>
         </div>
@@ -370,6 +381,43 @@ exports[`ContentCard stories snapshot > WithoutImage story renders and matches s
   <div
     class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50"
     data-slot="card"
-  />
+  >
+    <div
+      class="p-0"
+      data-slot="card-content"
+    >
+      <div
+        class="flex flex-col justify-end p-6 md:p-8"
+      >
+        <div
+          class="relative z-10"
+        >
+          <div
+            class="flex-1 flex flex-col justify-end"
+          >
+            <h3
+              class="order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4 text-foreground"
+            >
+              Text Only, No Image
+            </h3>
+            <p
+              class="order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line text-muted-foreground"
+            >
+              When imageUrl is missing, the title, description, and call-to-action render directly on the card surface instead of as an overlay. Authored copy is never dropped just because an image is absent.
+            </p>
+          </div>
+          <a
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+            data-size="default"
+            data-slot="button"
+            data-variant="default"
+            href="/category/featured"
+          >
+            Shop Now
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 `;

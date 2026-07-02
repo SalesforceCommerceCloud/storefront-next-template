@@ -38,7 +38,7 @@ A flexible card component for displaying authored content with optional image, t
 
 ### Features
 - Optional image with lazy loading
-- Title and description text rendered as a gradient overlay on the image
+- Title and description text: rendered as a gradient overlay when an image is present, or directly on the card surface when it is not
 - Call-to-action button with link
 - Configurable background and border (designer-controlled via Page Designer attributes)
 - CSS override hooks (\`className\`, \`cardFooterClassName\`, \`cardDescriptionClassName\`, \`buttonClassName\`)
@@ -49,7 +49,8 @@ A flexible card component for displaying authored content with optional image, t
     argTypes: {
         hasImage: {
             control: 'boolean',
-            description: 'Synthetic toggle: when off, clears imageUrl to demonstrate the empty-card state.',
+            description:
+                'Synthetic toggle: when off, clears imageUrl so any authored title/description/CTA render on the card surface (text-only card) instead of as an image overlay.',
             table: { category: 'Synthetic' },
         },
         hasButton: {
@@ -153,17 +154,17 @@ export const WithoutButton: Story = {
 
 export const WithoutImage: Story = {
     args: {
-        title: 'Missing Media',
+        title: 'Text Only, No Image',
         description:
-            'When imageUrl is missing, the component renders an empty card. This story demonstrates the merchant-facing fallback for unauthored or broken-image authoring.',
+            'When imageUrl is missing, the title, description, and call-to-action render directly on the card surface instead of as an overlay. Authored copy is never dropped just because an image is absent.',
         imageAlt: '',
         hasImage: false,
-        hasButton: false,
+        hasButton: true,
     },
     parameters: {
         docs: {
             description: {
-                story: "Coverage for the 'missing media' case. The component intentionally renders an empty card when imageUrl is falsy — there is no in-component fallback. Merchants see this when an image attribute is left unauthored.",
+                story: 'Text-only content card. With no image authored, the component renders the title/description/CTA on the card surface (no image overlay). Merchants can author image-less content cards without silently losing their copy.',
             },
         },
     },
@@ -171,9 +172,36 @@ export const WithoutImage: Story = {
         const canvas = within(canvasElement);
         await waitForStorybookReady(canvasElement);
 
-        // The card renders but produces no visible <img>, no <h3>, no <p>.
+        // No image, but the authored text and CTA still render.
         await expect(canvas.queryByRole('img')).not.toBeInTheDocument();
-        await expect(canvas.queryByText(/missing media/i)).not.toBeInTheDocument();
+        await expect(await canvas.findByText(/text only, no image/i)).toBeInTheDocument();
+        await expect(await canvas.findByRole('link', { name: /shop now/i })).toBeInTheDocument();
+    },
+};
+
+export const EmptyCard: Story = {
+    args: {
+        title: undefined,
+        description: undefined,
+        imageAlt: '',
+        hasImage: false,
+        hasButton: false,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Coverage for the fully-unauthored case. With no image, no text, and no CTA the component renders just the empty card shell — no card content is emitted.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await waitForStorybookReady(canvasElement);
+
+        // Nothing authored → no image, no heading, no link.
+        await expect(canvas.queryByRole('img')).not.toBeInTheDocument();
+        await expect(canvas.queryByRole('heading')).not.toBeInTheDocument();
+        await expect(canvas.queryByRole('link')).not.toBeInTheDocument();
     },
 };
 
