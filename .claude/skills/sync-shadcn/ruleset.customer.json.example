@@ -1,0 +1,24 @@
+{
+    "//": "OPTIONAL customer brand layer. Copy this file to `ruleset.customer.json` (drop the `.example`) and the `restyle` command will deep-merge it OVER the shipped ruleset.json. Precedence: upstream shadcn -> our ruleset.json -> this overlay. Delete any key you don't want to change; everything you omit keeps our default.",
+
+    "//families": "Merge semantics: members UNION (your members are ADDED to ours — you cannot silently drop one of ours), removeMembers SUBTRACTS after the union, replacement OVERRIDES ours, scope.only UNIONS.",
+    "families": {
+        "radius": {
+            "//": "Bridge our radius utility to your own brand token instead of rounded-ui.",
+            "replacement": "rounded-brand",
+            "//members": "Add a scale we don't cover.",
+            "members": ["rounded-4xl"]
+        },
+        "border": {
+            "//scope": "Opt additional primitives into border-ui (we ship Card-only).",
+            "scope": {
+                "only": ["input", "select"]
+            }
+        }
+    },
+
+    "//imports": "Set relativizeAliases to [] to KEEP shadcn's @/ import convention (the default storefront-ui convention rewrites @/ to relative). UNIONed with ours, so to disable you must also removeAliases.",
+    "imports": {
+        "removeAliases": ["@/"]
+    }
+}

@@ -1,0 +1,47 @@
+{
+    "version": 1,
+    "notes": [
+        "Declarative house-style ruleset for `restyle`. Each family maps a set of EXACT Tailwind class tokens to a single token-driven replacement. Members are literal classes, never prefix globs — so directional/arbitrary variants (rounded-t-lg, rounded-tl-sm, rounded-[2px]) and semantic shapes (rounded-full) are NEVER matched and therefore preserved.",
+        "radius/shadow: rounded-full, rounded-none, shadow-none, shadow-inner are intentionally NOT members.",
+        "border: the bare `border` width utility maps to `border-ui` ONLY on the files in families.border.scope.only. border-ui is Card-only per docs/README-SHAPE-TOKENS.md (--ui-border-width defaults to 0); every other primitive keeps literal border / border-2 / border-transparent / border-b. border-2, border-input, border-transparent, border-b/-t are NOT members.",
+        "imports.relativizeAliases is the storefront-ui canonical convention (ESLint there forbids @/ imports under src/components/ui). Customers who keep the shadcn @/ convention set relativizeAliases: [] in ruleset.customer.json — relative imports still resolve correctly either way."
+    ],
+    "families": {
+        "radius": {
+            "replacement": "rounded-ui",
+            "members": [
+                "rounded",
+                "rounded-sm",
+                "rounded-md",
+                "rounded-lg",
+                "rounded-xl",
+                "rounded-2xl",
+                "rounded-3xl"
+            ]
+        },
+        "shadow": {
+            "replacement": "shadow-ui",
+            "members": [
+                "shadow",
+                "shadow-2xs",
+                "shadow-xs",
+                "shadow-sm",
+                "shadow-md",
+                "shadow-lg",
+                "shadow-xl",
+                "shadow-2xl"
+            ]
+        },
+        "border": {
+            "replacement": "border-ui",
+            "members": ["border"],
+            "scope": {
+                "only": ["card"]
+            }
+        }
+    },
+    "imports": {
+        "relativizeAliases": ["@/"],
+        "utilsAlias": "@/lib/utils"
+    }
+}
