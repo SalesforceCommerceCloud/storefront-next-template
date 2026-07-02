@@ -158,11 +158,6 @@ export type AppConfig = {
             callbackUri?: string;
             landingUri?: string;
             mode: 'callback' | 'email' | 'sms';
-            /**
-             * When true (default), checkout skips the passwordless authorize call when the
-             * email-verification site pref is disabled. Set to false to always call SLAS.
-             */
-            skipWhenEmailVerificationDisabled?: boolean;
         };
         otpRequest: {
             callbackUri?: string;

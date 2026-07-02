@@ -74,6 +74,18 @@ export async function action({
 
     const appConfig = getConfig(context);
 
+    // When email verification is disabled the request routes to standard (password) login,
+    // which Turnstile does not protect; deciding this before enforcement prevents a
+    // gated-off widget (no token) from producing a spurious 403. No cc-tv cookie is set
+    // because no Turnstile gate was cleared.
+    const { emailVerificationEnabled } = getLoginPreferences(context);
+    if (!emailVerificationEnabled) {
+        logger.info('AuthorizePasswordlessEmail: email verification disabled, skipping SLAS', {
+            email: redactEmailForLog(email),
+        });
+        return data({ success: false, requiresLogin: true, email });
+    }
+
     const allowed = await enforceTurnstile({
         request,
         config: appConfig,
@@ -111,19 +123,6 @@ export async function action({
     );
     const setCookieHeader = await tvCookie.serialize('1');
     const headers = { 'Set-Cookie': setCookieHeader };
-
-    // Passwordless login (via SLAS /passwordless/login) requires the email-verification
-    // site pref. When the pref is disabled, the storefront has nothing to gain from calling
-    // SLAS, so route directly to the standard login modal. Override via
-    // features.passwordlessLogin.skipWhenEmailVerificationDisabled=false.
-    const { emailVerificationEnabled } = getLoginPreferences(context);
-    const skipWhenDisabled = appConfig.features.passwordlessLogin.skipWhenEmailVerificationDisabled ?? true;
-    if (skipWhenDisabled && !emailVerificationEnabled) {
-        logger.info('AuthorizePasswordlessEmail: email verification disabled, skipping SLAS', {
-            email: redactEmailForLog(email),
-        });
-        return data({ success: false, requiresLogin: true, email }, { headers });
-    }
 
     try {
         await authorizePasswordless(context, { userid: email, strictVerify });

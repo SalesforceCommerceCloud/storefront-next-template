@@ -255,7 +255,6 @@ export default defineConfig<Config>(
                     mode: 'email',
                     callbackUri: '/passwordless-login-callback',
                     landingUri: '/login',
-                    skipWhenEmailVerificationDisabled: true,
                 },
                 otpRequest: {
                     mode: 'email',

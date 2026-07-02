@@ -35,9 +35,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
     ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>()),
     getConfig: vi.fn(() => ({
         features: {
-            passwordlessLogin: {
-                skipWhenEmailVerificationDisabled: true,
-            },
+            passwordlessLogin: {},
         },
     })),
 }));
@@ -170,19 +168,20 @@ describe('action.authorize-passwordless-email', () => {
         expect(result.requiresLogin).toBe(true);
         expect(result.email).toBe('user@example.com');
         expect(mockAuthorizePasswordless).not.toHaveBeenCalled();
+        // The early return fires before enforceTurnstile; no Turnstile check is performed.
+        expect(mockEnforceTurnstile).not.toHaveBeenCalled();
     });
 
-    it('still calls SLAS when pref is disabled but skipWhenEmailVerificationDisabled is false', async () => {
+    it('returns standard-login route (not 403) when email verification is disabled and no Turnstile token is sent', async () => {
+        // When the Turnstile widget is gated off (email verification disabled), the client
+        // sends no token. The action must route to standard login before enforcement so the
+        // missing token does not produce a spurious 403.
         const { getLoginPreferences } = await import('@salesforce/storefront-next-runtime/data-store');
         vi.mocked(getLoginPreferences).mockReturnValueOnce({ emailVerificationEnabled: false });
-        const { getConfig } = await import('@salesforce/storefront-next-runtime/config');
-        vi.mocked(getConfig).mockReturnValueOnce({
-            features: { passwordlessLogin: { skipWhenEmailVerificationDisabled: false } },
-        } as never);
 
         const formData = new FormData();
         formData.append('email', 'user@example.com');
-        formData.append('strictVerify', 'true');
+        // No turnstileToken appended — widget was not shown to the user.
         const request = new Request('http://localhost/action/authorize-passwordless-email', {
             method: 'POST',
             body: formData,
@@ -191,8 +190,13 @@ describe('action.authorize-passwordless-email', () => {
         const response = await action({ request, context: mockContext } as ActionFunctionArgs);
         const result = response.data;
 
-        expect(result).toEqual({ success: true, email: 'user@example.com' });
-        expect(mockAuthorizePasswordless).toHaveBeenCalledTimes(1);
+        expectStatus(response, 200);
+        expect(result.success).toBe(false);
+        expect(result.requiresLogin).toBe(true);
+        expect(result.email).toBe('user@example.com');
+        expect(result.error).toBeUndefined();
+        expect(mockEnforceTurnstile).not.toHaveBeenCalled();
+        expect(mockAuthorizePasswordless).not.toHaveBeenCalled();
     });
 
     it('forwards strictVerify=true to authorizePasswordless when caller sets it', async () => {
@@ -545,6 +549,25 @@ describe('action.authorize-passwordless-email', () => {
             const response = await action({ request, context: mockContext } as ActionFunctionArgs);
 
             expect(response.data.error?.code).toBe('NOT_AUTHORIZED');
+            expect(getSetCookie(response)).toBeUndefined();
+        });
+
+        it('does NOT set cc-tv cookie when email verification is disabled (early return before Turnstile)', async () => {
+            // No Turnstile gate was cleared, so no attestation cookie is issued.
+            const { getLoginPreferences } = await import('@salesforce/storefront-next-runtime/data-store');
+            vi.mocked(getLoginPreferences).mockReturnValueOnce({ emailVerificationEnabled: false });
+
+            const formData = new FormData();
+            formData.append('email', 'user@example.com');
+            const request = new Request('http://localhost/action/authorize-passwordless-email', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const response = await action({ request, context: mockContext } as ActionFunctionArgs);
+
+            expectStatus(response, 200);
+            expect(response.data.requiresLogin).toBe(true);
             expect(getSetCookie(response)).toBeUndefined();
         });
 

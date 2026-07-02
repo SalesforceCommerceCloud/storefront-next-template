@@ -977,6 +977,7 @@ export default function CheckoutFormPage({
                                         onRegisteredUserChoseGuest={handleRegisteredUserChoseGuest}
                                         onPasswordlessOtpVerified={handlePasswordlessOtpVerifiedAtContact}
                                         suppressRegisteredEmailLoginHints={hideCreateAccountAfterSkippedPasswordlessOtp}
+                                        emailVerificationEnabled={emailVerificationEnabled}
                                         {...contactInfoState}
                                     />
                                 )}

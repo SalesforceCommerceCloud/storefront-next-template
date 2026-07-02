@@ -62,6 +62,8 @@ interface ContactInfoProps {
     otpFlowActiveRef?: OtpFlowActiveRef;
     /** Initial OTP sending state — used in Storybook to show the spinner in the email field without triggering fetcher logic */
     defaultOtpSending?: boolean;
+    /** When explicitly false, the Turnstile widget is skipped entirely for this step. Undefined is treated as enabled. */
+    emailVerificationEnabled?: boolean;
     // Step state managed by container
     isCompleted: boolean;
     isEditing: boolean;
@@ -77,6 +79,7 @@ export default function ContactInfo({
     suppressRegisteredEmailLoginHints = false,
     otpFlowActiveRef,
     defaultOtpSending = false,
+    emailVerificationEnabled,
     isCompleted: _isCompleted,
     isEditing,
     onEdit,
@@ -119,7 +122,7 @@ export default function ContactInfo({
     const verificationFailureCountRef = useRef(0);
     const MAX_VERIFICATION_RETRIES = 3;
 
-    const turnstileEnabled = isTurnstileEnabled(appConfig);
+    const turnstileEnabled = isTurnstileEnabled(appConfig) && emailVerificationEnabled !== false;
     const turnstileMode = getTurnstileMode(appConfig);
     const turnstileSiteKey = useMemo(() => {
         if (!turnstileEnabled) return null;

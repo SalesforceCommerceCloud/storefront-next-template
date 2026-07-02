@@ -652,19 +652,6 @@ The URI path of the magic link. A magic link is a single-use URL that contains t
 
 ---
 
-### features.passwordlessLogin.skipWhenEmailVerificationDisabled
-
-Type: `boolean` Optional | Default: `true`
-
-Controls whether the checkout contact step calls SLAS `/passwordless/login` when the email-verification site preference is disabled. When `true` (default), the storefront skips the SLAS round-trip and routes the shopper directly to the standard login modal, since passwordless login on the storefront requires the preference to be enabled. Set to `false` to always call SLAS regardless of the preference.
-
-Example:
-```bash
-PUBLIC__app__features__passwordlessLogin__skipWhenEmailVerificationDisabled="false"
-```
-
----
-
 ### features.otpRequest.mode
 
 Type: `'email' | 'callback'` | Default: `'email'`

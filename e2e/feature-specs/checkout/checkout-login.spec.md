@@ -23,10 +23,6 @@ How shopper login works at the checkout contact step, given the site's email-ver
 | `true` | 403 / 404 | Continue as guest |
 | `false` | n/a (SLAS not called) | Standard login modal (email + password); registration checkbox hidden; post-order registration card shown on order confirmation |
 
-## Configuration
-
-- `features.passwordlessLogin.skipWhenEmailVerificationDisabled` (default `true`): when `true`, the storefront skips the SLAS call at checkout if the verification pref is disabled. Set to `false` to always call SLAS.
-
 ## Notes
 
 - The recovery branch (`emailVerificationEnabled=true` + `400 + email not verified`) handles shoppers mid-email-change who haven't completed OTP verification. SLAS only emits this status when the pref is enabled.
