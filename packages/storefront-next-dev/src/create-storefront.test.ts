@@ -1211,3 +1211,78 @@ describe('pnpm-workspace.yaml supply chain settings parity', () => {
         expect(monorepoPolicy, `trustPolicy mismatch.\n${syncMessage}`).toEqual(templatePolicy);
     });
 });
+
+// --- Security override placement: transitive remediation pins land on the right channel ---
+// Transitive overrides live in two channels with two different jobs. The root
+// pnpm-workspace.yaml `overrides:` is the only channel that affects this monorepo's committed
+// lockfile (the per-template `pnpm.overrides` blocks are inert here — pnpm warns and ignores
+// them). The template `pnpm.overrides` blocks become a customer's effective root overrides at
+// generation time (the customer pnpm-workspace.yaml.hbs carries no overrides block).
+//
+// Whether a security override belongs in the template turns on how the vulnerable package
+// reaches a customer's tree:
+//   - Dev-reachable (e2e, build, lint tooling the template declares) → mirror to the templates,
+//     so a generated project pins the same fixed version the monorepo validated. Same value in
+//     all three channels.
+//   - Runtime-reachable only via a published SDK (storefront-next-runtime → mrt-utilities →
+//     aws-sdk) → root-only. The root pin's job is collapsing this monorepo's frozen lockfile
+//     duplicate so the CI SCA scan reads clean; a customer's fresh install floats the SDK's own
+//     dependency range up to the fixed version without a template override, and adding one would
+//     leak an SDK-internal concern into customer-owned code. Matches path-to-regexp /
+//     follow-redirects, the repo's existing runtime overrides.
+//
+// A pin on the wrong channel reintroduces the cleared advisory for customers (dev pin missing
+// from the template) or ships dead, customer-confusing config (runtime pin mirrored).
+
+/** Read an override pin — `  'key': 'value'   # comment` — from a YAML overrides block. */
+function extractOverridePin(yamlContent: string, key: string): string | undefined {
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = yamlContent.match(new RegExp(`^\\s*'?${escaped}'?:\\s*(.+)$`, 'm'));
+    return match?.[1]
+        ?.split('#')[0]
+        .trim()
+        .replace(/^['"]|['"]$/g, '');
+}
+
+describe('XML/URI security override placement', () => {
+    const DEV_REACHABLE_OVERRIDES = ['@xmldom/xmldom', 'fast-uri'];
+    const RUNTIME_REACHABLE_OVERRIDES = ['fast-xml-builder'];
+
+    const here = dirname(fileURLToPath(import.meta.url));
+    const monorepoYaml = readFileSync(resolve(here, '../../../pnpm-workspace.yaml'), 'utf8');
+    const templateRetailPkg = JSON.parse(
+        readFileSync(resolve(here, '../../template-retail-rsc-app/package.json'), 'utf8')
+    );
+    const templatePkg = JSON.parse(readFileSync(resolve(here, '../../template/package.json'), 'utf8'));
+
+    it('mirrors dev-reachable pins identically across the monorepo workspace and both template override blocks', () => {
+        for (const pkg of DEV_REACHABLE_OVERRIDES) {
+            const monorepoPin = extractOverridePin(monorepoYaml, pkg);
+            const retailPin = templateRetailPkg.pnpm?.overrides?.[pkg];
+            const templatePin = templatePkg.pnpm?.overrides?.[pkg];
+
+            expect(monorepoPin, `${pkg}: missing from monorepo pnpm-workspace.yaml overrides`).toBeDefined();
+            expect(retailPin, `${pkg}: template-retail-rsc-app pnpm.overrides drifted from the monorepo pin`).toBe(
+                monorepoPin
+            );
+            expect(templatePin, `${pkg}: template pnpm.overrides drifted from the monorepo pin`).toBe(monorepoPin);
+        }
+    });
+
+    it('keeps runtime-reachable pins root-only and out of the customer-facing template overrides', () => {
+        for (const pkg of RUNTIME_REACHABLE_OVERRIDES) {
+            expect(
+                extractOverridePin(monorepoYaml, pkg),
+                `${pkg}: missing from monorepo pnpm-workspace.yaml overrides`
+            ).toBeDefined();
+            expect(
+                templateRetailPkg.pnpm?.overrides?.[pkg],
+                `${pkg}: runtime override leaked into template-retail-rsc-app pnpm.overrides — keep it root-only`
+            ).toBeUndefined();
+            expect(
+                templatePkg.pnpm?.overrides?.[pkg],
+                `${pkg}: runtime override leaked into template pnpm.overrides — keep it root-only`
+            ).toBeUndefined();
+        }
+    });
+});
