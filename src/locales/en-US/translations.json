@@ -980,6 +980,16 @@
             "productImageLinkFallback": "View product details",
             "quantityLabel": "Qty: {{count}}",
             "trackingNumber": "Tracking Number",
+            "tracking": {
+                "provider": "Carrier",
+                "expectedDelivery": "Expected delivery",
+                "delivered": "Delivered",
+                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
+            },
+            "actions": {
+                "trackShipment": "Track shipment",
+                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
+            },
             "shippingAddress": "Shipping Address",
             "paymentMethod": "Payment Method",
             "paymentMethodEndingIn": "{{cardType}} Ending in {{lastDigits}}"

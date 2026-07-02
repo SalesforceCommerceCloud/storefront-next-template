@@ -207,5 +207,38 @@ describe('Order Details Route (_app.account.orders.$orderNo)', () => {
             unmount();
             await new Promise((resolve) => setTimeout(resolve, 10));
         });
+
+        test('a resolved success renders the order content and does NOT route to the error card', async () => {
+            // A no-`omsData` success and the SOM-not-connected case map to THE SAME
+            // route behavior: at this layer the route has no `omsData` branch — a
+            // successfully-resolved order always renders via the Await resolve path,
+            // and only a *rejected* orderData promise routes to the not-found / error
+            // card (locked by the reject test above). So the durable guarantee to
+            // verify here is: success → content renders, error card absent. The
+            // OMS-vs-ECOM *rendering* itself lives in the order-details component
+            // (mocked out in this route test) and is verified in its own tests.
+            // `productsById: {}` covers the products-degraded variant too.
+            vi.mocked(fetchOrderWithProducts).mockImplementation((_context, orderNoParam) => ({
+                orderDataPromise: Promise.resolve({
+                    order: { ...mockOrder, orderNo: orderNoParam },
+                    productsById: {},
+                }),
+                orderPromise: Promise.resolve({ ...mockOrder, orderNo: orderNoParam }),
+            }));
+            const router = createMemoryRouter(
+                [{ path: '/account/orders/:orderNo', element: <OrderDetailsPage />, loader: loader as any }],
+                { initialEntries: ['/account/orders/ECOM-1'] }
+            );
+            render(
+                <AllProvidersWrapper>
+                    <RouterProvider router={router} />
+                </AllProvidersWrapper>
+            );
+
+            await screen.findByTestId('order-details');
+            expect(screen.getByTestId('order-no')).toHaveTextContent('ECOM-1');
+            // the error / not-found card must NOT be present on a successful resolve
+            expect(screen.queryByTestId('order-not-found')).not.toBeInTheDocument();
+        });
     });
 });

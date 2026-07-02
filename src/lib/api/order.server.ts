@@ -18,6 +18,7 @@ import type { ShopperCustomers, ShopperOrders, ShopperProducts } from '@/scapi';
 import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
+import { resolveOrderStatus } from '@/lib/order/status';
 import type { Order } from '@/components/account/order-list';
 
 export type OrderProductDataById = Record<string, ShopperProducts.schemas['Product'] | undefined>;
@@ -57,6 +58,10 @@ export function fetchOrderWithProducts(
         .getOrder({
             params: {
                 path: { orderNo },
+                // Request OMS shipment-tracking enrichment. On a non-SOM org the
+                // expand tokens are silently disregarded (OAS degrade contract),
+                // so the ECOM path is unaffected when omsData is absent.
+                query: { expand: ['oms', 'oms_shipments'] },
             },
         })
         .then(({ data }) => data);
@@ -140,10 +145,15 @@ export function transformOrderForList(
         };
     });
 
+    // Prefer the ECOM status, falling back to the OMS status (shared resolver, so the
+    // list and the Order Details badge can't disagree for the same order). Default to
+    // `created` when neither is set.
+    const status = resolveOrderStatus(scapiOrder) ?? 'created';
+
     return {
         orderNo: scapiOrder.orderNo ?? '',
         orderDate: scapiOrder.creationDate ?? '',
-        status: scapiOrder.status ?? 'created',
+        status,
         total: scapiOrder.orderTotal ?? 0,
         currency: scapiOrder.currency,
         itemCount,
@@ -196,6 +206,12 @@ export async function fetchCustomerOrders(
                 query: {
                     offset,
                     limit,
+                    // Enrich each order with OMS status so the history badge reflects
+                    // fresh SOM status. getCustomerOrders's expand is the scalar enum
+                    // `'oms'` (NOT an array, and no `oms_shipments`), so this is
+                    // status-only — per-shipment tracking can't appear on the list.
+                    // On a non-SOM org the token is silently disregarded (OAS degrade).
+                    expand: 'oms',
                 },
             },
         });

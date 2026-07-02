@@ -232,6 +232,84 @@ export const getScapiBaseUrl = (shortCode: string): string =>
  */
 export const isAbsoluteURL = (url: string): boolean => /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
 
+/** Last-label patterns that mark a "host" as really a filename, not an external host. */
+const FILENAME_HOST = /\.(html?|php|aspx?|jsp|css|js|mjs|cjs|json|xml|txt|pdf|png|jpe?g|gif|svg|webp|ico)$/i;
+
+/**
+ * A parsed URL is a safe external href only if it is http(s), carries NO userinfo,
+ * and resolves to a plausible public host. Userinfo is rejected because
+ * `new URL('https://www.carrier.com@evil.com')` parses `evil.com` as the host and
+ * `www.carrier.com` as the username — the href would read like the carrier but
+ * navigate elsewhere. A host with no dot, an empty label (`a..b`), or one that looks
+ * like a bare filename (`data.html`) isn't a real external host.
+ */
+const isSafeExternalUrl = (url: URL): boolean => {
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+    if (url.username || url.password) return false;
+    const host = url.hostname;
+    if (!host.includes('.')) return false;
+    if (!host.split('.').every((label) => label.length > 0)) return false;
+    if (FILENAME_HOST.test(host)) return false;
+    return true;
+};
+
+/**
+ * Normalize a possibly scheme-less external URL (e.g. a carrier tracking URL) into
+ * a safe, absolute http(s) URL for an `href`. Prepends `https://` to a scheme-less
+ * value so the browser doesn't treat it as a path relative to the current page.
+ *
+ * Unlike {@link isAbsoluteURL} (which reports a bare host as not-absolute), this
+ * turns such a host into an absolute external URL. A result is returned only when it
+ * passes {@link isSafeExternalUrl} (http(s), no userinfo, plausible host); unsafe or
+ * non-web values (`javascript:`, `data:`, `mailto:`, userinfo spoofs, internal/relative
+ * paths, bare filenames, …) and non-string input return `undefined` so callers render
+ * an inactive `<a>`. Pair the link with `target="_blank" rel="noopener noreferrer"`.
+ */
+export const ensureExternalUrl = (input: string | null | undefined): string | undefined => {
+    if (typeof input !== 'string') return undefined;
+
+    // Backslashes never appear in a real carrier URL; the WHATWG parser treats `\`
+    // as `/`, so a value like `https:\\evil.com` would smuggle in an authority.
+    if (input.includes('\\')) return undefined;
+
+    // Reject relative / app-internal paths on the RAW input, before stripping (allow
+    // protocol-relative "//host"). Pre-strip so a control char between slashes
+    // (e.g. "/\x00/evil.com") can't collapse into "//host" and evade this guard.
+    if (input.startsWith('/') && !input.startsWith('//')) return undefined;
+    if (input.startsWith('.')) return undefined;
+
+    // eslint-disable-next-line no-control-regex -- strip control chars so they can't smuggle past the checks
+    const sanitized = input.replace(/[\x00-\x1f\x7f]/g, '').trim();
+    if (!sanitized) return undefined;
+
+    try {
+        // A real scheme (`https:`, `javascript:`, `mailto:`) parses to a dot-less
+        // protocol; a scheme-less `host:port` (`carrier.com:8080`) mis-parses to a
+        // dotted protocol — only the former should be validated/rejected as-is.
+        const parsed = new URL(sanitized);
+        if (!parsed.protocol.replace(/:$/, '').includes('.')) {
+            return isSafeExternalUrl(parsed) ? parsed.toString() : undefined;
+        }
+        // Dotted protocol WITH an authority (`attacker.com://ups.com/t`) is a host-confusion
+        // spoof — the real host is `ups.com` but it reads like `attacker.com`. It must NOT fall
+        // through to be re-prepended (which would yield `https://attacker.com//ups.com/t`). A
+        // genuine scheme-less `host:port` has an EMPTY host on this parse (`carrier.com:8080` →
+        // host ``), so only the empty-host form is allowed through to the prepend path.
+        if (parsed.host) return undefined;
+    } catch {
+        // no scheme — fall through to prepend
+    }
+
+    // Scheme-less (`www.carrier.com/t`, `//carrier.com`, `carrier.com:8080`) → prepend https.
+    const candidate = sanitized.startsWith('//') ? `https:${sanitized}` : `https://${sanitized}`;
+    try {
+        const fixed = new URL(candidate);
+        return isSafeExternalUrl(fixed) ? fixed.toString() : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
 /**
  * Returns the URL if it is a safe relative path, otherwise returns the fallback.
  * Prevents open redirect attacks by rejecting absolute URLs (e.g. https://evil.com, //evil.com).

@@ -144,6 +144,44 @@ describe('OrderDetails', () => {
         expect(screen.getByTestId('order-status-icon')).toBeInTheDocument();
     });
 
+    test('order-status badge prefers OMS status when ECOM status is absent (consistent with the order-history list)', () => {
+        // No top-level status → must fall back to omsData.status, so the detail-page
+        // badge can't disagree with the OMS-preferred history-list badge for the same order.
+        const order = {
+            ...defaultOrder,
+            status: undefined,
+            omsData: { status: 'cancelled' },
+        } as unknown as ShopperOrders.schemas['Order'];
+        renderOrderDetails(order);
+        expect(screen.getByTestId('order-status-badge')).toHaveTextContent(t('account:orders.status.cancelled'));
+    });
+
+    test('order-status badge prefers ECOM status over OMS status when both are present', () => {
+        // Two different mapped statuses so the assertion proves which one wins:
+        // the badge is ECOM-first (matching the order-history list), so the
+        // ECOM status wins over OMS. (OMS-preferred is the shipment-list mapper's rule,
+        // not the badge's.)
+        const order = {
+            ...defaultOrder,
+            status: 'new',
+            omsData: { status: 'cancelled' },
+        } as unknown as ShopperOrders.schemas['Order'];
+        renderOrderDetails(order);
+        expect(screen.getByTestId('order-status-badge')).toHaveTextContent(t('account:orders.status.new'));
+        expect(screen.getByTestId('order-status-badge')).not.toHaveTextContent(t('account:orders.status.cancelled'));
+    });
+
+    test('order-status badge is hidden when a blank OMS status is the only value (not surfaced as empty)', () => {
+        const order = {
+            ...defaultOrder,
+            status: undefined,
+            // blank OMS status must NOT propagate as a status → no badge
+            omsData: { status: '' },
+        } as unknown as ShopperOrders.schemas['Order'];
+        renderOrderDetails(order);
+        expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+    });
+
     test('renders Items Ordered heading', () => {
         renderOrderDetails();
         expect(screen.getByRole('heading', { level: 2, name: t('account:orders.itemsOrdered') })).toBeInTheDocument();

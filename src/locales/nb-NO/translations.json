@@ -858,6 +858,16 @@
             "productPlaceholderInitial": "Vare",
             "quantityLabel": "Antall: {{count}}",
             "trackingNumber": "Sporingsnummer",
+            "tracking": {
+                "provider": "Carrier",
+                "expectedDelivery": "Expected delivery",
+                "delivered": "Delivered",
+                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
+            },
+            "actions": {
+                "trackShipment": "Track shipment",
+                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
+            },
             "shippingAddress": "Leveringsadresse",
             "paymentMethod": "Betalingsmåte",
             "paymentMethodEndingIn": "{{cardType}} Som ender med {{lastDigits}}"
