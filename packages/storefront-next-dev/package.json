@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/storefront-next-dev",
-  "version": "1.1.0-dev",
+  "version": "1.2.0-dev",
   "description": "Dev and build tools for SFCC Storefront Next",
   "type": "module",
   "main": "./dist/index.js",

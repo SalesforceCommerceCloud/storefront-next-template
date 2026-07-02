@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { createRequire } from "module";
 
 //#region package.json
-var version = "1.1.0-dev";
+var version = "1.2.0-dev";
 
 //#endregion
 //#region src/utils/logger.ts

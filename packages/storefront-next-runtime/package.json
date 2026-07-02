@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/storefront-next-runtime",
-  "version": "1.1.0-dev",
+  "version": "1.2.0-dev",
   "description": "Runtime agnostic libraries for SFCC Storefront Next",
   "type": "module",
   "exports": {
