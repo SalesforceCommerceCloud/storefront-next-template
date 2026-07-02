@@ -3,7 +3,7 @@ import { n as DefineConfigOptions, r as defineConfig, t as BaseConfig } from "./
 import { n as defaultSecurityHeaders } from "./defaults.js";
 import { ReactNode } from "react";
 import * as react_jsx_runtime2 from "react/jsx-runtime";
-import * as react_router14 from "react-router";
+import * as react_router15 from "react-router";
 import { RouterContextProvider } from "react-router";
 
 //#region src/config/context.d.ts
@@ -46,7 +46,7 @@ interface ClientFacingAppConfigShape {}
  * app-config middleware; read via `context.get(appConfigContext)` in loaders,
  * actions, and other middleware. Returns the augmented `AppConfigShape`.
  */
-declare const appConfigContext: react_router14.RouterContext<AppConfigShape>;
+declare const appConfigContext: react_router15.RouterContext<AppConfigShape>;
 /**
  * Router context for the **client-safe view** of the application configuration —
  * `appConfigContext` minus any server-only namespaces (which namespaces are server-only
@@ -62,7 +62,7 @@ declare const appConfigContext: react_router14.RouterContext<AppConfigShape>;
  * full shape. For a stronger narrow at the read site, augment `ClientFacingAppConfigShape`
  * (the same slot that narrows `useConfig()`) and cast through `ClientFacingAppConfig`.
  */
-declare const clientAppConfigContext: react_router14.RouterContext<Partial<AppConfigShape>>;
+declare const clientAppConfigContext: react_router15.RouterContext<Partial<AppConfigShape>>;
 interface ConfigProviderProps {
   config: AppConfigShape;
   children: ReactNode;

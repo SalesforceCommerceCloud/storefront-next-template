@@ -491,7 +491,8 @@ async function processPageTypeFile(filePath, projectRoot) {
 					regionDefinitions,
 					supportedAspectTypes: pageTypeConfig.supportedAspectTypes || [],
 					attributes,
-					route
+					route,
+					...pageTypeConfig.preview !== void 0 && { preview: pageTypeConfig.preview }
 				};
 				pageTypes.push(pageTypeMetadata);
 			}
@@ -578,6 +579,7 @@ async function generatePageTypeCartridge(pageType, outputDir, dryRun = false) {
 		}];
 		if (pageType.supportedAspectTypes) cartridgeData.supported_aspect_types = pageType.supportedAspectTypes;
 		if (pageType.route) cartridgeData.route = pageType.route;
+		if (pageType.preview !== void 0) cartridgeData.preview = pageType.preview;
 		await writeFile(outputPath, JSON.stringify(cartridgeData, null, 2));
 	}
 	const prefix = dryRun ? "   - [DRY RUN]" : "   -";

@@ -599,6 +599,9 @@ async function processPageTypeFile(filePath: string, projectRoot: string): Promi
                     supportedAspectTypes: pageTypeConfig.supportedAspectTypes || [],
                     attributes,
                     route,
+                    // Only carry `preview` when the decorator declared it, so undeclared page types
+                    // stay clean and the emitted JSON omits the field entirely.
+                    ...(pageTypeConfig.preview !== undefined && { preview: pageTypeConfig.preview }),
                 };
 
                 pageTypes.push(pageTypeMetadata);
@@ -743,6 +746,13 @@ async function generatePageTypeCartridge(
 
         if (pageType.route) {
             cartridgeData.route = pageType.route;
+        }
+
+        // Add preview only when the page type declared it (omitted otherwise to keep existing
+        // page-type JSON byte-stable). Use the same presence check as processPageTypeFile so the
+        // "declared" gate is identical on both sides.
+        if (pageType.preview !== undefined) {
+            cartridgeData.preview = pageType.preview;
         }
 
         await writeFile(outputPath, JSON.stringify(cartridgeData, null, 2));

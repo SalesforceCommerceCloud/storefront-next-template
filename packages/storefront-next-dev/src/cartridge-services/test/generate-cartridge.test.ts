@@ -1435,6 +1435,66 @@ describe('generateMetadata integration tests', () => {
         expect(writtenData.supported_aspect_types).toBeDefined();
     });
 
+    test('should emit preview when declared on the page type', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const pageTypeCode = `
+            @PageType({ id: 'previewPage', name: 'Preview Page', preview: 'default' })
+            class PreviewPage {
+                @AttributeDefinition()
+                title: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'routes', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([{ name: 'previewPage.tsx', isDirectory: () => false, isFile: () => true } as any]);
+
+        vi.mocked(readFile).mockResolvedValue(pageTypeCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(writeFile).toHaveBeenCalled();
+        const writeCall = vi.mocked(writeFile).mock.calls[0];
+        const writtenData = JSON.parse(writeCall[1] as string);
+        expect(writtenData.preview).toBe('default');
+    });
+
+    test('should omit preview when not declared on the page type', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const pageTypeCode = `
+            @PageType({ id: 'plainPage', name: 'Plain Page' })
+            class PlainPage {
+                @AttributeDefinition()
+                title: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'routes', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([{ name: 'plainPage.tsx', isDirectory: () => false, isFile: () => true } as any]);
+
+        vi.mocked(readFile).mockResolvedValue(pageTypeCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(writeFile).toHaveBeenCalled();
+        const writeCall = vi.mocked(writeFile).mock.calls[0];
+        const writtenData = JSON.parse(writeCall[1] as string);
+        expect('preview' in writtenData).toBe(false);
+    });
+
     test('should handle component without @Component decorator', async () => {
         const projectDir = '/test/project';
         const metadataDir = '/test/metadata';

@@ -285,4 +285,34 @@ describe('PageType Decorator', () => {
             expect(metadataB?.supportedAspectTypes).toEqual(['type-b']);
         });
     });
+
+    describe('preview', () => {
+        test('stores preview when declared', () => {
+            const config: PageTypeConfig = {
+                name: 'Preview Page',
+                description: 'Page type marked preview-capable',
+                supportedAspectTypes: ['content'],
+                preview: 'default',
+            };
+
+            @PageType(config)
+            class PreviewPage {}
+
+            const metadata = getPageTypeMetadata(PreviewPage);
+            expect(metadata?.preview).toBe('default');
+            expect(metadata).toEqual(config);
+        });
+
+        test('leaves preview undefined when not declared', () => {
+            @PageType({
+                name: 'Plain Page',
+                description: 'Page type without preview',
+                supportedAspectTypes: ['content'],
+            })
+            class PlainPage {}
+
+            const metadata = getPageTypeMetadata(PlainPage);
+            expect(metadata?.preview).toBeUndefined();
+        });
+    });
 });
