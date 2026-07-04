@@ -1,4 +1,4 @@
-import * as react_router8 from "react-router";
+import * as react_router3 from "react-router";
 import { MiddlewareFunction, RouterContextProvider, createContext } from "react-router";
 import { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError } from "@salesforce/mrt-utilities/data-store";
 
@@ -157,7 +157,7 @@ interface DataStoreLogger {
  * Defaults to `null` (not `undefined`) because React Router's
  * `context.get()` throws when `defaultValue === undefined`.
  */
-declare const dataStoreLoggerContext: react_router8.RouterContext<DataStoreLogger | null>;
+declare const dataStoreLoggerContext: react_router3.RouterContext<DataStoreLogger | null>;
 /**
  * Read the data-store logger from router context, falling back to a
  * console-based default when nothing has been injected.
@@ -234,7 +234,7 @@ type LoginPreferences = {
 declare function getLoginPreferences(context: Readonly<RouterContextProvider>): LoginPreferences;
 //#endregion
 //#region src/data-store/index.d.ts
-declare const dataStoreMiddleware: react_router8.MiddlewareFunction<Response>[];
+declare const dataStoreMiddleware: react_router3.MiddlewareFunction<Response>[];
 //#endregion
 export { type CustomGlobalPreferences, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, getCustomGlobalPreferences, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpPreferences, getLoginPreferences, getSitePreferences, readLazyDataStoreEntry };
 //# sourceMappingURL=data-store.d.ts.map
