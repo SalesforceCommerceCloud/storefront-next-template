@@ -90,8 +90,7 @@ describe('DeferredWishlistButton', () => {
                 <WishlistProvider
                     initialState={{
                         customerId: 'cust-1',
-                        listId: 'list-1',
-                        itemsByProductId: new Map([['test-product', { itemId: 'item-1' }]]),
+                        productIds: new Set(['test-product']),
                     }}>
                     <DeferredWishlistButton {...defaultProps} />
                 </WishlistProvider>

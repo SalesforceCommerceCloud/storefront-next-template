@@ -24,21 +24,55 @@ import {
     useState,
     useSyncExternalStore,
 } from 'react';
-import { useScapiFetchClient } from '@/hooks/use-scapi-fetch';
+import { resourceRoutes } from '@/route-paths';
 import type { ApiResponse } from '@/lib/scapi/types';
 import type { WishlistInitialState } from '@/lib/wishlist/state';
 
 /**
- * Placeholder itemId stored alongside an optimistically-inserted product while the
- * SCAPI add call is in flight. The real itemId returned by SCAPI replaces this on
- * success; on failure the entry is removed entirely. Exported only for tests.
+ * Per-product store entry. `pending` is true while an optimistic add for that
+ * product is awaiting the server action's confirmation; it flips to false on
+ * success and the entry is removed entirely on failure.
  */
-const PENDING_ITEM_ID = '__pending__';
+export type WishlistEntry = { pending: boolean };
 
-export type WishlistEntry = { itemId: string };
+/** Shape the `/action/wishlist-*` routes serialize via React Router's `data()`. */
+type WishlistActionResult = {
+    success?: boolean;
+    alreadyInWishlist?: boolean;
+    error?: { message?: string };
+};
 
 /**
- * Referentially-stable external store for the `productId → { itemId }` map.
+ * POST a wishlist mutation to a server action route and normalize the response to
+ * {@link ApiResponse}. Plain `fetch` (not `useFetcher`) so the write doesn't trigger
+ * loader revalidation on the page. Always resolves — failures are coerced to
+ * `{ success: false, errors: [...] }`.
+ */
+async function postWishlistAction(
+    route: string,
+    productId: string
+): Promise<ApiResponse<{ alreadyInWishlist?: boolean }>> {
+    try {
+        const body = new FormData();
+        body.set('productId', productId);
+        const response = await fetch(route, { method: 'POST', body });
+        const parsed = (await response.json()) as WishlistActionResult;
+
+        if (!response.ok || !parsed.success) {
+            return {
+                success: false,
+                errors: [parsed.error?.message ?? (response.statusText || `HTTP ${response.status}`)],
+            };
+        }
+
+        return { success: true, data: { alreadyInWishlist: parsed.alreadyInWishlist } };
+    } catch (e) {
+        return { success: false, errors: [e instanceof Error ? e.message : 'Network error'] };
+    }
+}
+
+/**
+ * Referentially-stable external store for the `productId → { pending }` map.
  * Inspired by `createSubCategoryStore` in `navigation-menu/context.ts`.
  *
  * Subscribers are only invoked when the underlying map identity changes, and
@@ -48,8 +82,12 @@ export type WishlistEntry = { itemId: string };
  */
 export type WishlistStore = ReturnType<typeof createWishlistStore>;
 
-function createWishlistStore(initial: ReadonlyMap<string, WishlistEntry>) {
-    let data: ReadonlyMap<string, WishlistEntry> = new Map(initial);
+function createWishlistStore(initialProductIds: ReadonlySet<string>) {
+    const seed = new Map<string, WishlistEntry>();
+    for (const id of initialProductIds) {
+        seed.set(id, { pending: false });
+    }
+    let data: ReadonlyMap<string, WishlistEntry> = seed;
     const listeners = new Set<() => void>();
 
     const notify = () => {
@@ -78,7 +116,7 @@ function createWishlistStore(initial: ReadonlyMap<string, WishlistEntry>) {
         /** Insert/replace a single entry. Notifies on identity change of the entry. */
         set(this: void, productId: string, entry: WishlistEntry): void {
             const prev = data.get(productId);
-            if (prev && prev.itemId === entry.itemId) {
+            if (prev && prev.pending === entry.pending) {
                 // Identical entry; skip notify so per-id subscribers don't re-render.
                 return;
             }
@@ -96,8 +134,12 @@ function createWishlistStore(initial: ReadonlyMap<string, WishlistEntry>) {
             notify();
         },
         /** Bulk replace. Used when async hydration of initialState resolves. */
-        replaceAll(this: void, entries: ReadonlyMap<string, WishlistEntry>): void {
-            data = new Map(entries);
+        replaceAll(this: void, productIds: ReadonlySet<string>): void {
+            const next = new Map<string, WishlistEntry>();
+            for (const id of productIds) {
+                next.set(id, { pending: false });
+            }
+            data = next;
             notify();
         },
     };
@@ -106,15 +148,14 @@ function createWishlistStore(initial: ReadonlyMap<string, WishlistEntry>) {
 /**
  * Actions exposed to mutating components. The reference identity of `add`,
  * `remove`, and `toggle` is stable for the provider's lifetime — they read the
- * current `customerId`/`listId` from a ref at call time, so they don't change
- * identity when those IDs hydrate. Don't key an effect on these references
- * expecting it to re-run after hydration; subscribe to the store instead.
+ * current `customerId` from a ref at call time, so they don't change identity
+ * when it hydrates. Don't key an effect on these references expecting it to
+ * re-run after hydration; subscribe to the store instead.
  * `isPending` is a global "any mutation in flight" flag — components that need
- * per-product pending state should derive it from the `__pending__` sentinel
- * via `useWishlistEntry`.
+ * per-product pending state should derive it via `useWishlistEntry`.
  */
 export type WishlistActions = {
-    /** Optimistic add. Resolves with the SCAPI result; rolls back on `!success`. */
+    /** Optimistic add. Resolves with the server result; rolls back on `!success`. */
     add: (productId: string) => Promise<ApiResponse<unknown>>;
     /** Optimistic remove. */
     remove: (productId: string) => Promise<ApiResponse<unknown>>;
@@ -144,8 +185,8 @@ function useWishlistStore(): WishlistStore {
  * Subscribe to whether a specific `productId` is currently in the wishlist.
  *
  * Re-renders ONLY when the entry for that productId is added, removed, or its
- * itemId changes (e.g. placeholder → real id on add success). A change to a
- * different product's entry will not trigger a re-render here. Use this for
+ * pending flag changes (e.g. optimistic → confirmed on add success). A change to
+ * a different product's entry will not trigger a re-render here. Use this for
  * per-tile heart icons in product grids.
  */
 // eslint-disable-next-line react-refresh/only-export-components
@@ -164,8 +205,8 @@ export function useIsInWishlist(productId: string | undefined): boolean {
  * Subscribe to the per-product wishlist entry, including its pending state.
  *
  * Returns `{ inWishlist, pending }` where `pending` is true while the
- * optimistic add for that specific product is awaiting SCAPI confirmation
- * (placeholder itemId). Re-renders only when the entry identity changes.
+ * optimistic add for that specific product is awaiting server confirmation.
+ * Re-renders only when the entry identity changes.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useWishlistEntry(productId: string | undefined): {
@@ -182,7 +223,7 @@ export function useWishlistEntry(productId: string | undefined): {
     return useMemo(
         () => ({
             inWishlist: entry !== undefined,
-            pending: entry?.itemId === PENDING_ITEM_ID,
+            pending: entry?.pending ?? false,
         }),
         [entry]
     );
@@ -190,8 +231,8 @@ export function useWishlistEntry(productId: string | undefined): {
 
 /**
  * Subscribe to the wishlist size. Re-renders only when the count changes — adds
- * and removes both flip identity, but optimistic placeholder → real-id swaps
- * do not change the count and so do not re-render badge consumers.
+ * and removes both flip identity, but optimistic → confirmed swaps do not change
+ * the count and so do not re-render badge consumers.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useWishlistCount(): number {
@@ -251,13 +292,14 @@ export function useWishlistActions(): WishlistActions {
  * (PLP, PDP, search, cart, home recommenders, account overview); routes without
  * wishlist UI shouldn't mount it and pay no SCAPI hydration cost.
  *
- * Holds the `productId → itemId` mapping required for SCAPI deletes in a
- * referentially-stable external store; consumers subscribe with topic
- * granularity via {@link useIsInWishlist}, {@link useWishlistCount}, etc.
+ * Holds the set of product IDs in the wishlist in a referentially-stable external
+ * store; consumers subscribe with topic granularity via {@link useIsInWishlist},
+ * {@link useWishlistCount}, etc.
  *
- * `add`/`remove` flip optimistic state synchronously, then issue the SCAPI call
- * via `useScapiFetchClient` and roll back on failure. On `add` success the
- * placeholder itemId is replaced with the real value returned by SCAPI.
+ * `add`/`remove` flip optimistic state synchronously, then POST to the
+ * `/action/wishlist-add` / `/action/wishlist-remove` server actions (keyed by
+ * `productId`) and roll back on failure. All SCAPI work — list get-or-create, item
+ * lookup, add/delete — happens server-side; the client issues no direct SCAPI calls.
  */
 export function WishlistProvider({
     initialState,
@@ -266,14 +308,14 @@ export function WishlistProvider({
     /**
      * Wishlist initial state. Pass a `Promise` from a route loader to defer the
      * SCAPI hydration off the SSR critical path — the provider mounts immediately
-     * with empty state, then hydrates the store + customer/list IDs in a
-     * `useEffect` once the Promise resolves. Pass a sync value when the loader
-     * already awaited it (e.g. tests, or a route that doesn't mind blocking).
+     * with empty state, then hydrates the store + customerId in a `useEffect` once
+     * the Promise resolves. Pass a sync value when the loader already awaited it
+     * (e.g. tests, or a route that doesn't mind blocking).
      *
      * Hearts render unfilled until hydration completes — uncritical for product
      * tiles (the `<DeferredWishlistButton>` placeholder is gated on hover anyway)
-     * and acceptable for eagerly-mounted hearts (the SCAPI round-trip is fast
-     * enough that the flash is rarely user-visible).
+     * and acceptable for eagerly-mounted hearts (the round-trip is fast enough that
+     * the flash is rarely user-visible).
      */
     initialState: Promise<WishlistInitialState> | WishlistInitialState;
     children: ReactNode;
@@ -282,19 +324,16 @@ export function WishlistProvider({
     // path; for the Promise path we replaceAll() once the Promise resolves so
     // the store reference itself stays stable for the provider's lifetime.
     const [store] = useState(() =>
-        createWishlistStore(initialState instanceof Promise ? new Map() : initialState.itemsByProductId)
+        createWishlistStore(initialState instanceof Promise ? new Set<string>() : initialState.productIds)
     );
 
-    // Customer/list IDs live on a ref, not in state. They feed only the per-call SCAPI `params` overrides in
-    // add/remove (the URL ids), which read the current ref value on click — never during render. Holding them in
-    // `useState` would re-render the whole provider when async hydration flips null → real, which rebuilds the actions
-    // context value and re-renders every consumer of the page subtree at once (a whole-page hydration flicker). The
-    // store fill below reaches only the topic subscribers whose entries actually changed.
-    const idsRef = useRef<{ customerId: string | null; listId: string | null }>(
-        initialState instanceof Promise
-            ? { customerId: null, listId: null }
-            : { customerId: initialState.customerId, listId: initialState.listId }
-    );
+    // customerId lives on a ref, not in state. It's only read at click time by
+    // add/remove as the signed-in gate — never during render. Holding it in
+    // `useState` would re-render the whole provider when async hydration flips
+    // null → real, which rebuilds the actions context value and re-renders every
+    // consumer of the page subtree at once (a whole-page hydration flicker). The
+    // store fill below reaches only the topic subscribers whose entries changed.
+    const customerIdRef = useRef<string | null>(initialState instanceof Promise ? null : initialState.customerId);
 
     // When initialState is a Promise, hydrate post-mount. `useEffect` doesn't run
     // on the server, so the SSR pass renders with the empty state — the wishlist
@@ -306,8 +345,8 @@ export function WishlistProvider({
         void initialState.then(
             (state) => {
                 if (cancelled) return;
-                idsRef.current = { customerId: state.customerId, listId: state.listId };
-                store.replaceAll(state.itemsByProductId);
+                customerIdRef.current = state.customerId;
+                store.replaceAll(state.productIds);
             },
             () => {
                 // SCAPI failed; keep the empty state so hearts stay unfilled rather than crash.
@@ -318,117 +357,105 @@ export function WishlistProvider({
         };
     }, [initialState, store]);
 
-    // SSR-safe SCAPI hooks: they only memoize a URL and build a `submit` callback during render — they do not fire
-    // `fetch()` or touch global state. The first network call happens inside `submit`, which only runs on user
-    // interaction (heart click), at which point add/remove supply the real customer/list IDs via a per-call `params`
-    // override. The construction-time placeholders here are never sent.
-    const addFetch = useScapiFetchClient('shopperCustomers', 'createCustomerProductListItem', {
-        params: { path: { customerId: '', listId: '' } },
-        // Construction-time placeholder; the real body is supplied per-call to submit().
-        // SCAPI requires priority/quantity/public on this endpoint.
-        body: { productId: '', quantity: 1, type: 'product', public: false, priority: 1 },
-    });
-    const removeFetch = useScapiFetchClient('shopperCustomers', 'deleteCustomerProductListItem', {
-        params: { path: { customerId: '', listId: '', itemId: '__placeholder__' } },
-    });
+    // Count of in-flight mutations backs the global `isPending` flag. Flipping it
+    // re-renders the provider and the actions-context consumers (heart buttons) so
+    // they can show a spinner / disable — matching the prior `useScapiFetchClient`
+    // behavior. Per-product pending state is isolated in the store (see PENDING flag).
+    const [inFlight, setInFlight] = useState(0);
+    const isPending = inFlight > 0;
 
-    const isPending = addFetch.isPending || removeFetch.isPending;
-
-    // Stash the latest SCAPI submit functions on a ref so the action callbacks
-    // below stay referentially stable across re-renders (they only need to read
-    // the *current* submit, not capture it).
-    const addSubmitRef = useRef(addFetch.submit);
-    addSubmitRef.current = addFetch.submit;
-    const removeSubmitRef = useRef(removeFetch.submit);
-    removeSubmitRef.current = removeFetch.submit;
+    // Serializes wishlist write round-trips (the POSTs to the action routes). Optimistic
+    // store updates still happen synchronously — the UI never waits — but the network calls
+    // run one at a time. This is required because the FIRST add for a shopper with no
+    // wishlist provisions the list server-side via `getOrCreateWishlist`, a non-atomic
+    // read-then-create. Firing concurrent first-adds would let each request see "no list"
+    // and POST its own create, producing duplicate lists and silently stranding items on the
+    // losing one. Serializing guarantees the provisioning add settles before the next POST,
+    // so every later write finds the list already created. (Registered/guest sessions that
+    // hydrated with items already have a list, so their writes just await an already-settled
+    // chain and effectively run back-to-back with no added latency.)
+    const writeChainRef = useRef<Promise<unknown>>(Promise.resolve());
+    const enqueueWrite = useCallback(function enqueue<T>(task: () => Promise<T>): Promise<T> {
+        const run = writeChainRef.current.then(task);
+        // Swallow on the stored tail so a failed write never poisons later writes; the
+        // caller still sees the real result/rejection via `run`.
+        writeChainRef.current = run.catch(() => undefined);
+        return run;
+    }, []);
 
     const add = useCallback(
         async (productId: string): Promise<ApiResponse<unknown>> => {
-            const { customerId, listId } = idsRef.current;
-            if (!customerId || !listId) {
+            const customerId = customerIdRef.current;
+            if (!customerId) {
                 return { success: false, errors: ['Not signed in'] };
             }
 
-            // Fast path: item is confirmed in the server-side wishlist already.
-            // Surface as a typed signal so the caller can show the right toast
-            // ("already in wishlist") instead of triggering a duplicate SCAPI call.
+            // Fast path: item is confirmed in the wishlist already. Surface as a typed
+            // signal so the caller can show the right toast ("already in wishlist")
+            // instead of triggering a duplicate server call.
             const existing = store.get(productId);
-            if (existing && existing.itemId !== PENDING_ITEM_ID) {
+            if (existing && !existing.pending) {
                 return { success: true, data: { alreadyInWishlist: true } };
             }
             // An add for the same product is in flight from another button — refuse rather
             // than show a misleading "already in wishlist" toast for an unconfirmed insert.
-            if (existing?.itemId === PENDING_ITEM_ID) {
+            if (existing?.pending) {
                 return { success: false, errors: ['Wishlist update in progress'] };
             }
 
-            // Optimistic insert with placeholder itemId; replaced on success.
-            store.set(productId, { itemId: PENDING_ITEM_ID });
-
-            // Per-call params override re-encodes the URL with the current customer/list IDs
-            // (hydrated post-mount into idsRef) for this submit.
-            const result = await addSubmitRef.current(
-                {
-                    productId,
-                    quantity: 1,
-                    type: 'product',
-                    public: false,
-                    priority: 1,
-                },
-                { params: { path: { customerId, listId } } }
-            );
-
-            if (!result.success) {
-                store.delete(productId);
+            // Optimistic insert with pending flag; confirmed (or removed) on settle.
+            store.set(productId, { pending: true });
+            setInFlight((n) => n + 1);
+            try {
+                // Serialize the POST behind any in-flight write so a first-add provisions the
+                // list before the next request runs (see `enqueueWrite`).
+                const result = await enqueueWrite(() => postWishlistAction(resourceRoutes.wishlistAdd, productId));
+                if (!result.success) {
+                    store.delete(productId);
+                    return result;
+                }
+                store.set(productId, { pending: false });
                 return result;
+            } finally {
+                setInFlight((n) => n - 1);
             }
-
-            const realItemId = (result.data as { id?: string } | undefined)?.id;
-            if (realItemId) {
-                store.set(productId, { itemId: realItemId });
-                return result;
-            }
-            // Defensive: SCAPI returned success without an item id. Roll back the optimistic
-            // insert and convert the result to a failure so the caller can surface an error
-            // instead of leaving a `__pending__` placeholder that no future remove() can clear.
-            store.delete(productId);
-            return { success: false, errors: ['Wishlist item missing id'] };
         },
-        [store]
+        [store, enqueueWrite]
     );
 
     const remove = useCallback(
         async (productId: string): Promise<ApiResponse<unknown>> => {
-            const { customerId, listId } = idsRef.current;
-            if (!customerId || !listId) {
+            const customerId = customerIdRef.current;
+            if (!customerId) {
                 return { success: false, errors: ['Not signed in'] };
             }
             const item = store.get(productId);
             if (!item) {
                 return { success: false, errors: ['Not in wishlist'] };
             }
-            // The optimistic add for this product hasn't confirmed yet — we don't have a
-            // real itemId to send to SCAPI. Refuse rather than fire a guaranteed-4xx delete
-            // with the placeholder string.
-            if (item.itemId === PENDING_ITEM_ID) {
+            // The optimistic add for this product hasn't confirmed yet. Refuse rather
+            // than race a remove against an unconfirmed add.
+            if (item.pending) {
                 return { success: false, errors: ['Wishlist update in progress'] };
             }
 
             // Optimistic delete.
             store.delete(productId);
-
-            // Per-call params override re-encodes the URL with the real itemId for this submit.
-            const result = await removeSubmitRef.current(undefined, {
-                params: { path: { customerId, listId, itemId: item.itemId } },
-            });
-
-            if (!result.success) {
-                // Rollback to the prior entry (preserves itemId for any retry).
-                store.set(productId, item);
+            setInFlight((n) => n + 1);
+            try {
+                // Serialize behind any in-flight write so a remove can't race the create/add
+                // it depends on (see `enqueueWrite`).
+                const result = await enqueueWrite(() => postWishlistAction(resourceRoutes.wishlistRemove, productId));
+                if (!result.success) {
+                    // Rollback to the prior (confirmed) entry.
+                    store.set(productId, item);
+                }
+                return result;
+            } finally {
+                setInFlight((n) => n - 1);
             }
-            return result;
         },
-        [store]
+        [store, enqueueWrite]
     );
 
     const toggle = useCallback(
