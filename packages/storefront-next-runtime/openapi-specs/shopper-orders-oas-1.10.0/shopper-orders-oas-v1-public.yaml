@@ -589,6 +589,20 @@ components:
       description: A two letter lowercase language code conforming to the [ISO 639-1](https://www.iso.org/iso-639-language-codes.html) standard. Additionally, this may be used to submit requests with the header parameter `Accept-Language`, following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766).
       example: en
       type: string
+    DeliveryWindow:
+      description: The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps.
+      type: object
+      properties:
+        startAt:
+          description: The earliest expected delivery time, as an RFC 3339 date-time.
+          example: "2026-04-30T14:00:00Z"
+          type: string
+          format: date-time
+        endAt:
+          description: The latest expected delivery time, as an RFC 3339 date-time.
+          example: "2026-05-07T14:00:00Z"
+          type: string
+          format: date-time
     DefaultFallback:
       default: default
       description: A specialized value indicating the system default values for locales.
@@ -1677,6 +1691,10 @@ components:
           The type will reject any property that does not fit this pattern, only allowing additional properties beginning with the known prefix.
         example: c_trackingId
       properties:
+        deliveryWindow:
+          description: The estimated delivery window for the shipment. Populated by the sfcc.app.shipping.calculate hook from the selected shipping method. Omitted if the hook does not return a delivery window.
+          allOf:
+            - $ref: '#/components/schemas/DeliveryWindow'
         adjustedMerchandizeTotalTax:
           format: double
           description: |-

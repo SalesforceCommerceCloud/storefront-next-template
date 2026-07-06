@@ -213,6 +213,21 @@ export interface components {
          * @example en
          */
         LanguageCode: string;
+        /** @description The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps. */
+        DeliveryWindow: {
+            /**
+             * Format: date-time
+             * @description The earliest expected delivery time, as an RFC 3339 date-time.
+             * @example 2026-04-30T14:00:00Z
+             */
+            startAt?: string;
+            /**
+             * Format: date-time
+             * @description The latest expected delivery time, as an RFC 3339 date-time.
+             * @example 2026-05-07T14:00:00Z
+             */
+            endAt?: string;
+        };
         /**
          * @description A specialized value indicating the system default values for locales.
          * @default default
@@ -1165,6 +1180,8 @@ export interface components {
         };
         /** @description Document representing a shipment. */
         Shipment: {
+            /** @description The estimated delivery window for the shipment. Populated by the sfcc.app.shipping.calculate hook from the selected shipping method. Omitted if the hook does not return a delivery window. */
+            deliveryWindow?: components["schemas"]["DeliveryWindow"];
             /**
              * Format: double
              * @description The total tax on products in the shipment, including item-level price adjustments but not including

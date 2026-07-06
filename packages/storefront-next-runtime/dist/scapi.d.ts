@@ -6142,6 +6142,21 @@ interface components$14 {
      * @example en
      */
     LanguageCode: string;
+    /** @description The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps. */
+    DeliveryWindow: {
+      /**
+       * Format: date-time
+       * @description The earliest expected delivery time, as an RFC 3339 date-time.
+       * @example 2026-04-30T14:00:00Z
+       */
+      startAt?: string;
+      /**
+       * Format: date-time
+       * @description The latest expected delivery time, as an RFC 3339 date-time.
+       * @example 2026-05-07T14:00:00Z
+       */
+      endAt?: string;
+    };
     /**
      * @description A specialized value indicating the system default values for locales.
      * @default default
@@ -7061,6 +7076,8 @@ interface components$14 {
     };
     /** @description Document representing a shipping method. */
     ShippingMethod: {
+      /** @description The estimated delivery window for this shipping method. Populated by the sfcc.app.shipping.quote hook. Omitted if the hook does not return a delivery window. */
+      deliveryWindow?: components$14["schemas"]["DeliveryWindow"];
       /**
        * @description The localized description of the shipping method.
        * @example Order received within 7-10 business days
@@ -23163,6 +23180,21 @@ interface components$6 {
      * @example en
      */
     LanguageCode: string;
+    /** @description The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps. */
+    DeliveryWindow: {
+      /**
+       * Format: date-time
+       * @description The earliest expected delivery time, as an RFC 3339 date-time.
+       * @example 2026-04-30T14:00:00Z
+       */
+      startAt?: string;
+      /**
+       * Format: date-time
+       * @description The latest expected delivery time, as an RFC 3339 date-time.
+       * @example 2026-05-07T14:00:00Z
+       */
+      endAt?: string;
+    };
     /**
      * @description A specialized value indicating the system default values for locales.
      * @default default
@@ -24115,6 +24147,8 @@ interface components$6 {
     };
     /** @description Document representing a shipment. */
     Shipment: {
+      /** @description The estimated delivery window for the shipment. Populated by the sfcc.app.shipping.calculate hook from the selected shipping method. Omitted if the hook does not return a delivery window. */
+      deliveryWindow?: components$6["schemas"]["DeliveryWindow"];
       /**
        * Format: double
        * @description The total tax on products in the shipment, including item-level price adjustments but not including
