@@ -112,6 +112,61 @@ function CategoryBanner({ title, image }: CategoryBannerProps) {
 - **Radix UI**: Use Radix primitives for accessible behavior (focus, keyboard, ARIA).
 - **Icons**: Use **Lucide React** and **React Simple Icons** for iconography.
 
+### CSS-only decorative icons (pseudo-element + mask)
+
+When you want a purely decorative icon in front of (or after) an element whose component you shouldn't fork — a shared title, a label rendered deep in a shadcn primitive — add it with a `::before` / `::after` pseudo-element in theme CSS instead of editing the JSX. This keeps component-level styling out of components (see the rule above) and lets you hook a stable `data-slot` or structural selector rather than threading a prop through.
+
+The tokens, selectors, and icons below are **illustrative** — adapt them to your own storefront. The file paths (`src/theme/tokens/core.css`, `src/theme/base.css`) are where global tokens and base rules live.
+
+**Use a `mask` + `background-color`, not `content: url(...)`.** A masked SVG is **tintable**: `background-color: currentColor` paints the icon in the element's text color, so it tracks light/dark and theme changes automatically. A `content: url(...)` image renders at its baked-in colors and can't inherit `currentColor`. Define the SVG once as a token so it's reusable and themeable:
+
+```css
+/* src/theme/tokens/core.css — a Lucide icon as a mask data URI.
+   Percent-encode the SVG (e.g. encodeURIComponent) so characters like
+   #, %, <, > and quotes survive the data URI intact — an unencoded # or %
+   truncates the URI and the mask silently fails to load.
+   Inside a mask the SVG's alpha is what matters; the stroke color is never
+   painted, so it's a literal `black`, not `currentColor` (which doesn't
+   resolve inside a mask). The visible color comes from background-color below. */
+--icon-star: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M11.525%202.295a.53.53%200%200%201%20.95%200l2.31%204.679a2.123%202.123%200%200%200%201.595%201.16l5.166.756a.53.53%200%200%201%20.294.904l-3.736%203.638a2.123%202.123%200%200%200-.611%201.878l.882%205.14a.53.53%200%200%201-.771.56l-4.618-2.428a2.122%202.122%200%200%200-1.973%200L6.28%2021.28a.53.53%200%200%201-.77-.56l.881-5.139a2.122%202.122%200%200%200-.611-1.879L2.045%209.865a.53.53%200%200%201%20.294-.904l5.166-.755a2.122%202.122%200%200%200%201.597-1.16z%22%2F%3E%3C%2Fsvg%3E');
+--icon-check: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M20%206%209%2017l-5-5%22%2F%3E%3C%2Fsvg%3E');
+```
+
+```css
+/* src/theme/base.css — star icon before a title. The selector hooks the
+   title's structure; nothing in the component changes.
+   `flex-shrink: 0` applies because the parent is `inline-flex` (see the rule
+   below), so the ::before is a flex item and would otherwise be squeezed by a
+   long title. Drop it if the parent isn't a flex container. */
+[data-slot="section-title"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem; /* icon ↔ text */
+}
+
+[data-slot="section-title"]::before {
+    content: "";
+    display: inline-block;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    background-color: currentColor; /* tints the icon to the title text color */
+    -webkit-mask: var(--icon-star) center / contain no-repeat;
+    mask: var(--icon-star) center / contain no-repeat;
+}
+```
+
+**Swap on state by toggling only the mask.** Have the component set a `data-*` attribute on an ancestor when state changes, then add a rule that overrides just the mask image — size and tint stay put. Here the star becomes a `check` once the element is marked complete:
+
+```css
+[data-slot="section-title"][data-complete]::before {
+    -webkit-mask: var(--icon-check) center / contain no-repeat;
+    mask: var(--icon-check) center / contain no-repeat;
+}
+```
+
+> **Caveat — keep the structure stable.** Decoration hooked to structural selectors (`:first-child`, `> span`, `data-slot`) breaks if that structure shifts. If the icon must stay `:first-child`, keep that first element mounted (render it empty rather than removing it) so the icon doesn't detach. If you decorate by position, don't conditionally add or remove the siblings around it.
+
 ---
 
 ## Accessibility and Design System
