@@ -15,7 +15,7 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { expect, within } from 'storybook/test';
+import { expect, within, userEvent, fn } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import ProductQuantityPicker from '../index';
 
@@ -81,6 +81,47 @@ export const Default: Story = {
         void expect(incrementButton).not.toBeDisabled();
         // value === min (1), so decrement is disabled at rest
         void expect(decrementButton).toBeDisabled();
+    },
+};
+
+/**
+ * Stepper archetype — an interaction that crosses a validation threshold.
+ * The wrapper owns quantity as local state (JSDoc: "No API integration —
+ * simple state management"), so clicking increment is fully safe: it fires
+ * `onChange(n)` and re-renders with the new value, with no network or
+ * navigation. Starting at value=1 with stockLevel=2, two increments drive
+ * the quantity to 3 (> stock), which reveals the "Only N left" inventory
+ * alert that was absent at rest. Asserts both the callback contract and the
+ * interaction-driven conditional render.
+ */
+export const IncrementPastStock: Story = {
+    args: {
+        value: '1',
+        productName: 'Limited Run Tee',
+        stockLevel: 2,
+        onChange: fn(),
+    },
+    play: async ({ canvasElement, args }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // At rest: quantity is within stock, so no inventory alert.
+        await expect(canvas.getByDisplayValue('1')).toBeInTheDocument();
+        await expect(canvas.queryByRole('alert')).toBeNull();
+
+        const incrementButton = canvas.getByRole('button', { name: /increment quantity for/i });
+
+        // First increment → 2 (equal to stock, still no warning).
+        await userEvent.click(incrementButton);
+        await expect(canvas.getByDisplayValue('2')).toBeInTheDocument();
+        await expect(args.onChange).toHaveBeenLastCalledWith(2);
+        await expect(canvas.queryByRole('alert')).toBeNull();
+
+        // Second increment → 3 (exceeds stock) surfaces the "Only N left" alert.
+        await userEvent.click(incrementButton);
+        await expect(canvas.getByDisplayValue('3')).toBeInTheDocument();
+        await expect(args.onChange).toHaveBeenLastCalledWith(3);
+        await expect(canvas.getByRole('alert')).toBeInTheDocument();
     },
 };
 

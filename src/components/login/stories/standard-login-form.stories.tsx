@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import StandardLoginForm from '../standard-login-form';
 
@@ -96,5 +96,58 @@ export const PasswordlessDisabled: Story = {
         await expect(canvas.queryByRole('link', { name: 'Log in without password' })).toBeNull();
         await expect(canvas.getByRole('link', { name: 'Forgot your password?' })).toBeInTheDocument();
         await expect(canvas.getByRole('link', { name: 'Sign up' })).toBeInTheDocument();
+    },
+};
+
+/**
+ * Form-fill archetype. Types a valid email + password into the two required
+ * fields and asserts the values land and the submit button is enabled — the
+ * happy-path state a real shopper reaches just before submitting. Typing is
+ * the safe interaction here: it drives no network, no navigation, and no
+ * route action (submit itself is exercised only in the validation story below,
+ * where HTML5 constraints block it).
+ */
+export const FilledCredentials: Story = {
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        const emailInput = canvas.getByLabelText<HTMLInputElement>(/email/i);
+        const passwordInput = canvas.getByLabelText<HTMLInputElement>(/password/i);
+
+        await userEvent.type(emailInput, 'shopper@example.com');
+        await userEvent.type(passwordInput, 'SecurePass123!');
+
+        await expect(emailInput).toHaveValue('shopper@example.com');
+        await expect(passwordInput).toHaveValue('SecurePass123!');
+        // A valid email satisfies the native constraint on the `type="email"` field.
+        await expect(emailInput.validity.valid).toBe(true);
+        await expect(canvas.getByRole('button', { name: /sign in/i })).not.toBeDisabled();
+    },
+};
+
+/**
+ * Error-state archetype. The email field is `type="email"` + `required`, so an
+ * invalid address fails native HTML5 constraint validation. Clicking submit
+ * blocks the form at the browser level — the input reports itself `:invalid`
+ * with a `typeMismatch`, and no route action ever runs (safe: no navigation,
+ * no mutation). Mirrors the footer newsletter `InvalidEmailValidation` story.
+ */
+export const InvalidEmailValidation: Story = {
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        const emailInput = canvas.getByLabelText<HTMLInputElement>(/email/i);
+        const submitButton = canvas.getByRole('button', { name: /sign in/i });
+
+        await userEvent.type(emailInput, 'not-an-email');
+        await userEvent.click(submitButton);
+
+        // The browser fails constraint validation on the email input, so submission
+        // is blocked before any route action fires.
+        await expect(emailInput.validity.valid).toBe(false);
+        await expect(emailInput.validity.typeMismatch).toBe(true);
+        await expect(emailInput.validationMessage.length).toBeGreaterThan(0);
     },
 };

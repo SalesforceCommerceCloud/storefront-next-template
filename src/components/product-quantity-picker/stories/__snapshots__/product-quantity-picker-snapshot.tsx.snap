@@ -41,6 +41,47 @@ exports[`ProductQuantityPicker stories snapshot > Default story renders and matc
 </div>
 `;
 
+exports[`ProductQuantityPicker stories snapshot > IncrementPastStock story renders and matches snapshot 1`] = `
+<div
+  class="space-y-2"
+>
+  <label
+    class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+    data-slot="label"
+    for="quantity"
+  >
+    Quantity
+  </label>
+  <div
+    class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+  >
+    <button
+      aria-label="Decrement Quantity for Limited Run Tee"
+      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="quantity-decrement"
+      disabled=""
+    >
+      −
+    </button>
+    <input
+      aria-label="Quantity"
+      class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      min="1"
+      step="1"
+      type="number"
+      value="1"
+    />
+    <button
+      aria-label="Increment Quantity for Limited Run Tee"
+      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="quantity-increment"
+    >
+      +
+    </button>
+  </div>
+</div>
+`;
+
 exports[`ProductQuantityPicker stories snapshot > LowStockWarning story renders and matches snapshot 1`] = `
 <div
   class="space-y-2"

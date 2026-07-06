@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { useState } from 'react';
+import { expect, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { PasswordRequirement } from '@/components/password-requirements';
 
@@ -81,6 +82,52 @@ export const AllMet: Story = {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
+        await expect(canvas.getAllByTestId('check-icon')).toHaveLength(5);
+        await expect(canvas.queryByTestId('x-icon')).toBeNull();
+    },
+};
+
+/**
+ * Live-validation archetype. The component is prop-driven, so a small
+ * controlled harness feeds the typed value straight into `password` —
+ * mirroring the real callsite (`useWatch` → `<PasswordRequirement />`).
+ * Typing is the safe interaction: each rule's check/X flips as a pure
+ * function of the current value, with no network, navigation, or submit.
+ * Starts empty (5 X-icons) and types a fully-valid password one character
+ * at a time; by the end every rule is satisfied (5 check-icons, 0 X-icons).
+ */
+export const LiveTypingValidation: Story = {
+    render: () => {
+        const ControlledRequirements = () => {
+            const [password, setPassword] = useState('');
+            return (
+                <div className="space-y-4">
+                    <input
+                        type="text"
+                        aria-label="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full border px-3 py-2 rounded-none"
+                    />
+                    <PasswordRequirement password={password} />
+                </div>
+            );
+        };
+        return <ControlledRequirements />;
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // At rest the field is empty → every rule unmet.
+        await expect(canvas.getAllByTestId('x-icon')).toHaveLength(5);
+        await expect(canvas.queryByTestId('check-icon')).toBeNull();
+
+        // Type a password that satisfies all 5 rules; each keystroke re-validates.
+        const input = canvas.getByRole('textbox', { name: /password/i });
+        await userEvent.type(input, 'SecurePass123!');
+
+        // Once fully typed, every rule is met.
         await expect(canvas.getAllByTestId('check-icon')).toHaveLength(5);
         await expect(canvas.queryByTestId('x-icon')).toBeNull();
     },

@@ -17,7 +17,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentType } from 'react';
 import { Title, Description, Controls } from '@storybook/addon-docs/blocks';
-import { expect, within } from 'storybook/test';
+import { expect, fn, userEvent, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { action } from 'storybook/actions';
 import AddressSuggestionDropdown, { type AddressSuggestion } from '../index';
@@ -239,5 +239,39 @@ export const Loading: Story = {
         await expect(canvas.getByText('Loading suggestions...')).toBeInTheDocument();
         await expect(canvas.queryByText('123 Main Street, New York, NY 10001, USA')).not.toBeInTheDocument();
         await expect(canvas.queryByTestId('address-suggestion-dropdown')).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * Selection archetype (dropdown / suggestion list). Clicking a suggestion row
+ * fires `onSelectSuggestion` with that exact suggestion; clicking the header X
+ * fires `onClose`. Both are pure callbacks — the dropdown is presentational, so
+ * this drives no network, navigation, or route action. The callbacks are spies
+ * passed via `args` (not `action()`) so the play function can assert the
+ * payloads directly.
+ */
+export const SelectSuggestion: Story = {
+    args: {
+        suggestions: SAMPLE_SUGGESTIONS.slice(0, 3),
+        isVisible: true,
+        onSelectSuggestion: fn(),
+        onClose: fn(),
+    },
+    play: async ({ canvasElement, args }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Clicking a suggestion row fires onSelectSuggestion with that suggestion.
+        const secondSuggestion = canvas.getByText('456 Oak Avenue, Los Angeles, CA 90001, USA');
+        await userEvent.click(secondSuggestion);
+        await expect(args.onSelectSuggestion).toHaveBeenCalledTimes(1);
+        await expect(args.onSelectSuggestion).toHaveBeenCalledWith(
+            expect.objectContaining({ place_id: 'ChIJE9on3F3HwoAR9AhGJW_fL-I' })
+        );
+
+        // Clicking the header close button fires onClose (and not another selection).
+        await userEvent.click(canvas.getByRole('button', { name: /close/i }));
+        await expect(args.onClose).toHaveBeenCalledTimes(1);
+        await expect(args.onSelectSuggestion).toHaveBeenCalledTimes(1);
     },
 };

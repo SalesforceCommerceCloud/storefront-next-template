@@ -104,6 +104,214 @@ exports[`StandardLoginForm stories snapshot > Default story renders and matches 
 </div>
 `;
 
+exports[`StandardLoginForm stories snapshot > FilledCredentials story renders and matches snapshot 1`] = `
+<div
+  class="w-full max-w-md p-6 bg-background border rounded-none"
+>
+  <h1
+    class="text-2xl font-bold text-foreground mb-1"
+  >
+    Sign in to your account
+  </h1>
+  <p
+    class="text-sm text-muted-foreground mb-6"
+  >
+    Enter your credentials to access your account
+  </p>
+  <form
+    action="/login"
+    class="space-y-6"
+    method="post"
+  >
+    <div>
+      <label
+        class="block text-sm font-medium text-foreground"
+        for="email"
+      >
+        Email address
+      </label>
+      <input
+        autocomplete="email"
+        class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+        data-slot="input"
+        id="email"
+        name="email"
+        placeholder="Enter your email"
+        required=""
+        type="email"
+      />
+    </div>
+    <div>
+      <label
+        class="block text-sm font-medium text-foreground"
+        for="password"
+      >
+        Password
+      </label>
+      <input
+        autocomplete="current-password"
+        class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+        data-slot="input"
+        id="password"
+        name="password"
+        placeholder="Enter your password"
+        required=""
+        type="password"
+      />
+    </div>
+    <input
+      name="loginMode"
+      type="hidden"
+      value="password"
+    />
+    <button
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 cursor-pointer w-full"
+      data-size="default"
+      data-slot="button"
+      data-variant="default"
+      type="submit"
+    >
+      Sign In
+    </button>
+    <div
+      class="text-center"
+    >
+      <a
+        class="text-primary hover:text-primary/80 text-sm"
+        href="/login?mode=passwordless"
+      >
+        Log in without password
+      </a>
+    </div>
+    <div
+      class="text-center space-y-2"
+    >
+      <a
+        class="block text-sm text-primary hover:text-primary/80"
+        href="/forgot-password"
+      >
+        Forgot your password?
+      </a>
+      <p
+        class="text-sm text-muted-foreground"
+      >
+        Don't have an account? 
+        <a
+          class="font-medium text-primary hover:underline"
+          href="/signup"
+        >
+          Sign up
+        </a>
+      </p>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`StandardLoginForm stories snapshot > InvalidEmailValidation story renders and matches snapshot 1`] = `
+<div
+  class="w-full max-w-md p-6 bg-background border rounded-none"
+>
+  <h1
+    class="text-2xl font-bold text-foreground mb-1"
+  >
+    Sign in to your account
+  </h1>
+  <p
+    class="text-sm text-muted-foreground mb-6"
+  >
+    Enter your credentials to access your account
+  </p>
+  <form
+    action="/login"
+    class="space-y-6"
+    method="post"
+  >
+    <div>
+      <label
+        class="block text-sm font-medium text-foreground"
+        for="email"
+      >
+        Email address
+      </label>
+      <input
+        autocomplete="email"
+        class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+        data-slot="input"
+        id="email"
+        name="email"
+        placeholder="Enter your email"
+        required=""
+        type="email"
+      />
+    </div>
+    <div>
+      <label
+        class="block text-sm font-medium text-foreground"
+        for="password"
+      >
+        Password
+      </label>
+      <input
+        autocomplete="current-password"
+        class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+        data-slot="input"
+        id="password"
+        name="password"
+        placeholder="Enter your password"
+        required=""
+        type="password"
+      />
+    </div>
+    <input
+      name="loginMode"
+      type="hidden"
+      value="password"
+    />
+    <button
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 cursor-pointer w-full"
+      data-size="default"
+      data-slot="button"
+      data-variant="default"
+      type="submit"
+    >
+      Sign In
+    </button>
+    <div
+      class="text-center"
+    >
+      <a
+        class="text-primary hover:text-primary/80 text-sm"
+        href="/login?mode=passwordless"
+      >
+        Log in without password
+      </a>
+    </div>
+    <div
+      class="text-center space-y-2"
+    >
+      <a
+        class="block text-sm text-primary hover:text-primary/80"
+        href="/forgot-password"
+      >
+        Forgot your password?
+      </a>
+      <p
+        class="text-sm text-muted-foreground"
+      >
+        Don't have an account? 
+        <a
+          class="font-medium text-primary hover:underline"
+          href="/signup"
+        >
+          Sign up
+        </a>
+      </p>
+    </div>
+  </form>
+</div>
+`;
+
 exports[`StandardLoginForm stories snapshot > PasswordlessDisabled story renders and matches snapshot 1`] = `
 <div
   class="w-full max-w-md p-6 bg-background border rounded-none"
