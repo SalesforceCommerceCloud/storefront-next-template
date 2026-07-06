@@ -87,6 +87,11 @@ export const PromoCodeForm = ({ basket }: PromoCodeFormProps) => {
         },
     });
 
+    // The code whose apply failed and still owns the inline field error. Once set,
+    // this stays fixed until that code applies or a new apply succeeds, so editing
+    // the input can't change which code the clear-on-applied effect is waiting on.
+    const [failedCode, setFailedCode] = useState<string | null>(null);
+
     /**
      * Handles the response from the promo code application API call.
      *
@@ -107,6 +112,7 @@ export const PromoCodeForm = ({ basket }: PromoCodeFormProps) => {
                     updateBasket(responseBasket);
                 }
                 form.reset({ code: '' });
+                setFailedCode(null);
                 addToast(t('promoCode.successMessage'), 'success');
             } else {
                 // Prefer the server's status-specific message (e.g. "not applicable
@@ -119,6 +125,10 @@ export const PromoCodeForm = ({ basket }: PromoCodeFormProps) => {
                     type: 'manual',
                     message: errorMessage,
                 });
+                // Remember which code this error belongs to so the effect below
+                // can clear it if that same code later auto-applies. The form is not
+                // reset on failure, so the submitted code is still in the field.
+                setFailedCode(form.getValues('code'));
 
                 // Show error toast
                 addToast(errorMessage, 'error');
@@ -127,6 +137,28 @@ export const PromoCodeForm = ({ basket }: PromoCodeFormProps) => {
         // addToast is stable and does not need to be in the dependency array
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [applyFetcher.data, form, t, updateBasket]);
+
+    /**
+     * Clears the stale inline apply error once the failed code actually applies.
+     *
+     * A valid-but-ineligible coupon is parked on the basket and auto-applies when
+     * the shopper later changes a cart line to a qualifying variant. That path
+     * revalidates the cart loader (updating `appliedCoupons`) but does NOT re-fire
+     * the apply fetcher, so the effect above never re-runs to clear the error it
+     * set. This effect reacts to basket state instead: when the code that failed
+     * now appears among the applied coupons, drop its inline error.
+     *
+     * Keyed to the specific `failedCode` (not just "any coupon applied") so an
+     * unrelated coupon applying can't wipe a fresh error for a different code.
+     */
+    useEffect(() => {
+        if (!failedCode) return;
+        const nowApplied = appliedCoupons.some((item) => item.code?.toLowerCase() === failedCode.toLowerCase());
+        if (nowApplied) {
+            form.clearErrors('code');
+            setFailedCode(null);
+        }
+    }, [appliedCoupons, failedCode, form]);
 
     /**
      * Handles form submission for applying a promo code.
