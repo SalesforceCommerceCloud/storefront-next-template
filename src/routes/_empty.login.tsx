@@ -103,7 +103,6 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     }
 
     const passwordlessSent = url.searchParams.get('passwordless') === 'sent';
-    const showOTPForm = url.searchParams.get('otp') === 'true';
     const email = url.searchParams.get('email');
 
     const tokenFromUrl = url.searchParams.get('token');
@@ -118,7 +117,12 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     const { emailVerificationEnabled } = await getLoginPreferences(context);
     const isPasswordlessLoginEnabled = Boolean(emailVerificationEnabled);
     const isSocialLoginEnabled = Boolean(config.features.socialLogin?.enabled);
-    const mode = url.searchParams.get('mode') || (isPasswordlessLoginEnabled ? 'passwordless' : 'password');
+    // Ignore `?mode` when passwordless is disabled - force standard password login so the
+    // passwordless form (and its Turnstile widget) cannot render for a flow that's turned off.
+    const mode = isPasswordlessLoginEnabled ? url.searchParams.get('mode') || 'passwordless' : 'password';
+    // Ignore `?otp=true` when passwordless is disabled - suppresses the OTP modal and its
+    // Turnstile widget when the email-verification site permission is off.
+    const showOTPForm = isPasswordlessLoginEnabled && url.searchParams.get('otp') === 'true';
 
     // Auto-verify OTP token if both email and token are provided in URL
     if (email && token) {
@@ -165,7 +169,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 
             return {
                 error: t(errorKey),
-                showOTPForm: true,
+                showOTPForm: isPasswordlessLoginEnabled,
                 email,
                 mode,
                 isPasswordlessLoginEnabled,
