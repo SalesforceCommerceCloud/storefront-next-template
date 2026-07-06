@@ -22,7 +22,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import userEvent from '@testing-library/user-event';
 import { getAuth, authorizePasswordless, getPasswordLessAccessToken, updateAuth } from '@/middlewares/auth.server';
-import { getLoginPreferences } from '@salesforce/storefront-next-runtime/data-store';
+import { getLoginPreferencesLazy } from '@salesforce/storefront-next-runtime/data-store';
 import { loginRegisteredUser } from '@/lib/api/auth/standard-login.server';
 import { authorizeIDP } from '@/lib/api/auth/social-login.server';
 import { mergeBasket } from '@/lib/api/basket.server';
@@ -127,8 +127,10 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
 
 // Default: empty prefs ({}), so emailVerificationEnabled is undefined and passwordless is
 // effectively disabled. Existing tests rely on this default to land in 'password' mode.
+// The login route reads prefs through the local `@/lib/login-preferences.server` wrapper,
+// which awaits `getLoginPreferencesLazy` — so that is the export the tests drive.
 vi.mock('@salesforce/storefront-next-runtime/data-store', () => ({
-    getLoginPreferences: vi.fn(() => ({})),
+    getLoginPreferencesLazy: vi.fn(() => Promise.resolve({})),
 }));
 
 vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
@@ -155,7 +157,7 @@ const mockGetAppOrigin = vi.mocked(getAppOrigin);
 const mockIsAbsoluteURL = vi.mocked(isAbsoluteURL);
 const mockExtractResponseError = vi.mocked(extractResponseError);
 const mockBuildUrlFromContext = vi.mocked(buildUrlFromContext);
-const mockGetLoginPreferences = vi.mocked(getLoginPreferences);
+const mockGetLoginPreferences = vi.mocked(getLoginPreferencesLazy);
 
 describe('Login Route', () => {
     beforeEach(() => {
@@ -166,7 +168,7 @@ describe('Login Route', () => {
         // Default: pass-through. Tests that exercise the site/locale prefix override this.
         mockBuildUrlFromContext.mockImplementation((to: string) => to);
         // Default: passwordless disabled. Tests that need passwordless override this.
-        mockGetLoginPreferences.mockReturnValue({});
+        mockGetLoginPreferences.mockResolvedValue({});
     });
 
     afterEach(() => {
@@ -342,7 +344,7 @@ describe('Login Route', () => {
 
         it('honors ?mode=passwordless when the email-verification permission is enabled', async () => {
             mockGetAuth.mockReturnValue({ userType: 'guest' });
-            mockGetLoginPreferences.mockReturnValueOnce({ emailVerificationEnabled: true });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
 
             const mockRequest = new Request('http://localhost:5173/login?mode=passwordless');
             const mockContext = { get: vi.fn(), set: vi.fn() };
@@ -357,7 +359,7 @@ describe('Login Route', () => {
 
         it('forces password mode when ?mode=passwordless is set but the permission is disabled', async () => {
             mockGetAuth.mockReturnValue({ userType: 'guest' });
-            mockGetLoginPreferences.mockReturnValueOnce({ emailVerificationEnabled: false });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: false });
 
             const mockRequest = new Request('http://localhost:5173/login?mode=passwordless');
             const mockContext = { get: vi.fn(), set: vi.fn() };
@@ -372,7 +374,7 @@ describe('Login Route', () => {
 
         it('honors ?otp=true when the email-verification permission is enabled', async () => {
             mockGetAuth.mockReturnValue({ userType: 'guest' });
-            mockGetLoginPreferences.mockReturnValueOnce({ emailVerificationEnabled: true });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
 
             const mockRequest = new Request('http://localhost:5173/login?otp=true');
             const mockContext = { get: vi.fn(), set: vi.fn() };
@@ -387,7 +389,7 @@ describe('Login Route', () => {
 
         it('suppresses ?otp=true when the email-verification permission is disabled', async () => {
             mockGetAuth.mockReturnValue({ userType: 'guest' });
-            mockGetLoginPreferences.mockReturnValueOnce({ emailVerificationEnabled: false });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: false });
 
             const mockRequest = new Request('http://localhost:5173/login?otp=true');
             const mockContext = { get: vi.fn(), set: vi.fn() };
@@ -489,7 +491,7 @@ describe('Login Route', () => {
 
             it('should show OTP form with error when token verification fails (permission enabled)', async () => {
                 mockGetAuth.mockReturnValue({ userType: 'guest' });
-                mockGetLoginPreferences.mockReturnValueOnce({ emailVerificationEnabled: true });
+                mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
                 mockGetPasswordLessAccessToken.mockRejectedValue(new Error('Invalid token'));
 
                 const mockRequest = new Request(
@@ -518,7 +520,7 @@ describe('Login Route', () => {
 
             it('suppresses the OTP form on auto-verify failure when the permission is disabled', async () => {
                 mockGetAuth.mockReturnValue({ userType: 'guest' });
-                mockGetLoginPreferences.mockReturnValueOnce({ emailVerificationEnabled: false });
+                mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: false });
                 mockGetPasswordLessAccessToken.mockRejectedValue(new Error('Invalid token'));
 
                 const mockRequest = new Request(
