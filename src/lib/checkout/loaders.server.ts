@@ -38,7 +38,8 @@ import { getCustomerProfileForCheckout, isRegisteredCustomer } from '@/lib/api/c
 import { getShippingMethodsForShipment } from '@/lib/api/shipping-methods.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
-import { getLoginPreferences } from '@salesforce/storefront-next-runtime/data-store';
+import { getGcpApiKeyLazy } from '@salesforce/storefront-next-runtime/data-store';
+import { getLoginPreferences, LOGIN_PREFERENCES_FALLBACK } from '@/lib/login-preferences.server';
 import { getLogger } from '@/lib/logger.server';
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -61,6 +62,8 @@ export type CheckoutPageData = {
     promotions?: Promise<Record<string, ShopperPromotions.schemas['Promotion']>>;
     isRegisteredCustomer?: boolean;
     emailVerificationEnabled?: boolean;
+    // OOTB Google Cloud API key (Address Autocomplete) sourced from the MRT data store; empty when unavailable
+    gcpApiKey?: string;
     shippingDefaultSet?: Promise<undefined>;
     // @sfdc-extension-line SFDC_EXT_BOPIS
     storesByStoreId?: Map<string, ShopperStores.schemas['Store']>;
@@ -637,7 +640,19 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
         const logger = getLogger(context);
         const userIsRegistered = isRegisteredCustomer(context);
         const session = getAuth(context);
-        const { emailVerificationEnabled } = getLoginPreferences(context);
+        // Both reads hit the same single data-store partition; run them concurrently so the gcp read adds no marginal
+        // latency to the login-preferences read the loader already does. Neither preference is critical to rendering
+        // the basket, so each degrades to its default on failure.
+        const [{ emailVerificationEnabled }, gcpApiKey] = await Promise.all([
+            getLoginPreferences(context).catch((error) => {
+                logger.error('Checkout: login preferences read failed, defaulting email verification off', { error });
+                return LOGIN_PREFERENCES_FALLBACK;
+            }),
+            getGcpApiKeyLazy(context).catch((error) => {
+                logger.error('Checkout: GCP API key read failed, disabling address autocomplete', { error });
+                return '';
+            }),
+        ]);
         logger.debug('Checkout: loader starting', { userIsRegistered, hasBasket: Boolean(session.customerId) });
 
         const basket = (await getBasket(context)).current ?? null;
@@ -692,6 +707,7 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
                     promotions: promotionsPromise,
                     isRegisteredCustomer: true,
                     emailVerificationEnabled,
+                    gcpApiKey,
                     shippingDefaultSet,
                     // @sfdc-extension-line SFDC_EXT_BOPIS
                     ...(storesByStoreId && { storesByStoreId }),
@@ -708,6 +724,7 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
             promotions: promotionsPromise,
             isRegisteredCustomer: false,
             emailVerificationEnabled,
+            gcpApiKey,
             shippingDefaultSet,
             // @sfdc-extension-line SFDC_EXT_BOPIS
             ...(storesByStoreId && { storesByStoreId }),

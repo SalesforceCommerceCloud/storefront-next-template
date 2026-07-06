@@ -42,7 +42,7 @@ import { useTranslation } from 'react-i18next';
 import { getLogger } from '@/lib/logger.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getPasswordlessErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
-import { getLoginPreferences } from '@salesforce/storefront-next-runtime/data-store';
+import { getLoginPreferences } from '@/lib/login-preferences.server';
 
 const OtpModal = lazy(() => import('@/components/login/otp-modal'));
 
@@ -63,7 +63,7 @@ type SignupActionResponse = {
     error: string;
 };
 
-export function loader({ request, context }: Route.LoaderArgs): SignupLoaderData | Response {
+export async function loader({ request, context }: Route.LoaderArgs): Promise<SignupLoaderData | Response> {
     const session = getAuth(context);
     const url = new URL(request.url);
     const isOtpPending = url.searchParams.get('otp') === 'true';
@@ -75,7 +75,7 @@ export function loader({ request, context }: Route.LoaderArgs): SignupLoaderData
 
     const config = getConfig(context);
     // Enabling the email verification site preference will enable the passwordless registration flow.
-    const { emailVerificationEnabled } = getLoginPreferences(context);
+    const { emailVerificationEnabled } = await getLoginPreferences(context);
     const isPasswordlessEnabled = Boolean(emailVerificationEnabled);
 
     return {
@@ -182,7 +182,7 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Si
 
     logger.info('Signup: registration succeeded');
 
-    const { emailVerificationEnabled } = getLoginPreferences(context);
+    const { emailVerificationEnabled } = await getLoginPreferences(context);
     const isEmailVerificationEnabled = Boolean(emailVerificationEnabled);
 
     if (!isEmailVerificationEnabled) {

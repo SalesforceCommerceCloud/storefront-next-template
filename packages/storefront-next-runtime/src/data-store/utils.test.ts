@@ -584,6 +584,175 @@ describe('createLazyDataStoreMiddleware', () => {
     });
 });
 
+describe('data-store middleware L1 cache', () => {
+    const TTL_ENV = 'MRT_DATA_STORE_CACHE_TTL';
+    const ENABLED_ENV = 'MRT_DATA_STORE_CACHE_ENABLED';
+
+    // `entry-cache` reads its enabled/TTL env vars once at module load, and `utils` binds those functions at import
+    // time, so the statically-imported `createDataStoreMiddleware` above is frozen with the cache disabled (env unset
+    // when this file first loaded). To exercise an enabled cache we set the env vars, reset the module registry, and
+    // re-import `utils` — which pulls in a fresh `entry-cache` (config re-captured) and a fresh `DataStore` from
+    // mrt-utilities. We pin the test document client on that re-imported `DataStore`, and clear the process-global
+    // cache state (which lives on `globalThis` and outlives the module reset) so no earlier case's entry leaks in.
+    async function loadWithCache(env: { enabled?: string; ttl?: string } = { enabled: 'true', ttl: '60000' }) {
+        if (env.enabled === undefined) {
+            delete process.env[ENABLED_ENV];
+        } else {
+            process.env[ENABLED_ENV] = env.enabled;
+        }
+        if (env.ttl === undefined) {
+            delete process.env[TTL_ENV];
+        } else {
+            process.env[TTL_ENV] = env.ttl;
+        }
+        vi.resetModules();
+        const utils = await import('./utils');
+        const cache = await import('./entry-cache');
+        const { DataStore: FreshDataStore } = await import('@salesforce/mrt-utilities/middleware');
+        cache.clearDataStoreCache();
+        return { utils, cache, DataStore: FreshDataStore };
+    }
+
+    beforeEach(() => {
+        process.env.AWS_REGION = 'us-east-1';
+        process.env.MOBIFY_PROPERTY_ID = 'prop-1';
+        process.env.DEPLOY_TARGET = 'production';
+    });
+
+    afterEach(() => {
+        delete process.env.AWS_REGION;
+        delete process.env.MOBIFY_PROPERTY_ID;
+        delete process.env.DEPLOY_TARGET;
+        delete process.env[TTL_ENV];
+        delete process.env[ENABLED_ENV];
+        DataStore._testDocumentClient = null;
+        DataStore._testLogMRTError = null;
+    });
+
+    // Runs the eager middleware for a key against a fresh per-request context (the cache is
+    // process-global and must survive across requests) and returns the value written to context.
+    // `create` is the re-imported factory whose internal cache reference reflects the current env.
+    async function runMiddleware(
+        create: typeof createDataStoreMiddleware,
+        entryKey: string,
+        transform?: (value: Record<string, unknown>) => unknown
+    ): Promise<unknown> {
+        const store = new Map<unknown, unknown>();
+        const context = {
+            set: (ctx: unknown, value: unknown) => store.set(ctx, value),
+            get: (ctx: unknown) => store.get(ctx),
+        } as unknown as RouterContextProvider;
+        const middleware = create({ entryKey, context: sitePreferencesContext, transform });
+        await middleware(
+            {
+                request: new Request('https://example.com'),
+                context,
+                params: {},
+                pattern: '',
+                url: new URL('https://example.com'),
+            },
+            vi.fn().mockResolvedValue(new Response('ok')) as MiddlewareNext
+        );
+        return context.get(sitePreferencesContext);
+    }
+
+    it('hits DynamoDB on every read when the cache is disabled via the enabled flag', async () => {
+        const { utils, cache, DataStore: FreshDataStore } = await loadWithCache({ enabled: 'false', ttl: '60000' });
+        const sendMock = vi.fn().mockResolvedValue({ Item: { value: { enabled: true } } });
+        FreshDataStore._testDocumentClient = {
+            send: sendMock,
+        } as unknown as typeof FreshDataStore._testDocumentClient;
+
+        await runMiddleware(utils.createDataStoreMiddleware, 'site-preferences');
+        await runMiddleware(utils.createDataStoreMiddleware, 'site-preferences');
+
+        expect(sendMock).toHaveBeenCalledTimes(2);
+        expect(cache.getDataStoreCacheStats()).toEqual({ hits: 0, misses: 0, entries: 0, bytes: 0 });
+    });
+
+    it('serves the second read from cache when enabled, sparing DynamoDB', async () => {
+        const { utils, cache, DataStore: FreshDataStore } = await loadWithCache();
+        const sendMock = vi.fn().mockResolvedValue({ Item: { value: { enabled: true } } });
+        FreshDataStore._testDocumentClient = {
+            send: sendMock,
+        } as unknown as typeof FreshDataStore._testDocumentClient;
+
+        const first = await runMiddleware(utils.createDataStoreMiddleware, 'site-preferences');
+        const second = await runMiddleware(utils.createDataStoreMiddleware, 'site-preferences');
+
+        expect(first).toEqual({ enabled: true });
+        expect(second).toEqual({ enabled: true });
+        expect(sendMock).toHaveBeenCalledOnce();
+        expect(cache.getDataStoreCacheStats()).toMatchObject({ hits: 1, entries: 1 });
+    });
+
+    it('caches per resolved key so different sites never share a value', async () => {
+        const { utils, DataStore: FreshDataStore } = await loadWithCache();
+        const sendMock = vi
+            .fn()
+            .mockResolvedValueOnce({ Item: { value: { brand: 'A' } } })
+            .mockResolvedValueOnce({ Item: { value: { brand: 'B' } } });
+        FreshDataStore._testDocumentClient = {
+            send: sendMock,
+        } as unknown as typeof FreshDataStore._testDocumentClient;
+
+        expect(await runMiddleware(utils.createDataStoreMiddleware, 'siteA-custom-site-preferences')).toEqual({
+            brand: 'A',
+        });
+        expect(await runMiddleware(utils.createDataStoreMiddleware, 'siteB-custom-site-preferences')).toEqual({
+            brand: 'B',
+        });
+        expect(sendMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not cache the entry when the transform throws, so a corrected value clears the failure', async () => {
+        // A throwing transform must not poison the cache: if the raw entry were cached before the transform ran,
+        // every read within the TTL would re-serve it and re-throw, and a fixed DynamoDB value could not clear the
+        // failure until expiry. The read must therefore hit DynamoDB again on retry.
+        const { utils, cache, DataStore: FreshDataStore } = await loadWithCache();
+        const sendMock = vi.fn().mockResolvedValue({ Item: { value: { enabled: true } } });
+        FreshDataStore._testDocumentClient = {
+            send: sendMock,
+        } as unknown as typeof FreshDataStore._testDocumentClient;
+
+        let shouldThrow = true;
+        const transform = vi.fn((value: Record<string, unknown>) => {
+            if (shouldThrow) throw new TypeError('transform blew up');
+            return value;
+        });
+
+        await expect(runMiddleware(utils.createDataStoreMiddleware, 'site-preferences', transform)).rejects.toThrow(
+            'transform blew up'
+        );
+        // Nothing was cached, so the second attempt re-reads DynamoDB rather than re-running the poisoned transform.
+        expect(cache.getDataStoreCacheStats()).toMatchObject({ entries: 0 });
+
+        shouldThrow = false;
+        expect(await runMiddleware(utils.createDataStoreMiddleware, 'site-preferences', transform)).toEqual({
+            enabled: true,
+        });
+        expect(sendMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not cache a missing entry, so a later publish is picked up', async () => {
+        // An empty response makes the underlying getEntry throw DataStoreNotFoundError, which
+        // loadDataStoreEntry handles gracefully as a missing entry. A missing entry must never be
+        // cached, so the retry after a publish still hits DynamoDB.
+        const { utils, DataStore: FreshDataStore } = await loadWithCache();
+        const sendMock = vi
+            .fn()
+            .mockResolvedValueOnce({}) // not found → treated as missing
+            .mockResolvedValueOnce({ Item: { value: { enabled: true } } });
+        FreshDataStore._testDocumentClient = {
+            send: sendMock,
+        } as unknown as typeof FreshDataStore._testDocumentClient;
+
+        expect(await runMiddleware(utils.createDataStoreMiddleware, 'site-preferences')).toBeUndefined();
+        expect(await runMiddleware(utils.createDataStoreMiddleware, 'site-preferences')).toEqual({ enabled: true });
+        expect(sendMock).toHaveBeenCalledTimes(2);
+    });
+});
+
 describe('prefixWithSiteId', () => {
     function createContext(siteId?: string): Readonly<RouterContextProvider> {
         const store = new Map<unknown, unknown>();

@@ -16,15 +16,29 @@
 
 import type { RouterContextProvider } from 'react-router';
 import { getDataStoreLogger } from '../logger-context';
-import { createDataStoreContext, createDataStoreMiddleware } from '../utils';
+import {
+    createDataStoreContext,
+    createDataStoreMiddleware,
+    createLazyDataStoreMiddleware,
+    readLazyDataStoreEntry,
+} from '../utils';
 
 export type CustomGlobalPreferences = Record<string, unknown>;
 
 export const DEFAULT_CUSTOM_GLOBAL_PREFERENCES_KEY = 'custom-global-preferences';
 export const customGlobalPreferencesContext = createDataStoreContext<CustomGlobalPreferences>();
 
+const CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE =
+    process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === 'throw' ? 'throw' : 'fallback';
+
 /**
  * Read custom global preferences from router context.
+ *
+ * @deprecated Use {@link getCustomGlobalPreferencesLazy} with
+ * {@link customGlobalPreferencesMiddlewareLazy}. The eager pairing fetches the
+ * `custom-global-preferences` entry on every request that reaches the middleware — even routes
+ * that never read it — which drives avoidable DynamoDB read volume on the single shared
+ * data-store partition. The lazy pairing only hits the data store when a consumer actually reads the value.
  *
  * @param context - Router context provider
  * @returns Custom global preferences data stored by data-store middleware
@@ -41,8 +55,27 @@ export function getCustomGlobalPreferences(context: Readonly<RouterContextProvid
 }
 
 /**
+ * Read custom global preferences populated by {@link customGlobalPreferencesMiddlewareLazy}.
+ * Triggers the data-store fetch on first call within a request and reuses the cached promise on
+ * subsequent calls. Returns `null` when the lazy middleware did not run or the entry is
+ * missing/invalid; callers should coalesce to their own default (e.g. `?? {}`).
+ *
+ * @param context - Router context provider
+ * @returns Custom global preferences, or `null` when unavailable
+ */
+export function getCustomGlobalPreferencesLazy(
+    context: Readonly<RouterContextProvider>
+): Promise<CustomGlobalPreferences | null> {
+    return readLazyDataStoreEntry(context, customGlobalPreferencesContext);
+}
+
+/**
  * Middleware that reads the global `custom-global-preferences` entry from the MRT data
  * store and stores it in {@link customGlobalPreferencesContext}.
+ *
+ * @deprecated Use {@link customGlobalPreferencesMiddlewareLazy} with
+ * {@link getCustomGlobalPreferencesLazy}. This eager variant fetches on every request that
+ * reaches it; the lazy variant defers the fetch until a consumer reads the value.
  *
  * Defaults to graceful degradation: if the data store is unavailable or returns a service
  * error, the request continues with `{}` as the preferences value rather than crashing.
@@ -52,6 +85,20 @@ export function getCustomGlobalPreferences(context: Readonly<RouterContextProvid
 export const customGlobalPreferencesMiddleware = createDataStoreMiddleware({
     entryKey: DEFAULT_CUSTOM_GLOBAL_PREFERENCES_KEY,
     context: customGlobalPreferencesContext,
-    onUnavailable: process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === 'throw' ? 'throw' : 'fallback',
+    onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
+    fallbackValue: {},
+});
+
+/**
+ * Lazy variant of {@link customGlobalPreferencesMiddleware}. Registers a memoized loader in
+ * {@link customGlobalPreferencesContext} instead of fetching up front, so only consumers that
+ * read the value via {@link getCustomGlobalPreferencesLazy} pay for the data-store round trip.
+ * Same entry key, fallback, and `SFNEXT_DATA_STORE_UNAVAILABLE_MODE` semantics as the eager
+ * variant.
+ */
+export const customGlobalPreferencesMiddlewareLazy = createLazyDataStoreMiddleware<CustomGlobalPreferences>({
+    entryKey: DEFAULT_CUSTOM_GLOBAL_PREFERENCES_KEY,
+    context: customGlobalPreferencesContext,
+    onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
 });

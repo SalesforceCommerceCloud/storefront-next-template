@@ -21,7 +21,7 @@ import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode, type ActionError } from '@/lib/error-codes';
 import { getLogger } from '@/lib/logger.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import { getLoginPreferences } from '@salesforce/storefront-next-runtime/data-store';
+import { getLoginPreferences } from '@/lib/login-preferences.server';
 import { enforceTurnstile } from '@/lib/turnstile/enforce.server';
 import { redactEmailForLog } from '@/lib/turnstile/log-redact.server';
 import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
@@ -78,7 +78,7 @@ export async function action({
     // which Turnstile does not protect; deciding this before enforcement prevents a
     // gated-off widget (no token) from producing a spurious 403. No cc-tv cookie is set
     // because no Turnstile gate was cleared.
-    const { emailVerificationEnabled } = getLoginPreferences(context);
+    const { emailVerificationEnabled } = await getLoginPreferences(context);
     if (!emailVerificationEnabled) {
         logger.info('AuthorizePasswordlessEmail: email verification disabled, skipping SLAS', {
             email: redactEmailForLog(email),

@@ -1,4 +1,4 @@
-import * as react_router2 from "react-router";
+import * as react_router1 from "react-router";
 import { MiddlewareFunction, RouterContextProvider, createContext } from "react-router";
 import { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError } from "@salesforce/mrt-utilities/data-store";
 
@@ -157,7 +157,7 @@ interface DataStoreLogger {
  * Defaults to `null` (not `undefined`) because React Router's
  * `context.get()` throws when `defaultValue === undefined`.
  */
-declare const dataStoreLoggerContext: react_router2.RouterContext<DataStoreLogger | null>;
+declare const dataStoreLoggerContext: react_router1.RouterContext<DataStoreLogger | null>;
 /**
  * Read the data-store logger from router context, falling back to a
  * console-based default when nothing has been injected.
@@ -172,20 +172,52 @@ type SitePreferences = Record<string, unknown>;
 /**
  * Read site preferences from router context.
  *
+ * @deprecated Use {@link getSitePreferencesLazy} with {@link customSitePreferencesMiddlewareLazy}.
+ * The eager pairing fetches the `custom-site-preferences` entry on every request that reaches
+ * the middleware — even routes that never read it — which drives avoidable DynamoDB read
+ * volume on the single shared data-store partition. The lazy pairing only hits the data store when
+ * a consumer actually reads the value.
+ *
  * @param context - Router context provider
  * @returns Site preferences data stored by data-store middleware
  */
 declare function getSitePreferences(context: Readonly<RouterContextProvider>): SitePreferences;
+/**
+ * Read site preferences populated by {@link customSitePreferencesMiddlewareLazy}. Triggers the
+ * data-store fetch on first call within a request and reuses the cached promise on subsequent
+ * calls. Returns `null` when the lazy middleware did not run or the entry is missing/invalid;
+ * callers should coalesce to their own default (e.g. `?? {}`).
+ *
+ * @param context - Router context provider
+ * @returns Site preferences, or `null` when unavailable
+ */
+declare function getSitePreferencesLazy(context: Readonly<RouterContextProvider>): Promise<SitePreferences | null>;
 //#endregion
 //#region src/data-store/middleware/custom-global-preferences.d.ts
 type CustomGlobalPreferences = Record<string, unknown>;
 /**
  * Read custom global preferences from router context.
  *
+ * @deprecated Use {@link getCustomGlobalPreferencesLazy} with
+ * {@link customGlobalPreferencesMiddlewareLazy}. The eager pairing fetches the
+ * `custom-global-preferences` entry on every request that reaches the middleware — even routes
+ * that never read it — which drives avoidable DynamoDB read volume on the single shared
+ * data-store partition. The lazy pairing only hits the data store when a consumer actually reads the value.
+ *
  * @param context - Router context provider
  * @returns Custom global preferences data stored by data-store middleware
  */
 declare function getCustomGlobalPreferences(context: Readonly<RouterContextProvider>): CustomGlobalPreferences;
+/**
+ * Read custom global preferences populated by {@link customGlobalPreferencesMiddlewareLazy}.
+ * Triggers the data-store fetch on first call within a request and reuses the cached promise on
+ * subsequent calls. Returns `null` when the lazy middleware did not run or the entry is
+ * missing/invalid; callers should coalesce to their own default (e.g. `?? {}`).
+ *
+ * @param context - Router context provider
+ * @returns Custom global preferences, or `null` when unavailable
+ */
+declare function getCustomGlobalPreferencesLazy(context: Readonly<RouterContextProvider>): Promise<CustomGlobalPreferences | null>;
 //#endregion
 //#region src/data-store/middleware/gcp-preferences.d.ts
 /**
@@ -202,6 +234,12 @@ type GcpPreferences = {
 /**
  * Read the GCP (Google Cloud Platform) preferences object from router context.
  *
+ * @deprecated Use {@link getGcpPreferencesLazy} with {@link gcpPreferencesMiddlewareLazy}.
+ * The eager pairing fetches the `gcp` entry on every request that reaches the middleware —
+ * even routes that never read it — which drives avoidable DynamoDB read volume on the single
+ * shared data-store partition. The lazy pairing only hits the data store when a loader actually
+ * reads the value.
+ *
  * The preferences are sourced from the MRT data store entry `gcp`, which is
  * populated only for storefronts connecting to production ECOM instances.
  * In non-production environments, or when the entry is missing, returns an
@@ -214,12 +252,34 @@ declare function getGcpPreferences(context: Readonly<RouterContextProvider>): Gc
 /**
  * Convenience getter for the Google Cloud API key alone.
  *
+ * @deprecated Use {@link getGcpApiKeyLazy} with {@link gcpPreferencesMiddlewareLazy}. See
+ * {@link getGcpPreferences} for why the eager pairing is discouraged.
+ *
  * Equivalent to `getGcpPreferences(context).apiKey`.
  *
  * @param context - Router context provider
  * @returns The GCP API key, or an empty string when unavailable
  */
 declare function getGcpApiKey(context: Readonly<RouterContextProvider>): string;
+/**
+ * Read GCP preferences populated by {@link gcpPreferencesMiddlewareLazy}. Triggers the
+ * data-store fetch on first call within a request and reuses the cached promise on subsequent
+ * calls. Returns `null` when the lazy middleware did not run or the entry is missing/invalid;
+ * callers should coalesce to their own default.
+ *
+ * @param context - Router context provider
+ * @returns GCP preferences, or `null` when unavailable
+ */
+declare function getGcpPreferencesLazy(context: Readonly<RouterContextProvider>): Promise<GcpPreferences | null>;
+/**
+ * Convenience getter for the Google Cloud API key alone, backed by
+ * {@link gcpPreferencesMiddlewareLazy}. Coalesces the lazy `null` (middleware absent, entry
+ * missing, or data store unavailable) to an empty string, matching {@link getGcpApiKey}.
+ *
+ * @param context - Router context provider
+ * @returns The GCP API key, or an empty string when unavailable
+ */
+declare function getGcpApiKeyLazy(context: Readonly<RouterContextProvider>): Promise<string>;
 //#endregion
 //#region src/data-store/middleware/login-preferences.d.ts
 type LoginPreferences = {
@@ -228,13 +288,41 @@ type LoginPreferences = {
 /**
  * Read login preferences from router context.
  *
+ * @deprecated Use {@link getLoginPreferencesLazy} with {@link loginPreferencesMiddlewareLazy}.
+ * The eager pairing fetches the `login-preferences` entry on every request that reaches the
+ * middleware — even routes that never read it — which drives avoidable DynamoDB read volume
+ * on the single shared data-store partition. The lazy pairing only hits the data store when a
+ * loader actually reads the value.
+ *
  * @param context - Router context provider
  * @returns Login preferences data stored by data-store middleware
  */
 declare function getLoginPreferences(context: Readonly<RouterContextProvider>): LoginPreferences;
+/**
+ * Read login preferences populated by {@link loginPreferencesMiddlewareLazy}. Triggers the
+ * data-store fetch on first call within a request and reuses the cached promise on subsequent
+ * calls. Returns `null` when the lazy middleware did not run or the entry is missing/invalid;
+ * callers should coalesce to their own default (e.g. `?? { emailVerificationEnabled: false }`).
+ *
+ * @param context - Router context provider
+ * @returns Login preferences, or `null` when unavailable
+ */
+declare function getLoginPreferencesLazy(context: Readonly<RouterContextProvider>): Promise<LoginPreferences | null>;
 //#endregion
 //#region src/data-store/index.d.ts
-declare const dataStoreMiddleware: react_router2.MiddlewareFunction<Response>[];
+/**
+ * @deprecated Use {@link dataStoreMiddlewareLazy}. This bundle wires all four preference
+ * middlewares eagerly, so each fires a DynamoDB read on every request that reaches root — even
+ * routes that never read the values. The lazy bundle defers the site/global/login reads until a
+ * consumer actually reads them.
+ */
+declare const dataStoreMiddleware: react_router1.MiddlewareFunction<Response>[];
+/**
+ * Preferred data-store middleware bundle. All four preferences are registered lazily — each
+ * DynamoDB read fires only when a loader reads the value via the matching `get*Lazy` accessor,
+ * so no request pays for an entry it never reads.
+ */
+declare const dataStoreMiddlewareLazy: react_router1.MiddlewareFunction<Response>[];
 //#endregion
-export { type CustomGlobalPreferences, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, getCustomGlobalPreferences, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpPreferences, getLoginPreferences, getSitePreferences, readLazyDataStoreEntry };
+export { type CustomGlobalPreferences, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, readLazyDataStoreEntry };
 //# sourceMappingURL=data-store.d.ts.map

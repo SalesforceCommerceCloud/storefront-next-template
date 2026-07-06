@@ -80,6 +80,7 @@ function CheckoutView({
         productMap,
         promotions,
         emailVerificationEnabled,
+        gcpApiKey,
         shippingDefaultSet,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         storesByStoreId,
@@ -149,7 +150,7 @@ function CheckoutView({
     finalContent = <PickupProvider initialPickupStores={storesByStoreId}>{content}</PickupProvider>;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    finalContent = <GoogleCloudApiProvider>{finalContent}</GoogleCloudApiProvider>;
+    finalContent = <GoogleCloudApiProvider apiKey={gcpApiKey}>{finalContent}</GoogleCloudApiProvider>;
 
     return finalContent;
 }

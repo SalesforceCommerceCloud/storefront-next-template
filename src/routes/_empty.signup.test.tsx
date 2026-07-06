@@ -25,7 +25,7 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { createTestContext } from '@/lib/test-utils';
-import { getLoginPreferences } from '@salesforce/storefront-next-runtime/data-store';
+import { getLoginPreferences } from '@/lib/login-preferences.server';
 import type { Route } from '../+types/root';
 
 const { t } = getTranslation();
@@ -59,7 +59,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
     };
 });
 
-vi.mock('@salesforce/storefront-next-runtime/data-store', () => ({
+vi.mock('@/lib/login-preferences.server', () => ({
     getLoginPreferences: vi.fn(),
 }));
 
@@ -166,7 +166,7 @@ describe('signup route', () => {
             features: { passwordlessLogin: { mode: 'email' } },
             auth: { otpLength: 6 },
         } as any);
-        mockGetLoginPreferences.mockReturnValue({ emailVerificationEnabled: false });
+        mockGetLoginPreferences.mockResolvedValue({ emailVerificationEnabled: false });
         mockNavigate.mockReset();
     });
 
@@ -175,7 +175,7 @@ describe('signup route', () => {
     });
 
     describe('loader', () => {
-        it('should redirect to home when user is already registered', () => {
+        it('should redirect to home when user is already registered', async () => {
             mockGetAuth.mockReturnValue({
                 userType: 'registered',
             } as any);
@@ -189,7 +189,7 @@ describe('signup route', () => {
                 pattern: 'signup',
             };
 
-            const result = loader(args);
+            const result = await loader(args);
 
             expect(mockGetAuth).toHaveBeenCalledWith(mockContext);
             expect(result).toBeInstanceOf(Response);
@@ -199,7 +199,7 @@ describe('signup route', () => {
             }
         });
 
-        it('should return loader data when user is not registered', () => {
+        it('should return loader data when user is not registered', async () => {
             mockGetAuth.mockReturnValue({
                 userType: 'guest',
             } as any);
@@ -212,7 +212,7 @@ describe('signup route', () => {
                 pattern: 'signup',
             };
 
-            const result = loader(args);
+            const result = await loader(args);
 
             expect(result).toMatchObject({
                 showOTPModal: false,
@@ -226,7 +226,7 @@ describe('signup route', () => {
             });
         });
 
-        it('should not redirect when registered user has otp=true in URL', () => {
+        it('should not redirect when registered user has otp=true in URL', async () => {
             mockGetAuth.mockReturnValue({ userType: 'registered' } as any);
 
             const mockRequest = new Request('http://localhost/signup?otp=true');
@@ -238,7 +238,7 @@ describe('signup route', () => {
                 pattern: 'signup',
             };
 
-            const result = loader(args);
+            const result = await loader(args);
 
             // Returns a loader data object instead of a redirect response
             expect(result).not.toBeInstanceOf(Response);
@@ -247,7 +247,7 @@ describe('signup route', () => {
             });
         });
 
-        it('should read firstName, lastName, email, and returnUrl from URL params', () => {
+        it('should read firstName, lastName, email, and returnUrl from URL params', async () => {
             const mockRequest = new Request(
                 'http://localhost/signup?otp=true&email=test%40example.com&firstName=Jane&lastName=Smith&returnUrl=%2Fcheckout'
             );
@@ -259,7 +259,7 @@ describe('signup route', () => {
                 pattern: 'signup',
             };
 
-            const result = loader(args);
+            const result = await loader(args);
 
             expect(result).toMatchObject({
                 showOTPModal: true,
@@ -270,7 +270,7 @@ describe('signup route', () => {
             });
         });
 
-        it('should read registrationMode from URL params', () => {
+        it('should read registrationMode from URL params', async () => {
             mockGetAuth.mockReturnValue({ userType: 'registered' } as any);
 
             const mockRequest = new Request(
@@ -284,18 +284,18 @@ describe('signup route', () => {
                 pattern: 'signup',
             };
 
-            const result = loader(args);
+            const result = await loader(args);
 
             expect(result).toMatchObject({
                 registrationMode: 'password',
             });
         });
 
-        it('should set isPasswordlessEnabled true when emailVerificationEnabled is true in login preferences', () => {
+        it('should set isPasswordlessEnabled true when emailVerificationEnabled is true in login preferences', async () => {
             mockGetAuth.mockReturnValue({
                 userType: 'guest',
             } as any);
-            mockGetLoginPreferences.mockReturnValue({ emailVerificationEnabled: true });
+            mockGetLoginPreferences.mockResolvedValue({ emailVerificationEnabled: true });
 
             const mockRequest = new Request('http://localhost/signup');
             const args = {
@@ -306,7 +306,7 @@ describe('signup route', () => {
                 pattern: 'signup',
             };
 
-            const result = loader(args);
+            const result = await loader(args);
 
             expect(mockGetAuth).toHaveBeenCalledWith(mockContext);
             expect(result).toMatchObject({ isPasswordlessEnabled: true });
@@ -744,7 +744,7 @@ describe('signup route', () => {
                 mockGetConfig.mockReturnValue({
                     features: { passwordlessLogin: { mode: 'email' } },
                 } as any);
-                mockGetLoginPreferences.mockReturnValue({ emailVerificationEnabled: true });
+                mockGetLoginPreferences.mockResolvedValue({ emailVerificationEnabled: true });
                 mockRequestOtp.mockResolvedValue(undefined);
             });
 

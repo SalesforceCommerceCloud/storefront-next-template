@@ -39,9 +39,9 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
         },
     })),
 }));
-vi.mock('@salesforce/storefront-next-runtime/data-store', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/data-store')>()),
-    getLoginPreferences: vi.fn(() => ({ emailVerificationEnabled: true })),
+vi.mock('@/lib/login-preferences.server', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/lib/login-preferences.server')>()),
+    getLoginPreferences: vi.fn(() => Promise.resolve({ emailVerificationEnabled: true })),
 }));
 vi.mock('@/lib/turnstile/enforce.server', () => ({
     enforceTurnstile: vi.fn(),
@@ -150,8 +150,8 @@ describe('action.authorize-passwordless-email', () => {
     });
 
     it('skips SLAS and returns requiresLogin when emailVerificationEnabled is false', async () => {
-        const { getLoginPreferences } = await import('@salesforce/storefront-next-runtime/data-store');
-        vi.mocked(getLoginPreferences).mockReturnValueOnce({ emailVerificationEnabled: false });
+        const { getLoginPreferences } = await import('@/lib/login-preferences.server');
+        vi.mocked(getLoginPreferences).mockResolvedValueOnce({ emailVerificationEnabled: false });
 
         const formData = new FormData();
         formData.append('email', 'user@example.com');
@@ -176,8 +176,8 @@ describe('action.authorize-passwordless-email', () => {
         // When the Turnstile widget is gated off (email verification disabled), the client
         // sends no token. The action must route to standard login before enforcement so the
         // missing token does not produce a spurious 403.
-        const { getLoginPreferences } = await import('@salesforce/storefront-next-runtime/data-store');
-        vi.mocked(getLoginPreferences).mockReturnValueOnce({ emailVerificationEnabled: false });
+        const { getLoginPreferences } = await import('@/lib/login-preferences.server');
+        vi.mocked(getLoginPreferences).mockResolvedValueOnce({ emailVerificationEnabled: false });
 
         const formData = new FormData();
         formData.append('email', 'user@example.com');
@@ -554,8 +554,8 @@ describe('action.authorize-passwordless-email', () => {
 
         it('does NOT set cc-tv cookie when email verification is disabled (early return before Turnstile)', async () => {
             // No Turnstile gate was cleared, so no attestation cookie is issued.
-            const { getLoginPreferences } = await import('@salesforce/storefront-next-runtime/data-store');
-            vi.mocked(getLoginPreferences).mockReturnValueOnce({ emailVerificationEnabled: false });
+            const { getLoginPreferences } = await import('@/lib/login-preferences.server');
+            vi.mocked(getLoginPreferences).mockResolvedValueOnce({ emailVerificationEnabled: false });
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');

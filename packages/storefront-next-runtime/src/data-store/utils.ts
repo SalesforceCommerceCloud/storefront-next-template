@@ -23,6 +23,7 @@ import {
 } from '@salesforce/mrt-utilities/data-store';
 import { siteContext } from '../site-context';
 import { type DataStoreLogger, getDataStoreLogger } from './logger-context';
+import { readDataStoreCache, writeDataStoreCache } from './entry-cache';
 
 export type DataStoreContextKey<T> = ReturnType<typeof createContext<T | null>>;
 
@@ -215,6 +216,11 @@ type LoadResult<T> = { state: 'value'; value: T } | { state: 'fallback'; value: 
  * paths (unavailable / not-found / service-error) consistently. Returns a
  * tagged result so callers can decide whether to populate the context
  * synchronously (eager middleware) or hand the value back to a lazy reader.
+ *
+ * This is the single funnel every eager and lazy data-store middleware read passes through, so the cross-request L1
+ * cache (see {@link readDataStoreCache}) is consulted here. A fresh cached entry is served without touching
+ * DynamoDB; only successful reads (a present, object-shaped `value`) are cached, so a missing entry or a thrown error
+ * (not-found, unavailable, service error) is never stored and transient failures don't persist for the TTL.
  */
 async function loadDataStoreEntry<T>(args: {
     entryKey: string;
@@ -227,14 +233,27 @@ async function loadDataStoreEntry<T>(args: {
     const logger = getDataStoreLogger(context);
 
     try {
-        const entry = await getDataStoreEntry(entryKey);
+        const cached = readDataStoreCache(entryKey, logger);
+        const entry = cached ?? (await getDataStoreEntry(entryKey));
 
         if (!entry?.value || typeof entry.value !== 'object') {
             logger.debug(`Data store entry '${entryKey}' not found or invalid.`, { entryKey });
             return { state: 'missing' };
         }
 
-        return { state: 'value', value: transform(entry.value as Record<string, unknown>) };
+        // Transform before caching: a throwing transform must not poison the cache. If we wrote first, a corrected
+        // DynamoDB value could not clear an eventual throw until expiry.
+        const value = transform(entry.value as Record<string, unknown>);
+
+        if (!cached) {
+            // Cache the raw entry, never the transformed `value`. `transform` re-runs on every read (hit or miss), so
+            // two middlewares that share an entryKey but apply different transforms each project the shared raw value
+            // through their own transform — a hit never hands back another registration's transformed result. The
+            // entry is frozen on write (see writeDataStoreCache), so a transform cannot mutate the shared reference.
+            writeDataStoreCache(entryKey, entry);
+        }
+
+        return { state: 'value', value };
     } catch (error) {
         if (error instanceof DataStoreNotFoundError) {
             logger.debug(`Data store entry '${entryKey}' not found.`, { entryKey });

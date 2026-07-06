@@ -51,8 +51,8 @@ vi.mock('@/lib/api/customer.server', () => ({
     isRegisteredCustomer: vi.fn(() => false),
 }));
 
-vi.mock('@salesforce/storefront-next-runtime/data-store', () => ({
-    getLoginPreferences: vi.fn(() => ({ emailVerificationEnabled: false })),
+vi.mock('@/lib/login-preferences.server', () => ({
+    getLoginPreferences: vi.fn(() => Promise.resolve({ emailVerificationEnabled: false })),
 }));
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -183,7 +183,7 @@ describe('Order Confirmation Route', () => {
             vi.mocked(fetchStoresForOrder).mockResolvedValue(new Map());
 
             const mockContext = { get: vi.fn(() => undefined) };
-            const result = loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
+            const result = await loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
 
             expect(result.orderData).toBeInstanceOf(Promise);
 
@@ -192,7 +192,7 @@ describe('Order Confirmation Route', () => {
             expect(resolved).toHaveProperty('productsById');
         });
 
-        test('calls fetchOrderWithProducts with context and orderNo', () => {
+        test('calls fetchOrderWithProducts with context and orderNo', async () => {
             const orderPromise = Promise.resolve(baseOrder);
             vi.mocked(fetchOrderWithProducts).mockReturnValue({
                 orderDataPromise: orderPromise.then((order) => ({ order, productsById: {} })),
@@ -203,7 +203,7 @@ describe('Order Confirmation Route', () => {
             vi.mocked(fetchStoresForOrder).mockResolvedValue(new Map());
 
             const mockContext = { get: vi.fn(() => undefined) };
-            loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
+            await loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
 
             expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(mockContext, 'TEST-ORDER-12345');
         });
@@ -218,7 +218,7 @@ describe('Order Confirmation Route', () => {
             vi.mocked(fetchStoresForOrder).mockResolvedValue(new Map());
 
             const mockContext = { get: vi.fn(() => undefined) };
-            loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
+            await loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
 
             await waitFor(() => {
                 expect(vi.mocked(destroyBasket)).toHaveBeenCalledWith(mockContext);
@@ -243,7 +243,7 @@ describe('Order Confirmation Route', () => {
             vi.mocked(fetchStoresForOrder).mockResolvedValue(new Map());
 
             const mockContext = { get: vi.fn(() => undefined) };
-            const result = loader({ context: mockContext, params: { orderNo: 'INVALID' } } as any);
+            const result = await loader({ context: mockContext, params: { orderNo: 'INVALID' } } as any);
             // Loader's combinedPromise also rejects; in production <Await> handles it,
             // here we attach an explicit catch so the test runner doesn't see it as
             // unhandled.
@@ -268,7 +268,7 @@ describe('Order Confirmation Route', () => {
             vi.mocked(fetchStoresForOrder).mockResolvedValue(mockStoresByStoreId);
 
             const mockContext = { get: vi.fn(() => undefined) };
-            const result = loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
+            const result = await loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
 
             const resolved = await result.orderData;
             expect(resolved).toHaveProperty('storesByStoreId');
