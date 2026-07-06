@@ -99,7 +99,7 @@ class StorefrontPage {
      * the static title prefix.
      */
     async getTitle(): Promise<string> {
-        return I.grabTitle();
+        return await I.grabTitle();
     }
 
     /**

@@ -23,7 +23,7 @@ import { createContactInfoSchema, parseContactInfoFromFormData } from '@/lib/che
 import { updateBillingAddressForBasket } from '@/lib/api/basket.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getLogger } from '@/lib/logger.server';
-import { getLoginPreferences } from '@salesforce/storefront-next-runtime/data-store';
+import { getLoginPreferences } from '@/lib/login-preferences.server';
 import { ACTION_HOOK_IDS, runHookSafe } from '@/targets/action-hook.server';
 
 /**
@@ -121,7 +121,7 @@ export async function action(formData: FormData, context: ActionFunctionArgs['co
     // submission is non-blocking; the dedicated /action/authorize-passwordless-email path
     // (called from contact-info.tsx) is where the requiresLogin response is consumed and
     // the standard login modal is opened.
-    const { emailVerificationEnabled } = getLoginPreferences(context);
+    const { emailVerificationEnabled } = await getLoginPreferences(context);
     if (emailVerificationEnabled && email?.trim()) {
         try {
             await authorizePasswordless(context, { userid: email.trim(), strictVerify: true });

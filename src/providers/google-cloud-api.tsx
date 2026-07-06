@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 import type { PropsWithChildren } from 'react';
-import { useRouteLoaderData } from 'react-router';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import type { loader as rootLoader } from '@/root';
+
+type GoogleCloudApiProviderProps = PropsWithChildren<{
+    /**
+     * OOTB Google Cloud API key sourced from the MRT data store (`gcp` / `api-key` entry),
+     * supplied by the consuming route's loader. Only populated for storefronts connecting to
+     * production ECOM instances.
+     */
+    apiKey?: string;
+}>;
 
 /**
  * Resolve the Google Cloud API key.
@@ -25,17 +32,15 @@ import type { loader as rootLoader } from '@/root';
  * Priority:
  * 1. Merchant-provided key from PUBLIC__app__features__googleCloudAPI__apiKey
  *    (surfaced via `useConfig()`).
- * 2. OOTB key sourced from the MRT data store (`gcp` / `api-key` entry), only
- *    populated for storefronts connecting to production ECOM instances.
- *    Surfaced via the root loader's `gcpApiKeyFromDAL` field.
+ * 2. OOTB key sourced from the MRT data store, passed in by the consuming route's loader.
  *
+ * @param dataStoreApiKey - OOTB key from the route loader (data store `gcp` entry)
  * @returns The resolved Google Cloud API key, or an empty string when neither source is available.
  */
-function useGoogleCloudAPIKey(): string {
+function useGoogleCloudAPIKey(dataStoreApiKey?: string): string {
     const config = useConfig();
-    const rootData = useRouteLoaderData<typeof rootLoader>('root');
 
-    return config.features.googleCloudAPI.apiKey || rootData?.gcpApiKeyFromDAL || '';
+    return config.features.googleCloudAPI.apiKey || dataStoreApiKey || '';
 }
 
 /**
@@ -46,13 +51,13 @@ function useGoogleCloudAPIKey(): string {
  *
  * @example
  * ```tsx
- * <GoogleCloudApiProvider>
+ * <GoogleCloudApiProvider apiKey={loaderData.gcpApiKey}>
  *   <MapComponent />
  * </GoogleCloudApiProvider>
  * ```
  */
-export default function GoogleCloudApiProvider({ children }: PropsWithChildren) {
-    const googleCloudAPIKey = useGoogleCloudAPIKey();
+export default function GoogleCloudApiProvider({ apiKey, children }: GoogleCloudApiProviderProps) {
+    const googleCloudAPIKey = useGoogleCloudAPIKey(apiKey);
 
     if (!googleCloudAPIKey) {
         return <>{children}</>;

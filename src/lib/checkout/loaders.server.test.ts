@@ -53,6 +53,16 @@ vi.mock('@/lib/api-clients.server', () => ({
     })),
 }));
 
+vi.mock('@salesforce/storefront-next-runtime/data-store', async (importActual) => ({
+    ...(await importActual<typeof import('@salesforce/storefront-next-runtime/data-store')>()),
+    getGcpApiKeyLazy: vi.fn(() => Promise.resolve('')),
+}));
+
+vi.mock('@/lib/login-preferences.server', async (importActual) => ({
+    ...(await importActual<typeof import('@/lib/login-preferences.server')>()),
+    getLoginPreferences: vi.fn(() => Promise.resolve({ emailVerificationEnabled: false })),
+}));
+
 import {
     loader,
     getServerCustomerProfileData,
@@ -107,6 +117,70 @@ describe('Checkout Loaders', () => {
             expect(result.productMap).toBeInstanceOf(Promise);
             expect(result.promotions).toBeInstanceOf(Promise);
             expect(result.shippingMethodsMap).toBeInstanceOf(Promise);
+            // Defaults to empty string when the data store has no gcp key.
+            expect(result.gcpApiKey).toBe('');
+        });
+
+        it('surfaces the gcp api key from the data store for the provider', async () => {
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+            const { getGcpApiKeyLazy } = await import('@salesforce/storefront-next-runtime/data-store');
+
+            vi.mocked(getGcpApiKeyLazy).mockResolvedValueOnce('gcp-ootb-key');
+            vi.mocked(isRegisteredCustomer).mockReturnValue(false);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'guest' } as any);
+            vi.mocked(getBasket).mockResolvedValue({
+                current: { basketId: 'guest-basket', productItems: [], shipments: [] },
+            } as any);
+
+            const result = await loader(createMockArgs());
+
+            expect(result.gcpApiKey).toBe('gcp-ootb-key');
+        });
+
+        it('keeps the basket when the optional gcp key read rejects (throw mode)', async () => {
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+            const { getGcpApiKeyLazy } = await import('@salesforce/storefront-next-runtime/data-store');
+
+            // With SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw the optional gcp read rejects on a data-store outage.
+            // It must not drag the successful basket payload into the empty fallback via Promise.all rejection.
+            vi.mocked(getGcpApiKeyLazy).mockRejectedValueOnce(new Error('data store unavailable'));
+            vi.mocked(isRegisteredCustomer).mockReturnValue(false);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'guest' } as any);
+            vi.mocked(getBasket).mockResolvedValue({
+                current: { basketId: 'guest-basket', productItems: [], shipments: [] },
+            } as any);
+
+            const result = await loader(createMockArgs());
+
+            expect(result.basket).toEqual(expect.objectContaining({ basketId: 'guest-basket' }));
+            // The optional read degrades to its default rather than blanking checkout.
+            expect(result.gcpApiKey).toBe('');
+        });
+
+        it('keeps the basket when the optional login-preferences read rejects (throw mode)', async () => {
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+            const { getLoginPreferences } = await import('@/lib/login-preferences.server');
+
+            // With SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw the login-preferences read rejects on a data-store outage.
+            // Like the gcp read, it must not drag the successful basket payload into the empty fallback.
+            vi.mocked(getLoginPreferences).mockRejectedValueOnce(new Error('data store unavailable'));
+            vi.mocked(isRegisteredCustomer).mockReturnValue(false);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'guest' } as any);
+            vi.mocked(getBasket).mockResolvedValue({
+                current: { basketId: 'guest-basket', productItems: [], shipments: [] },
+            } as any);
+
+            const result = await loader(createMockArgs());
+
+            expect(result.basket).toEqual(expect.objectContaining({ basketId: 'guest-basket' }));
+            // The optional read degrades to its default rather than blanking checkout.
+            expect(result.emailVerificationEnabled).toBe(false);
         });
 
         it('should return checkout data with customer profile for registered user', async () => {
@@ -132,6 +206,9 @@ describe('Checkout Loaders', () => {
                 paymentInstruments: [],
             } as any);
 
+            const { getGcpApiKeyLazy } = await import('@salesforce/storefront-next-runtime/data-store');
+            vi.mocked(getGcpApiKeyLazy).mockResolvedValueOnce('gcp-ootb-key');
+
             const result = await loader(createMockArgs());
 
             expect(result).toBeDefined();
@@ -139,6 +216,7 @@ describe('Checkout Loaders', () => {
             expect(result.customerProfile).toBeInstanceOf(Promise);
             expect(result.productMap).toBeInstanceOf(Promise);
             expect(result.shippingMethodsMap).toBeInstanceOf(Promise);
+            expect(result.gcpApiKey).toBe('gcp-ootb-key');
         });
 
         it('should return fallback data when an error occurs', async () => {

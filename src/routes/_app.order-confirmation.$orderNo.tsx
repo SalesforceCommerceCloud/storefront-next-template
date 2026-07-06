@@ -108,7 +108,7 @@ const getPrimaryImageFromProduct = (product: ShopperProducts.schemas['Product'] 
  * @param args - Loader function arguments containing context and parameters
  * @returns Promise that resolves to an object containing the order data promise
  */
-export function loader({ context, params }: Route.LoaderArgs): CheckoutConfirmationLoaderData {
+export async function loader({ context, params }: Route.LoaderArgs): Promise<CheckoutConfirmationLoaderData> {
     const { orderNo } = params;
     const logger = getLogger(context);
     logger.debug('OrderConfirmation: loader starting', { orderNo });
@@ -131,7 +131,7 @@ export function loader({ context, params }: Route.LoaderArgs): CheckoutConfirmat
 
     // Determine if we should show post-order registration (guest + email verification disabled)
     const userIsRegistered = isRegisteredCustomer(context);
-    const { emailVerificationEnabled } = getLoginPreferences(context);
+    const { emailVerificationEnabled } = await getLoginPreferences(context);
     const showPostOrderRegistration = !userIsRegistered && !emailVerificationEnabled;
 
     // @sfdc-extension-line SFDC_EXT_BOPIS

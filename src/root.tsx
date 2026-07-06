@@ -38,7 +38,7 @@ import { createInstance, type i18n } from 'i18next';
 import { I18nextProvider, useTranslation, initReactI18next } from 'react-i18next';
 import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
-import { dataStoreMiddleware, getGcpApiKey } from '@salesforce/storefront-next-runtime/data-store';
+import { dataStoreMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
 import {
     buildUrl,
     SiteProvider,
@@ -150,7 +150,7 @@ export const middleware: MiddlewareFunction<Response>[] = [
     appConfigMiddlewareServer,
     securityHeadersMiddleware,
     siteContextMiddleware, // Must run after appConfig, before i18next and currency
-    ...dataStoreMiddleware,
+    ...dataStoreMiddlewareLazy,
     siteUrlConfigMiddleware, // Must run after siteContextMiddleware (entry key uses site id)
     i18nextMiddleware,
     pageDesignerResolutionMiddleware,
@@ -207,8 +207,6 @@ export const loader = ({
     pageDesignerMode: 'EDIT' | 'PREVIEW' | undefined;
     // Pre-computed in the loader (server-only) so seo.ts stays out of the client bundle
     seoMeta: MetaDescriptor[];
-    // OOTB GCP Address Autocomplete API key sourced from the MRT data store
-    gcpApiKeyFromDAL: string;
     // Return as function to prevent i18next instance serialization
     getI18next: () => i18n;
     // Serialized error namespace for the active locale — used by ErrorBoundary on SSR/hydration
@@ -282,7 +280,6 @@ export const loader = ({
         maintenance,
         clientAuth,
         seoMeta,
-        gcpApiKeyFromDAL: getGcpApiKey(context),
         getI18next: () => i18next,
         errorTranslations: (i18next.getResourceBundle(i18next.language, 'routeError') as Record<string, unknown>) ?? {},
         pageDesignerMode: isDesignModeActive(request) ? 'EDIT' : isPreviewModeActive(request) ? 'PREVIEW' : undefined,

@@ -21,7 +21,7 @@ import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode, type ActionError } from '@/lib/error-codes';
 import { getLogger } from '@/lib/logger.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import { getLoginPreferences } from '@salesforce/storefront-next-runtime/data-store';
+import { getLoginPreferences } from '@/lib/login-preferences.server';
 import { enforceTurnstile } from '@/lib/turnstile/enforce.server';
 import { redactEmailForLog } from '@/lib/turnstile/log-redact.server';
 import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
@@ -116,7 +116,7 @@ export async function action({
     // site pref. When the pref is disabled, the storefront has nothing to gain from calling
     // SLAS, so route directly to the standard login modal. Override via
     // features.passwordlessLogin.skipWhenEmailVerificationDisabled=false.
-    const { emailVerificationEnabled } = getLoginPreferences(context);
+    const { emailVerificationEnabled } = await getLoginPreferences(context);
     const skipWhenDisabled = appConfig.features.passwordlessLogin.skipWhenEmailVerificationDisabled ?? true;
     if (skipWhenDisabled && !emailVerificationEnabled) {
         logger.info('AuthorizePasswordlessEmail: email verification disabled, skipping SLAS', {

@@ -41,9 +41,9 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
         },
     })),
 }));
-vi.mock('@salesforce/storefront-next-runtime/data-store', async (importOriginal) => ({
-    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/data-store')>()),
-    getLoginPreferences: vi.fn(() => ({ emailVerificationEnabled: true })),
+vi.mock('@/lib/login-preferences.server', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/lib/login-preferences.server')>()),
+    getLoginPreferences: vi.fn(() => Promise.resolve({ emailVerificationEnabled: true })),
 }));
 vi.mock('@/lib/turnstile/enforce.server', () => ({
     enforceTurnstile: vi.fn(),
@@ -152,8 +152,8 @@ describe('action.authorize-passwordless-email', () => {
     });
 
     it('skips SLAS and returns requiresLogin when emailVerificationEnabled is false', async () => {
-        const { getLoginPreferences } = await import('@salesforce/storefront-next-runtime/data-store');
-        vi.mocked(getLoginPreferences).mockReturnValueOnce({ emailVerificationEnabled: false });
+        const { getLoginPreferences } = await import('@/lib/login-preferences.server');
+        vi.mocked(getLoginPreferences).mockResolvedValueOnce({ emailVerificationEnabled: false });
 
         const formData = new FormData();
         formData.append('email', 'user@example.com');
@@ -173,8 +173,8 @@ describe('action.authorize-passwordless-email', () => {
     });
 
     it('still calls SLAS when pref is disabled but skipWhenEmailVerificationDisabled is false', async () => {
-        const { getLoginPreferences } = await import('@salesforce/storefront-next-runtime/data-store');
-        vi.mocked(getLoginPreferences).mockReturnValueOnce({ emailVerificationEnabled: false });
+        const { getLoginPreferences } = await import('@/lib/login-preferences.server');
+        vi.mocked(getLoginPreferences).mockResolvedValueOnce({ emailVerificationEnabled: false });
         const { getConfig } = await import('@salesforce/storefront-next-runtime/config');
         vi.mocked(getConfig).mockReturnValueOnce({
             features: { passwordlessLogin: { skipWhenEmailVerificationDisabled: false } },
