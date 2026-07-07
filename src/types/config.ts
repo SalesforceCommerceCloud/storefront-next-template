@@ -275,6 +275,19 @@ export type AppConfig = {
         fallbackFormat?: 'avif' | 'gif' | 'jp2' | 'jpg' | 'jpeg' | 'jxr' | 'png' | 'webp';
         host?: string;
         enableDis?: boolean;
+        /**
+         * Custom host suffix → realm mappings for vanity domains and non-standard SFCC hosts.
+         * Checked before built-in SFCC domain inference. Use this to support custom storefront
+         * domains (e.g., `shop.example.com`), internal dev environments, or multi-realm setups
+         * without forking `getRealmFromUrl`. Realm values are automatically uppercased.
+         *
+         * @example
+         * realmHostMappings: [
+         *   { hostSuffix: '.storefront-next-demo.com', realm: 'bjnl_dev' },
+         *   { hostSuffix: 'shop.example.com', realm: 'prod_001' },
+         * ]
+         */
+        realmHostMappings?: Array<{ hostSuffix: string; realm: string }>;
     };
     links?: {
         preconnect?: string[];

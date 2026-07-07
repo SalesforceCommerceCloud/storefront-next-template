@@ -55,16 +55,37 @@ const wrapper = ({ children }: { children: ReactNode }) =>
     );
 
 const mockImages: GalleryImage[] = [
-    { src: 'https://example.com/image1.jpg', alt: 'Image 1' },
-    { src: 'https://example.com/image2.jpg', alt: 'Image 2' },
-    { src: 'https://example.com/image3.jpg', alt: 'Image 3' },
-    { src: 'https://example.com/image4.jpg', alt: 'Image 4' },
-    { src: 'https://example.com/image5.jpg', alt: 'Image 5' },
+    {
+        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image1.jpg',
+        alt: 'Image 1',
+    },
+    {
+        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image2.jpg',
+        alt: 'Image 2',
+    },
+    {
+        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image3.jpg',
+        alt: 'Image 3',
+    },
+    {
+        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image4.jpg',
+        alt: 'Image 4',
+    },
+    {
+        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image5.jpg',
+        alt: 'Image 5',
+    },
 ];
 
 // Six entries lets us assert the cap behavior: image1 is the selected slide, image2..5 fall within
 // EAGER_PRELOAD_LIMIT (4), and image6 is beyond it — i.e., promoted only on hover/focus intent.
-const beyondCapImages: GalleryImage[] = [...mockImages, { src: 'https://example.com/image6.jpg', alt: 'Image 6' }];
+const beyondCapImages: GalleryImage[] = [
+    ...mockImages,
+    {
+        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image6.jpg',
+        alt: 'Image 6',
+    },
+];
 
 describe('ImageGallery - off-screen image preloading', () => {
     beforeEach(() => {
@@ -108,7 +129,12 @@ describe('ImageGallery - off-screen image preloading', () => {
     });
 
     it('skips preloading when there is only a single image', () => {
-        const singleImage: GalleryImage[] = [{ src: 'https://example.com/single.jpg', alt: 'Single Image' }];
+        const singleImage: GalleryImage[] = [
+            {
+                src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/single.jpg',
+                alt: 'Single Image',
+            },
+        ];
 
         render(<ImageGallery images={singleImage} />, { wrapper });
 

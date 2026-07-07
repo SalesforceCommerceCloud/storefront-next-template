@@ -384,6 +384,7 @@ export default defineConfig<Config>(
                 fallbackFormat: 'jpg',
                 host: DIS_DEFAULT_HOST,
                 enableDis: true,
+                realmHostMappings: [],
             },
             // Search-specific settings
             // See CONFIG-OPTIONS.md#search for detailed documentation

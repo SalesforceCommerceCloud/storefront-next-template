@@ -266,7 +266,8 @@ describe('Dynamic Image Component', () => {
         });
 
         test('renders image with SFCC URL and sw parameter', () => {
-            const sfccSrc = 'https://example.com/image.jpg?sw=300&q=60';
+            const sfccSrc =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg?sw=300&q=60';
             render(<DynamicImage src={sfccSrc} alt="Test image" widths={[468]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -423,7 +424,8 @@ describe('Dynamic Image Component', () => {
 
     describe('image format conversion', () => {
         test('converts non-jpg image to picture with webp sources and jpg fallback', () => {
-            const pngSrc = 'https://example.com/image.png?sw=300&q=60';
+            const pngSrc =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.png?sw=300&q=60';
             render(<DynamicImage src={pngSrc} alt="Test image" widths={[200, 400]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -446,7 +448,8 @@ describe('Dynamic Image Component', () => {
         });
 
         test('converts webp image to picture with webp sources and jpg fallback', () => {
-            const webpSrc = 'https://example.com/image.webp?sw=300&q=60';
+            const webpSrc =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.webp?sw=300&q=60';
             render(<DynamicImage src={webpSrc} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -469,7 +472,8 @@ describe('Dynamic Image Component', () => {
         });
 
         test('converts jpg image to picture with webp sources and jpg fallback', () => {
-            const jpgSrc = 'https://example.com/image.jpg?sw=300&q=60';
+            const jpgSrc =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg?sw=300&q=60';
             render(<DynamicImage src={jpgSrc} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -501,7 +505,8 @@ describe('Dynamic Image Component', () => {
 
         test('applies default quality from config to srcSet URLs', () => {
             // Default quality in mockConfig.images is 70
-            const srcWithoutQuality = 'https://example.com/image.jpg';
+            const srcWithoutQuality =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
             render(<DynamicImage src={srcWithoutQuality} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -516,7 +521,8 @@ describe('Dynamic Image Component', () => {
         test('applies custom quality from config override to srcSet URLs', () => {
             mockConfigImages = { ...mockConfig.images, quality: 85 };
 
-            const srcWithoutQuality = 'https://example.com/image.jpg';
+            const srcWithoutQuality =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
             render(<DynamicImage src={srcWithoutQuality} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -531,7 +537,8 @@ describe('Dynamic Image Component', () => {
         test('existing q parameter in URL takes priority over config quality', () => {
             mockConfigImages = { ...mockConfig.images, quality: 85 };
 
-            const srcWithQuality = 'https://example.com/image.jpg?q=60';
+            const srcWithQuality =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg?q=60';
             render(<DynamicImage src={srcWithQuality} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -555,7 +562,8 @@ describe('Dynamic Image Component', () => {
 
         test('applies default formats from config to source types', () => {
             // Default formats in mockConfig.images is ['webp']
-            const srcWithoutFormat = 'https://example.com/image.jpg';
+            const srcWithoutFormat =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
             render(<DynamicImage src={srcWithoutFormat} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -571,7 +579,8 @@ describe('Dynamic Image Component', () => {
         test('applies custom formats from config override to source types', () => {
             mockConfigImages = { ...mockConfig.images, formats: ['avif', 'webp'] };
 
-            const srcWithoutFormat = 'https://example.com/image.jpg';
+            const srcWithoutFormat =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
             render(<DynamicImage src={srcWithoutFormat} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -589,7 +598,8 @@ describe('Dynamic Image Component', () => {
     describe('fallbackFormat parameter', () => {
         test('applies default fallbackFormat from config to img src', () => {
             // Default fallbackFormat in mockConfig.images is 'jpg'
-            const pngSrc = 'https://example.com/image.png';
+            const pngSrc =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.png';
             render(<DynamicImage src={pngSrc} alt="Test image" widths={[200]} />);
 
             const img = screen.getByRole('img');
@@ -603,7 +613,8 @@ describe('Dynamic Image Component', () => {
         test('applies custom fallbackFormat from config override to img src', () => {
             mockConfigImages = { ...mockConfig.images, fallbackFormat: 'png' };
 
-            const jpgSrc = 'https://example.com/image.jpg';
+            const jpgSrc =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
             render(<DynamicImage src={jpgSrc} alt="Test image" widths={[200]} />);
 
             const img = screen.getByRole('img');

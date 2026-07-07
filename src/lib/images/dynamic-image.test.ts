@@ -40,48 +40,46 @@ const disImageURL = {
 const urlWithWidth = (width: number) => getSrc(disImageURL.withOptionalParams, { w: width, f: 'webp' });
 
 describe('replaceImageFormat()', () => {
+    const disUrl = (ext: string) =>
+        `https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.${ext}`;
+
     describe('default target format', () => {
         test('does not change URL', () => {
-            expect(replaceImageFormat('https://example.com/image.webp')).toBe('https://example.com/image.webp');
+            expect(replaceImageFormat(disUrl('webp'))).toBe(disUrl('webp'));
         });
 
         test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'avif'])(
             'replaces %s with webp',
             (ext: string) => {
-                expect(replaceImageFormat(`https://example.com/image.${ext}`)).toBe(
-                    `https://example.com/image.webp?sfrm=${ext}`
-                );
+                expect(replaceImageFormat(disUrl(ext))).toContain(`/path/image.webp?sfrm=${ext}`);
             }
         );
     });
 
     describe('custom target format', () => {
         test('does not change URL', () => {
-            expect(replaceImageFormat('https://example.com/image.avif', 'avif')).toBe('https://example.com/image.avif');
+            expect(replaceImageFormat(disUrl('avif'), 'avif')).toBe(disUrl('avif'));
         });
 
         test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'webp'])(
             'replaces %s with avif',
             (ext: string) => {
-                expect(replaceImageFormat(`https://example.com/image.${ext}`, 'avif')).toBe(
-                    `https://example.com/image.avif?sfrm=${ext}`
-                );
+                expect(replaceImageFormat(disUrl(ext), 'avif')).toContain(`/path/image.avif?sfrm=${ext}`);
             }
         );
     });
 
     describe('URLs with query parameters', () => {
         test('does not replace .webp with .webp', () => {
-            expect(replaceImageFormat('https://example.com/image.webp?sw=461&q=60')).toBe(
-                'https://example.com/image.webp?sw=461&q=60'
-            );
+            const url = `${disUrl('webp')}?sw=461&q=60`;
+            expect(replaceImageFormat(url)).toBe(url);
         });
 
         test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'avif'])(
             'replaces %s with .webp',
             (ext: string) => {
-                expect(replaceImageFormat(`https://example.com/image.${ext}?sw=461&q=60`)).toBe(
-                    `https://example.com/image.webp?sw=461&q=60&sfrm=${ext}`
+                expect(replaceImageFormat(`${disUrl(ext)}?sw=461&q=60`)).toContain(
+                    `/path/image.webp?sw=461&q=60&sfrm=${ext}`
                 );
             }
         );
@@ -89,11 +87,13 @@ describe('replaceImageFormat()', () => {
 
     describe('case insensitivity', () => {
         test('handles uppercase JPG', () => {
-            expect(replaceImageFormat('https://example.com/image.JPG')).toBe('https://example.com/image.webp?sfrm=jpg');
+            const url = 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.JPG';
+            expect(replaceImageFormat(url)).toContain('/path/image.webp?sfrm=jpg');
         });
 
         test('handles mixed case JpG', () => {
-            expect(replaceImageFormat('https://example.com/image.JpG')).toBe('https://example.com/image.webp?sfrm=jpg');
+            const url = 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.JpG';
+            expect(replaceImageFormat(url)).toContain('/path/image.webp?sfrm=jpg');
         });
     });
 
@@ -114,30 +114,60 @@ describe('replaceImageFormat()', () => {
     describe('edge cases', () => {
         test('handles extension-like strings in path (not at end)', () => {
             // Should not match .jpg in the middle of the path
-            expect(replaceImageFormat('https://example.com/images.jpg.backup/file.png')).toBe(
-                'https://example.com/images.jpg.backup/file.webp?sfrm=png'
-            );
+            const url =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/images.jpg.backup/file.png';
+            expect(replaceImageFormat(url)).toContain('/images.jpg.backup/file.webp?sfrm=png');
         });
 
         test('handles URLs with fragments', () => {
             // Note: fragments come after query params, so this tests the regex boundary
-            expect(replaceImageFormat('https://example.com/image.jpg')).toBe('https://example.com/image.webp?sfrm=jpg');
+            expect(replaceImageFormat(disUrl('jpg'))).toContain('/path/image.webp?sfrm=jpg');
         });
 
         test('handles empty string', () => {
             expect(replaceImageFormat('')).toBe('');
         });
 
-        test('handles URL with only extension', () => {
-            expect(replaceImageFormat('.jpg')).toBe('.webp?sfrm=jpg');
+        test('handles URL with only extension (already has sfrm)', () => {
+            // Edge case: minimal URL with sfrm → DIS-eligible
+            expect(replaceImageFormat('.jpg?sfrm=png')).toBe('.jpg?sfrm=png');
         });
 
-        test('handles relative paths', () => {
-            expect(replaceImageFormat('/images/photo.jpg')).toBe('/images/photo.webp?sfrm=jpg');
+        test('handles relative paths with sfrm param', () => {
+            // Relative path with sfrm → DIS-eligible
+            expect(replaceImageFormat('/images/photo.jpg?sfrm=png')).toBe('/images/photo.jpg?sfrm=png');
         });
 
-        test('handles relative paths with query params', () => {
-            expect(replaceImageFormat('/images/photo.jpeg?size=large')).toBe('/images/photo.webp?size=large&sfrm=jpeg');
+        test('handles relative paths with query params and sfrm', () => {
+            expect(replaceImageFormat('/images/photo.jpeg?size=large&sfrm=jpg')).toBe(
+                '/images/photo.jpeg?size=large&sfrm=jpg'
+            );
+        });
+    });
+
+    describe('DIS-eligibility gate (Part 1: Stop the leak)', () => {
+        test('does not transform non-DIS URL even if it has image extension', () => {
+            // URL without DIS path and without sfrm param → not DIS-eligible → no transformation
+            const nonDisUrl = 'https://example.com/image.jpg';
+            expect(replaceImageFormat(nonDisUrl)).toBe(nonDisUrl);
+        });
+
+        test('does not transform non-DIS URL with query params', () => {
+            const nonDisUrl = 'https://example.com/image.jpg?size=large';
+            expect(replaceImageFormat(nonDisUrl)).toBe(nonDisUrl);
+        });
+
+        test('transforms URL with DIS path structure', () => {
+            const url = 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.jpg';
+            expect(replaceImageFormat(url)).toBe(
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.webp?sfrm=jpg'
+            );
+        });
+
+        test('transforms URL that already has sfrm param (already transformed)', () => {
+            const url = 'https://example.com/image.png?sfrm=jpg';
+            // Has sfrm → already transformed → return as-is (early exit)
+            expect(replaceImageFormat(url)).toBe('https://example.com/image.png?sfrm=jpg');
         });
     });
 });
@@ -935,14 +965,16 @@ describe('getResponsivePictureAttributes()', () => {
         });
 
         test('getSrc with only h (no w) adds sh but not sw', () => {
-            const result = getSrc('https://example.com/image.jpg', { f: 'webp', h: 300 });
+            const disUrl = 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.jpg';
+            const result = getSrc(disUrl, { f: 'webp', h: 300 });
             expect(result).toContain('sh=300');
             expect(result).not.toContain('sw=');
         });
 
         test('getResponsivePictureAttributes with only heights (no widths) produces sh in srcSet', () => {
+            const disUrl = 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.jpg';
             const props = getResponsivePictureAttributes({
-                src: 'https://example.com/image.jpg',
+                src: disUrl,
                 heights: [200],
                 formats: ['webp'],
             });
@@ -955,8 +987,9 @@ describe('getResponsivePictureAttributes()', () => {
         });
 
         test('getResponsivePictureAttributes with only object heights produces responsive sources', () => {
+            const disUrl = 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.jpg';
             const props = getResponsivePictureAttributes({
-                src: 'https://example.com/image.jpg',
+                src: disUrl,
                 heights: { base: 150, md: 300 },
                 formats: ['webp'],
             });
@@ -973,8 +1006,9 @@ describe('getResponsivePictureAttributes()', () => {
         });
 
         test('getResponsivePictureAttributes with only heights scales by DPR', () => {
+            const disUrl = 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/path/image.jpg';
             const props = getResponsivePictureAttributes({
-                src: 'https://example.com/image.jpg',
+                src: disUrl,
                 heights: [300],
                 formats: ['webp'],
             });
@@ -1090,8 +1124,8 @@ describe('toDisImageUrl()', () => {
             expect(toDisImageUrl({ src: '' })).toBeUndefined();
         });
 
-        test('returns undefined for non-SFCC URL', () => {
-            // Only transforms URLs from Commerce Cloud domains
+        test('returns undefined for non-SFCC URL without realm mapping', () => {
+            // Only transforms URLs from Commerce Cloud domains when no realm fallback
             expect(toDisImageUrl({ src: 'https://example.com/image.jpg' })).toBeUndefined();
             expect(toDisImageUrl({ src: 'https://cdn.example.com/image.jpg' })).toBeUndefined();
         });
@@ -1102,6 +1136,136 @@ describe('toDisImageUrl()', () => {
 
         test('returns undefined for relative URL', () => {
             expect(toDisImageUrl({ src: '/images/product.jpg' })).toBeUndefined();
+        });
+    });
+
+    describe('custom realm mappings (vanity domains)', () => {
+        test('converts vanity domain URL using custom realm mapping', () => {
+            const vanityUrl =
+                'https://ha-dev.storefront-next-demo.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: '.storefront-next-demo.com', realm: 'bjnl_dev' }],
+                },
+            });
+            const result = toDisImageUrl({ src: vanityUrl, config: configWithMapping });
+
+            expect(result).toBe(
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/BJNL_DEV/on/demandware.static/-/Sites-catalog/default/image.webp?sfrm=jpg&q=70'
+            );
+        });
+
+        test('converts exact hostname match', () => {
+            const vanityUrl = 'https://shop.example.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: 'shop.example.com', realm: 'prod_001' }],
+                },
+            });
+            const result = toDisImageUrl({ src: vanityUrl, config: configWithMapping });
+
+            expect(result).toContain('/dw/image/v2/PROD_001/');
+            expect(result).toContain('.webp?sfrm=jpg&q=70');
+        });
+
+        test('custom mappings take precedence over built-in patterns', () => {
+            // Override a built-in SFCC subdomain with a custom realm
+            const sfccUrl =
+                'https://demo-001.commercecloud.salesforce.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: '.commercecloud.salesforce.com', realm: 'custom_realm' }],
+                },
+            });
+            const result = toDisImageUrl({ src: sfccUrl, config: configWithMapping });
+
+            // Should use custom realm, not derived DEMO_001
+            expect(result).toContain('/dw/image/v2/CUSTOM_REALM/');
+        });
+
+        test('preserves placeholders with custom realm mapping', () => {
+            const vanityUrl =
+                'https://shop.example.com/on/demandware.static/-/Sites-catalog/default/image.jpg[?sw={width}]';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: 'shop.example.com', realm: 'prod_001' }],
+                },
+            });
+            const result = toDisImageUrl({ src: vanityUrl, config: configWithMapping });
+
+            expect(result).toContain('/dw/image/v2/PROD_001/');
+            expect(result).toContain('[?sw={width}]');
+        });
+
+        test('returns undefined for unmapped vanity domain', () => {
+            const vanityUrl = 'https://shop.example.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            // No custom mapping provided
+            const result = toDisImageUrl({ src: vanityUrl, config: mockConfig });
+
+            expect(result).toBeUndefined();
+        });
+
+        test('built-in SFCC patterns still work when no custom mappings', () => {
+            const sfccUrl =
+                'https://demo-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const result = toDisImageUrl({ src: sfccUrl, config: mockConfig });
+
+            // Should fall back to subdomain extraction
+            expect(result).toContain('/dw/image/v2/DEMO_001/');
+        });
+
+        test('does NOT match unrelated domain with similar suffix (dot-boundary check)', () => {
+            // Bug fix: 'evilshop.example.com' should NOT match hostSuffix 'shop.example.com'
+            const attackUrl = 'https://evilshop.example.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: 'shop.example.com', realm: 'prod_001' }],
+                },
+            });
+            const result = toDisImageUrl({ src: attackUrl, config: configWithMapping });
+
+            // Should return undefined because 'evilshop.example.com' should NOT match
+            expect(result).toBeUndefined();
+        });
+
+        test('matches subdomain when hostSuffix has leading dot', () => {
+            // '.example.com' should match 'shop.example.com', 'm.example.com', etc.
+            const vanityUrl = 'https://shop.example.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: '.example.com', realm: 'prod_001' }],
+                },
+            });
+            const result = toDisImageUrl({ src: vanityUrl, config: configWithMapping });
+
+            expect(result).toContain('/dw/image/v2/PROD_001/');
+        });
+
+        test('matches case-insensitively when hostSuffix has mixed case', () => {
+            // Bug fix: '.MyStore.Com' should match 'shop.mystore.com' (case-insensitive)
+            const vanityUrl = 'https://shop.mystore.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: '.MyStore.Com', realm: 'prod_001' }],
+                },
+            });
+            const result = toDisImageUrl({ src: vanityUrl, config: configWithMapping });
+
+            // Should match despite case difference
+            expect(result).toContain('/dw/image/v2/PROD_001/');
+        });
+
+        test('exact hostname match with mixed case works', () => {
+            const vanityUrl = 'https://shop.example.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const configWithMapping = deepMerge(mockConfig, {
+                images: {
+                    realmHostMappings: [{ hostSuffix: 'Shop.Example.Com', realm: 'prod_001' }],
+                },
+            });
+            const result = toDisImageUrl({ src: vanityUrl, config: configWithMapping });
+
+            // Should match despite case difference
+            expect(result).toContain('/dw/image/v2/PROD_001/');
         });
     });
 
@@ -1758,6 +1922,62 @@ describe('resolveDynamicImageAttributes()', () => {
             // toDisBaseUrl returns undefined for empty src; resolver should fall back to the input.
             const result = resolveDynamicImageAttributes({ src: '', config: mockConfig });
             expect(result.transformedSrc).toBe('');
+        });
+    });
+
+    describe('DIS-eligibility gate in getSrc (Part 1: Stop the leak)', () => {
+        test('does not inject sw/sh/q params for non-DIS URL', () => {
+            const nonDisUrl =
+                'https://ha-dev.storefront-next-demo.com/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const result = getSrc(nonDisUrl, { w: 720, h: 480, q: 70 });
+
+            // Non-DIS URL → no sw/sh/q params injected
+            expect(result).toBe(nonDisUrl);
+            expect(result).not.toContain('sw=');
+            expect(result).not.toContain('sh=');
+            expect(result).not.toContain('q=');
+        });
+
+        test('does not apply format conversion for non-DIS URL', () => {
+            const nonDisUrl = 'https://example.com/image.jpg';
+            const result = getSrc(nonDisUrl, { w: 720, f: 'webp' });
+
+            // No DIS transformation → original extension preserved, no sfrm
+            expect(result).toBe('https://example.com/image.jpg');
+            expect(result).not.toContain('.webp');
+            expect(result).not.toContain('sfrm=');
+        });
+
+        test('injects params for DIS URL (with DIS path)', () => {
+            const disUrl =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const result = getSrc(disUrl, { w: 720, h: 480, q: 70, f: 'webp' });
+
+            // DIS URL → params injected
+            expect(result).toContain('sw=720');
+            expect(result).toContain('sh=480');
+            expect(result).toContain('q=70');
+            expect(result).toContain('.webp');
+            expect(result).toContain('sfrm=jpg');
+        });
+
+        test('injects params for URL with sfrm (already transformed)', () => {
+            const transformedUrl = 'https://example.com/image.webp?sfrm=jpg';
+            const result = getSrc(transformedUrl, { w: 720, q: 70 });
+
+            // Has sfrm → DIS-eligible → params injected
+            expect(result).toContain('sw=720');
+            expect(result).toContain('q=70');
+        });
+
+        test('placeholder interpolation still works for non-DIS URL', () => {
+            // Use a simple {width} placeholder (not bracket-enclosed) to avoid query param conversion
+            const nonDisUrl = 'https://example.com/image_{width}.jpg';
+            const result = getSrc(nonDisUrl, { w: 720 });
+
+            // Placeholder expanded, but no sw= param added (non-DIS)
+            expect(result).toBe('https://example.com/image_720.jpg');
+            expect(result).not.toContain('sw=');
         });
     });
 });

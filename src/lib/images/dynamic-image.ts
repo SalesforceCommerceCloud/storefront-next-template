@@ -66,8 +66,31 @@ export type ImageUrlParams = {
     image?: Image;
 };
 
-function getRealmFromUrl(url: URL): string | undefined {
-    // Only extract realm from Salesforce B2C Commerce URLs
+/**
+ * Attempts to derive realm from hostname using custom mappings first, then built-in SFCC patterns.
+ *
+ * @param url - The URL to extract realm from
+ * @param config - App config containing custom realm mappings
+ * @returns The realm (uppercased) or undefined if not derivable
+ */
+function getRealmFromUrl(url: URL, config?: AppConfig): string | undefined {
+    // 1. Check custom mappings first (customer/environment-specific)
+    const customMappings = config?.images?.realmHostMappings;
+    if (customMappings) {
+        for (const { hostSuffix, realm } of customMappings) {
+            const suffix = hostSuffix.toLowerCase();
+            // Exact match OR suffix match with dot boundary (prevents 'evilshop.example.com' matching 'shop.example.com')
+            const isMatch =
+                url.hostname === suffix ||
+                (suffix.startsWith('.') && url.hostname.endsWith(suffix)) ||
+                (!suffix.startsWith('.') && url.hostname.endsWith(`.${suffix}`));
+            if (isMatch) {
+                return realm.toUpperCase();
+            }
+        }
+    }
+
+    // 2. Fall back to built-in Salesforce B2C Commerce URL patterns
     // Example hosts:
     //   demo-001.dx.commercecloud.salesforce.com -> realm DEMO_001
     //   demo-001.my.cc.salesforce.com            -> realm DEMO_001
@@ -87,12 +110,12 @@ function getRealmFromUrl(url: URL): string | undefined {
     return realm || undefined;
 }
 
-function getRealm(url: URL): string | undefined {
+function getRealm(url: URL, config?: AppConfig): string | undefined {
     const realmFromPath = url.pathname.match(DIS_PATH_REALM_REGEX)?.[1];
     if (realmFromPath) {
         return realmFromPath.toUpperCase();
     }
-    return getRealmFromUrl(url);
+    return getRealmFromUrl(url, config);
 }
 
 function stripDisPath(pathname: string): string {
@@ -120,7 +143,7 @@ function parseDisUrlParts(
           url: URL;
           /** Resolved DIS host from `options.disHost` or `config.images.host`. `undefined` if neither is set. */
           disHost: string | undefined;
-          /** Realm derived from the URL path (existing DIS URL) or subdomain (raw SFCC URL). */
+          /** Realm derived from the URL path (existing DIS URL), custom mappings, or subdomain (raw SFCC URL). */
           realm: string | undefined;
           /** URL pathname with any existing `/dw/image/v2/{realm}` prefix stripped. */
           normalizedPathname: string;
@@ -135,7 +158,7 @@ function parseDisUrlParts(
             cleanUrl,
             url,
             disHost: options.disHost || config?.images?.host,
-            realm: getRealm(url),
+            realm: getRealm(url, config),
             normalizedPathname: stripDisPath(url.pathname),
         };
     } catch {
@@ -311,7 +334,8 @@ export function toImageUrl({ src, options = {}, config, image }: ImageUrlParams)
 
             const targetFormat =
                 options.format || config?.images?.formats?.[0] || config?.images?.fallbackFormat || 'webp';
-            let transformedUrl = replaceImageFormat(normalizedClean, targetFormat);
+            // Pass true for isDisEligible since we already checked IS_DIS_URL_REGEX above
+            let transformedUrl = replaceImageFormat(normalizedClean, targetFormat, true);
 
             const quality = options.quality ?? config?.images?.quality;
             if (quality && !HAS_QUALITY_PARAM_REGEX.test(transformedUrl)) {
@@ -496,19 +520,45 @@ const vwToPx = (vw: number, breakpoint: string): number => {
 };
 
 /**
+ * Checks if a URL is eligible for DIS transformation by testing if it contains a DIS path structure
+ * or if it's already been transformed (has sfrm parameter). URLs that have gone through `toDisBaseUrl`
+ * successfully will have the DIS path prefix. This predicate gates format conversion and param injection
+ * so non-DIS hosts don't receive DIS-specific query parameters they can't process.
+ */
+const isDisTransformed = (url: string): boolean => {
+    return IS_DIS_URL_REGEX.test(url) || HAS_SFRM_PARAM_REGEX.test(url);
+};
+
+/**
  * Replaces the image file extension in a URL with a configurable target format, e.g. `webp`.
  * Handles URLs with query parameters correctly.
  * If the format changes, appends the original extension as `sfrm` parameter.
+ *
+ * **Correctness gate**: Only applies transformation if the URL is DIS-eligible (has DIS path or sfrm param).
+ * This prevents DIS params from leaking to non-DIS hosts that would return 404.
+ *
+ * @param url - The URL to transform
+ * @param targetFormat - The desired image format
+ * @param isDisEligible - Optional pre-computed DIS-eligibility flag to avoid redundant checks
+ *
  * @example
  * // returns 'https://example.com/image.webp?sw=460&q=60&sfrm=jpg'
  * replaceImageFormat('https://example.com/image.jpg?sw=460&q=60')
  */
 export const replaceImageFormat = (
     url: string,
-    targetFormat: 'webp' | 'avif' | 'gif' | 'jp2' | 'jpg' | 'jpeg' | 'jxr' | 'png' = 'webp'
+    targetFormat: 'webp' | 'avif' | 'gif' | 'jp2' | 'jpg' | 'jpeg' | 'jxr' | 'png' = 'webp',
+    isDisEligible?: boolean
 ): string => {
     // If URL already has sfrm parameter, it's already been transformed - return as-is
     if (HAS_SFRM_PARAM_REGEX.test(url)) {
+        return url;
+    }
+
+    // Part 1: Stop the leak - only transform DIS-eligible URLs
+    // Use pre-computed flag if provided to avoid redundant check
+    const eligible = isDisEligible ?? isDisTransformed(url);
+    if (!eligible) {
         return url;
     }
 
@@ -528,6 +578,11 @@ export const replaceImageFormat = (
 };
 
 /**
+ * Interpolates DynamicImage placeholder syntax and injects DIS transformation parameters.
+ *
+ * **Correctness gate**: Only injects DIS params (`sw`, `sh`, `q`) and applies format conversion
+ * when the URL is DIS-eligible. This prevents non-DIS hosts from receiving params they can't process.
+ *
  * @example
  * // returns https://example.com/image_720.webp?sw=720&q=60&sfrm=jpg
  * getSrc('https://example.com/image[_{width}].jpg', { w: 720, q: 60 })
@@ -569,8 +624,11 @@ export const getSrc = (
         .replace(/\{height}/g, heightStr)
         .replace(/\{[^}]+}/g, fallbackStr);
 
-    // Handle sw= parameter - only added when width is explicitly provided
-    if (w != null) {
+    // Part 1: Stop the leak - only inject DIS params if URL is DIS-eligible
+    const isDisEligible = isDisTransformed(result);
+
+    // Handle sw= parameter - only added when width is explicitly provided and URL is DIS-eligible
+    if (w != null && isDisEligible) {
         if (hasUrlParam(result, 'sw')) {
             result = result.replace(/([?&])sw=\d+/, `$1sw=${w}`);
         } else {
@@ -578,8 +636,8 @@ export const getSrc = (
         }
     }
 
-    // Handle sh= parameter - only added when height is explicitly provided
-    if (h != null) {
+    // Handle sh= parameter - only added when height is explicitly provided and URL is DIS-eligible
+    if (h != null && isDisEligible) {
         if (hasUrlParam(result, 'sh')) {
             result = result.replace(/([?&])sh=\d+/, `$1sh=${h}`);
         } else {
@@ -587,15 +645,16 @@ export const getSrc = (
         }
     }
 
-    // Handle quality parameter - existing q= in URL takes priority
-    if (typeof q === 'number' && Number.isInteger(q) && !hasUrlParam(result, 'q')) {
+    // Handle quality parameter - existing q= in URL takes priority, only inject if DIS-eligible
+    if (typeof q === 'number' && Number.isInteger(q) && !hasUrlParam(result, 'q') && isDisEligible) {
         result = `${result}${getSep(result)}q=${q}`;
     }
 
     // If no target format specified, don't convert format (keep original)
     // This is important for environments where DIS format conversion isn't available
+    // Pass pre-computed isDisEligible to avoid redundant check in replaceImageFormat
     if (f) {
-        return replaceImageFormat(result, f);
+        return replaceImageFormat(result, f, isDisEligible);
     }
     return result;
 };
