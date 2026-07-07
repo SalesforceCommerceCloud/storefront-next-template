@@ -174,3 +174,41 @@ export const Empty: Story = {
         );
     },
 };
+
+/**
+ * Horizontal-strip thumbnail layout — the variant the quick-add modal uses
+ * (it renders <ImageGallery horizontalThumbnails />). Structurally distinct
+ * from the 4-column grid: the thumbnails live in a scrollable strip marked
+ * [data-gallery-strip] rather than the grid's [data-gallery-thumbs], and the
+ * cosmetic overlay rounds each layout via its own seam. A dedicated story
+ * locks the strip DOM into the snapshot suite (the grid stories never
+ * exercised it) and gives QA a bookmarkable URL for the quick-add gallery.
+ */
+export const HorizontalStrip: Story = {
+    args: {
+        imageCount: 6,
+        eager: false,
+        showNavigationArrows: false,
+        navigationArrowSize: 'sm',
+        horizontalThumbnails: true,
+        productName: '',
+    },
+    render: ({ imageCount, eager, showNavigationArrows, navigationArrowSize, horizontalThumbnails, productName }) => (
+        <ImageGallery
+            images={buildImages(imageCount)}
+            eager={eager}
+            showNavigationArrows={showNavigationArrows}
+            navigationArrowSize={navigationArrowSize}
+            horizontalThumbnails={horizontalThumbnails}
+            productName={productName || undefined}
+        />
+    ),
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const strip = canvasElement.querySelector('[data-gallery-strip]');
+        await expect(strip).toBeInTheDocument();
+        // The strip renders one thumbnail button per image; the cosmetic overlay
+        // rounds these via [data-slot='dialog-content'] [data-gallery-strip] button.
+        await expect(strip?.querySelectorAll('button').length).toBe(6);
+    },
+};

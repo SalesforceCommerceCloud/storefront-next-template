@@ -308,6 +308,7 @@ export default function ImageGallery({
                         )}
                         <div
                             ref={thumbStripRef}
+                            data-gallery-strip
                             className="flex flex-1 gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {images.map((image, index) => (
                                 <button
