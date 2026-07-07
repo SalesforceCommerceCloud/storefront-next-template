@@ -556,6 +556,65 @@ describe('Order Confirmation Route', () => {
         });
     });
 
+    describe('delivery window', () => {
+        const baseShipment: NonNullable<ShopperOrders.schemas['Order']['shipments']>[number] = {
+            shipmentId: 'shipment-123',
+            shippingAddress: baseOrder.shipments?.[0]?.shippingAddress,
+            shippingMethod: { id: 'standard', name: 'Standard Shipping' },
+        };
+
+        test('shows formatted delivery window when shipment has c_ custom attributes', async () => {
+            const order: ShopperOrders.schemas['Order'] = {
+                ...baseOrder,
+                shipments: [
+                    {
+                        ...baseShipment,
+                        ...({
+                            c_deliveryWindowStartAt: '2026-04-30T12:00:00Z',
+                            c_deliveryWindowEndAt: '2026-05-07T12:00:00Z',
+                        } as Record<string, unknown>),
+                    },
+                ],
+            };
+            renderRoute(order);
+
+            await waitFor(() => {
+                expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+            });
+        });
+
+        test('falls back to shippingMethod description when no deliveryWindow', async () => {
+            const order: ShopperOrders.schemas['Order'] = {
+                ...baseOrder,
+                shipments: [
+                    {
+                        ...baseShipment,
+                        shippingMethod: { id: 'standard', name: 'Standard Shipping', description: '5-7 business days' },
+                    },
+                ],
+            };
+            renderRoute(order);
+
+            await waitFor(() => {
+                expect(screen.getByText('5-7 business days')).toBeInTheDocument();
+            });
+        });
+
+        test('shows placeholder when no deliveryWindow and no description', async () => {
+            const order: ShopperOrders.schemas['Order'] = {
+                ...baseOrder,
+                shipments: [baseShipment],
+            };
+            renderRoute(order);
+
+            await waitFor(() => {
+                expect(
+                    screen.getByText(t('checkout:confirmation.summaryLabels.estimatedDatePlaceholder'))
+                ).toBeInTheDocument();
+            });
+        });
+    });
+
     describe('totals row', () => {
         test('displays subtotal, shipping, tax, and total', async () => {
             renderRoute(baseOrder);

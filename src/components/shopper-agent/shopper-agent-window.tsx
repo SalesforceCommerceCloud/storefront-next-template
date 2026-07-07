@@ -29,7 +29,7 @@ let initGuard = false;
 
 /**
  * Environment variables
- * @see packages/template-retail-rsc-app/CLAUDE.md - Document environment variables in JSDoc
+ * @see packages/template/CLAUDE.md - Document environment variables in JSDoc
  *
  * Environment variables used by this component:
  * (Currently none - all config comes from props)

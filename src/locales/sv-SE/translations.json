@@ -489,7 +489,8 @@
             "arrives": "Levereras: {{estimatedArrivalTime}}",
             "free": "Gratis",
             "noMethodsAvailable": "Inga leveransmetoder tillgängliga",
-            "noMethodsAvailableHelp": "Kontrollera att din fraktadress är fullständig och försök igen."
+            "noMethodsAvailableHelp": "Kontrollera att din fraktadress är fullständig och försök igen.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Betalning",
@@ -616,7 +617,8 @@
                 "noAddress": "Ingen adress tillgänglig",
                 "estimatedDatePlaceholder": "Bearbetas nu",
                 "quantity": "Antal: {{count}}",
-                "freeShipping": "Gratis"
+                "freeShipping": "Gratis",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Delsumma",

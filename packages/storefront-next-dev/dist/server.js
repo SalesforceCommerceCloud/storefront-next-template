@@ -77,10 +77,10 @@ async function importTypescript(filePath, options) {
 //#region src/server/config.ts
 /**
 * This is a temporary function before we move the config implementation from
-* template-retail-rsc-app to the SDK.
+* the template to the SDK.
 *
 * @ TODO: Remove this function after we move the config implementation from
-* template-retail-rsc-app to the SDK.
+* the template to the SDK.
 *
 */
 function loadConfigFromEnv() {

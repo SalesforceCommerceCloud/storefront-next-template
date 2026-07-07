@@ -710,4 +710,93 @@ describe('ShippingOptions Component', () => {
         expect(strikeThroughPrice.className).toContain('line-through');
         expect(screen.getByText('FREE')).toBeInTheDocument();
     });
+
+    test('shows delivery window in edit view when present on a method', () => {
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [
+                {
+                    id: 'standard',
+                    name: 'Standard Shipping',
+                    description: '5-7 days',
+                    price: 5.99,
+                    deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                },
+            ],
+        };
+        render(<ShippingOptions {...createDefaultProps({ shippingMethods: methods })} />);
+
+        expect(screen.getByText(/Arrives/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+    });
+
+    test('does not show delivery window in edit view when absent', () => {
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [
+                { id: 'standard', name: 'Standard Shipping', description: '5-7 days', price: 5.99 },
+            ],
+        };
+        render(<ShippingOptions {...createDefaultProps({ shippingMethods: methods })} />);
+
+        expect(screen.queryByText(/Arrives/)).not.toBeInTheDocument();
+    });
+
+    test('shows delivery window in summary view when present on selected method', () => {
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [
+                    {
+                        shipmentId: 's1',
+                        shippingMethod: {
+                            id: 'standard',
+                            name: 'Standard Shipping',
+                            description: '5-7 days',
+                            price: 5.99,
+                        },
+                    },
+                ],
+            })
+        );
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [
+                {
+                    id: 'standard',
+                    name: 'Standard Shipping',
+                    description: '5-7 days',
+                    price: 5.99,
+                    deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                },
+            ],
+        };
+        render(
+            <ShippingOptions
+                {...createDefaultProps({ shippingMethods: methods, isEditing: false, isCompleted: true })}
+            />
+        );
+
+        expect(screen.getByText(/Arrives/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+    });
+
+    test('does not show delivery window in summary view when absent on selected method', () => {
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [
+                    {
+                        shipmentId: 's1',
+                        shippingMethod: { id: 'standard', name: 'Standard Shipping', price: 5.99 },
+                    },
+                ],
+            })
+        );
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [{ id: 'standard', name: 'Standard Shipping', price: 5.99 }],
+        };
+        render(
+            <ShippingOptions
+                {...createDefaultProps({ shippingMethods: methods, isEditing: false, isCompleted: true })}
+            />
+        );
+
+        expect(screen.queryByText(/Arrives/)).not.toBeInTheDocument();
+    });
 });

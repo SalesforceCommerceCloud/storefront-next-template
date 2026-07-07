@@ -19,7 +19,7 @@
  * envelope into the wire shape the SCAPI `getPage` controller would have
  * returned for the same component.
  *
- * Module is platform-neutral: imports nothing from `template-retail-rsc-app`,
+ * Module is platform-neutral: imports nothing from the template,
  * `site-context/build-url`, or React Router. The caller (storefront-next
  * middleware or Page Designer preview) supplies an
  * {@link AttributeResolutionContext} that injects URL-building utilities, so

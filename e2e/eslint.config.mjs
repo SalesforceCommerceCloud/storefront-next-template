@@ -70,11 +70,18 @@ export default [
     {
         // CodeceptJS recorder wraps all I.* methods to return thenables at runtime,
         // but their TypeScript definitions type them as void. This mismatch makes
-        // await-thenable unreliable — it fires or not depending on type resolution,
-        // causing local vs CI inconsistencies.
+        // the type-aware async rules unreliable — they fire or not depending on
+        // type resolution (e.g. whether the generated steps.d.ts is present), which
+        // causes local vs CI inconsistencies for these I.*-wrapping helpers.
+        //   - await-thenable: fires on `await I.foo()` when I.foo is typed void.
+        //   - require-await: fires on `async foo() { return I.grab() }` when the
+        //     grab is typed non-thenable, so the promise passthrough looks
+        //     await-less. steps.d.ts is gitignored and only emitted by `pnpm def`,
+        //     so CI (which lints without it) resolves these differently than local.
         files: ['src/pages/**/*.ts', 'src/specs/**/*.ts', 'src/flows/**/*.ts', 'src/utils/**/*.ts'],
         rules: {
             '@typescript-eslint/await-thenable': 'off',
+            '@typescript-eslint/require-await': 'off',
         },
     },
 ];

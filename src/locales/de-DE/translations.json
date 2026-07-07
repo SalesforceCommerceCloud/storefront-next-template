@@ -487,7 +487,8 @@
             "arrives": "Geliefert am: {{estimatedArrivalTime}}",
             "free": "Kostenlos",
             "noMethodsAvailable": "Keine Versandmethoden verfügbar",
-            "noMethodsAvailableHelp": "Stellen Sie sicher, dass Ihre Lieferadresse vollständig ist, und versuchen Sie es erneut."
+            "noMethodsAvailableHelp": "Stellen Sie sicher, dass Ihre Lieferadresse vollständig ist, und versuchen Sie es erneut.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Zahlung",
@@ -614,7 +615,8 @@
                 "noAddress": "Keine Adresse verfügbar",
                 "estimatedDatePlaceholder": "Jetzt in Bearbeitung",
                 "quantity": "Menge: {{count}}",
-                "freeShipping": "Kostenlos"
+                "freeShipping": "Kostenlos",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Zwischensumme",

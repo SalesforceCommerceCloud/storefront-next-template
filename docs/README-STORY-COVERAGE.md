@@ -102,7 +102,7 @@ The workflow generates and uploads the following artifacts:
 
 #### 1. Story Coverage JSON
 - **Artifact Name**: `storybook-coverage-json`
-- **Location**: `packages/template-retail-rsc-app/.storybook/coverage/storybook-component-coverage.json`
+- **Location**: `packages/template/.storybook/coverage/storybook-component-coverage.json`
 - **Contents**:
   ```json
   {
@@ -123,7 +123,7 @@ The workflow generates and uploads the following artifacts:
 
 #### 2. Story Coverage Markdown Report
 - **Artifact Name**: `storybook-coverage-md`
-- **Location**: `packages/template-retail-rsc-app/.storybook/coverage/storybook-component-coverage.md`
+- **Location**: `packages/template/.storybook/coverage/storybook-component-coverage.md`
 - **Contents**: Formatted markdown report with:
   - Coverage badges
   - Metrics table
@@ -133,7 +133,7 @@ The workflow generates and uploads the following artifacts:
 
 #### 3. Vitest Coverage Data
 - **Artifact Name**: `vitest-coverage`
-- **Location**: `packages/template-retail-rsc-app/.storybook/coverage/coverage-vitest/`
+- **Location**: `packages/template/.storybook/coverage/coverage-vitest/`
 - **Contents**: Complete Vitest coverage report including:
   - `coverage-summary.json` - Summary statistics
   - HTML coverage reports
@@ -177,7 +177,7 @@ The coverage scripts are located in the `scripts/` directory:
 
 **Purpose**: Generates Vitest test files from Storybook stories
 
-**Location**: `packages/template-retail-rsc-app/scripts/generate-story-tests.js`
+**Location**: `packages/template/scripts/generate-story-tests.js`
 
 **What it does:**
 - Recursively scans `src/components/` and `src/extensions/*/components/` for `*.stories.tsx` files
@@ -203,7 +203,7 @@ node scripts/generate-story-tests.js
 
 **Purpose**: Generates comprehensive story and code coverage reports
 
-**Location**: `packages/template-retail-rsc-app/scripts/storyCoverageReport.js`
+**Location**: `packages/template/scripts/storyCoverageReport.js`
 
 **What it does:**
 - Scans `src/components/` and `src/extensions/*/components/` for all component files (`*.tsx`)

@@ -101,7 +101,7 @@ export interface RegisteredSessionCookieOps {
  * session.
  *
  * Mirrors the storefront's auth middleware on a real UI login (see
- * `template-retail-rsc-app/src/middlewares/auth.server.ts`):
+ * `src/middlewares/auth.server.ts`):
  *
  * - **Adds** `cc-at_` (access token), `cc-nx_` (registered refresh token, no `-g`
  *   suffix — the `-g` variant is for guest sessions), `usid_` (user session ID),

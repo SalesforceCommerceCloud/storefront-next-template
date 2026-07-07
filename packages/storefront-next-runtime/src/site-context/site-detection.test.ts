@@ -18,7 +18,7 @@
  * @vitest-environment jsdom
  * Use jsdom so the Cookie request header is available (happy-dom strips it per Fetch spec).
  * This allows us to test the site detection from cookie using the same approach
- * used by template-retail-rsc-app
+ * used by the template app
  */
 import { afterEach, describe, it, expect } from 'vitest';
 import { DEFAULT_SITE_DETECTION, DEFAULT_LOCALE_DETECTION } from './configs';

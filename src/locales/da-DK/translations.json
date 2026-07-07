@@ -487,7 +487,8 @@
             "arrives": "Ankommer: {{estimatedArrivalTime}}",
             "free": "Gratis",
             "noMethodsAvailable": "Der er ingen tilgængelige forsendelsesmetoder",
-            "noMethodsAvailableHelp": "Sørg for, at din leveringsadresse er komplet, og prøv igen."
+            "noMethodsAvailableHelp": "Sørg for, at din leveringsadresse er komplet, og prøv igen.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Betaling",
@@ -614,7 +615,8 @@
                 "noAddress": "Der er ingen tilgængelig adresse",
                 "estimatedDatePlaceholder": "Behandles nu",
                 "quantity": "Antal: {{count}}",
-                "freeShipping": "Gratis"
+                "freeShipping": "Gratis",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "promotions": "Kampagner",

@@ -118,7 +118,7 @@ export async function createServer(options: ServerOptions): Promise<Express> {
     }
 
     // Use provided config or load from environment variables
-    // TODO: move the config implementation from template-retail-rsc-app to the SDK.
+    // TODO: move the config implementation from the template to the SDK.
     const config = providedConfig ?? loadConfigFromEnv();
 
     // Load bundle ID from environment

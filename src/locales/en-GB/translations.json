@@ -533,7 +533,8 @@
             "priceAndMethod": "{{price}} | {{methodName}}",
             "free": "FREE",
             "noMethodsAvailable": "No shipping methods available",
-            "noMethodsAvailableHelp": "Make sure your shipping address is complete and try again."
+            "noMethodsAvailableHelp": "Make sure your shipping address is complete and try again.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Payment",
@@ -687,7 +688,8 @@
                 "noAddress": "No address available",
                 "estimatedDatePlaceholder": "Processing now",
                 "quantity": "Qty: {{count}}",
-                "freeShipping": "Free"
+                "freeShipping": "Free",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Subtotal",

@@ -132,7 +132,7 @@ subtract — so you can't accidentally un-protect `rounded-full`, which was neve
    `pnpm lint` is the safety net: storefront-ui's ESLint **errors** on any `@/*` import in
    `src/components/ui/**`, so an alias import pulled in from upstream fails here, not in prod.
    If your change altered rendered DOM, also run the consuming package's snapshot tests
-   (`cd packages/template-retail-rsc-app && pnpm storybook:test --type=snapshot`).
+   (`cd packages/template && pnpm storybook:test --type=snapshot`).
 5. **Advance the baseline.** Once the fork is clean and verified:
    ```bash
    node $S advance <name>

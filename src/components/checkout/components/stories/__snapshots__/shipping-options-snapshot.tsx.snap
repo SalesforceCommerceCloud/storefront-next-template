@@ -291,6 +291,202 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
 </div>
 `;
 
+exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story renders and matches snapshot 1`] = `
+<div
+  class="max-w-2xl mx-auto p-6"
+>
+  <div>
+    <div
+      class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative py-4 gap-4"
+      data-slot="card"
+      data-testid="sf-toggle-card-shipping-options"
+    >
+      <div
+        class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
+        data-slot="card-header"
+      >
+        <div
+          class="text-base font-semibold text-foreground"
+          data-slot="card-title"
+          tabindex="0"
+        >
+          <span
+            class="text-2xl font-bold tracking-tight text-card-foreground"
+          >
+            Shipping Method
+          </span>
+        </div>
+        <div
+          class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
+          data-slot="card-action"
+        />
+      </div>
+      <div
+        class="px-6"
+        data-slot="card-content"
+        data-testid="sf-toggle-card-shipping-options-content"
+      >
+        <form
+          class="flex flex-col gap-4 pt-2 pb-2"
+          method="post"
+        >
+          <div
+            aria-label="Shipping Method"
+            aria-required="true"
+            class="flex flex-col gap-4"
+            data-slot="radio-group"
+            dir="ltr"
+            role="radiogroup"
+            style="outline: none;"
+            tabindex="0"
+          >
+            <label
+              class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
+              for="ground"
+            >
+              <div
+                class="flex items-center gap-2"
+              >
+                <button
+                  aria-checked="true"
+                  class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
+                  data-radix-collection-item=""
+                  data-slot="radio-group-item"
+                  data-state="checked"
+                  id="ground"
+                  role="radio"
+                  tabindex="0"
+                  type="button"
+                  value="ground"
+                >
+                  <span
+                    class="relative flex items-center justify-center"
+                    data-slot="radio-group-indicator"
+                    data-state="checked"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-circle fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                      />
+                    </svg>
+                  </span>
+                </button>
+                <input
+                  aria-hidden="true"
+                  checked=""
+                  name="shippingMethodId"
+                  required=""
+                  style="transform: translateX(-100%); position: absolute; pointer-events: none; opacity: 0; margin: 0px; width: 0px; height: 0px;"
+                  tabindex="-1"
+                  type="radio"
+                  value="ground"
+                />
+                <span
+                  class="flex-1 text-sm font-medium leading-none"
+                >
+                  Arrives 30 Apr 2026 – 7 May 2026
+                </span>
+                <span
+                  class="flex shrink-0 items-center gap-1.5"
+                >
+                  <span
+                    class="text-sm font-semibold leading-none"
+                  >
+                    £15.99
+                  </span>
+                </span>
+              </div>
+              <span
+                class="pl-6 text-sm text-foreground"
+              >
+                Ground
+              </span>
+            </label>
+            <label
+              class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
+              for="express"
+            >
+              <div
+                class="flex items-center gap-2"
+              >
+                <button
+                  aria-checked="false"
+                  class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
+                  data-radix-collection-item=""
+                  data-slot="radio-group-item"
+                  data-state="unchecked"
+                  id="express"
+                  role="radio"
+                  tabindex="-1"
+                  type="button"
+                  value="express"
+                />
+                <input
+                  aria-hidden="true"
+                  name="shippingMethodId"
+                  required=""
+                  style="transform: translateX(-100%); position: absolute; pointer-events: none; opacity: 0; margin: 0px; width: 0px; height: 0px;"
+                  tabindex="-1"
+                  type="radio"
+                  value="express"
+                />
+                <span
+                  class="flex-1 text-sm font-medium leading-none"
+                >
+                  Arrives 30 Apr 2026
+                </span>
+                <span
+                  class="flex shrink-0 items-center gap-1.5"
+                >
+                  <span
+                    class="text-sm font-semibold leading-none"
+                  >
+                    £29.99
+                  </span>
+                </span>
+              </div>
+              <span
+                class="pl-6 text-sm text-foreground"
+              >
+                2-Day Express
+              </span>
+            </label>
+          </div>
+          <div
+            class="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2"
+            data-checkout-mobile-bar="true"
+          >
+            <button
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+              data-size="default"
+              data-slot="button"
+              data-variant="default"
+              type="submit"
+            >
+              Continue to Payment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story renders and matches snapshot 1`] = `
 <div
   class="max-w-2xl mx-auto p-6"
@@ -990,6 +1186,52 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
 `;
 
 exports[`ShippingOptions stories snapshot > SummaryView story renders and matches snapshot 1`] = `
+<div
+  class="max-w-2xl mx-auto p-6"
+>
+  <div>
+    <div
+      class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui relative py-4 gap-4"
+      data-slot="card"
+      data-testid="sf-toggle-card-shipping-options"
+    >
+      <div
+        class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
+        data-slot="card-header"
+      >
+        <div
+          class="text-base font-semibold text-foreground"
+          data-slot="card-title"
+          tabindex="0"
+        >
+          <span
+            class="text-2xl font-bold tracking-tight text-card-foreground"
+          >
+            Shipping Method
+          </span>
+        </div>
+        <div
+          class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
+          data-slot="card-action"
+        />
+      </div>
+      <div
+        class="px-6"
+        data-slot="card-content"
+        data-testid="sf-toggle-card-shipping-options-content"
+      >
+        <p
+          class="text-sm text-muted-foreground"
+        >
+          Complete previous steps to continue
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ShippingOptions stories snapshot > SummaryViewWithDeliveryWindow story renders and matches snapshot 1`] = `
 <div
   class="max-w-2xl mx-auto p-6"
 >

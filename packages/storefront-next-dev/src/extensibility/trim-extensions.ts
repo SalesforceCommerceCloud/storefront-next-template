@@ -119,7 +119,7 @@ async function updateExtensionConfig(projectDirectory: string, extensionSelectio
  * output and fail lint on first run (W-23074938).
  *
  * NOTE: mirror of the helper in
- * packages/template-retail-rsc-app/scripts/generate-eslint-config.js — kept separate because
+ * packages/template/scripts/generate-eslint-config.js — kept separate because
  * the two live in different packages/module systems. Keep the parser/config-resolution
  * behavior in sync; the fallback chains INTENTIONALLY differ — this copy has a two-level
  * fallback (consumer Prettier → SDK-bundled `import('prettier')` → unformatted) because it

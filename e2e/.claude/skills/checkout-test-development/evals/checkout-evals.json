@@ -135,7 +135,7 @@
             "description": "Verify skill checks all required preconditions before proceeding",
             "prompt": "I'm in the storefront-next project. Can I use the checkout-test-development skill?",
             "success_criteria": [
-                "Confirms user is in correct project (template-retail-rsc-app/e2e)",
+                "Confirms user is in correct project (e2e)",
                 "Checks for required files (checkout.page.ts, checkout.data.ts)",
                 "Verifies test environment setup (CodeceptJS, Playwright)",
                 "Provides guidance if preconditions not met",

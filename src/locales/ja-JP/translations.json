@@ -490,7 +490,8 @@
             "arrives": "お届け予定: {{estimatedArrivalTime}}",
             "free": "無料",
             "noMethodsAvailable": "利用可能な配送方法はありません",
-            "noMethodsAvailableHelp": "配送先住所がすべて入力されていることをご確認のうえ、もう一度お試しください。"
+            "noMethodsAvailableHelp": "配送先住所がすべて入力されていることをご確認のうえ、もう一度お試しください。",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "支払い",
@@ -617,7 +618,8 @@
                 "noAddress": "利用可能な住所がありません",
                 "estimatedDatePlaceholder": "現在処理中",
                 "quantity": "数量: {{count}}",
-                "freeShipping": "無料"
+                "freeShipping": "無料",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "小計",

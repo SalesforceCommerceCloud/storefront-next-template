@@ -22,12 +22,12 @@ These are the steps to upgrade an existing store front application (currently op
 
  # Step 3. Copy:
  <Copy>
- - From the cloned pwa-kit folder, copy `packages/template-retail-rsc-app/src/extensions/bopis` folder into the current directory's `src/extensions/bopis` folder.
+ - From the cloned pwa-kit folder, copy `packages/template/src/extensions/bopis` folder into the current directory's `src/extensions/bopis` folder.
   </Copy>
 
  # Step 4. Merge. Apply the following code changes to the files specified. Skip a step if the code change has already been applied.
  <Merge>
- - Go through the following source files in /tmp/pwa-kit-tmp/packages/template-retail-rsc-app one by one, then perform the following instructions with the marker value "SFDC_EXT_BOPIS": 
+ - Go through the following source files in /tmp/pwa-kit-tmp/packages/template one by one, then perform the following instructions with the marker value "SFDC_EXT_BOPIS":
     - `src/components/category-refinements/active-filters.tsx`
     - `src/components/category-refinements/index.tsx`
     - `src/components/product-view/child-product-card.tsx`

@@ -81,7 +81,7 @@ The `rewriteMarkup` function handles only `?$staticlink$` — library-relative i
 
 ### AttributeResolutionContext
 
-The resolver is platform-neutral — it imports nothing from `template-retail-rsc-app`, React Router, or `site-context/build-url`. All URL-building is injected via `AttributeResolutionContext`:
+The resolver is platform-neutral — it imports nothing from the template, React Router, or `site-context/build-url`. All URL-building is injected via `AttributeResolutionContext`:
 
 - `host` — storefront origin (e.g. `https://www.shop.example`)
 - `resolveMediaUrl({ libraryDomain, path, locale? })` — builds static-content URLs

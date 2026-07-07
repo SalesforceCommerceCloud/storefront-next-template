@@ -4,7 +4,7 @@ Storefront template for Salesforce Commerce Cloud built with React Router v7, Re
 
 This file is the single source of truth for AI coding agents (Claude Code, Cursor, Codex, etc.) working in this package. `CLAUDE.md` is a symlink to this file.
 
-> **Changesets**: any change in this package needs a changeset. Run `pnpm changeset` from the repo root, pick `template-retail-rsc-app` (and `@salesforce/storefront-next-{dev,runtime}` if applicable), and commit the generated `.changeset/<id>.md`. See [`../../CONTRIBUTING.md#changesets`](../../CONTRIBUTING.md#changesets).
+> **Changesets**: any change in this package needs a changeset. Run `pnpm changeset` from the repo root, pick `@salesforce/template` (and `@salesforce/storefront-next-{dev,runtime}` if applicable), and commit the generated `.changeset/<id>.md`. See [`../../CONTRIBUTING.md#changesets`](../../CONTRIBUTING.md#changesets).
 
 ## Project Structure
 

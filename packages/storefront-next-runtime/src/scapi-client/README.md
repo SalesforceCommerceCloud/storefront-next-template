@@ -1121,4 +1121,4 @@ try {
 - [openapi-fetch Middleware Guide](https://openapi-ts.dev/openapi-fetch/middleware) - Request/response interception
 - [openapi-fetch API Options](https://openapi-ts.dev/openapi-fetch/api) - Request configuration options
 - [Salesforce B2C Commerce API Documentation](https://developer.salesforce.com/docs/commerce/commerce-api/guide/get-started.html) - SCAPI reference
-- [SCAPI Clients: Overrides and Custom APIs](../../../template-retail-rsc-app/docs/README-SCAPI.md) - SCAPI client usage patterns in Storefront Next apps 
+- [SCAPI Clients: Overrides and Custom APIs](../../../template/docs/README-SCAPI.md) - SCAPI client usage patterns in Storefront Next apps 

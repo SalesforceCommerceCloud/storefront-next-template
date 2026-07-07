@@ -492,7 +492,8 @@
             "arrives": "Chega: {{estimatedArrivalTime}}",
             "free": "Gratuito",
             "noMethodsAvailable": "Não há métodos de envio disponíveis",
-            "noMethodsAvailableHelp": "Certifique-se de que o seu endereço de entrega está completo e tente novamente."
+            "noMethodsAvailableHelp": "Certifique-se de que o seu endereço de entrega está completo e tente novamente.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Pagamento",
@@ -619,7 +620,8 @@
                 "noAddress": "Nenhum endereço disponível",
                 "estimatedDatePlaceholder": "Processando agora",
                 "quantity": "Qtd: {{count}}",
-                "freeShipping": "Gratuito"
+                "freeShipping": "Gratuito",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "promotions": "Promoções",

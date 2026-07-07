@@ -125,13 +125,9 @@ const MOBILE_BREAKPOINT_PX = 768;
  * violation counts are tracked independently.
  */
 export async function getViewportKey(): Promise<'desktop' | 'mobile'> {
-    const width = await (I.usePlaywrightTo(
-        'get viewport width',
-        // eslint-disable-next-line @typescript-eslint/require-await -- usePlaywrightTo requires an async callback
-        async ({ page }) => {
-            return page.viewportSize()?.width ?? 1200;
-        }
-    ) as unknown as Promise<number>);
+    const width = await (I.usePlaywrightTo('get viewport width', async ({ page }) => {
+        return page.viewportSize()?.width ?? 1200;
+    }) as unknown as Promise<number>);
 
     return width < MOBILE_BREAKPOINT_PX ? 'mobile' : 'desktop';
 }

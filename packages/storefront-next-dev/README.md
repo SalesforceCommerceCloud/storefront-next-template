@@ -102,7 +102,7 @@ pnpm sfnext create-instructions --project-directory /path/to/your/project --exte
 
 #### Cartridge generation and deployment instructions
 
-Run these commands from your project directory (e.g., `template-retail-rsc-app`):
+Run these commands from your project directory:
 
 ```bash
 # Generate cartridge metadata for your site

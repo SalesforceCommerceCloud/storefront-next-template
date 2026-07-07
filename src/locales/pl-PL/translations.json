@@ -498,7 +498,8 @@
             "arrives": "Dostawa: {{estimatedArrivalTime}}",
             "free": "Bezpłatna",
             "noMethodsAvailable": "Brak dostępnych metod wysyłki",
-            "noMethodsAvailableHelp": "Upewnij się, że adres wysyłkowy jest kompletny, i spróbuj ponownie."
+            "noMethodsAvailableHelp": "Upewnij się, że adres wysyłkowy jest kompletny, i spróbuj ponownie.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Płatność",
@@ -624,7 +625,8 @@
                 "noAddress": "Brak dostępnego adresu",
                 "estimatedDatePlaceholder": "Przetwarzanie w toku",
                 "quantity": "Ilość: {{count}}",
-                "freeShipping": "Bezpłatna"
+                "freeShipping": "Bezpłatna",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Suma częściowa",

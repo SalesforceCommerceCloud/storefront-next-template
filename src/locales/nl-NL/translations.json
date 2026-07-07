@@ -486,7 +486,8 @@
             "arrives": "Aankomst op: {{estimatedArrivalTime}}",
             "free": "Gratis",
             "noMethodsAvailable": "Geen verzendmethoden beschikbaar",
-            "noMethodsAvailableHelp": "Controleer of je verzendadres volledig is en probeer het opnieuw."
+            "noMethodsAvailableHelp": "Controleer of je verzendadres volledig is en probeer het opnieuw.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Betaling",
@@ -613,7 +614,8 @@
                 "noAddress": "Geen adres beschikbaar",
                 "estimatedDatePlaceholder": "Nu bezig met verwerken",
                 "quantity": "Hoeveelheid: {{count}}",
-                "freeShipping": "Gratis"
+                "freeShipping": "Gratis",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Subtotaal",

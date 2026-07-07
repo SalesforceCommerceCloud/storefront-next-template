@@ -25,7 +25,7 @@
  *     `Omit<AppConfig, 'serverExtension'>`), it resolves to that augmented shape
  *     — the narrow.
  *
- * The augmented case is covered by `template-retail-rsc-app/src/types/config-narrow.test.ts`,
+ * The augmented case is covered by `packages/template/src/types/config-narrow.test.ts`,
  * which is where the `@ts-expect-error` proof of the actual narrow lives.
  *
  * Module-augmentation is intentionally NOT used here — augmentations are

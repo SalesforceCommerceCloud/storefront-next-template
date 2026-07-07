@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { formatCurrency } from '@/lib/currency';
 import { useShippingOptions } from './use-shipping-options';
+import { formatDeliveryWindow } from '@/lib/date-utils';
 
 interface ShippingOptionsProps {
     onSubmit: (formData: FormData) => void;
@@ -104,51 +105,58 @@ export default function ShippingOptions({
                         required
                         aria-label={t('shippingOptions.title')}
                         className="flex flex-col gap-4">
-                        {availableShippingMethods.map((method) => (
-                            <label
-                                key={method.id}
-                                htmlFor={method.id}
-                                className="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground">
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem
-                                        value={method.id}
-                                        id={method.id}
-                                        className="shrink-0"
-                                        autoFocus={isEditing && availableShippingMethods.indexOf(method) === 0}
-                                    />
-                                    <span className="flex-1 text-sm font-medium leading-none">
-                                        {method.description || method.name}
-                                    </span>
-                                    <span className="flex shrink-0 items-center gap-1.5">
-                                        {method.shippingPromotions?.length &&
-                                        method.price > 0 &&
-                                        getDiscountedPrice(method.price) !== method.price ? (
-                                            <>
-                                                <span className="text-sm text-muted-foreground line-through">
-                                                    {formatCurrency(method.price, i18n.language, currency)}
-                                                </span>
+                        {availableShippingMethods.map((method) => {
+                            const deliveryWindowFormatted = formatDeliveryWindow(method.deliveryWindow, i18n.language);
+                            return (
+                                <label
+                                    key={method.id}
+                                    htmlFor={method.id}
+                                    className="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground">
+                                    <div className="flex items-center gap-2">
+                                        <RadioGroupItem
+                                            value={method.id}
+                                            id={method.id}
+                                            className="shrink-0"
+                                            autoFocus={isEditing && availableShippingMethods.indexOf(method) === 0}
+                                        />
+                                        <span className="flex-1 text-sm font-medium leading-none">
+                                            {deliveryWindowFormatted
+                                                ? t('shippingOptions.deliveryWindow', {
+                                                      window: deliveryWindowFormatted,
+                                                  })
+                                                : method.description || method.name}
+                                        </span>
+                                        <span className="flex shrink-0 items-center gap-1.5">
+                                            {method.shippingPromotions?.length &&
+                                            method.price > 0 &&
+                                            getDiscountedPrice(method.price) !== method.price ? (
+                                                <>
+                                                    <span className="text-sm text-muted-foreground line-through">
+                                                        {formatCurrency(method.price, i18n.language, currency)}
+                                                    </span>
+                                                    <span className="text-sm font-semibold leading-none">
+                                                        {getDiscountedPrice(method.price) === 0
+                                                            ? t('shippingOptions.free')
+                                                            : formatCurrency(
+                                                                  getDiscountedPrice(method.price),
+                                                                  i18n.language,
+                                                                  currency
+                                                              )}
+                                                    </span>
+                                                </>
+                                            ) : (
                                                 <span className="text-sm font-semibold leading-none">
-                                                    {getDiscountedPrice(method.price) === 0
+                                                    {method.price === 0
                                                         ? t('shippingOptions.free')
-                                                        : formatCurrency(
-                                                              getDiscountedPrice(method.price),
-                                                              i18n.language,
-                                                              currency
-                                                          )}
+                                                        : formatCurrency(method.price, i18n.language, currency)}
                                                 </span>
-                                            </>
-                                        ) : (
-                                            <span className="text-sm font-semibold leading-none">
-                                                {method.price === 0
-                                                    ? t('shippingOptions.free')
-                                                    : formatCurrency(method.price, i18n.language, currency)}
-                                            </span>
-                                        )}
-                                    </span>
-                                </div>
-                                <span className="pl-6 text-sm text-foreground">{method.name}</span>
-                            </label>
-                        ))}
+                                            )}
+                                        </span>
+                                    </div>
+                                    <span className="pl-6 text-sm text-foreground">{method.name}</span>
+                                </label>
+                            );
+                        })}
                     </RadioGroup>
 
                     <div
@@ -167,41 +175,57 @@ export default function ShippingOptions({
             <ToggleCardSummary>
                 {summaryMethod ? (
                     <div className="space-y-1.5">
-                        <div className="space-y-1.5">
-                            {summaryMethod.description && (
-                                <p className="text-sm font-normal leading-5 text-foreground">
-                                    {summaryMethod.description}
-                                </p>
-                            )}
-                            <p className="text-sm font-normal leading-5 text-foreground">
-                                {summaryMethod.shippingPromotions?.length &&
-                                summaryMethod.price > 0 &&
-                                getDiscountedPrice(summaryMethod.price) !== summaryMethod.price ? (
-                                    <>
-                                        <span className="text-foreground line-through">
-                                            {formatCurrency(summaryMethod.price, i18n.language, currency)}
-                                        </span>{' '}
-                                        {getDiscountedPrice(summaryMethod.price) === 0
-                                            ? t('shippingOptions.free')
-                                            : formatCurrency(
-                                                  getDiscountedPrice(summaryMethod.price),
-                                                  i18n.language,
-                                                  currency
-                                              )}
-                                        {' | '}
-                                        {summaryMethod.name}
-                                    </>
-                                ) : (
-                                    t('shippingOptions.priceAndMethod', {
-                                        price:
-                                            summaryMethod.price === 0
-                                                ? t('shippingOptions.free')
-                                                : formatCurrency(summaryMethod.price ?? 0, i18n.language, currency),
-                                        methodName: summaryMethod.name || '',
-                                    })
-                                )}
-                            </p>
-                        </div>
+                        {(() => {
+                            const summaryWindowFormatted = formatDeliveryWindow(
+                                summaryMethod.deliveryWindow,
+                                i18n.language
+                            );
+                            return (
+                                <div className="space-y-1.5">
+                                    {(summaryWindowFormatted || summaryMethod.description) && (
+                                        <p className="text-sm font-normal leading-5 text-muted-foreground">
+                                            {summaryWindowFormatted
+                                                ? t('shippingOptions.deliveryWindow', {
+                                                      window: summaryWindowFormatted,
+                                                  })
+                                                : summaryMethod.description}
+                                        </p>
+                                    )}
+                                    <p className="text-sm font-normal leading-5 text-foreground">
+                                        {summaryMethod.shippingPromotions?.length &&
+                                        summaryMethod.price > 0 &&
+                                        getDiscountedPrice(summaryMethod.price) !== summaryMethod.price ? (
+                                            <>
+                                                <span className="text-foreground line-through">
+                                                    {formatCurrency(summaryMethod.price, i18n.language, currency)}
+                                                </span>{' '}
+                                                {getDiscountedPrice(summaryMethod.price) === 0
+                                                    ? t('shippingOptions.free')
+                                                    : formatCurrency(
+                                                          getDiscountedPrice(summaryMethod.price),
+                                                          i18n.language,
+                                                          currency
+                                                      )}
+                                                {' | '}
+                                                {summaryMethod.name}
+                                            </>
+                                        ) : (
+                                            t('shippingOptions.priceAndMethod', {
+                                                price:
+                                                    summaryMethod.price === 0
+                                                        ? t('shippingOptions.free')
+                                                        : formatCurrency(
+                                                              summaryMethod.price ?? 0,
+                                                              i18n.language,
+                                                              currency
+                                                          ),
+                                                methodName: summaryMethod.name || '',
+                                            })
+                                        )}
+                                    </p>
+                                </div>
+                            );
+                        })()}
                     </div>
                 ) : (
                     <p className="text-sm text-muted-foreground">

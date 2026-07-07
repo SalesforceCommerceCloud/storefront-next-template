@@ -47,7 +47,7 @@ const TEMPLATE_RETAIL_APP_DIR = '/mock/project/dir';
 const configPath = path.join(TEMPLATE_RETAIL_APP_DIR, 'config/config.json');
 const createTestFileSystem = (fileContents: any = {}) => {
     vol = new Volume();
-    // Default file structure for the template-retail-rsc-app
+    // Default file structure for the template
     const defaultFiles: Record<string, string> = {
         [path.join(TEMPLATE_RETAIL_APP_DIR, 'src/components/featureComponent.tsx')]:
             fileContents.featureComponent ||

@@ -491,7 +491,8 @@
             "arrives": "送达时间：{{estimatedArrivalTime}}",
             "free": "免费",
             "noMethodsAvailable": "无可用的运货方式",
-            "noMethodsAvailableHelp": "请确保您的送货地址完整并重试。"
+            "noMethodsAvailableHelp": "请确保您的送货地址完整并重试。",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "付款",
@@ -619,7 +620,8 @@
                 "noAddress": "无可用地址",
                 "estimatedDatePlaceholder": "立即处理",
                 "quantity": "数量： {{count}}",
-                "freeShipping": "免费"
+                "freeShipping": "免费",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "小计",

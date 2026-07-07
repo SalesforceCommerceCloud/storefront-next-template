@@ -488,7 +488,8 @@
             "arrives": "Saapuu: {{estimatedArrivalTime}}",
             "free": "Veloituksetta",
             "noMethodsAvailable": "Ei käytettävissä olevia toimitustapoja",
-            "noMethodsAvailableHelp": "Varmista, että toimitusosoitteesi on täydellinen ja yritä uudelleen."
+            "noMethodsAvailableHelp": "Varmista, että toimitusosoitteesi on täydellinen ja yritä uudelleen.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Maksu",
@@ -616,7 +617,8 @@
                 "noAddress": "Osoitetta ei ole saatavilla",
                 "estimatedDatePlaceholder": "Käsitellään nyt",
                 "quantity": "Lkm: {{count}}",
-                "freeShipping": "Veloituksetta"
+                "freeShipping": "Veloituksetta",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Yhteensä",

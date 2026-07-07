@@ -794,7 +794,7 @@ Did you forget to return it from "vi.mock"?
 
 ### Solution
 
-Make sure your own mock of react-router includes `createCookie`. For example, in [this file](https://github.com/SalesforceCommerceCloud/storefront-next/blob/bfd08dd74b2d717f0c0984d5d82329c2dbca0ae9/packages/template-retail-rsc-app/src/components/reset-password-form/stories/index-snapshot.tsx#L4-L9):
+Make sure your own mock of react-router includes `createCookie`. For example, in [this file](../src/components/reset-password-form/stories/index-snapshot.tsx):
 
 ```typescript
 vi.mock('react-router', () => ({

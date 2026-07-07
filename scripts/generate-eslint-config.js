@@ -47,7 +47,7 @@ const TEMPLATE_DIR = join(__dirname, '..');
 const monorepoRootFlagIndex = process.argv.indexOf('--monorepo-root');
 const monorepoRootFromFlag = monorepoRootFlagIndex !== -1 ? resolve(process.argv[monorepoRootFlagIndex + 1]) : null;
 
-// In monorepo: template is at packages/template-retail-rsc-app/ (need to go up 2 levels)
+// In monorepo: template is at packages/template/ (need to go up 2 levels)
 // In workflow: template is at mirror-repo/ (need to go up 1 level)
 // Try both paths and use whichever exists
 const monorepoRootOption1 = join(TEMPLATE_DIR, '../..'); // For monorepo
@@ -108,7 +108,7 @@ async function formatWithProjectPrettier(content, filePath) {
 /**
  * Re-point the e2e package's ESLint config import at the standalone project root.
  *
- * In the monorepo the e2e config lives at `packages/template-retail-rsc-app/e2e/` and
+ * In the monorepo the e2e config lives at `packages/template/e2e/` and
  * imports the shared base config three levels up (`../../../eslint.config.js` → monorepo
  * root). The standalone template is flat — the e2e package sits directly under the
  * project root — so the base config it consumes is one level up (`../eslint.config.js`,
@@ -141,9 +141,9 @@ async function generateStandaloneConfig() {
     // Check if we're in monorepo context by verifying:
     // 1. The monorepo package structure exists
     // 2. AND the template is actually running from within that structure
-    // In monorepo: TEMPLATE_DIR === <monorepo-root>/packages/template-retail-rsc-app/
+    // In monorepo: TEMPLATE_DIR === <monorepo-root>/packages/template/
     // In mirror repo: TEMPLATE_DIR is the mirror repo root (different from monorepo structure)
-    const monorepoTemplatePath = join(MONOREPO_ROOT, 'packages', 'template-retail-rsc-app');
+    const monorepoTemplatePath = join(MONOREPO_ROOT, 'packages', 'template');
     const isTemplateInsideMonorepo =
         existsSync(monorepoTemplatePath) && resolve(TEMPLATE_DIR) === resolve(monorepoTemplatePath);
 

@@ -488,7 +488,8 @@
             "arrives": "도착: {{estimatedArrivalTime}}",
             "free": "무료",
             "noMethodsAvailable": "사용 가능한 배송 방법이 없습니다.",
-            "noMethodsAvailableHelp": "배송 주소가 완전한지 확인하고 다시 시도하십시오."
+            "noMethodsAvailableHelp": "배송 주소가 완전한지 확인하고 다시 시도하십시오.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "결제",
@@ -614,7 +615,8 @@
                 "noAddress": "주소를 사용할 수 없음",
                 "estimatedDatePlaceholder": "지금 처리 중",
                 "quantity": "수량: {{count}}개",
-                "freeShipping": "무료"
+                "freeShipping": "무료",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "소계",

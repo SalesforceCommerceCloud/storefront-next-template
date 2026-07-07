@@ -492,7 +492,8 @@
             "arrives": "Arrive à : {{estimatedArrivalTime}}",
             "free": "Gratuit",
             "noMethodsAvailable": "Aucun mode de livraison disponible",
-            "noMethodsAvailableHelp": "Assurez-vous que votre adresse de livraison est complète et réessayez."
+            "noMethodsAvailableHelp": "Assurez-vous que votre adresse de livraison est complète et réessayez.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Paiement",
@@ -619,7 +620,8 @@
                 "noAddress": "Pas d’adresse disponible",
                 "estimatedDatePlaceholder": "Traitement en cours",
                 "quantity": "Qté : {{count}}",
-                "freeShipping": "Gratuit"
+                "freeShipping": "Gratuit",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Sous-total",

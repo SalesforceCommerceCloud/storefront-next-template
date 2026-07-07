@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Typography } from '@/components/typography';
 import ProductImage from '@/components/product-image/product-image';
 import { formatCurrency } from '@/lib/currency';
+import { formatDeliveryWindow } from '@/lib/date-utils';
 import { fetchOrderWithProducts } from '@/lib/api/order.server';
 import { destroyBasket } from '@/middlewares/basket.server';
 import { useBasketReset } from '@/providers/basket';
@@ -388,9 +389,21 @@ function OrderConfirmationContent({
                         const shippingAddress = shipment.shippingAddress;
                         const shippingMethodName =
                             shipment.shippingMethod?.name || t('confirmation.fields.defaultShippingMethod');
-                        const estimatedDeliveryTime =
-                            shipment.shippingMethod?.description ||
-                            t('confirmation.summaryLabels.estimatedDatePlaceholder');
+                        const deliveryWindowFormatted = formatDeliveryWindow(
+                            {
+                                startAt: (shipment as Record<string, unknown>).c_deliveryWindowStartAt as
+                                    | string
+                                    | undefined,
+                                endAt: (shipment as Record<string, unknown>).c_deliveryWindowEndAt as
+                                    | string
+                                    | undefined,
+                            },
+                            i18n.language
+                        );
+                        const estimatedDeliveryTime = deliveryWindowFormatted
+                            ? t('confirmation.summaryLabels.deliveryWindow', { window: deliveryWindowFormatted })
+                            : shipment.shippingMethod?.description ||
+                              t('confirmation.summaryLabels.estimatedDatePlaceholder');
                         return (
                             <Card key={shipment.shipmentId} className="border border-border/70">
                                 <CardContent className="grid gap-6 p-6 md:grid-cols-3">

@@ -25,10 +25,7 @@ import { prepareForLocalDev } from './utils/local-dev-setup';
 
 // The real template file — read once at import time using real node:fs (not the mocked fs-extra).
 // Used to mock the fs.readFileSync call in tests and for the sync test at the bottom of this file.
-const WORKSPACE_HBS_PATH = join(
-    dirname(fileURLToPath(import.meta.url)),
-    '../../template-retail-rsc-app/pnpm-workspace.yaml.hbs'
-);
+const WORKSPACE_HBS_PATH = join(dirname(fileURLToPath(import.meta.url)), '../../template/pnpm-workspace.yaml.hbs');
 const WORKSPACE_HBS_RAW = readFileSync(WORKSPACE_HBS_PATH, 'utf8');
 
 // Mock external modules before importing the SUT
@@ -675,7 +672,7 @@ describe('create-storefront', () => {
             (prompts as any).inject([
                 'my-storefront',
                 'custom',
-                'file:///home/user/workspace/storefront-next/packages/template-retail-rsc-app',
+                'file:///home/user/workspace/storefront-next/packages/template',
                 [], // no extensions
             ]);
 
@@ -1250,21 +1247,14 @@ describe('XML/URI security override placement', () => {
 
     const here = dirname(fileURLToPath(import.meta.url));
     const monorepoYaml = readFileSync(resolve(here, '../../../pnpm-workspace.yaml'), 'utf8');
-    const templateRetailPkg = JSON.parse(
-        readFileSync(resolve(here, '../../template-retail-rsc-app/package.json'), 'utf8')
-    );
     const templatePkg = JSON.parse(readFileSync(resolve(here, '../../template/package.json'), 'utf8'));
 
-    it('mirrors dev-reachable pins identically across the monorepo workspace and both template override blocks', () => {
+    it('mirrors dev-reachable pins identically across the monorepo workspace and the template override block', () => {
         for (const pkg of DEV_REACHABLE_OVERRIDES) {
             const monorepoPin = extractOverridePin(monorepoYaml, pkg);
-            const retailPin = templateRetailPkg.pnpm?.overrides?.[pkg];
             const templatePin = templatePkg.pnpm?.overrides?.[pkg];
 
             expect(monorepoPin, `${pkg}: missing from monorepo pnpm-workspace.yaml overrides`).toBeDefined();
-            expect(retailPin, `${pkg}: template-retail-rsc-app pnpm.overrides drifted from the monorepo pin`).toBe(
-                monorepoPin
-            );
             expect(templatePin, `${pkg}: template pnpm.overrides drifted from the monorepo pin`).toBe(monorepoPin);
         }
     });
@@ -1275,10 +1265,6 @@ describe('XML/URI security override placement', () => {
                 extractOverridePin(monorepoYaml, pkg),
                 `${pkg}: missing from monorepo pnpm-workspace.yaml overrides`
             ).toBeDefined();
-            expect(
-                templateRetailPkg.pnpm?.overrides?.[pkg],
-                `${pkg}: runtime override leaked into template-retail-rsc-app pnpm.overrides — keep it root-only`
-            ).toBeUndefined();
             expect(
                 templatePkg.pnpm?.overrides?.[pkg],
                 `${pkg}: runtime override leaked into template pnpm.overrides — keep it root-only`

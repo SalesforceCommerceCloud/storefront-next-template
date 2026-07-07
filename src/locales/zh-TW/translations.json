@@ -490,7 +490,8 @@
             "arrives": "抵達：{{estimatedArrivalTime}}",
             "free": "免費",
             "noMethodsAvailable": "沒有可用的運送方式",
-            "noMethodsAvailableHelp": "確認您的送貨地址完整，並再試一次。"
+            "noMethodsAvailableHelp": "確認您的送貨地址完整，並再試一次。",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "付款",
@@ -616,7 +617,8 @@
                 "noAddress": "沒有可用的地址",
                 "estimatedDatePlaceholder": "正在處理中",
                 "quantity": "數量：{{count}}",
-                "freeShipping": "免費"
+                "freeShipping": "免費",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "小計",
