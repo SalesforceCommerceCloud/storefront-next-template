@@ -1648,3 +1648,399 @@ exports[`AccountOverview stories snapshot > LoadingSkeleton story renders and ma
   </div>
 </div>
 `;
+
+exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders and matches snapshot 1`] = `
+<div
+  class="space-y-5"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui py-0"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <h1
+        class="text-2xl font-semibold text-foreground mb-1"
+      >
+        Welcome back, there!
+      </h1>
+      <p
+        class="text-sm text-muted-foreground"
+      >
+        Manage your account, view orders, and discover personalized recommendations.
+      </p>
+    </div>
+  </div>
+  <div
+    class="space-y-5"
+  >
+    <div
+      class="space-y-0"
+    >
+      <div
+        class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui py-6 shadow-ui bg-card border-border rounded-b-none border-b-0"
+        data-slot="card"
+      >
+        <div
+          class="px-5"
+          data-slot="card-content"
+        >
+          <div
+            class="flex items-center justify-between"
+          >
+            <div
+              class="flex flex-col items-start gap-1.5 flex-1"
+            >
+              <h2
+                class="text-lg font-bold leading-[120%] text-card-foreground"
+                tabindex="0"
+              >
+                Recent Orders
+              </h2>
+              <p
+                class="text-sm font-normal leading-5 text-muted-foreground"
+              >
+                These are your last 5 orders
+              </p>
+            </div>
+            <a
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 shrink-0 bg-secondary shadow-2xs"
+              data-discover="true"
+              data-size="default"
+              data-slot="button"
+              data-variant="outline"
+              href="/global/en-GB/account/orders"
+            >
+              View All
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui py-6 shadow-ui border-border m-0 border-b-0"
+        data-slot="card"
+      >
+        <div
+          class="p-0"
+          data-slot="card-content"
+        >
+          <div
+            class="py-4 space-y-4 flex flex-col items-center justify-center"
+          >
+            <h4
+              class="text-2xl font-semibold tracking-tight text-left text-muted-foreground w-fit"
+            >
+              You haven't placed an order yet. Once you place an order the details will show up here.
+            </h4>
+            <a
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+              data-discover="true"
+              data-size="default"
+              data-slot="button"
+              data-variant="default"
+              href="/global/en-GB/"
+            >
+              Continue Shopping
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="p-6 m-0 border-b border-x border-border rounded-b-xl flex flex-row items-center w-full gap-4"
+      >
+        <p
+          class="text-sm font-medium leading-none text-left text-muted-foreground min-w-0 shrink"
+          data-testid="total-orders-text"
+        >
+          Viewing 0 orders
+        </p>
+      </div>
+    </div>
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui py-0"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <h2
+        class="text-lg font-semibold text-foreground mb-2"
+      >
+        Need Help?
+      </h2>
+      <p
+        class="text-sm text-muted-foreground mb-4"
+      >
+        We're here to assist you with any questions or concerns
+      </p>
+      <div
+        class="flex flex-wrap gap-3"
+      >
+        <button
+          class="justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 flex items-center gap-2 cursor-pointer"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+        >
+          Contact info
+        </button>
+        <button
+          class="justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 flex items-center gap-2 cursor-pointer"
+          data-size="default"
+          data-slot="button"
+          data-variant="outline"
+        >
+          Browse FAQ
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui py-0"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6"
+      >
+        <div
+          class="flex-1"
+        >
+          <h2
+            class="tracking-tight text-left text-lg font-semibold text-foreground mb-2"
+          >
+            Download Our App
+          </h2>
+          <p
+            class="text-sm text-muted-foreground mb-6"
+          >
+            Get the best shopping experience on the go. Access exclusive deals, track orders, and shop faster.
+          </p>
+          <div
+            class="flex flex-wrap gap-3 items-center"
+          >
+            <img
+              alt="App Store"
+              aria-label="App Store"
+              class="h-10 w-auto"
+              src="__ASSET_MOCK__"
+            />
+            <img
+              alt="Google Play"
+              aria-label="Google Play"
+              class="h-10 w-auto"
+              src="__ASSET_MOCK__"
+            />
+          </div>
+        </div>
+        <div
+          class="flex flex-col items-center gap-2 lg:flex-shrink-0"
+        >
+          <div
+            class="w-32 h-32 bg-muted flex items-center justify-center border-2 border-dashed border-border"
+          >
+            <svg
+              class="w-16 h-16 text-muted-foreground"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <p
+            class="text-sm text-muted-foreground"
+          >
+            QR Code
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui py-0"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <h2
+        class="text-lg font-semibold text-foreground mb-4"
+      >
+        Quick Links
+      </h2>
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        <a
+          class="group"
+          data-discover="true"
+          href="/global/en-GB/account"
+        >
+          <div
+            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-user h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+              />
+              <circle
+                cx="12"
+                cy="7"
+                r="4"
+              />
+            </svg>
+            <h3
+              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+            >
+              Account Details
+            </h3>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/global/en-GB/account/addresses"
+        >
+          <div
+            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-map-pin h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+              />
+              <circle
+                cx="12"
+                cy="10"
+                r="3"
+              />
+            </svg>
+            <h3
+              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+            >
+              Manage Addresses
+            </h3>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/global/en-GB/account/payment-methods"
+        >
+          <div
+            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-credit-card h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect
+                height="14"
+                rx="2"
+                width="20"
+                x="2"
+                y="5"
+              />
+              <line
+                x1="2"
+                x2="22"
+                y1="10"
+                y2="10"
+              />
+            </svg>
+            <h3
+              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+            >
+              Payment Methods
+            </h3>
+          </div>
+        </a>
+        <a
+          class="group"
+          data-discover="true"
+          href="/global/en-GB/account/orders"
+        >
+          <div
+            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-receipt h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
+              />
+              <path
+                d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
+              />
+              <path
+                d="M12 17.5v-11"
+              />
+            </svg>
+            <h3
+              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+            >
+              Order History
+            </h3>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -255,6 +255,150 @@ exports[`MyCart stories snapshot > Default story renders and matches snapshot 1`
 </div>
 `;
 
+exports[`MyCart stories snapshot > EmptyBasket story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-full"
+  >
+    <div
+      class="divide-y divide-border -mx-[var(--cart-divider-extend,0px)] [&>*]:px-4 [&>*]:py-5 md:[&>*]:px-[var(--cart-divider-extend,0px)] md:[&>*]:py-6"
+      data-testid="my-cart-toggle"
+    />
+  </div>
+</div>
+`;
+
+exports[`MyCart stories snapshot > SingleItem story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="w-full"
+  >
+    <div
+      class="divide-y divide-border -mx-[var(--cart-divider-extend,0px)] [&>*]:px-4 [&>*]:py-5 md:[&>*]:px-[var(--cart-divider-extend,0px)] md:[&>*]:py-6"
+      data-testid="my-cart-toggle"
+    >
+      <div
+        data-testid="my-cart-item-701642868279M"
+      >
+        <div
+          class="flex items-start gap-3 md:gap-4"
+        >
+          <div
+            class="flex-shrink-0"
+          >
+            <div
+              class="w-16 h-16 md:w-20 md:h-20 bg-muted overflow-hidden flex items-center justify-center"
+            >
+              <div
+                class="w-full h-full bg-muted"
+              />
+            </div>
+          </div>
+          <div
+            class="flex-1 min-w-0"
+          >
+            <a
+              class="text-sm font-semibold text-foreground hover:text-primary"
+              href="/RefArchGlobal/en-GB/product/:productId"
+            >
+              Button Front Jacket
+            </a>
+            <div
+              class="mt-1 space-y-0.5 text-xs"
+            >
+              <div>
+                Color
+                : 
+                Grey Heather
+              </div>
+              <div>
+                Size
+                : 
+                6
+              </div>
+            </div>
+            <div
+              class="mt-1"
+            >
+              <div
+                class="items-center gap-2"
+              >
+                <span
+                  aria-label="Current price: £39.67"
+                  aria-live="polite"
+                  class="[&:not(:first-child)]:mt-6 text-left text-sm font-semibold text-foreground"
+                >
+                  £39.67
+                </span>
+                <span
+                  aria-atomic="true"
+                  aria-live="polite"
+                  class="sr-only"
+                >
+                  Button Front Jacket
+                   
+                  Current price: £39.67
+                </span>
+                 
+              </div>
+            </div>
+            <div
+              class="mt-0.5 text-xs"
+            >
+              Qty:
+               
+              1
+            </div>
+          </div>
+          <div
+            class="flex flex-col items-end gap-1 shrink-0"
+          >
+            <span
+              class="text-xs bg-muted px-1.5 py-0.5 flex items-center gap-1"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-truck size-3"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"
+                />
+                <path
+                  d="M15 18H9"
+                />
+                <path
+                  d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"
+                />
+                <circle
+                  cx="17"
+                  cy="18"
+                  r="2"
+                />
+                <circle
+                  cx="7"
+                  cy="18"
+                  r="2"
+                />
+              </svg>
+              Delivery
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`MyCart stories snapshot > WithPromotion story renders and matches snapshot 1`] = `
 <div>
   <div

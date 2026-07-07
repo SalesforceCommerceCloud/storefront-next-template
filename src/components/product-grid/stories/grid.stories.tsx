@@ -212,6 +212,33 @@ export const EmptyState: StoryObj<typeof ProductGrid> = {
 };
 
 /**
+ * BOPIS pickup availability. With `showPickupAvailable`, the grid forwards the
+ * flag to every tile, each of which renders a "pickup available" indicator.
+ * Worth a dedicated story (rather than only the Controls toggle) because it
+ * pins the contract that the flag reaches all tiles — the play asserts one
+ * indicator per rendered tile.
+ */
+export const WithPickupAvailable: StoryObj<typeof ProductGrid> = {
+    args: {
+        critical: ALL_PRODUCTS.slice(0, 4),
+        nonCritical: [],
+        showPickupAvailable: true,
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+
+        // Four critical tiles → four pickup-available indicators, one per tile.
+        // This count already confirms the flag reached every rendered tile, so an
+        // additional product-link count would be redundant — and brittle: each tile
+        // renders several `/product/i`-matching links (the "View {name}" overlay, the
+        // name heading, and lazy-loaded swatch links), so the total is not 1:1 with
+        // tiles at the composed grid level.
+        const indicators = canvasElement.querySelectorAll('[data-testid="pickup-available-indicator"]');
+        await expect(indicators.length).toBe(4);
+    },
+};
+
+/**
  * `isLoading=true` short-circuits the grid render and shows a fixed-count
  * skeleton block instead. Worth a dedicated story because the loading layout
  * (no tiles, no empty message — only skeletons) is fundamentally different

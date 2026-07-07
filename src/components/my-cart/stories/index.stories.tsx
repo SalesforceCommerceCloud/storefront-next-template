@@ -177,6 +177,62 @@ export const Default: Story = {
 };
 
 /**
+ * Single line item at quantity 1. The narrowest populated state: one product
+ * row, no per-unit "each" line (that only renders when quantity > 1), and a
+ * delivery badge. Verifies the component renders a lone item without relying
+ * on the two-item default's layout.
+ */
+export const SingleItem: Story = {
+    render: () => (
+        <MyCart
+            basket={
+                {
+                    ...checkoutWithMultipleItems.cart,
+                    productItems: [checkoutWithMultipleItems.cart.productItems?.[0]],
+                } as never
+            }
+            // Pass the full product map — MyCart only reads the entry matching the
+            // single rendered item, so the extra entries are inert.
+            productMap={mockProductMap as Record<string, never>}
+        />
+    ),
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Exactly one product row renders, and it's the qty-1 Button Front Jacket.
+        await expect(canvas.getByTestId('my-cart-item-701642868279M')).toBeInTheDocument();
+        await expect(canvas.getByText('Button Front Jacket')).toBeInTheDocument();
+        await expect(canvas.queryByTestId('my-cart-item-883360520599M')).not.toBeInTheDocument();
+        // The per-unit "each" line only appears for quantity > 1.
+        await expect(canvas.queryByText(/each/i)).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * Empty basket. `productItems: []` renders the cart container with no item
+ * rows — the checkout page relies on this not throwing when a basket is
+ * cleared. There is no empty-state message inside MyCart itself; the container
+ * simply renders empty.
+ */
+export const EmptyBasket: Story = {
+    render: () => (
+        <MyCart
+            basket={{ ...checkoutWithMultipleItems.cart, productItems: [] } as never}
+            productMap={{} as Record<string, never>}
+        />
+    ),
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // The container renders, but holds no item rows.
+        await expect(canvas.getByTestId('my-cart-toggle')).toBeInTheDocument();
+        await expect(canvas.queryByTestId(/^my-cart-item-/)).not.toBeInTheDocument();
+    },
+};
+
+/**
  * Item with a promotion discount applied. Shows strikethrough list price
  * and a "Saved" badge.
  */

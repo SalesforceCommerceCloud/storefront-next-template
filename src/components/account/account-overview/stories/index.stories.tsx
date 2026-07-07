@@ -72,6 +72,15 @@ const mockOrders: CustomerOrdersResult = {
 
 const emptyOrders: CustomerOrdersResult = { orders: [], total: 0, offset: 0, limit: 5 };
 
+// A registered customer who never set a first name — exercises the
+// `firstName || t('overview.defaultName')` fallback to the generic greeting.
+const mockCustomerNoFirstName = {
+    customerId: 'no-first-name-456',
+    lastName: 'Doe',
+    email: 'no.name@example.com',
+    login: 'no.name@example.com',
+};
+
 const meta: Meta<typeof AccountOverview> = {
     title: 'ACCOUNT/Account Overview',
     component: AccountOverview,
@@ -110,9 +119,24 @@ export const Default: Story = {
         await expect(canvas.getByText(/Welcome back, John!/i)).toBeInTheDocument();
         await expect(await canvas.findByText(/Recent Orders/i)).toBeInTheDocument();
         await expect(await canvas.findByText('#INV001')).toBeInTheDocument();
-        await expect(canvas.getByText(/Quick Links/i)).toBeInTheDocument();
-        await expect(canvas.getByRole('heading', { name: /Account Details/i })).toBeInTheDocument();
-        await expect(canvas.getByRole('heading', { name: /Order History/i })).toBeInTheDocument();
+
+        // The four Quick Links each route to a distinct account sub-page. The
+        // SiteProvider prefixes hrefs with the locale, so match the path suffix
+        // with an anchored regex (`/account` and `/account/orders` overlap).
+        await expect(canvas.getByRole('link', { name: /Account Details/i }).getAttribute('href')).toMatch(/\/account$/);
+        await expect(canvas.getByRole('link', { name: /Manage Addresses/i }).getAttribute('href')).toMatch(
+            /\/account\/addresses$/
+        );
+        await expect(canvas.getByRole('link', { name: /Payment Methods/i }).getAttribute('href')).toMatch(
+            /\/account\/payment-methods$/
+        );
+        await expect(canvas.getByRole('link', { name: /Order History/i }).getAttribute('href')).toMatch(
+            /\/account\/orders$/
+        );
+
+        // With orders present, the "Rate Your Recent Purchases" card renders
+        // below the list (keyed off `result.orders.length > 0`).
+        await expect(await canvas.findByRole('heading', { name: /Rate Your Recent Purchases/i })).toBeInTheDocument();
     },
 };
 
@@ -130,6 +154,28 @@ export const EmptyOrders: Story = {
         await expect(await canvas.findByRole('link', { name: /View All/i })).toBeInTheDocument();
         await expect(canvas.queryByText(/^#/)).not.toBeInTheDocument();
         await expect(canvas.getByText(/Quick Links/i)).toBeInTheDocument();
+
+        // No orders → the "Rate Your Recent Purchases" card must not render.
+        await expect(canvas.queryByRole('heading', { name: /Rate Your Recent Purchases/i })).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * Registered customer without a first name. The welcome greeting falls back to
+ * the generic `overview.defaultName` ("there") rather than a personalized name,
+ * so the heading reads "Welcome back, there!". (The route is gated to registered
+ * users, so this is a named-omission case, not an unauthenticated guest.)
+ */
+export const NoFirstNameFallback: Story = {
+    args: {
+        customer: mockCustomerNoFirstName,
+        ordersPromise: Promise.resolve(emptyOrders),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        await expect(canvas.getByText(/Welcome back, there!/i)).toBeInTheDocument();
     },
 };
 
