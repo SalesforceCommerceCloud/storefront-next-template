@@ -26,6 +26,8 @@ import { getLoginPreferencesLazy } from '@salesforce/storefront-next-runtime/dat
 import { loginRegisteredUser } from '@/lib/api/auth/standard-login.server';
 import { authorizeIDP } from '@/lib/api/auth/social-login.server';
 import { mergeBasket } from '@/lib/api/basket.server';
+import { getCustomer } from '@/lib/api/customer.server';
+import { createApiClients } from '@/lib/api-clients.server';
 import { updateBasketResource } from '@/middlewares/basket.server';
 import { isAbsoluteURL, extractResponseError } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
@@ -48,6 +50,18 @@ vi.mock('@/lib/api/auth/social-login.server', () => ({
 
 vi.mock('@/lib/api/basket.server', () => ({
     mergeBasket: vi.fn(),
+}));
+
+vi.mock('@/lib/api/customer.server', () => ({
+    getCustomer: vi.fn(),
+}));
+
+vi.mock('@/lib/api-clients.server', () => ({
+    createApiClients: vi.fn(() => ({
+        shopperBasketsV2: {
+            updateCustomerForBasket: vi.fn(),
+        },
+    })),
 }));
 
 vi.mock('@/lib/api/wishlist.server', () => ({
@@ -152,6 +166,8 @@ const mockLoginRegisteredUser = vi.mocked(loginRegisteredUser);
 const mockAuthorizeIDP = vi.mocked(authorizeIDP);
 const mockAuthorizePasswordless = vi.mocked(authorizePasswordless);
 const mockMergeBasket = vi.mocked(mergeBasket);
+const mockGetCustomer = vi.mocked(getCustomer);
+const mockCreateApiClients = vi.mocked(createApiClients);
 const mockUpdateBasketResource = vi.mocked(updateBasketResource);
 const mockGetAppOrigin = vi.mocked(getAppOrigin);
 const mockIsAbsoluteURL = vi.mocked(isAbsoluteURL);
@@ -169,6 +185,15 @@ describe('Login Route', () => {
         mockBuildUrlFromContext.mockImplementation((to: string) => to);
         // Default: passwordless disabled. Tests that need passwordless override this.
         mockGetLoginPreferences.mockResolvedValue({});
+        // Default: no active basket (reconciliation is a no-op when no basket).
+        mockGetCustomer.mockResolvedValue({ email: 'customer@example.com', login: 'customer@example.com' } as any);
+        mockCreateApiClients.mockReturnValue({
+            shopperBasketsV2: {
+                updateCustomerForBasket: vi.fn().mockResolvedValue({
+                    data: { basketId: 'basket-1', customerInfo: { email: 'customer@example.com' } },
+                }),
+            },
+        } as any);
     });
 
     afterEach(() => {
@@ -1013,6 +1038,121 @@ describe('Login Route', () => {
 
             expect(result).toHaveProperty('error', 'An error occurred. Please try again.');
             expect(mockLoginRegisteredUser).not.toHaveBeenCalled();
+        });
+
+        it('reconciles basket email to customer email when they differ after login', async () => {
+            const mockUpdateCustomerForBasket = vi.fn().mockResolvedValue({
+                data: { basketId: 'basket-1', customerInfo: { email: 'customer@x.com' } },
+            });
+            mockCreateApiClients.mockReturnValue({
+                shopperBasketsV2: { updateCustomerForBasket: mockUpdateCustomerForBasket },
+            } as any);
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'cust-123',
+                accessToken: 'token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({
+                basketId: 'basket-1',
+                customerInfo: { email: 'guest@x.com' },
+            } as any);
+            mockGetCustomer.mockResolvedValue({ email: 'customer@x.com' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'customer@x.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect(result).toBeInstanceOf(Response);
+            expect((result as Response).status).toBe(302);
+            expect(mockUpdateCustomerForBasket).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    body: { email: 'customer@x.com' },
+                })
+            );
+        });
+
+        it('skips basket email reconciliation when no active basket exists after login', async () => {
+            const mockUpdateCustomerForBasket = vi.fn();
+            mockCreateApiClients.mockReturnValue({
+                shopperBasketsV2: { updateCustomerForBasket: mockUpdateCustomerForBasket },
+            } as any);
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'cust-123',
+                accessToken: 'token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            // mergeBasket returns undefined - no active basket
+            mockMergeBasket.mockResolvedValue(undefined);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'customer@x.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect(result).toBeInstanceOf(Response);
+            expect((result as Response).status).toBe(302);
+            expect(mockUpdateCustomerForBasket).not.toHaveBeenCalled();
+        });
+
+        it('does not fail login when basket email reconciliation throws', async () => {
+            mockCreateApiClients.mockReturnValue({
+                shopperBasketsV2: {
+                    updateCustomerForBasket: vi.fn().mockRejectedValue(new Error('SCAPI error')),
+                },
+            } as any);
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'cust-123',
+                accessToken: 'token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({
+                basketId: 'basket-1',
+                customerInfo: { email: 'guest@x.com' },
+            } as any);
+            mockGetCustomer.mockResolvedValue({ email: 'customer@x.com' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'customer@x.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            // Login succeeds despite reconciliation error
+            expect(result).toBeInstanceOf(Response);
+            expect((result as Response).status).toBe(302);
         });
     });
 

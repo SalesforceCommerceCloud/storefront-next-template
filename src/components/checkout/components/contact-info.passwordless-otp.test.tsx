@@ -370,6 +370,159 @@ describe('ContactInfo passwordless OTP modal actions', () => {
     });
 });
 
+describe('ContactInfo - persist edited email on proceed-as-guest', () => {
+    let useBasket: ReturnType<typeof vi.fn>;
+
+    beforeEach(async () => {
+        vi.clearAllMocks();
+        passwordlessFetcherState.state = 'idle';
+        passwordlessFetcherState.data = { success: true, email: 'new@example.com' };
+        mockUseCheckoutContext.mockReturnValue(buildCheckoutContext());
+
+        const basketModule = await import('@/providers/basket');
+        useBasket = basketModule.useBasket as ReturnType<typeof vi.fn>;
+        useBasket.mockReturnValue({
+            basketId: 'test-basket-123',
+            currency: 'USD',
+            customerInfo: { email: 'old@example.com', customerId: null },
+            shipments: [{ shipmentId: 'shipment-1', shippingAddress: null }],
+            paymentInstruments: [],
+        });
+    });
+
+    test('submits new email via onSubmit when OTP proceed-as-guest is clicked with a changed email', async () => {
+        const user = userEvent.setup();
+        const onSubmit = vi.fn();
+        const onRegisteredUserChoseGuest = vi.fn();
+
+        renderWithRouter(
+            <ContactInfo
+                onSubmit={onSubmit}
+                isLoading={false}
+                isCompleted={false}
+                isEditing={true}
+                onEdit={vi.fn()}
+                onRegisteredUserChoseGuest={onRegisteredUserChoseGuest}
+            />
+        );
+
+        // OTP modal is open immediately because passwordlessFetcherState.data.success === true.
+        await waitFor(() => expect(screen.getByTestId('otp-modal-mock')).toBeInTheDocument());
+
+        // Edit the email field to a new address and fill phone so the form is valid.
+        const emailInput = screen.getByLabelText(/email address\*/i);
+        await user.clear(emailInput);
+        await user.type(emailInput, 'new@example.com');
+        const phoneInput = screen.getByPlaceholderText('(000) 000-0000');
+        await user.type(phoneInput, '5551234567');
+
+        await user.click(screen.getByTestId('otp-checkout-as-guest'));
+
+        // onSubmit must be called with the new email so the basket is updated.
+        await waitFor(() => {
+            expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ email: 'new@example.com' }));
+        });
+        expect(onRegisteredUserChoseGuest).toHaveBeenCalledWith(true);
+    });
+
+    test('does not submit when OTP proceed-as-guest is clicked and email is unchanged', async () => {
+        const user = userEvent.setup();
+        const onSubmit = vi.fn();
+        // Basket email matches the pre-filled form value.
+        useBasket.mockReturnValue({
+            basketId: 'test-basket-123',
+            currency: 'USD',
+            customerInfo: { email: 'shopper@example.com', customerId: null },
+            shipments: [{ shipmentId: 'shipment-1', shippingAddress: null }],
+            paymentInstruments: [],
+        });
+
+        renderWithRouter(
+            <ContactInfo
+                onSubmit={onSubmit}
+                isLoading={false}
+                isCompleted={false}
+                isEditing={true}
+                onEdit={vi.fn()}
+                onRegisteredUserChoseGuest={vi.fn()}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByTestId('otp-modal-mock')).toBeInTheDocument());
+
+        await user.click(screen.getByTestId('otp-checkout-as-guest'));
+
+        // No submit when email is unchanged.
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    test('submits new email via onSubmit when login-modal proceed-as-guest is clicked with a changed email', async () => {
+        const user = userEvent.setup();
+        const onSubmit = vi.fn();
+        const onRegisteredUserChoseGuest = vi.fn();
+        passwordlessFetcherState.data = { success: false, requiresLogin: true, email: 'new@example.com' };
+
+        renderWithRouter(
+            <ContactInfo
+                onSubmit={onSubmit}
+                isLoading={false}
+                isCompleted={false}
+                isEditing={true}
+                onEdit={vi.fn()}
+                onRegisteredUserChoseGuest={onRegisteredUserChoseGuest}
+                onPasswordlessOtpVerified={vi.fn()}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByTestId('login-modal-mock')).toBeInTheDocument());
+
+        // Edit the email field and fill phone so the form is valid.
+        const emailInput = screen.getByLabelText(/email address\*/i);
+        await user.clear(emailInput);
+        await user.type(emailInput, 'new@example.com');
+        const phoneInput = screen.getByPlaceholderText('(000) 000-0000');
+        await user.type(phoneInput, '5551234567');
+
+        await user.click(screen.getByTestId('login-modal-checkout-as-guest'));
+
+        await waitFor(() => {
+            expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ email: 'new@example.com' }));
+        });
+        expect(onRegisteredUserChoseGuest).toHaveBeenCalledWith(true);
+    });
+
+    test('does not submit when login-modal proceed-as-guest is clicked and email is unchanged', async () => {
+        const user = userEvent.setup();
+        const onSubmit = vi.fn();
+        passwordlessFetcherState.data = { success: false, requiresLogin: true, email: 'shopper@example.com' };
+        useBasket.mockReturnValue({
+            basketId: 'test-basket-123',
+            currency: 'USD',
+            customerInfo: { email: 'shopper@example.com', customerId: null },
+            shipments: [{ shipmentId: 'shipment-1', shippingAddress: null }],
+            paymentInstruments: [],
+        });
+
+        renderWithRouter(
+            <ContactInfo
+                onSubmit={onSubmit}
+                isLoading={false}
+                isCompleted={false}
+                isEditing={true}
+                onEdit={vi.fn()}
+                onRegisteredUserChoseGuest={vi.fn()}
+                onPasswordlessOtpVerified={vi.fn()}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByTestId('login-modal-mock')).toBeInTheDocument());
+
+        await user.click(screen.getByTestId('login-modal-checkout-as-guest'));
+
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+});
+
 describe('ContactInfo - server-side Turnstile verification rejection (NOT_AUTHORIZED)', () => {
     let useBasket: ReturnType<typeof vi.fn>;
 

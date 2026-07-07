@@ -322,6 +322,18 @@ async function fetchPromotionsForBasket(
 }
 
 /**
+ * Returns the canonical email for an authenticated customer.
+ * Prefers customer.email; falls back to customer.login only when it contains "@"
+ * (social login users have a provider ID like "Google-123..." as their login, not an email).
+ */
+function getCustomerCanonicalEmail(customerProfile: CustomerProfile): string | undefined {
+    return (
+        customerProfile.customer?.email ||
+        (customerProfile.customer?.login?.includes('@') ? customerProfile.customer.login : undefined)
+    );
+}
+
+/**
  * Determines if a basket needs to be prefilled with customer data.
  * For registered shoppers, we prefill:
  * - Email: always when missing (customer.login is the email)
@@ -346,12 +358,17 @@ function shouldPrefillBasket(
     const missingPaymentInstrument = !basket?.paymentInstruments?.[0];
     const hasAddresses = !!customerProfile.addresses?.length;
 
+    // Guest email persists on basket.customerInfo.email even after login merges basket into the registered
+    // customer. Reconcile so the order and confirmation show the signed-in customer's email.
+    const customerEmail = getCustomerCanonicalEmail(customerProfile);
+    const emailMismatch = !!customerEmail && !!basketEmail && basketEmail.toLowerCase() !== customerEmail.toLowerCase();
+
     /**
      * Baskets are tied to the session (e.g. usid), not to a customer ID. customerMismatch may happen when:
      * Guest adds items → basket has no customerId. User logs in. We need to update the basket with the logged-in customer.
      * basketCustomerId !== profileCustomerId: basket has a different customerId (e.g. before merge completed).
      */
-    if (missingOrInvalidEmail || customerMismatch) {
+    if (missingOrInvalidEmail || customerMismatch || emailMismatch) {
         return true;
     }
     if (missingShippingAddress && hasAddresses) {
@@ -449,15 +466,21 @@ export async function initializeBasketForReturningCustomer(
         const basketCustomerId = updatedBasket.customerInfo?.customerId;
         const profileCustomerId = customerProfile.customer.customerId;
         const basketEmail = updatedBasket.customerInfo?.email;
-        const needsCustomerAssociation =
-            !basketEmail || !basketEmail.includes('@') || !basketCustomerId || basketCustomerId !== profileCustomerId;
 
-        // Set customer info when missing, invalid (social login ID), or when basket customer doesn't match.
         // For social login users, customer.login is the provider's external ID (e.g. "Google-123...")
         // not an email. Prefer customer.email, fall back to login only if it contains "@".
-        const customerEmail =
-            customerProfile.customer.email ||
-            (customerProfile.customer.login?.includes('@') ? customerProfile.customer.login : undefined);
+        const customerEmail = getCustomerCanonicalEmail(customerProfile);
+
+        // Guest email persists on basket.customerInfo.email even after login merges basket into the registered
+        // customer. Reconcile so the order and confirmation show the signed-in customer's email.
+        const emailMismatch =
+            !!customerEmail && !!basketEmail && basketEmail.toLowerCase() !== customerEmail.toLowerCase();
+        const needsCustomerAssociation =
+            !basketEmail ||
+            !basketEmail.includes('@') ||
+            !basketCustomerId ||
+            basketCustomerId !== profileCustomerId ||
+            emailMismatch;
 
         if (needsCustomerAssociation && customerEmail) {
             const { data } = await clients.shopperBasketsV2.updateCustomerForBasket({

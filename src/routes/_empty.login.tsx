@@ -48,6 +48,8 @@ import {
 import { loginRegisteredUser } from '@/lib/api/auth/standard-login.server';
 import { authorizeIDP } from '@/lib/api/auth/social-login.server';
 import { mergeBasket } from '@/lib/api/basket.server';
+import { getCustomer } from '@/lib/api/customer.server';
+import { createApiClients } from '@/lib/api-clients.server';
 import {
     appendWishlistMergeFlag,
     captureGuestWishlistSnapshot,
@@ -334,13 +336,39 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Lo
 
             logger.info('Login: standard login succeeded');
             // Login successful - merge basket on server before redirecting
+            let mergedBasket: Awaited<ReturnType<typeof mergeBasket>> | undefined;
             try {
-                const mergedBasket = await mergeBasket(context);
+                mergedBasket = await mergeBasket(context);
                 if (mergedBasket) {
                     updateBasketResource(context, mergedBasket);
                 }
             } catch (error) {
                 logger.error('Login: basket merge failed', { error });
+            }
+
+            // Guest may have entered a different email at checkout contact-info before signing in.
+            // transferBasket keeps the guest email; reconcile so the order shows the signed-in customer's email.
+            // Skipped when no active basket exists (login is used outside checkout too).
+            if (mergedBasket?.basketId) {
+                try {
+                    const auth = getAuth(context);
+                    if (auth.customerId) {
+                        const customer = await getCustomer(context, auth.customerId);
+                        const customerEmail =
+                            customer.email || (customer.login?.includes('@') ? customer.login : undefined);
+                        const basketEmail = mergedBasket.customerInfo?.email;
+                        if (customerEmail && basketEmail && basketEmail.toLowerCase() !== customerEmail.toLowerCase()) {
+                            const clients = createApiClients(context);
+                            const { data: reconciledBasket } = await clients.shopperBasketsV2.updateCustomerForBasket({
+                                params: { path: { basketId: mergedBasket.basketId } },
+                                body: { email: customerEmail },
+                            });
+                            updateBasketResource(context, reconciledBasket);
+                        }
+                    }
+                } catch (reconcileError) {
+                    logger.error('Login: basket email reconciliation failed', { error: reconcileError });
+                }
             }
 
             let wishlistMergeResult: WishlistMergeResult | null = null;

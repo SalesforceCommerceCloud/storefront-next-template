@@ -691,6 +691,93 @@ describe('Checkout Loaders', () => {
             expect(result).toBeNull();
         });
 
+        it('should reconcile basket email when it differs from the authenticated customer email', async () => {
+            const { getBasket, updateBasketResource } = await import('@/middlewares/basket.server');
+            const mockBasket = {
+                basketId: 'test-basket',
+                customerInfo: { email: 'guest@x.com', customerId: 'cust-123' },
+                shipments: [
+                    {
+                        shipmentId: 'me',
+                        shippingAddress: { firstName: 'Jane', lastName: 'Doe', address1: '1 Main St' },
+                    },
+                ],
+            };
+            const reconciled = { ...mockBasket, customerInfo: { email: 'customer@x.com', customerId: 'cust-123' } };
+
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket } as any);
+            vi.mocked(updateBasketResource).mockImplementation(() => {});
+            mockShopperBasketsClient.updateCustomerForBasket.mockResolvedValue({ data: reconciled });
+
+            const mockCustomerProfile = {
+                customer: { email: 'customer@x.com', login: 'customer@x.com', customerId: 'cust-123' },
+                addresses: [{ addressId: 'addr-1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [],
+            } as CustomerProfile;
+
+            await initializeBasketForReturningCustomer({} as any, mockCustomerProfile);
+
+            expect(mockShopperBasketsClient.updateCustomerForBasket).toHaveBeenCalledWith({
+                params: { path: { basketId: 'test-basket' } },
+                body: { email: 'customer@x.com' },
+            });
+        });
+
+        it('should not call updateCustomerForBasket when basket email equals customer email (case-insensitive)', async () => {
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const mockBasket = {
+                basketId: 'test-basket',
+                customerInfo: { email: 'ABC@x.com', customerId: 'cust-123' },
+                shipments: [
+                    {
+                        shipmentId: 'me',
+                        shippingAddress: { firstName: 'Jane', lastName: 'Doe', address1: '1 Main St' },
+                    },
+                ],
+            };
+
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket } as any);
+
+            const mockCustomerProfile = {
+                customer: { email: 'abc@x.com', login: 'abc@x.com', customerId: 'cust-123' },
+                addresses: [{ addressId: 'addr-1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [],
+            } as CustomerProfile;
+
+            const result = await initializeBasketForReturningCustomer({} as any, mockCustomerProfile);
+
+            expect(mockShopperBasketsClient.updateCustomerForBasket).not.toHaveBeenCalled();
+            expect(result).toEqual(mockBasket);
+        });
+
+        it('should not call updateCustomerForBasket when customer has no email and login is not an email (social login without email)', async () => {
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const mockBasket = {
+                basketId: 'test-basket',
+                customerInfo: { email: 'guest@x.com', customerId: 'cust-123' },
+                shipments: [
+                    {
+                        shipmentId: 'me',
+                        shippingAddress: { firstName: 'Jane', lastName: 'Doe', address1: '1 Main St' },
+                    },
+                ],
+            };
+
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket } as any);
+
+            const mockCustomerProfile = {
+                customer: { email: undefined, login: 'Google-111292267709658666876', customerId: 'cust-123' },
+                addresses: [{ addressId: 'addr-1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [],
+            } as CustomerProfile;
+
+            const result = await initializeBasketForReturningCustomer({} as any, mockCustomerProfile);
+
+            // customerEmail is undefined for social login without email - no mismatch, no update
+            expect(mockShopperBasketsClient.updateCustomerForBasket).not.toHaveBeenCalled();
+            expect(result).toEqual(mockBasket);
+        });
+
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         describe('default shipping method auto-select (BOPIS-aware)', () => {
             const baseProfile = {

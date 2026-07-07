@@ -439,12 +439,19 @@ export default function ContactInfo({
 
     /**
      * Checkout only: close OTP without calling verify-passwordless-otp — shopper stays a guest (no SLAS session from OTP).
-     * Parent unblocks contact step and hides place-order create-account checkbox for this session.
+     * Persists a newly-typed email if it differs from the basket email, then unblocks the contact step.
      */
     const handleCheckoutAsGuestFromOtp = useCallback(() => {
+        const typedEmail = form.getValues('email');
+        const basketEmail = cart?.customerInfo?.email || '';
+        if (typedEmail && typedEmail.toLowerCase() !== basketEmail.toLowerCase()) {
+            void form.handleSubmit(handleFormSubmit)();
+        }
         lastEmailSentRef.current = null;
         onRegisteredUserChoseGuest?.(true);
-    }, [onRegisteredUserChoseGuest]);
+        // form and cart are stable across renders; handleFormSubmit is defined above in the same scope
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form, cart, onRegisteredUserChoseGuest]);
 
     let nextStepButtonLabel = isLoading ? t('contactInfo.saving') : t('contactInfo.continue');
 
@@ -679,6 +686,11 @@ export default function ContactInfo({
                         onCheckoutAsGuest={
                             onRegisteredUserChoseGuest
                                 ? () => {
+                                      const typedEmail = form.getValues('email');
+                                      const basketEmail = cart?.customerInfo?.email || '';
+                                      if (typedEmail && typedEmail.toLowerCase() !== basketEmail.toLowerCase()) {
+                                          void form.handleSubmit(handleFormSubmit)();
+                                      }
                                       setIsLoginModalOpen(false);
                                       lastEmailSentRef.current = null;
                                       if (otpFlowActiveRef) otpFlowActiveRef.current = false;

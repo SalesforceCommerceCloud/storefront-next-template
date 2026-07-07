@@ -19,12 +19,13 @@ import type { ActionFunctionArgs } from 'react-router';
 
 import { action } from './action.verify-passwordless-otp';
 import { createApiClients } from '@/lib/api-clients.server';
-import { updateAuth } from '@/middlewares/auth.server';
+import { getAuth, updateAuth } from '@/middlewares/auth.server';
 import { calculateBasket, getBasketCurrency, mergeBasket } from '@/lib/api/basket.server';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { isTrackingConsentEnabled } from '@/middlewares/auth.utils';
 import { expectStatus } from '@/lib/test-utils';
+import { getCustomerProfileForCheckout } from '@/lib/api/customer.server';
 
 vi.mock('@/lib/api-clients.server');
 vi.mock('@/middlewares/auth.server');
@@ -32,11 +33,13 @@ vi.mock('@/lib/api/basket.server');
 vi.mock('@/middlewares/basket.server');
 vi.mock('@salesforce/storefront-next-runtime/i18n');
 vi.mock('@/middlewares/auth.utils');
+vi.mock('@/lib/api/customer.server');
 vi.mock('@/lib/logger.server', () => ({
     getLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() })),
 }));
 
 const mockCreateApiClients = vi.mocked(createApiClients);
+const mockGetAuth = vi.mocked(getAuth);
 const mockUpdateAuth = vi.mocked(updateAuth);
 const mockCalculateBasket = vi.mocked(calculateBasket);
 const mockGetBasketCurrency = vi.mocked(getBasketCurrency);
@@ -45,10 +48,12 @@ const mockGetBasket = vi.mocked(getBasket);
 const mockUpdateBasketResource = vi.mocked(updateBasketResource);
 const mockGetTranslation = vi.mocked(getTranslation);
 const mockIsTrackingConsentEnabled = vi.mocked(isTrackingConsentEnabled);
+const mockGetCustomerProfileForCheckout = vi.mocked(getCustomerProfileForCheckout);
 
 describe('action.verify-passwordless-otp', () => {
     let mockContext: ActionFunctionArgs['context'];
     let mockExchangeToken: ReturnType<typeof vi.fn>;
+    let mockUpdateCustomerForBasket: ReturnType<typeof vi.fn>;
 
     const createActionArgs = ({
         otpCode,
@@ -82,12 +87,16 @@ describe('action.verify-passwordless-otp', () => {
 
         mockContext = {} as ActionFunctionArgs['context'];
         mockExchangeToken = vi.fn();
+        mockUpdateCustomerForBasket = vi.fn();
 
         mockCreateApiClients.mockReturnValue({
             auth: {
                 passwordless: {
                     exchangeToken: mockExchangeToken,
                 },
+            },
+            shopperBasketsV2: {
+                updateCustomerForBasket: mockUpdateCustomerForBasket,
             },
         } as any);
 
@@ -99,11 +108,22 @@ describe('action.verify-passwordless-otp', () => {
         // By default, tracking consent is treated as disabled in tests
         mockIsTrackingConsentEnabled.mockReturnValue(false);
 
+        // By default, auth session has no customerId - reconciliation tests set this explicitly
+        mockGetAuth.mockReturnValue({ customerId: undefined } as any);
+
         mockGetBasket.mockResolvedValue({
             current: { basketId: 'basket-1', currency: 'USD' },
         } as any);
         mockGetBasketCurrency.mockReturnValue('USD');
         mockCalculateBasket.mockResolvedValue({ basketId: 'basket-1', currency: 'USD' } as any);
+
+        // By default, customer profile is not loaded - reconciliation tests set this explicitly
+        mockGetCustomerProfileForCheckout.mockResolvedValue(null);
+
+        // By default, updateCustomerForBasket returns the updated basket
+        mockUpdateCustomerForBasket.mockResolvedValue({
+            data: { basketId: 'basket-1', currency: 'USD' },
+        });
     });
 
     afterEach(() => {
@@ -306,5 +326,79 @@ describe('action.verify-passwordless-otp', () => {
 
         expect(mockMergeBasket).not.toHaveBeenCalled();
         expect(result.data.success).toBe(true);
+    });
+
+    it('reconciles basket email when basket email differs from authenticated customer email', async () => {
+        const mockTokenResponse = { access_token: 'access-token', token_type: 'Bearer' as const } as any;
+        mockExchangeToken.mockResolvedValue(mockTokenResponse);
+        mockGetAuth.mockReturnValue({ customerId: 'customer-id' } as any);
+        mockGetCustomerProfileForCheckout.mockResolvedValue({
+            customer: { customerId: 'customer-id', email: 'customer@x.com' },
+            addresses: [],
+            paymentInstruments: [],
+        } as any);
+        mockGetBasket.mockResolvedValue({
+            current: { basketId: 'basket-1', currency: 'USD', customerInfo: { email: 'guest@x.com' } },
+        } as any);
+        mockCalculateBasket.mockResolvedValue({
+            basketId: 'basket-1',
+            currency: 'USD',
+            customerInfo: { email: 'guest@x.com' },
+        } as any);
+
+        await action(createActionArgs({ otpCode: '12345678', email: 'guest@x.com' }));
+
+        expect(mockUpdateCustomerForBasket).toHaveBeenCalledWith({
+            params: { path: { basketId: 'basket-1' } },
+            body: { email: 'customer@x.com' },
+        });
+    });
+
+    it('does not reconcile basket email when basket email matches authenticated customer email (case-insensitive)', async () => {
+        const mockTokenResponse = { access_token: 'access-token', token_type: 'Bearer' as const } as any;
+        mockExchangeToken.mockResolvedValue(mockTokenResponse);
+        mockGetAuth.mockReturnValue({ customerId: 'customer-id' } as any);
+        mockGetCustomerProfileForCheckout.mockResolvedValue({
+            customer: { customerId: 'customer-id', email: 'abc@x.com' },
+            addresses: [],
+            paymentInstruments: [],
+        } as any);
+        mockGetBasket.mockResolvedValue({
+            current: { basketId: 'basket-1', currency: 'USD', customerInfo: { email: 'ABC@x.com' } },
+        } as any);
+        mockCalculateBasket.mockResolvedValue({
+            basketId: 'basket-1',
+            currency: 'USD',
+            customerInfo: { email: 'ABC@x.com' },
+        } as any);
+
+        await action(createActionArgs({ otpCode: '12345678', email: 'ABC@x.com' }));
+
+        expect(mockUpdateCustomerForBasket).not.toHaveBeenCalled();
+    });
+
+    it('returns success even when basket email reconciliation fails', async () => {
+        const mockTokenResponse = { access_token: 'access-token', token_type: 'Bearer' as const } as any;
+        mockExchangeToken.mockResolvedValue(mockTokenResponse);
+        mockGetAuth.mockReturnValue({ customerId: 'customer-id' } as any);
+        mockGetCustomerProfileForCheckout.mockResolvedValue({
+            customer: { customerId: 'customer-id', email: 'customer@x.com' },
+            addresses: [],
+            paymentInstruments: [],
+        } as any);
+        mockGetBasket.mockResolvedValue({
+            current: { basketId: 'basket-1', currency: 'USD', customerInfo: { email: 'guest@x.com' } },
+        } as any);
+        mockCalculateBasket.mockResolvedValue({
+            basketId: 'basket-1',
+            currency: 'USD',
+            customerInfo: { email: 'guest@x.com' },
+        } as any);
+        mockUpdateCustomerForBasket.mockRejectedValue(new Error('SCAPI error'));
+
+        const result = await action(createActionArgs({ otpCode: '12345678', email: 'guest@x.com' }));
+
+        expect(result.data.success).toBe(true);
+        expect(result.data.message).toBe('Login successful');
     });
 });
