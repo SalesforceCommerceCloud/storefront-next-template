@@ -56,9 +56,7 @@ vi.mock('@/middlewares/auth.server', () => ({
 }));
 
 vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() =>
-        Promise.resolve({ customerId: null, listId: null, itemsByProductId: new Map() })
-    ),
+    fetchWishlistInitialState: vi.fn(() => Promise.resolve({ customerId: null, productIds: new Set() })),
 }));
 
 const mockCustomer = {
@@ -146,8 +144,7 @@ describe('Account Overview page', () => {
                                     ordersPromise: Promise.resolve(mockOrdersResult),
                                     wishlistInitialState: Promise.resolve({
                                         customerId: null,
-                                        listId: null,
-                                        itemsByProductId: new Map(),
+                                        productIds: new Set(),
                                     }),
                                     curatedRecommendationsPromise: Promise.resolve({ recs: [] }),
                                 }),

@@ -35,9 +35,7 @@ vi.mock('@/lib/api/categories.server', () => ({
 }));
 
 vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() =>
-        Promise.resolve({ customerId: null, listId: null, itemsByProductId: new Map() })
-    ),
+    fetchWishlistInitialState: vi.fn(() => Promise.resolve({ customerId: null, productIds: new Set() })),
 }));
 
 // Mock Page Designer functions - use vi.hoisted to avoid hoisting issues

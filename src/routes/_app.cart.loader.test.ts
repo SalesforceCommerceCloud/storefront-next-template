@@ -39,9 +39,7 @@ vi.mock('@/lib/cart/cart-wishlist.server', () => ({
 }));
 
 vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() =>
-        Promise.resolve({ customerId: null, listId: null, itemsByProductId: new Map() })
-    ),
+    fetchWishlistInitialState: vi.fn(() => Promise.resolve({ customerId: null, productIds: new Set() })),
 }));
 
 vi.mock('@/lib/product/recommendations.server', () => ({

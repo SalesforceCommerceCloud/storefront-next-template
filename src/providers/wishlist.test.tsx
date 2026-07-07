@@ -26,15 +26,16 @@ import {
     useWishlistIds,
 } from './wishlist';
 
+/** Build a `Response` mirroring what `/action/wishlist-*` serializes via `data()`. */
+function actionResponse(body: unknown, status = 200): Response {
+    return new Response(JSON.stringify(body), { status });
+}
+
 describe('WishlistProvider — read-only behavior', () => {
-    test('useIsInWishlist returns true for ids seeded by initialState.itemsByProductId', () => {
+    test('useIsInWishlist returns true for ids seeded by initialState.productIds', () => {
         const initialState: WishlistInitialState = {
             customerId: 'c',
-            listId: 'l',
-            itemsByProductId: new Map([
-                ['sku-1', { itemId: 'item-1' }],
-                ['sku-2', { itemId: 'item-2' }],
-            ]),
+            productIds: new Set(['sku-1', 'sku-2']),
         };
         const wrapper = ({ children }: { children: ReactNode }) => (
             <WishlistProvider initialState={initialState}>{children}</WishlistProvider>
@@ -52,11 +53,7 @@ describe('WishlistProvider — read-only behavior', () => {
     test('useWishlistCount returns the seeded size', () => {
         const initialState: WishlistInitialState = {
             customerId: 'c',
-            listId: 'l',
-            itemsByProductId: new Map([
-                ['sku-1', { itemId: 'item-1' }],
-                ['sku-2', { itemId: 'item-2' }],
-            ]),
+            productIds: new Set(['sku-1', 'sku-2']),
         };
         const wrapper = ({ children }: { children: ReactNode }) => (
             <WishlistProvider initialState={initialState}>{children}</WishlistProvider>
@@ -68,11 +65,7 @@ describe('WishlistProvider — read-only behavior', () => {
     test('useWishlistIds returns a stable Set per snapshot', () => {
         const initialState: WishlistInitialState = {
             customerId: 'c',
-            listId: 'l',
-            itemsByProductId: new Map([
-                ['sku-1', { itemId: 'item-1' }],
-                ['sku-2', { itemId: 'item-2' }],
-            ]),
+            productIds: new Set(['sku-1', 'sku-2']),
         };
         const wrapper = ({ children }: { children: ReactNode }) => (
             <WishlistProvider initialState={initialState}>{children}</WishlistProvider>
@@ -112,7 +105,7 @@ describe('WishlistProvider — read-only behavior', () => {
     });
 });
 
-describe('WishlistProvider — SCAPI-backed mutations', () => {
+describe('WishlistProvider — action-backed mutations', () => {
     let fetchSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
@@ -124,8 +117,7 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
 
     const signedInState = (): WishlistInitialState => ({
         customerId: 'cust-1',
-        listId: 'list-1',
-        itemsByProductId: new Map(),
+        productIds: new Set(),
     });
 
     function setup(state = signedInState()) {
@@ -158,12 +150,8 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
         );
     }
 
-    test('add(): optimistic insert; success replaces placeholder itemId; remains in wishlist', async () => {
-        fetchSpy.mockResolvedValue(
-            new Response(JSON.stringify({ success: true, data: { id: 'real-item-1' } }), {
-                status: 200,
-            })
-        );
+    test('add(): optimistic insert while pending; success confirms; a single POST is issued', async () => {
+        fetchSpy.mockResolvedValue(actionResponse({ success: true }));
 
         const { result } = setupFor('sku-1');
 
@@ -182,25 +170,27 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
 
         expect(result.current.inWishlist).toBe(true);
         expect(result.current.entry.pending).toBe(false);
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
-    test('add(): success without data.id rolls back and returns failure', async () => {
-        fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: true, data: {} }), { status: 200 }));
+    test('add(): POSTs productId to the wishlist-add action route', async () => {
+        fetchSpy.mockResolvedValue(actionResponse({ success: true }));
 
-        const { result } = setupFor('sku-no-id');
-
-        let response: { success: boolean; errors?: string[] } | undefined;
+        const { result } = setupFor('sku-1');
         await act(async () => {
-            response = (await result.current.actions.add('sku-no-id')) as { success: boolean; errors?: string[] };
+            await result.current.actions.add('sku-1');
         });
 
-        expect(response?.success).toBe(false);
-        expect(response?.errors).toEqual(['Wishlist item missing id']);
-        expect(result.current.inWishlist).toBe(false);
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+        expect(url).toBe('/action/wishlist-add');
+        expect(init.method).toBe('POST');
+        expect(init.body).toBeInstanceOf(FormData);
+        expect((init.body as FormData).get('productId')).toBe('sku-1');
     });
 
-    test('add(): SCAPI failure rolls back so isMember returns to false', async () => {
-        fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: false, errors: ['Boom'] }), { status: 400 }));
+    test('add(): server failure rolls back so isMember returns to false', async () => {
+        fetchSpy.mockResolvedValue(actionResponse({ success: false, error: { message: 'Boom' } }, 500));
 
         const { result } = setupFor('sku-2');
 
@@ -215,10 +205,9 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
     test('remove(): optimistic delete; success keeps inWishlist false', async () => {
         const state: WishlistInitialState = {
             customerId: 'cust-1',
-            listId: 'list-1',
-            itemsByProductId: new Map([['sku-3', { itemId: 'item-3' }]]),
+            productIds: new Set(['sku-3']),
         };
-        fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: true, data: null }), { status: 200 }));
+        fetchSpy.mockResolvedValue(actionResponse({ success: true }));
 
         const { result } = setupFor('sku-3', state);
         expect(result.current.inWishlist).toBe(true);
@@ -229,15 +218,17 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
         });
 
         expect(result.current.inWishlist).toBe(false);
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        const [url] = fetchSpy.mock.calls[0] as [string, RequestInit];
+        expect(url).toBe('/action/wishlist-remove');
     });
 
-    test('remove(): SCAPI failure rolls back so inWishlist returns to true', async () => {
+    test('remove(): server failure rolls back so inWishlist returns to true', async () => {
         const state: WishlistInitialState = {
             customerId: 'cust-1',
-            listId: 'list-1',
-            itemsByProductId: new Map([['sku-4', { itemId: 'item-4' }]]),
+            productIds: new Set(['sku-4']),
         };
-        fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: false, errors: ['Boom'] }), { status: 500 }));
+        fetchSpy.mockResolvedValue(actionResponse({ success: false, error: { message: 'Boom' } }, 500));
 
         const { result } = setupFor('sku-4', state);
 
@@ -249,9 +240,9 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
     });
 
     test('toggle(): adds when absent, removes when present', async () => {
-        fetchSpy.mockResolvedValue(
-            new Response(JSON.stringify({ success: true, data: { id: 'real-item' } }), { status: 200 })
-        );
+        // A fresh Response per call — postWishlistAction consumes the body via .text(),
+        // so a single shared Response instance would be already-consumed on the 2nd fetch.
+        fetchSpy.mockImplementation(() => Promise.resolve(actionResponse({ success: true })));
 
         const { result } = setupFor('sku-5');
         expect(result.current.inWishlist).toBe(false);
@@ -261,19 +252,16 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
         });
         expect(result.current.inWishlist).toBe(true);
 
-        // Mock the delete response.
-        fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: true, data: null }), { status: 200 }));
         await act(async () => {
             await result.current.actions.toggle('sku-5');
         });
         expect(result.current.inWishlist).toBe(false);
     });
 
-    test('add(): already in state returns alreadyInWishlist signal without SCAPI call', async () => {
+    test('add(): already in state returns alreadyInWishlist signal without a server call', async () => {
         const state: WishlistInitialState = {
             customerId: 'cust-1',
-            listId: 'list-1',
-            itemsByProductId: new Map([['sku-existing', { itemId: 'item-existing' }]]),
+            productIds: new Set(['sku-existing']),
         };
 
         const { result } = setupFor('sku-existing', state);
@@ -293,18 +281,14 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
     });
 
     test('add(): refuses with "in progress" when an add for the same product is in flight', async () => {
-        // First add hangs so the optimistic `__pending__` placeholder stays in state.
+        // First add hangs so the optimistic pending entry stays in state.
         let resolveFirst: (value: Response) => void = () => {};
         const firstResponse = new Promise<Response>((resolve) => {
             resolveFirst = resolve;
         });
         fetchSpy.mockReturnValueOnce(firstResponse);
 
-        const { result } = setupFor('sku-1', {
-            customerId: 'cust-1',
-            listId: 'list-1',
-            itemsByProductId: new Map(),
-        });
+        const { result } = setupFor('sku-1');
 
         // Kick off the first add — don't await it.
         let firstPromise: Promise<unknown> | undefined;
@@ -325,7 +309,7 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
 
         // Let the first add complete so the test cleans up.
         await act(async () => {
-            resolveFirst(new Response(JSON.stringify({ success: true, data: { id: 'item-1' } }), { status: 200 }));
+            resolveFirst(actionResponse({ success: true }));
             await firstPromise;
         });
     });
@@ -337,18 +321,14 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
         });
         fetchSpy.mockReturnValueOnce(firstResponse);
 
-        const { result } = setupFor('sku-1', {
-            customerId: 'cust-1',
-            listId: 'list-1',
-            itemsByProductId: new Map(),
-        });
+        const { result } = setupFor('sku-1');
 
         let firstPromise: Promise<unknown> | undefined;
         act(() => {
             firstPromise = result.current.actions.add('sku-1');
         });
 
-        // Try to remove while the add is still in flight (placeholder itemId).
+        // Try to remove while the add is still in flight (unconfirmed entry).
         let removeResult: { success: boolean; errors?: string[] } | undefined;
         await act(async () => {
             removeResult = (await result.current.actions.remove('sku-1')) as { success: boolean; errors?: string[] };
@@ -356,22 +336,21 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
 
         expect(removeResult?.success).toBe(false);
         expect(removeResult?.errors).toEqual(['Wishlist update in progress']);
-        // No SCAPI delete call was made (only the in-flight add).
+        // No remove call was made (only the in-flight add).
         expect(fetchSpy).toHaveBeenCalledTimes(1);
 
         await act(async () => {
-            resolveFirst(new Response(JSON.stringify({ success: true, data: { id: 'item-1' } }), { status: 200 }));
+            resolveFirst(actionResponse({ success: true }));
             await firstPromise;
         });
     });
 
-    test('add()/remove() short-circuit for guest user without making a SCAPI call', async () => {
-        const guestState: WishlistInitialState = {
+    test('add()/remove() short-circuit without a customerId (no session) and make no server call', async () => {
+        const noSessionState: WishlistInitialState = {
             customerId: null,
-            listId: null,
-            itemsByProductId: new Map(),
+            productIds: new Set(),
         };
-        const { result } = setup(guestState);
+        const { result } = setup(noSessionState);
 
         await act(async () => {
             const added = (await result.current.actions.add('sku-6')) as { success: boolean; errors?: string[] };
@@ -384,6 +363,105 @@ describe('WishlistProvider — SCAPI-backed mutations', () => {
         });
 
         expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test('add(): first add on an empty wishlist succeeds with a single POST (server provisions the list)', async () => {
+        // The action route runs getOrCreateWishlist server-side, so a shopper with no list
+        // yet still only issues ONE client request — provisioning is invisible to the client.
+        fetchSpy.mockResolvedValue(actionResponse({ success: true }));
+
+        const { result } = setupFor('sku-1');
+
+        await act(async () => {
+            const r = (await result.current.actions.add('sku-1')) as { success: boolean };
+            expect(r.success).toBe(true);
+        });
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        expect(result.current.inWishlist).toBe(true);
+        expect(result.current.entry.pending).toBe(false);
+    });
+
+    test('add(): concurrent adds of different products issue one POST each', async () => {
+        // Fresh Response per call (see toggle test) so both concurrent adds get an unread body.
+        fetchSpy.mockImplementation(() => Promise.resolve(actionResponse({ success: true })));
+
+        const { result } = setup();
+
+        await act(async () => {
+            const [a, b] = await Promise.all([
+                result.current.actions.add('sku-1') as Promise<{ success: boolean }>,
+                result.current.actions.add('sku-2') as Promise<{ success: boolean }>,
+            ]);
+            expect(a.success).toBe(true);
+            expect(b.success).toBe(true);
+        });
+
+        // One POST per product — no client-side list-create request to collapse.
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    test('add(): concurrent first-adds serialize their POSTs so list provisioning finishes first', async () => {
+        // Regression guard for the get-or-create race (W-23135032): the first add for a
+        // shopper with no wishlist provisions the list server-side. If two concurrent
+        // first-adds both POST before the first resolves, each server request sees "no
+        // list" and creates its own — duplicate lists, stranded items. The provider must
+        // serialize the network round-trips so the second POST starts only after the first
+        // settles. Optimistic UI still flips synchronously (asserted separately).
+        const resolvers: Array<(r: Response) => void> = [];
+        let started = 0;
+        fetchSpy.mockImplementation(
+            () =>
+                new Promise<Response>((resolve) => {
+                    started += 1;
+                    resolvers.push(resolve);
+                })
+        );
+
+        const { result } = setup();
+
+        let combined!: Promise<unknown>;
+        act(() => {
+            combined = Promise.all([result.current.actions.add('sku-1'), result.current.actions.add('sku-2')]);
+        });
+
+        // Both optimistic inserts happened synchronously, but only the FIRST POST is in
+        // flight — the second is queued behind the write chain.
+        await waitFor(() => expect(started).toBe(1));
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+        // Settle the first POST; only then may the second start.
+        await act(async () => {
+            resolvers[0](actionResponse({ success: true }));
+            await waitFor(() => expect(started).toBe(2));
+            resolvers[1](actionResponse({ success: true }));
+            await combined;
+        });
+
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    test('add(): a failed write does not poison later writes in the chain', async () => {
+        // The first add fails (e.g. server 500). The write chain must recover so the next
+        // add still issues its POST rather than hanging on a rejected tail promise.
+        fetchSpy
+            .mockImplementationOnce(() =>
+                Promise.resolve(actionResponse({ success: false, error: { message: 'Boom' } }, 500))
+            )
+            .mockImplementationOnce(() => Promise.resolve(actionResponse({ success: true })));
+
+        const { result } = setup();
+
+        await act(async () => {
+            const first = (await result.current.actions.add('sku-1')) as { success: boolean };
+            expect(first.success).toBe(false);
+        });
+        await act(async () => {
+            const second = (await result.current.actions.add('sku-2')) as { success: boolean };
+            expect(second.success).toBe(true);
+        });
+
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
 
     test('remove(): returns "Not in wishlist" when the product is not present', async () => {
@@ -417,9 +495,7 @@ describe('WishlistProvider — re-render isolation', () => {
      * would re-render on every wishlist mutation.
      */
     test('mutating one productId does not re-render consumers subscribed to another', async () => {
-        fetchSpy.mockResolvedValue(
-            new Response(JSON.stringify({ success: true, data: { id: 'real-item-b' } }), { status: 200 })
-        );
+        fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: true }), { status: 200 }));
 
         const skuARenders = { count: 0, last: false };
         const skuBRenders = { count: 0, last: false };
@@ -454,12 +530,7 @@ describe('WishlistProvider — re-render isolation', () => {
         }
 
         render(
-            <WishlistProvider
-                initialState={{
-                    customerId: 'cust-1',
-                    listId: 'list-1',
-                    itemsByProductId: new Map(),
-                }}>
+            <WishlistProvider initialState={{ customerId: 'cust-1', productIds: new Set() }}>
                 <SubscriberA />
                 <SubscriberB />
                 <ActionsCapture />
@@ -472,9 +543,9 @@ describe('WishlistProvider — re-render isolation', () => {
         expect(skuARenders.last).toBe(false);
         expect(skuBRenders.last).toBe(false);
 
-        // Mutate ONLY sku-B. Optimistic insert + real-id replacement = 2 store
-        // notifies for sku-B; sku-A's snapshot value (undefined) never changes,
-        // so useSyncExternalStore must skip the re-render for SubscriberA.
+        // Mutate ONLY sku-B. Optimistic insert + pending→confirmed = 2 store notifies
+        // for sku-B; sku-A's snapshot value (undefined) never changes, so
+        // useSyncExternalStore must skip the re-render for SubscriberA.
         await act(async () => {
             await actions.add('sku-B');
         });
@@ -486,8 +557,8 @@ describe('WishlistProvider — re-render isolation', () => {
         expect(skuARenders.last).toBe(false);
     });
 
-    test('useWishlistCount does not re-render on placeholder→real-id replacement', async () => {
-        // First add: hangs so we can observe the optimistic placeholder phase.
+    test('useWishlistCount does not re-render on the pending→confirmed transition', async () => {
+        // First add: hangs so we can observe the optimistic pending phase.
         let resolveFirst: (value: Response) => void = () => {};
         const firstResponse = new Promise<Response>((resolve) => {
             resolveFirst = resolve;
@@ -514,12 +585,7 @@ describe('WishlistProvider — re-render isolation', () => {
         }
 
         render(
-            <WishlistProvider
-                initialState={{
-                    customerId: 'cust-1',
-                    listId: 'list-1',
-                    itemsByProductId: new Map(),
-                }}>
+            <WishlistProvider initialState={{ customerId: 'cust-1', productIds: new Set() }}>
                 <CountSubscriber />
                 <ActionsCapture />
             </WishlistProvider>
@@ -537,10 +603,10 @@ describe('WishlistProvider — re-render isolation', () => {
         const afterOptimisticRenders = countRenders.count;
         expect(afterOptimisticRenders).toBeGreaterThan(initialRenders);
 
-        // Resolve the SCAPI call — placeholder itemId gets swapped for the real id.
-        // The map size stays at 1, so the count subscriber must NOT re-render.
+        // Resolve the add — the entry flips pending:true → pending:false. The map size
+        // stays at 1, so the count subscriber must NOT re-render.
         await act(async () => {
-            resolveFirst(new Response(JSON.stringify({ success: true, data: { id: 'real-item-1' } }), { status: 200 }));
+            resolveFirst(new Response(JSON.stringify({ success: true }), { status: 200 }));
             await pending;
         });
 
@@ -578,8 +644,7 @@ describe('WishlistProvider — async hydration via Promise initialState', () => 
     test('resolved Promise: hydrates the store via useEffect after mount', async () => {
         const resolve: Promise<WishlistInitialState> = Promise.resolve({
             customerId: 'c1',
-            listId: 'l1',
-            itemsByProductId: new Map([['abc', { itemId: 'i1' }]]),
+            productIds: new Set(['abc']),
         });
 
         await act(async () => {
@@ -637,8 +702,7 @@ describe('WishlistProvider — async hydration via Promise initialState', () => 
 
         const resolve: Promise<WishlistInitialState> = Promise.resolve({
             customerId: 'c1',
-            listId: 'l1',
-            itemsByProductId: new Map([['abc', { itemId: 'i1' }]]),
+            productIds: new Set(['abc']),
         });
 
         await act(async () => {

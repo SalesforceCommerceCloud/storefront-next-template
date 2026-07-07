@@ -206,9 +206,7 @@ vi.mock('@/utils/category-schema', () => ({
 }));
 
 vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() =>
-        Promise.resolve({ customerId: null, listId: null, itemsByProductId: new Map() })
-    ),
+    fetchWishlistInitialState: vi.fn(() => Promise.resolve({ customerId: null, productIds: new Set() })),
 }));
 
 // Mock analytics with controllable mock functions
@@ -800,8 +798,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -855,8 +852,7 @@ describe('CategoryPage', () => {
                 }),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -904,8 +900,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -937,8 +932,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -970,8 +964,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1002,8 +995,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1048,8 +1040,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1081,8 +1072,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1121,8 +1111,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1159,8 +1148,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1198,8 +1186,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1239,8 +1226,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1278,8 +1264,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1319,8 +1304,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1359,8 +1343,7 @@ describe('CategoryPage', () => {
                 }),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1397,8 +1380,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1436,8 +1418,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 
@@ -1480,8 +1461,7 @@ describe('CategoryPage', () => {
                 categorySchema: Promise.resolve(null),
                 wishlistInitialState: Promise.resolve({
                     customerId: null,
-                    listId: null,
-                    itemsByProductId: new Map(),
+                    productIds: new Set(),
                 }),
             };
 

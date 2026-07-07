@@ -15,7 +15,7 @@
  */
 import type { LoaderFunctionArgs } from 'react-router';
 import { getAuth } from '@/middlewares/auth.server';
-import { getOrCreateWishlist } from '@/lib/api/wishlist.server';
+import { getWishlist } from '@/lib/api/wishlist.server';
 import { EMPTY_WISHLIST_STATE, type WishlistInitialState } from './state';
 
 /**
@@ -38,10 +38,10 @@ function hasValidWishlistSession(session: ReturnType<typeof getAuth>): boolean {
  * (gcid) and registered (rcid) sessions — SCAPI's product-list endpoints accept either
  * token type, so the only requirement is a valid `customerId`.
  *
- * Uses `getOrCreateWishlist` so a shopper without a wishlist yet still gets a usable
- * `listId`. This matches the pre-migration `/action/wishlist-add` behavior that created
- * on demand — without it, a first add would short-circuit because `add()` requires a
- * non-null `listId`.
+ * Read-only: uses `getWishlist`, never `getOrCreateWishlist`, so hydrating hearts on a
+ * fresh shopper never creates an empty list. A shopper with no wishlist resolves to an
+ * empty set; the list is provisioned lazily on the first add, when `WishlistProvider`
+ * posts to `/action/wishlist-add`.
  *
  * Throws `NormalizedApiError` (or other errors from SCAPI) on failure — does NOT catch.
  * Callers wrap rejection (`<Await errorElement>`) for silent degradation.
@@ -55,16 +55,14 @@ export async function fetchWishlistInitialState(context: LoaderFunctionArgs['con
     }
 
     const customerId = session.customerId;
-    const wishlist = await getOrCreateWishlist(context, customerId);
-    const listId = wishlist.id ?? null;
-    const items = wishlist.customerProductListItems ?? [];
+    const { items } = await getWishlist(context, customerId);
 
-    const itemsByProductId = new Map<string, { itemId: string }>();
+    const productIds = new Set<string>();
     for (const item of items) {
-        if (item.productId && typeof item.productId === 'string' && item.productId.trim().length > 0 && item.id) {
-            itemsByProductId.set(item.productId, { itemId: item.id });
+        if (item.productId && typeof item.productId === 'string' && item.productId.trim().length > 0) {
+            productIds.add(item.productId);
         }
     }
 
-    return { customerId, listId, itemsByProductId };
+    return { customerId, productIds };
 }

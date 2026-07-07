@@ -16,11 +16,11 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { getAuth } from '@/middlewares/auth.server';
-import { getOrCreateWishlist } from '@/lib/api/wishlist.server';
+import { getOrCreateWishlist, getWishlist } from '@/lib/api/wishlist.server';
 import { fetchWishlistInitialState } from './fetch-initial-state.server';
 
 vi.mock('@/middlewares/auth.server', () => ({ getAuth: vi.fn() }));
-vi.mock('@/lib/api/wishlist.server', () => ({ getOrCreateWishlist: vi.fn() }));
+vi.mock('@/lib/api/wishlist.server', () => ({ getWishlist: vi.fn(), getOrCreateWishlist: vi.fn() }));
 
 describe('fetchWishlistInitialState', () => {
     const mockContext = {} as never;
@@ -29,7 +29,7 @@ describe('fetchWishlistInitialState', () => {
         vi.clearAllMocks();
     });
 
-    test('returns empty state when session has no customerId without calling getOrCreateWishlist', async () => {
+    test('returns empty state when session has no customerId without calling SCAPI', async () => {
         vi.mocked(getAuth).mockReturnValue({
             userType: 'guest',
             customerId: undefined,
@@ -39,8 +39,8 @@ describe('fetchWishlistInitialState', () => {
 
         const result = await fetchWishlistInitialState(mockContext);
 
-        expect(result).toEqual({ customerId: null, listId: null, itemsByProductId: new Map() });
-        expect(getOrCreateWishlist).not.toHaveBeenCalled();
+        expect(result).toEqual({ customerId: null, productIds: new Set() });
+        expect(getWishlist).not.toHaveBeenCalled();
     });
 
     test('returns empty state when access token has expired', async () => {
@@ -54,26 +54,44 @@ describe('fetchWishlistInitialState', () => {
         const result = await fetchWishlistInitialState(mockContext);
 
         expect(result.customerId).toBeNull();
-        expect(getOrCreateWishlist).not.toHaveBeenCalled();
+        expect(getWishlist).not.toHaveBeenCalled();
     });
 
-    test('fetches the wishlist for guest sessions with a valid customerId (gcid)', async () => {
+    test('reads (never creates) the wishlist — does not call getOrCreateWishlist', async () => {
         vi.mocked(getAuth).mockReturnValue({
             userType: 'guest',
             customerId: 'guest-cust-1',
             accessToken: 'tok',
             accessTokenExpiry: Date.now() + 60_000,
         } as never);
-        vi.mocked(getOrCreateWishlist).mockResolvedValue({
+        vi.mocked(getWishlist).mockResolvedValue({
+            wishlist: { id: 'list-guest-1' },
+            items: [{ id: 'item-1', productId: 'sku-1' }],
             id: 'list-guest-1',
-            customerProductListItems: [{ id: 'item-1', productId: 'sku-1' }],
         } as never);
 
         const result = await fetchWishlistInitialState(mockContext);
 
-        expect(getOrCreateWishlist).toHaveBeenCalledWith(mockContext, 'guest-cust-1');
+        expect(getWishlist).toHaveBeenCalledWith(mockContext, 'guest-cust-1');
+        expect(getOrCreateWishlist).not.toHaveBeenCalled();
         expect(result.customerId).toBe('guest-cust-1');
-        expect(result.listId).toBe('list-guest-1');
+        expect(Array.from(result.productIds)).toEqual(['sku-1']);
+    });
+
+    test('returns an empty product set when the shopper has no wishlist yet (no create)', async () => {
+        vi.mocked(getAuth).mockReturnValue({
+            userType: 'guest',
+            customerId: 'guest-cust-2',
+            accessToken: 'tok',
+            accessTokenExpiry: Date.now() + 60_000,
+        } as never);
+        vi.mocked(getWishlist).mockResolvedValue({ wishlist: null, items: [], id: null } as never);
+
+        const result = await fetchWishlistInitialState(mockContext);
+
+        expect(getOrCreateWishlist).not.toHaveBeenCalled();
+        expect(result.customerId).toBe('guest-cust-2');
+        expect(result.productIds.size).toBe(0);
     });
 
     test('returns full state for registered user with wishlist items', async () => {
@@ -83,46 +101,43 @@ describe('fetchWishlistInitialState', () => {
             accessToken: 'tok',
             accessTokenExpiry: Date.now() + 60_000,
         } as never);
-        vi.mocked(getOrCreateWishlist).mockResolvedValue({
-            id: 'list-1',
-            customerProductListItems: [
+        vi.mocked(getWishlist).mockResolvedValue({
+            wishlist: { id: 'list-1' },
+            items: [
                 { id: 'item-1', productId: 'sku-1' },
                 { id: 'item-2', productId: 'sku-2' },
                 { id: 'item-3', productId: '' }, // Filtered.
                 { id: 'item-4' }, // Missing productId — filtered.
             ],
+            id: 'list-1',
         } as never);
 
         const result = await fetchWishlistInitialState(mockContext);
 
         expect(result.customerId).toBe('cust-1');
-        expect(result.listId).toBe('list-1');
-        expect(Array.from(result.itemsByProductId.entries())).toEqual([
-            ['sku-1', { itemId: 'item-1' }],
-            ['sku-2', { itemId: 'item-2' }],
-        ]);
+        expect(Array.from(result.productIds)).toEqual(['sku-1', 'sku-2']);
     });
 
-    test('returns empty state when wishlist exists but has no items', async () => {
+    test('returns empty items when wishlist exists but has no items', async () => {
         vi.mocked(getAuth).mockReturnValue({
             userType: 'registered',
             customerId: 'cust-1',
             accessToken: 'tok',
             accessTokenExpiry: Date.now() + 60_000,
         } as never);
-        vi.mocked(getOrCreateWishlist).mockResolvedValue({
+        vi.mocked(getWishlist).mockResolvedValue({
+            wishlist: { id: 'list-1' },
+            items: [],
             id: 'list-1',
-            customerProductListItems: [],
         } as never);
 
         const result = await fetchWishlistInitialState(mockContext);
 
         expect(result.customerId).toBe('cust-1');
-        expect(result.listId).toBe('list-1');
-        expect(result.itemsByProductId.size).toBe(0);
+        expect(result.productIds.size).toBe(0);
     });
 
-    test('propagates NormalizedApiError when getOrCreateWishlist rejects', async () => {
+    test('propagates NormalizedApiError when getWishlist rejects', async () => {
         vi.mocked(getAuth).mockReturnValue({
             userType: 'registered',
             customerId: 'cust-1',
@@ -130,7 +145,7 @@ describe('fetchWishlistInitialState', () => {
             accessTokenExpiry: Date.now() + 60_000,
         } as never);
         const apiErr = new NormalizedApiError(new TypeError('Network failure'));
-        vi.mocked(getOrCreateWishlist).mockRejectedValue(apiErr);
+        vi.mocked(getWishlist).mockRejectedValue(apiErr);
 
         await expect(fetchWishlistInitialState(mockContext)).rejects.toBe(apiErr);
     });

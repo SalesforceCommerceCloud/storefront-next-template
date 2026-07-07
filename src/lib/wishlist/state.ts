@@ -26,18 +26,17 @@
 /**
  * Server-resolved wishlist state used to seed `<WishlistProvider>`.
  *
- * Holds enough information for the provider to issue add/remove SCAPI calls without
- * re-fetching: the customer ID and list ID for path params, and a product-ID → item-ID
- * map (item-ID is required by SCAPI's delete operation, distinct from product ID).
+ * The provider issues add/remove through the `/action/wishlist-*` server actions,
+ * which are keyed by `productId` and resolve the list/item IDs server-side — so the
+ * client only needs the set of product IDs already in the wishlist (to paint filled
+ * hearts) and `customerId` as the signed-in gate.
  */
 export type WishlistInitialState = {
     customerId: string | null;
-    listId: string | null;
-    itemsByProductId: ReadonlyMap<string, { itemId: string }>;
+    productIds: ReadonlySet<string>;
 };
 
 export const EMPTY_WISHLIST_STATE: WishlistInitialState = {
     customerId: null,
-    listId: null,
-    itemsByProductId: new Map(),
+    productIds: new Set(),
 };
