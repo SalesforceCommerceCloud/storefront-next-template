@@ -171,7 +171,6 @@
   "pnpm": {
     "overrides": {
       "happy-dom>@types/node": "^24.0.0",
-      "@isaacs/brace-expansion": "^5.0.1",
       "axios": "1.16.1",
       "basic-ftp": "^5.3.1",
       "flatted": "^3.4.2",
@@ -189,6 +188,15 @@
       "tar": "7.5.17",
       "multer": "2.2.0",
       "qs": "6.15.3",
+      "postcss": "8.5.16",
+      "js-yaml@4": "4.3.0",
+      "joi@18": "18.2.3",
+      "yaml": "2.9.0",
+      "ajv@6": "6.15.0",
+      "ip-address": "10.2.0",
+      "uuid@11": "11.1.1",
+      "@protobufjs/utf8": "1.1.1",
+      "brace-expansion": "5.0.7",
       "@babel/core@7": "7.29.7",
       "diff@5": "5.2.2"
     }
