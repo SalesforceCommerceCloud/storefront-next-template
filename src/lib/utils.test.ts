@@ -18,6 +18,7 @@ import { Buffer } from 'node:buffer';
 import {
     resolveAssetUrl,
     isAbsoluteURL,
+    ensureExternalUrl,
     getSafeReturnUrl,
     getErrorMessage,
     parseJsonToStringRecord,
@@ -70,6 +71,125 @@ describe('isAbsoluteURL', () => {
         expect(isAbsoluteURL('data+xml://example.com')).toBe(true);
         expect(isAbsoluteURL('custom-scheme://example.com')).toBe(true);
         expect(isAbsoluteURL('scheme.v2://example.com')).toBe(true);
+    });
+});
+
+describe('ensureExternalUrl', () => {
+    it('normalizes external URLs to an absolute https href', () => {
+        // scheme-less host → prepend https:// (the carrier-tracking bug)
+        expect(ensureExternalUrl('www.testingtracking.com')).toBe('https://www.testingtracking.com/');
+        expect(ensureExternalUrl('fedex.com/track?n=123')).toBe('https://fedex.com/track?n=123');
+        // protocol-relative, host:port (URL would mis-read as a scheme), and a PUBLIC IPv4 host
+        expect(ensureExternalUrl('//carrier.com/track')).toBe('https://carrier.com/track');
+        expect(ensureExternalUrl('carrier.com:8080/track')).toBe('https://carrier.com:8080/track');
+        expect(ensureExternalUrl('8.8.8.8/track')).toBe('https://8.8.8.8/track');
+        // already-absolute http(s): kept; scheme + host lowercased by the URL parser
+        expect(ensureExternalUrl('https://www.carrier.com/track?n=1')).toBe('https://www.carrier.com/track?n=1');
+        expect(ensureExternalUrl('http://carrier.com')).toBe('http://carrier.com/');
+        expect(ensureExternalUrl('HTTPS://Carrier.COM/Path')).toBe('https://carrier.com/Path');
+        // control characters stripped, surrounding whitespace trimmed
+        expect(ensureExternalUrl('  www.carrier.com  ')).toBe('https://www.carrier.com/');
+        expect(ensureExternalUrl('https://carrier.com\t/track\n')).toBe('https://carrier.com/track');
+    });
+
+    it('returns undefined (never throws) for unsafe, internal, or unusable input', () => {
+        // dangerous / non-web schemes (XSS + non-tracking)
+        expect(ensureExternalUrl('javascript:alert(1)')).toBeUndefined();
+        expect(ensureExternalUrl('javascript:alert(1)//')).toBeUndefined();
+        expect(ensureExternalUrl('data:text/html,<script>alert(1)</script>')).toBeUndefined();
+        expect(ensureExternalUrl('vbscript:msgbox(1)')).toBeUndefined();
+        expect(ensureExternalUrl('file:///etc/passwd')).toBeUndefined();
+        expect(ensureExternalUrl('mailto:a@b.com')).toBeUndefined();
+        expect(ensureExternalUrl('tel:+15551234')).toBeUndefined();
+        // app-internal / relative paths (must not become external links)
+        expect(ensureExternalUrl('/account/orders/123')).toBeUndefined();
+        expect(ensureExternalUrl('track')).toBeUndefined();
+        expect(ensureExternalUrl('./relative')).toBeUndefined();
+        // empty / whitespace / nullish
+        expect(ensureExternalUrl('')).toBeUndefined();
+        expect(ensureExternalUrl('   ')).toBeUndefined();
+        expect(ensureExternalUrl(null)).toBeUndefined();
+        expect(ensureExternalUrl(undefined)).toBeUndefined();
+    });
+
+    // Security/correctness regressions from PR review — each asserts the RESOLVED host
+    // so a refactor can't silently reopen a bypass. Grouped by failure class.
+    it('rejects host-confusion bypasses (the href would navigate to a different host than it reads)', () => {
+        // userinfo `@` — "www.ups.com" is the username, real host is evil.com — on BOTH branches
+        expect(ensureExternalUrl('https://www.ups.com@evil.com/track')).toBeUndefined();
+        expect(ensureExternalUrl('www.ups.com@evil.com/track')).toBeUndefined();
+        expect(ensureExternalUrl('ups.com:@evil.com/track')).toBeUndefined();
+        expect(ensureExternalUrl('carrier.com:user@evil.com/track')).toBeUndefined();
+        // backslash authority (WHATWG treats `\` as `/`)
+        expect(ensureExternalUrl('https:\\\\evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('\\\\evil.com')).toBeUndefined();
+        // control char between slashes must NOT collapse a relative path into //host
+        expect(ensureExternalUrl('/\x00/evil.com')).toBeUndefined();
+        // leading whitespace/control chars must NOT let a relative "/\x00/host" payload skip
+        // the relative-path guard and then collapse into "//host" once stripped+trimmed
+        expect(ensureExternalUrl(' /\x00/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('\t/\x00/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('\n/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('\x00\x00/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('  /\x00\x00/evil.com')).toBeUndefined();
+        // dotted-"protocol" WITH an authority (`label.tld://host`) — parses to a dotted
+        // protocol so it skips the dot-less validation, and the real host is the part after
+        // `//` (`ups.com`/`evil.com`), not the leading label. Must NOT fall through to be
+        // re-prepended into `https://attacker.com//ups.com/...`.
+        expect(ensureExternalUrl('attacker.com://ups.com/track/12345')).toBeUndefined();
+        expect(ensureExternalUrl('foo.bar://evil.com')).toBeUndefined();
+    });
+
+    it('rejects private / loopback / link-local IPv4 literals (a carrier link must not target the internal network)', () => {
+        // these all contain dots, so the generic dot-based host check does NOT catch them —
+        // a scheme-less or fully-qualified value pointed at an internal address must be rejected
+        expect(ensureExternalUrl('127.0.0.1/track')).toBeUndefined();
+        expect(ensureExternalUrl('http://127.0.0.1/track')).toBeUndefined();
+        expect(ensureExternalUrl('192.168.0.1/track')).toBeUndefined();
+        expect(ensureExternalUrl('192.168.1.254')).toBeUndefined();
+        expect(ensureExternalUrl('10.0.0.5/track')).toBeUndefined();
+        expect(ensureExternalUrl('172.16.0.1')).toBeUndefined();
+        expect(ensureExternalUrl('172.31.255.255')).toBeUndefined();
+        // cloud instance-metadata endpoint (link-local) — the highest-value SSRF target
+        expect(ensureExternalUrl('http://169.254.169.254/latest/meta-data/')).toBeUndefined();
+        expect(ensureExternalUrl('0.0.0.0/track')).toBeUndefined();
+        expect(ensureExternalUrl('100.64.0.1')).toBeUndefined(); // carrier-grade NAT
+        expect(ensureExternalUrl('224.0.0.1')).toBeUndefined(); // multicast
+        // ...but a genuine PUBLIC IPv4 host must still externalize, and a public address that
+        // merely borders a private range must not be over-rejected
+        expect(ensureExternalUrl('8.8.8.8/track')).toBe('https://8.8.8.8/track');
+        expect(ensureExternalUrl('172.15.0.1')).toBe('https://172.15.0.1/'); // just below 172.16/12
+        expect(ensureExternalUrl('172.32.0.1')).toBe('https://172.32.0.1/'); // just above 172.31
+        expect(ensureExternalUrl('192.169.0.1')).toBe('https://192.169.0.1/'); // not 192.168
+    });
+
+    it('still externalizes a genuine scheme-less host:port (no // authority — must not be over-rejected)', () => {
+        // The dotted-protocol-authority guard must NOT catch a real `host:port`, whose parse
+        // has an EMPTY host (the part after `:` is the port), unlike the `label.tld://…` spoof.
+        expect(ensureExternalUrl('carrier.com:8080')).toBe('https://carrier.com:8080/');
+        expect(ensureExternalUrl('carrier.com:8080/track')).toBe('https://carrier.com:8080/track');
+        // the leading-whitespace hardening must NOT over-reject a genuine protocol-relative
+        // (`//host`) or scheme-less value that merely has surrounding whitespace
+        expect(ensureExternalUrl('  //carrier.com/track')).toBe('https://carrier.com/track');
+        expect(ensureExternalUrl('  www.carrier.com/track  ')).toBe('https://www.carrier.com/track');
+    });
+
+    it('rejects junk / non-host values that would become dead external links', () => {
+        // bare filenames and degenerate-dot hosts (contradict the relative→undefined contract)
+        expect(ensureExternalUrl('data.html')).toBeUndefined();
+        expect(ensureExternalUrl('index.html')).toBeUndefined();
+        expect(ensureExternalUrl('a..b')).toBeUndefined();
+        // non-string input must not throw (never-throws contract)
+        expect(ensureExternalUrl(1234 as unknown as string)).toBeUndefined();
+        expect(ensureExternalUrl({} as unknown as string)).toBeUndefined();
+        expect(ensureExternalUrl([] as unknown as string)).toBeUndefined();
+    });
+
+    it('does NOT reject legit carrier URLs that merely contain @ in the path/query', () => {
+        // no false positives: `@` outside the authority leaves username empty
+        expect(ensureExternalUrl('https://tracking.dhl.com/track?email=a@b.com')).toBe(
+            'https://tracking.dhl.com/track?email=a@b.com'
+        );
     });
 });
 

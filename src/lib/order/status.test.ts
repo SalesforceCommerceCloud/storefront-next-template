@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, test, expect } from 'vitest';
-import { formatStatusFallbackLabel, getOrderStatusConfig, getShippingStatusConfig } from './status';
+import { formatStatusFallbackLabel, getOrderStatusConfig, getShippingStatusConfig, resolveOrderStatus } from './status';
 
 describe('order-status', () => {
     test('returns correct config for each SCAPI status', () => {
@@ -63,6 +63,34 @@ describe('order-status', () => {
         expect(formatStatusFallbackLabel('')).toBe('');
         expect(formatStatusFallbackLabel('   ')).toBe('');
         expect(formatStatusFallbackLabel(undefined)).toBe('');
+    });
+
+    // The order-status badge is ECOM-first: prefer `order.status`, fall back to
+    // `omsData.status` only when ECOM is absent. ECOM is preferred because the badge
+    // only understands the 6 SCAPI OrderStatusEnum values (created/new/completed/
+    // cancelled/replaced/failed), which is what `order.status` carries; the OMS status
+    // is a different vocabulary (Approved/Allocated/Fulfilled/Shipped…) and is only the
+    // fallback. Blank/whitespace on either side is treated as absent. (Do not confuse
+    // this with the shipment-list mapper, which is OMS-preferred — a separate decision.)
+    describe('resolveOrderStatus precedence (ECOM-first, OMS fallback)', () => {
+        const cases: Array<[string | undefined, string | undefined, string | undefined, string]> = [
+            // ecom,        oms,           expected,      note
+            ['new', 'cancelled', 'new', 'ECOM wins when both present'],
+            [undefined, 'Approved', 'Approved', 'OMS fallback when ECOM absent'],
+            ['completed', undefined, 'completed', 'ECOM present, no OMS'],
+            [undefined, undefined, undefined, 'neither set → undefined'],
+            ['', 'Fulfilled', 'Fulfilled', 'blank ECOM treated as absent → OMS fallback'],
+            ['   ', undefined, undefined, 'whitespace-only ECOM normalized away, no OMS'],
+            ['new', '', 'new', 'ECOM present, blank OMS ignored'],
+            ['', '', undefined, 'both blank → undefined'],
+        ];
+        test.each(cases)('order.status=%j, omsData.status=%j → %j (%s)', (ecomStatus, omsStatus, expected) => {
+            const order = {
+                ...(ecomStatus === undefined ? {} : { status: ecomStatus }),
+                ...(omsStatus === undefined ? {} : { omsData: { status: omsStatus } }),
+            };
+            expect(resolveOrderStatus(order)).toBe(expected);
+        });
     });
 
     describe('shipping status', () => {

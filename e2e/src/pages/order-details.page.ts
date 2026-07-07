@@ -59,8 +59,20 @@ class OrderDetailsPage {
             .withText('Shipping Address')
             .as('Shipping Address Label'),
 
-        // Tracking number card
+        // Tracking number card + OMS tracking details (populated only on a SOM-fulfilled order)
         trackingNumberCard: locate('[data-card="tracking-number"]').as('Tracking Number Card'),
+        /** The tracking number rendered as a link to the carrier (present when the OMS shipment has a trackingUrl). */
+        trackingNumberLink: locate('[data-testid="tracking-number-link"]').as('Tracking Number Link'),
+        /** The tracking number rendered as plain text (present when there is no carrier trackingUrl). */
+        trackingNumberText: locate('[data-testid="tracking-number-text"]').as('Tracking Number Text'),
+        /** Carrier/provider line (OMS only). */
+        trackingProvider: locate('[data-section="order-tracking"] [data-field="provider"]').as('Tracking Provider'),
+        /** Expected delivery date line (OMS only). */
+        trackingExpectedDelivery: locate('[data-field="expected-delivery"]').as('Tracking Expected Delivery'),
+        /** Actual (delivered) date line (OMS only). */
+        trackingDelivered: locate('[data-field="delivered"]').as('Tracking Delivered Date'),
+        /** The "Track shipment" order-action (hidden when there is no trackable shipment). */
+        trackShipmentAction: locate('[data-testid="track-shipment-action"]').as('Track Shipment Action'),
 
         backToOrdersLink: locate('a[href*="/account/orders"]:not([href*="/account/orders/"])').as(
             'Back to Orders Link'
@@ -171,6 +183,47 @@ class OrderDetailsPage {
      */
     async getCurrentUrl(): Promise<string> {
         return await I.grabCurrentUrl();
+    }
+
+    /**
+     * Whether a tracking-number card is shown (OMS or ECOM). A not-yet-shipped order
+     * with no tracking data shows no card.
+     * @returns Promise<boolean>
+     */
+    async isTrackingCardVisible(): Promise<boolean> {
+        return (await I.grabNumberOfVisibleElements(this.locators.trackingNumberCard)) > 0;
+    }
+
+    /**
+     * Whether the tracking number is rendered as a carrier link (vs plain text).
+     * @returns Promise<boolean>
+     */
+    async isTrackingNumberLinkVisible(): Promise<boolean> {
+        return (await I.grabNumberOfVisibleElements(this.locators.trackingNumberLink)) > 0;
+    }
+
+    /**
+     * Grab the carrier tracking-link href (the tracking number links to the carrier site).
+     * @returns Promise<string>
+     */
+    async getTrackingLinkHref(): Promise<string> {
+        return await I.grabAttributeFrom(this.locators.trackingNumberLink, 'href');
+    }
+
+    /**
+     * Whether the "Track shipment" order-action is shown.
+     * @returns Promise<boolean>
+     */
+    async isTrackShipmentActionVisible(): Promise<boolean> {
+        return (await I.grabNumberOfVisibleElements(this.locators.trackShipmentAction)) > 0;
+    }
+
+    /**
+     * Whether the expected-delivery line is shown (OMS only).
+     * @returns Promise<boolean>
+     */
+    async isExpectedDeliveryVisible(): Promise<boolean> {
+        return (await I.grabNumberOfVisibleElements(this.locators.trackingExpectedDelivery)) > 0;
     }
 
     /**

@@ -20,9 +20,17 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import type { ShopperOrders } from '@/scapi';
 import OrderItemsList, { type ProductDataById } from '@/components/account/order-details/order-items-list';
+import OrderTracking, { TrackShipmentAction } from '@/components/account/order-tracking';
+import { getOrderTrackingEntries } from '@/lib/order-management/tracking';
+import { hasDisplayableTracking } from '@/components/account/order-tracking/track-shipment';
 import OrderSummary from '@/components/order-summary';
 import ShippingAddressDisplay from '@/components/checkout/components/shipping-address-display';
-import { formatStatusFallbackLabel, getOrderStatusConfig, getShippingStatusConfig } from '@/lib/order/status';
+import {
+    formatStatusFallbackLabel,
+    getOrderStatusConfig,
+    getShippingStatusConfig,
+    resolveOrderStatus,
+} from '@/lib/order/status';
 import { cn } from '@/lib/utils';
 import { UITarget } from '@/targets/ui-target';
 
@@ -141,12 +149,24 @@ export function OrderDetails({ order, productsById }: OrderDetailsProps): ReactE
 
     const shipments = order.shipments ?? [];
     const productItems = order.productItems ?? [];
-    const orderStatusConfig = getOrderStatusConfig(order.status);
-    const orderStatusLabelFallback = orderStatusFallbackLabel(order.status);
+    // Order-status badge value: ECOM-first, OMS as fallback — see resolveOrderStatus
+    // JSDoc for why (the badge only understands the 6 OrderStatusEnum values). Shared
+    // resolver, so this badge and the order-history list badge can never disagree for
+    // the same order; distinct from the tracking mapper's OMS-preferred shipment
+    // *sourcing*. The per-shipment shipping-status badge below stays ECOM — an OMS
+    // shipment has no join key to a specific ECOM shipment, so OMS-enriching it would
+    // require a positional join that renders data against the wrong shipment.
+    const orderStatus = resolveOrderStatus(order);
+    const orderStatusConfig = getOrderStatusConfig(orderStatus);
+    const orderStatusLabelFallback = orderStatusFallbackLabel(orderStatus);
     const showOrderStatusBadge = orderStatusConfig || orderStatusLabelFallback;
     const OrderStatusIcon = orderStatusConfig?.icon === 'check' ? Check : orderStatusConfig?.icon === 'x' ? X : null;
     const itemsByShipmentId = groupProductItemsByShipmentId(productItems);
     const paymentMethodDisplays = getPaymentMethodDisplays(order, t);
+    // Whether the order has anything to show in the tracking section — when false,
+    // both OrderTracking and TrackShipmentAction render null, so skip the wrapper
+    // (it would otherwise leave an empty spacing div).
+    const hasTracking = getOrderTrackingEntries(order).some(hasDisplayableTracking);
 
     return (
         <div data-section="order-details">
@@ -219,24 +239,9 @@ export function OrderDetails({ order, productsById }: OrderDetailsProps): ReactE
                                                     />
                                                     <UITarget targetId="sfcc.myAccount.orderDetails.review" />
                                                 </div>
-                                                {/* Tracking Number and Shipping Address for this shipment */}
+                                                {/* Shipping Address for this shipment */}
                                                 <div className="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3">
-                                                    <UITarget targetId="sfcc.myAccount.orderDetails.tracking" />
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                        {shipment.trackingNumber != null && (
-                                                            <Card
-                                                                className="rounded-ui  min-h-[4rem] p-0 bg-card"
-                                                                data-card="tracking-number">
-                                                                <CardContent className="p-3">
-                                                                    <p className="text-xs font-semibold text-foreground">
-                                                                        {t('orders.trackingNumber')}
-                                                                    </p>
-                                                                    <p className="mt-2 text-sm font-medium text-foreground break-all">
-                                                                        {shipment.trackingNumber}
-                                                                    </p>
-                                                                </CardContent>
-                                                            </Card>
-                                                        )}
                                                         {shipment.shippingAddress && (
                                                             <Card
                                                                 className="rounded-ui  min-h-[4rem] p-0 bg-card"
@@ -265,6 +270,15 @@ export function OrderDetails({ order, productsById }: OrderDetailsProps): ReactE
                                     })}
                                 </CardContent>
                             </Card>
+
+                            {/* Shipment tracking (OMS-preferred, ECOM fallback) + the Track-shipment action */}
+                            {hasTracking ? (
+                                <div className="space-y-3">
+                                    <UITarget targetId="sfcc.myAccount.orderDetails.tracking" />
+                                    <OrderTracking order={order} />
+                                    <TrackShipmentAction order={order} />
+                                </div>
+                            ) : null}
                         </div>
                         {/* Order Summary – OrderSummary accepts both Basket and Order for totals */}
                         <div className="space-y-4">

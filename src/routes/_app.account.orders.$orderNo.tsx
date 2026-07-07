@@ -86,7 +86,7 @@ function OrderNotFoundCard() {
                 <CardTitle className="text-center">{t('orders.orderNotFound')}</CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-                <Typography variant="p" className="text-muted-foreground">
+                <Typography variant="p" align="center" className="text-muted-foreground">
                     {t('orders.orderNotFoundDescription')}
                 </Typography>
                 <Button asChild>

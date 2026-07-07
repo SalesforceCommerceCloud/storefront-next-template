@@ -232,6 +232,119 @@ export const getScapiBaseUrl = (shortCode: string): string =>
  */
 export const isAbsoluteURL = (url: string): boolean => /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
 
+/** Last-label patterns that mark a "host" as really a filename, not an external host. */
+const FILENAME_HOST = /\.(html?|php|aspx?|jsp|css|js|mjs|cjs|json|xml|txt|pdf|png|jpe?g|gif|svg|webp|ico)$/i;
+
+/**
+ * True when `host` is an IPv4 literal in a private, loopback, link-local, or otherwise
+ * non-public range — i.e. an address a carrier tracking link should never point at.
+ * A carrier URL resolving to `127.0.0.1`, `169.254.169.254` (cloud metadata), or an
+ * RFC 1918 address means the "external" link would target the storefront's own network.
+ * These all contain dots, so the generic dot-based host check does not catch them.
+ * Returns false for non-IPv4 hostnames (regular domains fall through to the other checks).
+ */
+const isPrivateOrReservedIpv4 = (host: string): boolean => {
+    const octets = host.split('.');
+    if (octets.length !== 4) return false;
+    const parts = octets.map((o) => (/^\d{1,3}$/.test(o) ? Number(o) : NaN));
+    if (parts.some((n) => Number.isNaN(n) || n > 255)) return false;
+    const [a, b] = parts;
+    return (
+        a === 0 || // 0.0.0.0/8 "this network"
+        a === 10 || // 10.0.0.0/8 private
+        a === 127 || // 127.0.0.0/8 loopback
+        (a === 100 && b >= 64 && b <= 127) || // 100.64.0.0/10 carrier-grade NAT
+        (a === 169 && b === 254) || // 169.254.0.0/16 link-local (incl. cloud metadata 169.254.169.254)
+        (a === 172 && b >= 16 && b <= 31) || // 172.16.0.0/12 private
+        (a === 192 && b === 168) || // 192.168.0.0/16 private
+        a >= 224 // 224.0.0.0/4 multicast + 240.0.0.0/4 reserved
+    );
+};
+
+/**
+ * A parsed URL is a safe external href only if it is http(s), carries NO userinfo,
+ * and resolves to a plausible public host. Userinfo is rejected because
+ * `new URL('https://www.carrier.com@evil.com')` parses `evil.com` as the host and
+ * `www.carrier.com` as the username — the href would read like the carrier but
+ * navigate elsewhere. A host with no dot, an empty label (`a..b`), or one that looks
+ * like a bare filename (`data.html`) isn't a real external host. A private, loopback,
+ * or link-local IP literal (`127.0.0.1`, `169.254.169.254`, `192.168.x.x`) is rejected
+ * so a carrier link can't be pointed at the storefront's own network. (Bracketed IPv6
+ * literals such as `[::1]` carry no dot and are already rejected by the dot check.)
+ */
+const isSafeExternalUrl = (url: URL): boolean => {
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+    if (url.username || url.password) return false;
+    const host = url.hostname;
+    if (!host.includes('.')) return false;
+    if (!host.split('.').every((label) => label.length > 0)) return false;
+    if (FILENAME_HOST.test(host)) return false;
+    if (isPrivateOrReservedIpv4(host)) return false;
+    return true;
+};
+
+/**
+ * Normalize a possibly scheme-less external URL (e.g. a carrier tracking URL) into
+ * a safe, absolute http(s) URL for an `href`. Prepends `https://` to a scheme-less
+ * value so the browser doesn't treat it as a path relative to the current page.
+ *
+ * Unlike {@link isAbsoluteURL} (which reports a bare host as not-absolute), this
+ * turns such a host into an absolute external URL. A result is returned only when it
+ * passes {@link isSafeExternalUrl} (http(s), no userinfo, plausible host); unsafe or
+ * non-web values (`javascript:`, `data:`, `mailto:`, userinfo spoofs, internal/relative
+ * paths, bare filenames, …) and non-string input return `undefined` so callers render
+ * an inactive `<a>`. Pair the link with `target="_blank" rel="noopener noreferrer"`.
+ */
+export const ensureExternalUrl = (input: string | null | undefined): string | undefined => {
+    if (typeof input !== 'string') return undefined;
+
+    // Backslashes never appear in a real carrier URL; the WHATWG parser treats `\`
+    // as `/`, so a value like `https:\\evil.com` would smuggle in an authority.
+    if (input.includes('\\')) return undefined;
+
+    // Reject relative / app-internal paths (allow protocol-relative "//host"). This guard
+    // must see the input BEFORE control chars are stripped, but AFTER leading whitespace is
+    // trimmed — otherwise a leading-whitespace payload (" /\x00/evil.com") would skip a
+    // raw-`startsWith` guard, and a control char BETWEEN the slashes (/\x00/) would only
+    // collapse into "//host" once stripped. Trimming just the leading whitespace here keeps
+    // the still-single leading slash visible so "/\x00/evil.com" is rejected as relative
+    // instead of surviving to be re-prepended into "https://evil.com".
+    const leadingTrimmed = input.replace(/^[\s\x00-\x1f\x7f]+/, ''); // eslint-disable-line no-control-regex -- only leading whitespace/control chars, so "/\x00/…" keeps its lone leading slash
+    if (leadingTrimmed.startsWith('/') && !leadingTrimmed.startsWith('//')) return undefined;
+    if (leadingTrimmed.startsWith('.')) return undefined;
+
+    // eslint-disable-next-line no-control-regex -- strip control chars so they can't smuggle past the checks
+    const sanitized = input.replace(/[\x00-\x1f\x7f]/g, '').trim();
+    if (!sanitized) return undefined;
+
+    try {
+        // A real scheme (`https:`, `javascript:`, `mailto:`) parses to a dot-less
+        // protocol; a scheme-less `host:port` (`carrier.com:8080`) mis-parses to a
+        // dotted protocol — only the former should be validated/rejected as-is.
+        const parsed = new URL(sanitized);
+        if (!parsed.protocol.replace(/:$/, '').includes('.')) {
+            return isSafeExternalUrl(parsed) ? parsed.toString() : undefined;
+        }
+        // Dotted protocol WITH an authority (`attacker.com://ups.com/t`) is a host-confusion
+        // spoof — the real host is `ups.com` but it reads like `attacker.com`. It must NOT fall
+        // through to be re-prepended (which would yield `https://attacker.com//ups.com/t`). A
+        // genuine scheme-less `host:port` has an EMPTY host on this parse (`carrier.com:8080` →
+        // host ``), so only the empty-host form is allowed through to the prepend path.
+        if (parsed.host) return undefined;
+    } catch {
+        // no scheme — fall through to prepend
+    }
+
+    // Scheme-less (`www.carrier.com/t`, `//carrier.com`, `carrier.com:8080`) → prepend https.
+    const candidate = sanitized.startsWith('//') ? `https:${sanitized}` : `https://${sanitized}`;
+    try {
+        const fixed = new URL(candidate);
+        return isSafeExternalUrl(fixed) ? fixed.toString() : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
 /**
  * Returns the URL if it is a safe relative path, otherwise returns the fallback.
  * Prevents open redirect attacks by rejecting absolute URLs (e.g. https://evil.com, //evil.com).

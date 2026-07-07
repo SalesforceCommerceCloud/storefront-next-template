@@ -862,6 +862,16 @@
             "productPlaceholderInitial": "품목",
             "quantityLabel": "수량: {{count}}개",
             "trackingNumber": "추적 번호",
+            "tracking": {
+                "provider": "Carrier",
+                "expectedDelivery": "Expected delivery",
+                "delivered": "Delivered",
+                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
+            },
+            "actions": {
+                "trackShipment": "Track shipment",
+                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
+            },
             "shippingAddress": "배송 주소",
             "paymentMethod": "결제 방법",
             "paymentMethodEndingIn": "{{cardType}}이(가) {{lastDigits}}(으)로 끝남"

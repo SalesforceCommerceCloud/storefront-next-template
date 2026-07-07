@@ -146,3 +146,39 @@ export function getOrderStatusConfig(status: string | undefined): OrderStatusCon
 export function getShippingStatusConfig(status: string | undefined): ShippingStatusConfig | undefined {
     return lookupStatusConfig(SHIPPING_STATUS_CONFIG, status);
 }
+
+/**
+ * Resolve the order-level status to display on the **status badge**, preferring
+ * the ECOM `order.status` and falling back to the OMS status (`omsData.status`)
+ * when ECOM is absent.
+ *
+ * The badge prefers ECOM because ECOM's status is the one the badge was built to
+ * understand. `order.status` (ECOM) speaks exactly the badge's vocabulary — it
+ * returns one of the 6 SCAPI `OrderStatusEnum` values (`created | new | completed |
+ * cancelled | replaced | failed`), each of which {@link getOrderStatusConfig} knows
+ * how to color. The OMS status (`omsData.status`) speaks a different vocabulary
+ * (`Approved`, `Allocated`, `Fulfilled`, `Shipped`…) — none of which are in the
+ * 6-value map, so it is only the fallback for orders with no ECOM status.
+ *
+ * Do NOT confuse this with the shipment-list **sourcing**: the mapper
+ * {@link getOrderTrackingEntries} is OMS-*preferred* (which list of shipments to
+ * render), which is a separate decision from this badge's status precedence.
+ *
+ * Single source of truth for both the order-history list and the Order Details
+ * badge, so the two surfaces can never disagree for the same order. Returns
+ * `undefined` when neither is set — callers apply their own default (the list
+ * defaults to `created`; the detail page leaves it unset so the badge hides).
+ *
+ * A blank/whitespace status (e.g. OMS returning `status: ''` to mean "unset") is
+ * normalized to `undefined` so it does not propagate as a status — a bare `??`
+ * would pass `''` through (only `null`/`undefined` are nullish), surfacing an
+ * empty value where there should be none.
+ *
+ * `omsData` is not declared on the generated SCAPI `Order` schema (the client
+ * carries two conflicting `OmsData` definitions), so it is read through a narrow
+ * local shape rather than the generated union.
+ */
+export function resolveOrderStatus(order: { status?: string; omsData?: { status?: string } }): string | undefined {
+    const status = order.status?.trim() || order.omsData?.status?.trim();
+    return status || undefined;
+}

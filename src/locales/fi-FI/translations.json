@@ -864,6 +864,16 @@
             "productPlaceholderInitial": "Tuote",
             "quantityLabel": "Lkm: {{count}}",
             "trackingNumber": "Seurantanumero",
+            "tracking": {
+                "provider": "Carrier",
+                "expectedDelivery": "Expected delivery",
+                "delivered": "Delivered",
+                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
+            },
+            "actions": {
+                "trackShipment": "Track shipment",
+                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
+            },
             "shippingAddress": "Toimitusosoite",
             "paymentMethod": "Maksutapa",
             "paymentMethodEndingIn": "{{cardType}} Loppuu numeroihin {{lastDigits}}"

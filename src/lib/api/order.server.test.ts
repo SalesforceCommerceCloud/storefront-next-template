@@ -64,8 +64,39 @@ describe('fetchOrderWithProducts', () => {
 
         expect(createApiClients).toHaveBeenCalledWith(context);
         expect(mockGetOrder).toHaveBeenCalledWith({
-            params: { path: { orderNo: 'ORD-123' } },
+            params: {
+                path: { orderNo: 'ORD-123' },
+                query: { expand: ['oms', 'oms_shipments'] },
+            },
         });
+    });
+
+    test('requests OMS tracking enrichment via expand: oms, oms_shipments', () => {
+        const mockOrder: ShopperOrders.schemas['Order'] = {
+            orderNo: 'ORD-OMS',
+            productItems: [],
+        } as ShopperOrders.schemas['Order'];
+        mockGetOrder.mockResolvedValue({ data: mockOrder });
+
+        fetchOrderWithProducts(createTestContext({ currency: 'USD' }), 'ORD-OMS');
+
+        const callArg = mockGetOrder.mock.calls[0][0];
+        expect(callArg.params.query.expand).toEqual(['oms', 'oms_shipments']);
+    });
+
+    test('order still loads when omsData is absent (ECOM path not regressed)', async () => {
+        // A non-SOM org disregards the expand tokens → order comes back with no
+        // omsData; the fetch must still resolve the order normally.
+        const ecomOnlyOrder: ShopperOrders.schemas['Order'] = {
+            orderNo: 'ORD-ECOM',
+            productItems: [],
+        } as ShopperOrders.schemas['Order'];
+        mockGetOrder.mockResolvedValue({ data: ecomOnlyOrder });
+
+        const { orderPromise } = fetchOrderWithProducts(createTestContext({ currency: 'USD' }), 'ORD-ECOM');
+        const order = await orderPromise;
+        expect(order.orderNo).toBe('ORD-ECOM');
+        expect(order.omsData).toBeUndefined();
     });
 
     test('orderPromise resolves to order data', async () => {
@@ -255,6 +286,53 @@ describe('transformOrderForList', () => {
             ],
             pickupLocation: undefined,
         });
+    });
+
+    test('uses OMS status (omsData.status) when ECOM status is absent', () => {
+        const scapiOrder = {
+            orderNo: 'ORD-OMS',
+            creationDate: '2024-09-14T10:30:00Z',
+            // no top-level `status` → must fall back to omsData.status
+            omsData: { status: 'shipped' },
+            orderTotal: 50,
+            currency: 'USD',
+            productItems: [],
+        } as unknown as ShopperCustomers.schemas['Order'];
+
+        expect(transformOrderForList(scapiOrder).status).toBe('shipped');
+    });
+
+    test('prefers ECOM status over OMS status when both are present', () => {
+        const scapiOrder = {
+            orderNo: 'ORD-BOTH',
+            status: 'new',
+            omsData: { status: 'shipped' },
+            productItems: [],
+        } as unknown as ShopperCustomers.schemas['Order'];
+
+        // Badge precedence is ECOM-first (the OMS-preferred rule is the shipment-list
+        // mapper's, not the badge's) — so the ECOM status wins when both are present.
+        expect(transformOrderForList(scapiOrder).status).toBe('new');
+    });
+
+    test('defaults status to "created" when neither ECOM nor OMS status is present', () => {
+        const scapiOrder = {
+            orderNo: 'ORD-NONE',
+            productItems: [],
+        } as unknown as ShopperCustomers.schemas['Order'];
+
+        expect(transformOrderForList(scapiOrder).status).toBe('created');
+    });
+
+    test('treats a blank OMS status as unset (does not surface "") → falls to the default', () => {
+        const scapiOrder = {
+            orderNo: 'ORD-BLANK',
+            // OMS can send status: '' to mean "unset"; it must NOT propagate as a status
+            omsData: { status: '' },
+            productItems: [],
+        } as unknown as ShopperCustomers.schemas['Order'];
+
+        expect(transformOrderForList(scapiOrder).status).toBe('created');
     });
 
     test('populates imageUrl and imageAlt when productsById is provided', () => {
@@ -485,6 +563,7 @@ describe('fetchCustomerOrders', () => {
                 query: {
                     offset: 0,
                     limit: 10,
+                    expand: 'oms',
                 },
             },
         });
@@ -506,11 +585,21 @@ describe('fetchCustomerOrders', () => {
                 query: {
                     offset: 10,
                     limit: 25,
+                    expand: 'oms',
                 },
             },
         });
         expect(result.offset).toBe(10);
         expect(result.limit).toBe(25);
+    });
+
+    test('requests OMS status enrichment via expand: oms (scalar, not an array)', async () => {
+        mockGetCustomerOrders.mockResolvedValue({ data: { data: [], total: 0, offset: 0, limit: 10 } });
+
+        await fetchCustomerOrders(createTestContext({ currency: 'USD' }), 'customer-1');
+
+        const callArg = mockGetCustomerOrders.mock.calls[0][0];
+        expect(callArg.params.query.expand).toBe('oms');
     });
 
     test('fetches product images and enriches orders', async () => {
