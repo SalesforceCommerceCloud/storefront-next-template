@@ -24,7 +24,7 @@ exports[`ProductCartActions stories snapshot > CompactWithBuyNow story renders a
         data-slot="button"
         data-variant="outline"
       >
-        Buy it Now
+        Buy It Now
       </button>
     </div>
   </div>

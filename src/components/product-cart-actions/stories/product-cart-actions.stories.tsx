@@ -109,7 +109,7 @@ export const CompactWithBuyNow: Story = {
 
         const addToCartButton = canvas.getByRole('button', { name: /add to cart/i });
         await expect(addToCartButton).toBeInTheDocument();
-        const buyNowButton = canvas.getByRole('button', { name: /buy it now/i });
+        const buyNowButton = canvas.getByRole('button', { name: /Buy It Now/i });
         await expect(buyNowButton).toBeInTheDocument();
     },
 };

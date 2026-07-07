@@ -150,7 +150,7 @@ function RouterWrapper({ Story, context, Wrapper }: RouterWrapperProps) {
                     ...(extraMockRoutes ?? []),
                     {
                         // Catch-all: absorbs navigations triggered by interactive components
-                        // (e.g. swatch <Link>, Quick Add "Buy it Now", product tile clicks).
+                        // (e.g. swatch <Link>, Quick Add "Buy It Now", product tile clicks).
                         // Returns the user to the story root so the 404 error page is never shown.
                         path: '*',
                         element: WrappedStory,

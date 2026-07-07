@@ -149,7 +149,7 @@ Stories follow the **closed-by-default + trigger pattern (Pattern 11)** — ever
 | **EditWithVariants** | Edit mode: full master product with size/color/width swatches and 6+ image thumbnails (scroll arrows visible) |
 | **EditSizeOnly** | Edit mode: simplified product with a single \`size\` attribute and high quantity |
 
-Add mode (passing only \`productId\`) is intentionally not a separate story — it renders the same \`CartItemModalView\` once SCAPI resolves, and the only visible delta is the bottom CTA wording ("Add to Cart" + "Buy it Now" vs "Update"). The mode-routing logic itself is fully covered by \`mode-router.test.tsx\` and \`index.test.tsx\`. Use the \`productId\` control on **EditWithVariants** to exercise the add-mode CTA wording when needed.
+Add mode (passing only \`productId\`) is intentionally not a separate story — it renders the same \`CartItemModalView\` once SCAPI resolves, and the only visible delta is the bottom CTA wording ("Add to Cart" + "Buy It Now" vs "Update"). The mode-routing logic itself is fully covered by \`mode-router.test.tsx\` and \`index.test.tsx\`. Use the \`productId\` control on **EditWithVariants** to exercise the add-mode CTA wording when needed.
 
 Every story's play function implicitly validates the closed-by-default state — the trigger button renders before the click, and no dialog is mounted in the DOM until the play function acts.
                 `,

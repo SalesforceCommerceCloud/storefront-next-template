@@ -29,7 +29,7 @@ const meta: Meta<typeof QuickAddButton> = {
             description: {
                 component: `
 **QuickAddButton** renders the "Quick Add" hover CTA on a product tile and manages the add-mode
-\`CartItemModal\` lifecycle. Clicking the button opens the modal; "Buy it Now" within the modal
+\`CartItemModal\` lifecycle. Clicking the button opens the modal; "Buy It Now" within the modal
 navigates to the PDP with the selected colour pre-seeded.
                 `,
             },
@@ -49,7 +49,7 @@ navigates to the PDP with the selected colour pre-seeded.
             control: 'text',
         },
         selectedColorValue: {
-            description: 'Pre-selected colour. When set, "Buy it Now" navigates to the PDP with `?color=<value>`',
+            description: 'Pre-selected colour. When set, "Buy It Now" navigates to the PDP with `?color=<value>`',
             control: 'text',
         },
         label: {
@@ -124,7 +124,7 @@ export const WithColorPreselected: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'When a colour is pre-selected, "Buy it Now" navigates to the PDP with `?color=navy`.',
+                story: 'When a colour is pre-selected, "Buy It Now" navigates to the PDP with `?color=navy`.',
             },
         },
     },

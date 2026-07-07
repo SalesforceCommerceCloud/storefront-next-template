@@ -29,7 +29,7 @@ vi.mock('@/components/cart-item-modal', () => ({
         open ? (
             <div role="dialog" aria-label="Quick add">
                 <button type="button" onClick={onBuyNow}>
-                    Buy it Now
+                    Buy It Now
                 </button>
             </div>
         ) : null,
@@ -96,24 +96,24 @@ describe('QuickAddButton', () => {
         expect(await screen.findByRole('dialog')).toBeInTheDocument();
     });
 
-    test('clicking Buy it Now navigates to the PDP with the selected color', async () => {
+    test('clicking Buy It Now navigates to the PDP with the selected color', async () => {
         const user = userEvent.setup();
         renderButton({ selectedColorValue: 'navy' });
 
         await user.click(screen.getByRole('button', { name: /quick add/i }));
-        await user.click(await screen.findByRole('button', { name: /buy it now/i }));
+        await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
         expect(
             await screen.findByText('PDP loaded: /global/en-GB/product/test-product?color=navy')
         ).toBeInTheDocument();
     });
 
-    test('clicking Buy it Now navigates to the PDP without query when no color is selected', async () => {
+    test('clicking Buy It Now navigates to the PDP without query when no color is selected', async () => {
         const user = userEvent.setup();
         renderButton();
 
         await user.click(screen.getByRole('button', { name: /quick add/i }));
-        await user.click(await screen.findByRole('button', { name: /buy it now/i }));
+        await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
         expect(await screen.findByText('PDP loaded: /global/en-GB/product/test-product')).toBeInTheDocument();
     });

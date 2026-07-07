@@ -36,11 +36,11 @@ export interface CartItemModalProps extends Omit<React.ComponentProps<typeof Dia
     /**
      * Cart item ID for update operations. When provided the modal operates in edit mode
      * (Update button, quantity picker). When omitted the modal operates in add mode
-     * (Add to Cart + Buy it Now buttons).
+     * (Add to Cart + Buy It Now buttons).
      */
     itemId?: string;
     /**
-     * Called when the shopper clicks "Buy it Now" in add mode.
+     * Called when the shopper clicks "Buy It Now" in add mode.
      * Typically navigates to the PDP with the currently selected variant pre-seeded.
      */
     onBuyNow?: () => void;

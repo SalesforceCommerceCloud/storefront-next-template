@@ -21,7 +21,7 @@ import { useProductTileContext } from './context';
 interface QuickAddButtonProps {
     productId: string;
     productName: string;
-    /** Currently selected color value — pre-seeds the PDP URL when "Buy it Now" is clicked */
+    /** Currently selected color value — pre-seeds the PDP URL when "Buy It Now" is clicked */
     selectedColorValue?: string | null;
     /**
      * Full variant selections (all axes) from the tile's represented variant. Pre-seeds
@@ -41,7 +41,7 @@ const CartItemModal = lazy(() =>
  * the add-mode CartItemModal lifecycle.
  *
  * Clicking the button opens the modal; the modal fetches the full product internally.
- * "Buy it Now" closes the modal and navigates to the PDP with the selected color pre-seeded.
+ * "Buy It Now" closes the modal and navigates to the PDP with the selected color pre-seeded.
  */
 export function QuickAddButton({
     productId,
