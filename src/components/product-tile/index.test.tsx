@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type React from 'react';
-import { vi, test, describe, expect, beforeEach } from 'vitest';
+import { vi, test, describe, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -303,6 +303,61 @@ describe('ProductTile — color swatches', () => {
         expect(swatchLinks).toHaveLength(2);
         expect(swatchLinks[0]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=RED');
         expect(swatchLinks[1]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=BLU');
+    });
+});
+
+describe('ProductTile — swatch hover preview', () => {
+    let originalMatchMedia: typeof globalThis.matchMedia;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        originalMatchMedia = globalThis.matchMedia;
+    });
+
+    afterEach(() => {
+        globalThis.matchMedia = originalMatchMedia;
+    });
+
+    const mockDesktop = (matches: boolean) => {
+        globalThis.matchMedia = vi.fn().mockImplementation((query: string) => ({
+            matches,
+            media: query,
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+        }));
+    };
+
+    test('previews the hovered colour on desktop viewports', async () => {
+        mockDesktop(true);
+        const user = userEvent.setup();
+        renderTile();
+
+        const swatchRegion = await screen.findByRole('group', { name: /available colou?rs/i });
+        const navy = within(swatchRegion).getByRole('link', { name: /Navy/ });
+        expect(navy).not.toHaveAttribute('aria-current');
+
+        await user.hover(navy);
+
+        // Hover selects the colour on desktop, marking the swatch as current.
+        expect(within(swatchRegion).getByRole('link', { name: /Navy/ })).toHaveAttribute('aria-current', 'true');
+    });
+
+    test('does not preview on hover on mobile viewports', async () => {
+        mockDesktop(false);
+        const user = userEvent.setup();
+        renderTile();
+
+        const swatchRegion = await screen.findByRole('group', { name: /available colou?rs/i });
+        const navy = within(swatchRegion).getByRole('link', { name: /Navy/ });
+
+        await user.hover(navy);
+
+        // Below the desktop breakpoint, hover is inert — the preview only changes on click/navigation.
+        expect(within(swatchRegion).getByRole('link', { name: /Navy/ })).not.toHaveAttribute('aria-current');
     });
 });
 

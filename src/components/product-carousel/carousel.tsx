@@ -30,6 +30,9 @@ import { CarouselSection } from '@/components/carousel-section';
 const carouselItemImageWidths = ['348px', '256px', '256px', '288px'];
 const productCarouselItemAspectRatio = 0.8;
 
+// Stable reference so the DynamicImageProvider value never changes between renders.
+const dynamicImageProviderValue = { widths: carouselItemImageWidths };
+
 export interface ProductCarouselProps {
     /** Array of product search hits to display in the carousel */
     products: ShopperSearch.schemas['ProductSearchHit'][];
@@ -139,7 +142,7 @@ export default function ProductCarousel({
                 })
             ) : (
                 <ProductTileProvider>
-                    <DynamicImageProvider value={{ widths: carouselItemImageWidths }}>
+                    <DynamicImageProvider value={dynamicImageProviderValue}>
                         {products.map((product) => (
                             <CarouselItem
                                 key={product.productId}
