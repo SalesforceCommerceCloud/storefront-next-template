@@ -141,30 +141,30 @@ exports[`ProductImage stories snapshot > MissingImages story renders and matches
           <source
             media="(min-width: 1280px)"
             sizes="15vw"
-            srcset="?sw=230&q=70 230w, ?sw=461&q=70 461w"
+            srcset=" 230w,  461w"
             type="image/webp"
           />
           <source
             media="(min-width: 1024px)"
             sizes="15vw"
-            srcset="?sw=192&q=70 192w, ?sw=384&q=70 384w"
+            srcset=" 192w,  384w"
             type="image/webp"
           />
           <source
             media="(min-width: 768px)"
             sizes="15vw"
-            srcset="?sw=154&q=70 154w, ?sw=307&q=70 307w"
+            srcset=" 154w,  307w"
             type="image/webp"
           />
           <source
             media="(min-width: 640px)"
             sizes="50vw"
-            srcset="?sw=384&q=70 384w, ?sw=768&q=70 768w"
+            srcset=" 384w,  768w"
             type="image/webp"
           />
           <source
             sizes="50vw"
-            srcset="?sw=320&q=70 320w, ?sw=640&q=70 640w"
+            srcset=" 320w,  640w"
             type="image/webp"
           />
           <img

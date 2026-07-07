@@ -56,8 +56,36 @@ images: {
   fallbackFormat: 'jpg',  // Format for the <img> fallback src
   host: DIS_DEFAULT_HOST, // DIS endpoint URL
   enableDis: true,        // Master switch to enable/disable DIS
+  realmHostMappings: [],  // Custom domain → realm mappings (see below)
 }
 ```
+
+#### Vanity Domains and Custom Realm Mappings
+
+By default, the image system derives the Commerce Cloud realm (e.g., `ZZRF_001`) from standard SFCC hostnames:
+- `*.commercecloud.salesforce.com` → extracts realm from subdomain
+- DIS URLs (`/dw/image/v2/{REALM}/...`) → extracts from path
+
+For **vanity domains** (custom storefront domains like `shop.example.com`) or non-standard SFCC hosts, the realm cannot be automatically inferred. Use `realmHostMappings` to define custom hostname suffix → realm pairs:
+
+```typescript
+images: {
+  // ...other config...
+  realmHostMappings: [
+    { hostSuffix: 'shop.example.com', realm: 'ZZRF_001' },
+    { hostSuffix: 'store.mymerchant.com', realm: 'BJNL_DEV' },
+    { hostSuffix: '.internal-dev.example.com', realm: 'TEST_001' },
+  ],
+}
+```
+
+**Matching rules:**
+- `hostSuffix` matches against the **end** of the hostname (case-insensitive)
+- Prefix with `.` to match a specific subdomain and all children (e.g., `.example.com` matches `shop.example.com`, `m.example.com`, etc.)
+- Realm values are automatically uppercased
+- Custom mappings are checked **before** built-in SFCC patterns
+
+**When URLs don't match any mapping:** Non-DIS URLs (no `/dw/image/v2/{REALM}/` path, no `sfrm` param) are served as-is without DIS transformation. This prevents broken images from 404ing on non-SFCC domains.
 
 **Environment variable overrides** (useful per-environment):
 

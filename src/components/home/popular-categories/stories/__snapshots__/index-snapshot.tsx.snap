@@ -2250,18 +2250,18 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                               <source
                                 media="(min-width: 1024px)"
                                 sizes="288px"
-                                srcset="__ASSET_MOCK__?sw=288&q=70 288w, __ASSET_MOCK__?sw=576&q=70 576w"
+                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
                                 type="image/webp"
                               />
                               <source
                                 media="(min-width: 640px)"
                                 sizes="256px"
-                                srcset="__ASSET_MOCK__?sw=256&q=70 256w, __ASSET_MOCK__?sw=512&q=70 512w"
+                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
                                 type="image/webp"
                               />
                               <source
                                 sizes="348px"
-                                srcset="__ASSET_MOCK__?sw=348&q=70 348w, __ASSET_MOCK__?sw=696&q=70 696w"
+                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
                                 type="image/webp"
                               />
                               <img
@@ -2332,18 +2332,18 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                               <source
                                 media="(min-width: 1024px)"
                                 sizes="288px"
-                                srcset="__ASSET_MOCK__?sw=288&q=70 288w, __ASSET_MOCK__?sw=576&q=70 576w"
+                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
                                 type="image/webp"
                               />
                               <source
                                 media="(min-width: 640px)"
                                 sizes="256px"
-                                srcset="__ASSET_MOCK__?sw=256&q=70 256w, __ASSET_MOCK__?sw=512&q=70 512w"
+                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
                                 type="image/webp"
                               />
                               <source
                                 sizes="348px"
-                                srcset="__ASSET_MOCK__?sw=348&q=70 348w, __ASSET_MOCK__?sw=696&q=70 696w"
+                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
                                 type="image/webp"
                               />
                               <img
@@ -2414,18 +2414,18 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                               <source
                                 media="(min-width: 1024px)"
                                 sizes="288px"
-                                srcset="__ASSET_MOCK__?sw=288&q=70 288w, __ASSET_MOCK__?sw=576&q=70 576w"
+                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
                                 type="image/webp"
                               />
                               <source
                                 media="(min-width: 640px)"
                                 sizes="256px"
-                                srcset="__ASSET_MOCK__?sw=256&q=70 256w, __ASSET_MOCK__?sw=512&q=70 512w"
+                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
                                 type="image/webp"
                               />
                               <source
                                 sizes="348px"
-                                srcset="__ASSET_MOCK__?sw=348&q=70 348w, __ASSET_MOCK__?sw=696&q=70 696w"
+                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
                                 type="image/webp"
                               />
                               <img
@@ -2496,18 +2496,18 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                               <source
                                 media="(min-width: 1024px)"
                                 sizes="288px"
-                                srcset="__ASSET_MOCK__?sw=288&q=70 288w, __ASSET_MOCK__?sw=576&q=70 576w"
+                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
                                 type="image/webp"
                               />
                               <source
                                 media="(min-width: 640px)"
                                 sizes="256px"
-                                srcset="__ASSET_MOCK__?sw=256&q=70 256w, __ASSET_MOCK__?sw=512&q=70 512w"
+                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
                                 type="image/webp"
                               />
                               <source
                                 sizes="348px"
-                                srcset="__ASSET_MOCK__?sw=348&q=70 348w, __ASSET_MOCK__?sw=696&q=70 696w"
+                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
                                 type="image/webp"
                               />
                               <img
