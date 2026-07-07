@@ -54,38 +54,24 @@ const wrapper = ({ children }: { children: ReactNode }) =>
         createElement(I18nextProvider, { i18n: i18next }, children)
     );
 
+// DIS-eligible base URL (already on the imaging host with a `/dw/image/v2/{realm}/` prefix). DIS
+// resizing (`sw=`), format conversion, and quality only apply to URLs carrying this prefix — a bare
+// third-party host (`example.com`) has no derivable realm, so the resolver serves it verbatim and
+// emits no responsive `<source>`s. Gallery tests that assert `sw=` widths must use one.
+const disSrc = (name: string) =>
+    `https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw4cd0a798/images/large/${name}.jpg`;
+
 const mockImages: GalleryImage[] = [
-    {
-        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image1.jpg',
-        alt: 'Image 1',
-    },
-    {
-        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image2.jpg',
-        alt: 'Image 2',
-    },
-    {
-        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image3.jpg',
-        alt: 'Image 3',
-    },
-    {
-        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image4.jpg',
-        alt: 'Image 4',
-    },
-    {
-        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image5.jpg',
-        alt: 'Image 5',
-    },
+    { src: disSrc('image1'), alt: 'Image 1' },
+    { src: disSrc('image2'), alt: 'Image 2' },
+    { src: disSrc('image3'), alt: 'Image 3' },
+    { src: disSrc('image4'), alt: 'Image 4' },
+    { src: disSrc('image5'), alt: 'Image 5' },
 ];
 
 // Six entries lets us assert the cap behavior: image1 is the selected slide, image2..5 fall within
 // EAGER_PRELOAD_LIMIT (4), and image6 is beyond it — i.e., promoted only on hover/focus intent.
-const beyondCapImages: GalleryImage[] = [
-    ...mockImages,
-    {
-        src: 'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image6.jpg',
-        alt: 'Image 6',
-    },
-];
+const beyondCapImages: GalleryImage[] = [...mockImages, { src: disSrc('image6'), alt: 'Image 6' }];
 
 describe('ImageGallery - off-screen image preloading', () => {
     beforeEach(() => {

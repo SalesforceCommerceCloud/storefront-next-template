@@ -1917,6 +1917,98 @@ describe('resolveDynamicImageAttributes()', () => {
         });
     });
 
+    describe('with a local relative asset (Vite-bundled public path)', () => {
+        // Bundled public assets (e.g. `/images/hero-01.webp`) are served verbatim by the app — DIS
+        // cannot transform them because there is no SFCC realm/host to route through. Even though
+        // `enableDis` is true, the resolver must treat DIS as inactive for these paths: no format
+        // conversion, no DIS query params, and no phantom `<source>` variants that would 404.
+        const LOCAL_SRC = '/images/hero-01.webp';
+
+        test('leaves the relative path untouched in transformedSrc and img src', () => {
+            const result = resolveDynamicImageAttributes({
+                src: LOCAL_SRC,
+                config: buildConfig(),
+                widths: ['100vw'],
+            });
+
+            expect(result.transformedSrc).toBe(LOCAL_SRC);
+            // src drives the <img> fallback — it must stay the real bundled asset, never a rewritten
+            // `/images/hero-01.jpg?sfrm=webp` (which does not exist and would 404).
+            expect(result.src).toBe(LOCAL_SRC);
+            expect(result.src).not.toContain('sfrm=');
+            expect(result.src).not.toContain('.jpg');
+        });
+
+        test('reports enableDis: false so the img fallback is not format-rewritten', () => {
+            const result = resolveDynamicImageAttributes({
+                src: LOCAL_SRC,
+                config: buildConfig(),
+                widths: ['100vw'],
+            });
+
+            // A local asset can't go through DIS — the render path must treat DIS as inactive so it
+            // does not rewrite the <img> src to a non-existent `/images/hero-01.jpg?sfrm=webp`.
+            expect(result.enableDis).toBe(false);
+        });
+
+        test('emits no phantom <source>/link variants for the un-transformable asset', () => {
+            const result = resolveDynamicImageAttributes({
+                src: LOCAL_SRC,
+                config: buildConfig(),
+                widths: ['100vw'],
+            });
+
+            // DIS resizing/format conversion is impossible, so there are no meaningful responsive
+            // variants — the component renders a plain <img> and (for LCP heroes) preloads that one
+            // URL directly. Dead `?sw=&q=` variants would just make the browser fetch duplicates.
+            expect(result.sources).toEqual([]);
+            expect(result.links).toEqual([]);
+        });
+    });
+
+    describe('with a non-SFCC absolute URL (third-party host, no derivable realm)', () => {
+        // An absolute URL on a host DIS can't serve (`https://via.placeholder.com/...`,
+        // `https://images.unsplash.com/...`) has no SFCC realm, so `toDisBaseUrl` returns it unchanged.
+        // Being absolute is not enough — DIS only transforms URLs it actually rewrote into
+        // `/dw/image/v2/{realm}/`. The resolver must treat DIS as inactive so it doesn't fabricate
+        // `…/300.webp?sw=300&q=70&sfrm=jpg` variants the third-party host doesn't serve.
+        const THIRD_PARTY_SRC = 'https://via.placeholder.com/300';
+
+        test('leaves the third-party URL untouched in transformedSrc and img src', () => {
+            const result = resolveDynamicImageAttributes({
+                src: THIRD_PARTY_SRC,
+                config: buildConfig(),
+                widths: [300],
+            });
+
+            expect(result.transformedSrc).toBe(THIRD_PARTY_SRC);
+            expect(result.src).toBe(THIRD_PARTY_SRC);
+            expect(result.src).not.toContain('sfrm=');
+            expect(result.src).not.toContain('.webp');
+        });
+
+        test('reports enableDis: false so the img fallback is not format-rewritten', () => {
+            const result = resolveDynamicImageAttributes({
+                src: THIRD_PARTY_SRC,
+                config: buildConfig(),
+                widths: [300],
+            });
+
+            expect(result.enableDis).toBe(false);
+        });
+
+        test('emits no phantom <source>/link variants the third-party host cannot serve', () => {
+            const result = resolveDynamicImageAttributes({
+                src: THIRD_PARTY_SRC,
+                config: buildConfig(),
+                widths: [300],
+            });
+
+            expect(result.sources).toEqual([]);
+            expect(result.links).toEqual([]);
+        });
+    });
+
     describe('falls back when transform yields no URL', () => {
         test('uses original src when toDisBaseUrl returns undefined', () => {
             // toDisBaseUrl returns undefined for empty src; resolver should fall back to the input.

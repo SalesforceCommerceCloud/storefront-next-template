@@ -958,18 +958,29 @@ export const resolveDynamicImageAttributes = ({
     } = config.images ?? {};
 
     const transformedSrc = (enableDis ? toDisBaseUrl({ src, config }) : toImageUrl({ src, config })) || src;
+
+    // DIS can only resize/convert URLs it actually routes through the imaging service — i.e. ones `toDisBaseUrl`
+    // rewrote into `/dw/image/v2/{realm}/`. A relative bundled asset (`/images/hero-01.webp`) or a third-party host
+    // (`https://via.placeholder.com/300`) has no derivable realm, so `toDisBaseUrl` returns it unchanged, and it never
+    // gains that prefix. "Absolute" is not enough: applying format conversion or query params to those would fabricate
+    // URLs the origin doesn't serve (`/images/hero-01.jpg?sfrm=webp` — a 404, or `…/300.webp?sw=300` on a host that
+    // ignores it). Gate on "is this actually a DIS URL" so DIS is inactive unless the rewrite succeeded.
+    const disApplies = enableDis && IS_DIS_URL_REGEX.test(transformedSrc);
+
     // Empty `formats` is the off-switch for `<source>` format conversion in `getResponsiveSourcesAndLinks`:
     // `targetFormat` becomes `undefined`, so srcSet URLs keep the original extension and no `sfrm=` is emitted.
     // Don't replace this with `[fallbackFormat]` — that would re-engage DIS-only rewrites we explicitly disabled.
-    const effectiveFormats = enableDis ? formats : [];
+    const effectiveFormats = disApplies ? formats : [];
 
     const responsive = getResponsivePictureAttributes({
         src: transformedSrc,
         widths,
         heights,
-        quality: enableDis ? quality : undefined,
+        quality: disApplies ? quality : undefined,
         formats: effectiveFormats,
     });
 
-    return { ...responsive, transformedSrc, enableDis, fallbackFormat };
+    // `enableDis` reflects whether DIS is actually in effect for this image — the render path keys the `<img>` format
+    // rewrite off it, so a local asset (disApplies=false) keeps its original URL.
+    return { ...responsive, transformedSrc, enableDis: disApplies, fallbackFormat };
 };

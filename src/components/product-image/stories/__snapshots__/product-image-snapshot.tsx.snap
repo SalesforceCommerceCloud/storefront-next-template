@@ -137,43 +137,12 @@ exports[`ProductImage stories snapshot > MissingImages story renders and matches
       <div
         class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
       >
-        <picture>
-          <source
-            media="(min-width: 1280px)"
-            sizes="15vw"
-            srcset=" 230w,  461w"
-            type="image/webp"
-          />
-          <source
-            media="(min-width: 1024px)"
-            sizes="15vw"
-            srcset=" 192w,  384w"
-            type="image/webp"
-          />
-          <source
-            media="(min-width: 768px)"
-            sizes="15vw"
-            srcset=" 154w,  307w"
-            type="image/webp"
-          />
-          <source
-            media="(min-width: 640px)"
-            sizes="50vw"
-            srcset=" 384w,  768w"
-            type="image/webp"
-          />
-          <source
-            sizes="50vw"
-            srcset=" 320w,  640w"
-            type="image/webp"
-          />
-          <img
-            alt="Laptop Briefcase with wheels (37L)"
-            class="object-cover"
-            fetchpriority="auto"
-            loading="lazy"
-          />
-        </picture>
+        <img
+          alt="Laptop Briefcase with wheels (37L)"
+          class="object-cover"
+          fetchpriority="auto"
+          loading="lazy"
+        />
       </div>
     </a>
   </div>

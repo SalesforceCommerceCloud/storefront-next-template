@@ -2246,32 +2246,13 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                           <div
                             class="w-full h-full"
                           >
-                            <picture>
-                              <source
-                                media="(min-width: 1024px)"
-                                sizes="288px"
-                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
-                                type="image/webp"
-                              />
-                              <source
-                                media="(min-width: 640px)"
-                                sizes="256px"
-                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
-                                type="image/webp"
-                              />
-                              <source
-                                sizes="348px"
-                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
-                                type="image/webp"
-                              />
-                              <img
-                                alt="Category One"
-                                class="w-full h-full object-cover"
-                                fetchpriority="auto"
-                                loading="eager"
-                                src="__ASSET_MOCK__"
-                              />
-                            </picture>
+                            <img
+                              alt="Category One"
+                              class="w-full h-full object-cover"
+                              fetchpriority="auto"
+                              loading="eager"
+                              src="__ASSET_MOCK__"
+                            />
                           </div>
                         </div>
                       </div>
@@ -2328,32 +2309,13 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                           <div
                             class="w-full h-full"
                           >
-                            <picture>
-                              <source
-                                media="(min-width: 1024px)"
-                                sizes="288px"
-                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
-                                type="image/webp"
-                              />
-                              <source
-                                media="(min-width: 640px)"
-                                sizes="256px"
-                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
-                                type="image/webp"
-                              />
-                              <source
-                                sizes="348px"
-                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
-                                type="image/webp"
-                              />
-                              <img
-                                alt="Category Two"
-                                class="w-full h-full object-cover"
-                                fetchpriority="auto"
-                                loading="eager"
-                                src="__ASSET_MOCK__"
-                              />
-                            </picture>
+                            <img
+                              alt="Category Two"
+                              class="w-full h-full object-cover"
+                              fetchpriority="auto"
+                              loading="eager"
+                              src="__ASSET_MOCK__"
+                            />
                           </div>
                         </div>
                       </div>
@@ -2410,32 +2372,13 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                           <div
                             class="w-full h-full"
                           >
-                            <picture>
-                              <source
-                                media="(min-width: 1024px)"
-                                sizes="288px"
-                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
-                                type="image/webp"
-                              />
-                              <source
-                                media="(min-width: 640px)"
-                                sizes="256px"
-                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
-                                type="image/webp"
-                              />
-                              <source
-                                sizes="348px"
-                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
-                                type="image/webp"
-                              />
-                              <img
-                                alt="Category Three"
-                                class="w-full h-full object-cover"
-                                fetchpriority="auto"
-                                loading="eager"
-                                src="__ASSET_MOCK__"
-                              />
-                            </picture>
+                            <img
+                              alt="Category Three"
+                              class="w-full h-full object-cover"
+                              fetchpriority="auto"
+                              loading="eager"
+                              src="__ASSET_MOCK__"
+                            />
                           </div>
                         </div>
                       </div>
@@ -2492,32 +2435,13 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                           <div
                             class="w-full h-full"
                           >
-                            <picture>
-                              <source
-                                media="(min-width: 1024px)"
-                                sizes="288px"
-                                srcset="__ASSET_MOCK__ 288w, __ASSET_MOCK__ 576w"
-                                type="image/webp"
-                              />
-                              <source
-                                media="(min-width: 640px)"
-                                sizes="256px"
-                                srcset="__ASSET_MOCK__ 256w, __ASSET_MOCK__ 512w"
-                                type="image/webp"
-                              />
-                              <source
-                                sizes="348px"
-                                srcset="__ASSET_MOCK__ 348w, __ASSET_MOCK__ 696w"
-                                type="image/webp"
-                              />
-                              <img
-                                alt="Category Four"
-                                class="w-full h-full object-cover"
-                                fetchpriority="auto"
-                                loading="eager"
-                                src="__ASSET_MOCK__"
-                              />
-                            </picture>
+                            <img
+                              alt="Category Four"
+                              class="w-full h-full object-cover"
+                              fetchpriority="auto"
+                              loading="eager"
+                              src="__ASSET_MOCK__"
+                            />
                           </div>
                         </div>
                       </div>
