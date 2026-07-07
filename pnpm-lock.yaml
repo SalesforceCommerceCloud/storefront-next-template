@@ -209,8 +209,8 @@ importers:
         specifier: 7.18.0
         version: 7.18.0(@react-router/dev@7.18.0(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.48.0)(tsx@4.23.0)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.48.0)(tsx@4.23.0)(yaml@2.9.0))(yaml@2.9.0))(typescript@5.9.2)
       '@salesforce/b2c-cli':
-        specifier: ^1.17.0
-        version: 1.17.3(@types/node@24.3.0)(typescript@5.9.2)
+        specifier: 1.17.0
+        version: 1.17.0(@types/node@24.3.0)(typescript@5.9.2)
       '@storybook/addon-a11y':
         specifier: 10.2.19
         version: 10.2.19(storybook@10.2.19(@testing-library/dom@10.4.1)(prettier@3.6.2)(react@19.2.3))
@@ -531,7 +531,7 @@ importers:
         specifier: 7.18.0
         version: 7.18.0(express@5.1.0)(react-router@7.18.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(typescript@5.9.2)
       '@salesforce/b2c-tooling-sdk':
-        specifier: ^1.15.0
+        specifier: 1.17.0
         version: 1.17.0(@oclif/core@4.11.14)(typescript@5.9.2)
       '@salesforce/storefront-next-runtime':
         specifier: workspace:^
@@ -3378,10 +3378,19 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@salesforce/b2c-cli@1.17.3':
-    resolution: {integrity: sha512-LnPetZ7KNJKMlbzUbWbdM8BSfdH6ln/jSty/qqQLwRBXh094gdF2W3NrZMJysWwkfSn3h7pTtABJ8KTLeEmykQ==}
+  '@salesforce/b2c-cli@1.17.0':
+    resolution: {integrity: sha512-lSJRi0L2pLmiaQXXnwakjDXgBpsJavMwiUOFE/1Auuao8d9rri94D3kr1mKmA7eZ0Yp18JtDbExBP2g70pX3NQ==}
     engines: {node: '>=22.16.0'}
     hasBin: true
+
+  '@salesforce/b2c-tooling-sdk@1.15.0':
+    resolution: {integrity: sha512-N9cA+pY3oKRzbQGJh8tmhu9Lezq4mJiabpeFNBJwDEEyk/9+Kx4/st6IcX6vW2zxRrokKCC2Z6kjnfq0UXWTcA==}
+    engines: {node: '>=22.16.0'}
+    peerDependencies:
+      '@oclif/core': ^4
+    peerDependenciesMeta:
+      '@oclif/core':
+        optional: true
 
   '@salesforce/b2c-tooling-sdk@1.17.0':
     resolution: {integrity: sha512-/Pw8tXk9Vixzbv5KqXpLvxGbuhZ5DntT6JaKJxDXynJ2MGKDXqkowTKcfybV1yNMAQTjW73oSuLfEuQ3bKtL7A==}
@@ -13516,7 +13525,7 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@salesforce/b2c-cli@1.17.3(@types/node@24.3.0)(typescript@5.9.2)':
+  '@salesforce/b2c-cli@1.17.0(@types/node@24.3.0)(typescript@5.9.2)':
     dependencies:
       '@inquirer/prompts': 8.2.0(@types/node@24.3.0)
       '@oclif/core': 4.8.0
@@ -13526,7 +13535,7 @@ snapshots:
       '@oclif/plugin-plugins': 5.4.53
       '@oclif/plugin-version': 2.2.36
       '@oclif/plugin-warn-if-update-available': 3.1.52
-      '@salesforce/b2c-tooling-sdk': 1.17.0(@oclif/core@4.8.0)(typescript@5.9.2)
+      '@salesforce/b2c-tooling-sdk': 1.15.0(@oclif/core@4.8.0)(typescript@5.9.2)
       cliui: 9.0.1
       glob: 13.0.0
       marked: 15.0.12
@@ -13538,6 +13547,35 @@ snapshots:
       - bare-buffer
       - react-native-b4a
       - supports-color
+      - typescript
+
+  '@salesforce/b2c-tooling-sdk@1.15.0(@oclif/core@4.8.0)(typescript@5.9.2)':
+    dependencies:
+      '@vscode/debugadapter': 1.68.0
+      chokidar: 5.0.0
+      cliui: 9.0.1
+      ejs: 3.1.10
+      fuse.js: 7.1.0
+      glob: 13.0.0
+      i18next: 25.7.4(typescript@5.9.2)
+      js-yaml: 4.3.0
+      jsonschema: 1.5.0
+      jszip: 3.10.1
+      minimatch: 10.2.5
+      open: 11.0.0
+      openapi-fetch: 0.15.0
+      pino: 10.1.0
+      pino-pretty: 13.1.2
+      protobufjs: 7.6.4
+      tar-fs: 3.1.2
+      undici: 7.28.0
+      xml2js: 0.6.2
+    optionalDependencies:
+      '@oclif/core': 4.8.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
       - typescript
 
   '@salesforce/b2c-tooling-sdk@1.17.0(@oclif/core@4.11.14)(typescript@5.9.2)':
@@ -13563,35 +13601,6 @@ snapshots:
       xml2js: 0.6.2
     optionalDependencies:
       '@oclif/core': 4.11.14
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - bare-buffer
-      - react-native-b4a
-      - typescript
-
-  '@salesforce/b2c-tooling-sdk@1.17.0(@oclif/core@4.8.0)(typescript@5.9.2)':
-    dependencies:
-      '@vscode/debugadapter': 1.68.0
-      chokidar: 5.0.0
-      cliui: 9.0.1
-      ejs: 3.1.10
-      fuse.js: 7.1.0
-      glob: 13.0.0
-      i18next: 25.7.4(typescript@5.9.2)
-      js-yaml: 4.3.0
-      jsonschema: 1.5.0
-      jszip: 3.10.1
-      minimatch: 10.2.5
-      open: 11.0.0
-      openapi-fetch: 0.15.0
-      pino: 10.1.0
-      pino-pretty: 13.1.2
-      protobufjs: 7.6.4
-      tar-fs: 3.1.2
-      undici: 7.28.0
-      xml2js: 0.6.2
-    optionalDependencies:
-      '@oclif/core': 4.8.0
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
