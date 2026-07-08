@@ -19,6 +19,7 @@ import type { Config } from '@/types/config';
 import {
     getResponsivePictureAttributes,
     getSrc,
+    isDisTransformed,
     isDynamicImageSource,
     replaceImageFormat,
     resolveDynamicImageAttributes,
@@ -168,6 +169,17 @@ describe('replaceImageFormat()', () => {
             const url = 'https://example.com/image.png?sfrm=jpg';
             // Has sfrm → already transformed → return as-is (early exit)
             expect(replaceImageFormat(url)).toBe('https://example.com/image.png?sfrm=jpg');
+        });
+
+        test('does not treat a literal &sfrm= in a path segment as the already-transformed marker', () => {
+            // Regression: the early-exit guard used to test /[?&]sfrm=/ against the raw string, so a
+            // literal `&sfrm=` embedded in the PATH (not the query) short-circuited and skipped format
+            // conversion. hasSfrmParam reads the parsed query, so this DIS-eligible URL still converts.
+            const url =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/catalog&sfrm=jpg/image.jpg';
+            expect(replaceImageFormat(url)).toBe(
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/catalog&sfrm=jpg/image.webp?sfrm=jpg'
+            );
         });
     });
 });
@@ -1574,6 +1586,30 @@ describe('toImageUrl()', () => {
         });
     });
 
+    describe('host-capability gate on the already-DIS fast path', () => {
+        test('does not inject DIS params for a third-party host carrying /dw/image/v2/ in the path (no DIS host configured)', () => {
+            // Regression: the fast path matched the /dw/image/v2/ substring on ANY host and forced
+            // format conversion + sfrm. With no configured DIS host to rewrite to, that left the
+            // params on the third-party host, producing a 404 URL. The host-capability gate now
+            // rejects the URL so it is returned unchanged.
+            const thirdPartyUrl = 'https://thirdparty.com/dw/image/v2/catalog/x.jpg';
+            const result = toImageUrl({ src: thirdPartyUrl });
+
+            expect(result).toBe(thirdPartyUrl);
+            expect(result).not.toContain('sfrm=');
+            expect(result).not.toContain('.webp');
+        });
+
+        test('still transforms an already-DIS URL on a built-in SFCC host', () => {
+            const disUrl =
+                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-catalog/default/image.jpg';
+            const result = toImageUrl({ src: disUrl, config: mockConfig });
+
+            expect(result).toContain('.webp');
+            expect(result).toContain('sfrm=jpg');
+        });
+    });
+
     describe('placeholder preservation', () => {
         test('preserves [?sw={width}] placeholder in DIS URL', () => {
             const disUrl =
@@ -2053,13 +2089,24 @@ describe('resolveDynamicImageAttributes()', () => {
             expect(result).toContain('sfrm=jpg');
         });
 
-        test('injects params for URL with sfrm (already transformed)', () => {
-            const transformedUrl = 'https://example.com/image.webp?sfrm=jpg';
+        test('injects params for URL with sfrm on a DIS-capable host (already transformed)', () => {
+            // sfrm signals an already-transformed URL, but eligibility also requires a DIS-capable host.
+            // Use a built-in SFCC domain so the host-check passes without needing config here.
+            const transformedUrl = 'https://demo-001.commercecloud.salesforce.com/image.webp?sfrm=jpg';
             const result = getSrc(transformedUrl, { w: 720, q: 70 });
 
-            // Has sfrm → DIS-eligible → params injected
+            // Has sfrm AND DIS-capable host → DIS-eligible → params injected
             expect(result).toContain('sw=720');
             expect(result).toContain('q=70');
+        });
+
+        test('does not inject params for URL with sfrm on a non-DIS host (attack vector)', () => {
+            // sfrm alone must not make a third-party host DIS-eligible — the host-check rejects it.
+            const spoofedUrl = 'https://example.com/image.webp?sfrm=jpg';
+            const result = getSrc(spoofedUrl, { w: 720, q: 70 });
+
+            expect(result).not.toContain('sw=');
+            expect(result).not.toContain('q=70');
         });
 
         test('placeholder interpolation still works for non-DIS URL', () => {
@@ -2071,5 +2118,113 @@ describe('resolveDynamicImageAttributes()', () => {
             expect(result).toBe('https://example.com/image_720.jpg');
             expect(result).not.toContain('sw=');
         });
+    });
+});
+
+describe('isDisTransformed edge cases', () => {
+    it('returns false when /dw/image/v2/ appears in query string, not path', () => {
+        const url = 'https://cdn.example.com/pic.jpg?ref=/dw/image/v2/foo';
+        const result = isDisTransformed(url);
+        expect(result).toBe(false);
+    });
+
+    it('returns false when /dw/image/v2/ appears in fragment', () => {
+        const url = 'https://images.example.com/hero.jpg#/dw/image/v2/section';
+        const result = isDisTransformed(url);
+        expect(result).toBe(false);
+    });
+
+    it('returns false for third-party host with coincidental /dw/image/v2/ path', () => {
+        const url = 'https://thirdparty.com/dw/image/v2/catalog/x.jpg';
+        const result = isDisTransformed(url);
+        expect(result).toBe(false);
+    });
+
+    it('returns false for vanity domain with DIS path but no realmHostMappings entry', () => {
+        const url = 'https://shop.example.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-catalog/default/x.jpg';
+        const config = deepMerge(mockConfig, {
+            images: {
+                realmHostMappings: [], // No mapping for shop.example.com
+            },
+        });
+        const result = isDisTransformed(url, config);
+        expect(result).toBe(false);
+    });
+
+    it('returns true for vanity domain with DIS path and matching realmHostMappings entry', () => {
+        const url = 'https://shop.example.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-catalog/default/x.jpg';
+        const config = deepMerge(mockConfig, {
+            images: {
+                realmHostMappings: [{ hostSuffix: 'shop.example.com', realm: 'ZZRF_001' }],
+            },
+        });
+        const result = isDisTransformed(url, config);
+        expect(result).toBe(true);
+    });
+
+    it('returns false for third-party host with ?sfrm= query param (attack vector)', () => {
+        const url = 'https://evil.com/pic.jpg?sfrm=jpg';
+        const config = deepMerge(mockConfig, {
+            images: {
+                host: 'https://edge.disstg.commercecloud.salesforce.com',
+            },
+        });
+        const result = isDisTransformed(url, config);
+        expect(result).toBe(false);
+    });
+
+    it('does not treat a literal &sfrm= in the pathname as a query param, even on a DIS-capable host', () => {
+        // The sfrm check reads parsed.searchParams, so `&sfrm=jpg` embedded in the PATH (no real query
+        // string) must not trip the sfrm branch. This URL is on a DIS-capable SFCC host but has no real
+        // sfrm query param and no `/dw/image/v2/` path prefix, so it is NOT already-transformed. An
+        // unanchored regex over the raw URL would have wrongly classified it as DIS-eligible.
+        const url = 'https://demo-001.commercecloud.salesforce.com/catalog&sfrm=jpg/x.jpg';
+        expect(isDisTransformed(url)).toBe(false);
+    });
+
+    it('returns true for SFCC commercecloud.salesforce.com host with DIS path', () => {
+        const url =
+            'https://demo-001.commercecloud.salesforce.com/dw/image/v2/DEMO_001/on/demandware.static/-/Sites-catalog/default/x.jpg';
+        const result = isDisTransformed(url, undefined);
+        expect(result).toBe(true);
+    });
+
+    it('returns true for SFCC demandware.net host with DIS path', () => {
+        const url =
+            'https://demo-001.demandware.net/dw/image/v2/DEMO_001/on/demandware.static/-/Sites-catalog/default/x.jpg';
+        const result = isDisTransformed(url, undefined);
+        expect(result).toBe(true);
+    });
+
+    it('returns true for SFCC my.cc.salesforce.com host with DIS path', () => {
+        const url =
+            'https://demo-001.my.cc.salesforce.com/dw/image/v2/DEMO_001/on/demandware.static/-/Sites-catalog/default/x.jpg';
+        const result = isDisTransformed(url, undefined);
+        expect(result).toBe(true);
+    });
+
+    it('returns true for URL on configured DIS host with DIS path', () => {
+        const url =
+            'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/DEMO_001/on/demandware.static/-/Sites-catalog/default/x.jpg';
+        const config = deepMerge(mockConfig, {
+            images: {
+                host: 'https://edge.disstg.commercecloud.salesforce.com',
+            },
+        });
+        const result = isDisTransformed(url, config);
+        expect(result).toBe(true);
+    });
+
+    it('fails safe when the configured DIS host is not a parseable URL', () => {
+        // A malformed `config.images.host` must not throw — getDisHostname caches the miss and the
+        // check falls through to the built-in SFCC-domain match, so an SFCC URL is still DIS-eligible.
+        const url =
+            'https://demo-001.commercecloud.salesforce.com/dw/image/v2/DEMO_001/on/demandware.static/-/Sites-catalog/default/x.jpg';
+        const config = deepMerge(mockConfig, {
+            images: {
+                host: 'not a valid url ::::',
+            },
+        });
+        expect(isDisTransformed(url, config)).toBe(true);
     });
 });

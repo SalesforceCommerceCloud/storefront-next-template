@@ -35,10 +35,28 @@ const FILE_EXTENSION_REGEX = /\.([^.]+)$/;
 const IS_DIS_URL_REGEX = /\/dw\/image\/v\d+\//i;
 /** Matches dashes for realm conversion (demo-001 -> DEMO_001) */
 const DASH_REGEX = /-/g;
-/** Tests if URL contains sfrm query parameter (must be preceded by ? or &) */
-const HAS_SFRM_PARAM_REGEX = /[?&]sfrm=/;
 /** Tests if URL contains quality (q) query parameter (must be preceded by ? or &) */
 const HAS_QUALITY_PARAM_REGEX = /[?&]q=/;
+
+/**
+ * Sentinel base used to parse relative URLs so their query string can be read. The hostname is
+ * irrelevant — we only inspect `searchParams` — so an unresolvable `.invalid` host is intentional.
+ */
+const SFRM_PARSE_BASE = 'https://sfrm-check.invalid';
+
+/**
+ * Returns `true` when `url` carries a real `sfrm` query parameter. Reads it from the parsed query
+ * string (with a sentinel base so relative URLs still resolve) rather than a regex over the raw
+ * string, so a literal `&sfrm=` inside a path segment (e.g. `/catalog&sfrm=jpg/x.jpg`) is not
+ * mistaken for a query param. Fails closed (returns `false`) on unparseable input.
+ */
+const hasSfrmParam = (url: string): boolean => {
+    try {
+        return new URL(url, SFRM_PARSE_BASE).searchParams.has('sfrm');
+    } catch {
+        return false;
+    }
+};
 
 export type Image = {
     disBaseLink?: string;
@@ -121,6 +139,86 @@ function getRealm(url: URL, config?: AppConfig): string | undefined {
 function stripDisPath(pathname: string): string {
     const disPathMatch = pathname.match(DIS_PATH_STRIP_REGEX);
     return disPathMatch?.[1] || pathname;
+}
+
+/**
+ * Parses the configured DIS host string once and memoizes the resulting hostname. `isDISCapableHost`
+ * runs per-image, but `config.images.host` is effectively constant at runtime, so caching avoids a
+ * redundant `new URL()` parse on every image. The single-entry cache re-parses only when the input
+ * string changes (e.g., a different config), so it stays correct without a full map.
+ *
+ * @param disHost - The configured DIS host URL string (`config.images.host`)
+ * @returns The lowercased hostname, or `undefined` if `disHost` is not a parseable URL
+ */
+let cachedDisHostInput: string | undefined;
+let cachedDisHostname: string | undefined;
+function getDisHostname(disHost: string): string | undefined {
+    if (disHost !== cachedDisHostInput) {
+        cachedDisHostInput = disHost;
+        try {
+            cachedDisHostname = new URL(disHost).hostname.toLowerCase();
+        } catch {
+            // Invalid disHost URL — cache the miss so we don't re-parse it every call
+            cachedDisHostname = undefined;
+        }
+    }
+    return cachedDisHostname;
+}
+
+/**
+ * Returns `true` when `url.hostname` is a DIS-capable host — one that can serve `/dw/image/v2/{realm}/...`
+ * URLs and honor DIS transformation parameters (`sfrm`, `q`, `sw`, `sh`). Used to gate DIS-eligibility checks
+ * so third-party hosts carrying `/dw/image/v2/` in the path (e.g., a coincidental path layout or legacy redirect)
+ * are not misclassified as DIS-eligible.
+ *
+ * A host is DIS-capable if it matches:
+ * 1. The configured DIS endpoint (`config.images.host`), OR
+ * 2. A `realmHostMappings` entry (vanity domain with explicit realm), OR
+ * 3. A built-in SFCC domain (`.commercecloud.salesforce.com`, `.demandware.net`, `.my.cc.salesforce.com`).
+ *
+ * **Performance contract**: runs per-image. The configured DIS host is parsed once and memoized (see
+ * `getDisHostname`), and the `realmHostMappings` loop is over a small config array (typically 0-3 entries),
+ * so this is negligible compared to the `new URL()` parse done by callers.
+ *
+ * @param url - The URL to check
+ * @param config - App config containing DIS host and custom realm mappings
+ * @returns `true` if the host can serve DIS URLs, `false` otherwise
+ */
+function isDISCapableHost(url: URL, config?: AppConfig): boolean {
+    const hostname = url.hostname.toLowerCase();
+
+    // 1. Configured DIS endpoint (e.g., edge.disstg.commercecloud.salesforce.com)
+    const disHost = config?.images?.host;
+    if (disHost) {
+        const disHostname = getDisHostname(disHost);
+        if (disHostname && hostname === disHostname) {
+            return true;
+        }
+    }
+
+    // 2. Custom vanity domain mappings
+    const customMappings = config?.images?.realmHostMappings;
+    if (customMappings) {
+        for (const { hostSuffix } of customMappings) {
+            const suffix = hostSuffix.toLowerCase();
+            // Exact match OR suffix match with dot boundary (prevents 'evilshop.example.com' matching 'shop.example.com')
+            const isMatch =
+                hostname === suffix ||
+                (suffix.startsWith('.') && hostname.endsWith(suffix)) ||
+                (!suffix.startsWith('.') && hostname.endsWith(`.${suffix}`));
+            if (isMatch) {
+                return true;
+            }
+        }
+    }
+
+    // 3. Built-in SFCC domains
+    const isSfccHost =
+        hostname.endsWith('.commercecloud.salesforce.com') ||
+        hostname.endsWith('.demandware.net') ||
+        hostname.endsWith('.my.cc.salesforce.com');
+
+    return isSfccHost;
 }
 
 /**
@@ -325,17 +423,20 @@ export function toImageUrl({ src, options = {}, config, image }: ImageUrlParams)
             return toRelativeStaticPath(imageUrl) ?? imageUrl;
         }
 
-        // Fast path: source is already a DIS URL. Use `toDisBaseUrl` to normalize host/realm
-        // (no-op when already on the configured host) and then apply only format + quality,
-        // leaving per-breakpoint params (sw/sh) for downstream code.
-        if (IS_DIS_URL_REGEX.test(cleanUrl)) {
+        // Fast path: source is already a DIS URL on a DIS-capable host. Use `toDisBaseUrl` to normalize
+        // host/realm (no-op when already on the configured host) and then apply only format + quality,
+        // leaving per-breakpoint params (sw/sh) for downstream code. The host-capability gate (via
+        // `isDisTransformed`) prevents third-party hosts carrying `/dw/image/v2/` in the path from
+        // receiving `sfrm`/`q` params they can't process (which would 404); those fall through to the
+        // raw-SFCC branch below, which only rewrites when a realm and DIS host are derivable.
+        if (isDisTransformed(cleanUrl, config)) {
             const normalized = toDisBaseUrl({ src: imageUrl, options, config }) ?? imageUrl;
             const normalizedClean = normalized.replace(PLACEHOLDER_REGEX, '');
 
             const targetFormat =
                 options.format || config?.images?.formats?.[0] || config?.images?.fallbackFormat || 'webp';
-            // Pass true for isDisEligible since we already checked IS_DIS_URL_REGEX above
-            let transformedUrl = replaceImageFormat(normalizedClean, targetFormat, true);
+            // Pass true for isDisEligible since isDisTransformed already confirmed eligibility above
+            let transformedUrl = replaceImageFormat(normalizedClean, targetFormat, true, config);
 
             const quality = options.quality ?? config?.images?.quality;
             if (quality && !HAS_QUALITY_PARAM_REGEX.test(transformedUrl)) {
@@ -519,14 +620,51 @@ const vwToPx = (vw: number, breakpoint: string): number => {
     return breakpointsDefinedInPx ? result : emToPx(result);
 };
 
+/** Anchored DIS path check — the `/dw/image/v\d+/` prefix must be at the START of `url.pathname`. */
+const DIS_PATHNAME_PREFIX_REGEX = /^\/dw\/image\/v\d+\//i;
+
 /**
- * Checks if a URL is eligible for DIS transformation by testing if it contains a DIS path structure
- * or if it's already been transformed (has sfrm parameter). URLs that have gone through `toDisBaseUrl`
- * successfully will have the DIS path prefix. This predicate gates format conversion and param injection
- * so non-DIS hosts don't receive DIS-specific query parameters they can't process.
+ * Returns `true` when a URL is eligible for DIS transformation — it either already carries the DIS path structure
+ * (`/dw/image/v\d+/` in the pathname) on a DIS-capable host, or it has already been transformed (carries the `sfrm`
+ * query parameter) on a DIS-capable host. This predicate gates format conversion and param injection so non-DIS
+ * hosts don't receive DIS-specific query parameters they can't process.
+ *
+ * **Correctness gates**:
+ * - The `/dw/image/v\d+/` check is anchored to `url.pathname` (not the full URL string) to avoid false positives
+ *   from query strings, fragments, or mid-path matches.
+ * - The host must be DIS-capable (matches `config.images.host`, a `realmHostMappings` entry, or a built-in SFCC
+ *   domain) before the URL is declared DIS-eligible. This prevents third-party hosts with coincidental paths from
+ *   being misclassified.
+ *
+ * @param url - The URL string to test
+ * @param config - App config containing DIS host and realm mappings (optional for backward compat, but required
+ *                 for correct host-check behavior)
+ * @returns `true` if the URL is DIS-eligible, `false` otherwise
  */
-const isDisTransformed = (url: string): boolean => {
-    return IS_DIS_URL_REGEX.test(url) || HAS_SFRM_PARAM_REGEX.test(url);
+export const isDisTransformed = (url: string, config?: AppConfig): boolean => {
+    let parsed: URL;
+    try {
+        parsed = new URL(url);
+    } catch {
+        // Unparseable URL — fail closed
+        return false;
+    }
+
+    // Already transformed if it carries the sfrm query parameter. Read it from the parsed query string
+    // (not a regex over the raw URL) so a literal `&sfrm=` inside the pathname can't be mistaken for a
+    // query param — consistent with the pathname-anchoring below. Defensive: if sfrm is present on a
+    // non-DIS-capable host, it's a false signal (e.g., an attack or copy-paste from a DIS URL to a
+    // third-party host), so verify the host before declaring it DIS-eligible.
+    if (parsed.searchParams.has('sfrm')) {
+        return isDISCapableHost(parsed, config);
+    }
+
+    // Check for DIS path structure (/dw/image/v2/...) anchored to the pathname. The DIS path alone is
+    // not enough — the host must also be DIS-capable.
+    if (!DIS_PATHNAME_PREFIX_REGEX.test(parsed.pathname)) {
+        return false;
+    }
+    return isDISCapableHost(parsed, config);
 };
 
 /**
@@ -548,16 +686,19 @@ const isDisTransformed = (url: string): boolean => {
 export const replaceImageFormat = (
     url: string,
     targetFormat: 'webp' | 'avif' | 'gif' | 'jp2' | 'jpg' | 'jpeg' | 'jxr' | 'png' = 'webp',
-    isDisEligible?: boolean
+    isDisEligible?: boolean,
+    config?: AppConfig
 ): string => {
-    // If URL already has sfrm parameter, it's already been transformed - return as-is
-    if (HAS_SFRM_PARAM_REGEX.test(url)) {
+    // If URL already has sfrm parameter, it's already been transformed - return as-is. Read it from
+    // the parsed query (see hasSfrmParam) so a literal `&sfrm=` in a path segment isn't misread as a
+    // query param — mirrors the check in isDisTransformed.
+    if (hasSfrmParam(url)) {
         return url;
     }
 
     // Part 1: Stop the leak - only transform DIS-eligible URLs
     // Use pre-computed flag if provided to avoid redundant check
-    const eligible = isDisEligible ?? isDisTransformed(url);
+    const eligible = isDisEligible ?? isDisTransformed(url, config);
     if (!eligible) {
         return url;
     }
@@ -603,7 +744,8 @@ export const getSrc = (
         q?: number;
         /** Target image format — triggers format conversion via `sfrm` */
         f?: 'webp' | 'avif' | 'gif' | 'jp2' | 'jpg' | 'jpeg' | 'jxr' | 'png';
-    } = {}
+    } = {},
+    config?: AppConfig
 ): string => {
     const getSep = (res: string): '?' | '&' => (res.includes('?') ? '&' : '?');
     const hasUrlParam = (url: string, param: string) => new RegExp(`[?&]${param}=`).test(url);
@@ -625,7 +767,7 @@ export const getSrc = (
         .replace(/\{[^}]+}/g, fallbackStr);
 
     // Part 1: Stop the leak - only inject DIS params if URL is DIS-eligible
-    const isDisEligible = isDisTransformed(result);
+    const isDisEligible = isDisTransformed(result, config);
 
     // Handle sw= parameter - only added when width is explicitly provided and URL is DIS-eligible
     if (w != null && isDisEligible) {
@@ -654,7 +796,7 @@ export const getSrc = (
     // This is important for environments where DIS format conversion isn't available
     // Pass pre-computed isDisEligible to avoid redundant check in replaceImageFormat
     if (f) {
-        return replaceImageFormat(result, f, isDisEligible);
+        return replaceImageFormat(result, f, isDisEligible, config);
     }
     return result;
 };
@@ -776,7 +918,8 @@ const getResponsiveSourcesAndLinks = (
         heights?: Array<number | string>;
         formats: Array<DynamicImageFormat>;
         quality?: number;
-    }
+    },
+    config?: AppConfig
 ): ResponsiveData => {
     // Use widths as the primary sizing dimension; fall back to heights for the `sizes` attribute
     // when only heights are provided (heights-only mode).
@@ -834,7 +977,11 @@ const getResponsiveSourcesAndLinks = (
                     const effectiveHeight = height != null ? Math.round(height * factor) : undefined;
                     const descriptorValue = Math.round(descriptorDimension * factor);
 
-                    const url = getSrc(src, { w: effectiveWidth, h: effectiveHeight, q: quality, f: targetFormat });
+                    const url = getSrc(
+                        src,
+                        { w: effectiveWidth, h: effectiveHeight, q: quality, f: targetFormat },
+                        config
+                    );
                     if (factor === 1) {
                         href = url;
                     }
@@ -876,6 +1023,7 @@ export const getResponsivePictureAttributes = ({
     formats = defaultImageFormats,
     breakpoints = defaultBreakpoints,
     quality,
+    config,
 }: {
     src: string;
     /**
@@ -900,6 +1048,8 @@ export const getResponsivePictureAttributes = ({
      * that value takes priority over this setting.
      */
     quality?: number;
+    /** App config — threaded through so DIS-eligibility host-checks have the DIS host and realm mappings. */
+    config?: AppConfig;
 }): {
     sources: Source[];
     links: ConvertedImageLink[];
@@ -920,12 +1070,16 @@ export const getResponsivePictureAttributes = ({
 
     const _widths = widths ? (isObject(widths) ? widthsAsArray(widths) : widths.slice(0)) : undefined;
     const _heights = heights ? (isObject(heights) ? widthsAsArray(heights) : heights.slice(0)) : undefined;
-    const { sources, links } = getResponsiveSourcesAndLinks(src, {
-        widths: _widths,
-        heights: _heights,
-        formats,
-        quality,
-    });
+    const { sources, links } = getResponsiveSourcesAndLinks(
+        src,
+        {
+            widths: _widths,
+            heights: _heights,
+            formats,
+            quality,
+        },
+        config
+    );
 
     return {
         sources,
@@ -978,6 +1132,7 @@ export const resolveDynamicImageAttributes = ({
         heights,
         quality: disApplies ? quality : undefined,
         formats: effectiveFormats,
+        config,
     });
 
     // `enableDis` reflects whether DIS is actually in effect for this image — the render path keys the `<img>` format

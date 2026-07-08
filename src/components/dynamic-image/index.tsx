@@ -375,7 +375,7 @@ const DynamicImage = ({
         loading: effectiveLoading,
         fetchPriority: effectivePriority,
         alt,
-        src: enableDis ? replaceImageFormat(responsiveSrc, fallbackFormat) : responsiveSrc,
+        src: enableDis ? replaceImageFormat(responsiveSrc, fallbackFormat, undefined, config) : responsiveSrc,
     };
 
     // Get styling classes from Page Designer props
