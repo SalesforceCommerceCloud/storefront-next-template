@@ -223,6 +223,7 @@ export default function CheckoutFormPage({
 
     const paymentSubmissionRef = useRef<PaymentSubmissionRef['current']>({
         formDataGetter: null,
+        billingAddressGetter: null,
         shouldPlaceOrderAfterPayment: false,
         options: null,
         setFormErrors: null,
@@ -438,6 +439,31 @@ export default function CheckoutFormPage({
             void (async () => {
                 let orderNo: string | null = null;
                 try {
+                    // 0. Persist billing address from the extension's getter, if any.
+                    //    Sheet flows do not call submit-payment, so basket.billingAddress
+                    //    would otherwise still hold the shipping-step default.
+                    const billing = paymentSubmissionRef.current.billingAddressGetter?.();
+                    if (billing) {
+                        const billingResp = await fetch(resourceRoutes.updateBasketBillingAddress, {
+                            method: 'POST',
+                            headers: { ...correlationHeaders, 'Content-Type': 'application/json' },
+                            body: JSON.stringify(billing),
+                        });
+                        if (!billingResp.ok) {
+                            // Fail-closed: if we cannot persist billing, do not delegate
+                            // to the extension with stale billing on the basket.
+                            // eslint-disable-next-line no-console
+                            console.error('[Checkout] failed to persist billing before onPlaceOrder', {
+                                correlationId,
+                                status: billingResp.status,
+                            });
+                            placeOrderInFlightRef.current = false;
+                            setIsPlaceOrderPending(false);
+                            showToast?.(tErrors('checkout.placeOrderFailed'), 'error');
+                            return;
+                        }
+                    }
+
                     // 1. Prepare: validate basket, resolve multiship shipments, recalculate.
                     const prepareResponse = await fetch(resourceRoutes.placeOrderPrepare, {
                         method: 'POST',

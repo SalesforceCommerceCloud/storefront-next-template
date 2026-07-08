@@ -409,9 +409,25 @@ export function usePayment({
                 form.setError(field as keyof PaymentData, error);
             }
         };
+        refCurrent.billingAddressGetter = () => {
+            const data = form.getValues();
+            if (!data.useDifferentBilling) return null;
+            return {
+                firstName: data.billingFirstName || '',
+                lastName: data.billingLastName || '',
+                address1: data.billingAddress1 || '',
+                address2: data.billingAddress2 || '',
+                city: data.billingCity || '',
+                stateCode: data.billingStateCode || '',
+                postalCode: data.billingPostalCode || '',
+                phone: data.billingPhone || '',
+                countryCode: data.billingCountryCode || 'US',
+            };
+        };
         return () => {
             refCurrent.formDataGetter = null;
             refCurrent.setFormErrors = null;
+            refCurrent.billingAddressGetter = null;
         };
     }, [form, paymentSubmissionRef, savedPaymentMethodsRef]);
 

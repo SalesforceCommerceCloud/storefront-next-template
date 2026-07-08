@@ -16,7 +16,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePayment, isSameBillingAndShippingAddress } from './use-payment';
-import type { MutableRefObject } from 'react';
 
 vi.mock('@/providers/basket', () => ({ useBasket: vi.fn() }));
 vi.mock('@/hooks/checkout/use-customer-profile', () => ({
@@ -546,20 +545,18 @@ describe('usePayment hook', () => {
     });
 
     describe('payment submission ref', () => {
+        const makeSubmissionRef = () => ({
+            current: {
+                formDataGetter: null as (() => unknown) | null,
+                shouldPlaceOrderAfterPayment: false,
+                options: null,
+                setFormErrors: null as ((errors: Record<string, { type: string; message: string }>) => void) | null,
+                billingAddressGetter: null as (() => unknown) | null,
+            },
+        });
+
         test('populates formDataGetter that returns complete payment data', () => {
-            const submissionRef: MutableRefObject<{
-                formDataGetter: (() => unknown) | null;
-                shouldPlaceOrderAfterPayment: boolean;
-                options: null;
-                setFormErrors: ((errors: Record<string, { type: string; message: string }>) => void) | null;
-            }> = {
-                current: {
-                    formDataGetter: null,
-                    shouldPlaceOrderAfterPayment: false,
-                    options: null,
-                    setFormErrors: null,
-                },
-            };
+            const submissionRef = makeSubmissionRef();
 
             renderHook(() =>
                 usePayment(
@@ -581,19 +578,7 @@ describe('usePayment hook', () => {
         });
 
         test('setFormErrors propagates errors to form state', () => {
-            const submissionRef: MutableRefObject<{
-                formDataGetter: (() => unknown) | null;
-                shouldPlaceOrderAfterPayment: boolean;
-                options: null;
-                setFormErrors: ((errors: Record<string, { type: string; message: string }>) => void) | null;
-            }> = {
-                current: {
-                    formDataGetter: null,
-                    shouldPlaceOrderAfterPayment: false,
-                    options: null,
-                    setFormErrors: null,
-                },
-            };
+            const submissionRef = makeSubmissionRef();
 
             const { result } = renderHook(() =>
                 usePayment(
@@ -614,19 +599,7 @@ describe('usePayment hook', () => {
         });
 
         test('cleans up ref callbacks on unmount', () => {
-            const submissionRef: MutableRefObject<{
-                formDataGetter: (() => unknown) | null;
-                shouldPlaceOrderAfterPayment: boolean;
-                options: null;
-                setFormErrors: ((errors: Record<string, { type: string; message: string }>) => void) | null;
-            }> = {
-                current: {
-                    formDataGetter: null,
-                    shouldPlaceOrderAfterPayment: false,
-                    options: null,
-                    setFormErrors: null,
-                },
-            };
+            const submissionRef = makeSubmissionRef();
 
             const { unmount } = renderHook(() =>
                 usePayment(
@@ -640,6 +613,84 @@ describe('usePayment hook', () => {
             unmount();
             expect(submissionRef.current.formDataGetter).toBeNull();
             expect(submissionRef.current.setFormErrors).toBeNull();
+        });
+
+        test('registers billingAddressGetter that returns null when useDifferentBilling is false', () => {
+            const submissionRef = makeSubmissionRef();
+
+            const { result } = renderHook(() =>
+                usePayment(
+                    createDefaultParams({
+                        paymentSubmissionRef: submissionRef,
+                    })
+                )
+            );
+
+            // Default form state has useDifferentBilling: false
+            expect(result.current.form.getValues('useDifferentBilling')).toBe(false);
+            expect(submissionRef.current.billingAddressGetter).toBeInstanceOf(Function);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(submissionRef.current.billingAddressGetter!()).toBeNull();
+        });
+
+        test('getter returns an OrderAddress when useDifferentBilling is true and fields are set', () => {
+            const submissionRef = makeSubmissionRef();
+
+            // Pre-seed the basket with a distinct billing address so useDifferentBilling
+            // starts as true in defaultValues, avoiding the toggle-sync effect that would
+            // overwrite the billing fields with the shipping address.
+            useBasket.mockReturnValue(
+                createMockBasket({
+                    billingAddress: {
+                        firstName: 'Jane',
+                        lastName: 'Smith',
+                        address1: '456 Billing Ave',
+                        city: 'Los Angeles',
+                        stateCode: 'CA',
+                        postalCode: '90001',
+                        countryCode: 'US',
+                    },
+                })
+            );
+
+            renderHook(() =>
+                usePayment(
+                    createDefaultParams({
+                        paymentSubmissionRef: submissionRef,
+                    })
+                )
+            );
+
+            expect(submissionRef.current.billingAddressGetter).toBeInstanceOf(Function);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const address = submissionRef.current.billingAddressGetter!() as Record<string, unknown>;
+            expect(address).toEqual(
+                expect.objectContaining({
+                    firstName: 'Jane',
+                    lastName: 'Smith',
+                    address1: '456 Billing Ave',
+                    city: 'Los Angeles',
+                    stateCode: 'CA',
+                    postalCode: '90001',
+                    countryCode: 'US',
+                })
+            );
+        });
+
+        test('clears billingAddressGetter on unmount', () => {
+            const submissionRef = makeSubmissionRef();
+
+            const { unmount } = renderHook(() =>
+                usePayment(
+                    createDefaultParams({
+                        paymentSubmissionRef: submissionRef,
+                    })
+                )
+            );
+
+            expect(submissionRef.current.billingAddressGetter).toBeInstanceOf(Function);
+            unmount();
+            expect(submissionRef.current.billingAddressGetter).toBeNull();
         });
     });
 
