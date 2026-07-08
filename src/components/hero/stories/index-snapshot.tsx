@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { vi, expect, test, describe, afterEach } from 'vitest';
-import { mockSiteObject } from '@/test-utils/config';
+import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
 
 vi.mock('react-router', () => ({
     href: (path: string) => path,
@@ -101,7 +102,12 @@ afterEach(() => {
 describe('Hero stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
         test(`${storyName} story renders and matches snapshot`, () => {
-            const { container } = render(<Story />);
+            // <DynamicImage> reads DIS config via useConfig(), so the hero image needs a real ConfigProvider.
+            const { container } = render(
+                <ConfigProvider config={mockConfig}>
+                    <Story />
+                </ConfigProvider>
+            );
             expect(container.firstChild).toMatchSnapshot();
         });
     }

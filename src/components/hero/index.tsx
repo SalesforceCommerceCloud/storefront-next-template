@@ -15,6 +15,7 @@
  */
 import { type CSSProperties, type ReactElement, useId } from 'react';
 import { Link } from '@/components/link';
+import { DynamicImage } from '@/components/dynamic-image';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
@@ -42,6 +43,9 @@ type ButtonStyle = (typeof BUTTON_STYLE_VALUES)[number];
 
 const HERO_HEIGHT_VALUES = ['sm', 'md', 'lg', 'xl', 'full'] as const;
 type HeroHeight = (typeof HERO_HEIGHT_VALUES)[number];
+
+/** Hero is edge-to-edge at every breakpoint, so the image always requests a viewport-width variant from DIS. */
+const HERO_IMAGE_WIDTHS = ['100vw'];
 
 const HERO_HEIGHT_CLASS: Record<HeroHeight, string> = {
     sm: 'h-[250px] md:h-[300px] lg:h-[350px]',
@@ -304,13 +308,18 @@ export default function Hero({
         const focalY = focalPoint?.y != null ? `${focalPoint.y}%` : '50%';
 
         return (
-            <img
+            <DynamicImage
                 src={imageUrl.url}
                 alt={imageAlt || ''}
-                {...(imageTitle && { title: imageTitle })}
-                fetchPriority="high"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ objectPosition: `${focalX} ${focalY}` }}
+                widths={HERO_IMAGE_WIDTHS}
+                priority="high"
+                loading="eager"
+                className="absolute inset-0 w-full h-full"
+                imageProps={{
+                    className: 'w-full h-full object-cover',
+                    style: { objectPosition: `${focalX} ${focalY}` },
+                    ...(imageTitle && { title: imageTitle }),
+                }}
             />
         );
     };

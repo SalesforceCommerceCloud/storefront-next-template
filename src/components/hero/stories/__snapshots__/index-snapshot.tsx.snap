@@ -5,13 +5,18 @@ exports[`Hero stories snapshot > Default story renders and matches snapshot 1`] 
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_1_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -55,13 +60,18 @@ exports[`Hero stories snapshot > LongCopy story renders and matches snapshot 1`]
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_4_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -105,13 +115,18 @@ exports[`Hero stories snapshot > PageDesignerStyling story renders and matches s
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_5_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -157,13 +172,18 @@ exports[`Hero stories snapshot > Playground story renders and matches snapshot 1
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_0_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -207,13 +227,18 @@ exports[`Hero stories snapshot > RightBlockCenteredText story renders and matche
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_7_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -311,13 +336,18 @@ exports[`Hero stories snapshot > WithoutSubtitle story renders and matches snaps
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_2_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >

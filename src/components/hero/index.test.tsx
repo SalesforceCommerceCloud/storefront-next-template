@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
-import { vi, describe, test, expect, beforeEach } from 'vitest';
+import { vi, describe, test, expect, beforeEach, type Mock } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { isServer } from '@/lib/utils';
 
 // Mock decorators (minimal mocking to avoid testing them)
 vi.mock('@/lib/decorators/component', () => ({
@@ -31,12 +32,34 @@ vi.mock('@/lib/decorators/attribute-definition', () => ({
     AttributeDefinition: () => () => {},
 }));
 
+// Preserve real utils (cn, etc.) but make isServer togglable so we can exercise the SSR
+// preload branch inside <DynamicImage>. Defaults to false to match the client-render path
+// the rest of the suite relies on.
+vi.mock('@/lib/utils', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/utils')>();
+    return {
+        ...actual,
+        isServer: vi.fn().mockReturnValue(false),
+    };
+});
+
+// Spy on React 19's preload() so we can assert the hero emits <link rel="preload"> during SSR.
+const preloadMock = vi.fn();
+vi.mock('react-dom', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('react-dom')>();
+    return {
+        ...actual,
+        preload: (...args: unknown[]) => preloadMock(...args),
+    };
+});
+
 // Import the component after mocks are set up
 import Hero from './index';
 
 describe('Hero Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        (isServer as Mock).mockReturnValue(false);
     });
 
     const renderHero = (props = {}) => {
@@ -280,6 +303,69 @@ describe('Hero Component', () => {
 
             const image = screen.getByRole('presentation');
             expect(image).toHaveStyle({ objectPosition: expectedPosition });
+        });
+    });
+
+    describe('Responsive image (DynamicImage)', () => {
+        const SFCC_SRC =
+            'https://demo-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-catalog/default/dw000/images/large/hero.jpg';
+
+        test('renders a responsive <picture> with DIS-powered <source> elements', () => {
+            const { container } = renderHero({ imageUrl: { url: SFCC_SRC }, imageAlt: 'Hero' });
+
+            const picture = container.querySelector('picture');
+            expect(picture).toBeInTheDocument();
+
+            const sources = picture?.querySelectorAll('source') ?? [];
+            expect(sources.length).toBeGreaterThan(0);
+            // DIS conversion: WebP output for the <source> candidates.
+            expect(sources[0]).toHaveAttribute('type', 'image/webp');
+            expect(sources[0].getAttribute('srcset')).toMatch(/\bsw=\d+/);
+        });
+
+        test('renders the image as a full-bleed cover layer', () => {
+            const { container } = renderHero({ imageUrl: { url: SFCC_SRC }, imageAlt: 'Hero' });
+
+            // The absolute-fill positioning lives on the wrapper; object-cover on the <img> itself.
+            const image = screen.getByRole('img', { name: 'Hero' });
+            expect(image).toHaveClass('w-full', 'h-full', 'object-cover');
+
+            const wrapper = container.querySelector('picture')?.parentElement;
+            expect(wrapper).toHaveClass('absolute', 'inset-0', 'w-full', 'h-full');
+        });
+    });
+
+    describe('SSR preload', () => {
+        const SFCC_SRC =
+            'https://demo-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-catalog/default/dw000/images/large/hero.jpg';
+
+        test('emits <link rel="preload"> hints for the hero image during server rendering', () => {
+            (isServer as Mock).mockReturnValue(true);
+
+            renderHero({ imageUrl: { url: SFCC_SRC }, imageAlt: 'Hero' });
+
+            expect(preloadMock).toHaveBeenCalled();
+            const [href, opts] = preloadMock.mock.calls[0] as [string, Record<string, unknown>];
+            expect(opts).toMatchObject({ as: 'image', fetchPriority: 'high' });
+            // DIS-hosted, WebP-converted preload target.
+            expect(String(href)).toContain('edge.disstg.commercecloud.salesforce.com');
+            expect(String(opts.imageSrcSet)).toContain('.webp');
+        });
+
+        test('does not preload during client rendering', () => {
+            (isServer as Mock).mockReturnValue(false);
+
+            renderHero({ imageUrl: { url: SFCC_SRC }, imageAlt: 'Hero' });
+
+            expect(preloadMock).not.toHaveBeenCalled();
+        });
+
+        test('does not preload the empty placeholder state', () => {
+            (isServer as Mock).mockReturnValue(true);
+
+            renderHero({});
+
+            expect(preloadMock).not.toHaveBeenCalled();
         });
     });
 
