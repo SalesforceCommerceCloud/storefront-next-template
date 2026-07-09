@@ -301,7 +301,8 @@
         "quantityUpdateFailed": "数量を更新できませんでした。",
         "onlyLeft": "残り {{stockLevel}} 点のみ!",
         "onlyLeftForProduct": "{{productName}} は残り {{stockLevel}} 点のみ!",
-        "maxStockReached": "在庫の上限に達しました。"
+        "maxStockReached": "在庫の上限に達しました。",
+        "insufficientStock": "在庫が不足しています。"
     },
     "cart": {
         "title": "買い物カゴ",

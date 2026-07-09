@@ -301,7 +301,8 @@
         "quantityUpdateFailed": "Antallet kunne ikke opdateres",
         "onlyLeft": "Der er kun {{stockLevel}} tilbage!",
         "onlyLeftForProduct": "Der er kun {{stockLevel}} tilbage af {{productName}}!",
-        "maxStockReached": "Maksimalt lager nået"
+        "maxStockReached": "Maksimalt lager nået",
+        "insufficientStock": "Ikke nok på lager"
     },
     "cart": {
         "title": "Kurv",

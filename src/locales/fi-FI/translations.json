@@ -301,7 +301,8 @@
         "quantityUpdateFailed": "Määrän päivitys epäonnistui",
         "onlyLeft": "Vain {{stockLevel}} jäljellä!",
         "onlyLeftForProduct": "Vain {{stockLevel}} tuotetta ({{productName}}) jäljellä!",
-        "maxStockReached": "Saavutettu enimmäisvarasto"
+        "maxStockReached": "Saavutettu enimmäisvarasto",
+        "insufficientStock": "Varastossa ei ole riittävästi"
     },
     "cart": {
         "title": "Ostoskori",

@@ -28,9 +28,11 @@ import { ConfigWrapper } from '@/test-utils/config';
 
 // UI Strings
 // Mock dependencies
+// Stable spy so tests can assert the toast message text across renders.
+const mockAddToast = vi.fn();
 vi.mock('@/components/toast', () => ({
     useToast: () => ({
-        addToast: vi.fn(),
+        addToast: mockAddToast,
     }),
 }));
 
@@ -531,6 +533,46 @@ describe('useCartQuantityUpdate', () => {
 
             // Should not trigger any response handling
             expect(result.current.quantity).toBe(2);
+        });
+    });
+
+    describe('Failure toast messaging', () => {
+        // The hook reads fetcher.state / fetcher.data from the fetcher passed in props (stableMockFetcher),
+        // so drive the response effect by mutating that object rather than the module-scoped mockFetcher.
+        const setStableFetcher = (state: 'idle' | 'submitting' | 'loading', data: unknown): void => {
+            (stableMockFetcher as unknown as { state: string }).state = state;
+            (stableMockFetcher as unknown as { data: unknown }).data = data;
+        };
+
+        afterEach(() => {
+            setStableFetcher('idle', null);
+        });
+
+        test('shows the generic failure toast when the response carries no error code', async () => {
+            const { rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+
+            act(() => {
+                setStableFetcher('idle', { success: false });
+            });
+            rerender();
+
+            await waitFor(() => {
+                expect(mockAddToast).toHaveBeenCalledWith('Failed to update quantity', 'error');
+            });
+        });
+
+        test('shows the stock-specific toast when the server rejects with OUT_OF_STOCK', async () => {
+            const { rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+
+            act(() => {
+                setStableFetcher('idle', { success: false, error: { code: 'OUT_OF_STOCK' } });
+            });
+            rerender();
+
+            await waitFor(() => {
+                expect(mockAddToast).toHaveBeenCalledWith('Not enough stock available', 'error');
+            });
+            expect(mockAddToast).not.toHaveBeenCalledWith('Failed to update quantity', 'error');
         });
     });
 

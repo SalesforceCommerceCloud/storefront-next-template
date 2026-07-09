@@ -301,7 +301,8 @@
         "quantityUpdateFailed": "수량을 업데이트하지 못했습니다.",
         "onlyLeft": "품절 임박({{stockLevel}}개 남음)",
         "onlyLeftForProduct": "{{productName}}이(가) {{stockLevel}}개 남았습니다!",
-        "maxStockReached": "최대 재고 도달"
+        "maxStockReached": "최대 재고 도달",
+        "insufficientStock": "재고가 부족합니다"
     },
     "cart": {
         "title": "카트",

@@ -302,7 +302,8 @@
         "quantityUpdateFailed": "無法更新數量",
         "onlyLeft": "只剩 {{stockLevel}} 個！",
         "onlyLeftForProduct": "{{productName}} 只剩下 {{stockLevel}}！",
-        "maxStockReached": "已達最大庫存"
+        "maxStockReached": "已達最大庫存",
+        "insufficientStock": "庫存不足"
     },
     "cart": {
         "title": "購物車",

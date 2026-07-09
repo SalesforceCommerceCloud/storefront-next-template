@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 
 import { useCheckoutContext } from '@/hooks/use-checkout';
 import { useBasket, useBasketUpdater } from '@/providers/basket';
 import type { ContactInfoData, PaymentData } from '@/lib/checkout/schemas';
+import type { ActionError } from '@/lib/error-codes';
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { CheckoutActionData } from '@/components/checkout/types';
 import {
@@ -172,7 +173,9 @@ export function useCheckoutActions(options?: {
     const shippingAddressFetcher = useFetcher<CheckoutActionData>({ key: 'shipping-address-form' });
     const shippingOptionsFetcher = useFetcher<CheckoutActionData>({ key: 'shipping-options-form' });
     const paymentFetcher = useFetcher<CheckoutActionData>({ key: 'payment-form' });
-    const placeOrderFetcher = useFetcher<{ success?: boolean; error?: string; step?: string }>({ key: 'place-order' });
+    const placeOrderFetcher = useFetcher<{ success?: boolean; error?: string | ActionError; step?: string }>({
+        key: 'place-order',
+    });
 
     // Track action submission lifecycle.
     // We track step here because editingStep from context can change before processing completes.

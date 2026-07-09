@@ -299,7 +299,8 @@
         "quantityUpdateFailed": "Bijwerken van hoeveelheid is mislukt",
         "onlyLeft": "Nog maar {{stockLevel}} over!",
         "onlyLeftForProduct": "Nog maar {{stockLevel}} over voor {{productName}}!",
-        "maxStockReached": "Maximale voorraad bereikt"
+        "maxStockReached": "Maximale voorraad bereikt",
+        "insufficientStock": "Onvoldoende voorraad beschikbaar"
     },
     "cart": {
         "title": "Winkelwagen",

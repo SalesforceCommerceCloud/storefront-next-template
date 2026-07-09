@@ -308,7 +308,8 @@
         "quantityUpdateFailed": "Impossibile aggiornare la quantità",
         "onlyLeft": "Solo {{stockLevel}} rimasti!",
         "onlyLeftForProduct": "Solo {{stockLevel}} rimasti per {{productName}}!",
-        "maxStockReached": "Scorte massime raggiunte"
+        "maxStockReached": "Scorte massime raggiunte",
+        "insufficientStock": "Scorte insufficienti"
     },
     "cart": {
         "title": "Carrello",

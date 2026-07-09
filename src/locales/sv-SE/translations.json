@@ -300,7 +300,8 @@
         "quantityUpdateFailed": "Det gick inte att uppdatera kvantitet",
         "onlyLeft": "Det finns bara {{stockLevel}} kvar!",
         "onlyLeftForProduct": "Det finns bara {{stockLevel}} kvar av {{productName}}!",
-        "maxStockReached": "Maximal lagergräns uppnådd"
+        "maxStockReached": "Maximal lagergräns uppnådd",
+        "insufficientStock": "Otillräckligt lager"
     },
     "cart": {
         "title": "Kundvagn",

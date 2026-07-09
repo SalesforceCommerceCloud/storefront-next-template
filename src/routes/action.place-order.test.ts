@@ -37,6 +37,7 @@ import {
 } from '@/lib/api/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getAddressBookFromCustomer, getPaymentMethodsFromCustomer } from '@/lib/customer/profile-utils';
+import { ApiError } from '@/scapi';
 
 vi.mock('@/middlewares/basket.server', () => ({
     getBasket: vi.fn(),
@@ -1234,6 +1235,134 @@ describe('action.place-order action', () => {
             };
             expect(mergedBasket.billingAddress).toEqual(shippingAddress);
             expect(mergedBasket.paymentInstruments).toEqual(basketAfterBilling.paymentInstruments);
+        });
+    });
+
+    describe('inventory rejection backstop', () => {
+        const readyBasket = {
+            basketId: 'b1',
+            customerInfo: { email: 'test@example.com' },
+            productItems: [{ itemId: 'i1', productId: 'p1', quantity: 3, shipmentId: 's1' }],
+            shipments: [
+                {
+                    shipmentId: 's1',
+                    shippingAddress: {
+                        address1: '123 Main St',
+                        city: 'Austin',
+                        postalCode: '78701',
+                        countryCode: 'US',
+                    },
+                    shippingMethod: { id: 'ground', name: 'Ground' },
+                },
+            ],
+            paymentInstruments: [{ paymentInstrumentId: 'pi1' }],
+            billingAddress: { address1: '123 Main St', city: 'Austin', postalCode: '78701', countryCode: 'US' },
+            orderTotal: 99.99,
+        };
+
+        const apiError = (body: { type?: string; title?: string; detail?: string }) =>
+            new ApiError({
+                status: 400,
+                statusText: 'Bad Request',
+                headers: new Headers(),
+                body: { type: '', title: '', detail: '', ...body },
+                rawBody: JSON.stringify(body),
+                url: 'https://example.com/orders',
+                method: 'POST',
+            });
+
+        const primeReadyBasket = () => {
+            vi.mocked(getBasket).mockResolvedValue({ current: readyBasket } as any);
+            vi.mocked(getAuth).mockReturnValue({ customerId: 'cust-1' } as any);
+            vi.mocked(getBasketCurrency).mockReturnValue('USD');
+            vi.mocked(calculateBasket).mockResolvedValue({ ...readyBasket } as any);
+        };
+
+        test('maps an inventory fault from createOrder to OUT_OF_STOCK (422)', async () => {
+            primeReadyBasket();
+            vi.mocked(createApiClients).mockReturnValue({
+                shopperOrders: {
+                    createOrder: vi.fn().mockRejectedValue(
+                        apiError({
+                            type: 'https://api.commercecloud.salesforce.com/documentation/error/v1/errors/product-item-not-available',
+                            title: 'Product Item Not Available',
+                            detail: 'The requested quantity is not available in inventory.',
+                        })
+                    ),
+                },
+            } as any);
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            expect(response.status).toBe(422);
+            const body = await parsePlaceOrderResponse(response);
+            expect(body.success).toBe(false);
+            expect(body.step).toBe('placeOrder');
+            expect(body.error).toEqual(expect.objectContaining({ code: 'OUT_OF_STOCK' }));
+        });
+
+        test('leaves a non-inventory fault from createOrder as a generic 500', async () => {
+            primeReadyBasket();
+            vi.mocked(createApiClients).mockReturnValue({
+                shopperOrders: {
+                    createOrder: vi.fn().mockRejectedValue(
+                        apiError({
+                            type: 'https://api.commercecloud.salesforce.com/documentation/error/v1/errors/payment-declined',
+                            title: 'Payment Declined',
+                            detail: 'The payment could not be authorized.',
+                        })
+                    ),
+                },
+            } as any);
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            expect(response.status).toBe(500);
+            const body = await parsePlaceOrderResponse(response);
+            expect(body.success).toBe(false);
+            expect(body.step).toBe('placeOrder');
+            expect(body.error).not.toEqual(expect.objectContaining({ code: 'OUT_OF_STOCK' }));
+        });
+
+        test('does not misclassify a non-inventory fault whose free-text detail says "not available"', async () => {
+            // The detail is a human sentence, not the machine-readable type slug. Matching only the type slug keeps
+            // this shipping fault out of the OUT_OF_STOCK path so it stays visible in 500 monitoring.
+            primeReadyBasket();
+            vi.mocked(createApiClients).mockReturnValue({
+                shopperOrders: {
+                    createOrder: vi.fn().mockRejectedValue(
+                        apiError({
+                            type: 'https://api.commercecloud.salesforce.com/documentation/error/v1/errors/shipping-method-invalid',
+                            title: 'Shipping Method Invalid',
+                            detail: 'The selected shipping method is not available for this address.',
+                        })
+                    ),
+                },
+            } as any);
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            expect(response.status).toBe(500);
+            const body = await parsePlaceOrderResponse(response);
+            expect(body.error).not.toEqual(expect.objectContaining({ code: 'OUT_OF_STOCK' }));
         });
     });
 });

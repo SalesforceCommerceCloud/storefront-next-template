@@ -301,7 +301,8 @@
         "quantityUpdateFailed": "Échec de la mise à jour de la quantité",
         "onlyLeft": "Il n’en reste plus que {{stockLevel}} !",
         "onlyLeftForProduct": "Il ne reste plus que {{stockLevel}} articles pour {{productName}} !",
-        "maxStockReached": "Stock maximum atteint"
+        "maxStockReached": "Stock maximum atteint",
+        "insufficientStock": "Stock insuffisant"
     },
     "cart": {
         "title": "Panier",

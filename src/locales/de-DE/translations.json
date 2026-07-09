@@ -300,7 +300,8 @@
         "quantityUpdateFailed": "Menge konnte nicht aktualisiert werden",
         "onlyLeft": "Nur noch {{stockLevel}} vorhanden!",
         "onlyLeftForProduct": "Nur noch {{stockLevel}} von {{productName}} vorhanden!",
-        "maxStockReached": "Maximaler Bestand erreicht"
+        "maxStockReached": "Maximaler Bestand erreicht",
+        "insufficientStock": "Nicht genügend Bestand verfügbar"
     },
     "cart": {
         "title": "Warenkorb",

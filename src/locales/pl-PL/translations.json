@@ -301,7 +301,8 @@
         "quantityUpdateFailed": "Nie udało się zaktualizować liczby",
         "onlyLeft": "Pozostała liczba artykułów: tylko {{stockLevel}}!",
         "onlyLeftForProduct": "Pozostała liczba artykułów: tylko {{stockLevel}} dla {{productName}}!",
-        "maxStockReached": "Osiągnięto maksymalny poziom zapasów"
+        "maxStockReached": "Osiągnięto maksymalny poziom zapasów",
+        "insufficientStock": "Niewystarczająca ilość w magazynie"
     },
     "cart": {
         "title": "Koszyk",

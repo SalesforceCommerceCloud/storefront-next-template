@@ -24,6 +24,7 @@ import type { CustomerProfile } from '@/components/checkout/utils/checkout-conte
 import { getPaymentMethodsFromCustomer } from '@/lib/customer/profile-utils';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
+import { ApiError } from '@/scapi';
 // @sfdc-extension-line SFDC_EXT_MULTISHIP
 import { resolveEmptyShipments } from '@/extensions/multiship/lib/api/basket.server';
 import { getLogger } from '@/lib/logger.server';
@@ -35,6 +36,23 @@ import {
     saveCheckoutDataToProfile,
     finalizeOrderSuccess,
 } from '@/lib/checkout/place-order-orchestration.server';
+
+/**
+ * Detects whether a caught error is an SCAPI inventory/stock rejection. createOrder fails with a
+ * 4xx fault (RFC 7807) when a basket line exceeds available stock — e.g. after a quantity was raised
+ * past inventory. We match keywords against the machine-readable `type` slug only, not the free-text
+ * `title`/`detail`: the slug is kebab-case (e.g. `product-item-not-available`), so a rename on the
+ * backend still degrades to the specific out-of-stock message, while a human sentence such as "the
+ * selected shipping method is not available" can never collide and be misread as out-of-stock.
+ * Non-inventory errors return false and fall through to the existing generic handling.
+ */
+function isInventoryError(error: unknown): error is ApiError {
+    if (!(error instanceof ApiError)) return false;
+    const type = (error.body?.type ?? '').toLowerCase();
+    return ['inventory', 'stock', 'not-available', 'availability', 'out-of-stock'].some((keyword) =>
+        type.includes(keyword)
+    );
+}
 
 /**
  * Server action for placing an order.
@@ -354,6 +372,27 @@ export async function action({ request, context }: Route.ActionArgs) {
         return redirect(orderConfirmationUrl);
     } catch (error) {
         logger.error('[Checkout] place-order: unexpected error', { error });
+        // Surface an inventory rejection specifically. The client stepper now blocks over-quantity
+        // increases, but a basket can still go out of stock between edit and checkout (concurrent
+        // orders, backend adjustments), so this stays as the last-line backstop that turns a generic
+        // "try again" into an actionable stock message. The display layer maps OUT_OF_STOCK to
+        // errors:checkout.stockNotAvailable.
+        if (isInventoryError(error)) {
+            return Response.json(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.OUT_OF_STOCK,
+                        // Static fallback only. The display layer resolves OUT_OF_STOCK by code to a translated
+                        // string; this message is a last resort for a consumer that renders it directly, so it must
+                        // not forward the raw untranslated SCAPI detail.
+                        message: 'One or more items are no longer available in the requested quantity',
+                    }),
+                    step: 'placeOrder',
+                },
+                { status: 422 }
+            );
+        }
         return Response.json(
             {
                 success: false,

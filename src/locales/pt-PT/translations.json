@@ -300,7 +300,8 @@
         "quantityUpdateFailed": "Falha ao atualizar quantidade",
         "onlyLeft": "Somente {{stockLevel}} restante(s)!",
         "onlyLeftForProduct": "Sobraram somente {{stockLevel}} para {{productName}}!",
-        "maxStockReached": "Estoque máximo atingido"
+        "maxStockReached": "Estoque máximo atingido",
+        "insufficientStock": "Estoque insuficiente"
     },
     "cart": {
         "title": "Carrinho",

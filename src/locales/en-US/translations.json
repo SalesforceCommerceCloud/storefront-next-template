@@ -316,7 +316,8 @@
         "quantityUpdateFailed": "Failed to update quantity",
         "onlyLeft": "Only {{stockLevel}} left!",
         "onlyLeftForProduct": "Only {{stockLevel}} left for {{productName}}!",
-        "maxStockReached": "Maximum stock reached"
+        "maxStockReached": "Maximum stock reached",
+        "insufficientStock": "Not enough stock available"
     },
     "cart": {
         "title": "Cart",
