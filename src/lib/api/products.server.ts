@@ -26,10 +26,21 @@ export type FetchProductsByIdsOptions = Partial<Omit<GetProductsQuery, 'ids' | '
 export type FetchProductByIdOptions = Partial<Omit<GetProductQuery, 'siteId'>>;
 
 /**
+ * SCAPI's `shopperProducts.getProducts` caps the `ids` query parameter at 24 IDs. Requests with
+ * more are rejected with `'ids' violates the value constraint. The expected value is between '(0..24)'`.
+ * Larger ID lists (e.g. a cart with 25+ distinct products) must be split into chunks of this size.
+ */
+export const SCAPI_GET_PRODUCTS_MAX_IDS = 24;
+
+/**
  * Fetch multiple products by IDs.
  *
  * Wraps SCAPI's `shopperProducts.getProducts` with operation-context logging and
  * normalizes any thrown error into `NormalizedApiError` for consistent downstream handling.
+ *
+ * IDs are chunked into batches of at most {@link SCAPI_GET_PRODUCTS_MAX_IDS} (SCAPI's hard limit)
+ * and fetched in parallel, then merged — so callers can pass an unbounded list (e.g. every line in
+ * a large cart) without tripping the endpoint's `ids` value constraint.
  *
  * @param context - Router context
  * @param ids - Array of product IDs (will be deduplicated and trimmed)
@@ -52,17 +63,28 @@ export async function fetchProductsByIds(
     const logger = getLogger(context);
     const clients = createApiClients(context);
 
-    try {
-        const { data } = await clients.shopperProducts.getProducts({
-            params: {
-                query: {
-                    ids: normalizedIds,
-                    ...options,
-                },
-            },
-        });
+    // Split into SCAPI-sized batches. A single chunk (the common case) issues exactly one request,
+    // preserving prior behavior; larger lists fan out and merge.
+    const idChunks: string[][] = [];
+    for (let i = 0; i < normalizedIds.length; i += SCAPI_GET_PRODUCTS_MAX_IDS) {
+        idChunks.push(normalizedIds.slice(i, i + SCAPI_GET_PRODUCTS_MAX_IDS));
+    }
 
-        return data?.data ?? [];
+    try {
+        const responses = await Promise.all(
+            idChunks.map((chunk) =>
+                clients.shopperProducts.getProducts({
+                    params: {
+                        query: {
+                            ids: chunk,
+                            ...options,
+                        },
+                    },
+                })
+            )
+        );
+
+        return responses.flatMap(({ data }) => data?.data ?? []);
     } catch (error) {
         logger.error('shopperProducts.getProducts failed', { ids: normalizedIds });
         throw new NormalizedApiError(error);

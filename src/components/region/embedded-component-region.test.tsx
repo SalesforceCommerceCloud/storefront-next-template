@@ -39,6 +39,7 @@ vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
     useRegionContext: vi.fn(() => ({})),
     usePageDesignerMode: vi.fn(() => ({ isDesignMode: false })),
     PageDesignerPageMetadataProvider: vi.fn(({ children }: { children: React.ReactNode }) => <>{children}</>),
+    EmbeddedSubtreeProvider: vi.fn(({ children }: { children: React.ReactNode }) => <>{children}</>),
 }));
 
 const mockComponent: ComponentWithComponentData = {

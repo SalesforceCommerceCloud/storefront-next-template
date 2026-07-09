@@ -375,7 +375,7 @@ const DynamicImage = ({
         loading: effectiveLoading,
         fetchPriority: effectivePriority,
         alt,
-        src: enableDis ? replaceImageFormat(responsiveSrc, fallbackFormat) : responsiveSrc,
+        src: enableDis ? replaceImageFormat(responsiveSrc, fallbackFormat, undefined, config) : responsiveSrc,
     };
 
     // Get styling classes from Page Designer props
@@ -388,16 +388,23 @@ const DynamicImage = ({
     });
 
     if (isServer() && effectivePriority === 'high') {
-        links.forEach(({ type, media, sizes, srcSet, href }) => {
-            preload(href, {
-                as: 'image',
-                fetchPriority: 'high',
-                imageSrcSet: srcSet,
-                imageSizes: sizes,
-                type,
-                media,
+        if (links.length > 0) {
+            links.forEach(({ type, media, sizes, srcSet, href }) => {
+                preload(href, {
+                    as: 'image',
+                    fetchPriority: 'high',
+                    imageSrcSet: srcSet,
+                    imageSizes: sizes,
+                    type,
+                    media,
+                });
             });
-        });
+        } else if (effectiveImageProps.src) {
+            // No per-breakpoint links — the image has a single static variant (no widths/heights requested, a local
+            // bundled asset, or any image when DIS is disabled). Preload the one URL the <img> resolves to so an LCP
+            // hero still gets its <link rel="preload">, whether or not dimensions were supplied.
+            preload(effectiveImageProps.src, { as: 'image', fetchPriority: 'high' });
+        }
     }
 
     return (

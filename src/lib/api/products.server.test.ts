@@ -16,7 +16,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { ApiError } from '@/scapi';
 import { NormalizedApiError } from './normalized-api-error';
-import { fetchProductById, fetchProductsByIds } from './products.server';
+import { fetchProductById, fetchProductsByIds, SCAPI_GET_PRODUCTS_MAX_IDS } from './products.server';
 
 const mockGetProduct = vi.fn();
 const mockGetProducts = vi.fn();
@@ -225,6 +225,58 @@ describe('fetchProductsByIds', () => {
         const result = await fetchProductsByIds(mockContext, ['sku-1']);
 
         expect(result).toEqual([]);
+    });
+
+    test('sends a single request when the ID count is within the SCAPI limit', async () => {
+        mockGetProducts.mockResolvedValue({ data: { data: [] } });
+        const ids = Array.from({ length: SCAPI_GET_PRODUCTS_MAX_IDS }, (_, i) => `sku-${i}`);
+
+        await fetchProductsByIds(mockContext, ids);
+
+        expect(mockGetProducts).toHaveBeenCalledTimes(1);
+        expect(mockGetProducts.mock.calls[0][0].params.query.ids).toEqual(ids);
+    });
+
+    test('splits IDs into batches of at most SCAPI_GET_PRODUCTS_MAX_IDS (cart with 30+ items)', async () => {
+        mockGetProducts.mockResolvedValue({ data: { data: [] } });
+        const ids = Array.from({ length: SCAPI_GET_PRODUCTS_MAX_IDS * 2 + 3 }, (_, i) => `sku-${i}`);
+
+        await fetchProductsByIds(mockContext, ids);
+
+        expect(mockGetProducts).toHaveBeenCalledTimes(3);
+        const batchedIds: string[][] = mockGetProducts.mock.calls.map((call) => call[0].params.query.ids);
+        expect(batchedIds[0]).toHaveLength(SCAPI_GET_PRODUCTS_MAX_IDS);
+        expect(batchedIds[1]).toHaveLength(SCAPI_GET_PRODUCTS_MAX_IDS);
+        expect(batchedIds[2]).toHaveLength(3);
+        // No batch exceeds the limit, and every ID is requested exactly once with order preserved.
+        batchedIds.forEach((batch) => expect(batch.length).toBeLessThanOrEqual(SCAPI_GET_PRODUCTS_MAX_IDS));
+        expect(batchedIds.flat()).toEqual(ids);
+    });
+
+    test('merges products from all batches into a single array in order', async () => {
+        const ids = Array.from({ length: SCAPI_GET_PRODUCTS_MAX_IDS + 1 }, (_, i) => `sku-${i}`);
+        mockGetProducts
+            .mockResolvedValueOnce({
+                data: { data: ids.slice(0, SCAPI_GET_PRODUCTS_MAX_IDS).map((id) => ({ id })) },
+            })
+            .mockResolvedValueOnce({ data: { data: ids.slice(SCAPI_GET_PRODUCTS_MAX_IDS).map((id) => ({ id })) } });
+
+        const result = await fetchProductsByIds(mockContext, ids);
+
+        expect(mockGetProducts).toHaveBeenCalledTimes(2);
+        expect(result.map((p) => p.id)).toEqual(ids);
+    });
+
+    test('passes options to every batch', async () => {
+        mockGetProducts.mockResolvedValue({ data: { data: [] } });
+        const ids = Array.from({ length: SCAPI_GET_PRODUCTS_MAX_IDS + 1 }, (_, i) => `sku-${i}`);
+
+        await fetchProductsByIds(mockContext, ids, { allImages: true, currency: 'USD' });
+
+        expect(mockGetProducts).toHaveBeenCalledTimes(2);
+        mockGetProducts.mock.calls.forEach((call) => {
+            expect(call[0].params.query).toMatchObject({ allImages: true, currency: 'USD' });
+        });
     });
 
     test('throws NormalizedApiError when API call fails with ApiError', async () => {

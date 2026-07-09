@@ -1,13 +1,13 @@
 {
   "name": "template-retail-rsc-app",
-  "version": "2026.7.0-alpha.2",
+  "version": "2026.7.0-alpha.3",
   "description": "Standalone Salesforce Commerce Cloud storefront (fashion).",
   "private": true,
   "type": "module",
   "storefrontNext": {
     "templateRelease": "July 2026",
     "templateVersion": "2026.7.0",
-    "minSdkVersion": "1.1.0-alpha.2"
+    "minSdkVersion": "1.1.0-alpha.3"
   },
   "scripts": {
     "dev": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && cross-env NODE_OPTIONS=--conditions=dev-data-store sfnext dev",
@@ -63,8 +63,8 @@
     "@radix-ui/react-switch": "1.2.2",
     "@radix-ui/react-tooltip": "1.2.8",
     "@react-router/node": "7.18.0",
-    "@salesforce/storefront-next-dev": "1.1.0-alpha.2",
-    "@salesforce/storefront-next-runtime": "1.1.0-alpha.2",
+    "@salesforce/storefront-next-dev": "1.1.0-alpha.3",
+    "@salesforce/storefront-next-runtime": "1.1.0-alpha.3",
     "@vis.gl/react-google-maps": "1.7.1",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

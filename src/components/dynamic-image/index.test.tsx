@@ -37,6 +37,13 @@ import { DynamicImage } from './index';
 const src =
     'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw4cd0a798/images/large/PG.10216885.JJ169XX.PZ.jpg';
 
+// DIS-eligible base URL (already on the imaging host with a `/dw/image/v2/{realm}/` prefix). DIS
+// transformation only applies to URLs that carry this prefix, so tests exercising format conversion,
+// `sw`/`sh`, and quality params must use one — a bare third-party host (`example.com`) is served
+// verbatim and produces a plain <img>, not a <picture>.
+const disSrc = (ext: string) =>
+    `https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/-/Sites-apparel-m-catalog/default/dw4cd0a798/images/large/image.${ext}`;
+
 let mockConfigImages = {
     ...mockConfig.images,
 };
@@ -204,16 +211,13 @@ describe('Dynamic Image Component', () => {
             const externalSrc = 'https://cdn.example.com/images/product.jpg';
             render(<DynamicImage src={externalSrc} alt="Test image" widths={[288]} />);
 
+            // A non-SFCC host has no derivable realm, so toDisBaseUrl leaves it unchanged and DIS never
+            // engages. The URL must be served verbatim as a plain <img> — no host rewrite, no DIS path,
+            // and no <picture>/<source> variants the third-party host can't serve.
             const img = screen.getByRole('img');
             const imgSrc = img.getAttribute('src') ?? '';
-            expect(imgSrc).toContain('cdn.example.com');
-            expect(imgSrc).not.toContain('edge.disstg.commercecloud.salesforce.com');
-            expect(imgSrc).not.toMatch(/\/dw\/image\/v\d+\//);
-
-            const srcset = img.closest('picture')?.querySelector('source')?.getAttribute('srcset') ?? '';
-            expect(srcset).toContain('cdn.example.com');
-            expect(srcset).not.toContain('edge.disstg.commercecloud.salesforce.com');
-            expect(srcset).not.toMatch(/\/dw\/image\/v\d+\//);
+            expect(imgSrc).toBe(externalSrc);
+            expect(img.closest('picture')).not.toBeInTheDocument();
         });
     });
 
@@ -266,8 +270,7 @@ describe('Dynamic Image Component', () => {
         });
 
         test('renders image with SFCC URL and sw parameter', () => {
-            const sfccSrc =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg?sw=300&q=60';
+            const sfccSrc = disSrc('jpg');
             render(<DynamicImage src={sfccSrc} alt="Test image" widths={[468]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -424,8 +427,7 @@ describe('Dynamic Image Component', () => {
 
     describe('image format conversion', () => {
         test('converts non-jpg image to picture with webp sources and jpg fallback', () => {
-            const pngSrc =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.png?sw=300&q=60';
+            const pngSrc = disSrc('png');
             render(<DynamicImage src={pngSrc} alt="Test image" widths={[200, 400]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -448,8 +450,7 @@ describe('Dynamic Image Component', () => {
         });
 
         test('converts webp image to picture with webp sources and jpg fallback', () => {
-            const webpSrc =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.webp?sw=300&q=60';
+            const webpSrc = disSrc('webp');
             render(<DynamicImage src={webpSrc} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -472,8 +473,7 @@ describe('Dynamic Image Component', () => {
         });
 
         test('converts jpg image to picture with webp sources and jpg fallback', () => {
-            const jpgSrc =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg?sw=300&q=60';
+            const jpgSrc = disSrc('jpg');
             render(<DynamicImage src={jpgSrc} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -505,8 +505,7 @@ describe('Dynamic Image Component', () => {
 
         test('applies default quality from config to srcSet URLs', () => {
             // Default quality in mockConfig.images is 70
-            const srcWithoutQuality =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
+            const srcWithoutQuality = disSrc('jpg');
             render(<DynamicImage src={srcWithoutQuality} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -521,8 +520,7 @@ describe('Dynamic Image Component', () => {
         test('applies custom quality from config override to srcSet URLs', () => {
             mockConfigImages = { ...mockConfig.images, quality: 85 };
 
-            const srcWithoutQuality =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
+            const srcWithoutQuality = disSrc('jpg');
             render(<DynamicImage src={srcWithoutQuality} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -537,8 +535,7 @@ describe('Dynamic Image Component', () => {
         test('existing q parameter in URL takes priority over config quality', () => {
             mockConfigImages = { ...mockConfig.images, quality: 85 };
 
-            const srcWithQuality =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg?q=60';
+            const srcWithQuality = `${disSrc('jpg')}?q=60`;
             render(<DynamicImage src={srcWithQuality} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -562,8 +559,7 @@ describe('Dynamic Image Component', () => {
 
         test('applies default formats from config to source types', () => {
             // Default formats in mockConfig.images is ['webp']
-            const srcWithoutFormat =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
+            const srcWithoutFormat = disSrc('jpg');
             render(<DynamicImage src={srcWithoutFormat} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -579,8 +575,7 @@ describe('Dynamic Image Component', () => {
         test('applies custom formats from config override to source types', () => {
             mockConfigImages = { ...mockConfig.images, formats: ['avif', 'webp'] };
 
-            const srcWithoutFormat =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
+            const srcWithoutFormat = disSrc('jpg');
             render(<DynamicImage src={srcWithoutFormat} alt="Test image" widths={[200]} />);
 
             const picture = screen.getByRole('img').closest('picture');
@@ -598,8 +593,7 @@ describe('Dynamic Image Component', () => {
     describe('fallbackFormat parameter', () => {
         test('applies default fallbackFormat from config to img src', () => {
             // Default fallbackFormat in mockConfig.images is 'jpg'
-            const pngSrc =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.png';
+            const pngSrc = disSrc('png');
             render(<DynamicImage src={pngSrc} alt="Test image" widths={[200]} />);
 
             const img = screen.getByRole('img');
@@ -613,8 +607,7 @@ describe('Dynamic Image Component', () => {
         test('applies custom fallbackFormat from config override to img src', () => {
             mockConfigImages = { ...mockConfig.images, fallbackFormat: 'png' };
 
-            const jpgSrc =
-                'https://edge.disstg.commercecloud.salesforce.com/dw/image/v2/ZZRF_001/on/demandware.static/image.jpg';
+            const jpgSrc = disSrc('jpg');
             render(<DynamicImage src={jpgSrc} alt="Test image" widths={[200]} />);
 
             const img = screen.getByRole('img');
@@ -1074,6 +1067,58 @@ describe('Dynamic Image Component', () => {
         });
     });
 
+    describe('local relative asset (Vite-bundled public path)', () => {
+        // A relative `/images/...` path is a bundled asset the app serves directly. DIS can't
+        // transform it (no SFCC host/realm), so even with enableDis=true the component must render
+        // it verbatim — never rewrite to a non-existent `/images/hero-01.jpg?sfrm=webp`.
+        const LOCAL_SRC = '/images/hero-01.webp';
+
+        test('renders the img with the original relative src, not a DIS-rewritten .jpg', () => {
+            render(<DynamicImage src={LOCAL_SRC} alt="Hero" widths={['100vw']} />);
+
+            const img = screen.getByRole('img');
+            expect(img.getAttribute('src')).toBe(LOCAL_SRC);
+        });
+
+        test('does not emit responsive <source> variants for the un-transformable asset', () => {
+            render(<DynamicImage src={LOCAL_SRC} alt="Hero" widths={['100vw']} />);
+
+            const img = screen.getByRole('img');
+            const sources = img.closest('picture')?.querySelectorAll('source');
+            expect(sources?.length ?? 0).toBe(0);
+        });
+
+        test('still SSR-preloads the single local URL for a high-priority hero', () => {
+            (isServer as Mock).mockReturnValue(true);
+
+            render(<DynamicImage src={LOCAL_SRC} alt="Hero" widths={['100vw']} priority="high" />);
+
+            expect(preloadMock).toHaveBeenCalledTimes(1);
+            const [href, opts] = preloadMock.mock.calls[0] as [string, Record<string, unknown>];
+            expect(href).toBe(LOCAL_SRC);
+            expect(opts).toMatchObject({ as: 'image', fetchPriority: 'high' });
+
+            (isServer as Mock).mockReturnValue(false);
+        });
+
+        test('SSR-preloads the single local URL for a high-priority hero even without widths/heights', () => {
+            // An LCP hero declared purely by priority — `<DynamicImage src="/images/hero.webp" priority="high" />`
+            // with no dimensions — is still a valid preload candidate. There are no per-breakpoint links to emit, so
+            // the fallback must preload the one URL the <img> resolves to; gating on widths/heights would silently
+            // skip it.
+            (isServer as Mock).mockReturnValue(true);
+
+            render(<DynamicImage src={LOCAL_SRC} alt="Hero" priority="high" />);
+
+            expect(preloadMock).toHaveBeenCalledTimes(1);
+            const [href, opts] = preloadMock.mock.calls[0] as [string, Record<string, unknown>];
+            expect(href).toBe(LOCAL_SRC);
+            expect(opts).toMatchObject({ as: 'image', fetchPriority: 'high' });
+
+            (isServer as Mock).mockReturnValue(false);
+        });
+    });
+
     describe('imageProps precedence', () => {
         test('merges imageProps.className with the computed object-fit class', () => {
             render(
@@ -1159,10 +1204,34 @@ describe('Dynamic Image Component', () => {
             (isServer as Mock).mockReturnValue(false);
         });
 
-        test('does not call preload when priority is high but no widths/heights are provided', () => {
-            // No responsive dimensions → responsiveImageProps.links is empty, so the forEach never fires.
+        test('preloads the single static URL when priority is high but no widths/heights are provided', () => {
+            // No responsive dimensions → no per-breakpoint links, but a high-priority hero declared by priority
+            // alone is still a valid LCP candidate. The fallback preloads the one URL the <img> resolves to rather
+            // than emitting nothing.
             render(<DynamicImage src={src} alt="Test" priority="high" />);
-            expect(preloadMock).not.toHaveBeenCalled();
+
+            expect(preloadMock).toHaveBeenCalledTimes(1);
+            const [href, opts] = preloadMock.mock.calls[0] as [string, Record<string, unknown>];
+            // The <img> renders the DIS base URL verbatim: no dimensions means no format conversion (fallbackFormat
+            // 'jpg' is a no-op on a .jpg), so the preload href matches the rendered src exactly.
+            expect(href).toBe(src);
+            expect(opts).toMatchObject({ as: 'image', fetchPriority: 'high' });
+        });
+
+        test('preloads the single static URL when DIS is disabled but dimensions are requested', () => {
+            // Workspace envs disable DIS → no per-breakpoint links, but a high-priority hero should
+            // still preload its one static variant rather than emitting nothing.
+            mockConfigImages = { ...mockConfig.images, enableDis: false };
+            render(<DynamicImage src={src} alt="Test" widths={[200, 400]} priority="high" />);
+
+            expect(preloadMock).toHaveBeenCalledTimes(1);
+            const [href, opts] = preloadMock.mock.calls[0] as [string, Record<string, unknown>];
+            // DIS off → `toImageUrl` strips the `/dw/image/v2/{realm}/` prefix to a relative static path
+            // (served directly by the dev server/proxy), so the preload href is that path, not the full DIS `src`.
+            expect(href).toBe(
+                '/on/demandware.static/-/Sites-apparel-m-catalog/default/dw4cd0a798/images/large/PG.10216885.JJ169XX.PZ.jpg'
+            );
+            expect(opts).toMatchObject({ as: 'image', fetchPriority: 'high' });
         });
     });
 

@@ -256,13 +256,11 @@ describe('resource.basket-products', () => {
             },
         });
 
+        // siteId and organizationId are injected by the SCAPI client now that the loader routes
+        // through the shared fetchProductsByIds helper, so they are no longer passed explicitly.
         expect(mockGetProducts).toHaveBeenCalledWith({
             params: {
-                path: {
-                    organizationId: 'test-org',
-                },
                 query: {
-                    siteId: expectedSiteId,
                     ids: ['product-1', 'product-2'],
                     allImages: true,
                     perPricebook: true,
@@ -271,6 +269,27 @@ describe('resource.basket-products', () => {
                 },
             },
         });
+    });
+
+    it('batches product IDs for baskets with more than 24 distinct products', async () => {
+        // Regression for SCAPI's 24-ID getProducts cap: the mini cart routes through
+        // fetchProductsByIds so an oversized basket fans out into multiple requests instead of a
+        // single rejected call.
+        const productItems = Array.from({ length: 25 }, (_, i) => ({
+            itemId: `item-${i}`,
+            productId: `product-${i}`,
+            quantity: 1,
+        }));
+        const basket = { basketId: 'basket-123', productItems };
+        vi.mocked(getBasket).mockResolvedValue({ current: basket } as any);
+        mockGetProducts.mockResolvedValue({ data: { data: [] } });
+
+        await loader(getLoaderArgs());
+
+        // 25 IDs -> two batches (24 + 1), neither exceeding the SCAPI limit.
+        expect(mockGetProducts).toHaveBeenCalledTimes(2);
+        const batchSizes = mockGetProducts.mock.calls.map((call) => call[0].params.query.ids.length);
+        expect(batchSizes).toEqual([24, 1]);
     });
 
     it('passes an explicit expand list scoped to mini-cart consumers', async () => {
