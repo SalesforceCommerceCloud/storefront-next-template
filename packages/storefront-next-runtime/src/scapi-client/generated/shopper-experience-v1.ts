@@ -848,18 +848,6 @@ export interface components {
              */
             dataBindings?: components["schemas"]["DataBindingRequirement"][];
         };
-        /**
-         * @description A resolved data binding object containing arbitrary key-value pairs returned by the data provider for a specific record. The shape of the object is determined by the data provider and may include any user-defined fields.
-         * @example {
-         *       "title": "Winter Sale",
-         *       "body": "<div>Shop our winter collection</div>",
-         *       "c_showCountdown": true,
-         *       "c_endDate": "2026-03-31T23:59:59Z"
-         *     }
-         */
-        ResolvedDataBinding: {
-            [key: string]: unknown;
-        };
         /** @description Response containing the resolved qualification results for customer groups, campaign qualifiers, and data bindings. */
         QualifierResolveResponse: {
             /**
@@ -904,15 +892,17 @@ export interface components {
              *         "homepage-banner": {
              *           "title": "Winter Sale",
              *           "body": "<div>Shop our winter collection</div>",
-             *           "c_showCountdown": true,
-             *           "c_endDate": "2026-03-31T23:59:59Z"
+             *           "showCountdown": true,
+             *           "endDate": "2026-03-31T23:59:59Z"
              *         }
              *       }
              *     }
              */
             dataBindings?: {
                 [key: string]: {
-                    [key: string]: components["schemas"]["ResolvedDataBinding"];
+                    [key: string]: {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };
@@ -957,6 +947,12 @@ export interface components {
         siteId: components["schemas"]["SiteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale: components["schemas"]["LocaleCode"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         */
+        personalized: "none";
         /** @description Identifier for the requested page. */
         pageId: string;
         /** @description Identifier for the requested component. */
@@ -1017,6 +1013,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
@@ -1070,6 +1072,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
@@ -1201,6 +1209,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
@@ -1248,6 +1262,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
@@ -1304,6 +1324,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
                 /** @description Number of records to retrieve per request. Must be between 1 (minimum) and 200 (maximum). Defaults to 50. */
                 limit?: number;
                 /** @description Used to retrieve the results based on a particular resource offset. */
@@ -1350,6 +1376,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
@@ -1410,6 +1442,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {

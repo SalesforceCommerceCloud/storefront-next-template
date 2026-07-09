@@ -53,7 +53,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         OrganizationId: string;
@@ -76,9 +76,8 @@ export interface components {
          * @description A specialized value indicating the system default values for locales.
          * @default default
          * @example default
-         * @enum {string}
          */
-        DefaultFallback: "default";
+        DefaultFallback: string;
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         LocaleCode: components["schemas"]["LanguageCountry"] | components["schemas"]["LanguageCode"] | components["schemas"]["DefaultFallback"];
         /**
@@ -211,31 +210,38 @@ export interface components {
             [key: string]: unknown;
         };
         /**
-         * @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard.
+         * @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable.
          * @example USD
          */
-        ISOCurrency: string;
+        CurrencyCode: string;
     };
     responses: never;
     parameters: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components["schemas"]["SiteId"];
+        /** @description A comma-separated list of promotion identifiers. Maximum: 50. */
         ids: string[];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale: components["schemas"]["LocaleCode"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         */
+        personalized: "none";
         /** @description Find the promotions assigned to this campaign (mandatory). */
         campaignId: string;
-        /** @description The start date of the promotion in ISO8601 date time format: yyyy-MM-dd'T'HH:mmZ */
+        /** @description The start date of the promotion in ISO 8601 date time format. */
         startDate: string;
-        /** @description The end date of the promotion in ISO8601 date time format: yyyy-MM-dd'T'HH:mmZ */
+        /** @description The end date of the promotion in ISO 8601 date time format. */
         endDate: string;
         /** @description The currency mnemonic specified for price. This parameter is effective only for product suggestions. */
-        currency: components["schemas"]["ISOCurrency"];
+        currency: components["schemas"]["CurrencyCode"];
     };
     requestBodies: never;
     headers: never;
@@ -248,14 +254,21 @@ export interface operations {
             query: {
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
+                /** @description A comma-separated list of promotion identifiers. Maximum: 50. */
                 ids: components["parameters"]["ids"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -273,13 +286,13 @@ export interface operations {
                     "application/json": components["schemas"]["PromotionResult"];
                 };
             };
-            /** @description Thrown when there is no promotion found with the given ID for the requested site. */
+            /** @description Returned when there is no promotion found with the given ID for the requested site. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -289,19 +302,25 @@ export interface operations {
             query: {
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
-                /** @description The start date of the promotion in ISO8601 date time format: yyyy-MM-dd'T'HH:mmZ */
+                /** @description The start date of the promotion in ISO 8601 date time format. */
                 startDate?: components["parameters"]["startDate"];
-                /** @description The end date of the promotion in ISO8601 date time format: yyyy-MM-dd'T'HH:mmZ */
+                /** @description The end date of the promotion in ISO 8601 date time format. */
                 endDate?: components["parameters"]["endDate"];
                 /** @description The currency mnemonic specified for price. This parameter is effective only for product suggestions. */
                 currency?: components["parameters"]["currency"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
                 /** @description Find the promotions assigned to this campaign (mandatory). */
                 campaignId: components["parameters"]["campaignId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -319,22 +338,22 @@ export interface operations {
                     "application/json": components["schemas"]["PromotionResult"];
                 };
             };
-            /** @description Thrown when a start date is provided without an end date, when an end date is provided without a start date, or when an end date precedes the start date. */
+            /** @description Returned when a start date is provided without an end date, when an end date is provided without a start date, or when an end date precedes the start date. */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Thrown when no promotion with the specified ID is found for the requested site. */
+            /** @description Returned when no promotion with the specified ID is found for the requested site. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

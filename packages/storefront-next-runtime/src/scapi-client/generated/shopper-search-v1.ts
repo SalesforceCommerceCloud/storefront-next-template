@@ -425,6 +425,17 @@ export interface components {
              * @example Buy the Long Sleeve Covered Placket Blouse for USD 61.99.
              */
             value?: string;
+            /**
+             * @description The kind of Page Meta Tag, indicating how the storefront should render the value.
+             *     Documented values are `name`, `property`, `title`, and `jsonld`:
+             *       * `name` — render as `<meta name="...">`.
+             *       * `property` — render as `<meta property="...">` (e.g. Open Graph tags).
+             *       * `title` — render as the HTML `<title>` element.
+             *       * `jsonld` — JSON-LD structured data, intended for rendering inside `<script type="application/ld+json">`.
+             *     The field may be absent when the kind cannot be determined. Clients should treat unknown values as opaque so additional kinds can be introduced without breaking the contract.
+             * @example name
+             */
+            type?: string;
         };
         /**
          * @description The query string that was searched for.
@@ -729,7 +740,10 @@ export interface components {
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
-        /** @example (hits.(**), refinements, sortingOptions.(id)) */
+        /**
+         * @description The property selector declaring which fields are included in the product search response payload. For details, see [Property Selection.](https://developer.salesforce.com/docs/commerce/commerce-api/guide/scapi-property-selection.html)
+         * @example (hits.(**), refinements, sortingOptions.(id))
+         */
         productSearchSelect: components["schemas"]["Select"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components["schemas"]["SiteId"];
@@ -814,7 +828,10 @@ export interface operations {
     productSearch: {
         parameters: {
             query: {
-                /** @example (hits.(**), refinements, sortingOptions.(id)) */
+                /**
+                 * @description The property selector declaring which fields are included in the product search response payload. For details, see [Property Selection.](https://developer.salesforce.com/docs/commerce/commerce-api/guide/scapi-property-selection.html)
+                 * @example (hits.(**), refinements, sortingOptions.(id))
+                 */
                 select?: components["parameters"]["productSearchSelect"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
@@ -957,7 +974,7 @@ export interface operations {
                     "application/json": components["schemas"]["SuggestionResult"];
                 };
             };
-            /** @description Thrown when a query parameter or its value is unknown, or when a maximum or minimum constraint is violated. */
+            /** @description Returned when a query parameter or its value is unknown, or when a maximum or minimum constraint is violated. */
             400: {
                 headers: {
                     [name: string]: unknown;

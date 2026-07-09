@@ -38,7 +38,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -78,7 +78,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -147,7 +147,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -178,6 +178,47 @@ export interface paths {
         patch: operations["updateBasket"];
         trace?: never;
     };
+    "/organizations/{organizationId}/baskets/{basketId}/actions/promote": {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /** @description The ID of the basket to be modified. */
+                basketId: components["parameters"]["basketId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Promote a temporary basket by clearing its isTemporary flag.
+         * @description Clears the `isTemporary` flag on a temporary basket (`isTemporary = true`). The basket UUID is preserved. For regular shopper baskets, the result satisfies `isStorefrontBasket`; for agent baskets (`isAgentBasket = true`), the `isTemporary` flag is cleared but the basket remains an agent basket — it does not become a storefront basket.
+         *
+         *     **Agent baskets:** Because agent baskets do not occupy the customer's storefront basket slot after promotion, conflict resolution is skipped entirely. The `merge` and `overrideExisting` parameters are ignored when promoting an agent basket.
+         *
+         *     For non-agent baskets, if the shopper already has a storefront basket, this endpoint uses the `merge` parameter to control the behavior:
+         *     - `true` (recommended): Executes the `dw.order.mergeBasket` hook to fold the pre-existing storefront basket's contents into the promoted basket.
+         *     - `false`: Either overrides the pre-existing storefront basket or returns a `409` response, depending on the `overrideExisting` parameter.
+         *
+         *     If `merge=false` and the shopper has a pre-existing storefront basket, the `overrideExisting` parameter controls the behavior:
+         *     - `false` (default): Returns a `BasketNotPromotableException` (HTTP status 409).
+         *     - `true`: Deletes the pre-existing storefront basket and completes the promotion.
+         */
+        post: operations["promoteTemporaryBasket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{organizationId}/baskets/{basketId}/agent": {
         parameters: {
             query: {
@@ -187,7 +228,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -218,7 +259,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -249,7 +290,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -280,7 +321,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -313,7 +354,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -344,7 +385,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -375,7 +416,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -412,7 +453,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -503,7 +544,7 @@ export interface paths {
                 /** @description The ID of the item to be updated. */
                 itemId: components["parameters"]["itemId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -564,7 +605,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -594,7 +635,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -623,7 +664,7 @@ export interface paths {
             path: {
                 paymentInstrumentId: components["parameters"]["paymentInstrumentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -655,7 +696,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -683,7 +724,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -712,7 +753,7 @@ export interface paths {
             path: {
                 priceAdjustmentId: components["parameters"]["priceAdjustmentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -749,7 +790,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -785,7 +826,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -826,7 +867,7 @@ export interface paths {
                 /** @description The ID of the shipment to be modified. */
                 shipmentId: components["parameters"]["shipmentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -870,7 +911,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -900,7 +941,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -930,7 +971,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -963,7 +1004,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -991,7 +1032,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -1027,7 +1068,7 @@ export interface components {
          */
         SiteId: string;
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         OrganizationId: string;
@@ -1041,21 +1082,6 @@ export interface components {
          * @example en
          */
         LanguageCode: string;
-        /** @description The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps. */
-        DeliveryWindow: {
-            /**
-             * Format: date-time
-             * @description The earliest expected delivery time, as an RFC 3339 date-time.
-             * @example 2026-04-30T14:00:00Z
-             */
-            startAt?: string;
-            /**
-             * Format: date-time
-             * @description The latest expected delivery time, as an RFC 3339 date-time.
-             * @example 2026-05-07T14:00:00Z
-             */
-            endAt?: string;
-        };
         /**
          * @description A specialized value indicating the system default values for locales.
          * @default default
@@ -1503,6 +1529,31 @@ export interface components {
              */
             validFromYear?: number;
         };
+        /** @description Document representing a gift card response. */
+        GiftCardResponse: {
+            /**
+             * @description The gift card brand.
+             * @example givex
+             */
+            brand?: string;
+            /**
+             * @description The masked gift card number.
+             * @example *********4422
+             */
+            maskedCardNumber?: string;
+            /**
+             * Format: int32
+             * @description The month when the gift card expires.
+             * @example 1
+             */
+            expirationMonth?: number;
+            /**
+             * Format: int32
+             * @description The year when the gift card expires.
+             * @example 2030
+             */
+            expirationYear?: number;
+        };
         /**
          * @description The payment instrument ID
          * @example ba248424e3eee797f062162f8b
@@ -1530,6 +1581,8 @@ export interface components {
             maskedGiftCertificateCode?: string;
             /** @description The payment card. */
             paymentCard?: components["schemas"]["PaymentCard"];
+            /** @description The gift card. */
+            giftCard?: components["schemas"]["GiftCardResponse"];
             /** @description The payment instrument ID. It is read only. */
             paymentInstrumentId?: components["schemas"]["PaymentInstrumentId"];
             /**
@@ -1544,12 +1597,6 @@ export interface components {
                  * @example pi_3N4B2vF0wDjebNCp1234567
                  */
                 paymentReferenceId?: string;
-                /**
-                 * Format: uri
-                 * @description Redirect URL for payment methods that require user redirection to complete payment.
-                 * @example https://checkout.stripe.com/pay/cs_test_abc123
-                 */
-                redirectUrl?: string;
                 /**
                  * @description The payment gateway used to process the payment.
                  * @example stripe
@@ -1577,7 +1624,19 @@ export interface components {
                     paypal?: {
                         [key: string]: unknown;
                     };
-                    /** @description # Adyen specific properties. */
+                    /**
+                     * @description # Adyen specific properties.
+                     *
+                     *     - adyenError: Error information returned by Adyen if the payment fails. Null on success.
+                     *     - adyenPaymentIntent: The Adyen payment intent object containing payment details and required actions.
+                     *       - resultCode: The result of the payment request (for example, "REDIRECT_SHOPPER", "AUTHORISED", "PENDING", "REFUSED").
+                     *       - accountID: The Adyen merchant account ID.
+                     *       - adyenPaymentIntentAction: The action object for payment methods requiring additional shopper interaction.
+                     *         - url: The URL for completing the payment (redirect or 3DS authentication).
+                     *         - type: The action type (for example, "redirect", "threeDS2", "voucher").
+                     *         - method: The HTTP method for the action (for example, "GET", "POST").
+                     *     - successful: A boolean indicating whether the Adyen operation is successful.
+                     */
                     adyen?: {
                         [key: string]: unknown;
                     };
@@ -1700,8 +1759,6 @@ export interface components {
              * @example 006490dcc338feeafc71c964bf
              */
             shippingItemId?: string;
-            /** @description Information retrieved from Order Management (OMS) for the product. Only available in context of an order. */
-            omsData?: components["schemas"]["OmsProductData"];
             /**
              * Format: double
              * @description The tax for the product item, not including price adjustments. It is read only.
@@ -1929,24 +1986,22 @@ export interface components {
              */
             type?: "product" | "gift_certificate";
         };
-        /**
-         * @description Additional information retrieved from Order Management (OMS)
-         *     See https://developer.salesforce.com/docs/atlas.en-us.order_management_developer_guide.meta/order_management_developer_guide/sforce_api_objects_orderitemsummary.htm for more information.
-         *     Only available in context of an order.
-         */
-        OmsProductData: {
+        /** @description Document representing a basket product item. */
+        BasketProductItem: components["schemas"]["ProductItem"];
+        /** @description The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps. The API preserves sub-day precision end-to-end. */
+        DeliveryWindow: {
             /**
-             * @description Order Management (OMS) status
-             * @example ordered
-             * @enum {string}
+             * Format: date-time
+             * @description The earliest expected delivery time, as an RFC 3339 date-time.
+             * @example 2026-04-30T14:00:00Z
              */
-            status?: "ordered" | "returned" | "canceled" | "paid" | "reshipped" | "fulfilled" | "partially_fulfilled" | "allocated" | "partially_allocated" | "return_initiated";
+            startAt?: string;
             /**
-             * Format: double
-             * @description The quantity that can be cancelled.
-             * @example 2
+             * Format: date-time
+             * @description The latest expected delivery time, as an RFC 3339 date-time.
+             * @example 2026-04-30T18:00:00Z
              */
-            quantityAvailableToCancel?: number;
+            endAt?: string;
         };
         /**
          * @description The identifier of the shipment
@@ -1975,7 +2030,7 @@ export interface components {
         };
         /** @description Document representing a shipping method. */
         ShippingMethod: {
-            /** @description The estimated delivery window for this shipping method. Populated by the sfcc.app.shipping.quote hook. Omitted if the hook does not return a delivery window. */
+            /** @description The estimated delivery window for this shipping method. The sfcc.app.shipping.quote hook populates this value. The response omits this field if the hook doesn't return a delivery window. */
             deliveryWindow?: components["schemas"]["DeliveryWindow"];
             /**
              * @description The localized description of the shipping method.
@@ -1994,6 +2049,12 @@ export interface components {
              * @example Ground
              */
             name?: string;
+            /**
+             * Format: date-time
+             * @description The timestamp by which an order must be placed for the deliveryWindow to apply, as an RFC 3339 date-time. The sfcc.app.shipping.quote hook populates this value. The response omits this field if the hook doesn't return a cutoff time.
+             * @example 2026-04-27T14:00:00Z
+             */
+            orderCutoffAt?: string;
             /**
              * Format: double
              * @description The shipping cost total, including shipment level costs,
@@ -2025,6 +2086,8 @@ export interface components {
              * @example 0.3
              */
             adjustedShippingTotalTax?: number;
+            /** @description The estimated delivery window for the shipment. The sfcc.app.shipping.calculate hook populates this value from the selected shipping method. The response omits this field if the hook doesn't return a delivery window. This field is reserved for future use and will be supported in an upcoming release. */
+            deliveryWindow?: components["schemas"]["DeliveryWindow"];
             /**
              * @description A flag indicating whether the shipment is a gift. It is read only.
              * @example true
@@ -2042,6 +2105,12 @@ export interface components {
              * @example 4.95
              */
             merchandizeTotalTax?: number;
+            /**
+             * Format: date-time
+             * @description The timestamp by which an order must be placed for the deliveryWindow to apply, as an RFC 3339 date-time. The sfcc.app.shipping.calculate hook populates this value from the selected shipping method. The response omits this field if the hook doesn't return a cutoff time. This field is reserved for future use and will be supported in an upcoming release.
+             * @example 2026-04-27T14:00:00Z
+             */
+            orderCutoffAt?: string;
             /**
              * Format: double
              * @description The total price of all products in the shipment, including item-level adjustments, but not including
@@ -2178,6 +2247,70 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** @description Document representing a promotion link. */
+        PromotionLink: {
+            /**
+             * @description The unique id of the promotion.
+             * @example 10off100
+             */
+            promotionId?: string;
+            /**
+             * @description The localized name of the promotion.
+             * @example 10% off $100 orders
+             */
+            name?: string;
+            /**
+             * @description The localized call-out message of the promotion.
+             * @example Spend $10 more to save 10%!
+             */
+            calloutMsg?: string;
+            /**
+             * @description The link title.
+             * @example 10% off $100 orders
+             */
+            title?: string;
+            /**
+             * @description The URL addressing the promotion.
+             * @example /s/SiteGenesis/promotion?id=10off100
+             */
+            link?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** @description Document representing an approaching discount for a basket. Contains information about promotions the customer is close to qualifying for. */
+        ApproachingDiscount: {
+            /**
+             * @description The type of approaching discount (order-level or shipping-level).
+             * @example order
+             * @enum {string}
+             */
+            type: "order" | "shipping";
+            /**
+             * Format: double
+             * @description The total amount needed to receive the discount.
+             * @example 100
+             */
+            conditionThreshold?: number;
+            /**
+             * Format: double
+             * @description The amount the customer basket contributes towards the purchase condition.
+             * @example 90
+             */
+            merchandiseTotal?: number;
+            /** @description The applied discount when the order meets the threshold. */
+            discount?: components["schemas"]["Discount"];
+            /** @description Document representing a promotion link. */
+            promotionLink?: components["schemas"]["PromotionLink"];
+            /**
+             * @description The unique id of the shipment the discount relates to. Only applicable when type = shipping.
+             * @example me
+             */
+            shipmentId?: string;
+            /** @description The shipping methods the promotion relates to. Only applicable when type = shipping. */
+            shippingMethods?: components["schemas"]["ShippingMethod"][];
+        } & {
+            [key: string]: unknown;
+        };
         /** @description Document representing a basket. */
         Basket: {
             /**
@@ -2214,7 +2347,7 @@ export interface components {
              * @example storefront
              * @enum {string}
              */
-            channelType?: "storefront" | "callcenter" | "marketplace" | "dss" | "store" | "pinterest" | "twitter" | "facebookads" | "subscriptions" | "onlinereservation" | "customerservicecenter" | "instagramcommerce" | "tiktok" | "snapchat" | "google" | "whatsapp" | "youtube";
+            channelType?: "storefront" | "callcenter" | "marketplace" | "dss" | "store" | "pinterest" | "twitter" | "facebookads" | "subscriptions" | "onlinereservation" | "customerservicecenter" | "instagramcommerce" | "tiktok" | "snapchat" | "google" | "whatsapp" | "youtube" | "chatgpt" | "gemini";
             /** @description The coupon items. */
             couponItems?: components["schemas"]["CouponItem"][];
             /**
@@ -2265,7 +2398,7 @@ export interface components {
             /** @description The payment instruments list. */
             paymentInstruments?: components["schemas"]["OrderPaymentInstrument"][];
             /** @description The product items. */
-            productItems?: components["schemas"]["ProductItem"][];
+            productItems?: components["schemas"]["BasketProductItem"][];
             /**
              * Format: double
              * @description The total price of all products including item-level adjustments, but not including order-level adjustments or shipping
@@ -2324,6 +2457,8 @@ export interface components {
              * @example true
              */
             temporaryBasket?: boolean;
+            /** @description A list of approaching discount objects for the basket. The list includes both order-level and shipping-level promotions. This field is only included when the expand query parameter contains 'approaching_discounts'. */
+            approachingDiscounts?: components["schemas"]["ApproachingDiscount"][];
         } & {
             [key: string]: unknown;
         };
@@ -2438,6 +2573,36 @@ export interface components {
              */
             validFromYear?: number;
         };
+        /** @description Represents gift card details for a request. */
+        GiftCardRequest: {
+            /**
+             * @description The gift card type or brand (for example, givex, blackhawk).
+             * @example givex
+             */
+            brand: string;
+            /**
+             * @description The gift card number.
+             * @example 6364530000000000
+             */
+            cardNumber: string;
+            /**
+             * @description The card verification code (CVC/CVV) for the gift card.
+             * @example 123
+             */
+            cvc: string;
+            /**
+             * Format: int32
+             * @description The month when the gift card expires.
+             * @example 1
+             */
+            expirationMonth?: number;
+            /**
+             * Format: int32
+             * @description The year when the gift card expires.
+             * @example 2030
+             */
+            expirationYear?: number;
+        };
         /** @description Properties for Payments Reference Request */
         PaymentReferenceRequest: {
             /**
@@ -2508,6 +2673,8 @@ export interface components {
             giftCertificateCode?: string;
             /** @description The payment card. */
             paymentCard?: components["schemas"]["OrderPaymentCardRequest"];
+            /** @description The gift card request. */
+            giftCardRequest?: components["schemas"]["GiftCardRequest"];
             /**
              * @description The payment method ID.
              * @example CREDIT_CARD
@@ -2653,7 +2820,7 @@ export interface components {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components["schemas"]["SiteId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
@@ -2732,8 +2899,15 @@ export interface components {
         productItemMergeMode: "higher_quantity" | "sum_quantities" | "saved_quantity" | "separate_item";
         /** @description The ID of the basket to be modified. */
         basketId: string;
+        /**
+         * @description Expands the response with additional data.
+         *     - payment_references: Adds a `paymentReference` object to each `paymentInstrument`, holding data regarding the payment with the external payment gateway. If Salesforce Payments is not enabled, this expansion has no effect.
+         *     - approaching_discounts: The endpoint returns the approachingDiscounts array on the basket, which contains order and shipping discount entries. If you don't provide this parameter, the approachingDiscounts field isn't included in the response.
+         */
+        expand: ("payment_references" | "approaching_discounts")[];
         /** @description If `true` (default value), the external tax rates are removed from the basket and set to null. To add external tax rates to a basket, use the `addTaxesForBasket` or `addTaxesForBasketItem` endpoint. The removal of external tax rates depends on the update performed on the basket, for example: an update to the `currency` triggers a removal. Set this parameter to `false` to disable the removal of external tax rates/values. */
         removeExternalTax: boolean;
+        /** @description When true, the address is also used as the shipping address. */
         useAsShipping: boolean;
         /** @description The ID of the coupon item. */
         couponItemId: components["schemas"]["CouponItemId"];
@@ -2745,6 +2919,7 @@ export interface components {
         priceAdjustmentId: components["schemas"]["PriceAdjustmentId"];
         /** @description The ID of the shipment to be modified. */
         shipmentId: components["schemas"]["ShipmentId"];
+        /** @description When true, the address is also used as the billing address. */
         useAsBilling: boolean;
         /** @description If true, an existing storefront basket is exchanged and marked as an agent basket. If false, a `CustomerBasketsQuotaExceededException` is thrown. */
         exchange: boolean;
@@ -2789,7 +2964,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2835,7 +3010,7 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Thrown if the shipment with the given shipment ID is unknown. */
+            /** @description Returned if the shipment with the given shipment ID is unknown. */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2903,7 +3078,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2977,7 +3152,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3026,11 +3201,17 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Expands the response with additional data.
+                 *     - payment_references: Adds a `paymentReference` object to each `paymentInstrument`, holding data regarding the payment with the external payment gateway. If Salesforce Payments is not enabled, this expansion has no effect.
+                 *     - approaching_discounts: The endpoint returns the approachingDiscounts array on the basket, which contains order and shipping discount entries. If you don't provide this parameter, the approachingDiscounts field isn't included in the response.
+                 */
+                expand?: components["parameters"]["expand"];
             };
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3082,7 +3263,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3136,7 +3317,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3196,6 +3377,91 @@ export interface operations {
             };
         };
     };
+    promoteTemporaryBasket: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /**
+                 * @description If the current shopper has no active basket, this parameter is ignored. If the current shopper has an active basket, this parameter controls the behavior:
+                 *     - `false` (default): Return a BasketTransferException (HTTP status 409). The basket owner doesn't change.
+                 *     - `true`: Force the transfer by deleting the current shopper's active basket and making the current shopper the owner of the previous shopper's basket. Returns the transferred basket (HTTP status 200).
+                 */
+                overrideExisting?: components["parameters"]["overrideExisting"];
+                /**
+                 * @description This parameter controls the behavior:
+                 *         - `false` (default): Transfers the basket or returns a 409 response with the appropriate message (taking `overrideExisting` in consideration).
+                 *         - `true`: (recommended): Executes the dw.order.mergeBasket hook if at least one basket exists.
+                 *
+                 *     The hook dw.order.mergeBasket default implementation merges a source basket into the current basket. This behavior can be customized, as shown
+                 *     in this [sample implementation](https://gist.github.com/sf-thomas-loesche/3446c7d71a97e559bf1caee96ae56d9f).
+                 *
+                 *     There are four possible use cases:
+                 *
+                 *     a) Guest basket and registered basket exist
+                 *     The guest basket becomes the current basket for the registered shopper by updating the basket's owner (no personal data is removed). The hook
+                 *     dw.order.mergeBasket is called with the source basket (former registered shopper basket) and the transferred current basket (former guest basket).
+                 *
+                 *     b) Guest basket exists but no registered basket exists
+                 *     The guest basket becomes the current basket for the registered shopper by updating the basket's owner (no personal data is removed). The hook
+                 *     dw.order.mergeBasket is called without the source basket (null passed to the hook) and the transferred current basket (former guest basket).
+                 *
+                 *     c) No guest basket exists but a registered basket exists
+                 *     The registered basket is retained. The hook dw.order.mergeBasket is called with the retained current basket but without the source basket (null
+                 *     passed to the hook).
+                 *
+                 *     d) Neither basket exists
+                 *     The hook dw.order.mergeBasket is not called.
+                 *
+                 *     The API returns the current basket (after executing dw.order.mergeBasket).
+                 */
+                merge?: components["parameters"]["merge"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /** @description The ID of the basket to be modified. */
+                basketId: components["parameters"]["basketId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The basket's `isTemporary` flag has been cleared. For regular shopper baskets the result is a storefront basket; agent baskets remain agent baskets. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Basket"];
+                };
+            };
+            /** @description The basket with the given basket ID is unknown. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The call returns this response when the `merge` request parameter is set to `false` and the shopper has a pre-existing storefront basket and `overrideExisting` is set to `false` (default value). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     updateAsAgentBasket: {
         parameters: {
             query: {
@@ -3207,7 +3473,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3254,6 +3520,7 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /** @description When true, the address is also used as the shipping address. */
                 useAsShipping?: components["parameters"]["useAsShipping"];
                 /** @description If `true` (default value), the external tax rates are removed from the basket and set to null. To add external tax rates to a basket, use the `addTaxesForBasket` or `addTaxesForBasketItem` endpoint. The removal of external tax rates depends on the update performed on the basket, for example: an update to the `currency` triggers a removal. Set this parameter to `false` to disable the removal of external tax rates/values. */
                 removeExternalTax?: components["parameters"]["removeExternalTax"];
@@ -3261,7 +3528,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3319,7 +3586,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3380,7 +3647,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3441,7 +3708,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3506,7 +3773,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3565,7 +3832,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3611,7 +3878,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3672,7 +3939,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3683,7 +3950,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ProductItem"][];
+                "application/json": components["schemas"]["BasketProductItem"][];
             };
         };
         responses: {
@@ -3757,7 +4024,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3768,7 +4035,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ProductItem"][];
+                "application/json": components["schemas"]["BasketProductItem"][];
             };
         };
         responses: {
@@ -3823,7 +4090,7 @@ export interface operations {
                 /** @description The ID of the item to be updated. */
                 itemId: components["parameters"]["itemId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3881,7 +4148,7 @@ export interface operations {
                 /** @description The ID of the item to be updated. */
                 itemId: components["parameters"]["itemId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -3892,7 +4159,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ProductItem"];
+                "application/json": components["schemas"]["BasketProductItem"];
             };
         };
         responses: {
@@ -3949,7 +4216,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4011,7 +4278,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4072,7 +4339,7 @@ export interface operations {
             path: {
                 paymentInstrumentId: components["parameters"]["paymentInstrumentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4134,7 +4401,7 @@ export interface operations {
             path: {
                 paymentInstrumentId: components["parameters"]["paymentInstrumentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4145,7 +4412,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["OrderPaymentInstrument"];
+                "application/json": components["schemas"]["BasketPaymentInstrumentRequest"];
             };
         };
         responses: {
@@ -4199,7 +4466,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4253,7 +4520,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4317,7 +4584,7 @@ export interface operations {
             path: {
                 priceAdjustmentId: components["parameters"]["priceAdjustmentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4367,7 +4634,7 @@ export interface operations {
             path: {
                 priceAdjustmentId: components["parameters"]["priceAdjustmentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4426,7 +4693,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4466,7 +4733,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4510,7 +4777,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4581,7 +4848,7 @@ export interface operations {
                 /** @description The ID of the shipment to be modified. */
                 shipmentId: components["parameters"]["shipmentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4654,7 +4921,7 @@ export interface operations {
                 /** @description The ID of the shipment to be modified. */
                 shipmentId: components["parameters"]["shipmentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4712,6 +4979,7 @@ export interface operations {
     updateShippingAddressForShipment: {
         parameters: {
             query: {
+                /** @description When true, the address is also used as the billing address. */
                 useAsBilling?: components["parameters"]["useAsBilling"];
                 /** @description If `true` (default value), the external tax rates are removed from the basket and set to null. To add external tax rates to a basket, use the `addTaxesForBasket` or `addTaxesForBasketItem` endpoint. The removal of external tax rates depends on the update performed on the basket, for example: an update to the `currency` triggers a removal. Set this parameter to `false` to disable the removal of external tax rates/values. */
                 removeExternalTax?: components["parameters"]["removeExternalTax"];
@@ -4723,7 +4991,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4785,7 +5053,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4849,7 +5117,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4911,7 +5179,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -4931,7 +5199,7 @@ export interface operations {
                     "application/json": components["schemas"]["Basket"];
                 };
             };
-            /** @description Thrown if a storefront basket already exists and the query parameter `exchange` is false. */
+            /** @description Returned if a storefront basket already exists and the query parameter `exchange` is false. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -4960,7 +5228,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -5012,7 +5280,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];

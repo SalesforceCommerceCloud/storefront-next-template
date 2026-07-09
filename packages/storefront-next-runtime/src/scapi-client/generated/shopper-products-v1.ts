@@ -10,7 +10,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -36,7 +36,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -58,13 +58,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{organizationId}/products/{productId}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /** @description The ID of the product whose images to retrieve. */
+                productId: components["parameters"]["productId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Returns product image data for a single product.
+         * @description Returns a Product document for the specified product ID, focused on imageGroups and related image fields. Only
+         *     online products assigned to a site catalog are returned.
+         *
+         *     Use the following parameters to control image output:
+         *     imgTypes — Filters which catalog view types to include, with optional per-type image limits. Defaults to all
+         *     view types with a 200-image cap per type.
+         *
+         *     allImages — Controls whether the full image model is returned.
+         *
+         *     variationAttribute — Narrows image selection by variation context. Applies only when allImages is true.
+         */
+        get: operations["getProductImages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/products/{productId}/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /**
+                 * @description The ID of the product whose prices to retrieve.
+                 * @example apple-ipod-shuffle
+                 */
+                productId: components["parameters"]["parameters-productId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Returns price details for a single product.
+         * @description Returns price details for a single product that is online and assigned to a site catalog. Returns the effective sales price, tiered prices, and per-pricebook prices. Prices are personalized by customer group and pricebook. Responses are not CDN-cached but are eligible for JWA caching with a 15-minute TTL.
+         */
+        get: operations["getProductPrices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/products/{productId}/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /**
+                 * @description The ID of the product whose promotions to retrieve.
+                 * @example apple-ipod-shuffle
+                 */
+                productId: components["parameters"]["components-parameters-productId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Returns active promotion details for a single product.
+         * @description Returns active promotion details for a single product that is online and assigned to a site catalog. Active promotions are filtered by customer group, campaign date range, and time slot. Promotions are personalized. Responses are not CDN-cached but are eligible for JWA caching with a 15-minute TTL.
+         */
+        get: operations["getProductPromotions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{organizationId}/categories": {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -92,7 +191,7 @@ export interface paths {
                 /** @description The ID of the requested category. */
                 id: components["parameters"]["parameters-id"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -124,7 +223,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         OrganizationId: string;
@@ -287,6 +386,35 @@ export interface components {
              * @example electronics
              */
             primaryCategoryId?: string;
+            /**
+             * @description The primary category of the product, including its full ancestor breadcrumb path (root to leaf,
+             *     root category node excluded). Only present when the primary_category expand is requested.
+             */
+            primaryCategory?: {
+                /**
+                 * @description The ID of the primary category.
+                 * @example electronics-digital-media-players
+                 */
+                id?: string;
+                /**
+                 * @description The localized name of the primary category.
+                 * @example iPod & MP3 Players
+                 */
+                name?: string;
+                /** @description The list of ancestor categories from root to the primary category (root category node excluded). */
+                parentCategoryTree?: {
+                    /**
+                     * @description The ID of the ancestor category.
+                     * @example electronics
+                     */
+                    id?: string;
+                    /**
+                     * @description The name of the ancestor category.
+                     * @example Electronics
+                     */
+                    name?: string;
+                }[];
+            };
             /** @description The array of source and target product links information. */
             productLinks?: components["schemas"]["ProductLink"][];
             /**
@@ -577,6 +705,17 @@ export interface components {
              * @example Buy the Long Sleeve Covered Placket Blouse for USD 61.99.
              */
             value?: string;
+            /**
+             * @description The kind of Page Meta Tag, indicating how the storefront should render the value.
+             *     Documented values are `name`, `property`, `title`, and `jsonld`:
+             *       * `name` — render as `<meta name="...">`.
+             *       * `property` — render as `<meta property="...">` (e.g. Open Graph tags).
+             *       * `title` — render as the HTML `<title>` element.
+             *       * `jsonld` — JSON-LD structured data, intended for rendering inside `<script type="application/ld+json">`.
+             *     The field may be absent when the kind cannot be determined. Clients should treat unknown values as opaque so additional kinds can be introduced without breaking the contract.
+             * @example name
+             */
+            type?: string;
         };
         /** @description Document representing price ranges for a product which happens to be a master product (per Pricebook) */
         PriceRange: {
@@ -883,6 +1022,118 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** @description Document containing only the image groups for a product. Contains no price, availability, or other non-image data. */
+        ProductImages: {
+            id: components["schemas"]["ProductId"];
+            /** @description Array of image groups for this product. Each group corresponds to a view type and optionally to specific variation attribute values. */
+            imageGroups?: components["schemas"]["ImageGroup"][];
+        };
+        /** @description Document representing the min/max price range for a single pricebook. Only present for complex products (master, variation group, product set). */
+        ProductPriceRange: {
+            /**
+             * @description The ID of the pricebook.
+             * @example usd-sale-pricebook
+             */
+            pricebook?: string;
+            /**
+             * Format: double
+             * @description The minimum price across all variants for this pricebook.
+             * @example 19.99
+             */
+            minPrice?: number;
+            /**
+             * Format: double
+             * @description The maximum price across all variants for this pricebook.
+             * @example 99.99
+             */
+            maxPrice?: number;
+        };
+        /** @description Document representing the price details for a single product. Contains only price-related fields; no images, availability, variations, or other product data are included. Price fields are absent when no pricebook is configured for the requested site and locale context — only `productId` is guaranteed in the response. */
+        PricesResult: {
+            /**
+             * @description The ID of the product.
+             * @example apple-ipod-shuffle
+             */
+            productId: string;
+            /**
+             * Format: double
+             * @description The effective sales price of the product. For complex products (master, set), this is the minimum
+             *     price of the related child products.
+             * @example 89.99
+             */
+            price?: number;
+            /**
+             * Format: double
+             * @description The maximum sales price. For complex products (master, set), this is the maximum price of the related child products.
+             * @example 99.99
+             */
+            priceMax?: number;
+            /**
+             * Format: double
+             * @description The price per unit if defined for the product.
+             * @example 8.99
+             */
+            pricePerUnit?: number;
+            /**
+             * Format: double
+             * @description The maximum price per unit, typically for a master product's variant.
+             * @example 9.99
+             */
+            pricePerUnitMax?: number;
+            /**
+             * @description The unit of measure for the per-unit price (e.g. "kg", "lb").
+             * @example kg
+             */
+            pricePerUnitUnit?: string;
+            /** @description The list of tiered prices for the product. Each entry represents a price for a given pricebook and minimum order quantity threshold. Uses the effective (lowest) winning price from the merged applicable pricebooks for each quantity tier — matching the SCAPI product endpoint's tieredPrices field. */
+            tieredPrices?: components["schemas"]["ProductPriceTable"][];
+            /**
+             * @description A map of pricebook IDs to their corresponding prices for this product.
+             * @example {
+             *       "usd-sale-pricebook": 89.99,
+             *       "usd-list-pricebook": 99.99
+             *     }
+             */
+            prices?: {
+                [key: string]: number;
+            };
+            currency?: components["schemas"]["CurrencyCode"];
+            /** @description Per-pricebook min/max price ranges. Only present for complex products (master, variation group, product set) that have variants with differing prices. */
+            priceRanges?: components["schemas"]["ProductPriceRange"][];
+        };
+        /** @description Document representing an active promotion applicable to a product. */
+        "schemas-ProductPromotion": {
+            /**
+             * @description The unique ID of the promotion.
+             * @example 20off-electronics
+             */
+            promotionId: string;
+            /**
+             * @description The localized call-out message of the promotion.
+             * @example Save 20%!
+             */
+            calloutMsg: string;
+            /**
+             * Format: double
+             * @description The promotional price for this product. Only present for PRODUCT class promotions.
+             * @example 71.99
+             */
+            promotionalPrice?: number;
+        };
+        /** @description Document representing the active promotion details for a single product. Contains only promotion-related fields; no price, images, availability, variations, or other product data are included. Active promotions are filtered by customer group, campaign date range, and time slot. */
+        PromotionsResult: {
+            /**
+             * @description The ID of the product.
+             * @example apple-ipod-shuffle
+             */
+            productId: string;
+            /**
+             * @description An array of active customer promotions applicable to this product, sorted by promotion priority
+             *     using SORT_BY_EXCLUSIVITY ordering (exclusivity → rank → promotion class → discount type →
+             *     best discount → ID). This array can be empty. Coupon promotions are not returned in this array.
+             */
+            productPromotions?: components["schemas"]["schemas-ProductPromotion"][];
+        };
         /**
          * @description The ID of the category.
          * @example mens
@@ -996,7 +1247,7 @@ export interface components {
     };
     parameters: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
@@ -1014,11 +1265,23 @@ export interface components {
          * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
+         *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
+         *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
          * @example prices,promotions
          */
-        expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags")[];
+        expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category")[];
         /** @description The flag that indicates whether to retrieve the whole image model for the requested product. */
         allImages: boolean;
+        /**
+         * @description Filters product images by viewType with optional count limits per type. This parameter requires the images expand parameter.
+         *     When used, the response includes the imageGroups property filtered by the specified image types.
+         *     The format is a comma-separated list of image types with optional counts: <viewType>:<count>,<viewType>:<count>.
+         *     If the count is omitted, all images of that type are returned. If specified, the count limits the number of images returned for that type.
+         *     For example, imgTypes=large:2,small:1 returns up to 2 large images and 1 small image per product in the imageGroups.
+         *     If imgTypes is used without expand=images, it is ignored and imageGroups aren't included in the response.
+         * @example large:3,small:1
+         */
+        imgTypes: string;
         /** @description The flag that indicates whether to retrieve the per PriceBook prices and tiered prices (if available) for requested Products. Available end of June, 2021. */
         perPricebook: boolean;
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
@@ -1028,15 +1291,54 @@ export interface components {
         locale: components["schemas"]["LocaleCode"];
         /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
         currency: components["schemas"]["CurrencyCode"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         */
+        personalized: "none";
         /** @description The ID of the requested product. */
         id: components["schemas"]["ProductId"];
         /**
          * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
+         *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
+         *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
          * @example prices,promotions
          */
-        expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags")[];
+        expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category")[];
+        /** @description The ID of the product whose images to retrieve. */
+        productId: components["schemas"]["ProductId"];
+        /**
+         * @description Comma-separated list of view types to include in the response, with optional per-type image limits. Each item is
+         *     either viewType or viewType:count. If omitted, all catalog view types are returned, up to 200 images per view
+         *     type. If present, only the listed view types are included. The image count defaults to 200 per view type when
+         *     no limit is specified.
+         * @example large:3,small:1
+         */
+        "parameters-imgTypes": string;
+        /**
+         * @description When true, returns all variation-specific image groups rather than only the best-matching group
+         *     for the product's variation attribute values. Default: false.
+         */
+        "parameters-allImages": boolean;
+        /**
+         * @description Variation attribute values used to filter image groups when allImages=true.
+         *     Format: <attributeId>=<value>. This parameter can be repeated for multiple attributes.
+         *     Example: color=red&variationAttribute=size=L
+         */
+        variationAttribute: string[];
+        /**
+         * @description The ID of the product whose prices to retrieve.
+         * @example apple-ipod-shuffle
+         */
+        "parameters-productId": components["schemas"]["ProductId"];
+        /**
+         * @description The ID of the product whose promotions to retrieve.
+         * @example apple-ipod-shuffle
+         */
+        "components-parameters-productId": components["schemas"]["ProductId"];
         /**
          * @description The comma separated list of category IDs (max 50).
          * @example electronics-digital-cameras,electronics-televisions
@@ -1070,11 +1372,23 @@ export interface operations {
                  * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
                  *     The value "none" may be used to turn off all expand options.
                  *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
+                 *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
+                 *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
                  * @example prices,promotions
                  */
                 expand?: components["parameters"]["expand_multiId"];
                 /** @description The flag that indicates whether to retrieve the whole image model for the requested product. */
                 allImages?: components["parameters"]["allImages"];
+                /**
+                 * @description Filters product images by viewType with optional count limits per type. This parameter requires the images expand parameter.
+                 *     When used, the response includes the imageGroups property filtered by the specified image types.
+                 *     The format is a comma-separated list of image types with optional counts: <viewType>:<count>,<viewType>:<count>.
+                 *     If the count is omitted, all images of that type are returned. If specified, the count limits the number of images returned for that type.
+                 *     For example, imgTypes=large:2,small:1 returns up to 2 large images and 1 small image per product in the imageGroups.
+                 *     If imgTypes is used without expand=images, it is ignored and imageGroups aren't included in the response.
+                 * @example large:3,small:1
+                 */
+                imgTypes?: components["parameters"]["imgTypes"];
                 /** @description The flag that indicates whether to retrieve the per PriceBook prices and tiered prices (if available) for requested Products. Available end of June, 2021. */
                 perPricebook?: components["parameters"]["perPricebook"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
@@ -1084,11 +1398,17 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
                 currency?: components["parameters"]["currency"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -1130,11 +1450,23 @@ export interface operations {
                  * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
                  *     The value "none" may be used to turn off all expand options.
                  *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
+                 *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
+                 *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
                  * @example prices,promotions
                  */
                 expand?: components["parameters"]["expand_singleId"];
                 /** @description The flag that indicates whether to retrieve the whole image model for the requested product. */
                 allImages?: components["parameters"]["allImages"];
+                /**
+                 * @description Filters product images by viewType with optional count limits per type. This parameter requires the images expand parameter.
+                 *     When used, the response includes the imageGroups property filtered by the specified image types.
+                 *     The format is a comma-separated list of image types with optional counts: <viewType>:<count>,<viewType>:<count>.
+                 *     If the count is omitted, all images of that type are returned. If specified, the count limits the number of images returned for that type.
+                 *     For example, imgTypes=large:2,small:1 returns up to 2 large images and 1 small image per product in the imageGroups.
+                 *     If imgTypes is used without expand=images, it is ignored and imageGroups aren't included in the response.
+                 * @example large:3,small:1
+                 */
+                imgTypes?: components["parameters"]["imgTypes"];
                 /** @description The flag that indicates whether to retrieve the per PriceBook prices and tiered prices (if available) for requested Products. Available end of June, 2021. */
                 perPricebook?: components["parameters"]["perPricebook"];
                 select?: components["parameters"]["select"];
@@ -1144,11 +1476,17 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -1189,6 +1527,209 @@ export interface operations {
             };
         };
     };
+    getProductImages: {
+        parameters: {
+            query: {
+                /**
+                 * @description Comma-separated list of view types to include in the response, with optional per-type image limits. Each item is
+                 *     either viewType or viewType:count. If omitted, all catalog view types are returned, up to 200 images per view
+                 *     type. If present, only the listed view types are included. The image count defaults to 200 per view type when
+                 *     no limit is specified.
+                 * @example large:3,small:1
+                 */
+                imgTypes?: components["parameters"]["parameters-imgTypes"];
+                /**
+                 * @description When true, returns all variation-specific image groups rather than only the best-matching group
+                 *     for the product's variation attribute values. Default: false.
+                 */
+                allImages?: components["parameters"]["parameters-allImages"];
+                /**
+                 * @description Variation attribute values used to filter image groups when allImages=true.
+                 *     Format: <attributeId>=<value>. This parameter can be repeated for multiple attributes.
+                 *     Example: color=red&variationAttribute=size=L
+                 */
+                variationAttribute?: components["parameters"]["variationAttribute"];
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /** @description The ID of the product whose images to retrieve. */
+                productId: components["parameters"]["productId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImages"];
+                };
+            };
+            /** @description Bad Request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            401: components["responses"]["401unauthorized"];
+            /** @description Product Not Found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getProductPrices: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+                /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
+                currency?: components["parameters"]["currency"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /**
+                 * @description The ID of the product whose prices to retrieve.
+                 * @example apple-ipod-shuffle
+                 */
+                productId: components["parameters"]["parameters-productId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricesResult"];
+                };
+            };
+            /** @description Bad Request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            401: components["responses"]["401unauthorized"];
+            /** @description Product Not Found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getProductPromotions: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+                /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
+                currency?: components["parameters"]["currency"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /**
+                 * @description The ID of the product whose promotions to retrieve.
+                 * @example apple-ipod-shuffle
+                 */
+                productId: components["parameters"]["components-parameters-productId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionsResult"];
+                };
+            };
+            /** @description Bad Request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            401: components["responses"]["401unauthorized"];
+            /** @description Product Not Found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     getCategories: {
         parameters: {
             query: {
@@ -1203,11 +1744,17 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -1246,13 +1793,19 @@ export interface operations {
                 locale?: components["parameters"]["locale"];
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
                 /** @description The ID of the requested category. */
                 id: components["parameters"]["parameters-id"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];

@@ -24,6 +24,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{organizationId}/orders/oms-meta-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve Order Management (OMS) configuration data needed to render cancel and return experiences.
+         * @description Retrieves configuration data from Order Management (OMS) required by the storefront to render cancel and return experiences.
+         *     The response contains the reason codes configured in OMS for cancelling an order and for returning order items.
+         *     Each reason code carries a `default` flag. When the caller omits a reason, the cancel and return endpoints (`cancelOmsOrder`, `returnOmsOrder`) apply the reason marked as `default` for that flow.
+         */
+        get: operations["getOmsMetaData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{organizationId}/orders/{orderNo}": {
         parameters: {
             query?: never;
@@ -54,15 +76,12 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Retrieve order information for a specific guest order.
-         * @description Use this endpoint to lookup a guest order.
+         * Retrieve order information using a combination of non-token identifying factors.
+         * @description Retrieve order details using non-token identifiers or an authenticated shopper session.
          *
-         *     **Important**: This endpoint uses the [ShopperTokenTsob](https://developer.salesforce.com/docs/commerce/commerce-api/references/shopper-login?meta=security%3AShopperTokenTsob) security scheme. Always check the Security section of the endpoint documentation, which is hidden by default.
-         *
-         *     The API uses the `orderViewCode` generated during the order creation and the `email` of the order customer to lookup a guest order. If email is not provided on the order, the field can be left blank in the lookup request.
-         *     **Note**: In the no email on order scenario, the custom implementation must include an additional verification of an order attribute. For example, a postal code or mobile number.
-         *
-         *     This API can also be used for looking up an order for a registered customer. In addition to the verification steps used for guest order lookup, the API also verifies that the customer ID of the order matches with the customer ID supplied in the `ShopperTokenTsob`.
+         *     The endpoint distinguishes between two levels of access:
+         *         - Full access: Granted using shopper authentication, an OrderViewCode, or a time-limited access code. The OrderViewCode and access code are both passed in the `orderViewCode` request-body field; the server distinguishes them by format. Returns the complete order graph.
+         *         - Partial access: Granted using a billing PostalCode paired with email or phone information. Filters sensitive data and Personally Identifiable Information (PII).
          */
         post: operations["guestOrderLookup"];
         delete?: never;
@@ -86,6 +105,74 @@ export interface paths {
          *     Creates a HistoryEntry in the failed Order with provided reasonCode.
          */
         post: operations["failOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/orders/{orderNo}/actions/oms-cancel-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel an order that is integrated with Order Management (OMS).
+         * @description Cancels an order that is integrated with Order Management (OMS).
+         *     The cancellation always applies to the entire order; partial cancellations are not supported.
+         */
+        post: operations["cancelOmsOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/orders/{orderNo}/actions/oms-return-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Initiate the return of one or more items of an order that is integrated with Order Management (OMS).
+         * @description Initiates the return of one or more items of an order that is integrated with Order Management (OMS).
+         */
+        post: operations["returnOmsOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/orders/{orderNo}/actions/request-access-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request a time-limited access code for a guest order.
+         * @description Generates a time-limited access code and delivers it via email to the address associated with the order. The shopper can then use this
+         *     code with the lookup, cancel, and return endpoints to access the order without the original session.
+         *
+         *     The generated code is valid for 15 minutes. Too many incorrect access attempts invalidate the code early, but the 15-minute
+         *     cooldown remains — a new code cannot be generated until the original validity period has elapsed, even if the code was invalidated early.
+         *
+         *     The endpoint always returns 202 — whether the order and email combination is valid, and whether a new code was
+         *     generated. This uniform response prevents enumeration of valid orders and avoids revealing cooldown state to callers.
+         */
+        post: operations["requestOrderAccessCode"];
         delete?: never;
         options?: never;
         head?: never;
@@ -194,7 +281,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         OrganizationId: string;
@@ -213,21 +300,6 @@ export interface components {
          * @example en
          */
         LanguageCode: string;
-        /** @description The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps. */
-        DeliveryWindow: {
-            /**
-             * Format: date-time
-             * @description The earliest expected delivery time, as an RFC 3339 date-time.
-             * @example 2026-04-30T14:00:00Z
-             */
-            startAt?: string;
-            /**
-             * Format: date-time
-             * @description The latest expected delivery time, as an RFC 3339 date-time.
-             * @example 2026-05-07T14:00:00Z
-             */
-            endAt?: string;
-        };
         /**
          * @description A specialized value indicating the system default values for locales.
          * @default default
@@ -675,6 +747,31 @@ export interface components {
              */
             validFromYear?: number;
         };
+        /** @description Document representing a gift card response. */
+        GiftCardResponse: {
+            /**
+             * @description The gift card brand.
+             * @example givex
+             */
+            brand?: string;
+            /**
+             * @description The masked gift card number.
+             * @example *********4422
+             */
+            maskedCardNumber?: string;
+            /**
+             * Format: int32
+             * @description The month when the gift card expires.
+             * @example 1
+             */
+            expirationMonth?: number;
+            /**
+             * Format: int32
+             * @description The year when the gift card expires.
+             * @example 2030
+             */
+            expirationYear?: number;
+        };
         /**
          * @description The payment instrument ID
          * @example ba248424e3eee797f062162f8b
@@ -702,6 +799,8 @@ export interface components {
             maskedGiftCertificateCode?: string;
             /** @description The payment card. */
             paymentCard?: components["schemas"]["PaymentCard"];
+            /** @description The gift card. */
+            giftCard?: components["schemas"]["GiftCardResponse"];
             /** @description The payment instrument ID. It is read only. */
             paymentInstrumentId?: components["schemas"]["PaymentInstrumentId"];
             /**
@@ -716,12 +815,6 @@ export interface components {
                  * @example pi_3N4B2vF0wDjebNCp1234567
                  */
                 paymentReferenceId?: string;
-                /**
-                 * Format: uri
-                 * @description Redirect URL for payment methods that require user redirection to complete payment.
-                 * @example https://checkout.stripe.com/pay/cs_test_abc123
-                 */
-                redirectUrl?: string;
                 /**
                  * @description The payment gateway used to process the payment.
                  * @example stripe
@@ -749,7 +842,19 @@ export interface components {
                     paypal?: {
                         [key: string]: unknown;
                     };
-                    /** @description # Adyen specific properties. */
+                    /**
+                     * @description # Adyen specific properties.
+                     *
+                     *     - adyenError: Error information returned by Adyen if the payment fails. Null on success.
+                     *     - adyenPaymentIntent: The Adyen payment intent object containing payment details and required actions.
+                     *       - resultCode: The result of the payment request (for example, "REDIRECT_SHOPPER", "AUTHORISED", "PENDING", "REFUSED").
+                     *       - accountID: The Adyen merchant account ID.
+                     *       - adyenPaymentIntentAction: The action object for payment methods requiring additional shopper interaction.
+                     *         - url: The URL for completing the payment (redirect or 3DS authentication).
+                     *         - type: The action type (for example, "redirect", "threeDS2", "voucher").
+                     *         - method: The HTTP method for the action (for example, "GET", "POST").
+                     *     - successful: A boolean indicating whether the Adyen operation is successful.
+                     */
                     adyen?: {
                         [key: string]: unknown;
                     };
@@ -872,8 +977,6 @@ export interface components {
              * @example 006490dcc338feeafc71c964bf
              */
             shippingItemId?: string;
-            /** @description Information retrieved from Order Management (OMS) for the product. */
-            omsData?: components["schemas"]["OmsData"];
             /**
              * Format: double
              * @description The tax for the product item, not including price adjustments. It is read only.
@@ -1101,23 +1204,22 @@ export interface components {
              */
             type?: "product" | "gift_certificate";
         };
-        /**
-         * @description Additional information retrieved from Order Management (OMS)
-         *     See https://developer.salesforce.com/docs/atlas.en-us.order_management_developer_guide.meta/order_management_developer_guide/sforce_api_objects_orderitemsummary.htm for more information.
-         */
-        OmsData: {
+        /** @description Document representing a basket product item. */
+        BasketProductItem: components["schemas"]["ProductItem"];
+        /** @description The range describing when an item is expected to be delivered. Both bounds are RFC 3339 date-time timestamps. The API preserves sub-day precision end-to-end. */
+        DeliveryWindow: {
             /**
-             * @description Order Management (OMS) status
-             * @example ordered
-             * @enum {string}
+             * Format: date-time
+             * @description The earliest expected delivery time, as an RFC 3339 date-time.
+             * @example 2026-04-30T14:00:00Z
              */
-            status?: "ordered" | "returned" | "canceled" | "paid" | "reshipped" | "fulfilled" | "partially_fulfilled" | "allocated" | "partially_allocated" | "return_initiated";
+            startAt?: string;
             /**
-             * Format: double
-             * @description The quantity that can be cancelled.
-             * @example 2
+             * Format: date-time
+             * @description The latest expected delivery time, as an RFC 3339 date-time.
+             * @example 2026-04-30T18:00:00Z
              */
-            quantityAvailableToCancel?: number;
+            endAt?: string;
         };
         /**
          * @description The identifier of the shipment
@@ -1146,6 +1248,8 @@ export interface components {
         };
         /** @description Document representing a shipping method. */
         ShippingMethod: {
+            /** @description The estimated delivery window for this shipping method. The sfcc.app.shipping.quote hook populates this value. The response omits this field if the hook doesn't return a delivery window. */
+            deliveryWindow?: components["schemas"]["DeliveryWindow"];
             /**
              * @description The localized description of the shipping method.
              * @example Order received within 7-10 business days
@@ -1164,6 +1268,12 @@ export interface components {
              */
             name?: string;
             /**
+             * Format: date-time
+             * @description The timestamp by which an order must be placed for the deliveryWindow to apply, as an RFC 3339 date-time. The sfcc.app.shipping.quote hook populates this value. The response omits this field if the hook doesn't return a cutoff time.
+             * @example 2026-04-27T14:00:00Z
+             */
+            orderCutoffAt?: string;
+            /**
              * Format: double
              * @description The shipping cost total, including shipment level costs,
              *     product level fix, and surcharge costs. It is read only.
@@ -1180,8 +1290,6 @@ export interface components {
         };
         /** @description Document representing a shipment. */
         Shipment: {
-            /** @description The estimated delivery window for the shipment. Populated by the sfcc.app.shipping.calculate hook from the selected shipping method. Omitted if the hook does not return a delivery window. */
-            deliveryWindow?: components["schemas"]["DeliveryWindow"];
             /**
              * Format: double
              * @description The total tax on products in the shipment, including item-level price adjustments but not including
@@ -1196,6 +1304,8 @@ export interface components {
              * @example 0.3
              */
             adjustedShippingTotalTax?: number;
+            /** @description The estimated delivery window for the shipment. The sfcc.app.shipping.calculate hook populates this value from the selected shipping method. The response omits this field if the hook doesn't return a delivery window. This field is reserved for future use and will be supported in an upcoming release. */
+            deliveryWindow?: components["schemas"]["DeliveryWindow"];
             /**
              * @description A flag indicating whether the shipment is a gift. It is read only.
              * @example true
@@ -1213,6 +1323,12 @@ export interface components {
              * @example 4.95
              */
             merchandizeTotalTax?: number;
+            /**
+             * Format: date-time
+             * @description The timestamp by which an order must be placed for the deliveryWindow to apply, as an RFC 3339 date-time. The sfcc.app.shipping.calculate hook populates this value from the selected shipping method. The response omits this field if the hook doesn't return a cutoff time. This field is reserved for future use and will be supported in an upcoming release.
+             * @example 2026-04-27T14:00:00Z
+             */
+            orderCutoffAt?: string;
             /**
              * Format: double
              * @description The total price of all products in the shipment, including item-level adjustments, but not including
@@ -1349,6 +1465,70 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** @description Document representing a promotion link. */
+        PromotionLink: {
+            /**
+             * @description The unique id of the promotion.
+             * @example 10off100
+             */
+            promotionId?: string;
+            /**
+             * @description The localized name of the promotion.
+             * @example 10% off $100 orders
+             */
+            name?: string;
+            /**
+             * @description The localized call-out message of the promotion.
+             * @example Spend $10 more to save 10%!
+             */
+            calloutMsg?: string;
+            /**
+             * @description The link title.
+             * @example 10% off $100 orders
+             */
+            title?: string;
+            /**
+             * @description The URL addressing the promotion.
+             * @example /s/SiteGenesis/promotion?id=10off100
+             */
+            link?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** @description Document representing an approaching discount for a basket. Contains information about promotions the customer is close to qualifying for. */
+        ApproachingDiscount: {
+            /**
+             * @description The type of approaching discount (order-level or shipping-level).
+             * @example order
+             * @enum {string}
+             */
+            type: "order" | "shipping";
+            /**
+             * Format: double
+             * @description The total amount needed to receive the discount.
+             * @example 100
+             */
+            conditionThreshold?: number;
+            /**
+             * Format: double
+             * @description The amount the customer basket contributes towards the purchase condition.
+             * @example 90
+             */
+            merchandiseTotal?: number;
+            /** @description The applied discount when the order meets the threshold. */
+            discount?: components["schemas"]["Discount"];
+            /** @description Document representing a promotion link. */
+            promotionLink?: components["schemas"]["PromotionLink"];
+            /**
+             * @description The unique id of the shipment the discount relates to. Only applicable when type = shipping.
+             * @example me
+             */
+            shipmentId?: string;
+            /** @description The shipping methods the promotion relates to. Only applicable when type = shipping. */
+            shippingMethods?: components["schemas"]["ShippingMethod"][];
+        } & {
+            [key: string]: unknown;
+        };
         /** @description Document representing a basket. */
         Basket: {
             /**
@@ -1385,7 +1565,7 @@ export interface components {
              * @example storefront
              * @enum {string}
              */
-            channelType?: "storefront" | "callcenter" | "marketplace" | "dss" | "store" | "pinterest" | "twitter" | "facebookads" | "subscriptions" | "onlinereservation" | "customerservicecenter" | "instagramcommerce" | "tiktok" | "snapchat" | "google" | "whatsapp" | "youtube";
+            channelType?: "storefront" | "callcenter" | "marketplace" | "dss" | "store" | "pinterest" | "twitter" | "facebookads" | "subscriptions" | "onlinereservation" | "customerservicecenter" | "instagramcommerce" | "tiktok" | "snapchat" | "google" | "whatsapp" | "youtube" | "chatgpt" | "gemini";
             /** @description The coupon items. */
             couponItems?: components["schemas"]["CouponItem"][];
             /**
@@ -1436,7 +1616,7 @@ export interface components {
             /** @description The payment instruments list. */
             paymentInstruments?: components["schemas"]["OrderPaymentInstrument"][];
             /** @description The product items. */
-            productItems?: components["schemas"]["ProductItem"][];
+            productItems?: components["schemas"]["BasketProductItem"][];
             /**
              * Format: double
              * @description The total price of all products including item-level adjustments, but not including order-level adjustments or shipping
@@ -1495,6 +1675,8 @@ export interface components {
              * @example true
              */
             temporaryBasket?: boolean;
+            /** @description A list of approaching discount objects for the basket. The list includes both order-level and shipping-level promotions. This field is only included when the expand query parameter contains 'approaching_discounts'. */
+            approachingDiscounts?: components["schemas"]["ApproachingDiscount"][];
         } & {
             [key: string]: unknown;
         };
@@ -1503,8 +1685,71 @@ export interface components {
          * @example 00000410
          */
         OrderNo: string;
+        /**
+         * @description Additional information retrieved from Order Management (OMS)
+         *     See https://developer.salesforce.com/docs/atlas.en-us.order_management_developer_guide.meta/order_management_developer_guide/sforce_api_objects_orderitemsummary.htm for more information.
+         *     Only available in context of an order.
+         * @example {
+         *       "status": "ordered",
+         *       "quantityAvailableToCancel": 2,
+         *       "quantityAvailableToReturn": 2,
+         *       "quantityCanceled": 0,
+         *       "quantityReturnInitiated": 0,
+         *       "quantityReturned": 0,
+         *       "quantityOrdered": 2
+         *     }
+         */
+        OmsProductData: {
+            /**
+             * @description Order Management (OMS) status
+             * @example ordered
+             * @enum {string}
+             */
+            status?: "ordered" | "returned" | "canceled" | "paid" | "reshipped" | "fulfilled" | "partially_fulfilled" | "allocated" | "partially_allocated" | "return_initiated";
+            /**
+             * Format: double
+             * @description The quantity that can be cancelled.
+             * @example 2
+             */
+            quantityAvailableToCancel?: number;
+            /**
+             * Format: double
+             * @description The quantity that can be returned.
+             * @example 2
+             */
+            quantityAvailableToReturn?: number;
+            /**
+             * Format: double
+             * @description The quantity that has been cancelled.
+             * @example 0
+             */
+            quantityCanceled?: number;
+            /**
+             * Format: double
+             * @description The quantity for which a return has been initiated.
+             * @example 0
+             */
+            quantityReturnInitiated?: number;
+            /**
+             * Format: double
+             * @description The quantity that has been returned.
+             * @example 0
+             */
+            quantityReturned?: number;
+            /**
+             * Format: double
+             * @description The quantity that was originally ordered.
+             * @example 2
+             */
+            quantityOrdered?: number;
+        };
+        /** @description Document representing an order product item. */
+        OrderProductItem: {
+            /** @description Product information retrieved from Order Management (OMS). Only available in the context of an order. */
+            omsData?: components["schemas"]["OmsProductData"];
+        } & components["schemas"]["ProductItem"];
         /** @description Individual item within a shipment */
-        ShipmentItem: {
+        OmsShipmentItem: {
             /**
              * @description Unique identifier for the shipment item
              * @example 0OBVF000006603F4AQ
@@ -1523,7 +1768,7 @@ export interface components {
             quantity?: number;
         };
         /** @description Shipment information from Salesforce Order Management created during fulfillment process. See https://developer.salesforce.com/docs/atlas.en-us.230.0.order_management_developer_guide.meta/order_management_developer_guide/sforce_api_objects_fulfillmentorder.htm for more information. */
-        "schemas-Shipment": {
+        OmsShipment: {
             /**
              * @description Unique identifier for the shipment
              * @example 0OBVF000000003F4AQ
@@ -1562,20 +1807,20 @@ export interface components {
              */
             actualDeliveryDate?: string;
             /** @description Items included in this shipment */
-            shipmentItems?: components["schemas"]["ShipmentItem"][];
+            shipmentItems?: components["schemas"]["OmsShipmentItem"][];
         };
         /**
          * @description Additional information retrieved from Order Management (OMS)
          *     See https://developer.salesforce.com/docs/atlas.en-us.order_management_developer_guide.meta/order_management_developer_guide/sforce_api_objects_ordersummary.htm for more information.
          */
-        "schemas-OmsData": {
+        OmsData: {
             /**
              * @description Current status of the order
              * @example shipped
              */
             status?: string;
             /** @description List of shipments associated with the order */
-            shipments?: components["schemas"]["schemas-Shipment"][];
+            shipments?: components["schemas"]["OmsShipment"][];
         };
         /** @description Document representing an order. */
         Order: {
@@ -1601,7 +1846,7 @@ export interface components {
              * @example storefront
              * @enum {string}
              */
-            channelType?: "storefront" | "callcenter" | "marketplace" | "dss" | "store" | "pinterest" | "twitter" | "facebookads" | "subscriptions" | "onlinereservation" | "customerservicecenter" | "instagramcommerce" | "tiktok" | "snapchat" | "google" | "whatsapp" | "youtube";
+            channelType?: "storefront" | "callcenter" | "marketplace" | "dss" | "store" | "pinterest" | "twitter" | "facebookads" | "subscriptions" | "onlinereservation" | "customerservicecenter" | "instagramcommerce" | "tiktok" | "snapchat" | "google" | "whatsapp" | "youtube" | "chatgpt" | "gemini";
             /**
              * @description The confirmation status.
              * @example confirmed
@@ -1696,7 +1941,7 @@ export interface components {
              */
             paymentStatus?: "not_paid" | "part_paid" | "paid";
             /** @description The product items. It is read only. */
-            productItems?: components["schemas"]["ProductItem"][];
+            productItems?: components["schemas"]["OrderProductItem"][];
             /**
              * Format: double
              * @description The total price of all products including item-level adjustments, but not including
@@ -1747,7 +1992,7 @@ export interface components {
              */
             siteId?: components["schemas"]["SiteId"];
             /** @description Information retrieved from Order Management (OMS) for the order. */
-            omsData?: components["schemas"]["schemas-OmsData"];
+            omsData?: components["schemas"]["OmsData"];
             /**
              * @description The source code assigned to the basket from which this order was created. It is read only.
              * @example OUTDOOR1
@@ -1819,15 +2064,47 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** @description A single reason code configured in Order Management (OMS). */
+        OmsReasonCode: {
+            /**
+             * @description The reason value as configured in OMS.
+             * @example Defect
+             */
+            reason: string;
+            /**
+             * @description Whether this reason is the default that the server uses when no reason is supplied on a cancel or return request.
+             * @example false
+             */
+            default: boolean;
+        };
+        /** @description Configuration data from Order Management (OMS) that the storefront requires to render cancel and return experiences. */
+        OmsMetaData: {
+            /** @description The reason codes available for cancelling an order. The server applies the reason marked with `default` when no reason is supplied on the cancel request. */
+            cancelReasonCodes: components["schemas"]["OmsReasonCode"][];
+            /** @description The reason codes available for returning order items. The server applies the reason marked with `default` when no reason is supplied on a returned item. */
+            returnReasonCodes: components["schemas"]["OmsReasonCode"][];
+        };
+        /** @description Indicates that an OMS-dependent endpoint was called for a site that does not have OMS enabled. */
+        OmsNotActiveErrorResponse: components["schemas"]["ErrorResponse"];
         /** @description Document representing an order lookup request. */
         OrderLookupRequest: {
             /**
              * @description The customer's email address associated with order to be looked up.
              * @example no-reply@salesforce.com
              */
-            email: string;
+            email?: string;
             /** @description The order view code associated with the order to be looked up. */
-            orderViewCode: string;
+            orderViewCode?: string;
+            /**
+             * @description The billing address postal code of the order to be looked up.
+             * @example 05408
+             */
+            postalCode?: string;
+            /**
+             * @description The phone number of the order to be looked up.
+             * @example 6175555555
+             */
+            phone?: string;
         };
         /** @description Document representing a fail order request. */
         FailOrderRequest: {
@@ -1838,6 +2115,133 @@ export interface components {
              */
             reasonCode?: "payment_confirm_failure" | "payment_capture_failure" | "payment_auth_failure";
         };
+        /**
+         * @description A time-limited access code that serves as an alternative access grant for guest shoppers who have lost their original session.
+         *     The code is generated by calling the `requestOrderAccessCode` endpoint, which delivers it via email to the address on the order.
+         *     The shopper provides this code to authorize the request. The code is valid for 15 minutes after generation.
+         * @example 847291
+         */
+        OrderAccessCode: string;
+        /**
+         * @description Document representing a request to cancel an order that is integrated with Order Management (OMS).
+         *     The cancellation always applies to the entire order; partial cancellations are not supported.
+         */
+        OmsCancelOrderRequest: {
+            /**
+             * @description The reason for cancelling the order. The value must match one of the `cancelReasonCodes` configured in OMS and returned by the
+             *     `getOmsMetaData` endpoint. When omitted, the default reason code configured in OMS is applied by the server.
+             * @example Not specified
+             */
+            reason?: string;
+            orderAccessCode?: components["schemas"]["OrderAccessCode"];
+        };
+        /** @description Indicates that the supplied reason code does not match any reason configured in OMS. */
+        InvalidReasonCodeErrorResponse: {
+            /**
+             * @description The reason value that the request supplied.
+             * @example Damaged in transit
+             */
+            reason?: string;
+        } & components["schemas"]["ErrorResponse"];
+        /**
+         * @description Returned when the order cannot be cancelled. This covers both the case where the
+         *     order's state no longer permits cancellation and the case where Order Management
+         *     (OMS) rejected the cancel request after ECOM accepted the input.
+         */
+        OrderCancelFailedErrorResponse: {
+            /**
+             * @description The order number from the request path.
+             * @example 00000335
+             */
+            orderNo?: string;
+        } & components["schemas"]["ErrorResponse"];
+        /** @description An individual product item to be returned as part of an `OmsReturnOrderRequest`. */
+        OmsReturnProductItem: {
+            /**
+             * @description The identifier of the product item on the order to be returned.
+             * @example 10uVF0000003W0BYAU
+             */
+            itemId: string;
+            /**
+             * Format: double
+             * @description The quantity to be returned. Can't exceed the `quantityAvailableToReturn` of the product item on the order.
+             * @example 1
+             */
+            quantity: number;
+            /**
+             * @description The reason for returning this product item. The value must match one of the `returnReasonCodes` configured in OMS and returned
+             *     by the `getOmsMetaData` endpoint. When omitted, the server applies the default reason code configured in OMS.
+             * @example Defect
+             */
+            reason?: string;
+        };
+        /** @description Document representing a request to initiate the return of one or more items of an order that is integrated with Order Management (OMS). */
+        OmsReturnOrderRequest: {
+            /** @description The product items of the order for which to initiate a return. */
+            productItems: components["schemas"]["OmsReturnProductItem"][];
+            orderAccessCode?: components["schemas"]["OrderAccessCode"];
+        };
+        /** @description Indicates that one or more `productItems[].itemId` values supplied in the return request do not match any product item of the order. */
+        UnknownProductItemIdsErrorResponse: {
+            /**
+             * @description The order number from the request path.
+             * @example 00000335
+             */
+            orderNo?: string;
+            /**
+             * @description The `productItems[].itemId` values from the request that do not match any product item of the order.
+             * @example [
+             *       "10uVF0000003W0BYAU",
+             *       "11uVF0000045W0BYAU"
+             *     ]
+             */
+            unknownItemIds?: string[];
+        } & components["schemas"]["ErrorResponse"];
+        /**
+         * @description Returned when one or more `productItems` entries in the return request specify a
+         *     quantity that exceeds the quantity available to return for that item. Issue a GET
+         *     on the order to obtain the current available quantities and resubmit with valid
+         *     values.
+         */
+        ReturnQuantityExceededErrorResponse: {
+            /**
+             * @description The order number from the request path.
+             * @example 00000335
+             */
+            orderNo?: string;
+            /**
+             * @description The `productItems[].itemId` values from the request whose requested quantity exceeded the quantity available to return.
+             * @example [
+             *       "10uVF0000003W0BYAU",
+             *       "11uVF0000045W0BYAU"
+             *     ]
+             */
+            itemIds?: string[];
+        } & components["schemas"]["ErrorResponse"];
+        /**
+         * @description Returned when the order cannot be returned. This covers both the case where the
+         *     order's state no longer permits return of the requested items and the case where
+         *     Order Management (OMS) rejected the return request after ECOM accepted the input.
+         *     Obvious input problems are reported as 400 Bad Request before the request reaches
+         *     OMS.
+         */
+        OrderReturnFailedErrorResponse: {
+            /**
+             * @description The order number from the request path.
+             * @example 00000335
+             */
+            orderNo?: string;
+        } & components["schemas"]["ErrorResponse"];
+        /** @description Represents a request to generate a time-limited access code for a guest order. */
+        RequestOrderAccessCodeRequest: {
+            /**
+             * @description The email address of the shopper. Must match the email address associated with the order for a code to be generated and sent.
+             * @example shopper@example.com
+             */
+            email: string;
+        };
+        /** @description Indicates that the request to generate an access code is invalid, for example, because the email field is missing or empty. */
+        InvalidAccessCodeRequestErrorResponse: components["schemas"]["ErrorResponse"];
         /** @description Document representing an order payment card request. */
         OrderPaymentCardRequest: {
             /**
@@ -1890,6 +2294,36 @@ export interface components {
              * @example 2019
              */
             validFromYear?: number;
+        };
+        /** @description Represents gift card details for a request. */
+        GiftCardRequest: {
+            /**
+             * @description The gift card type or brand (for example, givex, blackhawk).
+             * @example givex
+             */
+            brand: string;
+            /**
+             * @description The gift card number.
+             * @example 6364530000000000
+             */
+            cardNumber: string;
+            /**
+             * @description The card verification code (CVC/CVV) for the gift card.
+             * @example 123
+             */
+            cvc: string;
+            /**
+             * Format: int32
+             * @description The month when the gift card expires.
+             * @example 1
+             */
+            expirationMonth?: number;
+            /**
+             * Format: int32
+             * @description The year when the gift card expires.
+             * @example 2030
+             */
+            expirationYear?: number;
         };
         /** @description Properties for Payments Reference Request */
         PaymentReferenceRequest: {
@@ -1958,6 +2392,8 @@ export interface components {
             giftCertificateCode?: string;
             /** @description The payment card. */
             paymentCard?: components["schemas"]["OrderPaymentCardRequest"];
+            /** @description The gift card request. */
+            giftCardRequest?: components["schemas"]["GiftCardRequest"];
             /**
              * @description The payment method ID.
              * @example CREDIT_CARD
@@ -2053,10 +2489,86 @@ export interface components {
             };
         };
     };
-    responses: never;
+    responses: {
+        /** @description Order Management (OMS) is not active for this site. */
+        "409OmsNotActive": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["OmsNotActiveErrorResponse"];
+            };
+        };
+        /**
+         * @description The cancel request is invalid. Possible reasons:
+         *     - The supplied reason code is not configured in Order Management (OMS).
+         */
+        "400OmsCancelBadRequest": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["InvalidReasonCodeErrorResponse"];
+            };
+        };
+        /**
+         * @description The order cannot be cancelled. Possible reasons:
+         *     - The order is no longer in a state that permits cancellation.
+         *     - Order Management (OMS) rejected the cancel request after ECOM accepted the input.
+         *     - Order Management (OMS) is not active for this site.
+         */
+        "409OmsCancelConflict": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["OrderCancelFailedErrorResponse"] | components["schemas"]["OmsNotActiveErrorResponse"];
+            };
+        };
+        /**
+         * @description The return request is invalid. Possible reasons:
+         *     - The supplied reason code is not configured in Order Management (OMS).
+         *     - One or more of the supplied `productItems[].itemId` values do not match any product item of the order.
+         *     - The requested return quantity exceeds the quantity available to return for one or more items.
+         */
+        "400OmsReturnBadRequest": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["InvalidReasonCodeErrorResponse"] | components["schemas"]["UnknownProductItemIdsErrorResponse"] | components["schemas"]["ReturnQuantityExceededErrorResponse"];
+            };
+        };
+        /**
+         * @description The order cannot be returned. Possible reasons:
+         *     - The order is no longer in a state that permits return of the requested items.
+         *     - Order Management (OMS) rejected the return after ECOM accepted the input.
+         *     - Order Management (OMS) is not active for this site.
+         */
+        "409OmsReturnConflict": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["OrderReturnFailedErrorResponse"] | components["schemas"]["OmsNotActiveErrorResponse"];
+            };
+        };
+        /**
+         * @description The access code request is invalid. Possible reasons:
+         *     - The email field is missing or empty.
+         */
+        "400RequestAccessCodeBadRequest": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["InvalidAccessCodeRequestErrorResponse"];
+            };
+        };
+    };
     parameters: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
@@ -2082,6 +2594,12 @@ export interface components {
          *     since a customer is limited to 1 storefront basket at a time.
          */
         reopenBasket: boolean;
+        /**
+         * @description When you specify `expand=oms`, the integrated Order Management System (OMS) is included during the email validation.
+         *     If your instance isn't integrated with OMS or the order data isn't available, B2C Commerce ignores the `expand=oms` parameter.
+         * @example oms
+         */
+        expandOms: "oms"[];
         paymentInstrumentId: components["schemas"]["PaymentInstrumentId"];
     };
     requestBodies: never;
@@ -2101,7 +2619,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2137,14 +2655,14 @@ export interface operations {
              *     - a product item is not available.
              *     - the customer assigned to the basket does not
              *     match the verified customer represented by the JWT token.
-             *     - the basket contains flashes.
+             *     - the basket contains flashes (validation errors that prevent order placement).
              */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description The basket with the given basket ID is unknown. */
@@ -2153,9 +2671,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
+        };
+    };
+    getOmsMetaData: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success, the response body contains the OMS meta data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OmsMetaData"];
+                };
+            };
+            409: components["responses"]["409OmsNotActive"];
         };
     };
     getOrder: {
@@ -2181,7 +2729,7 @@ export interface operations {
                 /** @description The order number of the order to be modified. */
                 orderNo: components["parameters"]["orderNo"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2205,7 +2753,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -2217,11 +2765,21 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description When you select 'oms' expand, data is loaded from Order Management (OMS), if available.
+                 *     When OMS data is available, the expand parameter has the following behavior:
+                 *     "expand=oms": order and related order entities (product & shipping items, delivery groups and price adjustments) are returned.
+                 *     "expand=oms_shipments": order and fulfillment (shipment) data is returned.
+                 *     "expand=oms,oms_shipments": order, related order entities and fulfillment (shipment) data are returned.
+                 *     If your instance is not integrated with OMS or the order data is not available, the `expand=oms` command is disregarded.
+                 * @example oms,oms_shipments
+                 */
+                expand?: components["parameters"]["expandOrders"];
             };
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2236,7 +2794,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Success, the response body contains the order found with the order view code. */
+            /** @description Success, the response returns the order, though sensitive details may be filtered based on access level. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2247,29 +2805,28 @@ export interface operations {
             };
             /**
              * @description Possible reasons:
-             *     - order view code or email is missing.
+             *     - The combination of identifying information is not sufficient for any access level.
              */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /**
              * @description Order was not found. Possible reasons:
-             *     - the order with the given order no is unknown.
-             *     - the given order view code does not match the one in the order.
-             *     - the given email does not match the one in the order.
-             *     - the authorized customer of a registered customer order lookup does not match the customer in the order.
+             *     - the order with the given order number is unknown.
+             *     - the combination of identifying information you provided, such as email or postal code, does not match the order record.
+             *     - the provided access code is invalid or has expired.
              */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -2291,7 +2848,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2331,7 +2888,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description The order with the given order number is unknown for the shopper. */
@@ -2340,7 +2897,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description The order is in invalid status. */
@@ -2349,9 +2906,158 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
+        };
+    };
+    cancelOmsOrder: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /** @description The order number of the order to be modified. */
+                orderNo: components["parameters"]["orderNo"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OmsCancelOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description Success, the response body contains the updated order retrieved from Order Management (OMS). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            400: components["responses"]["400OmsCancelBadRequest"];
+            /**
+             * @description Order was not found. Possible reasons:
+             *     - the order with the given order number is unknown.
+             *     - the provided access code is invalid or has expired.
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            409: components["responses"]["409OmsCancelConflict"];
+        };
+    };
+    returnOmsOrder: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /** @description The order number of the order to be modified. */
+                orderNo: components["parameters"]["orderNo"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OmsReturnOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description Success, the response body contains the updated order retrieved from Order Management (OMS). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            400: components["responses"]["400OmsReturnBadRequest"];
+            /**
+             * @description Order was not found. Possible reasons:
+             *     - the order with the given order number is unknown.
+             *     - the provided access code is invalid or has expired.
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            409: components["responses"]["409OmsReturnConflict"];
+        };
+    };
+    requestOrderAccessCode: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
+                locale?: components["parameters"]["locale"];
+                /**
+                 * @description When you specify `expand=oms`, the integrated Order Management System (OMS) is included during the email validation.
+                 *     If your instance isn't integrated with OMS or the order data isn't available, B2C Commerce ignores the `expand=oms` parameter.
+                 * @example oms
+                 */
+                expand?: components["parameters"]["expandOms"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+                /** @description The order number of the order to be modified. */
+                orderNo: components["parameters"]["orderNo"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestOrderAccessCodeRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description Accepted. Always returned, regardless of whether the order and email combination is valid, to prevent enumeration of valid orders.
+             *     If the combination is valid, a new access code is generated and delivered via email.
+             */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400RequestAccessCodeBadRequest"];
         };
     };
     createPaymentInstrumentForOrder: {
@@ -2365,7 +3071,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2399,7 +3105,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description The order with the given order number is unknown. */
@@ -2408,7 +3114,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -2425,7 +3131,7 @@ export interface operations {
             path: {
                 paymentInstrumentId: components["parameters"]["paymentInstrumentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2456,7 +3162,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -2473,7 +3179,7 @@ export interface operations {
             path: {
                 paymentInstrumentId: components["parameters"]["paymentInstrumentId"];
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2508,7 +3214,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /**
@@ -2522,7 +3228,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -2538,7 +3244,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2567,7 +3273,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description The order with the given order number is unknown. */
@@ -2576,7 +3282,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -2590,7 +3296,7 @@ export interface operations {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -2619,7 +3325,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
             /**
@@ -2631,7 +3337,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

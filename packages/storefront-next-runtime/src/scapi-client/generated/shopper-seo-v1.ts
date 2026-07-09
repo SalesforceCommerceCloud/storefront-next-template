@@ -31,7 +31,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         OrganizationId: string;
@@ -58,15 +58,6 @@ export interface components {
         DefaultFallback: string;
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         LocaleCode: components["schemas"]["LanguageCountry"] | components["schemas"]["LanguageCode"] | components["schemas"]["DefaultFallback"];
-        /**
-         * @description The String256 schema is a foundational schema designed for fields or attributes that are stored in a database field with a maximum capacity of 256 bytes.
-         *     This schema accommodates various character sets, with the following considerations:
-         *       - ASCII Characters: Each ASCII character occupies 1 byte, allowing up to 256 characters.
-         *       - Latin Characters: Many Latin characters require 2 bytes each, allowing up to 128 characters.
-         *       - Asian Characters: Many Asian characters require 3 bytes each, allowing approximately 85 characters.
-         * @example Max Mustermann
-         */
-        String256: string;
         /** @description The URL mapping information for a URL that a shopper clicked or typed in. */
         UrlMapping: {
             /**
@@ -74,14 +65,14 @@ export interface components {
              *     resourceType returns the corresponding destination type value from the redirect. If there's a URI redirect, resourceType isn't returned.
              *     The URL redirect feature is available from B2C Commerce version 24.3.
              * @example CATEGORY
-             * @enum {unknown}
+             * @enum {string}
              */
             resourceType?: "CATEGORY" | "PRODUCT" | "CONTENT_ASSET";
             /**
              * @description If the resourceType is CONTENT_ASSET, this field tells you whether the resource is a standard content asset or a Page Designer content asset.
              *     This output is available from B2C Commerce version 24.2.
              * @example STANDARD_CONTENT_ASSET
-             * @enum {unknown}
+             * @enum {string}
              */
             resourceSubType?: "STANDARD_CONTENT_ASSET" | "PAGE_DESIGNER_CONTENT_ASSET";
             /**
@@ -90,7 +81,7 @@ export interface components {
              *     If there's a URI redirect, resourceId isn't returned. The URL redirect feature is available from B2C Commerce version 24.3.
              * @example mens-clothing-shorts
              */
-            resourceId?: components["schemas"]["String256"];
+            resourceId?: string;
             /**
              * @description The refinement filters that correspond to the URL and resourceType.
              *     Refinements are returned only if all of these conditions are met - a) the resourceType is CATEGORY, b) refinements are included in the urlSegment, and c) the refinements are configured in Business Manager.
@@ -136,7 +127,23 @@ export interface components {
              *     It identifies the destination product's category ID. This field is returned only when the destination type is product.
              *     This parameter is available from B2C Commerce version 24.3.
              */
-            productCategoryId?: components["schemas"]["String256"];
+            productCategoryId?: string;
+            /**
+             * Format: date-time
+             * @description The date and time from which the URL redirect is active. If null, the redirect has no start date constraint.
+             *     This field is populated only if you set up a URL redirect in Business Manager.
+             *     This parameter is available from B2C Commerce version 26.8.
+             * @example 2025-06-01T00:00:00.000Z
+             */
+            onlineFrom?: string | null;
+            /**
+             * Format: date-time
+             * @description The date and time until which the URL redirect is active. If null, the redirect has no end date constraint.
+             *     This field is populated only if you set up a URL redirect in Business Manager.
+             *     This parameter is available from B2C Commerce version 26.8.
+             * @example 2025-12-31T23:59:59.000Z
+             */
+            onlineTo?: string | null;
         };
         ErrorResponse: {
             /**
@@ -179,7 +186,7 @@ export interface components {
     responses: never;
     parameters: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
@@ -193,6 +200,12 @@ export interface components {
         siteId: components["schemas"]["SiteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale: components["schemas"]["LocaleCode"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         */
+        personalized: "none";
     };
     requestBodies: never;
     headers: never;
@@ -213,11 +226,17 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];

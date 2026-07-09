@@ -1,0 +1,570 @@
+openapi: 3.0.3
+info:
+  x-api-type: Shopper
+  x-api-family: Checkout
+  title: Shopper Payments
+  version: 1.5.0
+  description: |-
+    [Download API specification](https://developer.salesforce.com/static/commercecloud/commerce-api/shopper-payments/shopper-payments-oas-v1-public.yaml)
+
+    # API Overview
+
+    Use the Shopper Payments API to:
+
+    - Retrieve payment configuration information for storefronts when Salesforce Payments is enabled.
+
+    The API returns the available payment methods, merchant account details, and payment gateway configurations for a specific payment zone site assignment.
+
+    The response includes:
+
+    - Zone ID: The unique identifier for the Payments zone.
+    - Payment Method Set Accounts: List of configured payment processor accounts with API keys, vendor information (Stripe, Adyen, PayPal, etc.), and live/test mode indicators.
+    - Payment Methods: List of available payment methods with their associated accounts, payment method types, and supported payment modes.
+
+    ## Authentication & Authorization
+
+    The client requesting payment configuration must have access to the `/payment-configuration` resource. The Shopper Payments API requires a shopper access token from the Shopper Login and API Access Service (SLAS).
+
+    For details on how to request a shopper access token from SLAS, see the guest user flows for [public clients](https://developer.salesforce.com/docs/commerce/commerce-api/guide/slas-public-client.html#guest-user) and [private clients](https://developer.salesforce.com/docs/commerce/commerce-api/guide/slas-private-client.html#guest-user) in the SLAS guides.
+
+    You must include `sfcc.shopper-baskets-orders`, `sfcc.shopper-baskets-orders.rw`, or `sfcc.shopper-standard` in the client ID used to generate the SLAS token. For a full list of permissions, see the [Authorization Scopes Catalog.](https://developer.salesforce.com/docs/commerce/commerce-api/guide/auth-z-scope-catalog.html)
+
+    ## Use Cases
+
+    ### Retrieve Payment Configuration
+
+    Retrieve payment configuration settings for Stripe, PayPal, and Adyen based on the payment methods enabled in the merchant's payment zone site. This includes API keys, vendor details, and live/test mode status. Specify a zone via `zoneId` or use `currency` and `countryCode` for automatic resolution.
+servers:
+  - url: https://{shortCode}.api.commercecloud.salesforce.com/checkout/shopper-payments/v1
+    variables:
+      shortCode:
+        default: shortCode
+paths:
+  /organizations/{organizationId}/payment-configuration:
+    parameters:
+      - $ref: '#/components/parameters/organizationId'
+      - $ref: '#/components/parameters/siteId'
+      - $ref: '#/components/parameters/currency'
+      - $ref: '#/components/parameters/countryCode'
+      - $ref: '#/components/parameters/zoneId'
+      - $ref: '#/components/parameters/amount'
+    get:
+      description: |-
+        Retrieves the payment configuration for the organization.
+
+        **Parameters:**
+        - `siteId`: Required. The site identifier for context-specific configuration
+        - `currency`: Required. Three-letter currency code (ISO 4217) for payment method configuration
+        - `countryCode`: Optional. Two-letter country code (ISO 3166-1 alpha-2) for country-specific payment configuration
+        - `amount`: Optional. Transaction amount for payment method configuration
+        - `zoneId`: Optional. Payment zone identifier to retrieve zone-specific configuration
+
+        **Response Behavior:**
+        - Returns payment configuration data when available
+        - Returns null values for missing data (e.g., when account not found or payments zone not found)
+      operationId: getPaymentConfiguration
+      summary: Get payment configuration
+      security:
+        - ShopperToken:
+            - sfcc.shopper-baskets-orders
+            - sfcc.shopper-baskets-orders.rw
+            - sfcc.shopper-standard
+      responses:
+        '200':
+          description: Payment configuration details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentConfiguration'
+              examples:
+                stripeConfiguration:
+                  $ref: '#/components/examples/PaymentConfigurationGetForStripe'
+                stripeAndPaypalConfiguration:
+                  $ref: '#/components/examples/PaymentConfigurationGetForStripeAndPaypal'
+                adyenConfiguration:
+                  $ref: '#/components/examples/PaymentConfigurationGetForAdyen'
+                noDataFound:
+                  $ref: '#/components/examples/PaymentConfigurationNoDataFound'
+        '400':
+          description: |-
+            Possible reasons:
+            - the site ID is required and must not be null.
+            - the specified currency is invalid (must be ISO 4217) or not
+            supported by the site.
+            - the provided country code is invalid (must be 2 uppercase
+            letters matching ISO 3166-1 alpha-2).
+            - the provided zone ID is invalid (must match pattern
+            [a-zA-Z0-9\-_]{1,100}).
+            - the provided amount is invalid (must be non-negative).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                BadRequest:
+                  $ref: '#/components/examples/BadRequest'
+                InvalidPaymentConfigurationRequest:
+                  $ref: '#/components/examples/InvalidPaymentConfigurationRequest'
+  /organizations/{organizationId}/payment-instruments/balance:
+    parameters:
+      - $ref: '#/components/parameters/organizationId'
+      - $ref: '#/components/parameters/siteId'
+    post:
+      description: |-
+        Checks the balance of a payment instrument. Currently supports gift card balance inquiries.
+
+        **Parameters:**
+        - `siteId`: Required. Specifies the site identifier for context-specific configuration.
+
+        **Request Body:**
+        - `paymentMethodId`: Required. The payment method ID, for example: GIFT_CERTIFICATE
+        - `giftCard`: Required when paymentMethodId is GIFT_CERTIFICATE. Specifies the gift card details.
+          - `brand`: The gift card type or brand, for example: givex, blackhawk
+          - `cardNumber`: The gift card number
+          - `cvc`: The card verification code
+          - `expirationMonth`: The expiration month
+          - `expirationYear`: The expiration year
+
+        **Response Behavior:**
+        - Returns the balance amount and currency when the payment instrument is valid.
+      operationId: getPaymentInstrumentBalance
+      summary: Check payment instrument balance
+      security:
+        - ShopperToken:
+            - sfcc.shopper-baskets-orders
+            - sfcc.shopper-baskets-orders.rw
+            - sfcc.shopper-standard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInstrumentBalanceRequest'
+            examples:
+              PaymentInstrumentBalanceRequest:
+                $ref: '#/components/examples/PaymentInstrumentBalanceRequest'
+      responses:
+        '200':
+          description: Payment instrument balance retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInstrumentBalanceResponse'
+              examples:
+                PaymentInstrumentBalance:
+                  $ref: '#/components/examples/PaymentInstrumentBalanceSuccess'
+        '400':
+          description: |-
+            Possible reasons:
+            - the provided payment method is invalid or not applicable.
+            - the gift card details are invalid or missing when paymentMethodId is GIFT_CERTIFICATE.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                BadRequest:
+                  $ref: '#/components/examples/BadRequest'
+                InvalidPaymentInstrumentBalanceRequest:
+                  $ref: '#/components/examples/InvalidPaymentInstrumentBalanceRequest'
+components:
+  securitySchemes:
+    ShopperToken:
+      type: oauth2
+      description: "ShopperToken authentication follows the authorization code grant flow, as defined by the OAuth 2.1 standard. Depending on the type of OAuth client (public or private), this authorization flow has further requirements. \nFor a detailed description of the authorization flow, see the [SLAS overview](https://developer.salesforce.com/docs/commerce/commerce-api/references?meta=shopper-login:Summary).\nA shopper token allows you to access the Shopper API endpoints of both OCAPI and the B2C Commerce API. These endpoints can be used to build headless storefronts and other applications.\nThe `ShopperToken` security scheme is a parent of other security schemes, such as `ShopperTokenTsob`. A Shopper API endpoint can require a specific child scheme (`ShopperTokenTsob`, for example) that cannot be accessed with a regular shopper token.\n"
+      flows:
+        clientCredentials:
+          tokenUrl: https://{shortCode}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/token
+          scopes:
+            sfcc.shopper-baskets-orders: Scope granting read-access to shopper basket or orders endpoints
+            sfcc.shopper-baskets-orders.rw: Scope granting read and write access to shopper basket or orders endpoints
+        authorizationCode:
+          authorizationUrl: https://{short-code}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/authorize
+          tokenUrl: https://{short-code}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/token
+          scopes:
+            sfcc.shopper-baskets-orders: Scope granting read-access to shopper basket or orders endpoints
+            sfcc.shopper-baskets-orders.rw: Scope granting read and write access to shopper basket or orders endpoints
+  schemas:
+    OrganizationId:
+      description: An identifier for the organization the request is being made by
+      example: f_ecom_zzxy_prd
+      type: string
+      minLength: 1
+      maxLength: 32
+    SiteId:
+      minLength: 1
+      maxLength: 32
+      description: The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites
+      example: RefArch
+      type: string
+    CurrencyCode:
+      description: A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable.
+      pattern: ^([A-Z][A-Z][A-Z]|N/A)$
+      example: USD
+      type: string
+    CountryCode:
+      pattern: ^[A-Z][A-Z]$
+      description: A two letter uppercase country code conforming to the [ISO 3166-1](https://www.iso.org/iso-3166-country-codes.html) alpha-2 standard.
+      example: US
+      type: string
+    ZoneId:
+      type: string
+      example: Amer-Zone
+      description: The unique identifier for a Payments zone.
+      minLength: 1
+      maxLength: 100
+      nullable: true
+    Amount:
+      type: number
+      format: double
+      description: The transaction amount.
+      minimum: 0
+      example: 100
+      nullable: true
+    PaymentConfiguration:
+      type: object
+      properties:
+        zoneId:
+          type: string
+          example: Amer-Zone
+          description: The unique identifier for a Payments zone.
+          pattern: ^[a-zA-Z0-9\-_]{1,100}$
+          minLength: 1
+          maxLength: 100
+          nullable: true
+        paymentMethodSetAccounts:
+          type: array
+          description: List of payment method set accounts
+          items:
+            type: object
+            properties:
+              accountId:
+                type: string
+                description: Account identifier
+                example: acct_1RegszI5I22eU0I3
+                minLength: 1
+                maxLength: 100
+              config:
+                type: object
+                description: Account configuration
+                properties:
+                  key:
+                    type: string
+                    description: API key for the payment processor
+                    example: pk_test_JsbBx7imKb7n7Xtlb5MH5BNO00ttiURmPV
+                    maxLength: 200
+                  bnCode:
+                    type: string
+                    description: Account BN code (optional, null if not a PayPal account)
+                    example: Example_PPCP
+                    maxLength: 100
+                  country:
+                    type: string
+                    description: The country associated with this payment account configuration
+                    example: US
+                    maxLength: 256
+                  paymentMethods:
+                    type: object
+                    nullable: true
+                    description: Available payment methods from gateway (optional, null if not an Adyen account)
+                    additionalProperties: true
+                additionalProperties: true
+              live:
+                type: boolean
+                description: Whether the account is in live mode
+                example: false
+              vendor:
+                type: string
+                description: Payment vendor name
+                example: Stripe
+            required:
+              - accountId
+              - live
+              - vendor
+        paymentMethods:
+          type: array
+          description: Configured payment methods
+          items:
+            type: object
+            properties:
+              accountId:
+                type: string
+                description: Associated account identifier
+                example: acct_1RegszI5I22eU0I3
+                minLength: 1
+              paymentMethodType:
+                type: string
+                description: Type of payment method
+                example: card
+              paymentModes:
+                type: array
+                description: Supported payment modes
+                items:
+                  type: string
+                  example: Multistep
+                example:
+                  - Multistep
+            required:
+              - accountId
+              - paymentMethodType
+              - paymentModes
+      required:
+        - paymentMethodSetAccounts
+        - paymentMethods
+    ErrorResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        title:
+          description: "A short, human-readable summary of the problem\ntype.  It will not change from occurrence to occurrence of the \nproblem, except for purposes of localization\n"
+          type: string
+          maxLength: 256
+          example: You do not have enough credit
+        type:
+          description: |
+            A URI reference [RFC3986] that identifies the
+            problem type.  This specification encourages that, when
+            dereferenced, it provide human-readable documentation for the
+            problem type (e.g., using HTML [W3C.REC-html5-20141028]).  When
+            this member is not present, its value is assumed to be
+            "about:blank". It accepts relative URIs; this means
+            that they must be resolved relative to the document's base URI, as
+            per [RFC3986], Section 5.
+          type: string
+          maxLength: 2048
+          example: NotEnoughMoney
+        detail:
+          description: A human-readable explanation specific to this occurrence of the problem.
+          type: string
+          example: Your current balance is 30, but that costs 50
+        instance:
+          description: |
+            A URI reference that identifies the specific
+            occurrence of the problem.  It may or may not yield further
+            information if dereferenced.  It accepts relative URIs; this means
+            that they must be resolved relative to the document's base URI, as
+            per [RFC3986], Section 5.
+          type: string
+          maxLength: 2048
+          example: /account/12345/msgs/abc
+      required:
+        - title
+        - type
+        - detail
+    GiftCardRequest:
+      additionalProperties: false
+      description: Represents gift card details for a request.
+      type: object
+      required:
+        - brand
+        - cardNumber
+        - cvc
+      properties:
+        brand:
+          maxLength: 256
+          description: The gift card type or brand (for example, givex, blackhawk).
+          example: givex
+          type: string
+        cardNumber:
+          maxLength: 40
+          description: The gift card number.
+          example: '6364530000000000'
+          type: string
+        cvc:
+          maxLength: 4
+          description: The card verification code (CVC/CVV) for the gift card.
+          example: '123'
+          type: string
+        expirationMonth:
+          format: int32
+          description: The month when the gift card expires.
+          example: 1
+          type: integer
+        expirationYear:
+          format: int32
+          description: The year when the gift card expires.
+          example: 2030
+          type: integer
+    PaymentInstrumentBalanceRequest:
+      type: object
+      description: Request body for checking the balance of a payment instrument. Currently supports gift card balance inquiries.
+      properties:
+        paymentMethodId:
+          maxLength: 256
+          description: The payment method ID.
+          example: GIFT_CERTIFICATE
+          type: string
+        giftCard:
+          description: The gift card details.
+          $ref: '#/components/schemas/GiftCardRequest'
+      required:
+        - paymentMethodId
+        - giftCard
+    PaymentInstrumentBalanceResponse:
+      type: object
+      description: Response containing the payment instrument balance information.
+      properties:
+        amount:
+          type: number
+          description: The remaining balance on the payment instrument.
+          example: 50
+          minimum: 0
+        currency:
+          description: The three-letter currency code (ISO 4217) of the payment instrument balance.
+          allOf:
+            - $ref: '#/components/schemas/CurrencyCode'
+      required:
+        - amount
+        - currency
+  parameters:
+    organizationId:
+      description: An identifier for the organization the request is being made by
+      name: organizationId
+      in: path
+      required: true
+      example: f_ecom_zzxy_prd
+      schema:
+        $ref: '#/components/schemas/OrganizationId'
+    siteId:
+      description: The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites.
+      name: siteId
+      in: query
+      required: true
+      examples:
+        SiteId:
+          value: RefArch
+      schema:
+        $ref: '#/components/schemas/SiteId'
+    currency:
+      description: A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable.
+      name: currency
+      in: query
+      required: true
+      examples:
+        CurrencyCode:
+          value: USD
+      schema:
+        $ref: '#/components/schemas/CurrencyCode'
+    countryCode:
+      name: countryCode
+      in: query
+      description: The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering
+      required: false
+      schema:
+        $ref: '#/components/schemas/CountryCode'
+    zoneId:
+      description: The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country.
+      name: zoneId
+      in: query
+      required: false
+      examples:
+        ZoneId:
+          value: Amer-Zone
+      schema:
+        $ref: '#/components/schemas/ZoneId'
+    amount:
+      name: amount
+      in: query
+      description: The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction.
+      required: false
+      schema:
+        $ref: '#/components/schemas/Amount'
+  examples:
+    PaymentConfigurationGetForStripe:
+      value:
+        zoneId: Amer-Zone
+        paymentMethodSetAccounts:
+          - accountId: acct_1RegszI5I22eU0I3
+            config:
+              key: pk_test_JsbBx7imKb7n7Xtlb5MH5BNO00ttiURmPV
+            live: false
+            vendor: Stripe
+        paymentMethods:
+          - accountId: acct_1RegszI5I22eU0I3
+            paymentMethodType: card
+            paymentModes:
+              - Multistep
+    PaymentConfigurationGetForStripeAndPaypal:
+      value:
+        zoneId: Amer-Zone
+        paymentMethodSetAccounts:
+          - accountId: acct_1RegszI5I22eU0I3
+            config:
+              key: pk_test_JsbBx7imKb7n7Xtlb5MH5BNO00ttiURmPV
+            live: false
+            vendor: Stripe
+          - accountId: XK92PMVFNRBDG
+            config:
+              bnCode: SalesforceCommerceCloud_PPCP
+              key: AYzMrnD7y4Zc5m5QJZTQ4zPKbP8TMn0r7aStK_3hM9gnaykL-VwK5tGQj4g1y93V6UNvC5j_FZSSa6xpR
+            live: false
+            vendor: Paypal
+        paymentMethods:
+          - accountId: acct_1RegszI5I22eU0I3
+            paymentMethodType: card
+            paymentModes:
+              - Multistep
+          - accountId: XK92PMVFNRBDG
+            paymentMethodType: paypal
+            paymentModes:
+              - Multistep
+    PaymentConfigurationGetForAdyen:
+      value:
+        zoneId: Amer-Zone
+        paymentMethodSetAccounts:
+          - accountId: TestAccount941ECOM
+            config:
+              country: US
+              key: test_JE2ML2CMKZHJRL3QWUW4YCE32A3SL3BH
+              paymentMethods:
+                paymentMethods:
+                  - brands:
+                      - amex
+                      - cup
+                      - diners
+                      - discover
+                      - mc
+                      - visa
+                    name: Cards
+                    type: scheme
+            live: false
+            vendor: Adyen
+        paymentMethods:
+          - accountId: TestAccount941ECOM
+            paymentMethodType: card
+            paymentModes:
+              - Multistep
+    PaymentConfigurationNoDataFound:
+      value:
+        zoneId: null
+        paymentMethodSetAccounts: []
+        paymentMethods: []
+    BadRequest:
+      value:
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/bad-request
+        title: Bad Request
+        detail: Decoding of the property with path '$.failedExample.[1].intProperty' failed because the expected type is 'Integer|Decimal' but the actual type was 'String'.
+    InvalidPaymentConfigurationRequest:
+      value:
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/invalid-payment-configuration-request
+        title: Bad Request
+        detail: The payment configuration request field 'countryCode' is invalid.
+        invalidField: countryCode
+    PaymentInstrumentBalanceRequest:
+      value:
+        paymentMethodId: GIFT_CERTIFICATE
+        giftCard:
+          brand: givex
+          cardNumber: '6364530000000000'
+          cvc: '123'
+          expirationMonth: 1
+          expirationYear: 2030
+    PaymentInstrumentBalanceSuccess:
+      value:
+        amount: 50
+        currency: USD
+    InvalidPaymentInstrumentBalanceRequest:
+      value:
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/bad-request
+        title: Bad Request
+        detail: The provided payment method is invalid or not applicable.

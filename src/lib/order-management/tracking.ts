@@ -18,11 +18,11 @@ import type { OrderLike, OrderTrackingEntry } from '@/lib/order-management/types
 
 /**
  * An OMS shipment as carried on `order.omsData.shipments[]`, taken straight from
- * the generated SCAPI client (`ShopperOrders` exposes it as `schemas-Shipment`)
+ * the generated SCAPI client (`ShopperOrders` exposes it as `OmsShipment`)
  * so a field rename in the schema is caught at compile time — no hand-maintained
  * shape to drift.
  */
-type OmsShipment = ShopperOrders.schemas['schemas-Shipment'];
+type OmsShipment = ShopperOrders.schemas['OmsShipment'];
 
 /**
  * True when an entry carries at least one tracking-relevant field.

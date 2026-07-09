@@ -15,6 +15,8 @@ export interface paths {
                 countryCode?: components["parameters"]["countryCode"];
                 /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
                 zoneId?: components["parameters"]["zoneId"];
+                /** @description The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction. */
+                amount?: components["parameters"]["amount"];
             };
             header?: never;
             path: {
@@ -33,7 +35,9 @@ export interface paths {
          *     **Parameters:**
          *     - `siteId`: Required. The site identifier for context-specific configuration
          *     - `currency`: Required. Three-letter currency code (ISO 4217) for payment method configuration
-         *     - `countryCode`: Required. Two-letter country code (ISO 3166-1 alpha-2) for country-specific payment configuration
+         *     - `countryCode`: Optional. Two-letter country code (ISO 3166-1 alpha-2) for country-specific payment configuration
+         *     - `amount`: Optional. Transaction amount for payment method configuration
+         *     - `zoneId`: Optional. Payment zone identifier to retrieve zone-specific configuration
          *
          *     **Response Behavior:**
          *     - Returns payment configuration data when available
@@ -42,6 +46,50 @@ export interface paths {
         get: operations["getPaymentConfiguration"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/payment-instruments/balance": {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the organization the request is being made by
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check payment instrument balance
+         * @description Checks the balance of a payment instrument. Currently supports gift card balance inquiries.
+         *
+         *     **Parameters:**
+         *     - `siteId`: Required. Specifies the site identifier for context-specific configuration.
+         *
+         *     **Request Body:**
+         *     - `paymentMethodId`: Required. The payment method ID, for example: GIFT_CERTIFICATE
+         *     - `giftCard`: Required when paymentMethodId is GIFT_CERTIFICATE. Specifies the gift card details.
+         *       - `brand`: The gift card type or brand, for example: givex, blackhawk
+         *       - `cardNumber`: The gift card number
+         *       - `cvc`: The card verification code
+         *       - `expirationMonth`: The expiration month
+         *       - `expirationYear`: The expiration year
+         *
+         *     **Response Behavior:**
+         *     - Returns the balance amount and currency when the payment instrument is valid.
+         */
+        post: operations["getPaymentInstrumentBalance"];
         delete?: never;
         options?: never;
         head?: never;
@@ -77,6 +125,12 @@ export interface components {
          * @example Amer-Zone
          */
         ZoneId: string | null;
+        /**
+         * Format: double
+         * @description The transaction amount.
+         * @example 100
+         */
+        Amount: number | null;
         PaymentConfiguration: {
             /**
              * @description The unique identifier for a Payments zone.
@@ -102,44 +156,23 @@ export interface components {
                      * @example Example_PPCP
                      */
                     bnCode?: string;
+                    /**
+                     * @description The country associated with this payment account configuration
+                     * @example US
+                     */
+                    country?: string;
+                    /** @description Available payment methods from gateway (optional, null if not an Adyen account) */
+                    paymentMethods?: {
+                        [key: string]: unknown;
+                    } | null;
                 } & {
                     [key: string]: unknown;
                 };
                 /**
-                 * @description Gateway identifier
-                 * @example 0b0SB000000IpdZYAS
-                 */
-                gatewayId: string;
-                /** @description Gateway response data (optional, can be null) */
-                gatewayResponse?: ({
-                    /** @description Available payment methods from gateway */
-                    paymentMethods?: {
-                        /**
-                         * @description Supported card brands
-                         * @example [
-                         *       "amex",
-                         *       "cup",
-                         *       "diners",
-                         *       "discover",
-                         *       "mc",
-                         *       "visa"
-                         *     ]
-                         */
-                        brands?: string[];
-                        /**
-                         * @description Payment method type
-                         * @example scheme
-                         */
-                        type?: string;
-                    }[];
-                } & {
-                    [key: string]: unknown;
-                }) | null;
-                /**
                  * @description Whether the account is in live mode
                  * @example false
                  */
-                isLive: boolean;
+                live: boolean;
                 /**
                  * @description Payment vendor name
                  * @example Stripe
@@ -167,6 +200,93 @@ export interface components {
                 paymentModes: string[];
             }[];
         };
+        ErrorResponse: {
+            /**
+             * @description A short, human-readable summary of the problem
+             *     type.  It will not change from occurrence to occurrence of the
+             *     problem, except for purposes of localization
+             * @example You do not have enough credit
+             */
+            title: string;
+            /**
+             * @description A URI reference [RFC3986] that identifies the
+             *     problem type.  This specification encourages that, when
+             *     dereferenced, it provide human-readable documentation for the
+             *     problem type (e.g., using HTML [W3C.REC-html5-20141028]).  When
+             *     this member is not present, its value is assumed to be
+             *     "about:blank". It accepts relative URIs; this means
+             *     that they must be resolved relative to the document's base URI, as
+             *     per [RFC3986], Section 5.
+             * @example NotEnoughMoney
+             */
+            type: string;
+            /**
+             * @description A human-readable explanation specific to this occurrence of the problem.
+             * @example Your current balance is 30, but that costs 50
+             */
+            detail: string;
+            /**
+             * @description A URI reference that identifies the specific
+             *     occurrence of the problem.  It may or may not yield further
+             *     information if dereferenced.  It accepts relative URIs; this means
+             *     that they must be resolved relative to the document's base URI, as
+             *     per [RFC3986], Section 5.
+             * @example /account/12345/msgs/abc
+             */
+            instance?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** @description Represents gift card details for a request. */
+        GiftCardRequest: {
+            /**
+             * @description The gift card type or brand (for example, givex, blackhawk).
+             * @example givex
+             */
+            brand: string;
+            /**
+             * @description The gift card number.
+             * @example 6364530000000000
+             */
+            cardNumber: string;
+            /**
+             * @description The card verification code (CVC/CVV) for the gift card.
+             * @example 123
+             */
+            cvc: string;
+            /**
+             * Format: int32
+             * @description The month when the gift card expires.
+             * @example 1
+             */
+            expirationMonth?: number;
+            /**
+             * Format: int32
+             * @description The year when the gift card expires.
+             * @example 2030
+             */
+            expirationYear?: number;
+        };
+        /** @description Request body for checking the balance of a payment instrument. Currently supports gift card balance inquiries. */
+        PaymentInstrumentBalanceRequest: {
+            /**
+             * @description The payment method ID.
+             * @example GIFT_CERTIFICATE
+             */
+            paymentMethodId: string;
+            /** @description The gift card details. */
+            giftCard: components["schemas"]["GiftCardRequest"];
+        };
+        /** @description Response containing the payment instrument balance information. */
+        PaymentInstrumentBalanceResponse: {
+            /**
+             * @description The remaining balance on the payment instrument.
+             * @example 50
+             */
+            amount: number;
+            /** @description The three-letter currency code (ISO 4217) of the payment instrument balance. */
+            currency: components["schemas"]["CurrencyCode"];
+        };
     };
     responses: never;
     parameters: {
@@ -183,6 +303,8 @@ export interface components {
         countryCode: components["schemas"]["CountryCode"];
         /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
         zoneId: components["schemas"]["ZoneId"];
+        /** @description The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction. */
+        amount: components["schemas"]["Amount"];
     };
     requestBodies: never;
     headers: never;
@@ -201,6 +323,8 @@ export interface operations {
                 countryCode?: components["parameters"]["countryCode"];
                 /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
                 zoneId?: components["parameters"]["zoneId"];
+                /** @description The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction. */
+                amount?: components["parameters"]["amount"];
             };
             header?: never;
             path: {
@@ -221,6 +345,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaymentConfiguration"];
+                };
+            };
+            /**
+             * @description Possible reasons:
+             *     - the site ID is required and must not be null.
+             *     - the specified currency is invalid (must be ISO 4217) or not
+             *     supported by the site.
+             *     - the provided country code is invalid (must be 2 uppercase
+             *     letters matching ISO 3166-1 alpha-2).
+             *     - the provided zone ID is invalid (must match pattern
+             *     [a-zA-Z0-9\-_]{1,100}).
+             *     - the provided amount is invalid (must be non-negative).
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPaymentInstrumentBalance: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description An identifier for the organization the request is being made by
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentInstrumentBalanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Payment instrument balance retrieved successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentInstrumentBalanceResponse"];
+                };
+            };
+            /**
+             * @description Possible reasons:
+             *     - the provided payment method is invalid or not applicable.
+             *     - the gift card details are invalid or missing when paymentMethodId is GIFT_CERTIFICATE.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

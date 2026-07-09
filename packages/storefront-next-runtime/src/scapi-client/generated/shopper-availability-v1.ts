@@ -189,6 +189,12 @@ export interface components {
          * @example variations,set_products
          */
         expand: ("variations" | "set_products")[];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         */
+        personalized: "none";
     };
     requestBodies: never;
     headers: never;
@@ -217,6 +223,12 @@ export interface operations {
                  * @example variations,set_products
                  */
                 expand?: components["parameters"]["expand"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
             header?: never;
             path: {

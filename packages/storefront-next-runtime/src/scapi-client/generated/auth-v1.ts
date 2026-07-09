@@ -116,7 +116,7 @@ export interface paths {
          *
          *     For a private client, an application is able to get an access token for the shopper through the back channel (a trusted server) by passing in the client credentials and the authorization code retrieved from the `authorize` endpoint.
          *
-         *     For a guest user, get the shopper JWT access token and a refresh token. This is where a client appplication is able to get an access token for the guest user through the back channel (a trusted server) by passing in the client credentials.
+         *     For a guest user, get the shopper JWT access token and a refresh token. This is where a client application is able to get an access token for the guest user through the back channel (a trusted server) by passing in the client credentials.
          *
          *     For a public client using PKCE, an application passes a PKCE `code_verifier` that matches the `code_challenge` that was used to `authorize` the customer along with the authorization code.
          *
@@ -125,6 +125,77 @@ export interface paths {
          *     See the Body section for required parameters, including `grant_type` and others that depend on the value of `grant_type`.
          *
          *     **Important**: As of July 31, 2024**, SLAS requires the `channel_id` query parameter in token requests.
+         *
+         *     ---
+         *
+         *     # Token Issuer Subject Construction & Constraints #
+         *     The Issuer Subject (`isb`) claim of the issued JWT is a composite string that
+         *     identifies the shopper session. It concatenates the identity origin (`uido`),
+         *     login ID (`upn`), display name (`uidn`), guest customer ID (`gcid`, 26 chars),
+         *     registered customer ID (`rcid`, 26 chars, when applicable), channel ID (`chid`),
+         *     and any flow-specific values (`tsob`, `taob`, `agent`, `login`, `sesb`) as
+         *     `key:value` pairs separated by `::`.
+         *
+         *     **Constraint:** the assembled `isb` must not exceed **256 characters**.
+         *     Exceeding this returns `400 BAD_REQUEST` with *"Issuer Subject length must be
+         *     less than 256 characters"*.
+         *
+         *     **Length calculation breakdown** (with `gcid`=26, `rcid`=26, `chid`≤100).
+         *     Overhead = key chars + each key's trailing `:` + `::` separators between pairs.
+         *
+         *     | Shape | Overhead | Fixed values | Remaining budget |
+         *     |---|---|---|---|
+         *     | Guest | 32 | gcid 26 + chid 100 = 126 | 98 |
+         *     | Registered | 39 | gcid 26 + rcid 26 + chid 100 = 152 | 65 |
+         *     | TSOB guest | 39 | gcid 26 + chid 100 = 126 | 91 - len(tsob) |
+         *     | TSOB registered | 46 | gcid 26 + rcid 26 + chid 100 = 152 | 58 - len(tsob) |
+         *     | Pwdless | 47 | gcid 26 + rcid 26 + chid 100 = 152 | 57 - len(login) |
+         *     | SESB guest | 39 | gcid 26 + chid 100 = 126 | 91 - len(sesb) |
+         *     | SESB registered | 46 | gcid 26 + rcid 26 + chid 100 = 152 | 58 - len(sesb) |
+         *     | TAOB guest | 47 | gcid 26 + chid 100 = 126 | 83 - len(taob + agent) |
+         *     | TAOB registered | 54 | gcid 26 + rcid 26 + chid 100 = 152 | 50 - len(taob + agent) |
+         *
+         *     **Worst case (TAOB registered):**
+         *
+         *     ```
+         *     256  total
+         *     - 54 overhead
+         *     - 26  gcid
+         *     - 26  rcid
+         *     - 100  chid (allowed max)
+         *     ----
+         *     50
+         *
+         *     Then if taob = ta_ext_on_behalf_of:
+         *     50 - 19 = 31
+         *
+         *     Meaning only 31 characters remain for uido + upn + uidn + agent.
+         *
+         *     ```
+         *
+         *     **Practical caps per variable sub-claim:**
+         *
+         *     | Sub-claim | Description | Max length |
+         *     |---|---|---|
+         *     | `uido` | Identity origin | ~20 |
+         *     | `upn` | Login ID / email | ~80 |
+         *     | `uidn` | Display name (after `%3A` escaping) | ~60 |
+         *     | `tsob` / `taob` | Trusted-system / trusted-agent hint | ~21 |
+         *     | `agent` | Agent ID | ~32 |
+         *     | `login` | Passwordless literal (e.g. `pwdless`) | short |
+         *     | `sesb` | Session-bridge hint | short |
+         *     | `chid` | Channel ID | 100 |
+         *
+         *     **Notes:**
+         *     - **Identity Origin Variance** — `uido` is a static IDP-configuration string
+         *       (e.g. `ecom`, `google`, `Link_Brand_Production`). A longer origin reduces
+         *       the budget available for user-supplied inputs.
+         *     - **Double-Count Fallback** — if a shopper registers without a first and last
+         *       name, `uidn` is generated from the email (prefix as first name, domain as
+         *       last name), so the email is effectively counted **twice** (once as `upn`,
+         *       once as `uidn`). Long emails are the most common cause of overflow.
+         *     - Colons inside `uidn` are URL-encoded as `%3A`, which can further inflate
+         *       its length.
          */
         post: operations["getAccessToken"];
         delete?: never;
@@ -179,6 +250,77 @@ export interface paths {
          *
          *
          *     For trusted-system requests, you cannot use SLAS public client_ids.
+         *
+         *     ---
+         *
+         *     # Token Issuer Subject Construction & Constraints #
+         *     The Issuer Subject (`isb`) claim of the issued JWT is a composite string that
+         *     identifies the shopper session. It concatenates the identity origin (`uido`),
+         *     login ID (`upn`), display name (`uidn`), guest customer ID (`gcid`, 26 chars),
+         *     registered customer ID (`rcid`, 26 chars, when applicable), channel ID (`chid`),
+         *     and any flow-specific values (`tsob`, `taob`, `agent`, `login`, `sesb`) as
+         *     `key:value` pairs separated by `::`.
+         *
+         *     **Constraint:** the assembled `isb` must not exceed **256 characters**.
+         *     Exceeding this returns `400 BAD_REQUEST` with *"Issuer Subject length must be
+         *     less than 256 characters"*.
+         *
+         *     **Length calculation breakdown** (with `gcid`=26, `rcid`=26, `chid`≤100).
+         *     Overhead = key chars + each key's trailing `:` + `::` separators between pairs.
+         *
+         *     | Shape | Overhead | Fixed values | Remaining budget |
+         *     |---|---|---|---|
+         *     | Guest | 32 | gcid 26 + chid 100 = 126 | 98 |
+         *     | Registered | 39 | gcid 26 + rcid 26 + chid 100 = 152 | 65 |
+         *     | TSOB guest | 39 | gcid 26 + chid 100 = 126 | 91 - len(tsob) |
+         *     | TSOB registered | 46 | gcid 26 + rcid 26 + chid 100 = 152 | 58 - len(tsob) |
+         *     | Pwdless | 47 | gcid 26 + rcid 26 + chid 100 = 152 | 57 - len(login) |
+         *     | SESB guest | 39 | gcid 26 + chid 100 = 126 | 91 - len(sesb) |
+         *     | SESB registered | 46 | gcid 26 + rcid 26 + chid 100 = 152 | 58 - len(sesb) |
+         *     | TAOB guest | 47 | gcid 26 + chid 100 = 126 | 83 - len(taob + agent) |
+         *     | TAOB registered | 54 | gcid 26 + rcid 26 + chid 100 = 152 | 50 - len(taob + agent) |
+         *
+         *     **Worst case (TAOB registered):**
+         *
+         *     ```
+         *     256  total
+         *     - 54 overhead
+         *     - 26  gcid
+         *     - 26  rcid
+         *     - 100  chid (allowed max)
+         *     ----
+         *     50
+         *
+         *     Then if taob = ta_ext_on_behalf_of:
+         *     50 - 19 = 31
+         *
+         *     Meaning only 31 characters remain for uido + upn + uidn + agent.
+         *
+         *     ```
+         *
+         *     **Practical caps per variable sub-claim:**
+         *
+         *     | Sub-claim | Description | Max length |
+         *     |---|---|---|
+         *     | `uido` | Identity origin | ~20 |
+         *     | `upn` | Login ID / email | ~80 |
+         *     | `uidn` | Display name (after `%3A` escaping) | ~60 |
+         *     | `tsob` / `taob` | Trusted-system / trusted-agent hint | ~21 |
+         *     | `agent` | Agent ID | ~32 |
+         *     | `login` | Passwordless literal (e.g. `pwdless`) | short |
+         *     | `sesb` | Session-bridge hint | short |
+         *     | `chid` | Channel ID | 100 |
+         *
+         *     **Notes:**
+         *     - **Identity Origin Variance** — `uido` is a static IDP-configuration string
+         *       (e.g. `ecom`, `google`, `Link_Brand_Production`). A longer origin reduces
+         *       the budget available for user-supplied inputs.
+         *     - **Double-Count Fallback** — if a shopper registers without a first and last
+         *       name, `uidn` is generated from the email (prefix as first name, domain as
+         *       last name), so the email is effectively counted **twice** (once as `upn`,
+         *       once as `uidn`). Long emails are the most common cause of overflow.
+         *     - Colons inside `uidn` are URL-encoded as `%3A`, which can further inflate
+         *       its length.
          */
         post: operations["getTrustedSystemAccessToken"];
         delete?: never;
@@ -280,7 +422,78 @@ export interface paths {
         put?: never;
         /**
          * Issue a shopper token (JWT).
-         * @description This endpoint issues a shopper JWT access token using a passwordless login token. It enables authentication flows where traditional username/password combinations are not required, supporting alternative authentication methods.
+         * @description This endpoint issues a shopper JSON Web Token (JWT) using a passwordless login token. It enables authentication flows where traditional username/password combinations are not required, supporting alternative authentication methods.
+         *
+         *     ---
+         *
+         *     # Token Issuer Subject Construction & Constraints #
+         *     The Issuer Subject (`isb`) claim of the issued JWT is a composite string that
+         *     identifies the shopper session. It concatenates the identity origin (`uido`),
+         *     login ID (`upn`), display name (`uidn`), guest customer ID (`gcid`, 26 chars),
+         *     registered customer ID (`rcid`, 26 chars, when applicable), channel ID (`chid`),
+         *     and any flow-specific values (`tsob`, `taob`, `agent`, `login`, `sesb`) as
+         *     `key:value` pairs separated by `::`.
+         *
+         *     **Constraint:** the assembled `isb` must not exceed **256 characters**.
+         *     Exceeding this returns `400 BAD_REQUEST` with *"Issuer Subject length must be
+         *     less than 256 characters"*.
+         *
+         *     **Length calculation breakdown** (with `gcid`=26, `rcid`=26, `chid`≤100).
+         *     Overhead = key chars + each key's trailing `:` + `::` separators between pairs.
+         *
+         *     | Shape | Overhead | Fixed values | Remaining budget |
+         *     |---|---|---|---|
+         *     | Guest | 32 | gcid 26 + chid 100 = 126 | 98 |
+         *     | Registered | 39 | gcid 26 + rcid 26 + chid 100 = 152 | 65 |
+         *     | TSOB guest | 39 | gcid 26 + chid 100 = 126 | 91 - len(tsob) |
+         *     | TSOB registered | 46 | gcid 26 + rcid 26 + chid 100 = 152 | 58 - len(tsob) |
+         *     | Pwdless | 47 | gcid 26 + rcid 26 + chid 100 = 152 | 57 - len(login) |
+         *     | SESB guest | 39 | gcid 26 + chid 100 = 126 | 91 - len(sesb) |
+         *     | SESB registered | 46 | gcid 26 + rcid 26 + chid 100 = 152 | 58 - len(sesb) |
+         *     | TAOB guest | 47 | gcid 26 + chid 100 = 126 | 83 - len(taob + agent) |
+         *     | TAOB registered | 54 | gcid 26 + rcid 26 + chid 100 = 152 | 50 - len(taob + agent) |
+         *
+         *     **Worst case (TAOB registered):**
+         *
+         *     ```
+         *     256  total
+         *     - 54 overhead
+         *     - 26  gcid
+         *     - 26  rcid
+         *     - 100  chid (allowed max)
+         *     ----
+         *     50
+         *
+         *     Then if taob = ta_ext_on_behalf_of:
+         *     50 - 19 = 31
+         *
+         *     Meaning only 31 characters remain for uido + upn + uidn + agent.
+         *
+         *     ```
+         *
+         *     **Practical caps per variable sub-claim:**
+         *
+         *     | Sub-claim | Description | Max length |
+         *     |---|---|---|
+         *     | `uido` | Identity origin | ~20 |
+         *     | `upn` | Login ID / email | ~80 |
+         *     | `uidn` | Display name (after `%3A` escaping) | ~60 |
+         *     | `tsob` / `taob` | Trusted-system / trusted-agent hint | ~21 |
+         *     | `agent` | Agent ID | ~32 |
+         *     | `login` | Passwordless literal (e.g. `pwdless`) | short |
+         *     | `sesb` | Session-bridge hint | short |
+         *     | `chid` | Channel ID | 100 |
+         *
+         *     **Notes:**
+         *     - **Identity Origin Variance** — `uido` is a static IdP-configuration string
+         *     (e.g. `ecom`, `google`, `Link_Brand_Production`). A longer origin reduces
+         *     the budget available for user-supplied inputs.
+         *     - **Double-Count Fallback** — if a shopper registers without a first and last
+         *     name, `uidn` is generated from the email (prefix as first name, domain as
+         *     last name), so the email is effectively counted **twice** (once as `upn`,
+         *     once as `uidn`). Long emails are the most common cause of overflow.
+         *     - Colons inside `uidn` are URL-encoded as `%3A`, which can further inflate
+         *     its length.
          */
         post: operations["getPasswordLessAccessToken"];
         delete?: never;
