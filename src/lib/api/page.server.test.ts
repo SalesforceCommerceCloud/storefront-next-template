@@ -83,7 +83,10 @@ describe('fetchPage', () => {
     describe('falls back to getPages when no pageId is provided', () => {
         const fallbackTestCases = [
             {
-                description: 'forwards both productId and categoryId when both are provided',
+                // SCAPI's getPages rejects calls carrying multiple business-object IDs, so
+                // when both are present we send only the more specific productId. The
+                // categoryId still rides along in aspectAttributes for the manifest middleware.
+                description: 'sends only productId (not categoryId) when both are provided',
                 inputParameters: {
                     aspectType: 'pdpAspect',
                     categoryId: 'electronics',
@@ -92,7 +95,6 @@ describe('fetchPage', () => {
                 expectedParams: {
                     query: {
                         aspectTypeId: 'pdpAspect',
-                        categoryId: 'electronics',
                         productId: 'laptop-001',
                         aspectAttributes: JSON.stringify({
                             aspectType: 'pdpAspect',

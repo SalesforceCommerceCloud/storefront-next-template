@@ -565,14 +565,14 @@ async function resolveGetPageRequest({
     };
 
     // `/pages/{pageId}` (getPage) carries aspect data inside the
-    // `aspectAttributes` JSON query param. `/pages` (getPages) uses
-    // top-level query params.
+    // `aspectAttributes` JSON query param. `/pages` (getPages) sends the
+    // aspect type top-level as `aspectTypeId` and only the single most
+    // specific business-object ID top-level (SCAPI rejects a call carrying
+    // multiple), but still carries the full set — including the category
+    // fallback a PDP drops from the top level — inside the `aspectAttributes`
+    // JSON. Read that so category-level fallback survives on the manifest path.
     const aspectAttributes = isGetPages
-        ? {
-              aspectType: url.searchParams.get('aspectTypeId') ?? undefined,
-              categoryId: url.searchParams.get('categoryId') ?? undefined,
-              productId: url.searchParams.get('productId') ?? undefined,
-          }
+        ? readGetPagesAspectAttributes(url, logger)
         : parseAspectAttributes(url, logger);
 
     Object.assign(metrics.parameters, {
@@ -650,6 +650,28 @@ function parseAspectAttributes(
         logger.warn('[PageResolutionMiddleware] Failed to parse aspect attributes', { raw });
         return {};
     }
+}
+
+/**
+ * Resolves the aspect attributes for a `/pages` (getPages) request.
+ *
+ * `fetchPage` sends the aspect type as the top-level `aspectTypeId` param and —
+ * because SCAPI rejects a `/pages` call carrying multiple business-object IDs —
+ * only the single most specific business-object ID at the top level. The full
+ * set (including the category fallback a PDP drops from the top level) still
+ * travels in the `aspectAttributes` JSON, so prefer that and fall back to the
+ * top-level params for resilience against callers that only set them.
+ */
+function readGetPagesAspectAttributes(
+    url: URL,
+    logger: Logger
+): { aspectType?: string; categoryId?: string; productId?: string } {
+    const fromJson = parseAspectAttributes(url, logger);
+    return {
+        aspectType: fromJson.aspectType ?? url.searchParams.get('aspectTypeId') ?? undefined,
+        categoryId: fromJson.categoryId ?? url.searchParams.get('categoryId') ?? undefined,
+        productId: fromJson.productId ?? url.searchParams.get('productId') ?? undefined,
+    };
 }
 
 /**

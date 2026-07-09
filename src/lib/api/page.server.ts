@@ -77,8 +77,12 @@ export const fetchPage = async (
                 query: {
                     // Required by SCAPI; the API will surface a 400 if missing.
                     aspectTypeId: aspectType as string,
-                    ...(categoryId && { categoryId }),
-                    ...(productId && { productId }),
+                    // SCAPI's getPages rejects calls that carry multiple business-object
+                    // IDs (e.g. productId + categoryId) with 400 business-object-id-invalid.
+                    // Send only the most specific one — productId when present, otherwise
+                    // categoryId. The other value still reaches the MRT manifest middleware
+                    // via the aspectAttributes query param below.
+                    ...(productId ? { productId } : categoryId ? { categoryId } : {}),
                     ...aspectAttributesQuery,
                 },
             },

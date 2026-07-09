@@ -494,7 +494,7 @@ describe('pageDesignerResolutionMiddleware', () => {
             expect(mockedResolvePage).toHaveBeenCalled();
         });
 
-        it('should read aspect attributes from top-level query params', async () => {
+        it('falls back to top-level query params when no aspectAttributes JSON is present', async () => {
             const handler = await setupHandler();
             mockedResolvePage.mockResolvedValue(null);
 
@@ -510,6 +510,37 @@ describe('pageDesignerResolutionMiddleware', () => {
                     id: 'shirt-001',
                     identifierType: 'product',
                     aspectType: 'pdp',
+                })
+            );
+        });
+
+        it('reads the category fallback from the aspectAttributes JSON when a PDP omits the top-level categoryId', async () => {
+            // Mirrors what fetchPage sends for a PDP getPages request: productId
+            // top-level (SCAPI rejects both business-object IDs), with the full
+            // set — including the primary-category fallback — in the
+            // aspectAttributes JSON. The fallback must survive so a product with
+            // no page but whose primary category has one still resolves.
+            const handler = await setupHandler();
+            mockedResolvePage.mockResolvedValue(null);
+
+            const aspectAttributes = JSON.stringify({
+                aspectType: 'pdp',
+                categoryId: 'mens-clothing',
+                productId: 'shirt-001',
+            });
+            await handler(
+                middlewareParams(
+                    new Request(getPagesUrl({ aspectTypeId: 'pdp', productId: 'shirt-001', aspectAttributes })),
+                    { schemaPath: '/pages', id: 'getPages' }
+                )
+            );
+
+            expect(mockedResolvePage).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    id: 'shirt-001',
+                    identifierType: 'product',
+                    aspectType: 'pdp',
+                    categoryId: 'mens-clothing',
                 })
             );
         });
