@@ -336,6 +336,7 @@ vi.mock('./components/shipping-options', () => ({
 let mockPaymentFormDataGetter: (() => Record<string, unknown>) | null = null;
 let capturedSetFormErrors: ((errors: Record<string, { type: string; message: string }>) => void) | null = null;
 let mockOnPlaceOrder: (() => Promise<string | null>) | null = null;
+let mockBillingAddressGetter: (() => Record<string, unknown> | null) | null = null;
 
 vi.mock('./components/payment', () => ({
     default: ({ paymentSubmissionRef }: { paymentSubmissionRef?: { current: Record<string, unknown> } }) => {
@@ -347,6 +348,7 @@ vi.mock('./components/payment', () => ({
                 capturedSetFormErrors?.(errors);
             };
             paymentSubmissionRef.current.onPlaceOrder = mockOnPlaceOrder;
+            paymentSubmissionRef.current.billingAddressGetter = mockBillingAddressGetter;
         }
         return <div data-testid="payment">Payment Form</div>;
     },
@@ -456,6 +458,7 @@ describe('CheckoutFormPage', () => {
         mockPaymentFormDataGetter = null;
         capturedSetFormErrors = null;
         mockOnPlaceOrder = null;
+        mockBillingAddressGetter = null;
 
         // Setup checkout context mocks
         mockUseCustomerProfile.mockReturnValue(null); // Default to guest user
@@ -1954,6 +1957,150 @@ describe('CheckoutFormPage', () => {
                 expect(fetchMock).toHaveBeenCalledTimes(2);
             });
             expect(assignedHref).toBeNull();
+        });
+
+        test('persists billing address to update-basket-billing-address before prepare when getter returns an address', async () => {
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+            mockUseBasket.mockReturnValue(basketWithPayment);
+            mockOnPlaceOrder = vi.fn().mockResolvedValue('ORD-9001');
+            mockBillingAddressGetter = vi.fn().mockReturnValue({
+                firstName: 'Jane',
+                lastName: 'Smith',
+                address1: '456 Billing Ave',
+                city: 'Los Angeles',
+                stateCode: 'CA',
+                postalCode: '90001',
+                countryCode: 'US',
+            });
+
+            const fetchMock = vi
+                .fn()
+                // 0. update-basket-billing-address
+                .mockResolvedValueOnce(
+                    new Response(JSON.stringify({ success: true }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                )
+                // 1. prepare
+                .mockResolvedValueOnce(
+                    new Response(JSON.stringify({ success: true }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                )
+                // 2. finalize
+                .mockResolvedValueOnce(
+                    new Response(JSON.stringify({ success: true, redirectUrl: '/order-confirmation/ORD-9001' }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                );
+            globalThis.fetch = fetchMock as typeof fetch;
+
+            await renderCheckoutPage();
+
+            const placeOrderButton = screen.getByRole('button', { name: /Place Order/ });
+            act(() => {
+                fireEvent.click(placeOrderButton);
+            });
+
+            await waitFor(() => {
+                expect(assignedHref).toBe('/order-confirmation/ORD-9001');
+            });
+
+            expect(fetchMock).toHaveBeenCalledTimes(3);
+            expect(fetchMock.mock.calls[0]?.[0]).toBe('/resource/update-basket-billing-address');
+            const billingBody = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as Record<
+                string,
+                unknown
+            >;
+            expect(billingBody.firstName).toBe('Jane');
+            expect(fetchMock.mock.calls[1]?.[0]).toBe('/action/place-order-prepare');
+            expect(fetchMock.mock.calls[2]?.[0]).toBe('/action/place-order-finalize');
+            expect(mockOnPlaceOrder).toHaveBeenCalledTimes(1);
+        });
+
+        test('skips update-basket-billing-address when getter returns null', async () => {
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+            mockUseBasket.mockReturnValue(basketWithPayment);
+            mockOnPlaceOrder = vi.fn().mockResolvedValue('ORD-9001');
+            mockBillingAddressGetter = vi.fn().mockReturnValue(null);
+
+            const fetchMock = vi
+                .fn()
+                // prepare
+                .mockResolvedValueOnce(
+                    new Response(JSON.stringify({ success: true }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                )
+                // finalize
+                .mockResolvedValueOnce(
+                    new Response(JSON.stringify({ success: true, redirectUrl: '/order-confirmation/ORD-9001' }), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                );
+            globalThis.fetch = fetchMock as typeof fetch;
+
+            await renderCheckoutPage();
+
+            const placeOrderButton = screen.getByRole('button', { name: /Place Order/ });
+            act(() => {
+                fireEvent.click(placeOrderButton);
+            });
+
+            await waitFor(() => {
+                expect(assignedHref).toBe('/order-confirmation/ORD-9001');
+            });
+
+            // Only prepare and finalize - no update-basket-billing-address call.
+            expect(fetchMock).toHaveBeenCalledTimes(2);
+            expect(fetchMock.mock.calls[0]?.[0]).toBe('/action/place-order-prepare');
+            expect(fetchMock.mock.calls[1]?.[0]).toBe('/action/place-order-finalize');
+        });
+
+        test('does not invoke onPlaceOrder or prepare when update-basket-billing-address returns non-ok', async () => {
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+            mockUseBasket.mockReturnValue(basketWithPayment);
+            mockOnPlaceOrder = vi.fn().mockResolvedValue('ORD-9001');
+            mockBillingAddressGetter = vi.fn().mockReturnValue({
+                firstName: 'Jane',
+                lastName: 'Smith',
+                address1: '456 Billing Ave',
+                city: 'Los Angeles',
+                stateCode: 'CA',
+                postalCode: '90001',
+                countryCode: 'US',
+            });
+
+            const fetchMock = vi.fn().mockResolvedValueOnce(
+                new Response(JSON.stringify({ success: false }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' },
+                })
+            );
+            globalThis.fetch = fetchMock as typeof fetch;
+
+            const mockShowToast = vi.fn();
+            await renderCheckoutPage({ showToast: mockShowToast });
+
+            const placeOrderButton = screen.getByRole('button', { name: /Place Order/ });
+            act(() => {
+                fireEvent.click(placeOrderButton);
+            });
+
+            await waitFor(() => {
+                expect(fetchMock).toHaveBeenCalledTimes(1);
+            });
+            expect(fetchMock.mock.calls[0]?.[0]).toBe('/resource/update-basket-billing-address');
+            expect(mockOnPlaceOrder).not.toHaveBeenCalled();
+            expect(assignedHref).toBeNull();
+            await waitFor(() => {
+                expect(mockShowToast).toHaveBeenCalledWith(expect.any(String), 'error');
+            });
         });
     });
 });

@@ -139,6 +139,7 @@ export const resourceRoutes = {
     placeOrder: '/action/place-order',
     placeOrderPrepare: '/action/place-order-prepare',
     placeOrderFinalize: '/action/place-order-finalize',
+    updateBasketBillingAddress: '/resource/update-basket-billing-address',
     wishlistAdd: '/action/wishlist-add',
     wishlistRemove: '/action/wishlist-remove',
     paymentMethodAdd: '/action/payment-method-add',

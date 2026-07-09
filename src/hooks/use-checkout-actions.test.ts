@@ -42,11 +42,19 @@ const buildPaymentSubmissionRef = (
 ): PaymentSubmissionRef => ({
     current: {
         formDataGetter: null,
+        billingAddressGetter: null,
         shouldPlaceOrderAfterPayment: false,
         options: options ?? null,
         setFormErrors: null,
         onPlaceOrder: null,
     },
+});
+
+describe('PaymentSubmissionRef shape', () => {
+    it('initial ref shape includes billingAddressGetter as null', () => {
+        const ref = buildPaymentSubmissionRef();
+        expect(ref.current.billingAddressGetter).toBeNull();
+    });
 });
 
 describe('buildPlaceOrderFinalizeFormData', () => {

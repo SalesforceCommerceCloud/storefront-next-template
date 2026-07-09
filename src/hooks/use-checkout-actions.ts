@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 
 import { useCheckoutContext } from '@/hooks/use-checkout';
 import { useBasket, useBasketUpdater } from '@/providers/basket';
 import type { ContactInfoData, PaymentData } from '@/lib/checkout/schemas';
+import type { ShopperBasketsV2 } from '@/scapi';
 import type { CheckoutActionData } from '@/components/checkout/types';
 import {
     CHECKOUT_STEPS,
@@ -74,6 +75,24 @@ export type PlaceOrderOptionsRef = MutableRefObject<{
 /** Single ref coordinating payment submission and place-order flow to avoid race conditions */
 export type PaymentSubmissionRef = MutableRefObject<{
     formDataGetter: (() => PaymentData) | null;
+
+    /**
+     * Returns the billing address the shopper has currently selected in the
+     * payment step, or `null` when no explicit billing is available.
+     *
+     * Extensions that replace `sfcc.checkout.payment` (payment sheets, hosted
+     * fields) register this so the checkout can persist an authoritative
+     * billing address to the basket before delegating to `onPlaceOrder`. The
+     * default form-based Payment component also registers it, returning the
+     * currently-typed billing when "billing differs" is checked and `null`
+     * otherwise.
+     *
+     * Return `null` to signal "no explicit billing"; the checkout will not
+     * touch `basket.billingAddress` in that case (the shipping-step default
+     * remains in place).
+     */
+    billingAddressGetter: (() => ShopperBasketsV2.schemas['OrderAddress'] | null) | null;
+
     shouldPlaceOrderAfterPayment: boolean;
     options: { savePaymentToProfile?: boolean; useDifferentBilling?: boolean } | null;
     setFormErrors: ((errors: Record<string, { type: string; message: string }>) => void) | null;
