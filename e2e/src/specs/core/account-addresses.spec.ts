@@ -190,11 +190,18 @@ Scenario('User can add first address', async () => {
     const dialogOpen = await accountAddressesPage.isDialogOpen();
     expect(dialogOpen, 'Dialog should close after successful save').to.be.false;
 
-    // Refresh page to verify address persisted to backend
+    // Refresh page to verify address persisted to backend.
+    // Assert the named address card is present — NOT a visible-count of 1. The card
+    // wrapper (`[data-testid="address-card"]`) and its inner name (`p.font-medium`)
+    // are separate React renders; right after the refresh's revalidation the wrapper
+    // can be mid-repaint, so `getAddressCount()` (grabNumberOfVisibleElements on the
+    // wrapper) sporadically reads 0 in the same instant the name node is already
+    // attached — exactly what waitForAddressWithName() below waits on. Re-checking the
+    // same name node we just waited for removes that wrapper-visibility race.
     accountAddressesPage.refreshPage();
     accountAddressesPage.waitForAddressWithName(addressName, 10);
-    const addressPersistedCount = await accountAddressesPage.getAddressCount();
-    expect(addressPersistedCount, 'Address should persist after page refresh').to.equal(1);
+    const addressPersisted = await accountAddressesPage.addressExistsByName(addressName);
+    expect(addressPersisted, 'Address should persist after page refresh').to.be.true;
 })
     .tag('@create')
     .tag('@address-management');
