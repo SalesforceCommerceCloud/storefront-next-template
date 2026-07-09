@@ -29,10 +29,6 @@
     },
     "search": {
         "results": "Sökresultat för",
-        "shopperAgent": {
-            "title": "Shoppa med en agent",
-            "description": "Jag kan hjälpa dig att hitta rätt produkt för dina behov. Shoppa med mig."
-        },
         "suggestions": {
             "didYouMean": "Menade du",
             "categories": "Kategorier",

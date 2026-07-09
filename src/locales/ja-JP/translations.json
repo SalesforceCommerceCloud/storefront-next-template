@@ -30,10 +30,6 @@
     },
     "search": {
         "results": "次の検索結果: ",
-        "shopperAgent": {
-            "title": "ショッピングエージェントでお買い物",
-            "description": "お客様の空間にぴったりのアイテムを見つけるお手伝いをします。一緒にお買い物しましょう。"
-        },
         "suggestions": {
             "didYouMean": "次の語句で検索しますか",
             "categories": "カテゴリ",

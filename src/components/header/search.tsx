@@ -25,8 +25,7 @@ import { useSearchSuggestions } from '@/hooks/use-search-suggestions';
 import { useTransformSearchSuggestions } from '@/hooks/use-transform-search-suggestions';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
-import { openShopperAgentAndSendMessage } from '@/components/shopper-agent';
-import { validateShopperAgentConfig } from '@/components/shopper-agent/shopper-agent.utils';
+
 import { UITarget } from '@/targets/ui-target';
 
 const RECENT_SEARCH_LIMIT = 5;
@@ -149,20 +148,6 @@ export default function SearchBar(): ReactElement {
         setShowSuggestions(false);
     }, []);
 
-    const showShopperAgent =
-        (config.commerceAgent?.enabled === 'true' || config.commerceAgent?.enabled === true) &&
-        validateShopperAgentConfig(config.commerceAgent);
-
-    const onShopperAgentClick = useCallback(() => {
-        const searchText = inputRef.current?.value?.trim() ?? query.trim();
-        setShowSuggestions(false);
-        setQuery('');
-        if (inputRef.current) {
-            inputRef.current.value = '';
-        }
-        openShopperAgentAndSendMessage(searchText);
-    }, [query]);
-
     useEffect(() => {
         shouldOpenPopover();
     }, [query, suggestions, shouldOpenPopover]);
@@ -208,8 +193,6 @@ export default function SearchBar(): ReactElement {
                             recentSearches={getSessionJSONItem<string[]>(RECENT_SEARCH_KEY) || []}
                             closeAndNavigate={closeAndNavigate}
                             clearRecentSearches={clearRecentSearches}
-                            showShopperAgent={showShopperAgent}
-                            onShopperAgentClick={onShopperAgentClick}
                         />
                     </div>
                 )}

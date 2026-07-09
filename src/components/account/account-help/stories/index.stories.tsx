@@ -19,21 +19,20 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { allModes } from '../../../../../.storybook/modes';
 import { AccountHelp } from '../index';
-import { mockBuildConfig, mockSiteObject } from '@/test-utils/config';
+import { mockBuildConfig } from '@/test-utils/config';
 
-// Need Help card always mounts; Ask a question only renders when shopper-agent
-// config is valid and the context-UI gate is on. This story config supplies a
-// well-formed agent configuration so all three buttons render.
+// Need Help card always mounts; Ask a question only renders when cimulate agent
+// config is valid and enabled. This story config supplies a well-formed agent
+// configuration so all three buttons render.
 const accountHelpStoryConfig = {
     ...mockBuildConfig.app,
-    commerceAgent: {
+    cimulateAgent: {
         enabled: true,
-        embeddedServiceName: 'test_agent',
-        embeddedServiceEndpoint: 'https://test.my.salesforce.com/embeddedservice/6.0/test',
-        scriptSourceUrl: 'https://test.my.salesforce.com/embeddedservice/6.0/esw.min.js',
+        provider: 'commerce-client' as const,
+        commerceClientScriptSourceUrl: 'https://test.cimulate.ai/sdk/messaging-widget.umd.js',
         scrt2Url: 'https://test.salesforce-scrt.com',
         salesforceOrgId: '00D000000000000EAA',
-        siteId: mockSiteObject.id,
+        esDeveloperName: 'test_agent',
     },
 };
 

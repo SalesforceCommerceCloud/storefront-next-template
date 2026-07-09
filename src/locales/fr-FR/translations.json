@@ -31,10 +31,6 @@
     },
     "search": {
         "results": "Résultats de la recherche pour",
-        "shopperAgent": {
-            "title": "Faites vos achats avec votre agent d’achat",
-            "description": "Je peux vous aider à trouver la pièce parfaite pour votre espace. Faites vos achats avec moi."
-        },
         "suggestions": {
             "didYouMean": "Voulez-vous dire",
             "categories": "Catégories",

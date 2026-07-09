@@ -31,10 +31,6 @@
     },
     "search": {
         "results": "搜索以下方面的结果：",
-        "shopperAgent": {
-            "title": "与您的购物者代理一起购物",
-            "description": "我可以帮助您找到适合您空间的完美产品。和我一起购物。"
-        },
         "suggestions": {
             "didYouMean": "您是否要找",
             "categories": "类别",

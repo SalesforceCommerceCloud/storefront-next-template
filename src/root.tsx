@@ -60,7 +60,6 @@ import {
 import { appConfigMiddlewareServer } from '@/middlewares/app-config.server';
 import { appConfigMiddlewareClient } from '@/middlewares/app-config.client';
 import { ConfigProvider, getConfig, clientAppConfigContext } from '@salesforce/storefront-next-runtime/config';
-import type { AppConfig } from '@/types/config';
 import type { ClientAppConfig } from '@/lib/app-config-client';
 import { siteContextMiddleware } from '@/middlewares/site-context.server';
 import { i18nextMiddleware } from '@/middlewares/i18next.server';
@@ -94,7 +93,7 @@ import { correlationContext } from '@/lib/correlation';
 // Components
 import { AppToaster } from '@/components/toast';
 import { TrackingConsentBanner } from '@/components/tracking-consent-banner';
-import ShopperAgent from '@/components/shopper-agent';
+import CimulateAgent, { isCimulateEnabled } from '@/components/cimulate';
 
 // Hooks
 import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
@@ -673,10 +672,6 @@ export default function App({
 
     const i18next = (typeof window === 'undefined' ? getI18next?.() : i18nextOnClient) as i18n;
 
-    const sites = appConfig.commerce.sites as AppConfig['commerce']['sites'];
-    const defaultSite = sites.find((s) => s.id === appConfig.defaultSiteId) ?? sites[0];
-    const shopperAgentLocale = i18next?.language ?? defaultSite?.defaultLocale ?? appConfig.i18n.fallbackLng;
-
     // Memoize the providers array to prevent unnecessary remounting of providers on render
     const providers = useMemo(
         () =>
@@ -727,14 +722,8 @@ export default function App({
                 <TrackingConsentBanner />
                 {typeof window !== 'undefined' && <PageViewTracker />}
             </UITargetProviders>
-            {(appConfig.commerceAgent?.enabled === 'true' || appConfig.commerceAgent?.enabled === true) && (
-                <ShopperAgent
-                    commerceAgentConfiguration={appConfig.commerceAgent}
-                    locale={shopperAgentLocale}
-                    currency={currency}
-                    userId={clientAuth?.customerId}
-                    usid={clientAuth?.usid}
-                />
+            {isCimulateEnabled(appConfig.cimulateAgent?.enabled) && (
+                <CimulateAgent cimulateConfiguration={appConfig.cimulateAgent} />
             )}
         </ComposeProviders>
     );

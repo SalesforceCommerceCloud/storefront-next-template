@@ -33,10 +33,6 @@
     },
     "search": {
         "results": "Risultati di ricerca per",
-        "shopperAgent": {
-            "title": "Acquista con l'Agente per Shopping",
-            "description": "Posso aiutarti a trovare il pezzo perfetto per il tuo spazio. Acquista con me."
-        },
         "suggestions": {
             "didYouMean": "Intendevi",
             "categories": "Categorie",

@@ -17,16 +17,11 @@
 /* eslint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
 import { createContext, useContext, type PropsWithChildren, type ReactElement } from 'react';
 import type { ShopperProducts } from '@/scapi';
-import type {
-    ReturnsAndWarrantyData,
-    FaqQuestionsData,
-    HtmlContent,
-} from '@/extensions/product-content/lib/api/product-content.server';
+import type { ReturnsAndWarrantyData, HtmlContent } from '@/extensions/product-content/lib/api/product-content.server';
 
 export interface ProductContentDataContextValue {
     product: ShopperProducts.schemas['Product'];
     returnsWarrantyPromise: Promise<ReturnsAndWarrantyData>;
-    faqQuestionsPromise: Promise<FaqQuestionsData>;
     pdpCollapsiblesPromise: Promise<Array<HtmlContent | null>>;
 }
 
@@ -41,13 +36,11 @@ export type ProductContentDataProviderProps = PropsWithChildren<ProductContentDa
 export function ProductContentDataProvider({
     product,
     returnsWarrantyPromise,
-    faqQuestionsPromise,
     pdpCollapsiblesPromise,
     children,
 }: ProductContentDataProviderProps): ReactElement {
     return (
-        <ProductContentDataContext.Provider
-            value={{ product, returnsWarrantyPromise, faqQuestionsPromise, pdpCollapsiblesPromise }}>
+        <ProductContentDataContext.Provider value={{ product, returnsWarrantyPromise, pdpCollapsiblesPromise }}>
             {children}
         </ProductContentDataContext.Provider>
     );

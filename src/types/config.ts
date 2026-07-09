@@ -84,16 +84,28 @@ export type AppConfig = {
         /** Cookie domain, e.g. `.example.com` to share across subdomains. */
         domain?: string;
     };
-    commerceAgent?: {
+    cimulateAgent?: {
         enabled: string | boolean;
-        embeddedServiceName: string;
-        embeddedServiceEndpoint: string;
-        scriptSourceUrl: string;
+        commerceClientScriptSourceUrl: string;
         scrt2Url: string;
         salesforceOrgId: string;
-        siteId: string;
-        enableConversationContext?: string;
-        conversationContext?: string[];
+        esDeveloperName: string;
+        commerceClientDisplayMode?: 'panel' | 'dialog' | 'modal';
+        commerceClientElementId?: string;
+        commerceClientLogoUrl?: string;
+        commerceClientPanelWidth?: string;
+        commerceClientMode?: string;
+        headerText?: string;
+        disclaimerMarkdown?: string;
+        commerceClientSearchConfig?: {
+            placeholder?: string;
+            buttonLabel?: string;
+            buttonType?: string;
+            buttonIconUrl?: string;
+        };
+        commerceClientTheme?: Record<string, string>;
+        routingAttributes?: Record<string, unknown>;
+        isDevelopment?: string;
     };
     defaultSiteId: string;
     development: {

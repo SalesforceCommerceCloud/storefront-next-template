@@ -18,30 +18,24 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { SparklesIcon } from '@/components/icons';
-import { openShopperAgent } from '@/components/shopper-agent';
+import { openAgentWidget, isCimulateEnabled, validateCimulateConfig } from '@/components/cimulate';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { isShopperAgentContextUiEnabled } from '@/lib/shopper-context/agent-ui';
-import { validateShopperAgentConfig } from '@/components/shopper-agent/shopper-agent.utils';
 
 /**
  * Account Help component
  *
  * Always shows the Need Help card with Contact info and Browse FAQ. The primary **Ask a question**
- * control (opens Embedded Messaging) only renders when shopper agent config is valid and
- * {@link isShopperAgentContextUiEnabled} is true — hidden if config is invalid or the context UI gate is off.
+ * control (opens Cimulate widget) only renders when cimulate agent config is valid and enabled.
  */
 export function AccountHelp(): ReactElement {
     const { t } = useTranslation('account');
     const config = useConfig();
 
-    const isShopperAgentEnabled =
-        (config.commerceAgent?.enabled === 'true' || config.commerceAgent?.enabled === true) &&
-        validateShopperAgentConfig(config.commerceAgent);
-
-    const showAskQuestionButton = isShopperAgentEnabled && isShopperAgentContextUiEnabled();
+    const showAskQuestionButton =
+        isCimulateEnabled(config.cimulateAgent?.enabled) && validateCimulateConfig(config.cimulateAgent);
 
     const handleAskQuestion = () => {
-        openShopperAgent();
+        openAgentWidget();
     };
 
     return (

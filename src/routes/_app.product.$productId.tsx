@@ -75,10 +75,8 @@ import { WriteReviewFormProvider } from '@/extensions/ratings-reviews/context/wr
 // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
 import {
     getReturnsAndWarranty,
-    getFaqQuestions,
     pdpSectionApi,
     type ReturnsAndWarrantyData,
-    type FaqQuestionsData,
     type HtmlContent,
 } from '@/extensions/product-content/lib/api/product-content.server';
 import { resolvePdpSections } from '@/extensions/product-content/lib/pdp-sections';
@@ -132,7 +130,6 @@ export type ProductPageData = {
     // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
     // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
     returnsWarranty: Promise<ReturnsAndWarrantyData>;
-    faqQuestions: Promise<FaqQuestionsData>;
     pdpCollapsibles: Promise<Array<HtmlContent | null>>;
     // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
     // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
@@ -305,7 +302,6 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
         // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
         // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
         returnsWarranty: getReturnsAndWarranty(productLookupId),
-        faqQuestions: getFaqQuestions(productLookupId),
         pdpCollapsibles: Promise.all(
             resolvePdpSections(product).map((section) =>
                 pdpSectionApi[section.apiMethod](productLookupId).catch(() => null)
@@ -333,7 +329,6 @@ function ProductContent({
     // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
     // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
     returnsWarrantyPromise,
-    faqQuestionsPromise,
     pdpCollapsiblesPromise,
     // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
 }: {
@@ -346,7 +341,6 @@ function ProductContent({
     // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
     // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
     returnsWarrantyPromise: Promise<ReturnsAndWarrantyData>;
-    faqQuestionsPromise: Promise<FaqQuestionsData>;
     pdpCollapsiblesPromise: Promise<Array<HtmlContent | null>>;
     // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
 }) {
@@ -377,7 +371,6 @@ function ProductContent({
             <ProductContentDataProvider
                 product={product}
                 returnsWarrantyPromise={returnsWarrantyPromise}
-                faqQuestionsPromise={faqQuestionsPromise}
                 pdpCollapsiblesPromise={pdpCollapsiblesPromise}>
                 {/* @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT */}
                 {/* @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS */}
@@ -454,7 +447,6 @@ function ProductDetailView({ loaderData }: { loaderData: ProductPageData }) {
                     // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
                     // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
                     returnsWarrantyPromise={loaderData.returnsWarranty}
-                    faqQuestionsPromise={loaderData.faqQuestions}
                     pdpCollapsiblesPromise={loaderData.pdpCollapsibles}
                     // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
                 />

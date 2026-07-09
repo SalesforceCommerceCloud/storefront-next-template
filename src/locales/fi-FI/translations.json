@@ -30,10 +30,6 @@
     },
     "search": {
         "results": "Hakutulokset",
-        "shopperAgent": {
-            "title": "Shoppaile Shopper Agentin kanssa",
-            "description": "Voin auttaa sinua löytämään täydellisen tuotteen. Tee ostoksia kanssani."
-        },
         "suggestions": {
             "didYouMean": "Tarkoititko",
             "categories": "Kategoriat",

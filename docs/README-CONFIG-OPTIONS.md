@@ -20,7 +20,7 @@ This reference provides detailed documentation for all configuration options ava
   - [search](#search) - Search-specific settings
   - [performance](#performance) - Performance optimization settings
   - [engagement](#engagement) - Analytics and engagement adapters
-  - [commerceAgent](#commerceagent) - Shopper Agent (Embedded Messaging / Agentforce)
+  - [cimulateAgent](#cimulateagent) - Commerce Client (Cimulate) messaging widget
   - [development](#development) - Development tools and features
 
 ---
@@ -1521,23 +1521,26 @@ PUBLIC__app__engagement__analytics__pageViewsResetDuration=2000
 
 ---
 
-## commerceAgent
+## cimulateAgent
 
-Shopper Agent (Salesforce Embedded Messaging / Agentforce) configuration. When enabled, the storefront loads the embedded service script and exposes a chat window that can be opened via the **Open chat** button or `useShopperAgent().actions.open()`.
+Commerce Client (Cimulate) messaging widget configuration. When enabled, loads the Cimulate UMD bundle and injects a chat widget accessible via the header sparkles icon or Account Help "Ask a question" button.
 
-All values are overridden via `PUBLIC__app__commerceAgent__*` environment variables. Defaults in `config.server.ts` are empty or disabled. See [Shopper Agent README](../../components/shopper-agent/README.md) and `.env.default` for setup and per-environment configuration.
+Override via `PUBLIC__app__cimulateAgent` as a single JSON string. Defaults in `config.server.ts` are empty or disabled. See `src/components/cimulate/README.md` for setup.
 
 | Path | Type | Description |
 |------|------|-------------|
-| `enabled` | `string` | `'true'` or `'false'`. Use `'false'` or omit to disable. |
-| `embeddedServiceName` | `string` | Deployment name from Embedded Service Deployments. |
-| `embeddedServiceEndpoint` | `string` | Base URL of the deployment. |
-| `scriptSourceUrl` | `string` | Full URL to the bootstrap script. |
+| `enabled` | `string \| boolean` | `true` / `'true'` to enable. |
+| `commerceClientScriptSourceUrl` | `string` | Full URL to the Cimulate UMD bundle (must be from a trusted domain). |
 | `scrt2Url` | `string` | SCRT2 URL for your org. |
-| `salesforceOrgId` | `string` | Salesforce org ID (18 characters). |
-| `siteId` | `string` | Commerce site ID. |
-| `enableConversationContext` | `string` (optional) | `'true'` to send conversation context. |
-| `conversationContext` | `string[]` (optional) | Context keys when conversation context is enabled. |
+| `salesforceOrgId` | `string` | Salesforce org ID. |
+| `esDeveloperName` | `string` | Embedded Service developer name. |
+| `commerceClientElementId` | `string` (optional) | DOM element ID for widget container. |
+| `commerceClientDisplayMode` | `'panel' \| 'dialog' \| 'modal'` (optional) | Widget display mode. Default: `'panel'`. |
+| `commerceClientPanelWidth` | `string` (optional) | Panel width (e.g. `'420px'`). |
+| `commerceClientLogoUrl` | `string` (optional) | Logo URL for the widget header. |
+| `headerText` | `string` (optional) | Widget header text. |
+| `commerceClientTheme` | `object` (optional) | Theme overrides (primaryColor, fontFamily, etc.). |
+| `routingAttributes` | `object` (optional) | Routing attributes for agent assignment. |
 
 ---
 

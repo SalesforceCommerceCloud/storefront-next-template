@@ -93,7 +93,7 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | `PUBLIC__app__features__googleCloudAPI__apiKey` | — | Google Address Autocomplete |
 | `PUBLIC__security__turnstile__enabled` | `false` | Turnstile bot protection |
 | `PUBLIC__security__turnstile__sites` | — | Turnstile per-site configuration |
-| `PUBLIC__app__commerceAgent__*` | disabled | Embedded Agentforce config (see appendix) |
+| `PUBLIC__app__cimulateAgent` | disabled | Commerce Client (Cimulate) messaging widget config (JSON string) |
 
 ### Optional non-`PUBLIC__` runtime/deploy variables
 
@@ -618,21 +618,13 @@ Cloudflare Turnstile is disabled by default. The test site key below always pass
 
 See [README-TURNSTILE.md](./README-TURNSTILE.md) and `e2e/feature-specs/checkout/turnstile-protection.spec.md`.
 
-### Commerce Agent (Embedded Messaging / Agentforce)
+### Commerce Client (Cimulate)
 
 ```bash
-# PUBLIC__app__commerceAgent__enabled=true
-# PUBLIC__app__commerceAgent__embeddedServiceName=
-# PUBLIC__app__commerceAgent__embeddedServiceEndpoint=
-# PUBLIC__app__commerceAgent__scriptSourceUrl=
-# PUBLIC__app__commerceAgent__scrt2Url=
-# PUBLIC__app__commerceAgent__salesforceOrgId=
-# PUBLIC__app__commerceAgent__siteId=
-# PUBLIC__app__commerceAgent__enableConversationContext=false
-# PUBLIC__app__commerceAgent__conversationContext=[]
+# PUBLIC__app__cimulateAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
 ```
 
-See `src/components/shopper-agent/README.md` for environment-specific setup.
+Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. See `src/components/cimulate/README.md` for setup.
 
 ### Cookie domain
 

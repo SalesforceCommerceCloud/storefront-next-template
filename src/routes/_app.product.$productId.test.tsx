@@ -258,7 +258,6 @@ describe('Product Detail Route', () => {
             warranty: { heading: '', intro: '', whatsCovered: [], whatsNotCovered: [], claimsProcess: '' },
             exchanges: { heading: '', intro: '', process: '' },
         }),
-        faqQuestions: Promise.resolve({ questions: [] }),
         pdpCollapsibles: Promise.resolve([]),
         // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
         // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY

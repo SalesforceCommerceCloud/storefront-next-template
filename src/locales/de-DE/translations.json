@@ -30,10 +30,6 @@
     },
     "search": {
         "results": "Suchergebnisse für",
-        "shopperAgent": {
-            "title": "Einkaufen mit Ihrem persönlichem Shopper Agent",
-            "description": "Ich kann Ihnen helfen, das perfekte Stück für Ihren Raum zu finden. Lassen Sie mich beim Einkaufen helfen."
-        },
         "suggestions": {
             "didYouMean": "Meinten Sie",
             "categories": "Kategorien",

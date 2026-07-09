@@ -69,13 +69,13 @@ export default defineConfig<Config>({
 
 ## CSP Contributors
 
-Opt-in features (e.g., shopper agent) contribute their exact configured origins to the CSP at boot instead of requiring manual directive edits or shipping broad wildcards. The SDK validates contributors at boot (https-only, no wildcards/credentials/whitespace) and folds active ones into the served CSP.
+Opt-in features (e.g., Cimulate messaging widget) contribute their exact configured origins to the CSP at boot instead of requiring manual directive edits or shipping broad wildcards. The SDK validates contributors at boot (https-only, no wildcards/credentials/whitespace) and folds active ones into the served CSP.
 
 | Feature | Contributor ID | Directives | Activation |
 |---|---|---|---|
-| Shopper Agent (Salesforce Embedded Messaging) | `shopper-agent` | `script-src`, `frame-src`, `connect-src`, `style-src`, `font-src`, `img-src` | `commerceAgent.enabled` is `true` or `'true'` |
+| Commerce Client (Cimulate) | `cimulate` | `script-src`, `connect-src`, `img-src`, `style-src`, `font-src`, `frame-src` | `cimulateAgent.enabled` is `true` or `'true'` |
 
-Origins are derived from existing feature config (`commerceAgent.scriptSourceUrl`, `scrt2Url`, `embeddedServiceEndpoint`) — no new config to set.
+Origins are derived from feature config (`cimulateAgent.commerceClientScriptSourceUrl`, `scrt2Url`, `commerceClientLogoUrl`) — no new config to set.
 
 To author a new contributor for a feature, use the `add-csp-contributor` skill.
 

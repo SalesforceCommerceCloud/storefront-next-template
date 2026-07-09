@@ -91,6 +91,7 @@ const EXCLUDED_COMPONENTS = new Set([
     // Page Designer Region and Component Wrapper, there is no value in having storybook stories for these
     'region/component',
     'region/component-data-context',
+    'region/embedded-component-region',
     'region/index',
     'region/region-wrapper',
     // Tiny error-boundary fallback components consumed via React Router's `errorElement` —
@@ -137,6 +138,11 @@ const EXCLUDED_COMPONENTS = new Set([
     'footer/policy-links',
     'footer/social-icons',
     'footer/switchers',
+    // Cimulate (Commerce Client) — thin deferred loader, config validator, and external script injector.
+    // Depends on a CDN-loaded UMD bundle; no visual rendering testable in Storybook isolation.
+    'cimulate/index',
+    'cimulate/cimulate-ui',
+    'cimulate/cimulate-window',
 ]);
 // Ensure OUTPUT DIR exists
 if (!fs.existsSync(OUTPUT_DIR)) {

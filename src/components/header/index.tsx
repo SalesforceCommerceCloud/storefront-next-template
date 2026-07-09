@@ -25,8 +25,7 @@ import logo from '/images/logo.svg';
 import { Button } from '@/components/ui/button';
 import { SparklesIcon } from '@/components/icons';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { launchChat } from '@/components/shopper-agent';
-import { validateShopperAgentConfig } from '@/components/shopper-agent/shopper-agent.utils';
+import { openAgentWidget, isCimulateEnabled, validateCimulateConfig } from '@/components/cimulate';
 import { UITarget } from '@/targets/ui-target';
 import { Component } from '@/lib/decorators/component';
 import { RegionDefinition } from '@/lib/decorators';
@@ -70,8 +69,8 @@ export default function Header({
     const config = useConfig();
     const showChat =
         variant === 'full' &&
-        (config.commerceAgent?.enabled === 'true' || config.commerceAgent?.enabled === true) &&
-        validateShopperAgentConfig(config.commerceAgent);
+        isCimulateEnabled(config.cimulateAgent?.enabled) &&
+        validateCimulateConfig(config.cimulateAgent);
     const updateHeaderHeight = useCallback(() => {
         if (headerRef.current) {
             const height = `${headerRef.current.offsetHeight}px`;
@@ -144,7 +143,7 @@ export default function Header({
                                 variant="ghost"
                                 size="icon"
                                 className="cursor-pointer lg:px-4 px-1 text-header-foreground hover:bg-transparent hover:opacity-50 transition-opacity"
-                                onClick={() => launchChat()}
+                                onClick={() => openAgentWidget()}
                                 aria-label={t('openChat')}>
                                 <SparklesIcon />
                             </Button>

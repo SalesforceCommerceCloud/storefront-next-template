@@ -31,10 +31,6 @@
     },
     "search": {
         "results": "搜尋結果",
-        "shopperAgent": {
-            "title": "與您的購物代理程式一起購物",
-            "description": "我可以幫您尋找最適合您空間的單品。跟我一起購物。"
-        },
         "suggestions": {
             "didYouMean": "您指的是",
             "categories": "種類",

@@ -69,10 +69,6 @@ export interface ProductDescriptionData {
     features: HtmlContent[];
 }
 
-export interface FaqQuestionsData {
-    questions: string[];
-}
-
 export type IngredientsData = HtmlContent;
 export type UsageInstructionsData = HtmlContent;
 export type CareInstructionsData = HtmlContent;
@@ -150,14 +146,6 @@ const MOCK_TECH_SPECS_DATA: TechSpecsData = {
     contentType: 'table-2-column',
 };
 
-const MOCK_FAQ_QUESTIONS: FaqQuestionsData = {
-    questions: [
-        'What sizes does this come in?',
-        'Which color would work best for a minimalist space?',
-        'Will this work in a minimalist living room?',
-    ],
-};
-
 /**
  * Fetch returns & warranty content for a product. Replace the body of this
  * function with a real CMS / commerce-cloud call when integrating.
@@ -184,14 +172,6 @@ export function getCareInstructions(_productId?: string): Promise<CareInstructio
 /** Fetch technical specifications content. Replace the body with a real backend call. */
 export function getTechSpecs(_productId?: string): Promise<TechSpecsData> {
     return Promise.resolve(MOCK_TECH_SPECS_DATA);
-}
-
-/**
- * Fetch FAQ question prompts for the "Ask assistant" collapsible. Replace the
- * body with a real backend call (e.g., Einstein-curated questions).
- */
-export function getFaqQuestions(_productId?: string): Promise<FaqQuestionsData> {
-    return Promise.resolve(MOCK_FAQ_QUESTIONS);
 }
 
 /**

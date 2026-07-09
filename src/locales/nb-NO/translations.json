@@ -31,10 +31,6 @@
     },
     "search": {
         "results": "Søkeresultater for",
-        "shopperAgent": {
-            "title": "Handle med kundeagenten din",
-            "description": "Jeg kan hjelpe deg med å finne det perfekte møbelet til rommet ditt. Handle med meg."
-        },
         "suggestions": {
             "didYouMean": "Mente du",
             "categories": "Kategorier",

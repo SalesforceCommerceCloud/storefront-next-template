@@ -30,10 +30,6 @@
     },
     "search": {
         "results": "검색 결과",
-        "shopperAgent": {
-            "title": "Shopper Agent로 쇼핑하기",
-            "description": "공간에 딱 맞는 제품을 찾도록 도와드리겠습니다. 저와 함께 쇼핑하세요."
-        },
         "suggestions": {
             "didYouMean": "다음을 찾으셨나요?",
             "categories": "카테고리",

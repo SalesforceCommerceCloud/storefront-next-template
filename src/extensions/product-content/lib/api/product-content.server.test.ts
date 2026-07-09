@@ -21,7 +21,6 @@ import {
     getUsageInstructions,
     getCareInstructions,
     getTechSpecs,
-    getFaqQuestions,
     pdpSectionApi,
 } from './product-content.server';
 
@@ -54,16 +53,6 @@ describe('product-content.server', () => {
             const data = await fn('product-123');
             expect(data.html).toBeTruthy();
             expect(data.contentType).toBeTruthy();
-        });
-    });
-
-    describe('getFaqQuestions', () => {
-        it('returns a non-empty list of question prompts', async () => {
-            const data = await getFaqQuestions('product-123');
-            expect(data.questions.length).toBeGreaterThan(0);
-            for (const q of data.questions) {
-                expect(typeof q).toBe('string');
-            }
         });
     });
 

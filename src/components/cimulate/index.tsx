@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { SHOPPER_AGENT_LOAD_EVENT, type ShopperAgentConfig } from './shopper-agent.utils';
+import { CIMULATE_LOAD_EVENT, type CimulateConfig } from './cimulate.utils';
 
-const ShopperAgentUI = lazy(() => import('./shopper-agent-ui'));
-
-/** Re-export for consumers that need to listen for load trigger. */
-// eslint-disable-next-line react-refresh/only-export-components -- barrel re-export for load trigger
-export { SHOPPER_AGENT_LOAD_EVENT };
+const CimulateUI = lazy(() => import('./cimulate-ui'));
 
 const IDLE_TIMEOUT_MS = 2000;
 
-/** requestIdleCallback with fallback for browsers that don't support it (e.g. older Safari). */
 function scheduleIdle(callback: IdleRequestCallback, options?: IdleRequestOptions): number {
     if (typeof window.requestIdleCallback === 'function') {
         return window.requestIdleCallback(callback, { timeout: IDLE_TIMEOUT_MS, ...options });
@@ -43,22 +39,16 @@ function cancelIdle(handle: number): void {
     }
 }
 
-interface ShopperAgentProps {
-    commerceAgentConfiguration?: ShopperAgentConfig;
-    locale: string;
-    currency?: string;
-    userId?: string;
-    usid?: string;
+interface CimulateAgentProps {
+    cimulateConfiguration?: CimulateConfig;
 }
 
 /**
- * ShopperAgent wrapper: defers loading the agent chunk until the browser is idle via
- * requestIdleCallback, so the main thread's initial hydration is not blocked. The chunk
- * (and Embedded Service script) preload in the background; on user interaction (e.g. "Open chat")
- * the agent is typically ready. If the user clicks before idle has fired, we load on demand
- * and cancel the scheduled idle callback.
+ * Cimulate (Commerce Client) agent wrapper: defers loading the chunk until the browser
+ * is idle via requestIdleCallback, so initial hydration is not blocked. If the user
+ * clicks the agent button before idle fires, we load on demand.
  */
-function ShopperAgent({ commerceAgentConfiguration, locale, currency, userId, usid }: ShopperAgentProps) {
+function CimulateAgent({ cimulateConfiguration }: CimulateAgentProps) {
     const [deferReady, setDeferReady] = useState(false);
     const idleHandleRef = useRef<number | null>(null);
 
@@ -73,7 +63,7 @@ function ShopperAgent({ commerceAgentConfiguration, locale, currency, userId, us
                 cancelIdle(idleHandleRef.current);
                 idleHandleRef.current = null;
             }
-            void import('./shopper-agent-ui');
+            void import('./cimulate-ui');
             if (!cancelled) setDeferReady(true);
         };
 
@@ -88,7 +78,7 @@ function ShopperAgent({ commerceAgentConfiguration, locale, currency, userId, us
         const handleLoadEvent = (): void => {
             startLoad();
         };
-        window.addEventListener(SHOPPER_AGENT_LOAD_EVENT, handleLoadEvent);
+        window.addEventListener(CIMULATE_LOAD_EVENT, handleLoadEvent);
 
         return () => {
             cancelled = true;
@@ -96,7 +86,7 @@ function ShopperAgent({ commerceAgentConfiguration, locale, currency, userId, us
                 cancelIdle(idleHandleRef.current);
                 idleHandleRef.current = null;
             }
-            window.removeEventListener(SHOPPER_AGENT_LOAD_EVENT, handleLoadEvent);
+            window.removeEventListener(CIMULATE_LOAD_EVENT, handleLoadEvent);
         };
     }, []);
 
@@ -106,27 +96,20 @@ function ShopperAgent({ commerceAgentConfiguration, locale, currency, userId, us
 
     return (
         <Suspense fallback={null}>
-            <ShopperAgentUI
-                commerceAgentConfiguration={commerceAgentConfiguration}
-                locale={locale}
-                currency={currency}
-                userId={userId}
-                usid={usid}
-            />
+            <CimulateUI cimulateConfiguration={cimulateConfiguration} />
         </Suspense>
     );
 }
 
-export default ShopperAgent;
+export default CimulateAgent;
 
-/* eslint-disable react-refresh/only-export-components -- default component plus intentional util barrel re-exports */
+/* eslint-disable react-refresh/only-export-components -- barrel re-exports */
 export {
-    launchChat,
-    sendTextMessage,
-    openShopperAgent,
-    openShopperAgentAndSendMessage,
-    notifyEmbeddedMessagingFirstBotMessageSent,
-} from './shopper-agent.utils';
-
-export type { ShopperAgentConfig } from './shopper-agent.utils';
+    openCimulateWidget,
+    openAgentWidget,
+    validateCimulateConfig,
+    isCimulateEnabled,
+    CIMULATE_LOAD_EVENT,
+} from './cimulate.utils';
+export type { CimulateConfig } from './cimulate.utils';
 /* eslint-enable react-refresh/only-export-components */

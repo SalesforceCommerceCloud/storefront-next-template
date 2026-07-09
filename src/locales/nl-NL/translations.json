@@ -28,10 +28,6 @@
     },
     "search": {
         "results": "Zoekresultaten voor",
-        "shopperAgent": {
-            "title": "Shop met je winkelagent",
-            "description": "Ik kan je helpen het perfecte artikel voor je ruimte te vinden. Shop met mij."
-        },
         "suggestions": {
             "didYouMean": "Bedoelde je",
             "categories": "Categorieën",

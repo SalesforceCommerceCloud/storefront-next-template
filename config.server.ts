@@ -545,18 +545,16 @@ export default defineConfig<Config>(
             // Development tools and features
             // See CONFIG-OPTIONS.md#development for detailed documentation
             development: { enableDevtools: true, hotReload: true, strictMode: true },
-            // Commerce Agent (Embedded Service / Agentforce)
-            // Override via PUBLIC__app__commerceAgent (single JSON string; see src/components/shopper-agent/README.md).
-            commerceAgent: {
+            // Cimulate Agent (Commerce Client messaging widget)
+            // Override via PUBLIC__app__cimulateAgent (single JSON string; see src/components/cimulate/README.md).
+            cimulateAgent: {
                 enabled: '',
-                embeddedServiceName: '',
-                embeddedServiceEndpoint: '',
-                scriptSourceUrl: '',
+                commerceClientScriptSourceUrl: '',
                 scrt2Url: '',
                 salesforceOrgId: '',
-                siteId: '',
-                enableConversationContext: '',
-                conversationContext: [],
+                esDeveloperName: '',
+                commerceClientElementId: 'cimulate-messaging-container',
+                commerceClientDisplayMode: 'panel' as const,
             },
             // Defaults contributed by installed extensions, auto-discovered from each
             // src/extensions/*/config.ts. Do not edit by hand — regenerate with
