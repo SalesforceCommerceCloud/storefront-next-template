@@ -20,8 +20,8 @@ minimumReleaseAge: 2880
 # These Salesforce-published packages are exempt from the quarantine window.
 # (https://pnpm.io/settings#minimumreleaseageexclude)
 minimumReleaseAgeExclude:
-  - '@salesforce/storefront-next-dev@1.1.0-alpha.3'
-  - '@salesforce/storefront-next-runtime@1.1.0-alpha.3'
+  - '@salesforce/storefront-next-dev@1.1.0'
+  - '@salesforce/storefront-next-runtime@1.1.0'
   - '@salesforce/mrt-utilities@0.2.1'
 
 # Prevent lockfile version downgrades.
