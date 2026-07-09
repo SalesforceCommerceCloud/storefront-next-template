@@ -16,6 +16,7 @@
 import React, { type ReactElement, useState, useEffect, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Link } from '@/components/link';
+import { DynamicImage } from '@/components/dynamic-image';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -27,6 +28,9 @@ import { RegionDefinition } from '@/lib/decorators/region-definition';
 import heroImage from '/images/hero-01.webp';
 import { normalizeOverlayPosition, normalizeOverlayAlignment, overlayPositionLayout } from '@/components/hero/utils';
 import type { ComponentType } from '@/components/region';
+
+/** Each slide is edge-to-edge at every breakpoint, so the image always requests a viewport-width variant from DIS. */
+const HERO_IMAGE_WIDTHS = ['100vw'];
 
 const heroCarouselDefaults = {
     autoPlay: true,
@@ -284,9 +288,12 @@ export function HeroCarouselPlain({
                 className="w-full h-full [&_[data-slot=carousel-content]]:h-full [&_[data-slot=carousel-item]]:h-full">
                 {/* Passing -ml-4 to the CarouselContent to prevent CLS issues during hydration */}
                 <CarouselContent className="h-full">
-                    {slides.map((slide) => (
+                    {slides.map((slide, index) => (
                         <CarouselItem key={slide.id} className="h-full">
-                            <HeroSlideContent slide={image ? { ...slide, imageUrl: image.url } : slide} />
+                            <HeroSlideContent
+                                slide={image ? { ...slide, imageUrl: image.url } : slide}
+                                priority={index === 0}
+                            />
                         </CarouselItem>
                     ))}
                 </CarouselContent>
@@ -395,7 +402,7 @@ const NavigationButton = React.memo(
 
 NavigationButton.displayName = 'NavigationButton';
 
-const HeroSlideContent = React.memo(({ slide }: { slide: HeroSlide }): ReactElement => {
+const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; priority: boolean }): ReactElement => {
     const position = normalizeOverlayPosition(slide.overlayPosition);
     const alignment = normalizeOverlayAlignment(slide.overlayAlignment);
     const { vertical, horizontal } = overlayPositionLayout(position);
@@ -416,11 +423,17 @@ const HeroSlideContent = React.memo(({ slide }: { slide: HeroSlide }): ReactElem
 
     return (
         <div className="relative w-full h-full overflow-hidden">
-            <img
+            <DynamicImage
                 src={slide.imageUrl}
                 alt={slide.imageAlt || slide.title || 'Hero Carousel'}
-                fetchPriority="high"
-                className="absolute inset-0 w-full h-full object-cover"
+                widths={HERO_IMAGE_WIDTHS}
+                // One full-width slide is visible per view (CarouselItem is basis-full), so slide 0 is what
+                // paints first and is the LCP candidate: preload it and load it eagerly. Off-screen slides stay
+                // lazy so they don't compete with the LCP image for bandwidth.
+                priority={priority ? 'high' : 'auto'}
+                loading={priority ? 'eager' : 'lazy'}
+                className="absolute inset-0 w-full h-full"
+                imageProps={{ className: 'w-full h-full object-cover' }}
             />
             <div
                 className="absolute inset-0"

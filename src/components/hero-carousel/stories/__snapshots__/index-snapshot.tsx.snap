@@ -31,12 +31,17 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 1"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+1"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 1"
+                class="w-full h-full object-cover"
+                fetchpriority="high"
+                loading="eager"
+                src="https://via.placeholder.com/1920x1080?text=Slide+1"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -87,12 +92,17 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 2"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+2"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 2"
+                class="w-full h-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://via.placeholder.com/1920x1080?text=Slide+2"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -143,12 +153,17 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 3"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+3"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 3"
+                class="w-full h-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://via.placeholder.com/1920x1080?text=Slide+3"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -334,12 +349,17 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 1"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+1"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 1"
+                class="w-full h-full object-cover"
+                fetchpriority="high"
+                loading="eager"
+                src="https://via.placeholder.com/1920x1080?text=Slide+1"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -390,12 +410,17 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 2"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+2"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 2"
+                class="w-full h-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://via.placeholder.com/1920x1080?text=Slide+2"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -446,12 +471,17 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 3"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+3"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 3"
+                class="w-full h-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://via.placeholder.com/1920x1080?text=Slide+3"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -625,12 +655,17 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 1"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+1"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 1"
+                class="w-full h-full object-cover"
+                fetchpriority="high"
+                loading="eager"
+                src="https://via.placeholder.com/1920x1080?text=Slide+1"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -681,12 +716,17 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 2"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+2"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 2"
+                class="w-full h-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://via.placeholder.com/1920x1080?text=Slide+2"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -737,12 +777,17 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 3"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+3"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 3"
+                class="w-full h-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://via.placeholder.com/1920x1080?text=Slide+3"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
@@ -916,12 +961,17 @@ exports[`HeroCarousel stories snapshot > SingleSlide story renders and matches s
           <div
             class="relative w-full h-full overflow-hidden"
           >
-            <img
-              alt="Slide 1"
-              class="absolute inset-0 w-full h-full object-cover"
-              fetchpriority="high"
-              src="https://via.placeholder.com/1920x1080?text=Slide+1"
-            />
+            <div
+              class="absolute inset-0 w-full h-full"
+            >
+              <img
+                alt="Slide 1"
+                class="w-full h-full object-cover"
+                fetchpriority="high"
+                loading="eager"
+                src="https://via.placeholder.com/1920x1080?text=Slide+1"
+              />
+            </div>
             <div
               class="absolute inset-0"
               style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
