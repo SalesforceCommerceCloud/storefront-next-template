@@ -211,6 +211,9 @@ declare function extractPrefixParamValues({
  * e.g. to='/api/search?refine=color:blue&refine=size:M', search='?lng=:localeId'
  *   → '/api/search?refine=color:blue&refine=size:M&lng=en-GB'
  *
+ * External links (explicit scheme, protocol-relative, or a scheme-less bare domain) are never
+ * site-prefixed — see {@link classifyExternal}.
+ *
  * @example
  * buildUrl({ to: '/product/123', urlConfig: { prefix: '/:siteId', search: '?lng=:localeId' }, params: { siteId: 'global', localeId: 'en-GB' } })
  * // → '/global/product/123?lng=en-GB'

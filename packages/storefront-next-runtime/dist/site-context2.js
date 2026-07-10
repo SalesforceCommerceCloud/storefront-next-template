@@ -160,6 +160,33 @@ function extractPrefixParamValues({ pathname, prefix }) {
 	return values;
 }
 /**
+* Detects a link that targets somewhere outside this app's routing and must NOT receive the
+* site/locale prefix. Three shapes count as external:
+*
+* 1. **Explicit scheme** — `https://…`, `mailto:…`, `tel:…`, `ftp://…`, etc. Matched by a leading
+*    `scheme:` per RFC 3986 (a letter followed by letters/digits/`+`/`-`/`.`, then `:`).
+* 2. **Protocol-relative** — `//example.com/page`.
+* 3. **Scheme-less bare domain** — what a merchant typically types into a Page Designer link field,
+*    e.g. `www.google.com` or `example.com/products`. It does not start with `/`, and its first
+*    path segment contains a dot (a hostname), so it is not an in-app route. These are normalized
+*    to `https://` by {@link buildUrl} so the browser performs a real cross-origin navigation
+*    instead of resolving them as a relative in-app path (which would glue the site prefix on and
+*    produce a broken link like `/global/en-GBwww.google.com`).
+*
+* A rooted path is always internal, even when it contains a dot (e.g. `/assets/sitemap.xml`).
+* Conversely, an *unrooted* dotted value with no slash (e.g. `page.html`, `sitemap.xml`) is
+* genuinely ambiguous — filename or domain — and is intentionally treated as a domain
+* (`https://page.html`); author unrooted internal targets as rooted paths (`/page.html`).
+* Relative-path prefixes (`./sibling`, `../parent`) are exempted and stay internal.
+*/
+const SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
+function classifyExternal(to) {
+	if (SCHEME_RE.test(to) || to.startsWith("//")) return "passthrough";
+	const firstSegment = to.split("/")[0];
+	if (!to.startsWith("/") && firstSegment !== "." && firstSegment !== ".." && firstSegment.includes(".")) return "normalize";
+	return "internal";
+}
+/**
 * Builds a fully-qualified URL with site context prefix and search params.
 *
 * Only keys defined in urlConfig.search are set by site context. Any other query params
@@ -167,13 +194,19 @@ function extractPrefixParamValues({ pathname, prefix }) {
 * e.g. to='/api/search?refine=color:blue&refine=size:M', search='?lng=:localeId'
 *   → '/api/search?refine=color:blue&refine=size:M&lng=en-GB'
 *
+* External links (explicit scheme, protocol-relative, or a scheme-less bare domain) are never
+* site-prefixed — see {@link classifyExternal}.
+*
 * @example
 * buildUrl({ to: '/product/123', urlConfig: { prefix: '/:siteId', search: '?lng=:localeId' }, params: { siteId: 'global', localeId: 'en-GB' } })
 * // → '/global/product/123?lng=en-GB'
 */
 function buildUrl({ to, urlConfig, params }) {
 	if (!urlConfig) return to;
-	if (!to || to === "#" || to.startsWith("http") || to.startsWith("//")) return to;
+	if (!to || to === "#") return to;
+	const external = classifyExternal(to);
+	if (external === "passthrough") return to;
+	if (external === "normalize") return `https://${to}`;
 	const { pathname, search: existingSearch, hash } = decomposeUrl(to);
 	const pathPrefix = urlConfig.prefix && urlConfig.prefix !== "/" ? resolvePrefix({
 		prefix: urlConfig.prefix,

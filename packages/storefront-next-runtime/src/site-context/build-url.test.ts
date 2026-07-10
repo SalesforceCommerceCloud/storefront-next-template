@@ -305,8 +305,93 @@ describe('buildUrl', () => {
             ).toBe('//example.com/page');
         });
 
+        it('returns https URLs unchanged', () => {
+            expect(
+                buildUrl({
+                    to: 'https://example.com/page',
+                    urlConfig: { prefix: '/:siteId' },
+                    params: { siteId: 'global' },
+                })
+            ).toBe('https://example.com/page');
+        });
+
+        it('returns mailto: links unchanged', () => {
+            expect(
+                buildUrl({
+                    to: 'mailto:sales@example.com',
+                    urlConfig: { prefix: '/:siteId' },
+                    params: { siteId: 'global' },
+                })
+            ).toBe('mailto:sales@example.com');
+        });
+
+        it('returns tel: links unchanged', () => {
+            expect(
+                buildUrl({
+                    to: 'tel:+18005551234',
+                    urlConfig: { prefix: '/:siteId' },
+                    params: { siteId: 'global' },
+                })
+            ).toBe('tel:+18005551234');
+        });
+
         it('returns to unchanged when prefix is /', () => {
             expect(buildUrl({ to: '/product/123', urlConfig: { prefix: '/' }, params: {} })).toBe('/product/123');
+        });
+    });
+
+    describe('scheme-less external links', () => {
+        it('normalizes a bare external domain to https (no site prefix)', () => {
+            expect(
+                buildUrl({
+                    to: 'www.google.com',
+                    urlConfig: { prefix: '/:siteId/:localeId' },
+                    params: { siteId: 'MarketStreet', localeId: 'en-GB' },
+                })
+            ).toBe('https://www.google.com');
+        });
+
+        it('normalizes a bare external domain with a path to https', () => {
+            expect(
+                buildUrl({
+                    to: 'example.com/products?ref=1',
+                    urlConfig: { prefix: '/:siteId' },
+                    params: { siteId: 'global' },
+                })
+            ).toBe('https://example.com/products?ref=1');
+        });
+
+        it('does not treat a rooted app path with a dot as external', () => {
+            expect(
+                buildUrl({
+                    to: '/assets/sitemap.xml',
+                    urlConfig: { prefix: '/:siteId' },
+                    params: { siteId: 'global' },
+                })
+            ).toBe('/global/assets/sitemap.xml');
+        });
+
+        // Relative-path links must stay internal — they must NOT be turned into `https://./sibling`.
+        // (The exact prefixed form is buildUrl's existing relative-path behavior, orthogonal to the
+        // external-link fix; what matters here is that classifyExternal returns 'internal'.)
+        it('treats a relative "./sibling" path as internal, not a domain', () => {
+            const result = buildUrl({
+                to: './sibling',
+                urlConfig: { prefix: '/:siteId' },
+                params: { siteId: 'global' },
+            });
+            expect(result).not.toMatch(/^https?:\/\//);
+            expect(result).toBe('/global./sibling');
+        });
+
+        it('treats a relative "../parent" path as internal, not a domain', () => {
+            const result = buildUrl({
+                to: '../parent',
+                urlConfig: { prefix: '/:siteId' },
+                params: { siteId: 'global' },
+            });
+            expect(result).not.toMatch(/^https?:\/\//);
+            expect(result).toBe('/global../parent');
         });
     });
 
