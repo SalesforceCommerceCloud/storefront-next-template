@@ -751,6 +751,7 @@ describe('region definition extraction', () => {
             {
                 id: (headerConfig as any).id || 'headerRegion',
                 name: (headerConfig as any).name || 'Header Region',
+                description: (headerConfig as any).description || 'Header area for the component',
                 component_types: (headerConfig as any).componentTypes,
                 max_components: (headerConfig as any).maxComponents,
                 min_components: (headerConfig as any).minComponents,
@@ -769,6 +770,7 @@ describe('region definition extraction', () => {
         const firstRegion = regionDefinitions[0];
         expect(firstRegion.id).toBe('headerRegion');
         expect(firstRegion.name).toBe('Header Region');
+        expect(firstRegion.description).toBe('Header area for the component');
         expect(Array.isArray(firstRegion.component_types)).toBe(true);
         expect(firstRegion.component_types.length).toBe(2);
         expect(firstRegion.max_components).toBe(1);
@@ -1767,6 +1769,80 @@ describe('generateMetadata integration tests', () => {
         expect(writtenData.region_definitions?.[0]?.component_type_exclusions).toEqual([
             { type_id: 'storefrontnext_base.FooterComponent' },
         ]);
+    });
+
+    test('should include region definition description in generated output', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const componentCode = `
+            @Component({ id: 'testComponent', name: 'Test Component' })
+            @RegionDefinition([
+                {
+                    id: 'header',
+                    name: 'Header',
+                    description: 'The header region of the component'
+                }
+            ])
+            class TestComponent {
+                @AttributeDefinition()
+                title: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'components', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([
+                { name: 'TestComponent.tsx', isDirectory: () => false, isFile: () => true } as any,
+            ]);
+
+        vi.mocked(readFile).mockResolvedValue(componentCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(writeFile).toHaveBeenCalled();
+        const writeCall = vi.mocked(writeFile).mock.calls[0];
+        const writtenData = JSON.parse(writeCall[1] as string);
+        expect(writtenData.region_definitions?.[0]?.description).toBe('The header region of the component');
+    });
+
+    test('should omit region definition description when not specified', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const componentCode = `
+            @Component({ id: 'testComponent', name: 'Test Component' })
+            @RegionDefinition([
+                { id: 'header', name: 'Header' }
+            ])
+            class TestComponent {
+                @AttributeDefinition()
+                title: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'components', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([
+                { name: 'TestComponent.tsx', isDirectory: () => false, isFile: () => true } as any,
+            ]);
+
+        vi.mocked(readFile).mockResolvedValue(componentCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(writeFile).toHaveBeenCalled();
+        const writeCall = vi.mocked(writeFile).mock.calls[0];
+        const writtenData = JSON.parse(writeCall[1] as string);
+        expect(writtenData.region_definitions?.[0]).not.toHaveProperty('description');
     });
 
     test('should handle region definition with defaultComponentConstructors', async () => {

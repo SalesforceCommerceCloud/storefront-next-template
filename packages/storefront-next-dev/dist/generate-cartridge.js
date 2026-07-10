@@ -339,6 +339,7 @@ function extractRegionDefinitionsFromSource(sourceFile, className, defaultCompon
 							id: regionConfig.id || "region",
 							name: regionConfig.name || "Region"
 						};
+						if (regionConfig.description !== void 0) regionDefinition.description = regionConfig.description;
 						if (regionConfig.componentTypes) regionDefinition.component_types = regionConfig.componentTypes;
 						if (Array.isArray(regionConfig.componentTypeInclusions)) regionDefinition.component_type_inclusions = regionConfig.componentTypeInclusions.map((incl) => ({ type_id: normalizeComponentTypeId(String(incl), defaultComponentGroup) }));
 						if (Array.isArray(regionConfig.componentTypeExclusions)) regionDefinition.component_type_exclusions = regionConfig.componentTypeExclusions.map((excl) => ({ type_id: normalizeComponentTypeId(String(excl), defaultComponentGroup) }));

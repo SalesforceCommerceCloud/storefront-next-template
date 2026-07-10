@@ -7,6 +7,7 @@
         {
             "id": "products",
             "name": "Products",
+            "description": "Add Product Tile components to populate this carousel.",
             "component_type_inclusions": [
                 {
                     "type_id": "Content.productTile"

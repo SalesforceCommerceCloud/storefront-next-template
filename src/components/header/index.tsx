@@ -37,7 +37,7 @@ import { RegionDefinition } from '@/lib/decorators';
     embedded: true,
     component_id: 'header',
 })
-@RegionDefinition([{ id: 'announcement', name: 'Announcement' }])
+@RegionDefinition([{ id: 'announcement', name: 'Announcement', description: 'Displayed above the header' }])
 export class HeaderMetadata {}
 
 interface HeaderProps extends PropsWithChildren {

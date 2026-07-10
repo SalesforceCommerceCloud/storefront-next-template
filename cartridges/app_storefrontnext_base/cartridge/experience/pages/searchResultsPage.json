@@ -6,16 +6,19 @@
         {
             "id": "searchTopFullWidth",
             "name": "Top Full Width Region",
+            "description": "Full screen width region at the top of search results",
             "max_components": 5
         },
         {
             "id": "searchTopContent",
             "name": "Top Content Region",
+            "description": "Content width region below sort/filter, above product grid",
             "max_components": 5
         },
         {
             "id": "searchBottom",
             "name": "Bottom Region",
+            "description": "Region at the bottom of search results after product grid",
             "max_components": 5
         }
     ],

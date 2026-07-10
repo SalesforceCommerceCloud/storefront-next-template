@@ -7,6 +7,7 @@
         {
             "id": "slides",
             "name": "Carousel Slides",
+            "description": "Add hero components to display as carousel slides. Each hero will be shown as a full-width slide.",
             "component_type_inclusions": [
                 {
                     "type_id": "Content.hero"

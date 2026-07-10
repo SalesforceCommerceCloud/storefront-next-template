@@ -424,6 +424,10 @@ function extractRegionDefinitionsFromSource(
                             };
 
                             // Add optional properties if they exist in the decorator
+                            if (regionConfig.description !== undefined) {
+                                regionDefinition.description = regionConfig.description;
+                            }
+
                             if (regionConfig.componentTypes) {
                                 regionDefinition.component_types = regionConfig.componentTypes;
                             }
