@@ -16,6 +16,7 @@
 export { PageDesignerProvider, usePageDesignerMode } from './PageDesignerProvider';
 export { PageDesignerPageMetadataProvider } from './PageDesignerPageMetadataProvider';
 export { useRegionContext } from './RegionContext';
+export { EmbeddedSubtreeProvider, useIsWithinEmbeddedSubtree } from './EmbeddedSubtreeContext';
 export { createReactComponentDesignDecorator } from './ComponentDecorator';
 export { createReactRegionDesignDecorator } from './RegionDecorator';
 export { createReactAdapter } from './adapter';

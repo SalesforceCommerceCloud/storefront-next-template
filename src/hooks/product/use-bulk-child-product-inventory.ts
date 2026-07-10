@@ -86,7 +86,14 @@ export function useBulkChildProductInventory({
         return ids.length > 0 ? ids.join(',') : undefined;
     }, [childSelections]);
 
-    // Bulk fetch all child variants/products in one API call
+    // Bulk fetch all child variants/products in one API call.
+    //
+    // NOTE: SCAPI's getProducts caps the `ids` query parameter at 24. This hook issues a single
+    // request with no client-side chunking, so a set/bundle with more than 24 distinct selected
+    // children exceeds that cap — SCAPI rejects the request (`'ids' violates the value constraint.
+    // The expected value is between '(0..24)'`) and the affected children fall back to their
+    // un-enriched inventory. Take care not to use this hook for sets/bundles that can select 25+
+    // children until the IDs are batched into groups of at most 24.
     const fetcher = useScapiFetcher('shopperProducts', 'getProducts', {
         params: {
             query: {

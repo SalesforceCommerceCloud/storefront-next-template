@@ -696,7 +696,10 @@ describe('design/react/ComponentDecorator', () => {
                 props: {
                     designMetadata: {
                         id: 'test-1',
-                        contentLinkUuid: 'test-content-link-uuid',
+                        // The bed never wraps an EmbeddedSubtreeProvider, so this
+                        // component is page content (draggable, with a toolbox); the
+                        // contentLinkUuid identifies it for the drop-on-itself check.
+                        contentLinkUuid: 'test-1-uuid',
                         isFragment: false,
                         isVisible: true,
                         isLocalized: true,

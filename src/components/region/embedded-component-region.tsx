@@ -15,6 +15,7 @@
  */
 import { Suspense, type HTMLAttributes, type ReactNode } from 'react';
 import { Await } from 'react-router';
+import { EmbeddedSubtreeProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import { Region, type ComponentType } from './index';
 import { ComponentDataProvider, useComponentData } from './component-data-context';
 import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
@@ -72,8 +73,20 @@ export function EmbeddedComponentRegion({
     const renderResolved = (resolved: ResolvedEmbeddedComponent) => {
         if (!resolved) return errorElement ?? null;
 
+        // The Page Designer design decorators render these children as static
+        // content: an embedded owner lives outside the page, so its region and
+        // children can't be selected / deleted / moved. EmbeddedSubtreeProvider
+        // declares that to the SDK from the owner's own `embedded` flag — the
+        // sole source of truth for embeddedness. No effect outside design mode.
         const region = (
-            <Region component={resolved as ComponentType} regionId={regionId} errorElement={errorElement} {...rest} />
+            <EmbeddedSubtreeProvider embedded={resolved.embedded === true}>
+                <Region
+                    component={resolved as ComponentType}
+                    regionId={regionId}
+                    errorElement={errorElement}
+                    {...rest}
+                />
+            </EmbeddedSubtreeProvider>
         );
 
         return resolved.componentData ? (

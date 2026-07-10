@@ -19,6 +19,7 @@ import { render } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DesignRegion } from './DesignRegion';
 import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
+import { EmbeddedSubtreeProvider } from '../core/EmbeddedSubtreeContext';
 import type { RegionDecoratorProps } from '../core/component.types';
 
 // Mock dependencies
@@ -95,6 +96,29 @@ describe('DesignRegion - parentId resolution', () => {
         render(<DesignRegion {...regionProps} />);
 
         expect(mockUseNodeToTargetStore).toHaveBeenCalledWith(expect.objectContaining({ parentId: undefined }));
+    });
+});
+
+describe('DesignRegion - embedded regions', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockUseComponentContext.mockReturnValue(null);
+    });
+
+    it('does not register as a drop target inside an embedded subtree', () => {
+        render(
+            <EmbeddedSubtreeProvider embedded={true}>
+                <DesignRegion {...regionProps} />
+            </EmbeddedSubtreeProvider>
+        );
+
+        expect(mockUseNodeToTargetStore).toHaveBeenCalledWith(expect.objectContaining({ disabled: true }));
+    });
+
+    it('registers as a drop target when not inside an embedded subtree', () => {
+        render(<DesignRegion {...regionProps} />);
+
+        expect(mockUseNodeToTargetStore).toHaveBeenCalledWith(expect.objectContaining({ disabled: false }));
     });
 });
 

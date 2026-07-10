@@ -27,24 +27,40 @@ export function useNodeToTargetStore({
     contentLinkUuids,
     componentTypeInclusions,
     componentTypeExclusions,
+    disabled = false,
 }: Partial<NodeToTargetMapEntry> & {
     nodeRef: React.RefObject<Element | null>;
+    /**
+     * When `true`, the node is not registered as an interaction target — hover
+     * discovery cannot find it, so it shows no design chrome and cannot be
+     * selected. Used to render embedded-region subtrees as static content.
+     */
+    disabled?: boolean;
 }): void {
     const { nodeToTargetMap } = useDesignState();
 
     React.useEffect(() => {
-        if (nodeRef.current) {
-            nodeToTargetMap.set(nodeRef.current, {
-                parentId,
-                componentId,
-                contentLinkUuid,
-                regionId,
-                type,
-                contentLinkUuids,
-                componentTypeInclusions,
-                componentTypeExclusions,
-            } as NodeToTargetMapEntry);
+        const node = nodeRef.current;
+        if (!node) {
+            return;
         }
+
+        if (disabled) {
+            // Ensure the node is not a target and clean up any prior registration.
+            nodeToTargetMap.delete(node);
+            return;
+        }
+
+        nodeToTargetMap.set(node, {
+            parentId,
+            componentId,
+            contentLinkUuid,
+            regionId,
+            type,
+            contentLinkUuids,
+            componentTypeInclusions,
+            componentTypeExclusions,
+        } as NodeToTargetMapEntry);
     }, [
         nodeRef,
         parentId,
@@ -56,5 +72,6 @@ export function useNodeToTargetStore({
         nodeToTargetMap,
         componentTypeInclusions,
         componentTypeExclusions,
+        disabled,
     ]);
 }

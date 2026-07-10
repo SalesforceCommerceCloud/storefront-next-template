@@ -301,7 +301,10 @@ const managedRuntimeBundlePlugin = () => {
 					if (log.code === "SOURCEMAP_ERROR" && log.message.includes("resolve original location")) return;
 					defaultHandler(level, log);
 				} } },
-				environments: { ssr: { resolve: { noExternal: true } } },
+				environments: { ssr: {
+					resolve: { noExternal: true },
+					build: { rollupOptions: { output: { interop: "auto" } } }
+				} },
 				experimental: { renderBuiltUrl(filename, { type, hostType }) {
 					if (mode !== "preview" && (type === "asset" || type === "public")) {
 						if (hostType === "css") return { relative: true };

@@ -210,7 +210,10 @@ describe('DesignFrame', () => {
                 props: {
                     designMetadata: {
                         id: 'test-1',
-                        contentLinkUuid: 'test-content-link-uuid',
+                        // The bed never wraps an EmbeddedSubtreeProvider, so this
+                        // component is page content and shows its selection frame
+                        // (the frame is suppressed only inside an embedded subtree).
+                        contentLinkUuid: 'test-1-uuid',
                         isFragment: false,
                         isVisible: true,
                         isLocalized: true,
@@ -230,7 +233,8 @@ describe('DesignFrame', () => {
                 props: {
                     designMetadata: {
                         id: 'test-1',
-                        contentLinkUuid: 'test-content-link-uuid',
+                        // See above — a page-content uuid keeps the frame active.
+                        contentLinkUuid: 'test-1-uuid',
                         isFragment: false,
                         isVisible: true,
                         isLocalized: true,

@@ -21,6 +21,7 @@ import { useFocusedComponentHandler } from '../hooks/useFocusedComponentHandler'
 import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
 import { DesignFrame } from './DesignFrame';
 import { useRegionContext } from '../core/RegionContext';
+import { useIsWithinEmbeddedSubtree } from '../core/EmbeddedSubtreeContext';
 import { ComponentContext, useComponentContext, type ComponentContextType } from '../core/ComponentContext';
 import { useComponentDiscovery } from '../hooks/useComponentDiscovery';
 import { useComponentType } from '../hooks/useComponentType';
@@ -47,6 +48,12 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     const { regionId } = useRegionContext() ?? {};
     const { componentId: parentComponentId } = useComponentContext() ?? {};
 
+    // Embedded content-block (ECB) children can't be resolved by the host for
+    // select / delete / move, so we render them as static, non-interactive
+    // content. The embedded owner declares the subtree via the provider, keyed
+    // on its own `embedded` flag — the sole source of truth for embeddedness.
+    const isEmbedded = useIsWithinEmbeddedSubtree();
+
     const {
         selectedContentLinkUuid,
         hoveredContentLinkUuid,
@@ -58,13 +65,18 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
         registerContentLink,
     } = useDesignState();
 
+    // Registering the uuid → componentId link is what lets host-driven select /
+    // hover / focus events resolve back to this node. Gate on !isEmbedded so an
+    // embedded instance the host can't edit is never made resolvable.
+    // (Registration is additive with no unregister, so this only ever withholds
+    // the link — it cannot remove one added while isEmbedded was still false.)
     React.useEffect(() => {
-        if (contentLinkUuid && componentId) {
+        if (contentLinkUuid && componentId && !isEmbedded) {
             registerContentLink(contentLinkUuid, componentId);
         }
-    }, [componentId, contentLinkUuid, registerContentLink]);
+    }, [componentId, contentLinkUuid, registerContentLink, isEmbedded]);
 
-    useFocusedComponentHandler(contentLinkUuid, dragRef);
+    useFocusedComponentHandler(contentLinkUuid, dragRef, isEmbedded);
     useNodeToTargetStore({
         type: 'component',
         nodeRef: dragRef,
@@ -72,6 +84,7 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
         regionId,
         componentId,
         contentLinkUuid,
+        disabled: isEmbedded,
     });
 
     const discoverComponents = useComponentDiscovery({
@@ -183,6 +196,14 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     // visibility rules or the render context.
     if (!isVisible) {
         return <></>;
+    }
+
+    // An embedded content-block (ECB) subtree can't be edited by the host, so
+    // render its children as static content with no design chrome, drop target,
+    // or interaction handlers. Hooks above still run (Rules of Hooks) but wire
+    // to nothing here — registration is gated and the target store is disabled.
+    if (isEmbedded) {
+        return <ComponentContext.Provider value={context}>{children}</ComponentContext.Provider>;
     }
 
     return (

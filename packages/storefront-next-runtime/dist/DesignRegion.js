@@ -2,7 +2,7 @@ import "./messaging-api.js";
 import { a as useDesignState, o as isComponentTypeAllowedInRegion } from "./DesignContext.js";
 import "./modeDetection.js";
 import "./PageDesignerProvider.js";
-import { t as RegionContext } from "./RegionContext.js";
+import { n as useIsWithinEmbeddedSubtree, r as RegionContext } from "./EmbeddedSubtreeContext.js";
 import { i as useLabels, n as useComponentContext, o as useNodeToTargetStore, r as DesignFrame } from "./ComponentContext.js";
 import React, { useCallback, useMemo } from "react";
 import { jsx } from "react/jsx-runtime";
@@ -36,6 +36,7 @@ function DesignRegion(props) {
 	});
 	const { dragState } = useDesignState();
 	const labels = useLabels();
+	const isEmbedded = useIsWithinEmbeddedSubtree();
 	const showFrame = Boolean(id && dragState.currentDropTarget?.regionId === id);
 	const { contentLinkUuid: parentContentLinkUuid } = useComponentContext() ?? {};
 	useNodeToTargetStore({
@@ -45,22 +46,28 @@ function DesignRegion(props) {
 		contentLinkUuids,
 		regionId: id,
 		componentTypeInclusions,
-		componentTypeExclusions
+		componentTypeExclusions,
+		disabled: isEmbedded
 	});
 	const context = React.useMemo(() => ({
 		regionId: id,
 		contentLinkUuids
 	}), [id, contentLinkUuids]);
+	const handleDragOver = useCallback((event) => {
+		if (isComponentTypeAllowedInRegion(dragState.componentType, componentTypeInclusions, componentTypeExclusions)) event.preventDefault();
+	}, [
+		dragState.componentType,
+		componentTypeInclusions,
+		componentTypeExclusions
+	]);
+	if (isEmbedded) return /* @__PURE__ */ jsx(RegionContext.Provider, {
+		value: context,
+		children
+	});
 	return /* @__PURE__ */ jsx("div", {
 		className: classes,
 		ref: nodeRef,
-		onDragOver: useCallback((event) => {
-			if (isComponentTypeAllowedInRegion(dragState.componentType, componentTypeInclusions, componentTypeExclusions)) event.preventDefault();
-		}, [
-			dragState.componentType,
-			componentTypeInclusions,
-			componentTypeExclusions
-		]),
+		onDragOver: handleDragOver,
 		"data-region-id": id,
 		children: /* @__PURE__ */ jsx(DesignFrame, {
 			name: name ?? labels.defaultRegionName ?? "Region",

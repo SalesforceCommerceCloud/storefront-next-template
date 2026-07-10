@@ -2,7 +2,7 @@ import "./messaging-api.js";
 import { a as useDesignState, i as useThrottledCallback, r as useDesignContext, s as useComponentDiscovery } from "./DesignContext.js";
 import "./modeDetection.js";
 import "./PageDesignerProvider.js";
-import { n as useRegionContext } from "./RegionContext.js";
+import { i as useRegionContext, n as useIsWithinEmbeddedSubtree } from "./EmbeddedSubtreeContext.js";
 import { a as useComponentType, n as useComponentContext, o as useNodeToTargetStore, r as DesignFrame, t as ComponentContext } from "./ComponentContext.js";
 import React, { useCallback, useRef } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
@@ -35,12 +35,16 @@ function useComponentDecoratorClasses({ contentLinkUuid, isFragment, isLocalized
 * Focuses a component when the focused component id matches the content link UUID.
 * @param contentLinkUuid - The content link UUID of the component.
 * @param nodeRef - The ref object to the node to focus.
+* @param disabled - When true, the handler is inert. Embedded instances are not
+*   editable by the host, so they must never be focused / scrolled into view;
+*   the decorator passes its `isEmbedded` here to enforce that.
 */
-function useFocusedComponentHandler(contentLinkUuid, nodeRef) {
+function useFocusedComponentHandler(contentLinkUuid, nodeRef, disabled = false) {
 	const { focusedContentLinkUuid, focusComponent } = useDesignState();
 	React.useEffect(() => {
-		if (focusedContentLinkUuid === contentLinkUuid && nodeRef.current) focusComponent(nodeRef.current);
+		if (!disabled && focusedContentLinkUuid === contentLinkUuid && nodeRef.current) focusComponent(nodeRef.current);
 	}, [
+		disabled,
 		focusedContentLinkUuid,
 		contentLinkUuid,
 		focusComponent,
@@ -82,22 +86,25 @@ function DesignComponent(props) {
 	const dragRef = useRef(null);
 	const { regionId } = useRegionContext() ?? {};
 	const { componentId: parentComponentId } = useComponentContext() ?? {};
+	const isEmbedded = useIsWithinEmbeddedSubtree();
 	const { selectedContentLinkUuid, hoveredContentLinkUuid, setSelectedComponent, setHoveredComponent, startComponentMove, setPendingDragContentLinkUuid, dragState: { pendingDragContentLinkUuid, isDragging, sourceContentLinkUuid: draggingSourceContentLinkUuid }, registerContentLink } = useDesignState();
 	React.useEffect(() => {
-		if (contentLinkUuid && componentId) registerContentLink(contentLinkUuid, componentId);
+		if (contentLinkUuid && componentId && !isEmbedded) registerContentLink(contentLinkUuid, componentId);
 	}, [
 		componentId,
 		contentLinkUuid,
-		registerContentLink
+		registerContentLink,
+		isEmbedded
 	]);
-	useFocusedComponentHandler(contentLinkUuid, dragRef);
+	useFocusedComponentHandler(contentLinkUuid, dragRef, isEmbedded);
 	useNodeToTargetStore({
 		type: "component",
 		nodeRef: dragRef,
 		parentId: parentComponentId,
 		regionId,
 		componentId,
-		contentLinkUuid
+		contentLinkUuid,
+		disabled: isEmbedded
 	});
 	const discoverComponents = useComponentDiscovery({ nodeToTargetMap });
 	const isPendingDrag = pendingDragContentLinkUuid === contentLinkUuid;
@@ -156,6 +163,10 @@ function DesignComponent(props) {
 		startComponentMove
 	]);
 	if (!isVisible) return /* @__PURE__ */ jsx(Fragment, {});
+	if (isEmbedded) return /* @__PURE__ */ jsx(ComponentContext.Provider, {
+		value: context,
+		children
+	});
 	return /* @__PURE__ */ jsxs("div", {
 		ref: dragRef,
 		className: classes,

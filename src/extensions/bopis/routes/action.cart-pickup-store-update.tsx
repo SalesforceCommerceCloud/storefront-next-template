@@ -22,6 +22,7 @@ import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 
 // Utils
 import { createApiClients } from '@/lib/api-clients.server';
+import { fetchProductsByIds } from '@/lib/api/products.server';
 import { createBasketSuccessResponse, type BasketActionResponse } from '@/routes/types/action-responses';
 import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
@@ -152,20 +153,15 @@ export async function action({
 
             const currency = (context.get(siteContext) as SiteContext).currency;
 
-            // Fetch products with the new store's inventory ID to validate availability
-            const productsResponse = await clients.shopperProducts.getProducts({
-                params: {
-                    query: {
-                        ids: [...new Set(productIds)], // Remove duplicates
-                        allImages: true,
-                        perPricebook: true,
-                        inventoryIds: [inventoryId], // Include new store's inventory
-                        ...(currency ? { currency } : {}),
-                    },
-                },
+            // Fetch products with the new store's inventory ID to validate availability.
+            // fetchProductsByIds dedupes the IDs and batches them under SCAPI's 24-ID getProducts
+            // limit, so pickup baskets with more than 24 distinct products still validate.
+            const productsArray = await fetchProductsByIds(context, productIds, {
+                allImages: true,
+                perPricebook: true,
+                inventoryIds: [inventoryId], // Include new store's inventory
+                ...(currency ? { currency } : {}),
             });
-
-            const productsArray = Array.isArray(productsResponse.data?.data) ? productsResponse.data.data : [];
             if (productsArray.length > 0) {
                 const productsMap = new Map(productsArray.map((product) => [product.id, product]));
 

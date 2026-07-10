@@ -1,6 +1,6 @@
 import "./modeDetection.js";
 import { n as usePageDesignerMode, t as PageDesignerProvider } from "./PageDesignerProvider.js";
-import { n as useRegionContext } from "./RegionContext.js";
+import { i as useRegionContext, n as useIsWithinEmbeddedSubtree, t as EmbeddedSubtreeProvider } from "./EmbeddedSubtreeContext.js";
 import React, { lazy } from "react";
 import { Fragment, jsx } from "react/jsx-runtime";
 
@@ -100,5 +100,5 @@ function createReactAdapter() {
 }
 
 //#endregion
-export { PageDesignerPageMetadataProvider, PageDesignerProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, usePageDesignerMode, useRegionContext };
+export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
 //# sourceMappingURL=design-react-core.js.map

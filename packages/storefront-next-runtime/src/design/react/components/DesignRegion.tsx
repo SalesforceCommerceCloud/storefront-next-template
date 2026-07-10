@@ -20,6 +20,7 @@ import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
 import { DesignFrame } from './DesignFrame';
 import { useLabels } from '../hooks/useLabels';
 import { RegionContext, type RegionContextType } from '../core/RegionContext';
+import { useIsWithinEmbeddedSubtree } from '../core/EmbeddedSubtreeContext';
 import { useComponentContext } from '../core/ComponentContext';
 import { useDesignState } from '../hooks/useDesignState';
 import { isComponentTypeAllowedInRegion } from '../utils/regionUtils';
@@ -41,6 +42,11 @@ export function DesignRegion(props: RegionDecoratorProps<unknown>): React.JSX.El
     });
     const { dragState } = useDesignState();
     const labels = useLabels();
+    // Embedded regions can't accept drops or be edited, so they show no frame
+    // and aren't registered as drop targets. The embedded owner declares the
+    // subtree via the provider, keyed on its own `embedded` flag — the sole
+    // source of truth, so an empty embedded region is covered too.
+    const isEmbedded = useIsWithinEmbeddedSubtree();
     const showFrame = Boolean(id && dragState.currentDropTarget?.regionId === id);
     const { contentLinkUuid: parentContentLinkUuid } = useComponentContext() ?? {};
 
@@ -52,6 +58,7 @@ export function DesignRegion(props: RegionDecoratorProps<unknown>): React.JSX.El
         regionId: id,
         componentTypeInclusions,
         componentTypeExclusions,
+        disabled: isEmbedded,
     });
 
     const context = React.useMemo<RegionContextType>(
@@ -73,6 +80,13 @@ export function DesignRegion(props: RegionDecoratorProps<unknown>): React.JSX.El
         },
         [dragState.componentType, componentTypeInclusions, componentTypeExclusions]
     );
+
+    // An embedded region can't accept drops or be edited, so render its children
+    // as static content with no design frame or drop handler. The hooks above
+    // still run (Rules of Hooks); the target store is disabled for this subtree.
+    if (isEmbedded) {
+        return <RegionContext.Provider value={context}>{children}</RegionContext.Provider>;
+    }
 
     return (
         <div className={classes} ref={nodeRef} onDragOver={handleDragOver} data-region-id={id}>

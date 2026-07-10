@@ -1119,7 +1119,7 @@ export const resolveDynamicImageAttributes = ({
     // gains that prefix. "Absolute" is not enough: applying format conversion or query params to those would fabricate
     // URLs the origin doesn't serve (`/images/hero-01.jpg?sfrm=webp` — a 404, or `…/300.webp?sw=300` on a host that
     // ignores it). Gate on "is this actually a DIS URL" so DIS is inactive unless the rewrite succeeded.
-    const disApplies = enableDis && IS_DIS_URL_REGEX.test(transformedSrc);
+    const disApplies = enableDis && isDisTransformed(transformedSrc, config);
 
     // Empty `formats` is the off-switch for `<source>` format conversion in `getResponsiveSourcesAndLinks`:
     // `targetFormat` becomes `undefined`, so srcSet URLs keep the original extension and no `sfrm=` is emitted.

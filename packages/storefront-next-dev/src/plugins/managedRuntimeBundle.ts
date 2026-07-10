@@ -124,6 +124,24 @@ export const managedRuntimeBundlePlugin = (): Plugin => {
                         resolve: {
                             noExternal: true,
                         },
+                        build: {
+                            rollupOptions: {
+                                output: {
+                                    // Force Rollup's CJS interop to 'auto' for the SSR bundle.
+                                    // With `noExternal: true`, dependencies that do
+                                    // `import { Agent } from 'node:https'` are bundled, and
+                                    // esbuild emits `node_https.default.Agent`. If interop is
+                                    // 'esModule', Rollup does NOT synthesize a `default` export
+                                    // for the `require('node:https')` binding, so
+                                    // `node_https.default` is `undefined` at runtime and
+                                    // `@smithy/node-http-handler` crashes the MRT Lambda with
+                                    // `TypeError: Cannot read properties of undefined (reading
+                                    // 'Agent')` (Runtime.ExitError). 'auto' synthesizes the
+                                    // default export so the access resolves.
+                                    interop: 'auto',
+                                },
+                            },
+                        },
                     },
                 },
                 experimental: {

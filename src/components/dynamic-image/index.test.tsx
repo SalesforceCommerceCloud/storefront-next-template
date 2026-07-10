@@ -1225,7 +1225,12 @@ describe('Dynamic Image Component', () => {
             render(<DynamicImage src={src} alt="Test" widths={[200, 400]} priority="high" />);
 
             expect(preloadMock).toHaveBeenCalledTimes(1);
-            const [, opts] = preloadMock.mock.calls[0] as [string, Record<string, unknown>];
+            const [href, opts] = preloadMock.mock.calls[0] as [string, Record<string, unknown>];
+            // DIS off → `toImageUrl` strips the `/dw/image/v2/{realm}/` prefix to a relative static path
+            // (served directly by the dev server/proxy), so the preload href is that path, not the full DIS `src`.
+            expect(href).toBe(
+                '/on/demandware.static/-/Sites-apparel-m-catalog/default/dw4cd0a798/images/large/PG.10216885.JJ169XX.PZ.jpg'
+            );
             expect(opts).toMatchObject({ as: 'image', fetchPriority: 'high' });
         });
     });

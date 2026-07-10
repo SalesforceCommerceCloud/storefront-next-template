@@ -241,6 +241,54 @@ describe('Checkout Loaders', () => {
             expect(await result.promotions).toEqual({});
             expect(await result.shippingMethodsMap).toEqual({});
         });
+
+        it('batches product IDs when the basket has more than 24 distinct products', async () => {
+            // Regression for SCAPI's 24-ID getProducts cap: fetchProductsInBasket routes through
+            // fetchProductsByIds so an oversized basket fans out into batches instead of a single
+            // rejected call that would collapse checkout.
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+            const { createApiClients } = await import('@/lib/api-clients.server');
+            const { siteContext } = await import('@salesforce/storefront-next-runtime/site-context');
+
+            const mockGetProducts = vi.fn(({ params }: any) =>
+                Promise.resolve({ data: { data: params.query.ids.map((id: string) => ({ id })) } })
+            );
+            vi.mocked(createApiClients).mockReturnValue({
+                shopperProducts: { getProducts: mockGetProducts },
+                shopperPromotions: { getPromotions: vi.fn().mockResolvedValue({ data: { data: [] } }) },
+            } as any);
+
+            vi.mocked(isRegisteredCustomer).mockReturnValue(false);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'guest' } as any);
+            const productItems = Array.from({ length: 25 }, (_, i) => ({
+                itemId: `item-${i}`,
+                productId: `product-${i}`,
+                quantity: 1,
+            }));
+            vi.mocked(getBasket).mockResolvedValue({
+                current: { basketId: 'guest-basket', productItems, shipments: [] },
+            } as any);
+
+            const args = createMockArgs();
+            args.context.get.mockImplementation((key: unknown) =>
+                key === siteContext ? { currency: 'USD' } : undefined
+            );
+
+            const result = await loader(args);
+            const productMap = await result.productMap;
+
+            // 25 IDs -> two batches, neither exceeding the SCAPI limit. Assert the invariant
+            // (cap respected + all IDs fetched) rather than an exact split, so the test isn't
+            // tied to batch iteration order.
+            expect(mockGetProducts).toHaveBeenCalledTimes(2);
+            const batchSizes = mockGetProducts.mock.calls.map((call) => call[0].params.query.ids.length);
+            expect(batchSizes.every((n) => n <= 24)).toBe(true); // none over the SCAPI cap
+            expect(batchSizes.reduce((a, b) => a + b, 0)).toBe(25); // all IDs fetched
+            // The batches merge back into a full itemId -> product map (one entry per basket item).
+            expect(Object.keys(productMap)).toHaveLength(25);
+        });
     });
 
     describe('getServerCustomerProfileData', () => {

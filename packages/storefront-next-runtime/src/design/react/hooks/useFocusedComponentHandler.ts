@@ -20,13 +20,20 @@ import { useDesignState } from './useDesignState';
  * Focuses a component when the focused component id matches the content link UUID.
  * @param contentLinkUuid - The content link UUID of the component.
  * @param nodeRef - The ref object to the node to focus.
+ * @param disabled - When true, the handler is inert. Embedded instances are not
+ *   editable by the host, so they must never be focused / scrolled into view;
+ *   the decorator passes its `isEmbedded` here to enforce that.
  */
-export function useFocusedComponentHandler(contentLinkUuid: string, nodeRef: React.RefObject<Element | null>): void {
+export function useFocusedComponentHandler(
+    contentLinkUuid: string,
+    nodeRef: React.RefObject<Element | null>,
+    disabled = false
+): void {
     const { focusedContentLinkUuid, focusComponent } = useDesignState();
 
     React.useEffect(() => {
-        if (focusedContentLinkUuid === contentLinkUuid && nodeRef.current) {
+        if (!disabled && focusedContentLinkUuid === contentLinkUuid && nodeRef.current) {
             focusComponent(nodeRef.current);
         }
-    }, [focusedContentLinkUuid, contentLinkUuid, focusComponent, nodeRef]);
+    }, [disabled, focusedContentLinkUuid, contentLinkUuid, focusComponent, nodeRef]);
 }

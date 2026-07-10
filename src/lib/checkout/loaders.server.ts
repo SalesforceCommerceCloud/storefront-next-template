@@ -36,6 +36,7 @@ import { getAuth } from '@/middlewares/auth.server';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { getCustomerProfileForCheckout, isRegisteredCustomer } from '@/lib/api/customer.server';
 import { getShippingMethodsForShipment } from '@/lib/api/shipping-methods.server';
+import { fetchProductsByIds } from '@/lib/api/products.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getGcpApiKeyLazy } from '@salesforce/storefront-next-runtime/data-store';
@@ -188,25 +189,18 @@ async function fetchProductsInBasket(
         return {};
     }
 
-    const clients = createApiClients(context);
     const currency = (context.get(siteContext) as SiteContext).currency;
 
-    const { data: productsData } = await clients.shopperProducts.getProducts({
-        params: {
-            query: {
-                ids,
-                allImages: true,
-                perPricebook: true,
-                ...(currency ? { currency } : {}),
-            },
-        },
-    });
-
-    if (!productsData.data) {
-        return {};
-    }
-
-    const products = productsData.data.reduce(
+    // Route through the shared helper so baskets with more than SCAPI's 24-ID getProducts
+    // limit still load: fetchProductsByIds dedupes the IDs, splits them into batches of
+    // SCAPI_GET_PRODUCTS_MAX_IDS, and merges the responses.
+    const products = (
+        await fetchProductsByIds(context, ids, {
+            allImages: true,
+            perPricebook: true,
+            ...(currency ? { currency } : {}),
+        })
+    ).reduce(
         (acc, product) => {
             acc[product.id] = product;
             return acc;

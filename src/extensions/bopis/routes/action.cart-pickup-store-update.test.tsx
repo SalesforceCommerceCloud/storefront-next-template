@@ -381,6 +381,51 @@ describe('action.cart-pickup-store-update', () => {
             expect(updateBasketResource).toHaveBeenCalled();
         });
 
+        test('batches product IDs when a pickup basket has more than 24 distinct products', async () => {
+            // Regression for SCAPI's 24-ID getProducts cap: the pickup-store validation routes
+            // through fetchProductsByIds so an oversized pickup basket fans out into multiple
+            // requests instead of a single rejected call.
+            const manyItems = Array.from({ length: 25 }, (_, i) => ({
+                itemId: `item-${i}`,
+                productId: `product-${i}`,
+                quantity: 1,
+                shipmentId: 'me',
+            }));
+            vi.mocked(getBasket).mockResolvedValue(
+                createBasketResource({
+                    basketId: mockBasketId,
+                    productItems: manyItems,
+                    shipments: [{ shipmentId: 'me', c_fromStoreId: 'old-store-123' }],
+                } as ShopperBasketsV2.schemas['Basket']) as any
+            );
+            // Return a product for every requested ID so the happy path completes.
+            mockShopperProducts.getProducts.mockImplementation(({ params }: any) =>
+                Promise.resolve({
+                    data: {
+                        data: params.query.ids.map((id: string) => ({
+                            id,
+                            inventories: [{ id: mockInventoryId, stockLevel: 10, orderable: true }],
+                        })),
+                    },
+                })
+            );
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.cartPickupStoreUpdate}`, 'PATCH', {
+                storeId: mockStoreId,
+                inventoryId: mockInventoryId,
+                storeName: mockStoreName,
+            });
+
+            await action({ request, context: mockContext, params: {} });
+
+            // 25 IDs -> two batches (24 + 1), neither exceeding the SCAPI limit.
+            expect(mockShopperProducts.getProducts).toHaveBeenCalledTimes(2);
+            const batchSizes = mockShopperProducts.getProducts.mock.calls.map(
+                (call: any) => call[0].params.query.ids.length
+            );
+            expect(batchSizes).toEqual([24, 1]);
+        });
+
         test('returns error when items are out of stock at new store', async () => {
             vi.mocked(isStoreOutOfStock).mockReturnValue(true);
 

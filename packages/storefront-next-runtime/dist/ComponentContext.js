@@ -3,10 +3,16 @@ import React from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 //#region src/design/react/hooks/useNodeToTargetStore.ts
-function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId, nodeRef, type, contentLinkUuids, componentTypeInclusions, componentTypeExclusions }) {
+function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId, nodeRef, type, contentLinkUuids, componentTypeInclusions, componentTypeExclusions, disabled = false }) {
 	const { nodeToTargetMap } = useDesignState();
 	React.useEffect(() => {
-		if (nodeRef.current) nodeToTargetMap.set(nodeRef.current, {
+		const node = nodeRef.current;
+		if (!node) return;
+		if (disabled) {
+			nodeToTargetMap.delete(node);
+			return;
+		}
+		nodeToTargetMap.set(node, {
 			parentId,
 			componentId,
 			contentLinkUuid,
@@ -26,7 +32,8 @@ function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId
 		contentLinkUuids,
 		nodeToTargetMap,
 		componentTypeInclusions,
-		componentTypeExclusions
+		componentTypeExclusions,
+		disabled
 	]);
 }
 

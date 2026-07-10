@@ -40,7 +40,26 @@ const TestRegion: React.FC<React.PropsWithChildren> = ({ children }) => <div dat
 
 type Result = RenderResult & { element: HTMLElement; host: HostApi; root: HTMLElement; region: HTMLElement };
 
-export const TEST_PAGE = { id: 'test-page', typeId: 'test-page-type' };
+// Mirrors the component tree the bed renders below (region "test-region" with
+// components test-1/2/3), supplied to PageDesignerPageMetadataProvider so design
+// metadata resolves. Embeddedness is declared solely by EmbeddedSubtreeProvider
+// (from the owner's `embedded` flag), which the bed never wraps — so the bed's
+// components are always page content and design interaction is never suppressed,
+// regardless of what this fixture lists.
+export const TEST_PAGE = {
+    id: 'test-page',
+    typeId: 'test-page-type',
+    regions: [
+        {
+            id: 'test-region',
+            components: [
+                { id: 'test-1', typeId: 'commerce.test', contentLinkUuid: 'test-1-uuid' },
+                { id: 'test-2', typeId: 'commerce.test', contentLinkUuid: 'test-2-uuid' },
+                { id: 'test-3', typeId: 'commerce.test', contentLinkUuid: 'test-3-uuid' },
+            ],
+        },
+    ],
+};
 
 export function createComponentTestBed<TState extends Record<string, unknown>>(state: () => TState) {
     let afterHostCreatedFns: ((host: HostApi) => void)[];
