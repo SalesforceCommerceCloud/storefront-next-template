@@ -1,0 +1,15 @@
+{
+    "name": "Component Preview",
+    "description": "Standalone preview of a single Page Designer component for the focused visual canvas",
+    "arch_type": "headless",
+    "region_definitions": [
+        {
+            "id": "preview",
+            "name": "preview",
+            "description": "Hosts the single component being previewed"
+        }
+    ],
+    "supported_aspect_types": [],
+    "route": "/:siteId/:localeId/preview/component",
+    "preview": "default"
+}

@@ -119,6 +119,7 @@ export const routes = {
     storeLocator: '/store-locator',
     maintenance: '/maintenance',
     logout: '/logout',
+    componentPreview: '/preview/component',
 } as const;
 
 /**

@@ -106,7 +106,7 @@
     "@react-router/dev": "7.18.0",
     "@react-router/express": "7.18.0",
     "@react-router/fs-routes": "7.18.0",
-    "@salesforce/b2c-cli": "1.17.0",
+    "@salesforce/b2c-cli": "1.19.0",
     "@storybook/addon-a11y": "10.2.19",
     "@storybook/addon-docs": "10.2.19",
     "@storybook/addon-vitest": "10.2.19",

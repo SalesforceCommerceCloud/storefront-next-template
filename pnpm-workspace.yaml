@@ -24,6 +24,8 @@ minimumReleaseAgeExclude:
   - '@salesforce/storefront-next-dev'
   - '@salesforce/storefront-next-runtime'
   - '@salesforce/mrt-utilities'
+  - '@salesforce/b2c-tooling-sdk'      # transitive via storefront-next-dev; bare entry auto-pinned by prepare-standalone-template.js
+  - '@salesforce/b2c-cli@1.19.0'       # template devDependency (not reachable from the SDK dirs the prepare script resolves), so pin explicitly; keep in lockstep with the exact pin in package.json
 
 # Prevent lockfile version downgrades.
 # (https://pnpm.io/settings#trustpolicy)
