@@ -315,6 +315,9 @@ The docs below are where architectural detail lives — consult them for tasks i
 - [docs/README-STORY-COVERAGE.md](./docs/README-STORY-COVERAGE.md) — Story coverage enforcement
 - [docs/README-STORYBOOK.md](./docs/README-STORYBOOK.md) — Storybook setup
 
+**Migrations:**
+- [docs/migrations/react-router-7.18/README.md](./docs/migrations/react-router-7.18/README.md) — Upgrading your project from React Router 7.12 to 7.18.0 (security fixes, API renames, behavioral quirks)
+
 **Development:**
 - [docs/README-HYBRID-PROXY.md](./docs/README-HYBRID-PROXY.md) — Hybrid proxy for local development
 - [src/extensions/README.md](./src/extensions/README.md) — Extensions system (including `@sfdc-extension-*` markers)
