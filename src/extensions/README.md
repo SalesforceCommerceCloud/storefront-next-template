@@ -157,7 +157,7 @@ src/
             store-locator-badge.tsx    ← cosmetic override
 ```
 
-**How resolution works**: at dev time, the vertical-first Vite resolver (`vite-plugins/vertical-resolvers.ts`) checks `src/verticals/${VERTICAL}/<spec>` before canonical `src/<spec>` for any `@/...` import. At mirror time, `overlayVerticalSrcTree()` in `scripts/mirror.mjs` copies vertical files over canonical so the customer artifact has a single flat tree with the override baked in. **The overlay only resolves when the consumer imports through the `@/...` alias** — sibling-relative imports bypass the resolver and pin the canonical file.
+**How resolution works**: at dev time, the vertical-first Vite resolver (`vite-plugins/vertical-resolvers.ts`) checks `src/verticals/${VERTICAL}/<spec>` before canonical `src/<spec>` for any `@/...` import. At mirror time, `overlayVerticalSrcTree()` in `scripts/internal/mirror.mjs` copies vertical files over canonical so the customer artifact has a single flat tree with the override baked in. **The overlay only resolves when the consumer imports through the `@/...` alias** — sibling-relative imports bypass the resolver and pin the canonical file.
 
 **Extension routes** (`src/extensions/<name>/routes/`) are merged into the route tree by the SDK's `flatRoutes()` (in `@salesforce/storefront-next-runtime/routing`). Per-vertical route overrides under `src/verticals/<name>/routes/` are merged on top — vertical wins on file-id collision. This applies to extension routes too, but the more common pattern is to override individual _files_ the route imports.
 

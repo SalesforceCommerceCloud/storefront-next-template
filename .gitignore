@@ -59,7 +59,7 @@ Claude.local.md
 
 dw.json
 
-# Generated per-vertical tsconfigs (see scripts/generate-vertical-tsconfig.mjs).
+# Generated per-vertical tsconfigs (see scripts/internal/generate-vertical-tsconfig.mjs).
 # tsconfig.json (fashion/default) is checked in; non-default verticals are
 # generated on demand by `typecheck:<vertical>`.
 /tsconfig.cosmetic.json

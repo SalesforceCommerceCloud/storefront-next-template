@@ -73,7 +73,7 @@ async function discoverExtensionRoutes(ignoredRouteFiles: string[], routes: Rout
  * Files inside the verticals tree that aren't routes (components, hooks, etc.)
  * are picked up at dev time by Vite's vertical-first `@/X` alias chain (in the
  * template's `vite.config.ts`) and at mirror time by `overlayVerticalSrcTree()`
- * in `scripts/mirror.mjs`. Routes are special because React Router's
+ * in `scripts/internal/mirror.mjs`. Routes are special because React Router's
  * `flatRoutes` walks the filesystem directly and bypasses the Vite resolver,
  * so they need this explicit merge step.
  */
