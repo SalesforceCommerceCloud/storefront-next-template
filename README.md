@@ -165,6 +165,7 @@ src/
 - 🔌 [Adapter Pattern Implementation Guide](./docs/README-ADAPTER-PATTERN-GUIDE.md)
 - 🔧 [SCAPI Client Overrides and Custom APIs](./docs/README-SCAPI.md)
 - 📖 [Story Coverage & Code Quality Enforcement](./docs/README-STORY-COVERAGE.md)
+- 🚀 [Migrating to React Router 7.18](./docs/migrations/react-router-7.18/README.md)
 
 ## Contributing
 
