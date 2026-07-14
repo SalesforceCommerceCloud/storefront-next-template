@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { use, useLayoutEffect } from 'react';
+import { Suspense, use, useLayoutEffect } from 'react';
 import { loader, type CheckoutPageData } from '@/lib/checkout/loaders.server';
 import { createPage, type RouteComponentProps } from '@/components/create-page';
 import type { Route } from './+types/_checkout.checkout';
@@ -21,16 +21,14 @@ import { SeoMeta } from '@/components/seo-meta';
 import { useTranslation } from 'react-i18next';
 import CheckoutFormPage from '@/components/checkout/checkout-form-page';
 import CheckoutProvider from '@/components/checkout/utils/checkout-context';
-import { hasValidShippingMethodForEveryShipment } from '@/components/checkout/utils/checkout-utils';
 import { CheckoutErrorBoundary } from '@/components/checkout-error-boundary';
 import { CheckoutSkeleton } from '@/components/checkout/components/checkout-skeletons';
-import { useBasketUpdater } from '@/providers/basket';
+import { useBasket, useBasketUpdater } from '@/providers/basket';
 import { useRevalidateOnReturn } from '@/hooks/use-revalidate-on-return';
 import { useToast } from '@/components/toast';
+import type { ShopperBasketsV2 } from '@/scapi';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import PickupProvider from '@/extensions/bopis/context/pickup-context';
-// @sfdc-extension-line SFDC_EXT_BOPIS
-import { filterDeliveryShippingMethods } from '@/extensions/bopis/lib/basket-utils';
 import GoogleCloudApiProvider from '@/providers/google-cloud-api';
 import { CHECKOUT_ACTION_INTENTS } from '@/components/checkout/utils/checkout-context-types';
 import { action as submitContactInfo } from '@/lib/checkout/actions/submit-contact-info.server';
@@ -72,9 +70,25 @@ export async function action({ request, context }: Route.ActionArgs) {
     }
 }
 
+/**
+ * Republishes the prefill-mutated basket into the shared basket provider once the streamed
+ * `prefilledBasket` promise resolves.
+ */
+function PrefillSync({ prefilledBasket }: { prefilledBasket: Promise<ShopperBasketsV2.schemas['Basket'] | null> }) {
+    const resolved = use(prefilledBasket);
+    const updateBasket = useBasketUpdater();
+    useLayoutEffect(() => {
+        if (resolved?.basketId) {
+            updateBasket(resolved);
+        }
+    }, [resolved, updateBasket]);
+    return null;
+}
+
 function CheckoutView({
     loaderData: {
         basket,
+        prefilledBasket,
         customerProfile,
         shippingMethodsMap,
         productMap,
@@ -100,11 +114,19 @@ function CheckoutView({
     }, [basket, updateBasket]);
 
     // Revalidate when returning to this tab and another tab/device has mutated the basket.
-    // Passes the lastModified the loader rendered with so the comparison is stable across renders.
+    // Reads from the shared basket provider (via useBasket) rather than the loader's snapshot so
+    // the compared `lastModified` reflects the post-prefill revision published by `PrefillSync`.
+    // Using the loader snapshot would compare against the pre-prefill revision, and the middleware-
+    // written cookie (which carries the post-prefill `lastModified`) would look "newer" and
+    // trigger a spurious revalidation on every return-to-tab.
     // The route's shouldRevalidate skips on step-intent and 3xx submissions; a programmatic
     // revalidation carries neither formData nor actionResult, so it falls through to
     // defaultShouldRevalidate (true for an imperative revalidate) and the loader re-runs.
-    useRevalidateOnReturn({ basketId: basket?.basketId, lastModified: basket?.lastModified });
+    const currentBasket = useBasket();
+    useRevalidateOnReturn({
+        basketId: currentBasket?.basketId ?? basket?.basketId,
+        lastModified: currentBasket?.lastModified ?? basket?.lastModified,
+    });
 
     // Block rendering if basket is not available
     if (!basket?.basketId) {
@@ -112,29 +134,20 @@ function CheckoutView({
     }
 
     const customerProfileData = customerProfile ? use(customerProfile) : null;
-    const shippingMethodsMapData = shippingMethodsMap ? use(shippingMethodsMap) : {};
-
-    // Determine whether the basket's address has deliverable shipping options for every shipment.
-    // Threading this into the initial step computation keeps the user on Shipping Address after a
-    // refresh when the address yields no methods — without it, registered-customer step derivation
-    // would overshoot to Shipping Options or Place Order. The loader is authoritative here: on
-    // refresh it re-fetches the methods map for the current basket address; in-session
-    // advancement is independently gated by `noShippingMethodsRef` in use-checkout-actions.
-    let methodsForValidityCheck = shippingMethodsMapData;
-    // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    methodsForValidityCheck = filterDeliveryShippingMethods(shippingMethodsMapData);
-    // @sfdc-extension-block-end SFDC_EXT_BOPIS
-    const hasNoValidShippingMethods = !hasValidShippingMethodForEveryShipment(methodsForValidityCheck);
 
     const content = (
         <>
             <SeoMeta title={t('meta.title', { defaultValue: 'Checkout' })} noIndex />
+            {prefilledBasket && (
+                <Suspense fallback={null}>
+                    <PrefillSync prefilledBasket={prefilledBasket} />
+                </Suspense>
+            )}
             <CheckoutProvider
                 customerProfile={customerProfileData ?? undefined}
-                shippingDefaultSet={shippingDefaultSet ?? Promise.resolve(undefined)}
-                hasNoValidShippingMethods={hasNoValidShippingMethods}>
+                shippingDefaultSet={shippingDefaultSet ?? Promise.resolve(undefined)}>
                 <CheckoutFormPage
-                    shippingMethodsMap={shippingMethodsMapData}
+                    shippingMethodsMapPromise={shippingMethodsMap}
                     productMapPromise={productMap}
                     promotionsPromise={promotions}
                     showToast={addToast}

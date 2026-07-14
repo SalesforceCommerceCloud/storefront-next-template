@@ -47,6 +47,20 @@ const SESSION_CHECKOUT_CONTACT_PHONE = 'checkoutContactPhone';
 /** Set by register-customer-selection while checkout registration OTP flow is active. */
 const SESSION_REGISTERED_VIA_CHECKOUT = 'registeredViaCheckout';
 
+const isBasketRevisionCurrent = (currentLastModified: string | undefined, responseLastModified: string) => {
+    if (!currentLastModified) {
+        return false;
+    }
+
+    const currentTimestamp = Date.parse(currentLastModified);
+    const responseTimestamp = Date.parse(responseLastModified);
+    if (Number.isNaN(currentTimestamp) || Number.isNaN(responseTimestamp)) {
+        return currentLastModified === responseLastModified;
+    }
+
+    return currentTimestamp >= responseTimestamp;
+};
+
 /**
  * Action lifecycle states for tracking form submission progress.
  */
@@ -177,7 +191,7 @@ export function useCheckoutActions(options?: {
     /** When .current is true, do not advance from shipping address step (no valid methods available). */
     noShippingMethodsRef?: NoShippingMethodsRef;
 }) {
-    const { exitEditMode, editingStep, goToStep } = useCheckoutContext();
+    const { exitEditMode, editingStep, goToStep, step: currentStep } = useCheckoutContext();
     const updateBasket = useBasketUpdater();
     const basket = useBasket();
 
@@ -282,13 +296,32 @@ export function useCheckoutActions(options?: {
     useEffect(() => {
         const { step, state } = actionRef.current;
 
-        // Only process if we're in BASKET_UPDATED state and in edit mode
-        if (editingStep === null || step === null || state !== ActionState.BASKET_UPDATED) {
+        const isActiveShippingStepWithoutEditing =
+            editingStep === null &&
+            (step === CHECKOUT_STEPS.SHIPPING_ADDRESS || step === CHECKOUT_STEPS.SHIPPING_OPTIONS) &&
+            currentStep === step;
+        if (editingStep === null && !isActiveShippingStepWithoutEditing) {
+            return;
+        }
+
+        // Only process if we're in BASKET_UPDATED state on an active checkout step
+        if (step === null || state !== ActionState.BASKET_UPDATED) {
             return;
         }
 
         const fetcher = fetcherMap[step];
         if (!fetcher?.data?.success) {
+            return;
+        }
+
+        const responseLastModified = fetcher.data.basket?.lastModified;
+        const basketRevisionCurrent =
+            !responseLastModified || isBasketRevisionCurrent(basket?.lastModified, responseLastModified);
+        if (
+            (step === CHECKOUT_STEPS.SHIPPING_ADDRESS || step === CHECKOUT_STEPS.SHIPPING_OPTIONS) &&
+            responseLastModified &&
+            !basketRevisionCurrent
+        ) {
             return;
         }
 
@@ -345,6 +378,7 @@ export function useCheckoutActions(options?: {
         shippingAddressFetcher.data,
         shippingOptionsFetcher.data,
         paymentFetcher.data,
+        currentStep,
     ]);
 
     /**

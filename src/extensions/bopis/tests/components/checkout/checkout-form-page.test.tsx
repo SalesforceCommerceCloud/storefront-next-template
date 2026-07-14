@@ -335,9 +335,12 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
 });
 
 describe('CheckoutFormPage - bopis', () => {
-    // Default test props
+    // Default test props. The shipping methods map is streamed by the loader and resolved inside
+    // `ShippingMethodsBridge`; tests provide a resolved Promise rather than the raw map.
     const defaultProps = {
-        shippingMethodsMap: { me: { applicableShippingMethods: [], defaultShippingMethodId: undefined } },
+        shippingMethodsMapPromise: Promise.resolve({
+            me: { applicableShippingMethods: [], defaultShippingMethodId: undefined },
+        }),
         productMapPromise: Promise.resolve({}),
     };
 

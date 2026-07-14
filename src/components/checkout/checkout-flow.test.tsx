@@ -523,17 +523,18 @@ describe('Checkout Flow Integration Tests', () => {
         vi.mocked(useCheckoutContext).mockReturnValue(defaultCheckoutContext);
     });
 
-    // Default test props for CheckoutFormPage
+    // Default test props for CheckoutFormPage. The shipping methods map is streamed from the
+    // loader and resolved inside `ShippingMethodsBridge` — tests provide a resolved Promise.
     const defaultProps = {
         productMapPromise: Promise.resolve({}),
-        shippingMethodsMap: {
+        shippingMethodsMapPromise: Promise.resolve({
             me: {
                 applicableShippingMethods: [
                     { id: 'standard', name: 'Standard Shipping', price: 5.99, default: true },
                     { id: 'express', name: 'Express Shipping', price: 12.99 },
                 ],
             },
-        },
+        }),
     };
 
     const baseHandlers = [

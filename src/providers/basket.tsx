@@ -424,10 +424,23 @@ export const useBasketUpdater = (): ((basket?: ShopperBasketsV2.schemas['Basket'
     return useCallback(
         (basket?: ShopperBasketsV2.schemas['Basket']) => {
             updater?.setBasket((prev) => {
-                // Dedup: Skip the update, when called with a defined basket whose SCAPI-set `lastModified` matches
-                // the basket already in context. The undefined-basket path (clear-and-rehydrate) is unaffected —
-                // callers that want to wipe `current` while keeping `hydrated: true` still work.
-                if (basket?.lastModified && prev?.current?.lastModified === basket.lastModified && prev?.hydrated) {
+                // Monotonic dedup within a single basketId. SCAPI's `lastModified` is an ISO 8601 UTC
+                // timestamp, so string comparison orders revisions of the same basket correctly. Skip
+                // when the incoming revision is the SAME as or OLDER than what's in context for the
+                // SAME `basketId` — this prevents a late-arriving parent effect (rendering a pre-
+                // prefill loader snapshot) from clobbering a newer basket that a child Suspense
+                // boundary (e.g. `PrefillSync`) already published. A basketId change (guest →
+                // registered handoff, destroy + recreate) always writes through, even if the new
+                // basket's `lastModified` predates the previous one. The undefined-basket clear-and-
+                // rehydrate path is unaffected — callers that want to wipe `current` still work.
+                if (
+                    basket?.lastModified &&
+                    prev?.current?.lastModified &&
+                    prev.hydrated &&
+                    basket.basketId &&
+                    prev.current.basketId === basket.basketId &&
+                    basket.lastModified <= prev.current.lastModified
+                ) {
                     return prev;
                 }
                 return {

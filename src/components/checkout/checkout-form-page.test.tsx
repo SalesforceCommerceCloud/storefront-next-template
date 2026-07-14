@@ -390,9 +390,13 @@ vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOrigina
 });
 
 describe('CheckoutFormPage', () => {
-    // Default test props
+    // Default test props. The shipping methods map is streamed by the loader (see
+    // `CheckoutPageData.shippingMethodsMap`) and resolved inside `ShippingMethodsBridge`, so
+    // tests provide a resolved Promise rather than the raw map.
     const defaultProps = {
-        shippingMethodsMap: { me: { applicableShippingMethods: [], defaultShippingMethodId: undefined } },
+        shippingMethodsMapPromise: Promise.resolve({
+            me: { applicableShippingMethods: [], defaultShippingMethodId: undefined },
+        }),
         productMapPromise: Promise.resolve({}),
     };
 
@@ -1530,9 +1534,9 @@ describe('CheckoutFormPage', () => {
 
             await renderCheckoutPage({
                 showToast: mockShowToast,
-                shippingMethodsMap: {
+                shippingMethodsMapPromise: Promise.resolve({
                     me: { applicableShippingMethods: [], defaultShippingMethodId: undefined },
-                },
+                }),
             });
 
             await waitFor(() => {
@@ -1553,12 +1557,12 @@ describe('CheckoutFormPage', () => {
 
             await renderCheckoutPage({
                 showToast: mockShowToast,
-                shippingMethodsMap: {
+                shippingMethodsMapPromise: Promise.resolve({
                     me: {
                         applicableShippingMethods: [{ id: 'standard', name: 'Standard Shipping', price: 5.99 }],
                         defaultShippingMethodId: 'standard',
                     },
-                },
+                }),
             });
 
             expect(mockShowToast).not.toHaveBeenCalled();
@@ -1571,6 +1575,233 @@ describe('CheckoutFormPage', () => {
             await renderCheckoutPage({ showToast: mockShowToast });
 
             expect(mockShowToast).not.toHaveBeenCalled();
+        });
+    });
+
+    // These tests guard the reload-pin invariants — the last step of streamed prefill. Without them,
+    // regressions where `hasAnyValidShippingMethod` is used in place of `hasValidShippingMethodForEveryShipment`
+    // would only surface on refresh in a multi-shipment basket with partial coverage, which is
+    // easy to miss in QA.
+    describe('Reload-pin (shipping address without valid methods)', () => {
+        const buildAddressedBasket = (extra?: Record<string, unknown>) => ({
+            basketId: 'test-basket',
+            productItems: [{ itemId: 'item1', productId: 'product1', quantity: 1, shipmentId: 'me' }],
+            shipments: [
+                {
+                    shipmentId: 'me',
+                    shippingAddress: {
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        address1: '123 Main St',
+                        city: 'Anytown',
+                        stateCode: 'CA',
+                        postalCode: '12345',
+                        countryCode: 'US',
+                    },
+                },
+            ],
+            ...(extra ?? {}),
+        });
+
+        test('pins to SHIPPING_ADDRESS on refresh when a shipment has no valid methods for its address', async () => {
+            const mockShowToast = vi.fn();
+            const pinToStep = vi.fn();
+            mockUseBasket.mockReturnValue(buildAddressedBasket());
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PAYMENT, pinToStep }));
+            // No submit in flight — this is a fresh load.
+            mockShippingAddressFetcherData = null;
+
+            await renderCheckoutPage({
+                showToast: mockShowToast,
+                // Populated map with an empty methods entry — the address was submitted, the
+                // hook ran, but no methods came back. Note: `Promise.resolve({})` would trip
+                // the vacuous-truth branch of `hasValidShippingMethodForEveryShipment` and not
+                // pin, which is the intended behavior when no address has been submitted yet.
+                shippingMethodsMapPromise: Promise.resolve({
+                    me: { applicableShippingMethods: [], defaultShippingMethodId: undefined },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(pinToStep).toHaveBeenCalledWith(defaultSteps.SHIPPING_ADDRESS);
+            });
+            expect(mockShowToast).toHaveBeenCalledWith(
+                i18next.t('errors:checkout.noShippingMethodsForAddress'),
+                'error'
+            );
+        });
+
+        test('pins to SHIPPING_ADDRESS on refresh when a multi-shipment basket has one shipment lacking methods', async () => {
+            // Regression: previously this used `hasAnyValidShippingMethod`, so ANY valid method in the
+            // map would suppress the pin even though a second shipment could not be delivered. The
+            // check must be every-shipment.
+            const mockShowToast = vi.fn();
+            const pinToStep = vi.fn();
+            mockUseBasket.mockReturnValue(
+                buildAddressedBasket({
+                    shipments: [
+                        {
+                            shipmentId: 'me',
+                            shippingAddress: {
+                                firstName: 'John',
+                                lastName: 'Doe',
+                                address1: '123 Main St',
+                                city: 'Anytown',
+                                stateCode: 'CA',
+                                postalCode: '12345',
+                                countryCode: 'US',
+                            },
+                        },
+                        {
+                            shipmentId: 'gift',
+                            shippingAddress: {
+                                firstName: 'Jane',
+                                lastName: 'Roe',
+                                address1: '456 Elm St',
+                                city: 'Elsewhere',
+                                stateCode: 'NY',
+                                postalCode: '10001',
+                                countryCode: 'US',
+                            },
+                        },
+                    ],
+                })
+            );
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PAYMENT, pinToStep }));
+            mockShippingAddressFetcherData = null;
+
+            await renderCheckoutPage({
+                showToast: mockShowToast,
+                shippingMethodsMapPromise: Promise.resolve({
+                    me: {
+                        applicableShippingMethods: [{ id: 'standard', name: 'Standard', price: 5.99 }],
+                        defaultShippingMethodId: 'standard',
+                    },
+                    gift: { applicableShippingMethods: [], defaultShippingMethodId: undefined },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(pinToStep).toHaveBeenCalledWith(defaultSteps.SHIPPING_ADDRESS);
+            });
+        });
+
+        test('does not pin when every shipment has at least one valid method', async () => {
+            const mockShowToast = vi.fn();
+            const pinToStep = vi.fn();
+            mockUseBasket.mockReturnValue(buildAddressedBasket());
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PAYMENT, pinToStep }));
+            mockShippingAddressFetcherData = null;
+
+            await renderCheckoutPage({
+                showToast: mockShowToast,
+                shippingMethodsMapPromise: Promise.resolve({
+                    me: {
+                        applicableShippingMethods: [{ id: 'standard', name: 'Standard Shipping', price: 5.99 }],
+                        defaultShippingMethodId: 'standard',
+                    },
+                }),
+            });
+
+            expect(pinToStep).not.toHaveBeenCalled();
+            expect(mockShowToast).not.toHaveBeenCalled();
+        });
+
+        test('does not pin when the basket has no shipping address yet', async () => {
+            // First-time checkout with an empty basket — the address has not been submitted, so the
+            // shopper should not be pinned or toasted.
+            const mockShowToast = vi.fn();
+            const pinToStep = vi.fn();
+            mockUseBasket.mockReturnValue({
+                basketId: 'test-basket',
+                productItems: [{ itemId: 'item1', productId: 'product1', quantity: 1 }],
+                shipments: [{ shipmentId: 'me' }],
+            });
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({ step: defaultSteps.SHIPPING_ADDRESS, pinToStep })
+            );
+            mockShippingAddressFetcherData = null;
+
+            await renderCheckoutPage({
+                showToast: mockShowToast,
+                shippingMethodsMapPromise: Promise.resolve({}),
+            });
+
+            expect(pinToStep).not.toHaveBeenCalled();
+            expect(mockShowToast).not.toHaveBeenCalled();
+        });
+    });
+
+    // Guards the streamed-prefill flash: a returning customer with a complete saved profile
+    // computes to PLACE_ORDER on the post-prefill paint, before the streamed shipping-methods
+    // map resolves. If that saved address turns out undeliverable, the reload-pin would then
+    // bounce them back to Shipping Address — a visible PLACE_ORDER → Shipping Address flash.
+    // Gating Place Order/Payment on `shippingMethodsResolved` holds the section until methods land.
+    describe('Place Order gated on streamed shipping methods (returning shopper)', () => {
+        const addressedBasket = {
+            basketId: 'test-basket',
+            productItems: [{ itemId: 'item1', productId: 'product1', quantity: 1, shipmentId: 'me' }],
+            shipments: [
+                {
+                    shipmentId: 'me',
+                    shippingAddress: {
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        address1: '123 Main St',
+                        city: 'Anytown',
+                        stateCode: 'CA',
+                        postalCode: '12345',
+                        countryCode: 'US',
+                    },
+                },
+            ],
+        };
+
+        test('hides Place Order while the streamed shipping-methods map is still pending', async () => {
+            mockUseBasket.mockReturnValue(addressedBasket);
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+
+            // A never-resolving promise keeps `resolvedShippingMethodsMap` undefined, so
+            // `shippingMethodsResolved` stays false and the section must not paint.
+            await renderCheckoutPage({
+                shippingMethodsMapPromise: new Promise(() => {}),
+            });
+
+            expect(screen.queryByRole('button', { name: /Place Order/ })).not.toBeInTheDocument();
+        });
+
+        test('shows Place Order once the streamed map resolves with valid methods', async () => {
+            mockUseBasket.mockReturnValue(addressedBasket);
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+
+            await renderCheckoutPage({
+                shippingMethodsMapPromise: Promise.resolve({
+                    me: {
+                        applicableShippingMethods: [{ id: 'standard', name: 'Standard Shipping', price: 5.99 }],
+                        defaultShippingMethodId: 'standard',
+                    },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(screen.getByRole('button', { name: /Place Order/ })).toBeInTheDocument();
+            });
+        });
+
+        test('keeps Place Order hidden when the resolved map has no valid methods for the address', async () => {
+            mockUseBasket.mockReturnValue(addressedBasket);
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+
+            await renderCheckoutPage({
+                shippingMethodsMapPromise: Promise.resolve({
+                    me: { applicableShippingMethods: [], defaultShippingMethodId: undefined },
+                }),
+            });
+
+            // Resolved but no valid methods → noShippingMethodsRef keeps the section blocked.
+            await waitFor(() => {
+                expect(screen.queryByRole('button', { name: /Place Order/ })).not.toBeInTheDocument();
+            });
         });
     });
 

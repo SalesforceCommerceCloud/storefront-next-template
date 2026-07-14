@@ -219,6 +219,69 @@ describe('Checkout Loaders', () => {
             expect(result.gcpApiKey).toBe('gcp-ootb-key');
         });
 
+        it('streams the registered-shopper prefill mutation rather than awaiting it', async () => {
+            // The registered path used to `await handleBasketPrefill(...)` in the loader, which
+            // blocked first byte on any outbound `sfcc.app.shipping.calculate` hook (e.g. CDS).
+            // The loader must now return `prefilledBasket` as an unresolved Promise so the render
+            // can commit its shell before the hook runs.
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer, getCustomerProfileForCheckout } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+
+            vi.mocked(isRegisteredCustomer).mockReturnValue(true);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'registered', customerId: 'customer-123' } as any);
+            vi.mocked(getBasket).mockResolvedValue({
+                current: { basketId: 'registered-basket', productItems: [], shipments: [{}] },
+            } as any);
+            vi.mocked(getCustomerProfileForCheckout).mockResolvedValue({
+                customer: { customerId: 'customer-123', login: 'test@example.com' },
+                addresses: [],
+                paymentInstruments: [],
+            } as any);
+
+            const result = await loader(createMockArgs());
+
+            expect(result.prefilledBasket).toBeInstanceOf(Promise);
+            // The returned `basket` is the pre-prefill snapshot — it must not have been mutated
+            // by an in-loader `await` of `handleBasketPrefill`.
+            expect(result.basket).toEqual(expect.objectContaining({ basketId: 'registered-basket' }));
+        });
+
+        it('degrades the streamed prefill promise to null (and methods to {}) when the prefill chain rejects', async () => {
+            // The streamed `prefilledBasket` / `shippingMethodsMap` promises are consumed by `use()`
+            // inside `CheckoutErrorBoundary`. An uncaught rejection there would collapse the whole
+            // checkout to the error card — a fail-open → fail-closed regression vs the old awaited path.
+            // Force `handleBasketPrefill` to throw (its initial getBasket AND its catch-branch getBasket
+            // both reject); this drives `prefilledBasketPromise` through its new `.catch` → null. The
+            // methods chain then runs against the loader basket (whose lone shipment has no shipmentId,
+            // so it is filtered out) and resolves to `{}` via the normal empty-map path — either way the
+            // consumer sees a settled soft-degrade value, never a rejection.
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer, getCustomerProfileForCheckout } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+
+            vi.mocked(isRegisteredCustomer).mockReturnValue(true);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'registered', customerId: 'customer-123' } as any);
+            vi.mocked(getBasket)
+                .mockResolvedValueOnce({
+                    current: { basketId: 'registered-basket', productItems: [], shipments: [{}] },
+                } as any)
+                .mockRejectedValue(new Error('SCAPI blip'));
+            vi.mocked(getCustomerProfileForCheckout).mockResolvedValue({
+                customer: { customerId: 'customer-123', login: 'test@example.com' },
+                addresses: [],
+                paymentInstruments: [],
+            } as any);
+
+            const result = await loader(createMockArgs());
+
+            expect(result.prefilledBasket).toBeInstanceOf(Promise);
+            expect(result.shippingMethodsMap).toBeInstanceOf(Promise);
+            // Neither promise rejects; they degrade so PrefillSync / ShippingMethodsBridge no-op.
+            await expect(result.prefilledBasket).resolves.toBeNull();
+            await expect(result.shippingMethodsMap).resolves.toEqual({});
+        });
+
         it('should return fallback data when an error occurs', async () => {
             const { isRegisteredCustomer } = await import('@/lib/api/customer.server');
 

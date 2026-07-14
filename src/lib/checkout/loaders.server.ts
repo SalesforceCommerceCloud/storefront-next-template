@@ -56,7 +56,21 @@ import { isAddressEmpty, isOrderBillingAddressIncomplete } from '@/lib/address/a
  * Checkout page data type
  */
 export type CheckoutPageData = {
+    /**
+     * Pre-prefill basket snapshot from `getBasket()`. Enough to render the checkout shell
+     * immediately without waiting on any SCAPI writes. Downstream consumers should read from
+     * the basket provider (updated by `PrefillSync` once `prefilledBasket` resolves) rather
+     * than trusting this snapshot for post-prefill fields (shipping address, payment, etc.).
+     */
     basket: ShopperBasketsV2.schemas['Basket'] | null;
+    /**
+     * Registered-shopper prefill mutations, streamed rather than awaited. Undefined for guests.
+     * Each prefill write (contact info, shipping address, shipping method, billing address, saved
+     * payment) triggers the server-side `sfcc.app.shipping.calculate` hook — with a shipping app
+     * like CDS installed, that hook makes an outbound HTTP call. Keeping them off the awaited
+     * path is the largest first-byte win on this route.
+     */
+    prefilledBasket?: Promise<ShopperBasketsV2.schemas['Basket'] | null>;
     shippingMethodsMap?: Promise<Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>>;
     customerProfile?: Promise<CustomerProfile | null>;
     productMap: Promise<Record<string, ShopperProducts.schemas['Product']>>;
@@ -710,14 +724,24 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
             });
 
             if (customerProfile) {
-                // @sfdc-extension-block-start SFDC_EXT_BOPIS
-                await shippingDefaultSet;
-                // @sfdc-extension-block-end SFDC_EXT_BOPIS
-                const updatedBasket = await handleBasketPrefill(context, customerProfile);
-                const shippingMethodsMapPromise = fetchShippingMethodsForAllShipments(context, updatedBasket);
+                // Stream the prefill mutations rather than awaiting them so first paint doesn't block on the
+                // ECOM basket calculation.
+                const prefilledBasketPromise = shippingDefaultSet
+                    .then(() => handleBasketPrefill(context, customerProfile))
+                    .catch((error) => {
+                        logger.error('Checkout: prefill stream failed, degrading to loader basket', { error });
+                        return null;
+                    });
+                const shippingMethodsMapPromise = prefilledBasketPromise
+                    .then((prefilled) => fetchShippingMethodsForAllShipments(context, prefilled ?? basket))
+                    .catch((error) => {
+                        logger.error('Checkout: shipping methods stream failed, degrading to empty map', { error });
+                        return {};
+                    });
 
                 return {
-                    basket: updatedBasket,
+                    basket,
+                    prefilledBasket: prefilledBasketPromise,
                     shippingMethodsMap: shippingMethodsMapPromise,
                     customerProfile: Promise.resolve(customerProfile),
                     productMap: productMapPromise,

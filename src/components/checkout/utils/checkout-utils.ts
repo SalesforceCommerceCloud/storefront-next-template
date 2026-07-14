@@ -38,8 +38,7 @@ function hasValidPaymentCard(
 export function computeFinalStepForReturningCustomer(
     basket: ShopperBasketsV2.schemas['Basket'] | undefined,
     customerProfile: CustomerProfile,
-    shipmentDistribution: ShipmentDistribution,
-    hasNoValidShippingMethods = false
+    shipmentDistribution: ShipmentDistribution
 ): CheckoutStep | null {
     if (!customerProfile?.customer || !basket) {
         return null;
@@ -55,25 +54,22 @@ export function computeFinalStepForReturningCustomer(
     const paymentInstrument = basket.paymentInstruments?.[0];
     const paymentValid = paymentInstrument && hasValidPaymentCard(paymentInstrument);
 
-    // If the basket has a delivery address but no valid shipping methods (e.g. shopper entered an
-    // address with no deliverable options, then refreshed), pin to Shipping Address so we never
-    // advance past it — otherwise refresh would jump straight to Place Order for a returning
-    // customer with a complete profile.
-    if (
-        hasNoValidShippingMethods &&
-        shipmentDistribution.hasDeliveryItems &&
-        !shipmentDistribution.hasUnaddressedDeliveryItems
-    ) {
-        return CHECKOUT_STEPS.SHIPPING_ADDRESS;
-    }
+    // Guard against premature advancement while the basket is still catching up to the customer
+    // profile. With prefill now streamed (see `prefilledBasket` in the checkout loader), the
+    // initial paint sees the pre-prefill basket: no address, no payment. Once `PrefillSync` publishes the
+    // post-prefill basket the provider recomputes and this branch takes over.
+    const basketHasAddress =
+        !shipmentDistribution.hasDeliveryItems || !shipmentDistribution.hasUnaddressedDeliveryItems;
 
     // If customer has complete profile (email, addresses, payment methods), go straight to review/place order
     if (hasCustomerEmail && hasCustomerAddresses && (hasCustomerPaymentMethods || paymentValid)) {
+        if (!basketHasAddress || !paymentValid) return null;
         return CHECKOUT_STEPS.PLACE_ORDER;
     }
 
     // If customer has email and addresses but no saved payment methods, go to payment step
     if (hasCustomerEmail && hasCustomerAddresses && !hasCustomerPaymentMethods) {
+        if (!basketHasAddress) return null;
         return CHECKOUT_STEPS.PAYMENT;
     }
 
@@ -125,8 +121,7 @@ export function handlePickupContinueAction(
 
 export function computeStepFromBasket(
     basket: ShopperBasketsV2.schemas['Basket'] | undefined,
-    shipmentDistribution: ShipmentDistribution,
-    hasNoValidShippingMethods = false
+    shipmentDistribution: ShipmentDistribution
 ): CheckoutStep {
     if (!basket) {
         return CHECKOUT_STEPS.CONTACT_INFO;
@@ -138,13 +133,6 @@ export function computeStepFromBasket(
 
     if (shipmentDistribution.hasDeliveryItems) {
         if (shipmentDistribution.hasUnaddressedDeliveryItems) {
-            return CHECKOUT_STEPS.SHIPPING_ADDRESS;
-        }
-
-        // Address is present but no deliverable shipping methods exist for it. On refresh, stay
-        // on Shipping Address — advancing to Shipping Options would render an empty list and a
-        // disabled Continue button.
-        if (hasNoValidShippingMethods) {
             return CHECKOUT_STEPS.SHIPPING_ADDRESS;
         }
 

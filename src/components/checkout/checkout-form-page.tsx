@@ -40,7 +40,7 @@ import { Spinner } from '@/components/spinner';
 import { getCheckoutDisplayError, isUnauthorizedError } from './utils/checkout-display-error';
 import { SessionExpiredBanner } from './components/session-expired-banner';
 import { CHECKOUT_STEPS, type CheckoutStep } from './utils/checkout-context-types';
-import { handlePickupContinueAction, hasAnyValidShippingMethod } from './utils/checkout-utils';
+import { handlePickupContinueAction, hasValidShippingMethodForEveryShipment } from './utils/checkout-utils';
 import { isAddressEmpty } from '@/lib/address/address-utils';
 import { OrderSummaryMobileAccordion } from '@/components/order-summary/mobile-heading';
 import { isOrderTotalEstimated } from '@/components/order-summary/mobile-heading-utils';
@@ -174,11 +174,33 @@ function GuestAccountCreation({
 }
 
 interface CheckoutFormPageProps {
-    shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>;
+    /**
+     * Streamed rather than awaited by the loader (see `CheckoutPageData.shippingMethodsMap`) so
+     * first paint does not block on the ECOM basket calculation.
+     */
+    shippingMethodsMapPromise?: Promise<Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>>;
     productMapPromise: Promise<Record<string, ShopperProducts.schemas['Product']>>;
     promotionsPromise?: Promise<Record<string, ShopperPromotions.schemas['Promotion']>>;
     showToast?: (message: string, type: 'success' | 'error', options?: { duration?: number }) => void;
     emailVerificationEnabled?: boolean;
+}
+
+/**
+ * Resolves the streamed shipping-methods promise inside a Suspense boundary and hoists the map
+ * into parent state via `onResolved`.
+ */
+function ShippingMethodsBridge({
+    promise,
+    onResolved,
+}: {
+    promise: Promise<Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>>;
+    onResolved: (map: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>) => void;
+}) {
+    const resolved = use(promise);
+    useEffect(() => {
+        onResolved(resolved);
+    }, [resolved, onResolved]);
+    return null;
 }
 
 /**
@@ -200,7 +222,7 @@ function MyCartWithData({
 }
 
 export default function CheckoutFormPage({
-    shippingMethodsMap: shippingMethodsMapFromLoader,
+    shippingMethodsMapPromise,
     productMapPromise,
     promotionsPromise,
     showToast,
@@ -212,6 +234,19 @@ export default function CheckoutFormPage({
     const { currency } = useSite();
     const config = useConfig();
     const { siteRef, localeRef } = useCurrentSiteAndLocaleRef();
+
+    // Streamed shipping-methods map hoisted from `ShippingMethodsBridge` once the loader promise
+    // resolves. `undefined` means "not resolved yet" — different from `{}` which means "resolved,
+    // no methods".
+    const [resolvedShippingMethodsMap, setResolvedShippingMethodsMap] = useState<
+        Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> | undefined
+    >(undefined);
+    const handleShippingMethodsResolved = useCallback(
+        (map: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>) => {
+            setResolvedShippingMethodsMap(map);
+        },
+        []
+    );
 
     const cart = useBasket();
     const basketHydrated = useBasketHydrated();
@@ -292,28 +327,40 @@ export default function CheckoutFormPage({
 
     let showAddressAndOptions = true;
 
-    // Determine shipping methods: prefer action response over loader data (avoids flash when advancing to shipping step)
+    // Determine shipping methods: prefer action response over loader data (avoids flash when advancing to shipping step).
+    // Loader data is a streamed promise now (see `shippingMethodsMapPromise`); read the resolved value out of state.
     const actionShippingMethods = shippingAddressFetcher.data?.data?.shippingMethodsMap as
         | Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']>
         | undefined;
-    let shippingMethodsMap =
+    // `undefined` while the loader promise is still in flight (first paint), otherwise the resolved map
+    // (possibly `{}` when no methods came back). Callers that must distinguish "loading" from "empty"
+    // check `shippingMethodsResolved` below.
+    let shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> | undefined =
         actionShippingMethods && Object.keys(actionShippingMethods).length > 0
             ? actionShippingMethods
-            : shippingMethodsMapFromLoader;
+            : resolvedShippingMethodsMap;
+    const shippingMethodsResolved =
+        (actionShippingMethods && Object.keys(actionShippingMethods).length > 0) ||
+        resolvedShippingMethodsMap !== undefined;
 
     // @sfdc-extension-block-start SFDC_EXT_MULTISHIP
     let isDeliveryProductItem = (_item: ShopperBasketsV2.schemas['ProductItem']) => true;
     // @sfdc-extension-block-end SFDC_EXT_MULTISHIP
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    shippingMethodsMap = filterDeliveryShippingMethods(shippingMethodsMap);
+    shippingMethodsMap = shippingMethodsMap ? filterDeliveryShippingMethods(shippingMethodsMap) : undefined;
     const hasPickupItems = shipmentDistribution.hasPickupItems;
     showAddressAndOptions = shipmentDistribution.hasDeliveryItems;
     isDeliveryProductItem = shipmentDistribution.isDeliveryProductItem;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    // Keep ref in sync so useCheckoutActions can block advance before rendering the next step
-    noShippingMethodsRef.current = !hasAnyValidShippingMethod(shippingMethodsMap);
+    // Keep ref in sync so useCheckoutActions can block advance before rendering the next step.
+    // Only reflect "no methods" after the promise has actually resolved — while pending, treat as
+    // "not yet known" and leave the ref at its default `false` so the advance guard doesn't fire
+    // pre-resolve. useCheckoutActions consults this ref inside the SHIPPING_ADDRESS submit-completes
+    // effect, which by construction runs after the action response has landed and the map is known.
+    noShippingMethodsRef.current =
+        shippingMethodsResolved && !hasValidShippingMethodForEveryShipment(shippingMethodsMap);
 
     // @sfdc-extension-block-start SFDC_EXT_MULTISHIP
     const enableMultiAddress = shipmentDistribution.enableMultiAddress;
@@ -656,8 +703,17 @@ export default function CheckoutFormPage({
     // Block payment when shipping is required, an address exists, but no valid delivery methods
     // are available. A stale shipping method on the basket can make computedStep overshoot to
     // PAYMENT on reload; this prevents the payment section from opening in that case.
+    //
+    // Also block while the streamed shipping-methods map is still pending (`!shippingMethodsResolved`)
+    // whenever an address is present. With prefill streamed, a returning customer with a complete
+    // saved profile computes to PLACE_ORDER on the post-prefill paint before the methods map lands;
+    // if that saved address turns out to be undeliverable, the reload-pin below would bounce them
+    // back to Shipping Address — a visible PLACE_ORDER → Shipping Address flash. Gating the section
+    // on resolution holds Place Order/Payment until methods confirm, so the shopper only ever sees
+    // the correct step.
     const hasShippingAddress = cart?.shipments?.some((s) => s.shippingAddress && !isAddressEmpty(s.shippingAddress));
-    const shippingBlocked = showAddressAndOptions && !!hasShippingAddress && noShippingMethodsRef.current;
+    const shippingBlocked =
+        showAddressAndOptions && !!hasShippingAddress && (!shippingMethodsResolved || noShippingMethodsRef.current);
 
     const paymentState = {
         isCompleted: step > STEPS.PAYMENT && !shippingBlocked,
@@ -746,13 +802,15 @@ export default function CheckoutFormPage({
 
     // Reload-only: pin to Shipping Address when basket already has an address but no valid delivery methods.
     // Skipped when there's an active submission so the post-submit effect is the single toast source.
+    // Waits for `shippingMethodsResolved` so we don't fire while the streamed promise is still pending.
     const reloadPinDoneRef = useRef(false);
     useEffect(() => {
         if (reloadPinDoneRef.current || !cart || !basketHydrated) return;
+        if (!shippingMethodsResolved) return;
         if (shippingAddressFetcher.state !== 'idle' || shippingAddressFetcher.data) return;
         const hasAddress = cart.shipments?.some((s) => s.shippingAddress && !isAddressEmpty(s.shippingAddress));
         if (!hasAddress) return;
-        if (!hasAnyValidShippingMethod(shippingMethodsMap)) {
+        if (!hasValidShippingMethodForEveryShipment(shippingMethodsMap)) {
             reloadPinDoneRef.current = true;
             pinToStep?.(STEPS.SHIPPING_ADDRESS);
             showToast?.(tErrors('checkout.noShippingMethodsForAddress'), 'error');
@@ -761,6 +819,7 @@ export default function CheckoutFormPage({
         cart,
         basketHydrated,
         shippingMethodsMap,
+        shippingMethodsResolved,
         shippingAddressFetcher.state,
         shippingAddressFetcher.data,
         pinToStep,
@@ -773,11 +832,13 @@ export default function CheckoutFormPage({
     // The noShippingMethodsRef guard in useCheckoutActions prevents the flash when the action
     // response includes shipping methods. This pinToStep call is still needed as a fallback when
     // the shipping methods map updates via loader revalidation after the guard has already fired.
+    // Also waits for `shippingMethodsResolved` so a pending stream doesn't trigger a false toast.
     const noMethodsToastShownRef = useRef<unknown>(null);
     useEffect(() => {
         if (shippingAddressFetcher.state !== 'idle' || !shippingAddressFetcher.data?.success) return;
         if (noMethodsToastShownRef.current === shippingAddressFetcher.data) return;
-        if (!hasAnyValidShippingMethod(shippingMethodsMap)) {
+        if (!shippingMethodsResolved) return;
+        if (!hasValidShippingMethodForEveryShipment(shippingMethodsMap)) {
             noMethodsToastShownRef.current = shippingAddressFetcher.data;
             showToast?.(tErrors('checkout.noShippingMethodsForAddress'), 'error');
             pinToStep?.(STEPS.SHIPPING_ADDRESS);
@@ -786,6 +847,7 @@ export default function CheckoutFormPage({
         shippingAddressFetcher.state,
         shippingAddressFetcher.data,
         shippingMethodsMap,
+        shippingMethodsResolved,
         showToast,
         tErrors,
         pinToStep,
@@ -824,17 +886,19 @@ export default function CheckoutFormPage({
     );
     const defaultShipmentId = cart?.shipments?.[0]?.shipmentId ?? 'me';
     const shippingAddressSubmittedThisSession = shippingAddressFetcher.data?.success === true;
-    let shippingOptionsComponent = (
+    let shippingOptionsComponent = shippingMethodsResolved ? (
         <ShippingOptions
             onSubmit={handleShippingOptionsSubmit}
             onAutoSubmit={submitShippingOptionsForRecalculation}
             isLoading={isSubmitting('shipping-options')}
             actionData={shippingOptionsFetcher.data}
-            shippingMethods={shippingMethodsMap[defaultShipmentId]}
+            shippingMethods={shippingMethodsMap?.[defaultShipmentId]}
             validationError={shippingMethodValidationError}
             justEnteredAddress={shippingAddressSubmittedThisSession}
             {...shippingOptionsState}
         />
+    ) : (
+        <ShippingOptionsSkeleton />
     );
 
     // @sfdc-extension-block-start SFDC_EXT_MULTISHIP
@@ -854,15 +918,17 @@ export default function CheckoutFormPage({
                 {...shippingAddressState}
             />
         );
-        shippingOptionsComponent = (
+        shippingOptionsComponent = shippingMethodsResolved ? (
             <ShippingMultiOptions
                 onSubmit={handleShippingOptionsSubmit}
                 isLoading={isSubmitting('shipping-options')}
                 actionData={shippingOptionsFetcher.data}
                 shipments={deliveryShipments}
-                shippingMethodsMap={shippingMethodsMap}
+                shippingMethodsMap={shippingMethodsMap ?? {}}
                 {...shippingOptionsState}
             />
+        ) : (
+            <ShippingOptionsSkeleton />
         );
     }
     // @sfdc-extension-block-end SFDC_EXT_MULTISHIP
@@ -897,6 +963,14 @@ export default function CheckoutFormPage({
 
     return (
         <div data-section="checkout" className="bg-background">
+            {shippingMethodsMapPromise && (
+                <Suspense fallback={null}>
+                    <ShippingMethodsBridge
+                        promise={shippingMethodsMapPromise}
+                        onResolved={handleShippingMethodsResolved}
+                    />
+                </Suspense>
+            )}
             <span role="status" aria-live="polite" className="sr-only">
                 {statusMessage}
             </span>

@@ -24,6 +24,30 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { handleMultiShipShippingOptions } from '@/extensions/multiship/lib/actions/checkout-submit-multi-options.server';
 import { getLogger } from '@/lib/logger.server';
 import { ACTION_HOOK_IDS, runHookSafe } from '@/targets/action-hook.server';
+import type { ShopperBasketsV2 } from '@/scapi';
+
+/**
+ * Preserves customer information omitted by the shipping-method response while applying its basket changes.
+ *
+ * @internal
+ */
+export function mergeShippingOptionsBasketPreservingCustomerInfo(
+    currentBasket: ShopperBasketsV2.schemas['Basket'],
+    updatedBasket: ShopperBasketsV2.schemas['Basket']
+): ShopperBasketsV2.schemas['Basket'] {
+    const currentCustomerInfo = currentBasket.customerInfo;
+    if (!currentCustomerInfo) return updatedBasket;
+
+    return {
+        ...updatedBasket,
+        customerInfo: {
+            ...currentCustomerInfo,
+            ...updatedBasket.customerInfo,
+            ...(currentCustomerInfo.customerId === undefined ? {} : { customerId: currentCustomerInfo.customerId }),
+            email: currentCustomerInfo.email,
+        },
+    };
+}
 
 /**
  * Server action for submitting checkout shipping options.
@@ -107,19 +131,8 @@ export async function action(formData: FormData, context: ActionFunctionArgs['co
             logger.warn('SubmitShippingOptions: customer info missing from API response, merging with current basket', {
                 basketId: basket.basketId,
             });
-            // Customer info missing from shipping method API response, merging with current basket
-            // Selectively update to preserve existing data
-            finalBasket = {
-                ...currentBasket,
-                // Update shipping-related fields from API response
-                shipments: updatedBasket.shipments || currentBasket.shipments,
-                // Update calculated totals from API response
-                orderTotal: updatedBasket.orderTotal || currentBasket.orderTotal,
-                productTotal: updatedBasket.productTotal || currentBasket.productTotal,
-                shippingTotal: updatedBasket.shippingTotal || currentBasket.shippingTotal,
-                merchandizeTotalTax: updatedBasket.merchandizeTotalTax || currentBasket.merchandizeTotalTax,
-                taxTotal: updatedBasket.taxTotal || currentBasket.taxTotal,
-            };
+            // Restore only the customer identity omitted from the authoritative response.
+            finalBasket = mergeShippingOptionsBasketPreservingCustomerInfo(currentBasket, updatedBasket);
             updateBasketResource(context, finalBasket);
         } else {
             // API response includes all necessary data, use it directly
