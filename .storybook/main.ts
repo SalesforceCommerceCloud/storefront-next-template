@@ -1,9 +1,42 @@
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { existsSync } from 'node:fs';
 import type { StorybookConfig } from '@storybook/react-vite';
 import type { InlineConfig, Plugin } from 'vite';
 
+const CONFIG_DIR = dirname(fileURLToPath(import.meta.url)); // .storybook
+
+/**
+ * Active vertical (`fashion` when unset), mirroring the dev/build scripts, the
+ * vertical-first Vite resolver, and the runtime `verticalPublicOverlay()` plugin.
+ *
+ * @env VERTICAL - optional; `fashion` | `cosmetic`. Defaults to `fashion`.
+ */
+const VERTICAL = process.env.VERTICAL || 'fashion';
+
+/**
+ * Static asset dirs served at the Storybook web root, mirroring the runtime
+ * `verticalPublicOverlay()` Vite plugin used by `pnpm dev`/`pnpm build`. Stories
+ * that reference `/images/...` as a *runtime URL* — a plain string prop or raw
+ * `<img src>` HTML, not a Vite `import` — need the file physically served, because
+ * those references never pass through the `resolveVerticalPublic` module alias in
+ * `.storybook/vite.config.ts`.
+ *
+ * Canonical `public/` is listed first, then the active vertical's `public/`; on
+ * path collision the later entry wins, so vertical assets override canonical
+ * (matching the plugin's "vertical wins" semantics). The vertical dir is only
+ * added when it exists — in the flattened customer artifact there is no
+ * `src/verticals/`, so this degrades to serving canonical `public/` alone.
+ */
+function buildStaticDirs(): string[] {
+    const dirs = [`${CONFIG_DIR}/../public`];
+    const verticalPublic = resolve(CONFIG_DIR, `../src/verticals/${VERTICAL}/public`);
+    if (existsSync(verticalPublic)) dirs.push(verticalPublic);
+    return dirs;
+}
+
 const config: StorybookConfig = {
+    staticDirs: buildStaticDirs(),
     stories: ['../**/*.stories.@(ts|tsx)', '../**/*.mdx'],
     addons: [
         getAbsolutePath('@chromatic-com/storybook'),
