@@ -751,17 +751,17 @@ describe('CheckoutFormPage', () => {
     });
 
     describe('Responsive order summary layout', () => {
-        test('keeps sidebar before express checkout in DOM for md layout', async () => {
+        test('keeps main checkout content before sidebar in DOM so keyboard tab order matches visual reading order (WCAG 2.4.3)', async () => {
             await renderCheckoutPage();
 
             const sidebar = screen.getByTestId('checkout-order-summary-sidebar');
             const expressPayments = screen.getByTestId('express-payments');
 
-            const relation = sidebar.compareDocumentPosition(expressPayments);
+            const relation = expressPayments.compareDocumentPosition(sidebar);
             expect(relation & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
-        test('uses responsive order classes to move sidebar right on lg', async () => {
+        test('uses responsive order classes to move sidebar right on lg while staying above main on md', async () => {
             const { container } = await renderCheckoutPage();
 
             const grid = container.querySelector('.grid.grid-cols-1.lg\\:grid-cols-3.gap-8');
@@ -774,9 +774,25 @@ describe('CheckoutFormPage', () => {
 
             const mainContent = screen.getByTestId('express-payments').closest('div.space-y-6');
             expect(mainContent).toBeInTheDocument();
-            expect(mainContent?.className).toContain('order-2');
+            expect(mainContent?.className).toContain('md:order-2');
             expect(mainContent?.className).toContain('lg:order-1');
             expect(mainContent?.className).toContain('lg:col-span-2');
+        });
+
+        test('place order button is DOM-after sidebar so promo code is tabbed before place order (WCAG 2.4.3)', async () => {
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({
+                    step: defaultSteps.PAYMENT,
+                })
+            );
+
+            await renderCheckoutPage();
+
+            const sidebar = screen.getByTestId('checkout-order-summary-sidebar');
+            const placeOrderButton = screen.getByRole('button', { name: /place order/i });
+
+            const relation = sidebar.compareDocumentPosition(placeOrderButton);
+            expect(relation & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
     });
 

@@ -17,7 +17,7 @@ exports[`ShippingAddress stories snapshot > DisabledState story renders and matc
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Address
         </h2>
@@ -59,7 +59,7 @@ exports[`ShippingAddress stories snapshot > EditView story renders and matches s
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Address
         </h2>
@@ -699,7 +699,7 @@ exports[`ShippingAddress stories snapshot > SavingState story renders and matche
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Address
         </h2>
@@ -1351,7 +1351,7 @@ exports[`ShippingAddress stories snapshot > SummaryView story renders and matche
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Address
         </h2>
@@ -1404,7 +1404,7 @@ exports[`ShippingAddress stories snapshot > WithSavedAddresses story renders and
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Address
         </h2>
@@ -2044,7 +2044,7 @@ exports[`ShippingAddress stories snapshot > WithValidationErrors story renders a
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Address
         </h2>

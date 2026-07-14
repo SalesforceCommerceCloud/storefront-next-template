@@ -17,7 +17,7 @@ exports[`ShippingOptions stories snapshot > DisabledState story renders and matc
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -59,7 +59,7 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -300,7 +300,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -492,7 +492,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -733,7 +733,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithFreeShipping story rende
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -925,7 +925,7 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -1178,7 +1178,7 @@ exports[`ShippingOptions stories snapshot > SummaryView story renders and matche
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -1220,7 +1220,7 @@ exports[`ShippingOptions stories snapshot > SummaryViewWithDeliveryWindow story 
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -1262,7 +1262,7 @@ exports[`ShippingOptions stories snapshot > SummaryViewWithDiscountedShipping st
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>
@@ -1304,7 +1304,7 @@ exports[`ShippingOptions stories snapshot > SummaryViewWithFreeShipping story re
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Shipping Method
         </h2>

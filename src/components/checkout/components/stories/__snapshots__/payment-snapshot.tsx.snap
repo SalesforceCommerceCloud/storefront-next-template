@@ -18,7 +18,7 @@ exports[`Payment stories snapshot > DisabledState story renders and matches snap
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -62,7 +62,7 @@ exports[`Payment stories snapshot > EditView story renders and matches snapshot 
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -449,7 +449,7 @@ exports[`Payment stories snapshot > EditViewWithDifferentBilling story renders a
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -836,7 +836,7 @@ exports[`Payment stories snapshot > SavingState story renders and matches snapsh
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -1234,7 +1234,7 @@ exports[`Payment stories snapshot > SummaryView story renders and matches snapsh
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -1293,7 +1293,7 @@ exports[`Payment stories snapshot > SummaryViewWithDifferentBilling story render
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -1352,7 +1352,7 @@ exports[`Payment stories snapshot > WithBillingValidationErrors story renders an
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -1739,7 +1739,7 @@ exports[`Payment stories snapshot > WithNewBillingAddress story renders and matc
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -2126,7 +2126,7 @@ exports[`Payment stories snapshot > WithNewCreditCard story renders and matches 
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -2513,7 +2513,7 @@ exports[`Payment stories snapshot > WithSavedBillingAddresses story renders and 
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -2900,7 +2900,7 @@ exports[`Payment stories snapshot > WithSavedPaymentMethods story renders and ma
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>
@@ -3287,7 +3287,7 @@ exports[`Payment stories snapshot > WithValidationErrors story renders and match
           <h2
             class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
-            tabindex="0"
+            tabindex="-1"
           >
             Payment
           </h2>

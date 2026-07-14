@@ -942,61 +942,11 @@ export default function CheckoutFormPage({
                     </Suspense>
                 </div>
 
+                {/* Grid children are ordered in the DOM to match the desktop visual reading
+                    order (main → sidebar → place order), so keyboard Tab flows the same way
+                    the eye scans. Visual position on each breakpoint is applied via order-*. */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Order Summary Sidebar - above content on md, right side on lg */}
-                    <div
-                        className="hidden md:block md:order-1 lg:order-2 lg:col-span-1"
-                        data-testid="checkout-order-summary-sidebar">
-                        <UITarget targetId="sfcc.checkout.sidebar.before" />
-                        <div className="space-y-6">
-                            {/* Order Summary + Cart Items */}
-                            <Card className="[--cart-divider-extend:1.5rem] gap-4 py-4 pb-0">
-                                <CardHeader className="border-b-[1px] border-border pb-2">
-                                    <CardTitle
-                                        as="h2"
-                                        className="text-2xl font-bold tracking-tight text-card-foreground">
-                                        {t('orderSummary.title')}
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <UITarget targetId="sfcc.checkout.orderSummary.before" />
-                                    <UITarget targetId="sfcc.checkout.orderSummary">
-                                        <Suspense fallback={<OrderSummarySkeleton />}>
-                                            <OrderSummary
-                                                basket={cart}
-                                                showCartItems={false}
-                                                showHeading={false}
-                                                showPromoCodeForm={true}
-                                                productsByItemId={{}}
-                                                isEstimate={isEstimate}
-                                                className="border-none !py-0 [&_[data-slot=card-content]]:px-0 [--cart-summary-px:1.5rem]"
-                                            />
-                                        </Suspense>
-                                    </UITarget>
-                                    <UITarget targetId="sfcc.checkout.orderSummary.after" />
-
-                                    <hr className="border-border -mx-6" />
-
-                                    <UITarget targetId="sfcc.checkout.myCart.before" />
-                                    <UITarget targetId="sfcc.checkout.myCart">
-                                        <Suspense
-                                            fallback={<MyCartSkeleton itemCount={cart?.productItems?.length || 2} />}>
-                                            <MyCartWithData
-                                                basket={cart}
-                                                productMapPromise={productMapPromise}
-                                                promotionsPromise={promotionsPromise}
-                                            />
-                                        </Suspense>
-                                    </UITarget>
-                                    <UITarget targetId="sfcc.checkout.myCart.after" />
-                                </CardContent>
-                            </Card>
-                        </div>
-                        <UITarget targetId="sfcc.checkout.sidebar.after" />
-                    </div>
-
-                    {/* Main Checkout Content - Single Page Layout */}
-                    <div className="space-y-6 order-2 lg:order-1 lg:col-span-2 [&_[data-slot=card-header].border-b]:pb-4">
+                    <div className="space-y-6 md:order-2 lg:order-1 lg:col-span-2 [&_[data-slot=card-header].border-b]:pb-4">
                         <UITarget targetId="sfcc.checkout.mainContent.before" />
                         {/* Express Payments - Apple Pay, Google Pay, Amazon Pay, PayPal & Venmo (mobile only) */}
                         <UITarget targetId="sfcc.checkout.expressPayments.header.before" />
@@ -1090,66 +1040,117 @@ export default function CheckoutFormPage({
                             </Suspense>
                         </PaymentSubmissionRefProvider>
 
-                        {/* Place Order Section - hide when editing any step except Payment
-                           (Payment has no separate Save button; Place Order acts as its submit) */}
-                        {showPlaceOrderSection && (
-                            <div className="flex flex-col items-end gap-4 w-full lg:-mt-4">
-                                {/* Create Account Option - Show for guest users when Place Order is visible (step >= PAYMENT) */}
-                                {step >= STEPS.PAYMENT && (
-                                    <div className="w-full">
-                                        <UITarget targetId="sfcc.checkout.createAccount.before" />
-                                        <UITarget targetId="sfcc.checkout.createAccount">
-                                            <GuestAccountCreation
-                                                cart={cart}
-                                                customerProfile={customerProfile}
-                                                onSaved={handleCreateAccountPreferenceChange}
-                                                savePaymentToProfile={
-                                                    paymentSubmissionRef.current.options?.savePaymentToProfile
-                                                }
-                                                showToast={showToast}
-                                                hideCreateAccountOption={
-                                                    hideCreateAccountAfterSkippedPasswordlessOtp ||
-                                                    emailVerificationEnabled === false
-                                                }
-                                            />
-                                        </UITarget>
-                                        <UITarget targetId="sfcc.checkout.createAccount.after" />
-                                    </div>
-                                )}
-                                <UITarget targetId="sfcc.checkout.placeOrder.before" />
-                                <UITarget targetId="sfcc.checkout.placeOrder">
-                                    <form
-                                        data-checkout-mobile-bar
-                                        onSubmit={handlePlaceOrderSubmit}
-                                        className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0">
-                                        <Button
-                                            type="submit"
-                                            disabled={
-                                                isPlacingOrder ||
-                                                isPlaceOrderPending ||
-                                                isSubmitting('payment') ||
-                                                paymentFetcher.state === 'submitting'
-                                            }
-                                            className="w-full shadow-2xs"
-                                            size="lg">
-                                            <Lock className="size-4" />
-                                            {isPlacingOrder || isPlaceOrderPending || isSubmitting('payment')
-                                                ? t('placeOrder.processing')
-                                                : t('placeOrder.button', {
-                                                      total: formatCurrency(
-                                                          cart?.orderTotal ?? cart?.productTotal ?? 0,
-                                                          i18n.language,
-                                                          currency
-                                                      ),
-                                                  })}
-                                        </Button>
-                                    </form>
+                        {/* Create Account Option - Show for guest users when Place Order is visible (step >= PAYMENT).
+                           Kept in main content so it tabs before Promo Code and Place Order. */}
+                        {showPlaceOrderSection && step >= STEPS.PAYMENT && (
+                            <div className="w-full">
+                                <UITarget targetId="sfcc.checkout.createAccount.before" />
+                                <UITarget targetId="sfcc.checkout.createAccount">
+                                    <GuestAccountCreation
+                                        cart={cart}
+                                        customerProfile={customerProfile}
+                                        onSaved={handleCreateAccountPreferenceChange}
+                                        savePaymentToProfile={
+                                            paymentSubmissionRef.current.options?.savePaymentToProfile
+                                        }
+                                        showToast={showToast}
+                                        hideCreateAccountOption={
+                                            hideCreateAccountAfterSkippedPasswordlessOtp ||
+                                            emailVerificationEnabled === false
+                                        }
+                                    />
                                 </UITarget>
-                                <UITarget targetId="sfcc.checkout.placeOrder.after" />
+                                <UITarget targetId="sfcc.checkout.createAccount.after" />
                             </div>
                         )}
                         <UITarget targetId="sfcc.checkout.mainContent.after" />
                     </div>
+
+                    <div
+                        className="hidden md:block md:order-1 lg:order-2 lg:col-span-1"
+                        data-testid="checkout-order-summary-sidebar">
+                        <UITarget targetId="sfcc.checkout.sidebar.before" />
+                        <div className="space-y-6">
+                            {/* Order Summary + Cart Items */}
+                            <Card className="[--cart-divider-extend:1.5rem] gap-4 py-4 pb-0">
+                                <CardHeader className="border-b-[1px] border-border pb-2">
+                                    <CardTitle
+                                        as="h2"
+                                        className="text-2xl font-bold tracking-tight text-card-foreground">
+                                        {t('orderSummary.title')}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <UITarget targetId="sfcc.checkout.orderSummary.before" />
+                                    <UITarget targetId="sfcc.checkout.orderSummary">
+                                        <Suspense fallback={<OrderSummarySkeleton />}>
+                                            <OrderSummary
+                                                basket={cart}
+                                                showCartItems={false}
+                                                showHeading={false}
+                                                showPromoCodeForm={true}
+                                                productsByItemId={{}}
+                                                isEstimate={isEstimate}
+                                                className="border-none !py-0 [&_[data-slot=card-content]]:px-0 [--cart-summary-px:1.5rem]"
+                                            />
+                                        </Suspense>
+                                    </UITarget>
+                                    <UITarget targetId="sfcc.checkout.orderSummary.after" />
+
+                                    <hr className="border-border -mx-6" />
+
+                                    <UITarget targetId="sfcc.checkout.myCart.before" />
+                                    <UITarget targetId="sfcc.checkout.myCart">
+                                        <Suspense
+                                            fallback={<MyCartSkeleton itemCount={cart?.productItems?.length || 2} />}>
+                                            <MyCartWithData
+                                                basket={cart}
+                                                productMapPromise={productMapPromise}
+                                                promotionsPromise={promotionsPromise}
+                                            />
+                                        </Suspense>
+                                    </UITarget>
+                                    <UITarget targetId="sfcc.checkout.myCart.after" />
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <UITarget targetId="sfcc.checkout.sidebar.after" />
+                    </div>
+
+                    {showPlaceOrderSection && (
+                        <div className="flex flex-col items-end gap-4 w-full md:order-3 lg:order-3 lg:col-start-1 lg:col-span-2 lg:-mt-4">
+                            <UITarget targetId="sfcc.checkout.placeOrder.before" />
+                            <UITarget targetId="sfcc.checkout.placeOrder">
+                                <form
+                                    data-checkout-mobile-bar
+                                    onSubmit={handlePlaceOrderSubmit}
+                                    className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0">
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            isPlacingOrder ||
+                                            isPlaceOrderPending ||
+                                            isSubmitting('payment') ||
+                                            paymentFetcher.state === 'submitting'
+                                        }
+                                        className="w-full shadow-2xs"
+                                        size="lg">
+                                        <Lock className="size-4" />
+                                        {isPlacingOrder || isPlaceOrderPending || isSubmitting('payment')
+                                            ? t('placeOrder.processing')
+                                            : t('placeOrder.button', {
+                                                  total: formatCurrency(
+                                                      cart?.orderTotal ?? cart?.productTotal ?? 0,
+                                                      i18n.language,
+                                                      currency
+                                                  ),
+                                              })}
+                                    </Button>
+                                </form>
+                            </UITarget>
+                            <UITarget targetId="sfcc.checkout.placeOrder.after" />
+                        </div>
+                    )}
                 </div>
             </div>
             <UITarget targetId="sfcc.checkout.page.after" />

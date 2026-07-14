@@ -17,7 +17,7 @@ exports[`ContactInfo stories snapshot > EditView story renders and matches snaps
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Contact Information
         </h2>
@@ -183,7 +183,7 @@ exports[`ContactInfo stories snapshot > SavingState story renders and matches sn
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Contact Information
         </h2>
@@ -361,7 +361,7 @@ exports[`ContactInfo stories snapshot > SendingOtp story renders and matches sna
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Contact Information
         </h2>
@@ -536,7 +536,7 @@ exports[`ContactInfo stories snapshot > SummaryView story renders and matches sn
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Contact Information
         </h2>
@@ -591,7 +591,7 @@ exports[`ContactInfo stories snapshot > WithValidationErrors story renders and m
         <h2
           class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
-          tabindex="0"
+          tabindex="-1"
         >
           Contact Information
         </h2>

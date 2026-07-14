@@ -100,7 +100,7 @@ export function ToggleCard({
                     <CardTitle
                         ref={titleRef as unknown as Ref<HTMLDivElement>}
                         as={titleAs}
-                        tabIndex={0}
+                        tabIndex={-1}
                         className={cn(
                             'text-base font-semibold',
                             disabled && !editing ? 'text-muted-foreground' : 'text-foreground',

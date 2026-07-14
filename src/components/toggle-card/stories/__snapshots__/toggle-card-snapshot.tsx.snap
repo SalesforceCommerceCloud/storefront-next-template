@@ -12,7 +12,7 @@ exports[`ToggleCard stories snapshot > Default story renders and matches snapsho
     <div
       class="text-base font-semibold text-foreground"
       data-slot="card-title"
-      tabindex="0"
+      tabindex="-1"
     >
       Contact Information
     </div>
@@ -101,7 +101,7 @@ exports[`ToggleCard stories snapshot > DisableEdit story renders and matches sna
     <div
       class="text-base font-semibold text-foreground"
       data-slot="card-title"
-      tabindex="0"
+      tabindex="-1"
     >
       Read-Only Information
     </div>
@@ -180,7 +180,7 @@ exports[`ToggleCard stories snapshot > Disabled story renders and matches snapsh
     <div
       class="text-base font-semibold text-muted-foreground"
       data-slot="card-title"
-      tabindex="0"
+      tabindex="-1"
     >
       Account Settings
     </div>
@@ -258,7 +258,7 @@ exports[`ToggleCard stories snapshot > Editing story renders and matches snapsho
     <div
       class="text-base font-semibold text-foreground"
       data-slot="card-title"
-      tabindex="0"
+      tabindex="-1"
     >
       Contact Information
     </div>
@@ -374,7 +374,7 @@ exports[`ToggleCard stories snapshot > Loading story renders and matches snapsho
     <div
       class="text-base font-semibold text-foreground"
       data-slot="card-title"
-      tabindex="0"
+      tabindex="-1"
     >
       Processing
     </div>
@@ -475,7 +475,7 @@ exports[`ToggleCard stories snapshot > StaticView story renders and matches snap
     <div
       class="text-base font-semibold text-muted-foreground"
       data-slot="card-title"
-      tabindex="0"
+      tabindex="-1"
     >
       Static Information
     </div>
