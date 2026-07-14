@@ -68,15 +68,16 @@ exports[`ProductItem stories snapshot > AutoBonusProduct story renders and match
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div
@@ -226,15 +227,16 @@ exports[`ProductItem stories snapshot > ChoiceBasedBonusProduct story renders an
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
                 <div
                   class="mt-2"
@@ -396,15 +398,16 @@ exports[`ProductItem stories snapshot > Default story renders and matches snapsh
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div
@@ -560,15 +563,16 @@ exports[`ProductItem stories snapshot > DiscountedPrice story renders and matche
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div
@@ -749,15 +753,16 @@ exports[`ProductItem stories snapshot > LongProductName story renders and matche
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div
@@ -911,15 +916,16 @@ exports[`ProductItem stories snapshot > MissingImages story renders and matches 
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div
@@ -1075,15 +1081,16 @@ exports[`ProductItem stories snapshot > MultipleQuantity story renders and match
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div
@@ -1246,15 +1253,16 @@ exports[`ProductItem stories snapshot > SummaryVariant story renders and matches
            
           1
         </div>
-        <div
+        <ul
           class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+          role="list"
         >
-          <div>
+          <li>
             Size
             : 
             L
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
       <div
         class="items-center gap-2 text-sm"
@@ -1342,15 +1350,16 @@ exports[`ProductItem stories snapshot > WithActions story renders and matches sn
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
                 <div
                   class="mt-2"
@@ -1528,15 +1537,16 @@ exports[`ProductItem stories snapshot > WithInventoryMessage story renders and m
                   </h2>
                 </div>
                 <div>
-                  <div
+                  <ul
                     class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                    role="list"
                   >
-                    <div>
+                    <li>
                       Size
                       : 
                       L
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 </div>
               </div>
               <div

@@ -588,6 +588,23 @@ describe('OrderSummary', () => {
         expect(heading).toHaveAttribute('id', 'order-summary-heading-desktop');
     });
 
+    test('renders totals as a description list with dt/dd as direct dl children', () => {
+        // Assistive tech announces <dl> as a description list only when <dt>/<dd> are direct children —
+        // wrapping each pair in a <div> silently drops the term/definition semantics in VoiceOver/JAWS.
+        const { container } = renderWithProviders(<OrderSummary basket={mockBasket} />);
+
+        const dl = container.querySelector('dl');
+        expect(dl).not.toBeNull();
+
+        // Direct-child selector: catches regression where dt/dd get wrapped in a grid <div>.
+        expect(container.querySelectorAll('dl > dt').length).toBeGreaterThan(0);
+        expect(container.querySelectorAll('dl > dd').length).toBeGreaterThan(0);
+
+        // Cross-check via WAI-ARIA implicit roles.
+        expect(screen.getAllByRole('term').length).toBeGreaterThan(0);
+        expect(screen.getAllByRole('definition').length).toBeGreaterThan(0);
+    });
+
     test('handles cart items accordion interaction', async () => {
         const user = userEvent.setup();
         renderWithProviders(<OrderSummary basket={mockBasket} />);

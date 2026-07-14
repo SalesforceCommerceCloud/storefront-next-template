@@ -235,15 +235,16 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -538,44 +539,42 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                 class="space-y-2"
                 role="region"
               >
-                <div
-                  class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+                <dl
+                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
-                  <div
-                    class="flex justify-between items-center"
+                  <dt>
+                    Subtotal
+                  </dt>
+                  <dd
+                    class="justify-self-end"
+                  >
+                    $42.00
+                  </dd>
+                  <dt
+                    class="flex items-center"
                   >
                     <span>
-                      Subtotal
+                      Shipping
                     </span>
-                    <span>
-                      $42.00
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center"
+                  </dt>
+                  <dd
+                    class="justify-self-end"
                   >
-                    <div
-                      class="flex items-center"
-                    >
-                      <span>
-                        Shipping
-                      </span>
-                    </div>
                     <span>
                       $5.99
                     </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+                  </dd>
+                  <dt
+                    class="font-bold"
                   >
-                    <span>
-                      Estimated Total
-                    </span>
-                    <span>
-                      $51.35
-                    </span>
-                  </div>
-                </div>
+                    Estimated Total
+                  </dt>
+                  <dd
+                    class="justify-self-end font-bold"
+                  >
+                    $51.35
+                  </dd>
+                </dl>
                 <hr
                   class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
                 />
@@ -1141,15 +1140,16 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -1563,15 +1563,16 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -1942,15 +1943,16 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -2251,46 +2253,44 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                 class="space-y-2"
                 role="region"
               >
-                <div
-                  class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+                <dl
+                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
-                  <div
-                    class="flex justify-between items-center"
+                  <dt>
+                    Subtotal
+                  </dt>
+                  <dd
+                    class="justify-self-end"
+                  >
+                    $140.00
+                  </dd>
+                  <dt
+                    class="flex items-center"
                   >
                     <span>
-                      Subtotal
+                      Shipping
                     </span>
-                    <span>
-                      $140.00
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center"
+                  </dt>
+                  <dd
+                    class="justify-self-end"
                   >
-                    <div
-                      class="flex items-center"
-                    >
-                      <span>
-                        Shipping
-                      </span>
-                    </div>
                     <span
                       class="text-primary font-medium"
                     >
                       FREE
                     </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+                  </dd>
+                  <dt
+                    class="font-bold"
                   >
-                    <span>
-                      Estimated Total
-                    </span>
-                    <span>
-                      $151.20
-                    </span>
-                  </div>
-                </div>
+                    Estimated Total
+                  </dt>
+                  <dd
+                    class="justify-self-end font-bold"
+                  >
+                    $151.20
+                  </dd>
+                </dl>
                 <hr
                   class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
                 />
@@ -2850,15 +2850,16 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -3229,15 +3230,16 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -3532,76 +3534,66 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                 class="space-y-2"
                 role="region"
               >
-                <div
-                  class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+                <dl
+                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
-                  <div
-                    class="flex justify-between items-center"
+                  <dt>
+                    Subtotal
+                  </dt>
+                  <dd
+                    class="justify-self-end"
+                  >
+                    $75.00
+                  </dd>
+                  <dt
+                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    data-slot="badge"
+                  >
+                    $5 Off Tops
+                  </dt>
+                  <dd
+                    class="text-sm font-normal leading-5 text-muted-foreground text-right"
+                  >
+                    -$5.00
+                  </dd>
+                  <dt
+                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    data-slot="badge"
+                  >
+                    10% Off Accessories
+                  </dt>
+                  <dd
+                    class="text-sm font-normal leading-5 text-muted-foreground text-right"
+                  >
+                    -$3.00
+                  </dd>
+                  <dt
+                    class="flex items-center"
                   >
                     <span>
-                      Subtotal
+                      Shipping
                     </span>
-                    <span>
-                      $75.00
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center gap-2"
+                  </dt>
+                  <dd
+                    class="justify-self-end"
                   >
-                    <span
-                      class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-                      data-slot="badge"
-                    >
-                      $5 Off Tops
-                    </span>
-                    <span
-                      class="text-sm font-normal leading-5 text-muted-foreground text-right"
-                    >
-                      -$5.00
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center gap-2"
-                  >
-                    <span
-                      class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-                      data-slot="badge"
-                    >
-                      10% Off Accessories
-                    </span>
-                    <span
-                      class="text-sm font-normal leading-5 text-muted-foreground text-right"
-                    >
-                      -$3.00
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center"
-                  >
-                    <div
-                      class="flex items-center"
-                    >
-                      <span>
-                        Shipping
-                      </span>
-                    </div>
                     <span
                       class="text-primary font-medium"
                     >
                       FREE
                     </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+                  </dd>
+                  <dt
+                    class="font-bold"
                   >
-                    <span>
-                      Estimated Total
-                    </span>
-                    <span>
-                      $72.36
-                    </span>
-                  </div>
-                </div>
+                    Estimated Total
+                  </dt>
+                  <dd
+                    class="justify-self-end font-bold"
+                  >
+                    $72.36
+                  </dd>
+                </dl>
                 <hr
                   class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
                 />
@@ -4024,46 +4016,44 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
               class="space-y-2"
               role="region"
             >
-              <div
-                class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+              <dl
+                class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
               >
-                <div
-                  class="flex justify-between items-center"
+                <dt>
+                  Subtotal
+                </dt>
+                <dd
+                  class="justify-self-end"
+                >
+                  $148.00
+                </dd>
+                <dt
+                  class="flex items-center"
                 >
                   <span>
-                    Subtotal
+                    Shipping
                   </span>
-                  <span>
-                    $148.00
-                  </span>
-                </div>
-                <div
-                  class="flex justify-between items-center"
+                </dt>
+                <dd
+                  class="justify-self-end"
                 >
-                  <div
-                    class="flex items-center"
-                  >
-                    <span>
-                      Shipping
-                    </span>
-                  </div>
                   <span
                     class="text-primary font-medium"
                   >
                     FREE
                   </span>
-                </div>
-                <div
-                  class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+                </dd>
+                <dt
+                  class="font-bold"
                 >
-                  <span>
-                    Estimated Total
-                  </span>
-                  <span>
-                    $159.84
-                  </span>
-                </div>
-              </div>
+                  Estimated Total
+                </dt>
+                <dd
+                  class="justify-self-end font-bold"
+                >
+                  $159.84
+                </dd>
+              </dl>
               <hr
                 class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
               />
@@ -4546,15 +4536,16 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             </h2>
                           </div>
                           <div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                           <div
                             class="mt-2"
@@ -4968,15 +4959,16 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             </h2>
                           </div>
                           <div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                           <div
                             class="mt-2"
@@ -5347,15 +5339,16 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             </h2>
                           </div>
                           <div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                           <div
                             class="mt-2"
@@ -5765,15 +5758,16 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             </h2>
                           </div>
                           <div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                         </div>
                         <div
@@ -6145,15 +6139,16 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -6532,15 +6527,16 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                           </div>
                           <div
@@ -6786,15 +6782,16 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                           </div>
                           <div
@@ -6956,73 +6953,63 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                 class="space-y-2"
                 role="region"
               >
-                <div
-                  class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+                <dl
+                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
-                  <div
-                    class="flex justify-between items-center"
+                  <dt>
+                    Subtotal
+                  </dt>
+                  <dd
+                    class="justify-self-end"
+                  >
+                    $20.00
+                  </dd>
+                  <dt
+                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    data-slot="badge"
+                  >
+                    Buy one Classic Fit Shirt, get 2 free ties!
+                  </dt>
+                  <dd
+                    class="text-sm font-normal leading-5 text-muted-foreground text-right"
+                  >
+                    $0.00
+                  </dd>
+                  <dt
+                    class="flex items-center"
                   >
                     <span>
-                      Subtotal
+                      Shipping
                     </span>
-                    <span>
-                      $20.00
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center gap-2"
+                  </dt>
+                  <dd
+                    class="justify-self-end"
                   >
-                    <span
-                      class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-                      data-slot="badge"
-                    >
-                      Buy one Classic Fit Shirt, get 2 free ties!
-                    </span>
-                    <span
-                      class="text-sm font-normal leading-5 text-muted-foreground text-right"
-                    >
-                      $0.00
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center"
-                  >
-                    <div
-                      class="flex items-center"
-                    >
-                      <span>
-                        Shipping
-                      </span>
-                    </div>
                     <span
                       class="text-muted-foreground"
                     >
                       TBD
                     </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center"
+                  </dd>
+                  <dt>
+                    Tax
+                  </dt>
+                  <dd
+                    class="justify-self-end text-muted-foreground"
                   >
-                    <span>
-                      Tax
-                    </span>
-                    <span
-                      class="text-muted-foreground"
-                    >
-                      TBD
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+                    TBD
+                  </dd>
+                  <dt
+                    class="font-bold"
                   >
-                    <span>
-                      Estimated Total
-                    </span>
-                    <span>
-                      $20.00
-                    </span>
-                  </div>
-                </div>
+                    Estimated Total
+                  </dt>
+                  <dd
+                    class="justify-self-end font-bold"
+                  >
+                    $20.00
+                  </dd>
+                </dl>
                 <hr
                   class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
                 />
@@ -7631,15 +7618,16 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -7940,61 +7928,55 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                 class="space-y-2"
                 role="region"
               >
-                <div
-                  class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+                <dl
+                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
-                  <div
-                    class="flex justify-between items-center"
+                  <dt>
+                    Subtotal
+                  </dt>
+                  <dd
+                    class="justify-self-end"
+                  >
+                    $38.38
+                  </dd>
+                  <dt
+                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    data-slot="badge"
+                  >
+                    10% Off Order
+                  </dt>
+                  <dd
+                    class="text-sm font-normal leading-5 text-muted-foreground text-right"
+                  >
+                    -$3.84
+                  </dd>
+                  <dt
+                    class="flex items-center"
                   >
                     <span>
-                      Subtotal
+                      Shipping
                     </span>
-                    <span>
-                      $38.38
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center gap-2"
+                  </dt>
+                  <dd
+                    class="justify-self-end"
                   >
-                    <span
-                      class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-                      data-slot="badge"
-                    >
-                      10% Off Order
-                    </span>
-                    <span
-                      class="text-sm font-normal leading-5 text-muted-foreground text-right"
-                    >
-                      -$3.84
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center"
-                  >
-                    <div
-                      class="flex items-center"
-                    >
-                      <span>
-                        Shipping
-                      </span>
-                    </div>
                     <span
                       class="text-muted-foreground"
                     >
                       TBD
                     </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+                  </dd>
+                  <dt
+                    class="font-bold"
                   >
-                    <span>
-                      Estimated Total
-                    </span>
-                    <span>
-                      $34.54
-                    </span>
-                  </div>
-                </div>
+                    Estimated Total
+                  </dt>
+                  <dd
+                    class="justify-self-end font-bold"
+                  >
+                    $34.54
+                  </dd>
+                </dl>
                 <hr
                   class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
                 />
@@ -8624,15 +8606,16 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                               </h2>
                             </div>
                             <div>
-                              <div
+                              <ul
                                 class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                                role="list"
                               >
-                                <div>
+                                <li>
                                   Size
                                   : 
                                   L
-                                </div>
-                              </div>
+                                </li>
+                              </ul>
                             </div>
                             <div
                               class="mt-2"
@@ -8958,46 +8941,44 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                 class="space-y-2"
                 role="region"
               >
-                <div
-                  class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+                <dl
+                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
-                  <div
-                    class="flex justify-between items-center"
+                  <dt>
+                    Subtotal
+                  </dt>
+                  <dd
+                    class="justify-self-end"
+                  >
+                    $38.38
+                  </dd>
+                  <dt
+                    class="flex items-center"
                   >
                     <span>
-                      Subtotal
+                      Shipping
                     </span>
-                    <span>
-                      $38.38
-                    </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center"
+                  </dt>
+                  <dd
+                    class="justify-self-end"
                   >
-                    <div
-                      class="flex items-center"
-                    >
-                      <span>
-                        Shipping
-                      </span>
-                    </div>
                     <span
                       class="text-muted-foreground"
                     >
                       TBD
                     </span>
-                  </div>
-                  <div
-                    class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+                  </dd>
+                  <dt
+                    class="font-bold"
                   >
-                    <span>
-                      Estimated Total
-                    </span>
-                    <span>
-                      $38.38
-                    </span>
-                  </div>
-                </div>
+                    Estimated Total
+                  </dt>
+                  <dd
+                    class="justify-self-end font-bold"
+                  >
+                    $38.38
+                  </dd>
+                </dl>
                 <hr
                   class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
                 />

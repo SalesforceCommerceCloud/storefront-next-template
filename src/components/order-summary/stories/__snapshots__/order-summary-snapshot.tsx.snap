@@ -118,46 +118,44 @@ exports[`OrderSummary stories snapshot > CartItemsAccordionInteraction story ren
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -282,46 +280,44 @@ exports[`OrderSummary stories snapshot > Default story renders and matches snaps
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -446,46 +442,44 @@ exports[`OrderSummary stories snapshot > EmptyBasket story renders and matches s
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £0.00
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £0.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-primary font-medium"
             >
               FREE
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £0.00
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £0.00
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -610,46 +604,44 @@ exports[`OrderSummary stories snapshot > EstimateMode story renders and matches 
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Estimated Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Estimated Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -683,46 +675,44 @@ exports[`OrderSummary stories snapshot > GrossTaxation story renders and matches
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £118.50
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £118.50
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -825,56 +815,52 @@ exports[`OrderSummary stories snapshot > NetTaxation story renders and matches s
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dd>
+          <dt>
+            Tax
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span>
-              Tax
-            </span>
-            <span>
-              £5.25
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+            £5.25
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £118.50
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £118.50
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -999,61 +985,55 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            20% Off Discount
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£14.71
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              20% Off Discount
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£14.71
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
         <hr
           class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
         />
@@ -1419,15 +1399,16 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                                
                               1
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                             <span
                               class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                               data-slot="badge"
@@ -1529,15 +1510,16 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                                
                               1
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                           <div
                             class="items-center gap-2 text-sm"
@@ -1633,15 +1615,16 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                                
                               1
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                           <div
                             class="items-center gap-2 text-sm"
@@ -1694,73 +1677,63 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
             </div>
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £20.00
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            Buy one Classic Fit Shirt, get 2 free ties!
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            £0.00
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £20.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              Buy one Classic Fit Shirt, get 2 free ties!
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              £0.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dd>
+          <dt>
+            Tax
+          </dt>
+          <dd
+            class="justify-self-end text-muted-foreground"
           >
-            <span>
-              Tax
-            </span>
-            <span
-              class="text-muted-foreground"
-            >
-              TBD
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+            TBD
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Estimated Total
-            </span>
-            <span>
-              £20.00
-            </span>
-          </div>
-        </div>
+            Estimated Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £20.00
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -1794,61 +1767,55 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £38.38
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            10% Off Order
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£3.84
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £38.38
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              10% Off Order
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£3.84
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £34.54
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £34.54
+          </dd>
+        </dl>
         <hr
           class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
         />
@@ -2214,15 +2181,16 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                                
                               2
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                             <span
                               class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                               data-slot="badge"
@@ -2281,46 +2249,44 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
             </div>
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £38.38
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £38.38
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Estimated Total
-            </span>
-            <span>
-              £38.38
-            </span>
-          </div>
-        </div>
+            Estimated Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £38.38
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -2354,76 +2320,66 @@ exports[`OrderSummary stories snapshot > WithItemLevelPromotions story renders a
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £58.29
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            $10 Off Ties
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£10.00
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            15% Off Tops
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£5.28
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £58.29
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              $10 Off Ties
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£10.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
-          >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              15% Off Tops
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£5.28
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £58.29
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £58.29
+          </dd>
+        </dl>
       </div>
     </div>
   </div>

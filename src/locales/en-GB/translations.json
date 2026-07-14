@@ -550,8 +550,8 @@
             "cardNumberRequired": "Card number is required.",
             "cardNumberInvalid": "Enter a valid card number.",
             "cardNumberInvalidLength": "Enter a valid card number (13-19 digits).",
-            "expiryLabel": "mm/yy*",
-            "expiryPlaceholder": "mm/yy*",
+            "expiryDateLabel": "Expiry Date",
+            "expiryPlaceholder": "mm/yy",
             "expiryRequired": "Expiry date is required",
             "expiryInvalid": "Enter a valid expiry date (MM/YY)",
             "cvvLabel": "CVV*",
@@ -734,6 +734,8 @@
                 "tryAgain": "Try again"
             }
         },
+        "savingStatus": "Saving",
+        "placingOrderStatus": "Placing order",
         "registration": {
             "emailNotFound": "Email address is required to create an account. Please provide your email in the contact information section.",
             "initiationFailed": "Unable to send verification code. Please try again.",

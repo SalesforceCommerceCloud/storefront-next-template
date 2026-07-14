@@ -270,7 +270,8 @@ exports[`Payment stories snapshot > EditView story renders and matches snapshot 
                         data-slot="form-label"
                         for="_r_3_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -280,7 +281,7 @@ exports[`Payment stories snapshot > EditView story renders and matches snapshot 
                         id="_r_3_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -656,7 +657,8 @@ exports[`Payment stories snapshot > EditViewWithDifferentBilling story renders a
                         data-slot="form-label"
                         for="_r_a_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -666,7 +668,7 @@ exports[`Payment stories snapshot > EditViewWithDifferentBilling story renders a
                         id="_r_a_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -1042,7 +1044,8 @@ exports[`Payment stories snapshot > SavingState story renders and matches snapsh
                         data-slot="form-label"
                         for="_r_1r_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -1052,7 +1055,7 @@ exports[`Payment stories snapshot > SavingState story renders and matches snapsh
                         id="_r_1r_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -1557,7 +1560,8 @@ exports[`Payment stories snapshot > WithBillingValidationErrors story renders an
                         data-slot="form-label"
                         for="_r_o_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -1567,7 +1571,7 @@ exports[`Payment stories snapshot > WithBillingValidationErrors story renders an
                         id="_r_o_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -1943,7 +1947,8 @@ exports[`Payment stories snapshot > WithNewBillingAddress story renders and matc
                         data-slot="form-label"
                         for="_r_1d_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -1953,7 +1958,7 @@ exports[`Payment stories snapshot > WithNewBillingAddress story renders and matc
                         id="_r_1d_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -2329,7 +2334,8 @@ exports[`Payment stories snapshot > WithNewCreditCard story renders and matches 
                         data-slot="form-label"
                         for="_r_1k_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -2339,7 +2345,7 @@ exports[`Payment stories snapshot > WithNewCreditCard story renders and matches 
                         id="_r_1k_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -2715,7 +2721,8 @@ exports[`Payment stories snapshot > WithSavedBillingAddresses story renders and 
                         data-slot="form-label"
                         for="_r_16_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -2725,7 +2732,7 @@ exports[`Payment stories snapshot > WithSavedBillingAddresses story renders and 
                         id="_r_16_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -3101,7 +3108,8 @@ exports[`Payment stories snapshot > WithSavedPaymentMethods story renders and ma
                         data-slot="form-label"
                         for="_r_v_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-invalid="false"
@@ -3111,7 +3119,7 @@ exports[`Payment stories snapshot > WithSavedPaymentMethods story renders and ma
                         id="_r_v_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                     </div>
@@ -3503,7 +3511,8 @@ exports[`Payment stories snapshot > WithValidationErrors story renders and match
                         data-slot="form-label"
                         for="_r_h_-form-item"
                       >
-                        mm/yy*
+                        Expiry Date
+                        *
                       </label>
                       <input
                         aria-describedby="_r_h_-form-item-message"
@@ -3514,7 +3523,7 @@ exports[`Payment stories snapshot > WithValidationErrors story renders and match
                         id="_r_h_-form-item"
                         maxlength="5"
                         name="expiryDate"
-                        placeholder="mm/yy*"
+                        placeholder="mm/yy"
                         value=""
                       />
                       <p

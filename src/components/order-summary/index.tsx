@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement } from 'react';
+import { Fragment, type ReactElement } from 'react';
 
 // Third-party
 import { ShoppingCart } from 'lucide-react';
@@ -197,14 +197,14 @@ function SummaryBodyContent({
             )}
 
             {/* Order Summary Details */}
-            <div className="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2">
+            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2">
                 {/* Subtotal */}
                 <UITarget targetId="sfcc.orderSummary.subtotal.before" />
                 <UITarget targetId="sfcc.orderSummary.subtotal">
-                    <div className="flex justify-between items-center">
-                        <span>{t('summary.subtotal')}</span>
-                        <span>{formatCurrency(basket?.productSubTotal ?? 0, i18nLanguage, currency)}</span>
-                    </div>
+                    <dt>{t('summary.subtotal')}</dt>
+                    <dd className="justify-self-end">
+                        {formatCurrency(basket?.productSubTotal ?? 0, i18nLanguage, currency)}
+                    </dd>
                 </UITarget>
                 <UITarget targetId="sfcc.orderSummary.subtotal.after" />
                 <UITarget targetId="sfcc.orderSummary.giftCards.applied" />
@@ -216,16 +216,16 @@ function SummaryBodyContent({
                         ...(basket.orderPriceAdjustments ?? []),
                         ...(basket.productItems ?? []).flatMap((item) => item.priceAdjustments ?? []),
                     ].map((adjustment) => (
-                        <div key={adjustment.priceAdjustmentId} className="flex justify-between items-center gap-2">
-                            <span
+                        <Fragment key={adjustment.priceAdjustmentId}>
+                            <dt
                                 data-slot="badge"
                                 className="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui">
                                 {adjustment.itemText}
-                            </span>
-                            <span className="text-sm font-normal leading-5 text-muted-foreground text-right">
+                            </dt>
+                            <dd className="text-sm font-normal leading-5 text-muted-foreground text-right">
                                 {formatCurrency(adjustment.price ?? 0, i18nLanguage, currency)}
-                            </span>
-                        </div>
+                            </dd>
+                        </Fragment>
                     ))}
                 </UITarget>
                 <UITarget targetId="sfcc.orderSummary.adjustments.after" />
@@ -233,28 +233,26 @@ function SummaryBodyContent({
                 {/* Shipping */}
                 <UITarget targetId="sfcc.orderSummary.shipping.before" />
                 <UITarget targetId="sfcc.orderSummary.shipping">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                            <span>
-                                {t('summary.shipping')}
-                                {hasShippingPromos && (
-                                    <span className="ml-1 text-xs text-muted-foreground">
-                                        {t('summary.shippingPromotionApplied')}
-                                    </span>
-                                )}
-                            </span>
+                    <dt className="flex items-center">
+                        <span>
+                            {t('summary.shipping')}
                             {hasShippingPromos && (
-                                <PromoPopover className="ml-1">
-                                    {shippingPromotionAdjustments.map((adjustment) => (
-                                        <div key={adjustment.priceAdjustmentId} className="text-xs">
-                                            {adjustment.itemText}
-                                        </div>
-                                    ))}
-                                </PromoPopover>
+                                <span className="ml-1 text-xs text-muted-foreground">
+                                    {t('summary.shippingPromotionApplied')}
+                                </span>
                             )}
-                        </div>
-                        {renderShippingInfo()}
-                    </div>
+                        </span>
+                        {hasShippingPromos && (
+                            <PromoPopover className="ml-1">
+                                {shippingPromotionAdjustments.map((adjustment) => (
+                                    <div key={adjustment.priceAdjustmentId} className="text-xs">
+                                        {adjustment.itemText}
+                                    </div>
+                                ))}
+                            </PromoPopover>
+                        )}
+                    </dt>
+                    <dd className="justify-self-end">{renderShippingInfo()}</dd>
                 </UITarget>
                 <UITarget targetId="sfcc.orderSummary.shipping.after" />
 
@@ -264,14 +262,14 @@ function SummaryBodyContent({
                         <UITarget targetId="sfcc.orderSummary.tax.before" />
                         <UITarget targetId="sfcc.orderSummary.tax">
                             <UITarget targetId="sfcc.orderSummary.tax.line">
-                                <div className="flex justify-between items-center">
-                                    <span>{t('summary.tax')}</span>
-                                    {typeof basket.taxTotal === 'number' && basket.taxTotal >= 0 ? (
-                                        <span>{formatCurrency(basket.taxTotal, i18nLanguage, currency)}</span>
-                                    ) : (
-                                        <span className="text-muted-foreground">{t('summary.taxTbd')}</span>
-                                    )}
-                                </div>
+                                <dt>{t('summary.tax')}</dt>
+                                {typeof basket.taxTotal === 'number' && basket.taxTotal >= 0 ? (
+                                    <dd className="justify-self-end">
+                                        {formatCurrency(basket.taxTotal, i18nLanguage, currency)}
+                                    </dd>
+                                ) : (
+                                    <dd className="justify-self-end text-muted-foreground">{t('summary.taxTbd')}</dd>
+                                )}
                             </UITarget>
                         </UITarget>
                         <UITarget targetId="sfcc.orderSummary.tax.after" />
@@ -283,21 +281,21 @@ function SummaryBodyContent({
                     <>
                         <UITarget targetId="sfcc.orderSummary.total.before" />
                         <UITarget targetId="sfcc.orderSummary.total">
-                            <div className="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground">
-                                <span>{isEstimate ? t('summary.estimatedTotal') : t('summary.total')}</span>
-                                <span>
-                                    {formatCurrency(
-                                        basket?.orderTotal ?? basket?.productTotal ?? 0,
-                                        i18nLanguage,
-                                        currency
-                                    )}
-                                </span>
-                            </div>
+                            <dt className="font-bold">
+                                {isEstimate ? t('summary.estimatedTotal') : t('summary.total')}
+                            </dt>
+                            <dd className="justify-self-end font-bold">
+                                {formatCurrency(
+                                    basket?.orderTotal ?? basket?.productTotal ?? 0,
+                                    i18nLanguage,
+                                    currency
+                                )}
+                            </dd>
                         </UITarget>
                         <UITarget targetId="sfcc.orderSummary.total.after" />
                     </>
                 )}
-            </div>
+            </dl>
 
             <UITarget targetId="sfcc.cart.loyalty.pointsEarned" />
 

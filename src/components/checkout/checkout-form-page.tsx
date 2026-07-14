@@ -878,8 +878,28 @@ export default function CheckoutFormPage({
         isUnauthorizedError(paymentFetcher.data) ||
         isUnauthorizedError(placeOrderFetcher.data);
 
+    const isSaving =
+        isSubmitting('contact') ||
+        isSubmitting('shipping-address') ||
+        isSubmitting('shipping-options') ||
+        isSubmitting('payment');
+
+    // Single live region handles both section-save and place-order states.
+    // isPlaceOrderPending takes priority: it can overlap with isSubmitting('payment')
+    // when payment must be submitted before place order, and "Placing order" is the
+    // more specific status the shopper should hear in that case.
+    let statusMessage = '';
+    if (isPlaceOrderPending) {
+        statusMessage = t('placingOrderStatus');
+    } else if (isSaving) {
+        statusMessage = t('savingStatus');
+    }
+
     return (
         <div data-section="checkout" className="bg-background">
+            <span role="status" aria-live="polite" className="sr-only">
+                {statusMessage}
+            </span>
             <UITarget targetId="sfcc.checkout.page.before" />
             <div className="section-container pt-8 pb-6">
                 <Typography variant="h2" as="h1" className="mb-8">

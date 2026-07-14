@@ -307,7 +307,7 @@ export function AddressFormFields<TFormValues extends FieldValues>({
                                         ? `${t('addressForm.addressLabel')}*`
                                         : t('addressForm.addressPlaceholder')
                                 }
-                                autoComplete="off"
+                                autoComplete={getAutoComplete('street-address')}
                                 autoFocus={autoFocus && autoFocusField === 'address1'}
                                 {...field}
                                 onChange={(e) => handleAddressInputChange(e, field.onChange)}

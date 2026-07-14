@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, render, act, waitFor } from '@testing-library/react';
+import { createElement } from 'react';
 import { usePayment, isSameBillingAndShippingAddress } from './use-payment';
 
 vi.mock('@/providers/basket', () => ({ useBasket: vi.fn() }));
@@ -596,6 +597,80 @@ describe('usePayment hook', () => {
             });
 
             expect(result.current.form.formState.errors.cardNumber?.message).toBe('Card declined');
+        });
+
+        test('setFormErrors focuses the first invalid field', () => {
+            const submissionRef = makeSubmissionRef();
+
+            const { result } = renderHook(() =>
+                usePayment(
+                    createDefaultParams({
+                        paymentSubmissionRef: submissionRef,
+                    })
+                )
+            );
+
+            const setFocusSpy = vi.spyOn(result.current.form, 'setFocus');
+
+            act(() => {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                submissionRef.current.setFormErrors!({
+                    cardNumber: { type: 'validation', message: 'Enter a valid card number.' },
+                    cvv: { type: 'validation', message: 'CVV is required' },
+                });
+            });
+
+            // First entry in visible-field order wins; setFocus should have been
+            // called with cardNumber.
+            expect(setFocusSpy).toHaveBeenCalledWith('cardNumber');
+        });
+
+        test('setFormErrors moves document.activeElement to the first invalid field', () => {
+            const submissionRef = makeSubmissionRef();
+
+            // Bind usePayment to real inputs so form.setFocus() has a target it can
+            // actually move keyboard focus to. renderHook alone doesn't produce
+            // registered DOM nodes, which would leave activeElement on <body>.
+            const Harness = () => {
+                const payment = usePayment(
+                    createDefaultParams({
+                        paymentSubmissionRef: submissionRef,
+                    })
+                );
+                return createElement(
+                    'form',
+                    null,
+                    createElement('input', {
+                        'data-testid': 'input-cardholderName',
+                        ...payment.form.register('cardholderName'),
+                    }),
+                    createElement('input', {
+                        'data-testid': 'input-cardNumber',
+                        ...payment.form.register('cardNumber'),
+                    }),
+                    createElement('input', {
+                        'data-testid': 'input-expiryDate',
+                        ...payment.form.register('expiryDate'),
+                    }),
+                    createElement('input', {
+                        'data-testid': 'input-cvv',
+                        ...payment.form.register('cvv'),
+                    })
+                );
+            };
+
+            const { getByTestId } = render(createElement(Harness));
+
+            act(() => {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                submissionRef.current.setFormErrors!({
+                    cvv: { type: 'validation', message: 'CVV is required' },
+                    cardNumber: { type: 'validation', message: 'Enter a valid card number.' },
+                });
+            });
+
+            // DOM order (cardNumber before cvv) beats object-key order (cvv first).
+            expect(document.activeElement).toBe(getByTestId('input-cardNumber'));
         });
 
         test('cleans up ref callbacks on unmount', () => {

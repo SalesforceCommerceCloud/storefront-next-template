@@ -343,6 +343,15 @@ describe('ProductItem', () => {
             const imageContainer = screen.getByRole('img').parentElement;
             expect(imageContainer).toHaveClass('w-16');
         });
+
+        test('variant attributes ul carries explicit role="list"', () => {
+            // Tailwind preflight strips list-style on <ul>, and Safari VoiceOver drops the implicit
+            // list role when list-style is removed. The explicit role="list" restores it.
+            const { container } = renderWithRouter(<ProductItem productItem={mockProduct} displayVariant="summary" />);
+
+            const attributesList = container.querySelector('ul[role="list"]');
+            expect(attributesList).not.toBeNull();
+        });
     });
 
     describe('Edge cases', () => {

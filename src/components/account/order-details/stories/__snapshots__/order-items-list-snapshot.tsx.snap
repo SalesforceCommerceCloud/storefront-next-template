@@ -47,20 +47,21 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
           </h2>
         </div>
         <div>
-          <div
+          <ul
             class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+            role="list"
           >
-            <div>
+            <li>
               Size
               : 
               M
-            </div>
-            <div>
+            </li>
+            <li>
               Color
               : 
               Navy
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
         <p
           class="text-xs text-muted-foreground"

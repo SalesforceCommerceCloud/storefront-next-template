@@ -122,7 +122,7 @@ export function CreditCardInputFields<TFormValues extends FieldValues & Partial<
                     name={'expiryDate' as Path<TFormValues>}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="sr-only">{t('payment.expiryLabel')}</FormLabel>
+                            <FormLabel className="sr-only">{t('payment.expiryDateLabel')}*</FormLabel>
                             <FormInput
                                 placeholder={t('payment.expiryPlaceholder')}
                                 autoComplete="cc-exp"

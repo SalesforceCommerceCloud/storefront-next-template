@@ -36,6 +36,17 @@ function useLatestRef<T>(value: T): MutableRefObject<T> {
 
 const INITIAL_VISIBLE_COUNT = 3;
 
+// DOM order of the credit-card fields as rendered by CreditCardInputFields.
+// Used to pick the first *visible* invalid field for focus rather than trusting
+// object-key iteration order (which the server can return in any order).
+const PAYMENT_FIELD_FOCUS_ORDER: readonly (keyof PaymentData)[] = ['cardholderName', 'cardNumber', 'expiryDate', 'cvv'];
+
+function pickFirstInvalidField(errorKeys: readonly string[], hasMessage: (key: string) => boolean): string | undefined {
+    const orderedMatch = PAYMENT_FIELD_FOCUS_ORDER.find((field) => errorKeys.includes(field) && hasMessage(field));
+    if (orderedMatch) return orderedMatch;
+    return errorKeys.find(hasMessage);
+}
+
 interface UsePaymentParams {
     onSubmit: (data: PaymentData) => void;
     actionData?: CheckoutActionData;
@@ -408,6 +419,14 @@ export function usePayment({
             for (const [field, error] of Object.entries(errors)) {
                 form.setError(field as keyof PaymentData, error);
             }
+            // Focus the first invalid field so screen reader / keyboard users know
+            // where the form failed instead of being stranded on Place Order.
+            // Prefer DOM order over object-key order so focus lands on the topmost
+            // visible field even if the server returns errors in a different order.
+            const firstField = pickFirstInvalidField(Object.keys(errors), (key) => Boolean(errors[key]?.message));
+            if (firstField) {
+                form.setFocus(firstField as keyof PaymentData);
+            }
         };
         refCurrent.billingAddressGetter = () => {
             const data = form.getValues();
@@ -433,9 +452,21 @@ export function usePayment({
 
     useEffect(() => {
         if (!actionData?.fieldErrors || typeof actionData.fieldErrors !== 'object') return;
-        for (const [field, error] of Object.entries(actionData.fieldErrors)) {
-            const message = Array.isArray(error) ? error[0] : String(error);
+        const fieldErrors = actionData.fieldErrors;
+        const getMessage = (key: string): string => {
+            const raw = fieldErrors[key];
+            return Array.isArray(raw) ? String(raw[0] ?? '') : String(raw ?? '');
+        };
+        for (const field of Object.keys(fieldErrors)) {
+            const message = getMessage(field);
             if (message) form.setError(field as keyof PaymentData, { type: 'server', message });
+        }
+        // Focus the first server-side invalid field for AT users, preferring DOM
+        // order so focus lands on the topmost visible field regardless of the
+        // order the server returned the errors in.
+        const firstField = pickFirstInvalidField(Object.keys(fieldErrors), (key) => Boolean(getMessage(key)));
+        if (firstField) {
+            form.setFocus(firstField as keyof PaymentData);
         }
     }, [actionData?.fieldErrors, form]);
 

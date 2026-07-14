@@ -215,7 +215,7 @@ vi.mock('@/hooks/checkout/use-completed-steps', () => ({
 }));
 
 // Mock the checkout actions hook - stable references so tests can assert on calls
-const mockIsSubmitting = vi.fn(() => false);
+const mockIsSubmitting = vi.fn((_key: string) => false);
 const mockSubmitContactInfo = vi.fn();
 const mockSubmitShippingAddress = vi.fn();
 const mockSubmitShippingOptions = vi.fn();
@@ -1610,6 +1610,134 @@ describe('CheckoutFormPage', () => {
             await renderCheckoutPage({ emailVerificationEnabled: undefined });
 
             expect(screen.getByTestId('register-customer-checkbox')).toBeInTheDocument();
+        });
+    });
+
+    describe('Loading state live region (a11y)', () => {
+        // Reset mockIsSubmitting after each test in this block. vi.clearAllMocks() clears
+        // call history but not implementations for vi.fn(), so mockImplementation() would
+        // otherwise leak into subsequent tests in the outer describe.
+        afterEach(() => {
+            mockIsSubmitting.mockReturnValue(false);
+        });
+
+        test('status region is empty when no section is submitting', async () => {
+            await renderCheckoutPage();
+
+            const region = screen.getByRole('status');
+            expect(region).toBeInTheDocument();
+            expect(region).toHaveTextContent('');
+        });
+
+        test('status region contains "Saving" when contact section is submitting', async () => {
+            mockIsSubmitting.mockImplementation((key: string) => key === 'contact');
+            await renderCheckoutPage();
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('Saving');
+            });
+        });
+
+        test('status region contains "Saving" when shipping-address section is submitting', async () => {
+            mockIsSubmitting.mockImplementation((key: string) => key === 'shipping-address');
+            await renderCheckoutPage();
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('Saving');
+            });
+        });
+
+        test('status region contains "Saving" when shipping-options section is submitting', async () => {
+            mockIsSubmitting.mockImplementation((key: string) => key === 'shipping-options');
+            await renderCheckoutPage();
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('Saving');
+            });
+        });
+
+        test('status region contains "Saving" when payment section is submitting', async () => {
+            mockIsSubmitting.mockImplementation((key: string) => key === 'payment');
+            await renderCheckoutPage();
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('Saving');
+            });
+        });
+
+        test('status region clears when submission completes', async () => {
+            mockIsSubmitting.mockImplementation((key: string) => key === 'contact');
+            const { rerender } = await renderCheckoutPage();
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('Saving');
+            });
+
+            // Submission completes - all sections go back to idle
+            mockIsSubmitting.mockReturnValue(false);
+            act(() => {
+                rerender(<CheckoutFormPage {...defaultProps} />);
+            });
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('');
+            });
+        });
+
+        test('status region contains "Placing order" when isPlaceOrderPending is true', async () => {
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+            mockUseBasket.mockReturnValue({
+                basketId: 'test-basket',
+                productItems: [{ itemId: 'item1', productId: 'product1', quantity: 1 }],
+                paymentInstruments: [],
+            });
+
+            // No payment data getter - falls through to submitPlaceOrder path which sets isPlaceOrderPending
+            mockPaymentFormDataGetter = null;
+
+            await renderCheckoutPage();
+
+            const placeOrderButton = screen.getByRole('button', { name: /Place Order/ });
+            act(() => {
+                fireEvent.click(placeOrderButton);
+            });
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('Placing order');
+            });
+        });
+
+        test('"Placing order" takes priority over "Saving" when both isPlaceOrderPending and a section is submitting', async () => {
+            // Scenario: user clicks Place Order; isPlaceOrderPending is set synchronously,
+            // then the payment fetcher starts submitting. Both flags are true at the same time.
+            // The status should show "Placing order", not "Saving".
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
+            mockUseBasket.mockReturnValue({
+                basketId: 'test-basket',
+                productItems: [{ itemId: 'item1', productId: 'product1', quantity: 1 }],
+                paymentInstruments: [],
+            });
+
+            // No payment data - falls through to submitPlaceOrder, sets isPlaceOrderPending=true.
+            mockPaymentFormDataGetter = null;
+
+            const { rerender } = await renderCheckoutPage();
+
+            const placeOrderButton = screen.getByRole('button', { name: /Place Order/ });
+            act(() => {
+                fireEvent.click(placeOrderButton);
+            });
+
+            // isPlaceOrderPending is now true. Simulate a section also saving at the same time.
+            mockIsSubmitting.mockImplementation((key: string) => key === 'payment');
+            act(() => {
+                rerender(<CheckoutFormPage {...defaultProps} />);
+            });
+
+            // "Placing order" must win over "Saving" even when both are true.
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent('Placing order');
+            });
         });
     });
 

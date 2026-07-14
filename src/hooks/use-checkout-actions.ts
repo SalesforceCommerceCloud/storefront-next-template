@@ -30,6 +30,18 @@ import { resourceRoutes } from '@/route-paths';
 
 /** Persists create-account intent across reloads (mirrors handleCreateAccountPreferenceChange). */
 const SESSION_SHOULD_CREATE_ACCOUNT = 'shouldCreateAccount';
+
+/**
+ * Maps a checkout step to the `id` prop each section passes to `ToggleCard`.
+ * Used to focus the just-saved section's title after `exitEditMode`, so
+ * keyboard / screen-reader users don't lose focus (WCAG 2.4.3).
+ */
+const TOGGLE_CARD_ID_BY_STEP: Partial<Record<CheckoutStep, string>> = {
+    [CHECKOUT_STEPS.CONTACT_INFO]: 'contact-info',
+    [CHECKOUT_STEPS.SHIPPING_ADDRESS]: 'shipping-address',
+    [CHECKOUT_STEPS.SHIPPING_OPTIONS]: 'shipping-options',
+    [CHECKOUT_STEPS.PAYMENT]: 'payment',
+};
 /** Persists formatted contact phone when basket merge (e.g. OTP) drops it from the basket. */
 const SESSION_CHECKOUT_CONTACT_PHONE = 'checkoutContactPhone';
 /** Set by register-customer-selection while checkout registration OTP flow is active. */
@@ -300,6 +312,25 @@ export function useCheckoutActions(options?: {
         // Transition: BASKET_UPDATED -> COMPLETED
         actionRef.current = { step, state: ActionState.COMPLETED };
         exitEditMode();
+
+        // Move keyboard focus to the just-saved section's title. Without this,
+        // keyboard/screen-reader users lose focus when a completed section
+        // collapses back to summary view (WCAG 2.4.3). We rely on the
+        // ToggleCard's data-testid convention. Deferred to the next frame so
+        // React has committed the exit-edit transition before we read the DOM.
+        // Cancel on cleanup so an unmount between here and the next frame does
+        // not leave the callback running against a detached DOM.
+        if (typeof requestAnimationFrame !== 'undefined') {
+            const rafId = requestAnimationFrame(() => {
+                const testId = TOGGLE_CARD_ID_BY_STEP[step];
+                if (!testId) return;
+                const heading = document.querySelector<HTMLElement>(
+                    `[data-testid="sf-toggle-card-${testId}"] [data-slot="card-title"]`
+                );
+                heading?.focus();
+            });
+            return () => cancelAnimationFrame(rafId);
+        }
 
         // Fetcher .data deps keep this in sync when the server's dedup sends a
         // cached response (same basket, same fetcher.data — basket dep alone
