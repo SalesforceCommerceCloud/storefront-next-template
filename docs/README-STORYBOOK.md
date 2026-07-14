@@ -64,6 +64,23 @@ pnpm storybook
 pnpm storybook:build
 ```
 
+## Test runners
+
+Two engines run under one dispatcher (`pnpm storybook:test`):
+
+- **Snapshot tests** → Vitest, jsdom. Fast; also collects code coverage via `composeStories`.
+- **Interaction + a11y tests** → `@storybook/test-runner` (Playwright), real Chromium. Real-browser `play()` assertions and axe-core checks.
+
+## Prerequisites (local)
+
+Interaction and a11y tests run in real Chromium via Playwright. `pnpm install` does **not** download the browser (Playwright isn't in pnpm's build-script allowlist), so run this once:
+
+```bash
+pnpm exec playwright install chromium
+```
+
+Snapshot tests run in jsdom and need no browser. CI runs inside a Playwright container, so browsers are pre-installed there.
+
 ## Run tests on Command Line Interface
 
 ```bash
@@ -100,6 +117,13 @@ pnpm storybook:test --type=a11y --static
 | `pnpm storybook:test --type=interaction --static` | Run interaction tests against static Storybook build |
 | `pnpm storybook:test --type=a11y` | Run a11y tests against live Storybook server |
 | `pnpm storybook:test --type=a11y --static` | Run a11y tests against static Storybook build |
+| `pnpm storybook:test --type=snapshot --coverage` | Run snapshot tests with code coverage (auto-generates story tests first) |
+| `pnpm storybook:test --type=snapshot --stories=<name>` | Snapshot only — narrow the run to story files whose path contains `<name>` (e.g. `account/order-details`) |
+| `pnpm storybook:test:mirror <vertical>` | Run a vertical's suite against the flattened mirror exactly as CI does (default `cosmetic`; forwards extra args, e.g. `--type=interaction`) |
+
+## CI execution
+
+All three suites run on every PR in a single CI job (in this repo, the `storybook-tests` job) inside the `mcr.microsoft.com/playwright` container (browsers pre-installed), executing the same commands you'd run locally: `snapshot --coverage`, `interaction --static`, `a11y --static`, then the coverage report.
 
 ## Features & Addons
 
