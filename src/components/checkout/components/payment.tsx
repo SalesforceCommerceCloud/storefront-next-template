@@ -100,15 +100,15 @@ export default function Payment({
         paymentSubmissionRef,
     });
 
-    const stepTitle = (
-        <span className="text-2xl font-bold tracking-tight text-card-foreground">{t('payment.title')}</span>
-    );
+    const stepTitle = t('payment.title');
 
     return (
         <div ref={paymentSectionRef}>
             <ToggleCard
                 id="payment"
-                title={stepTitle as React.ReactNode}
+                title={stepTitle}
+                titleAs="h2"
+                titleClassName="text-2xl font-bold tracking-tight text-card-foreground"
                 editing={isEditing}
                 disabled={isUpcomingStep ? false : disabled}
                 disableEdit={isUpcomingStep}

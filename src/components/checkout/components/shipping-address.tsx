@@ -259,44 +259,14 @@ export default function ShippingAddress({
         onSubmit(formData);
     };
 
-    const stepTitle =
-        hasSavedAddresses && isEditing ? (
-            <div className="flex items-center justify-between w-full gap-4">
-                <span className="text-2xl font-bold tracking-tight text-card-foreground">
-                    {t('shippingAddress.title')}
-                </span>
-                <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="w-36 font-medium text-secondary-foreground sm:w-auto"
-                        onClick={() => setAddressModalOpen(true)}
-                        aria-label={t('shippingAddress.addNewAddressButton')}>
-                        {t('shippingAddress.addNewAddressButton')}
-                    </Button>
-                    {/* @sfdc-extension-block-start SFDC_EXT_MULTISHIP */}
-                    {enableMultiAddress && (
-                        <Button
-                            type="button"
-                            variant="link"
-                            size="sm"
-                            className="h-auto w-36 cursor-pointer justify-start whitespace-normal px-0 text-left text-xs font-medium leading-normal sm:w-auto sm:justify-center"
-                            onClick={handleToggleShippingAddressMode}>
-                            {tMultiship('checkout.deliverToMultipleAddresses')}
-                        </Button>
-                    )}
-                    {/* @sfdc-extension-block-end SFDC_EXT_MULTISHIP */}
-                </div>
-            </div>
-        ) : (
-            <span className="text-2xl font-bold tracking-tight text-card-foreground">{t('shippingAddress.title')}</span>
-        );
+    const stepTitle = t('shippingAddress.title');
 
     return (
         <ToggleCard
             id="shipping-address"
-            title={stepTitle as React.ReactNode}
+            title={stepTitle}
+            titleAs="h2"
+            titleClassName="text-2xl font-bold tracking-tight text-card-foreground"
             editing={isEditing}
             disableEdit={!isCompleted && !isEditing}
             onEdit={onEdit}
@@ -315,6 +285,30 @@ export default function ShippingAddress({
             <ToggleCardEdit>
                 {hasSavedAddresses ? (
                     <div className="flex flex-col gap-4 pt-2 pb-2">
+                        {/* Saved-address action buttons: above the list, outside the heading */}
+                        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="w-36 font-medium text-secondary-foreground sm:w-auto"
+                                onClick={() => setAddressModalOpen(true)}
+                                aria-label={t('shippingAddress.addNewAddressButton')}>
+                                {t('shippingAddress.addNewAddressButton')}
+                            </Button>
+                            {/* @sfdc-extension-block-start SFDC_EXT_MULTISHIP */}
+                            {enableMultiAddress && (
+                                <Button
+                                    type="button"
+                                    variant="link"
+                                    size="sm"
+                                    className="h-auto w-36 cursor-pointer justify-start whitespace-normal px-0 text-left text-xs font-medium leading-normal sm:w-auto sm:justify-center"
+                                    onClick={handleToggleShippingAddressMode}>
+                                    {tMultiship('checkout.deliverToMultipleAddresses')}
+                                </Button>
+                            )}
+                            {/* @sfdc-extension-block-end SFDC_EXT_MULTISHIP */}
+                        </div>
                         <SavedAddressesList
                             addresses={savedAddresses}
                             value={effectiveSelectedId}

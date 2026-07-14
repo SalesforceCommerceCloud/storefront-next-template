@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ComponentProps, createContext, type ReactNode, type Ref, useContext, useMemo, useRef } from 'react';
+import {
+    type ComponentProps,
+    createContext,
+    type ElementType,
+    type ReactNode,
+    type Ref,
+    useContext,
+    useMemo,
+    useRef,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/spinner';
@@ -30,6 +39,10 @@ const ToggleCardContext = createContext<ToggleCardContextValue | undefined>(unde
 export type ToggleCardProps = Omit<ComponentProps<'div'>, 'title'> & {
     id?: string;
     title?: ReactNode;
+    /** Override the HTML element rendered for the CardTitle. Defaults to "div". */
+    titleAs?: ElementType;
+    /** Additional className merged into the CardTitle element alongside its default classes. */
+    titleClassName?: string;
     description?: ReactNode;
     editing?: boolean;
     disabled?: boolean;
@@ -48,6 +61,8 @@ export type ToggleCardProps = Omit<ComponentProps<'div'>, 'title'> & {
 export function ToggleCard({
     id,
     title,
+    titleAs,
+    titleClassName,
     description,
     editing = false,
     disabled = false,
@@ -84,10 +99,12 @@ export function ToggleCard({
                     )}>
                     <CardTitle
                         ref={titleRef as unknown as Ref<HTMLDivElement>}
+                        as={titleAs}
                         tabIndex={0}
                         className={cn(
                             'text-base font-semibold',
-                            disabled && !editing ? 'text-muted-foreground' : 'text-foreground'
+                            disabled && !editing ? 'text-muted-foreground' : 'text-foreground',
+                            titleClassName
                         )}>
                         {title}
                     </CardTitle>

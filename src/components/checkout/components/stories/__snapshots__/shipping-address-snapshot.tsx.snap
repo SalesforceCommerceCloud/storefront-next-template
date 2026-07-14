@@ -14,17 +14,13 @@ exports[`ShippingAddress stories snapshot > DisabledState story renders and matc
         class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
         data-slot="card-header"
       >
-        <div
-          class="text-base font-semibold text-foreground"
+        <h2
+          class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
           tabindex="0"
         >
-          <span
-            class="text-2xl font-bold tracking-tight text-card-foreground"
-          >
-            Shipping Address
-          </span>
-        </div>
+          Shipping Address
+        </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
           data-slot="card-action"
@@ -60,17 +56,13 @@ exports[`ShippingAddress stories snapshot > EditView story renders and matches s
         class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
         data-slot="card-header"
       >
-        <div
-          class="text-base font-semibold text-foreground"
+        <h2
+          class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
           tabindex="0"
         >
-          <span
-            class="text-2xl font-bold tracking-tight text-card-foreground"
-          >
-            Shipping Address
-          </span>
-        </div>
+          Shipping Address
+        </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
           data-slot="card-action"
@@ -704,17 +696,13 @@ exports[`ShippingAddress stories snapshot > SavingState story renders and matche
         class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
         data-slot="card-header"
       >
-        <div
-          class="text-base font-semibold text-foreground"
+        <h2
+          class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
           tabindex="0"
         >
-          <span
-            class="text-2xl font-bold tracking-tight text-card-foreground"
-          >
-            Shipping Address
-          </span>
-        </div>
+          Shipping Address
+        </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
           data-slot="card-action"
@@ -1360,17 +1348,13 @@ exports[`ShippingAddress stories snapshot > SummaryView story renders and matche
         class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
         data-slot="card-header"
       >
-        <div
-          class="text-base font-semibold text-foreground"
+        <h2
+          class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
           tabindex="0"
         >
-          <span
-            class="text-2xl font-bold tracking-tight text-card-foreground"
-          >
-            Shipping Address
-          </span>
-        </div>
+          Shipping Address
+        </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
           data-slot="card-action"
@@ -1417,17 +1401,13 @@ exports[`ShippingAddress stories snapshot > WithSavedAddresses story renders and
         class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
         data-slot="card-header"
       >
-        <div
-          class="text-base font-semibold text-foreground"
+        <h2
+          class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
           tabindex="0"
         >
-          <span
-            class="text-2xl font-bold tracking-tight text-card-foreground"
-          >
-            Shipping Address
-          </span>
-        </div>
+          Shipping Address
+        </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
           data-slot="card-action"
@@ -2061,17 +2041,13 @@ exports[`ShippingAddress stories snapshot > WithValidationErrors story renders a
         class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
         data-slot="card-header"
       >
-        <div
-          class="text-base font-semibold text-foreground"
+        <h2
+          class="text-2xl font-bold tracking-tight text-card-foreground"
           data-slot="card-title"
           tabindex="0"
         >
-          <span
-            class="text-2xl font-bold tracking-tight text-card-foreground"
-          >
-            Shipping Address
-          </span>
-        </div>
+          Shipping Address
+        </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
           data-slot="card-action"

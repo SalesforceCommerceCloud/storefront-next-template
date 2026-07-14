@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useMemo, useRef, useCallback, useEffect, useState, lazy, Suspense, type ReactNode } from 'react';
+import { useMemo, useRef, useCallback, useEffect, useState, lazy, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFetcher, useResolvedPath, useRevalidator } from 'react-router';
@@ -464,9 +464,7 @@ export default function ContactInfo({
     }
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    const stepTitle = (
-        <span className="text-2xl font-bold tracking-tight text-card-foreground">{t('contactInfo.title')}</span>
-    );
+    const stepTitle = t('contactInfo.title');
 
     const isSendingOtp =
         defaultOtpSending ||
@@ -491,7 +489,9 @@ export default function ContactInfo({
         <>
             <ToggleCard
                 id="contact-info"
-                title={stepTitle as ReactNode}
+                title={stepTitle}
+                titleAs="h2"
+                titleClassName="text-2xl font-bold tracking-tight text-card-foreground"
                 editing={isEditing}
                 onEdit={onEdit}
                 editLabel={t('common.edit')}

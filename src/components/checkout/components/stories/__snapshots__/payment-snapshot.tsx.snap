@@ -15,17 +15,13 @@ exports[`Payment stories snapshot > DisabledState story renders and matches snap
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -63,17 +59,13 @@ exports[`Payment stories snapshot > EditView story renders and matches snapshot 
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -453,17 +445,13 @@ exports[`Payment stories snapshot > EditViewWithDifferentBilling story renders a
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -843,17 +831,13 @@ exports[`Payment stories snapshot > SavingState story renders and matches snapsh
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -1244,17 +1228,13 @@ exports[`Payment stories snapshot > SummaryView story renders and matches snapsh
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -1307,17 +1287,13 @@ exports[`Payment stories snapshot > SummaryViewWithDifferentBilling story render
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -1370,17 +1346,13 @@ exports[`Payment stories snapshot > WithBillingValidationErrors story renders an
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -1760,17 +1732,13 @@ exports[`Payment stories snapshot > WithNewBillingAddress story renders and matc
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -2150,17 +2118,13 @@ exports[`Payment stories snapshot > WithNewCreditCard story renders and matches 
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -2540,17 +2504,13 @@ exports[`Payment stories snapshot > WithSavedBillingAddresses story renders and 
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -2930,17 +2890,13 @@ exports[`Payment stories snapshot > WithSavedPaymentMethods story renders and ma
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"
@@ -3320,17 +3276,13 @@ exports[`Payment stories snapshot > WithValidationErrors story renders and match
           class="@container/card-header grid auto-rows-min gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 grid-rows-1 items-center border-b border-border pb-4"
           data-slot="card-header"
         >
-          <div
-            class="text-base font-semibold text-foreground"
+          <h2
+            class="text-2xl font-bold tracking-tight text-card-foreground"
             data-slot="card-title"
             tabindex="0"
           >
-            <span
-              class="text-2xl font-bold tracking-tight text-card-foreground"
-            >
-              Payment
-            </span>
-          </div>
+            Payment
+          </h2>
           <div
             class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
             data-slot="card-action"

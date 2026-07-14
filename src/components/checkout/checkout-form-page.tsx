@@ -932,10 +932,10 @@ export default function CheckoutFormPage({
                             {/* Order Summary + Cart Items */}
                             <Card className="[--cart-divider-extend:1.5rem] gap-4 py-4 pb-0">
                                 <CardHeader className="border-b-[1px] border-border pb-2">
-                                    <CardTitle>
-                                        <span className="text-2xl font-bold tracking-tight text-card-foreground">
-                                            {t('orderSummary.title')}
-                                        </span>
+                                    <CardTitle
+                                        as="h2"
+                                        className="text-2xl font-bold tracking-tight text-card-foreground">
+                                        {t('orderSummary.title')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>

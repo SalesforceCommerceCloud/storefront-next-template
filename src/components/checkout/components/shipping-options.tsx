@@ -82,14 +82,14 @@ export default function ShippingOptions({
         justEnteredAddress,
     });
 
-    const stepTitle = (
-        <span className="text-2xl font-bold tracking-tight text-card-foreground">{t('shippingOptions.title')}</span>
-    );
+    const stepTitle = t('shippingOptions.title');
 
     return (
         <ToggleCard
             id="shipping-options"
             title={stepTitle}
+            titleAs="h2"
+            titleClassName="text-2xl font-bold tracking-tight text-card-foreground"
             editing={isEditing}
             disabled={false}
             onEdit={onEdit}
