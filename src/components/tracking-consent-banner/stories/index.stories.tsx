@@ -22,6 +22,7 @@ import { mockConfig } from '@/test-utils/config';
 import type { AppConfig } from '@/types/config';
 import { TrackingConsent } from '@/types/tracking-consent';
 import { TrackingConsentBanner } from '../index';
+import Cookies from 'js-cookie';
 
 /**
  * Builds an `AppConfig` clone with `engagement.analytics.trackingConsent.position` overridden
@@ -90,15 +91,19 @@ The banner:
     },
     tags: ['autodocs', 'interaction', 'tracking-consent', 'engagement', 'dnt', 'do-not-track'],
     decorators: [
-        (Story) => (
-            <div style={{ minHeight: '100vh', position: 'relative', padding: '2rem' }}>
-                <div>
-                    <h1>Sample Page Content</h1>
-                    <p>This is sample content to demonstrate the banner positioning.</p>
+        (Story) => {
+            // Client-only banner now reads dw_dnt directly; ensure a clean slate per story.
+            Cookies.remove('dw_dnt');
+            return (
+                <div style={{ minHeight: '100vh', position: 'relative', padding: '2rem' }}>
+                    <div>
+                        <h1>Sample Page Content</h1>
+                        <p>This is sample content to demonstrate the banner positioning.</p>
+                    </div>
+                    <Story />
                 </div>
-                <Story />
-            </div>
-        ),
+            );
+        },
     ],
 };
 
@@ -143,8 +148,8 @@ export const Default: Story = {
 /**
  * Demonstrates user interactions with the banner buttons.
  *
- * The banner hides itself immediately when the user responds (`hasResponded` flips
- * synchronously), so the assertion checks that the banner is gone after clicking Accept.
+ * The banner hides itself immediately when the user responds (component-local `responded`
+ * flips synchronously), so the assertion checks that the banner is gone after clicking Accept.
  */
 export const Interaction: Story = {
     args: {
@@ -286,5 +291,45 @@ export const HiddenInPageDesignerMode: Story = {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
         await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * When the `dw_dnt` cookie is present (shopper already responded), the client-only banner
+ * stays hidden — the gate keys off cookie presence, not the SSR-baked auth value. (W-23424582)
+ */
+export const HiddenWhenConsentCookiePresent: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
+    decorators: [
+        (Story) => {
+            Cookies.set('dw_dnt', TrackingConsent.Declined); // '1'
+            return <Story />;
+        },
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        await expect(canvas.queryByRole('dialog')).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * With no `dw_dnt` cookie, the banner mounts client-side and shows. Confirms the cookie-absent
+ * branch of the client-only gate. (W-23424582)
+ */
+export const ShownWhenNoConsentCookie: Story = {
+    decorators: [
+        (Story) => {
+            Cookies.remove('dw_dnt');
+            return <Story />;
+        },
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const banner = await canvas.findByRole('dialog', {}, { timeout: 3000 });
+        await expect(banner).toBeInTheDocument();
     },
 };

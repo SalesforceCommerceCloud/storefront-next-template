@@ -772,7 +772,15 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
         getCookieConfig({ httpOnly: true }, context),
         context
     );
-    const trackingConsentCookie = createCookie<string>(COOKIE_TRACKING_CONSENT, cookieConfig, context);
+    // `dw_dnt` is intentionally NOT httpOnly: the consent banner reads it client-side
+    // (app-shell caching requires a client-only decision). Safe because the JWT `dnt`
+    // claim is the source of truth — a mismatched cookie is discarded below (see the
+    // JWT/cookie cross-check).
+    const trackingConsentCookie = createCookie<string>(
+        COOKIE_TRACKING_CONSENT,
+        getCookieConfig({ httpOnly: false }, context),
+        context
+    );
     const shopperContextCookie = createCookie<string>(SHOPPER_CONTEXT_COOKIE_NAME_BASE, cookieConfig, context);
     const sourceCodeCookie = createCookie<string>(SOURCE_CODE_COOKIE_NAME_BASE, cookieConfig, context);
 
@@ -1270,7 +1278,10 @@ const authMiddleware: MiddlewareFunction<Response> = async ({ request, context }
                 // Enum value is already in correct format ('0' or '1')
                 response.headers.append(
                     'Set-Cookie',
-                    await trackingConsentCookie.serialize(trackingConsentValue, getCookieConfig({}, context))
+                    await trackingConsentCookie.serialize(
+                        trackingConsentValue,
+                        getCookieConfig({ httpOnly: false }, context)
+                    )
                 );
             } else {
                 // Delete tracking consent cookie if it was invalidated (e.g., didn't match token)

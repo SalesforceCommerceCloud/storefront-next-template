@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouteLoaderData } from 'react-router';
 import { useTrackingConsent } from '@/hooks/use-tracking-consent';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
@@ -25,6 +25,20 @@ import { cn } from '@/lib/utils';
 import { UITarget } from '@/targets/ui-target';
 import { useTranslation } from 'react-i18next';
 import { TrackingConsent } from '@/types/tracking-consent';
+
+// `dw_dnt` is read client-side here (not imported from auth.utils, which is server-only).
+// The banner must decide entirely on the client so nothing consent-related is baked into
+// the cacheable app shell. Value semantics: present = shopper has responded.
+const TRACKING_CONSENT_COOKIE = 'dw_dnt';
+
+/**
+ * Whether the `dw_dnt` cookie is present. The gate only needs presence ("has the shopper
+ * responded?"), so a native `document.cookie` scan avoids pulling in a cookie library for
+ * this one check. Callers must ensure this runs client-side only (guarded by `mounted`).
+ */
+function hasTrackingConsentCookie(): boolean {
+    return document.cookie.split('; ').some((entry) => entry.startsWith(`${TRACKING_CONSENT_COOKIE}=`));
+}
 
 type ProcessingAction = 'accept' | 'decline' | 'close' | null;
 
@@ -78,9 +92,17 @@ export interface TrackingConsentBannerProps {
  * />
  */
 export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBannerProps) {
-    const { shouldShowBanner, setTrackingConsent, defaultTrackingConsent, isTrackingConsentEnabled } =
-        useTrackingConsent();
+    const { setTrackingConsent, defaultTrackingConsent, isTrackingConsentEnabled } = useTrackingConsent();
     const [processingAction, setProcessingAction] = useState<ProcessingAction>(null);
+
+    // Client-only render: the server emits NO banner node so nothing consent-related enters
+    // the cacheable app shell. `mounted` flips only in a client effect. (W-23424582)
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
+    // Local dismissal: hide immediately on response without waiting for a reload. The `dw_dnt`
+    // cookie (set by the server action) makes the dismissal durable across reloads.
+    const [responded, setResponded] = useState(false);
     const config = useConfig();
     const { t } = useTranslation('trackingConsent');
 
@@ -95,6 +117,7 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
         if (isProcessing || !isTrackingConsentEnabled) return;
 
         setProcessingAction(action);
+        setResponded(true);
 
         try {
             await setTrackingConsent(consent);
@@ -102,8 +125,11 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
             if (onConsentChange) {
                 await onConsentChange(consent);
             }
-            // eslint-disable-next-line no-empty
         } catch {
+            // The write failed (e.g. network error) so consent was not persisted and no
+            // `dw_dnt` cookie was set. Revert the optimistic dismissal so the shopper can
+            // retry — otherwise the banner would stay hidden for the rest of the session.
+            setResponded(false);
         } finally {
             setProcessingAction(null);
         }
@@ -123,7 +149,13 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
 
     const rootData = useRouteLoaderData('root');
 
-    if (!shouldShowBanner || rootData?.pageDesignerMode) {
+    // Show iff: mounted (client-only), feature enabled, shopper hasn't responded this session,
+    // no dw_dnt cookie present (durable "already responded"), and not in Page Designer authoring.
+    const hasRespondedCookie = mounted && hasTrackingConsentCookie();
+    const shouldShow =
+        mounted && isTrackingConsentEnabled && !responded && !hasRespondedCookie && !rootData?.pageDesignerMode;
+
+    if (!shouldShow) {
         return null;
     }
 
