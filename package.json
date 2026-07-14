@@ -210,8 +210,9 @@
     ],
     "client": [
       {
-        "name": "assets/\\(package\\)-\\(@react-router-dev\\)-\\(dist\\)-\\(config\\)-\\(defaults\\)-entry.client.*.js",
-        "limit": "191 kB"
+        "name": "assets/-entry.client.*.js",
+        "limit": "191 kB",
+        "comment": "Client hydration entry (custom src/entry.client.tsx, gates hydrateRoot on i18n readiness). Replaces the @react-router/dev default; same bundle role/size. src-root entries get a literal leading-dash readable name: assets/-entry.client.<hash>.js."
       },
       {
         "name": "assets/\\(package\\)-\\(react-router\\)-\\(dist\\)-\\(development\\)-chunk*.js",

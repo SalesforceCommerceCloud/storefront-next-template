@@ -101,7 +101,6 @@ import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
 // Lib/Utils
 import type { PublicSessionData } from '@/lib/api/types';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
-import { initI18next } from '@salesforce/storefront-next-runtime/i18n/client';
 import { PageViewTracker } from '@/analytics/page-view-tracker';
 import { initializeRegistry } from '@/lib/page-designer/static-registry';
 import { buildSeoMetaDescriptors } from '@/utils/seo';
@@ -170,17 +169,11 @@ export const clientMiddleware: MiddlewareFunction<Record<string, DataStrategyRes
     performanceMetricsMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>,
 ];
 
-// On the client side, initialize i18next.
-// (On the server side, it's initialized elsewhere in middlewares/i18next.ts file)
-// Read the language from the server-rendered HTML to avoid language detection issues
-const i18nextOnClient =
-    typeof window !== 'undefined'
-        ? initI18next({
-              language: document.documentElement.lang || undefined,
-              // The import() must live here so Vite can resolve the path at build time
-              loadLocale: (language) => import(`@/locales/${language}/index.ts`),
-          })
-        : undefined;
+// Client-side i18next instance. Hydration is deferred until its initial-language
+// namespaces have loaded — see `entry.client.tsx` / `whenI18nReady()` — so the
+// first client render matches the server-rendered translated HTML (no hydration
+// mismatch) without inlining the translation bundle into the document.
+import { i18nextOnClient } from '@/i18n-client-init';
 
 export { shouldRevalidate } from '@/lib/revalidation/routes/root';
 
@@ -307,6 +300,7 @@ export function Layout({ children }: PropsWithChildren) {
               .replace(/\u2028/g, '\\u2028')
               .replace(/\u2029/g, '\\u2029')};`
         : '';
+
     // React 19 omits the attribute when the value is undefined, so coerce null/missing to undefined.
     // Falls back to the NonceContext so the error path (root loader threw → no
     // loader data) still gets a valid nonce on its inline scripts. The middleware
