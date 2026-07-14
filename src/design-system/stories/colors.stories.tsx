@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useLayoutEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 /**
@@ -213,11 +214,34 @@ const COLOR_GROUPS: ColorGroup[] = [
 
 /** A single token rendered as a card: the color fills the top, the source token
  *  name sits in a divided footer. The card border keeps white / near-white /
- *  transparent swatches legible on the white canvas. */
+ *  transparent swatches legible on the white canvas.
+ *
+ *  Tokens are NOT inherited across verticals — each vertical loads only its own
+ *  token files (there is no canonical `src/theme/`), so a token family a vertical
+ *  opts out of (e.g. `agentic-*` under cosmetic) is undefined at `:root` and its
+ *  `bg-*` utility paints nothing. Rather than render a blank chip, detect the
+ *  undefined source token and show an explicit "not defined in this vertical"
+ *  placeholder. This reads the real `:root` source token (`--agentic`), not the
+ *  compile-time-inlined `--color-*` bridge, so `getPropertyValue` returns `''`
+ *  only when genuinely undeclared — distinguishing "not defined" from a token
+ *  that is defined but transparent. Vertical-agnostic: works for any omitted
+ *  token, not just agentic. */
 function Swatch({ className, token }: ColorToken) {
+    const [defined, setDefined] = useState(true);
+    useLayoutEffect(() => {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+        setDefined(value.length > 0);
+    }, [token]);
+
     return (
         <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-            <div className={`h-20 w-full shrink-0 ${className}`} />
+            {defined ? (
+                <div className={`h-20 w-full shrink-0 ${className}`} />
+            ) : (
+                <div className="flex h-20 w-full shrink-0 items-center justify-center bg-muted px-2 text-center text-[10px] leading-tight text-muted-foreground">
+                    not defined in this vertical
+                </div>
+            )}
             <div className="flex flex-1 items-center border-t border-border px-3 py-2">
                 <code className="text-xs text-foreground break-all">{token}</code>
             </div>
@@ -248,7 +272,7 @@ const meta: Meta = {
         docs: {
             description: {
                 component:
-                    'Canonical color-token reference. Each swatch renders live via a `bg-*` utility (e.g. `bg-primary`), which `@theme inline` compiles to `background-color: var(--primary)` — so each swatch reflects the active theme. The list is every `--color-*` bridge entry the canonical (fashion) theme defines (111 tokens), in `theme/tailwind.css` order. Under `VERTICAL=cosmetic`, shared tokens show cosmetic’s values while fashion-only tokens (e.g. `agentic-*`) render blank.',
+                    'Canonical color-token reference. Each swatch renders live via a `bg-*` utility (e.g. `bg-primary`), which `@theme inline` compiles to `background-color: var(--primary)` — so each swatch reflects the active theme. The list is every `--color-*` bridge entry the canonical (fashion) theme defines (111 tokens), in `theme/tailwind.css` order. Under `VERTICAL=cosmetic`, shared tokens show cosmetic’s values while a token family the vertical opts out of (e.g. `agentic-*`, which cosmetic omits) shows a "not defined in this vertical" placeholder instead of a blank chip — tokens are not inherited across verticals.',
             },
         },
     },
