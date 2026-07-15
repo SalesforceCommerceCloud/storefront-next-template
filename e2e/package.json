@@ -22,7 +22,7 @@
         "@axe-core/playwright": "^4.10.1",
         "@codeceptjs/allure-legacy": "^1.0.2",
         "@codeceptjs/configure": "^1.0.1",
-        "@playwright/test": "^1.58.0",
+        "@playwright/test": "1.61.1",
         "@types/chai": "^4.3.0",
         "@types/cross-spawn": "6.0.6",
         "@types/mocha": "^10.0.0",
