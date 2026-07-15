@@ -464,7 +464,11 @@ export default function ContactInfo({
     }
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    const stepTitle = t('contactInfo.title');
+    const stepTitle = (
+        <span id="contact-info-heading" className="text-2xl font-bold tracking-tight text-card-foreground">
+            {t('contactInfo.title')}
+        </span>
+    );
 
     const isSendingOtp =
         defaultOtpSending ||
@@ -504,111 +508,115 @@ export default function ContactInfo({
                             onSubmit={(e) => void form.handleSubmit(handleFormSubmit)(e)}
                             className="flex flex-col gap-4 pt-2 pb-2"
                             noValidate>
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t('contactInfo.emailLabel')}*</FormLabel>
-                                        <div className="relative">
-                                            <FormInput
-                                                type="email"
-                                                placeholder={t('contactInfo.emailPlaceholder')}
-                                                autoComplete="email"
-                                                autoFocus={isEditing}
-                                                disabled={isSendingOtp}
-                                                className="pr-12"
-                                                {...field}
-                                                onFocus={handleEmailFocus}
-                                                onBlur={(e) => handleEmailBlur(e, field.onBlur)}
-                                            />
-                                            {isSendingOtp && (
-                                                <div
-                                                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
-                                                    aria-hidden>
-                                                    <Spinner size="sm" className="text-muted-foreground" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
+                            <fieldset
+                                className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
+                                aria-labelledby="contact-info-heading">
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t('contactInfo.emailLabel')}*</FormLabel>
+                                            <div className="relative">
+                                                <FormInput
+                                                    type="email"
+                                                    placeholder={t('contactInfo.emailPlaceholder')}
+                                                    autoComplete="email"
+                                                    autoFocus={isEditing}
+                                                    disabled={isSendingOtp}
+                                                    className="pr-12"
+                                                    {...field}
+                                                    onFocus={handleEmailFocus}
+                                                    onBlur={(e) => handleEmailBlur(e, field.onBlur)}
+                                                />
+                                                {isSendingOtp && (
+                                                    <div
+                                                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                                                        aria-hidden>
+                                                        <Spinner size="sm" className="text-muted-foreground" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {turnstileEnabled && turnstileSiteKey && showTurnstile && (
+                                    <TurnstileWidget
+                                        siteKey={turnstileSiteKey}
+                                        onSuccess={handleTurnstileSuccess}
+                                        onError={handleTurnstileError}
+                                        onExpire={handleTurnstileExpire}
+                                        onTimeout={handleTurnstileTimeout}
+                                        onBypass={handleTurnstileBypass}
+                                        onRetryExhausted={handleTurnstileRetryExhausted}
+                                        enabled={turnstileEnabled}
+                                        mode={turnstileMode}
+                                        resetRef={turnstileResetRef}
+                                        executeRef={turnstileExecuteRef}
+                                    />
                                 )}
-                            />
 
-                            {turnstileEnabled && turnstileSiteKey && showTurnstile && (
-                                <TurnstileWidget
-                                    siteKey={turnstileSiteKey}
-                                    onSuccess={handleTurnstileSuccess}
-                                    onError={handleTurnstileError}
-                                    onExpire={handleTurnstileExpire}
-                                    onTimeout={handleTurnstileTimeout}
-                                    onBypass={handleTurnstileBypass}
-                                    onRetryExhausted={handleTurnstileRetryExhausted}
-                                    enabled={turnstileEnabled}
-                                    mode={turnstileMode}
-                                    resetRef={turnstileResetRef}
-                                    executeRef={turnstileExecuteRef}
-                                />
-                            )}
+                                {verificationError && (
+                                    <div
+                                        role="alert"
+                                        className="text-destructive text-sm"
+                                        data-testid="contact-info-verification-error">
+                                        {verificationError}
+                                    </div>
+                                )}
 
-                            {verificationError && (
-                                <div
-                                    role="alert"
-                                    className="text-destructive text-sm"
-                                    data-testid="contact-info-verification-error">
-                                    {verificationError}
+                                <div className="flex items-start gap-2">
+                                    <FormField
+                                        control={form.control}
+                                        name="countryCode"
+                                        render={({ field }) => (
+                                            <FormItem className="w-20 [&_[data-slot=native-select-wrapper]]:w-full">
+                                                <FormLabel>{t('contactInfo.countryCodeLabel')}</FormLabel>
+                                                <FormNativeSelect
+                                                    aria-label={t('contactInfo.countryCodeLabel')}
+                                                    value={field.value}
+                                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                                        field.onChange(e.target.value)
+                                                    }>
+                                                    {countryCodeOptions}
+                                                </FormNativeSelect>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="phone"
+                                        render={({ field }) => (
+                                            <FormItem className="flex-1">
+                                                <FormLabel>{t('contactInfo.phoneLabel')}*</FormLabel>
+                                                <FormInput
+                                                    type="tel"
+                                                    inputMode="numeric"
+                                                    placeholder={t('contactInfo.phonePlaceholder')}
+                                                    autoComplete="tel-national"
+                                                    maxLength={14}
+                                                    {...field}
+                                                    onChange={(e) => {
+                                                        field.onChange(stripNonDigits(e.target.value).slice(0, 10));
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        field.onBlur();
+                                                        field.onChange(formatPhoneInput(e.target.value));
+                                                    }}
+                                                    onFocus={(e) => {
+                                                        const digits = stripNonDigits(e.target.value);
+                                                        if (digits !== e.target.value) field.onChange(digits);
+                                                    }}
+                                                />
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
-                            )}
-
-                            <div className="flex items-start gap-2">
-                                <FormField
-                                    control={form.control}
-                                    name="countryCode"
-                                    render={({ field }) => (
-                                        <FormItem className="w-20 [&_[data-slot=native-select-wrapper]]:w-full">
-                                            <FormLabel>{t('contactInfo.countryCodeLabel')}</FormLabel>
-                                            <FormNativeSelect
-                                                aria-label={t('contactInfo.countryCodeLabel')}
-                                                value={field.value}
-                                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                                    field.onChange(e.target.value)
-                                                }>
-                                                {countryCodeOptions}
-                                            </FormNativeSelect>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="phone"
-                                    render={({ field }) => (
-                                        <FormItem className="flex-1">
-                                            <FormLabel>{t('contactInfo.phoneLabel')}*</FormLabel>
-                                            <FormInput
-                                                type="tel"
-                                                inputMode="numeric"
-                                                placeholder={t('contactInfo.phonePlaceholder')}
-                                                autoComplete="tel-national"
-                                                maxLength={14}
-                                                {...field}
-                                                onChange={(e) => {
-                                                    field.onChange(stripNonDigits(e.target.value).slice(0, 10));
-                                                }}
-                                                onBlur={(e) => {
-                                                    field.onBlur();
-                                                    field.onChange(formatPhoneInput(e.target.value));
-                                                }}
-                                                onFocus={(e) => {
-                                                    const digits = stripNonDigits(e.target.value);
-                                                    if (digits !== e.target.value) field.onChange(digits);
-                                                }}
-                                            />
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                            </fieldset>
 
                             <div
                                 data-checkout-mobile-bar

@@ -259,10 +259,13 @@ export default function Payment({
                                                     </div>
                                                 )}
 
-                                                <CreditCardInputFields
-                                                    form={form}
-                                                    autoFocus={isEditing && paymentRadioValue === 'new'}
-                                                />
+                                                <fieldset className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0">
+                                                    <legend className="sr-only">{t('payment.creditCardOption')}</legend>
+                                                    <CreditCardInputFields
+                                                        form={form}
+                                                        autoFocus={isEditing && paymentRadioValue === 'new'}
+                                                    />
+                                                </fieldset>
                                                 {customerProfile?.customer?.customerId && !hidePaymentSaveCheckbox ? (
                                                     <FormField
                                                         control={form.control}
@@ -424,7 +427,10 @@ export default function Payment({
                                                 )}
                                                 {(selectedBillingAddressId === 'new' ||
                                                     billingAddressOptions.length === 0) && (
-                                                    <div>
+                                                    <fieldset className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0">
+                                                        <legend className="sr-only">
+                                                            {t('payment.billingSummaryTitle')}
+                                                        </legend>
                                                         <AddressFormFields
                                                             form={form}
                                                             fieldPrefix="billing"
@@ -434,7 +440,7 @@ export default function Payment({
                                                             autoFocus
                                                             autoFocusField="firstName"
                                                         />
-                                                    </div>
+                                                    </fieldset>
                                                 )}
                                             </div>
                                         )}

@@ -157,9 +157,11 @@ export const EditView: Story = {
         const radios = canvas.getAllByRole('radio');
         await expect(radios.length).toBe(3);
 
-        await expect(canvas.getByText('Ground')).toBeInTheDocument();
-        await expect(canvas.getByText('2-Day Express')).toBeInTheDocument();
-        await expect(canvas.getByText('Overnight')).toBeInTheDocument();
+        // Each name appears in both the sr-only announcement span and the visible
+        // aria-hidden span; getAllByText tolerates the intentional duplication.
+        await expect(canvas.getAllByText('Ground').length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText('2-Day Express').length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText('Overnight').length).toBeGreaterThan(0);
     },
 };
 
@@ -200,9 +202,10 @@ export const EditViewWithFreeShipping: Story = {
         const radios = canvas.getAllByRole('radio');
         await expect(radios.length).toBe(2);
 
-        // The free option label should be visible
-        const freeLabel = canvas.getByText('Free Standard Shipping');
-        await expect(freeLabel).toBeInTheDocument();
+        // The free option label appears in both the sr-only announcement span and
+        // the visible aria-hidden span; both counting as "in the document" is fine.
+        const freeLabels = canvas.getAllByText('Free Standard Shipping');
+        await expect(freeLabels.length).toBeGreaterThan(0);
 
         // Click the free option and verify it is selected
         await userEvent.click(radios[0]);
@@ -568,9 +571,10 @@ export const EditViewWithDeliveryWindow: Story = {
         const arrivesLabels = canvas.getAllByText(/Arrives/);
         await expect(arrivesLabels.length).toBe(2);
 
-        // Method names always appear below the header
-        await expect(canvas.getByText('Ground')).toBeInTheDocument();
-        await expect(canvas.getByText('2-Day Express')).toBeInTheDocument();
+        // Method names appear twice per option: once in the sr-only announcement
+        // span and once in the visible aria-hidden span below the header.
+        await expect(canvas.getAllByText('Ground').length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText('2-Day Express').length).toBeGreaterThan(0);
     },
 };
 

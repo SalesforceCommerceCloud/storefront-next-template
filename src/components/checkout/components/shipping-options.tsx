@@ -110,50 +110,56 @@ export default function ShippingOptions({
                             return (
                                 <label
                                     key={method.id}
-                                    htmlFor={method.id}
+                                    htmlFor={`shipping-${method.id}`}
                                     className="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground">
+                                    {/* sr-only method name first so screen readers announce: name, window, price */}
+                                    <span className="sr-only">{method.name}</span>
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem
                                             value={method.id}
-                                            id={method.id}
+                                            id={`shipping-${method.id}`}
                                             className="shrink-0"
                                             autoFocus={isEditing && availableShippingMethods.indexOf(method) === 0}
                                         />
-                                        <span className="flex-1 text-sm font-medium leading-none">
-                                            {deliveryWindowFormatted
-                                                ? t('shippingOptions.deliveryWindow', {
-                                                      window: deliveryWindowFormatted,
-                                                  })
-                                                : method.description || method.name}
-                                        </span>
-                                        <span className="flex shrink-0 items-center gap-1.5">
-                                            {method.shippingPromotions?.length &&
-                                            method.price > 0 &&
-                                            getDiscountedPrice(method.price) !== method.price ? (
-                                                <>
-                                                    <span className="text-sm text-muted-foreground line-through">
-                                                        {formatCurrency(method.price, i18n.language, currency)}
-                                                    </span>
+                                        <span className="flex flex-1 items-center gap-2">
+                                            <span className="flex-1 text-sm font-medium leading-none">
+                                                {deliveryWindowFormatted
+                                                    ? t('shippingOptions.deliveryWindow', {
+                                                          window: deliveryWindowFormatted,
+                                                      })
+                                                    : method.description || method.name}
+                                            </span>
+                                            <span className="flex shrink-0 items-center gap-1.5">
+                                                {method.shippingPromotions?.length &&
+                                                method.price > 0 &&
+                                                getDiscountedPrice(method.price) !== method.price ? (
+                                                    <>
+                                                        <span className="text-sm text-muted-foreground line-through">
+                                                            {formatCurrency(method.price, i18n.language, currency)}
+                                                        </span>
+                                                        <span className="text-sm font-semibold leading-none">
+                                                            {getDiscountedPrice(method.price) === 0
+                                                                ? t('shippingOptions.free')
+                                                                : formatCurrency(
+                                                                      getDiscountedPrice(method.price),
+                                                                      i18n.language,
+                                                                      currency
+                                                                  )}
+                                                        </span>
+                                                    </>
+                                                ) : (
                                                     <span className="text-sm font-semibold leading-none">
-                                                        {getDiscountedPrice(method.price) === 0
+                                                        {method.price === 0
                                                             ? t('shippingOptions.free')
-                                                            : formatCurrency(
-                                                                  getDiscountedPrice(method.price),
-                                                                  i18n.language,
-                                                                  currency
-                                                              )}
+                                                            : formatCurrency(method.price, i18n.language, currency)}
                                                     </span>
-                                                </>
-                                            ) : (
-                                                <span className="text-sm font-semibold leading-none">
-                                                    {method.price === 0
-                                                        ? t('shippingOptions.free')
-                                                        : formatCurrency(method.price, i18n.language, currency)}
-                                                </span>
-                                            )}
+                                                )}
+                                            </span>
                                         </span>
                                     </div>
-                                    <span className="pl-6 text-sm text-foreground">{method.name}</span>
+                                    <span className="pl-6 text-sm text-foreground" aria-hidden>
+                                        {method.name}
+                                    </span>
                                 </label>
                             );
                         })}

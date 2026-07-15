@@ -259,7 +259,11 @@ export default function ShippingAddress({
         onSubmit(formData);
     };
 
-    const stepTitle = t('shippingAddress.title');
+    const stepTitle = (
+        <span id="shipping-address-heading" className="text-2xl font-bold tracking-tight text-card-foreground">
+            {t('shippingAddress.title')}
+        </span>
+    );
 
     return (
         <ToggleCard
@@ -332,14 +336,18 @@ export default function ShippingAddress({
                         <form
                             onSubmit={(e) => void form.handleSubmit(handleFormSubmit)(e)}
                             className="flex flex-col gap-4 pt-2 pb-2">
-                            <AddressFormFields
-                                form={form}
-                                showPhone={false}
-                                showCountry={true}
-                                autoFocus={isEditing}
-                                autoFocusField="firstName"
-                                countryCode={DEFAULT_COUNTRY_CODE}
-                            />
+                            <fieldset
+                                className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
+                                aria-labelledby="shipping-address-heading">
+                                <AddressFormFields
+                                    form={form}
+                                    showPhone={false}
+                                    showCountry={true}
+                                    autoFocus={isEditing}
+                                    autoFocusField="firstName"
+                                    countryCode={DEFAULT_COUNTRY_CODE}
+                                />
+                            </fieldset>
                             <div
                                 data-checkout-mobile-bar
                                 className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2">

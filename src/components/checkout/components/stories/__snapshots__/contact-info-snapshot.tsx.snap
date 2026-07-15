@@ -19,7 +19,12 @@ exports[`ContactInfo stories snapshot > EditView story renders and matches snaps
           data-slot="card-title"
           tabindex="-1"
         >
-          Contact Information
+          <span
+            class="text-2xl font-bold tracking-tight text-card-foreground"
+            id="contact-info-heading"
+          >
+            Contact Information
+          </span>
         </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
@@ -35,116 +40,121 @@ exports[`ContactInfo stories snapshot > EditView story renders and matches snaps
           class="flex flex-col gap-4 pt-2 pb-2"
           novalidate=""
         >
-          <div
-            class="grid gap-2"
-            data-slot="form-item"
-          >
-            <label
-              class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-              data-error="false"
-              data-slot="form-label"
-              for="_r_0_-form-item"
-            >
-              Email Address
-              *
-            </label>
-            <div
-              class="relative"
-            >
-              <input
-                aria-invalid="false"
-                autocomplete="email"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
-                data-slot="input"
-                id="_r_0_-form-item"
-                name="email"
-                placeholder="Email Address"
-                type="email"
-                value=""
-              />
-            </div>
-          </div>
-          <div
-            class="flex items-start gap-2"
+          <fieldset
+            aria-labelledby="contact-info-heading"
+            class="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
           >
             <div
-              class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
+              class="grid gap-2"
               data-slot="form-item"
             >
               <label
                 class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
                 data-error="false"
                 data-slot="form-label"
-                for="_r_1_-form-item"
+                for="_r_0_-form-item"
               >
-                Code
+                Email Address
+                *
               </label>
               <div
-                class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
-                data-slot="native-select-wrapper"
+                class="relative"
               >
-                <select
+                <input
                   aria-invalid="false"
-                  aria-label="Code"
-                  class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-size="default"
-                  data-slot="native-select"
-                  id="_r_1_-form-item"
-                >
-                  <option
-                    value="+1"
-                  >
-                    +1
-                  </option>
-                </select>
-                <svg
-                  aria-hidden="true"
-                  class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
-                  data-slot="native-select-icon"
-                  fill="none"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m6 9 6 6 6-6"
-                  />
-                </svg>
+                  autocomplete="email"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
+                  data-slot="input"
+                  id="_r_0_-form-item"
+                  name="email"
+                  placeholder="Email Address"
+                  type="email"
+                  value=""
+                />
               </div>
             </div>
             <div
-              class="grid gap-2 flex-1"
-              data-slot="form-item"
+              class="flex items-start gap-2"
             >
-              <label
-                class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-                data-error="false"
-                data-slot="form-label"
-                for="_r_2_-form-item"
+              <div
+                class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
+                data-slot="form-item"
               >
-                Phone Number
-                *
-              </label>
-              <input
-                aria-invalid="false"
-                autocomplete="tel-national"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                data-slot="input"
-                id="_r_2_-form-item"
-                inputmode="numeric"
-                maxlength="14"
-                name="phone"
-                placeholder="(000) 000-0000"
-                type="tel"
-                value=""
-              />
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_1_-form-item"
+                >
+                  Code
+                </label>
+                <div
+                  class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
+                  data-slot="native-select-wrapper"
+                >
+                  <select
+                    aria-invalid="false"
+                    aria-label="Code"
+                    class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-size="default"
+                    data-slot="native-select"
+                    id="_r_1_-form-item"
+                  >
+                    <option
+                      value="+1"
+                    >
+                      +1
+                    </option>
+                  </select>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
+                    data-slot="native-select-icon"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="grid gap-2 flex-1"
+                data-slot="form-item"
+              >
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_2_-form-item"
+                >
+                  Phone Number
+                  *
+                </label>
+                <input
+                  aria-invalid="false"
+                  autocomplete="tel-national"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                  data-slot="input"
+                  id="_r_2_-form-item"
+                  inputmode="numeric"
+                  maxlength="14"
+                  name="phone"
+                  placeholder="(000) 000-0000"
+                  type="tel"
+                  value=""
+                />
+              </div>
             </div>
-          </div>
+          </fieldset>
           <div
             class="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2"
             data-checkout-mobile-bar="true"
@@ -185,7 +195,12 @@ exports[`ContactInfo stories snapshot > SavingState story renders and matches sn
           data-slot="card-title"
           tabindex="-1"
         >
-          Contact Information
+          <span
+            class="text-2xl font-bold tracking-tight text-card-foreground"
+            id="contact-info-heading"
+          >
+            Contact Information
+          </span>
         </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
@@ -201,116 +216,121 @@ exports[`ContactInfo stories snapshot > SavingState story renders and matches sn
           class="flex flex-col gap-4 pt-2 pb-2"
           novalidate=""
         >
-          <div
-            class="grid gap-2"
-            data-slot="form-item"
-          >
-            <label
-              class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-              data-error="false"
-              data-slot="form-label"
-              for="_r_6_-form-item"
-            >
-              Email Address
-              *
-            </label>
-            <div
-              class="relative"
-            >
-              <input
-                aria-invalid="false"
-                autocomplete="email"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
-                data-slot="input"
-                id="_r_6_-form-item"
-                name="email"
-                placeholder="Email Address"
-                type="email"
-                value=""
-              />
-            </div>
-          </div>
-          <div
-            class="flex items-start gap-2"
+          <fieldset
+            aria-labelledby="contact-info-heading"
+            class="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
           >
             <div
-              class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
+              class="grid gap-2"
               data-slot="form-item"
             >
               <label
                 class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
                 data-error="false"
                 data-slot="form-label"
-                for="_r_7_-form-item"
+                for="_r_6_-form-item"
               >
-                Code
+                Email Address
+                *
               </label>
               <div
-                class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
-                data-slot="native-select-wrapper"
+                class="relative"
               >
-                <select
+                <input
                   aria-invalid="false"
-                  aria-label="Code"
-                  class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-size="default"
-                  data-slot="native-select"
-                  id="_r_7_-form-item"
-                >
-                  <option
-                    value="+1"
-                  >
-                    +1
-                  </option>
-                </select>
-                <svg
-                  aria-hidden="true"
-                  class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
-                  data-slot="native-select-icon"
-                  fill="none"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m6 9 6 6 6-6"
-                  />
-                </svg>
+                  autocomplete="email"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
+                  data-slot="input"
+                  id="_r_6_-form-item"
+                  name="email"
+                  placeholder="Email Address"
+                  type="email"
+                  value=""
+                />
               </div>
             </div>
             <div
-              class="grid gap-2 flex-1"
-              data-slot="form-item"
+              class="flex items-start gap-2"
             >
-              <label
-                class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-                data-error="false"
-                data-slot="form-label"
-                for="_r_8_-form-item"
+              <div
+                class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
+                data-slot="form-item"
               >
-                Phone Number
-                *
-              </label>
-              <input
-                aria-invalid="false"
-                autocomplete="tel-national"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                data-slot="input"
-                id="_r_8_-form-item"
-                inputmode="numeric"
-                maxlength="14"
-                name="phone"
-                placeholder="(000) 000-0000"
-                type="tel"
-                value=""
-              />
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_7_-form-item"
+                >
+                  Code
+                </label>
+                <div
+                  class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
+                  data-slot="native-select-wrapper"
+                >
+                  <select
+                    aria-invalid="false"
+                    aria-label="Code"
+                    class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-size="default"
+                    data-slot="native-select"
+                    id="_r_7_-form-item"
+                  >
+                    <option
+                      value="+1"
+                    >
+                      +1
+                    </option>
+                  </select>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
+                    data-slot="native-select-icon"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="grid gap-2 flex-1"
+                data-slot="form-item"
+              >
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_8_-form-item"
+                >
+                  Phone Number
+                  *
+                </label>
+                <input
+                  aria-invalid="false"
+                  autocomplete="tel-national"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                  data-slot="input"
+                  id="_r_8_-form-item"
+                  inputmode="numeric"
+                  maxlength="14"
+                  name="phone"
+                  placeholder="(000) 000-0000"
+                  type="tel"
+                  value=""
+                />
+              </div>
             </div>
-          </div>
+          </fieldset>
           <div
             class="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2"
             data-checkout-mobile-bar="true"
@@ -363,7 +383,12 @@ exports[`ContactInfo stories snapshot > SendingOtp story renders and matches sna
           data-slot="card-title"
           tabindex="-1"
         >
-          Contact Information
+          <span
+            class="text-2xl font-bold tracking-tight text-card-foreground"
+            id="contact-info-heading"
+          >
+            Contact Information
+          </span>
         </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
@@ -379,125 +404,130 @@ exports[`ContactInfo stories snapshot > SendingOtp story renders and matches sna
           class="flex flex-col gap-4 pt-2 pb-2"
           novalidate=""
         >
-          <div
-            class="grid gap-2"
-            data-slot="form-item"
+          <fieldset
+            aria-labelledby="contact-info-heading"
+            class="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
           >
-            <label
-              class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-              data-error="false"
-              data-slot="form-label"
-              for="_r_3_-form-item"
-            >
-              Email Address
-              *
-            </label>
             <div
-              class="relative"
+              class="grid gap-2"
+              data-slot="form-item"
             >
-              <input
-                aria-invalid="false"
-                autocomplete="email"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
-                data-slot="input"
-                disabled=""
-                id="_r_3_-form-item"
-                name="email"
-                placeholder="Email Address"
-                type="email"
-                value=""
-              />
-              <div
-                aria-hidden="true"
-                class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+              <label
+                class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                data-error="false"
+                data-slot="form-label"
+                for="_r_3_-form-item"
               >
+                Email Address
+                *
+              </label>
+              <div
+                class="relative"
+              >
+                <input
+                  aria-invalid="false"
+                  autocomplete="email"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
+                  data-slot="input"
+                  disabled=""
+                  id="_r_3_-form-item"
+                  name="email"
+                  placeholder="Email Address"
+                  type="email"
+                  value=""
+                />
                 <div
-                  class="animate-spin rounded-full border-2 border-border border-t-primary size-4 text-muted-foreground"
+                  aria-hidden="true"
+                  class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <div
+                    class="animate-spin rounded-full border-2 border-border border-t-primary size-4 text-muted-foreground"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex items-start gap-2"
+            >
+              <div
+                class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
+                data-slot="form-item"
+              >
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_4_-form-item"
+                >
+                  Code
+                </label>
+                <div
+                  class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
+                  data-slot="native-select-wrapper"
+                >
+                  <select
+                    aria-invalid="false"
+                    aria-label="Code"
+                    class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-size="default"
+                    data-slot="native-select"
+                    id="_r_4_-form-item"
+                  >
+                    <option
+                      value="+1"
+                    >
+                      +1
+                    </option>
+                  </select>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
+                    data-slot="native-select-icon"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="grid gap-2 flex-1"
+                data-slot="form-item"
+              >
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_5_-form-item"
+                >
+                  Phone Number
+                  *
+                </label>
+                <input
+                  aria-invalid="false"
+                  autocomplete="tel-national"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                  data-slot="input"
+                  id="_r_5_-form-item"
+                  inputmode="numeric"
+                  maxlength="14"
+                  name="phone"
+                  placeholder="(000) 000-0000"
+                  type="tel"
+                  value=""
                 />
               </div>
             </div>
-          </div>
-          <div
-            class="flex items-start gap-2"
-          >
-            <div
-              class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
-              data-slot="form-item"
-            >
-              <label
-                class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-                data-error="false"
-                data-slot="form-label"
-                for="_r_4_-form-item"
-              >
-                Code
-              </label>
-              <div
-                class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
-                data-slot="native-select-wrapper"
-              >
-                <select
-                  aria-invalid="false"
-                  aria-label="Code"
-                  class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-size="default"
-                  data-slot="native-select"
-                  id="_r_4_-form-item"
-                >
-                  <option
-                    value="+1"
-                  >
-                    +1
-                  </option>
-                </select>
-                <svg
-                  aria-hidden="true"
-                  class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
-                  data-slot="native-select-icon"
-                  fill="none"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m6 9 6 6 6-6"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div
-              class="grid gap-2 flex-1"
-              data-slot="form-item"
-            >
-              <label
-                class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-                data-error="false"
-                data-slot="form-label"
-                for="_r_5_-form-item"
-              >
-                Phone Number
-                *
-              </label>
-              <input
-                aria-invalid="false"
-                autocomplete="tel-national"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                data-slot="input"
-                id="_r_5_-form-item"
-                inputmode="numeric"
-                maxlength="14"
-                name="phone"
-                placeholder="(000) 000-0000"
-                type="tel"
-                value=""
-              />
-            </div>
-          </div>
+          </fieldset>
           <div
             class="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2"
             data-checkout-mobile-bar="true"
@@ -538,7 +568,12 @@ exports[`ContactInfo stories snapshot > SummaryView story renders and matches sn
           data-slot="card-title"
           tabindex="-1"
         >
-          Contact Information
+          <span
+            class="text-2xl font-bold tracking-tight text-card-foreground"
+            id="contact-info-heading"
+          >
+            Contact Information
+          </span>
         </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
@@ -593,7 +628,12 @@ exports[`ContactInfo stories snapshot > WithValidationErrors story renders and m
           data-slot="card-title"
           tabindex="-1"
         >
-          Contact Information
+          <span
+            class="text-2xl font-bold tracking-tight text-card-foreground"
+            id="contact-info-heading"
+          >
+            Contact Information
+          </span>
         </h2>
         <div
           class="col-start-2 row-start-1 justify-self-end row-span-1 self-center"
@@ -609,116 +649,121 @@ exports[`ContactInfo stories snapshot > WithValidationErrors story renders and m
           class="flex flex-col gap-4 pt-2 pb-2"
           novalidate=""
         >
-          <div
-            class="grid gap-2"
-            data-slot="form-item"
-          >
-            <label
-              class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-              data-error="false"
-              data-slot="form-label"
-              for="_r_9_-form-item"
-            >
-              Email Address
-              *
-            </label>
-            <div
-              class="relative"
-            >
-              <input
-                aria-invalid="false"
-                autocomplete="email"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
-                data-slot="input"
-                id="_r_9_-form-item"
-                name="email"
-                placeholder="Email Address"
-                type="email"
-                value=""
-              />
-            </div>
-          </div>
-          <div
-            class="flex items-start gap-2"
+          <fieldset
+            aria-labelledby="contact-info-heading"
+            class="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
           >
             <div
-              class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
+              class="grid gap-2"
               data-slot="form-item"
             >
               <label
                 class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
                 data-error="false"
                 data-slot="form-label"
-                for="_r_a_-form-item"
+                for="_r_9_-form-item"
               >
-                Code
+                Email Address
+                *
               </label>
               <div
-                class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
-                data-slot="native-select-wrapper"
+                class="relative"
               >
-                <select
+                <input
                   aria-invalid="false"
-                  aria-label="Code"
-                  class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-size="default"
-                  data-slot="native-select"
-                  id="_r_a_-form-item"
-                >
-                  <option
-                    value="+1"
-                  >
-                    +1
-                  </option>
-                </select>
-                <svg
-                  aria-hidden="true"
-                  class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
-                  data-slot="native-select-icon"
-                  fill="none"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m6 9 6 6 6-6"
-                  />
-                </svg>
+                  autocomplete="email"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive pr-12"
+                  data-slot="input"
+                  id="_r_9_-form-item"
+                  name="email"
+                  placeholder="Email Address"
+                  type="email"
+                  value=""
+                />
               </div>
             </div>
             <div
-              class="grid gap-2 flex-1"
-              data-slot="form-item"
+              class="flex items-start gap-2"
             >
-              <label
-                class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
-                data-error="false"
-                data-slot="form-label"
-                for="_r_b_-form-item"
+              <div
+                class="grid gap-2 w-20 [&_[data-slot=native-select-wrapper]]:w-full"
+                data-slot="form-item"
               >
-                Phone Number
-                *
-              </label>
-              <input
-                aria-invalid="false"
-                autocomplete="tel-national"
-                class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                data-slot="input"
-                id="_r_b_-form-item"
-                inputmode="numeric"
-                maxlength="14"
-                name="phone"
-                placeholder="(000) 000-0000"
-                type="tel"
-                value=""
-              />
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_a_-form-item"
+                >
+                  Code
+                </label>
+                <div
+                  class="group/native-select relative w-fit has-[select:disabled]:opacity-50"
+                  data-slot="native-select-wrapper"
+                >
+                  <select
+                    aria-invalid="false"
+                    aria-label="Code"
+                    class="border-input placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 dark:hover:bg-input/50 h-9 w-full min-w-0 appearance-none rounded-ui border bg-transparent px-3 py-2 pr-9 text-sm shadow-ui transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed data-[size=sm]:h-8 data-[size=sm]:py-1 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-size="default"
+                    data-slot="native-select"
+                    id="_r_a_-form-item"
+                  >
+                    <option
+                      value="+1"
+                    >
+                      +1
+                    </option>
+                  </select>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2 opacity-50 select-none"
+                    data-slot="native-select-icon"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="grid gap-2 flex-1"
+                data-slot="form-item"
+              >
+                <label
+                  class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive"
+                  data-error="false"
+                  data-slot="form-label"
+                  for="_r_b_-form-item"
+                >
+                  Phone Number
+                  *
+                </label>
+                <input
+                  aria-invalid="false"
+                  autocomplete="tel-national"
+                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                  data-slot="input"
+                  id="_r_b_-form-item"
+                  inputmode="numeric"
+                  maxlength="14"
+                  name="phone"
+                  placeholder="(000) 000-0000"
+                  type="tel"
+                  value=""
+                />
+              </div>
             </div>
-          </div>
+          </fieldset>
           <div
             class="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2"
             data-checkout-mobile-bar="true"

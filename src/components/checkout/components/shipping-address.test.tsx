@@ -92,11 +92,15 @@ describe('ShippingAddress Integration Tests', () => {
 
     describe('Basic Rendering', () => {
         test('renders shipping address form in editing mode', () => {
-            render(<ShippingAddress {...createDefaultProps()} />);
+            const { container } = render(<ShippingAddress {...createDefaultProps()} />);
 
-            expect(screen.getByText('Shipping Address')).toBeInTheDocument();
+            expect(screen.getAllByText('Shipping Address').length).toBeGreaterThan(0);
             expect(screen.getByPlaceholderText(/first name/i)).toBeInTheDocument();
             expect(screen.getByPlaceholderText(/last name/i)).toBeInTheDocument();
+
+            const fieldset = container.querySelector('fieldset');
+            expect(fieldset).toHaveAttribute('aria-labelledby', 'shipping-address-heading');
+            expect(container.querySelector('#shipping-address-heading')).toHaveTextContent('Shipping Address');
         });
 
         test('displays summary when not editing', () => {

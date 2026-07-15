@@ -89,8 +89,13 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
           >
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="ground"
+              for="shipping-ground"
             >
+              <span
+                class="sr-only"
+              >
+                Ground
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -100,7 +105,7 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="checked"
-                  id="ground"
+                  id="shipping-ground"
                   role="radio"
                   tabindex="0"
                   type="button"
@@ -143,21 +148,26 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
                   value="ground"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received within 7-10 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £15.99
+                    Order received within 7-10 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £15.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Ground
@@ -165,8 +175,13 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="express"
+              for="shipping-express"
             >
+              <span
+                class="sr-only"
+              >
+                2-Day Express
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -176,7 +191,7 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="express"
+                  id="shipping-express"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -192,21 +207,26 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
                   value="express"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received in 2 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £9.99
+                    Order received in 2 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £9.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 2-Day Express
@@ -214,8 +234,13 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="overnight"
+              for="shipping-overnight"
             >
+              <span
+                class="sr-only"
+              >
+                Overnight
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -225,7 +250,7 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="overnight"
+                  id="shipping-overnight"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -241,21 +266,26 @@ exports[`ShippingOptions stories snapshot > EditView story renders and matches s
                   value="overnight"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received the next business day
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £15.99
+                    Order received the next business day
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £15.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Overnight
@@ -330,8 +360,13 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
           >
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="ground"
+              for="shipping-ground"
             >
+              <span
+                class="sr-only"
+              >
+                Ground
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -341,7 +376,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="checked"
-                  id="ground"
+                  id="shipping-ground"
                   role="radio"
                   tabindex="0"
                   type="button"
@@ -384,21 +419,26 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
                   value="ground"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Arrives 30 Apr 2026 – 7 May 2026
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £15.99
+                    Arrives 30 Apr 2026 – 7 May 2026
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £15.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Ground
@@ -406,8 +446,13 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="express"
+              for="shipping-express"
             >
+              <span
+                class="sr-only"
+              >
+                2-Day Express
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -417,7 +462,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="express"
+                  id="shipping-express"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -433,21 +478,26 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
                   value="express"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Arrives 30 Apr 2026
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £29.99
+                    Arrives 30 Apr 2026
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £29.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 2-Day Express
@@ -522,8 +572,13 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
           >
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="ground"
+              for="shipping-ground"
             >
+              <span
+                class="sr-only"
+              >
+                Ground
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -533,7 +588,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="checked"
-                  id="ground"
+                  id="shipping-ground"
                   role="radio"
                   tabindex="0"
                   type="button"
@@ -576,21 +631,26 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
                   value="ground"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received within 7-10 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £15.99
+                    Order received within 7-10 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £15.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Ground
@@ -598,8 +658,13 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="express"
+              for="shipping-express"
             >
+              <span
+                class="sr-only"
+              >
+                2-Day Express
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -609,7 +674,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="express"
+                  id="shipping-express"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -625,21 +690,26 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
                   value="express"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received in 2 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £9.99
+                    Order received in 2 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £9.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 2-Day Express
@@ -647,8 +717,13 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="overnight"
+              for="shipping-overnight"
             >
+              <span
+                class="sr-only"
+              >
+                Overnight
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -658,7 +733,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="overnight"
+                  id="shipping-overnight"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -674,21 +749,26 @@ exports[`ShippingOptions stories snapshot > EditViewWithDiscountedShipping story
                   value="overnight"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received the next business day
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £15.99
+                    Order received the next business day
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £15.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Overnight
@@ -763,8 +843,13 @@ exports[`ShippingOptions stories snapshot > EditViewWithFreeShipping story rende
           >
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="free"
+              for="shipping-free"
             >
+              <span
+                class="sr-only"
+              >
+                Free Standard Shipping
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -774,7 +859,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithFreeShipping story rende
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="checked"
-                  id="free"
+                  id="shipping-free"
                   role="radio"
                   tabindex="0"
                   type="button"
@@ -817,21 +902,26 @@ exports[`ShippingOptions stories snapshot > EditViewWithFreeShipping story rende
                   value="free"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  5-7 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    FREE
+                    5-7 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      FREE
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Free Standard Shipping
@@ -839,8 +929,13 @@ exports[`ShippingOptions stories snapshot > EditViewWithFreeShipping story rende
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="express"
+              for="shipping-express"
             >
+              <span
+                class="sr-only"
+              >
+                Express Shipping
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -850,7 +945,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithFreeShipping story rende
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="express"
+                  id="shipping-express"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -866,21 +961,26 @@ exports[`ShippingOptions stories snapshot > EditViewWithFreeShipping story rende
                   value="express"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  2-3 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £19.99
+                    2-3 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £19.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Express Shipping
@@ -955,8 +1055,13 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
           >
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="ground"
+              for="shipping-ground"
             >
+              <span
+                class="sr-only"
+              >
+                Ground
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -966,7 +1071,7 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="checked"
-                  id="ground"
+                  id="shipping-ground"
                   role="radio"
                   tabindex="0"
                   type="button"
@@ -1009,21 +1114,26 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
                   value="ground"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received within 7-10 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £15.99
+                    Order received within 7-10 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £15.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Ground
@@ -1031,8 +1141,13 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="express"
+              for="shipping-express"
             >
+              <span
+                class="sr-only"
+              >
+                2-Day Express
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -1042,7 +1157,7 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="express"
+                  id="shipping-express"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -1058,21 +1173,26 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
                   value="express"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received in 2 business days
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £9.99
+                    Order received in 2 business days
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £9.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 2-Day Express
@@ -1080,8 +1200,13 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
             </label>
             <label
               class="group flex cursor-pointer flex-col gap-1 rounded-ui border border-border-subtle p-4 transition-all duration-200 has-[[data-state=checked]]:border-foreground"
-              for="overnight"
+              for="shipping-overnight"
             >
+              <span
+                class="sr-only"
+              >
+                Overnight
+              </span>
               <div
                 class="flex items-center gap-2"
               >
@@ -1091,7 +1216,7 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
                   data-radix-collection-item=""
                   data-slot="radio-group-item"
                   data-state="unchecked"
-                  id="overnight"
+                  id="shipping-overnight"
                   role="radio"
                   tabindex="-1"
                   type="button"
@@ -1107,21 +1232,26 @@ exports[`ShippingOptions stories snapshot > SavingState story renders and matche
                   value="overnight"
                 />
                 <span
-                  class="flex-1 text-sm font-medium leading-none"
-                >
-                  Order received the next business day
-                </span>
-                <span
-                  class="flex shrink-0 items-center gap-1.5"
+                  class="flex flex-1 items-center gap-2"
                 >
                   <span
-                    class="text-sm font-semibold leading-none"
+                    class="flex-1 text-sm font-medium leading-none"
                   >
-                    £15.99
+                    Order received the next business day
+                  </span>
+                  <span
+                    class="flex shrink-0 items-center gap-1.5"
+                  >
+                    <span
+                      class="text-sm font-semibold leading-none"
+                    >
+                      £15.99
+                    </span>
                   </span>
                 </span>
               </div>
               <span
+                aria-hidden="true"
                 class="pl-6 text-sm text-foreground"
               >
                 Overnight

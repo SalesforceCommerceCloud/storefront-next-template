@@ -579,10 +579,32 @@ describe('ShippingOptions Component', () => {
         expect(labels[0].tagName).toBe('SPAN');
         expect(labels[0].className).toContain('font-medium');
 
-        const secondaryLabels = screen.getAllByText(/Shipping$/);
+        const secondaryLabels = screen.getAllByText(/Shipping$/, { selector: '[aria-hidden="true"]' });
         for (const label of secondaryLabels) {
             expect(label.className).toContain('pl-6');
         }
+
+        // Each radio's accessible name contains the method name so assistive
+        // technologies announce the method when navigating the radio group.
+        expect(screen.getByRole('radio', { name: /Standard Shipping/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /Express Shipping/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /Overnight Shipping/i })).toBeInTheDocument();
+    });
+
+    test('selects the radio when clicking the card padding', async () => {
+        const user = userEvent.setup();
+        const { container } = render(<ShippingOptions {...createDefaultProps()} />);
+
+        // Click the outer <label> card for Express Shipping — not the radio itself.
+        // The sr-only span holds the method name and is a direct child of the label,
+        // so closest('label') from it reaches the card wrapper, not the radio's label.
+        const srOnlySpans = Array.from(container.querySelectorAll('span.sr-only'));
+        const expressNameSpan = srOnlySpans.find((el) => el.textContent === 'Express Shipping');
+        const outerLabel = expressNameSpan?.closest('label');
+        if (!outerLabel) throw new Error('Expected outer label wrapper for Express Shipping card');
+        await user.click(outerLabel);
+
+        expect(screen.getByRole('radio', { name: /Express Shipping/i })).toBeChecked();
     });
 
     test('falls back to name as primary label when description is absent', () => {

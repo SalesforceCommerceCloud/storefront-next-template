@@ -157,12 +157,16 @@ describe('ContactInfo Integration Tests', () => {
 
     describe('Basic Rendering', () => {
         test('renders contact info form in editing mode', async () => {
-            renderWithRouter(<ContactInfo {...createDefaultProps()} />);
+            const { container } = renderWithRouter(<ContactInfo {...createDefaultProps()} />);
 
             await waitFor(() => {
-                expect(screen.getByText('Contact Information')).toBeInTheDocument();
+                expect(screen.getAllByText('Contact Information').length).toBeGreaterThan(0);
             });
             expect(screen.getByPlaceholderText(/email address/i)).toBeInTheDocument();
+
+            const fieldset = container.querySelector('fieldset');
+            expect(fieldset).toHaveAttribute('aria-labelledby', 'contact-info-heading');
+            expect(container.querySelector('#contact-info-heading')).toHaveTextContent('Contact Information');
         });
 
         test('displays form in summary mode when not editing', async () => {
@@ -497,7 +501,7 @@ describe('ContactInfo Integration Tests', () => {
 
             // Tests the phone autofill branch - just verify component renders
             await waitFor(() => {
-                expect(screen.getByText('Contact Information')).toBeInTheDocument();
+                expect(screen.getAllByText('Contact Information').length).toBeGreaterThan(0);
             });
         });
     });
@@ -542,8 +546,8 @@ describe('ContactInfo Integration Tests', () => {
             renderWithRouter(<ContactInfo {...createDefaultProps()} />);
 
             await waitFor(() => {
-                // This ensures the component renders and processes login suggestion logic
-                expect(screen.getByText('Contact Information')).toBeInTheDocument();
+                // Ensure the component renders and processes login suggestion logic.
+                expect(screen.getAllByText('Contact Information').length).toBeGreaterThan(0);
             });
         });
     });
