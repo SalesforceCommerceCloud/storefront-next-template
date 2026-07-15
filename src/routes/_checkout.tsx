@@ -16,6 +16,7 @@
 import { Outlet } from 'react-router';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
+import { SkipLink } from '@/components/skip-link';
 
 /**
  * Checkout Layout Route
@@ -29,8 +30,9 @@ import Footer from '@/components/footer';
 export default function CheckoutLayout() {
     return (
         <div className="group/checkout flex flex-col grow">
+            <SkipLink />
             <Header variant="checkout" />
-            <main className="lg:grow">
+            <main id="main-content" tabIndex={-1} className="lg:grow">
                 <Outlet />
             </main>
             <Footer variant="checkout" />

@@ -31,7 +31,8 @@
         "productGrid": {
             "loadFailed": "Unable to load additional products."
         },
-        "quickCategoryFilters": "Quick category filters"
+        "quickCategoryFilters": "Quick category filters",
+        "skipToMainContent": "Skip to main content"
     },
     "search": {
         "results": "Search Results for",

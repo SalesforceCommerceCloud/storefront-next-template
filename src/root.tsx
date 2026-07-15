@@ -125,6 +125,7 @@ import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
 // Layout Components - logo for error page. Imported via `@/...` so different
 // logo implementations (raster, inline-SVG, etc.) can be provided per brand.
 import Logo from '@/components/logo';
+import { SkipLink } from '@/components/skip-link';
 
 export const links: Route.LinksFunction = () => {
     return [
@@ -394,6 +395,7 @@ function ErrorPageContent({
 }) {
     return (
         <>
+            <SkipLink />
             {/* Simple Header */}
             <header className="bg-header-background text-header-foreground sticky top-0 z-50">
                 <div className="section-container">
@@ -406,7 +408,7 @@ function ErrorPageContent({
             </header>
 
             {/* Main Content */}
-            <main className="grow pt-8">
+            <main id="main-content" tabIndex={-1} className="grow pt-8">
                 <div className="flex items-center justify-center min-h-[60vh] px-4 py-12">
                     <div className="mx-auto max-w-3xl w-full text-center">
                         {/* Large status code */}

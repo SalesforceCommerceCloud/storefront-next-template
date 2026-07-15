@@ -26,6 +26,7 @@ import Footer from '@/components/footer';
 import ResponsiveNavigationMenu from '@/components/navigation-menu-mega';
 import { WishlistMergeToast } from '@/components/wishlist/wishlist-merge-toast';
 import { EmbeddedComponentRegion } from '@/components/region/embedded-component-region';
+import { SkipLink } from '@/components/skip-link';
 import {
     fetchComponentWithComponentData,
     type ComponentWithComponentData,
@@ -133,6 +134,7 @@ export default function DefaultLayout({ loaderData: { root, subs, headerComponen
     // fires on pages that actually render wishlist UI.
     return (
         <>
+            <SkipLink />
             <WishlistMergeToast />
             <Header
                 announcementSlot={
@@ -140,7 +142,7 @@ export default function DefaultLayout({ loaderData: { root, subs, headerComponen
                 }>
                 <ResponsiveNavigationMenu resolve={refRoot.current} defer={refSubs.current} />
             </Header>
-            <main className="grow pt-8" {...mainPaddingAttrs}>
+            <main id="main-content" tabIndex={-1} className="grow pt-8" {...mainPaddingAttrs}>
                 <Outlet />
             </main>
             <Footer />

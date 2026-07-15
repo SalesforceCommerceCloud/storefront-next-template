@@ -21,6 +21,19 @@
         font-family: var(--font-sans);
     }
 
+    /* Scroll padding prevents focused elements from being hidden underneath the sticky header.
+     * Matches the header's measured height so keyboard navigation and anchor links scroll the
+     * target element clear of the header. (WCAG 2.1 SC 2.4.7 Focus Visible) */
+    html {
+        scroll-padding-top: var(--header-height, 145px);
+    }
+
+    @media (min-width: 64rem) {
+        html {
+            scroll-padding-top: var(--header-height, 105px);
+        }
+    }
+
     /* Cursor pointer for all interactive elements */
     button:not(:disabled),
     [role='button']:not([aria-disabled='true']):not([data-disabled]),

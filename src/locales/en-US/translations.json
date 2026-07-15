@@ -31,7 +31,8 @@
         },
         "previousImage": "Previous image",
         "nextImage": "Next image",
-        "quickCategoryFilters": "Quick category filters"
+        "quickCategoryFilters": "Quick category filters",
+        "skipToMainContent": "Skip to main content"
     },
     "search": {
         "results": "Search Results for",
