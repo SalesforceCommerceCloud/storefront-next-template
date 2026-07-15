@@ -257,6 +257,8 @@ export default function CartContent({
                     {pageHeading}
                 </Typography>
 
+                <UITarget targetId="sfcc.cart.promotions.approachingDiscounts" />
+
                 {/* Mobile Order Summary - visible only on mobile */}
                 <div className="md:hidden mb-3">
                     <div className="bg-background border-t border-border fixed bottom-0 left-0 right-0 z-50">

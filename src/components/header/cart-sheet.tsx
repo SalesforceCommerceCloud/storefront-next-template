@@ -259,6 +259,8 @@ const CartSheetPanel = function CartSheetPanel({ onClose }: { onClose: () => voi
                         {/* Top Divider */}
                         <Separator className="bg-muted-foreground/10" />
 
+                        <UITarget targetId="sfcc.miniCart.promotions.approachingDiscounts" />
+
                         {/* Cart Items */}
                         {isLoading && enrichedProductItems.length === 0 ? (
                             <div className="flex items-center justify-center py-8 px-6">
