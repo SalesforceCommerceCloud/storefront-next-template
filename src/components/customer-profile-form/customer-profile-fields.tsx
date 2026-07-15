@@ -141,8 +141,7 @@ export function CustomerProfileFields({
                                     value={field.value || ''}
                                     onChange={field.onChange}
                                     onBlur={field.onBlur}
-                                    name={field.name}
-                                    aria-label={t('profile.gender')}>
+                                    name={field.name}>
                                     <option value="">{t('profile.genderPlaceholder')}</option>
                                     {GENDER_OPTIONS.map((option) => (
                                         <option key={option.value} value={option.value}>
@@ -173,7 +172,6 @@ export function CustomerProfileFields({
                                     type="date"
                                     autoComplete="bday"
                                     className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                                    aria-label={t('profile.dateOfBirth')}
                                     {...field}
                                 />
                             </FormControl>

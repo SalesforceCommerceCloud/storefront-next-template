@@ -120,21 +120,23 @@ export function QuickLinksSection(): ReactElement {
         <Card className="py-0">
             <CardContent className="p-6">
                 <h2 className="text-lg font-semibold text-foreground mb-4">{t('overview.quickLinks.title')}</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {quickLinks.map((link) => {
                         const Icon = link.icon;
                         return (
-                            <Link key={link.path} to={link.path} className="group">
-                                <div className="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary">
-                                    <Icon className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
-                                    <h3 className="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors">
-                                        {link.label}
-                                    </h3>
-                                </div>
-                            </Link>
+                            <li key={link.path} className="h-full">
+                                <Link to={link.path} className="group h-full flex">
+                                    <div className="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary">
+                                        <Icon className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
+                                        <h3 className="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors">
+                                            {link.label}
+                                        </h3>
+                                    </div>
+                                </Link>
+                            </li>
                         );
                     })}
-                </div>
+                </ul>
             </CardContent>
         </Card>
     );

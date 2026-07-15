@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, type KeyboardEvent } from 'react';
+import React, { type ReactElement, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { usePriceRangeValidation } from '@/hooks/use-price-range-validation';
@@ -21,6 +21,8 @@ import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { getCurrencySymbol } from '@/lib/currency';
 
 interface PriceInputProps {
+    id: string;
+    label: string;
     placeholder: string;
     value: string;
     onChange: (value: string) => void;
@@ -29,26 +31,32 @@ interface PriceInputProps {
     currencySymbol: string;
 }
 
-function PriceInput({ placeholder, value, onChange, onKeyDown, hasError, currencySymbol }: PriceInputProps) {
+function PriceInput({ id, label, placeholder, value, onChange, onKeyDown, hasError, currencySymbol }: PriceInputProps) {
     return (
-        <div className="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start flex-1 relative overflow-hidden rounded-ui shadow-xs">
-            <span
-                className="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
-                aria-hidden="true">
-                {currencySymbol}
-            </span>
-            <div className="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap">
-                <Input
-                    type="number"
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    onKeyDown={onKeyDown}
-                    className={`border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full ${
-                        hasError ? 'text-destructive' : ''
-                    }`}
-                    min="0"
-                />
+        <div className="flex-1">
+            <label htmlFor={id} className="sr-only">
+                {label}
+            </label>
+            <div className="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start relative overflow-hidden rounded-ui shadow-xs">
+                <span
+                    className="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+                    aria-hidden="true">
+                    {currencySymbol}
+                </span>
+                <div className="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap">
+                    <Input
+                        id={id}
+                        type="number"
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        onKeyDown={onKeyDown}
+                        className={`border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full ${
+                            hasError ? 'text-destructive' : ''
+                        }`}
+                        min="0"
+                    />
+                </div>
             </div>
         </div>
     );
@@ -80,6 +88,7 @@ export default function PriceRangeInput({
     maxAllowed,
     showValidationErrors = true,
 }: PriceRangeInputProps): ReactElement {
+    const uid = React.useId();
     const { t, i18n } = useTranslation('product');
     const { currency } = useSite();
     const locale = i18n.language;
@@ -105,6 +114,8 @@ export default function PriceRangeInput({
     return (
         <div className="flex flex-row gap-3 items-center justify-start self-stretch shrink-0 relative">
             <PriceInput
+                id={`${uid}-price-min`}
+                label={t('priceMin')}
                 placeholder={t('priceMin')}
                 value={minPrice}
                 onChange={handleMinChange}
@@ -116,6 +127,8 @@ export default function PriceRangeInput({
             <div className="text-foreground text-left text-sm leading-none font-normal relative">{t('priceTo')}</div>
 
             <PriceInput
+                id={`${uid}-price-max`}
+                label={t('priceMax')}
                 placeholder={t('priceMax')}
                 value={maxPrice}
                 onChange={handleMaxChange}

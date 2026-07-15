@@ -11,16 +11,22 @@ exports[`Search stories snapshot > FullyFeatured story renders and matches snaps
       <div
         class="relative"
       >
+        <label
+          class="sr-only"
+          for="header-search-input-_r_0_"
+        >
+          Search
+        </label>
         <input
           aria-autocomplete="list"
-          aria-controls="radix-_r_0_"
+          aria-controls="radix-_r_1_"
           aria-expanded="false"
           aria-haspopup="listbox"
-          aria-label="Search"
           class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground"
           data-slot="popover-trigger"
           data-state="closed"
           data-testid="header-search"
+          id="header-search-input-_r_0_"
           placeholder="Search"
           role="combobox"
           type="text"

@@ -69,167 +69,234 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
           </div>
         </div>
       </div>
-      <div
+      <ul
         class="space-y-4 m-0 border-x border-t border-border rounded-t-none"
+        role="list"
       >
-        <a
-          class="block transition-opacity hover:opacity-95 m-0"
-          data-discover="true"
-          href="/global/en-GB/account/orders/INV001"
-        >
-          <div
-            class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
-            data-slot="card"
+        <li>
+          <a
+            class="block transition-opacity hover:opacity-95 m-0"
+            data-discover="true"
+            href="/global/en-GB/account/orders/INV001"
           >
             <div
-              class="p-6 space-y-4 border-b border-separator"
-              data-slot="card-content"
+              class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
+              data-slot="card"
             >
               <div
-                class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
+                class="p-6 space-y-4 border-b border-separator"
+                data-slot="card-content"
               >
                 <div
-                  class="flex flex-wrap gap-x-8 gap-y-2"
+                  class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
                 >
                   <div
-                    class="space-y-2"
+                    class="flex flex-wrap gap-x-8 gap-y-2"
                   >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
+                    <div
+                      class="space-y-2"
                     >
-                      Order ID
-                    </p>
-                    <p
-                      class="text-sm leading-none text-left text-foreground font-medium"
+                      <p
+                        class="text-left text-xs font-medium text-muted-foreground"
+                      >
+                        Order ID
+                      </p>
+                      <p
+                        class="text-sm leading-none text-left text-foreground font-medium"
+                      >
+                        #INV001
+                      </p>
+                    </div>
+                    <div
+                      class="space-y-2"
                     >
-                      #INV001
-                    </p>
+                      <p
+                        class="text-left text-xs font-medium text-muted-foreground"
+                      >
+                        Order Date
+                      </p>
+                      <p
+                        class="text-sm font-medium leading-none text-left text-foreground"
+                      >
+                        14 Sept 2024
+                      </p>
+                    </div>
+                    <div
+                      class="space-y-2"
+                    >
+                      <p
+                        class="text-left text-xs font-medium text-muted-foreground"
+                      >
+                        Total
+                      </p>
+                      <p
+                        class="text-sm font-medium leading-none text-left text-foreground"
+                      >
+                        £250.00
+                      </p>
+                    </div>
+                    <div
+                      class="space-y-2"
+                    >
+                      <p
+                        class="text-left text-xs font-medium text-muted-foreground"
+                      >
+                        Items
+                      </p>
+                      <p
+                        class="text-sm leading-none text-left text-foreground font-semibold"
+                      >
+                        4
+                      </p>
+                    </div>
                   </div>
-                  <div
-                    class="space-y-2"
+                  <span
+                    class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
+                    data-slot="badge"
+                    data-testid="order-status-badge"
                   >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
-                    >
-                      Order Date
-                    </p>
-                    <p
-                      class="text-sm font-medium leading-none text-left text-foreground"
-                    >
-                      14 Sept 2024
-                    </p>
-                  </div>
-                  <div
-                    class="space-y-2"
-                  >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
-                    >
-                      Total
-                    </p>
-                    <p
-                      class="text-sm font-medium leading-none text-left text-foreground"
-                    >
-                      £250.00
-                    </p>
-                  </div>
-                  <div
-                    class="space-y-2"
-                  >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
-                    >
-                      Items
-                    </p>
-                    <p
-                      class="text-sm leading-none text-left text-foreground font-semibold"
-                    >
-                      4
-                    </p>
-                  </div>
-                </div>
-                <span
-                  class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
-                  data-slot="badge"
-                  data-testid="order-status-badge"
-                >
-                  Ready for Pickup
-                </span>
-              </div>
-              <div
-                class="flex flex-wrap gap-2"
-              >
-                <div
-                  class="relative"
-                >
-                  <div
-                    class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
-                  >
-                    <img
-                      alt="Classic White Shirt"
-                      class="w-full h-full object-cover"
-                      loading="lazy"
-                      src="__ASSET_MOCK__"
-                    />
-                  </div>
+                    Ready for Pickup
+                  </span>
                 </div>
                 <div
-                  class="relative"
+                  class="flex flex-wrap gap-2"
                 >
                   <div
-                    class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                    class="relative"
                   >
-                    <img
-                      alt="Blue Dress Pants"
-                      class="w-full h-full object-cover"
-                      loading="lazy"
-                      src="__ASSET_MOCK__"
-                    />
+                    <div
+                      class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                    >
+                      <img
+                        alt="Classic White Shirt"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                        src="__ASSET_MOCK__"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="relative"
+                  >
+                    <div
+                      class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                    >
+                      <img
+                        alt="Blue Dress Pants"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                        src="__ASSET_MOCK__"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="relative"
+                  >
+                    <div
+                      class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                    >
+                      <img
+                        alt="Silk Scarf"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                        src="__ASSET_MOCK__"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="relative"
+                  >
+                    <div
+                      class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                    >
+                      <img
+                        alt="Leather Handbag"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                        src="__ASSET_MOCK__"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div
-                  class="relative"
+                  class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui rounded-ui bg-muted border-border p-0"
+                  data-slot="card"
                 >
                   <div
-                    class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                    class="p-4 space-y-2"
+                    data-slot="card-content"
                   >
-                    <img
-                      alt="Silk Scarf"
-                      class="w-full h-full object-cover"
-                      loading="lazy"
-                      src="__ASSET_MOCK__"
-                    />
+                    <div
+                      class="flex items-center gap-2"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-map-pin size-4 text-muted-foreground"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                        />
+                        <circle
+                          cx="12"
+                          cy="10"
+                          r="3"
+                        />
+                      </svg>
+                      <span
+                        class="text-sm leading-none text-left font-semibold text-foreground"
+                      >
+                        Pickup Location
+                      </span>
+                    </div>
+                    <div
+                      class="space-y-1 pl-6"
+                    >
+                      <div>
+                        <p
+                          class="text-left text-xs font-normal text-muted-foreground"
+                        >
+                          Location
+                        </p>
+                        <p
+                          class="text-sm font-medium leading-none text-left text-foreground"
+                        >
+                          Market Street San Francisco
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          class="text-left text-xs font-normal text-muted-foreground"
+                        >
+                          Address
+                        </p>
+                        <p
+                          class="text-sm leading-none text-left text-foreground font-normal"
+                        >
+                          415 Mission Street, San Francisco, CA 94105
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div
-                  class="relative"
+                  class="pt-2"
                 >
-                  <div
-                    class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                  <span
+                    class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
                   >
-                    <img
-                      alt="Leather Handbag"
-                      class="w-full h-full object-cover"
-                      loading="lazy"
-                      src="__ASSET_MOCK__"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div
-                class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui rounded-ui bg-muted border-border p-0"
-                data-slot="card"
-              >
-                <div
-                  class="p-4 space-y-2"
-                  data-slot="card-content"
-                >
-                  <div
-                    class="flex items-center gap-2"
-                  >
+                    View Order Details
                     <svg
                       aria-hidden="true"
-                      class="lucide lucide-map-pin size-4 text-muted-foreground"
+                      class="lucide lucide-chevron-right size-4"
                       fill="none"
                       height="24"
                       stroke="currentColor"
@@ -241,229 +308,167 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-                      />
-                      <circle
-                        cx="12"
-                        cy="10"
-                        r="3"
+                        d="m9 18 6-6-6-6"
                       />
                     </svg>
-                    <span
-                      class="text-sm leading-none text-left font-semibold text-foreground"
-                    >
-                      Pickup Location
-                    </span>
-                  </div>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a
+            class="block transition-opacity hover:opacity-95 m-0"
+            data-discover="true"
+            href="/global/en-GB/account/orders/INV002"
+          >
+            <div
+              class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
+              data-slot="card"
+            >
+              <div
+                class="p-6 space-y-4 border-b border-separator"
+                data-slot="card-content"
+              >
+                <div
+                  class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
+                >
                   <div
-                    class="space-y-1 pl-6"
+                    class="flex flex-wrap gap-x-8 gap-y-2"
                   >
-                    <div>
+                    <div
+                      class="space-y-2"
+                    >
                       <p
-                        class="text-left text-xs font-normal text-muted-foreground"
+                        class="text-left text-xs font-medium text-muted-foreground"
                       >
-                        Location
+                        Order ID
+                      </p>
+                      <p
+                        class="text-sm leading-none text-left text-foreground font-medium"
+                      >
+                        #INV002
+                      </p>
+                    </div>
+                    <div
+                      class="space-y-2"
+                    >
+                      <p
+                        class="text-left text-xs font-medium text-muted-foreground"
+                      >
+                        Order Date
                       </p>
                       <p
                         class="text-sm font-medium leading-none text-left text-foreground"
                       >
-                        Market Street San Francisco
+                        10 Sept 2024
                       </p>
                     </div>
-                    <div>
+                    <div
+                      class="space-y-2"
+                    >
                       <p
-                        class="text-left text-xs font-normal text-muted-foreground"
+                        class="text-left text-xs font-medium text-muted-foreground"
                       >
-                        Address
+                        Total
                       </p>
                       <p
-                        class="text-sm leading-none text-left text-foreground font-normal"
+                        class="text-sm font-medium leading-none text-left text-foreground"
                       >
-                        415 Mission Street, San Francisco, CA 94105
+                        £89.99
+                      </p>
+                    </div>
+                    <div
+                      class="space-y-2"
+                    >
+                      <p
+                        class="text-left text-xs font-medium text-muted-foreground"
+                      >
+                        Items
+                      </p>
+                      <p
+                        class="text-sm leading-none text-left text-foreground font-semibold"
+                      >
+                        1
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
-              <div
-                class="pt-2"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
-                >
-                  View Order Details
-                  <svg
-                    aria-hidden="true"
-                    class="lucide lucide-chevron-right size-4"
-                    fill="none"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
+                  <span
+                    class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
+                    data-slot="badge"
+                    data-testid="order-status-badge"
                   >
-                    <path
-                      d="m9 18 6-6-6-6"
-                    />
-                  </svg>
-                </span>
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-check mr-1 size-3.5"
+                      data-testid="order-status-icon"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M20 6 9 17l-5-5"
+                      />
+                    </svg>
+                    Completed
+                  </span>
+                </div>
+                <div
+                  class="flex flex-wrap gap-2"
+                >
+                  <div
+                    class="relative"
+                  >
+                    <div
+                      class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                    >
+                      <img
+                        alt="Running Shoes"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                        src="__ASSET_MOCK__"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="pt-2"
+                >
+                  <span
+                    class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                  >
+                    View Order Details
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-right size-4"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m9 18 6-6-6-6"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </a>
-        <a
-          class="block transition-opacity hover:opacity-95 m-0"
-          data-discover="true"
-          href="/global/en-GB/account/orders/INV002"
-        >
-          <div
-            class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
-            data-slot="card"
-          >
-            <div
-              class="p-6 space-y-4 border-b border-separator"
-              data-slot="card-content"
-            >
-              <div
-                class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
-              >
-                <div
-                  class="flex flex-wrap gap-x-8 gap-y-2"
-                >
-                  <div
-                    class="space-y-2"
-                  >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
-                    >
-                      Order ID
-                    </p>
-                    <p
-                      class="text-sm leading-none text-left text-foreground font-medium"
-                    >
-                      #INV002
-                    </p>
-                  </div>
-                  <div
-                    class="space-y-2"
-                  >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
-                    >
-                      Order Date
-                    </p>
-                    <p
-                      class="text-sm font-medium leading-none text-left text-foreground"
-                    >
-                      10 Sept 2024
-                    </p>
-                  </div>
-                  <div
-                    class="space-y-2"
-                  >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
-                    >
-                      Total
-                    </p>
-                    <p
-                      class="text-sm font-medium leading-none text-left text-foreground"
-                    >
-                      £89.99
-                    </p>
-                  </div>
-                  <div
-                    class="space-y-2"
-                  >
-                    <p
-                      class="text-left text-xs font-medium text-muted-foreground"
-                    >
-                      Items
-                    </p>
-                    <p
-                      class="text-sm leading-none text-left text-foreground font-semibold"
-                    >
-                      1
-                    </p>
-                  </div>
-                </div>
-                <span
-                  class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
-                  data-slot="badge"
-                  data-testid="order-status-badge"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="lucide lucide-check mr-1 size-3.5"
-                    data-testid="order-status-icon"
-                    fill="none"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M20 6 9 17l-5-5"
-                    />
-                  </svg>
-                  Completed
-                </span>
-              </div>
-              <div
-                class="flex flex-wrap gap-2"
-              >
-                <div
-                  class="relative"
-                >
-                  <div
-                    class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
-                  >
-                    <img
-                      alt="Running Shoes"
-                      class="w-full h-full object-cover"
-                      loading="lazy"
-                      src="__ASSET_MOCK__"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div
-                class="pt-2"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
-                >
-                  View Order Details
-                  <svg
-                    aria-hidden="true"
-                    class="lucide lucide-chevron-right size-4"
-                    fill="none"
-                    height="24"
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="m9 18 6-6-6-6"
-                    />
-                  </svg>
-                </span>
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
+          </a>
+        </li>
+      </ul>
       <div
         class="p-6 m-0 border-b border-x border-border rounded-b-xl flex flex-row items-center w-full gap-4"
       >
@@ -696,164 +701,181 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
       >
         Quick Links
       </h2>
-      <div
+      <ul
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        role="list"
       >
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account"
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-user h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
-              />
-              <circle
-                cx="12"
-                cy="7"
-                r="4"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Account Details
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/addresses"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-user h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Account Details
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/addresses"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-map-pin h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-              />
-              <circle
-                cx="12"
-                cy="10"
-                r="3"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Manage Addresses
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/payment-methods"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-map-pin h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                />
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="3"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Manage Addresses
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/payment-methods"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-credit-card h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <rect
-                height="14"
-                rx="2"
-                width="20"
-                x="2"
-                y="5"
-              />
-              <line
-                x1="2"
-                x2="22"
-                y1="10"
-                y2="10"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Payment Methods
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/orders"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-credit-card h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="14"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="5"
+                />
+                <line
+                  x1="2"
+                  x2="22"
+                  y1="10"
+                  y2="10"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Payment Methods
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/orders"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-receipt h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
-              />
-              <path
-                d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
-              />
-              <path
-                d="M12 17.5v-11"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Order History
-            </h3>
-          </div>
-        </a>
-      </div>
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-receipt h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
+                />
+                <path
+                  d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
+                />
+                <path
+                  d="M12 17.5v-11"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Order History
+              </h3>
+            </div>
+          </a>
+        </li>
+      </ul>
     </div>
   </div>
 </div>
@@ -1092,164 +1114,181 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
       >
         Quick Links
       </h2>
-      <div
+      <ul
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        role="list"
       >
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account"
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-user h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
-              />
-              <circle
-                cx="12"
-                cy="7"
-                r="4"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Account Details
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/addresses"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-user h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Account Details
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/addresses"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-map-pin h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-              />
-              <circle
-                cx="12"
-                cy="10"
-                r="3"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Manage Addresses
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/payment-methods"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-map-pin h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                />
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="3"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Manage Addresses
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/payment-methods"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-credit-card h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <rect
-                height="14"
-                rx="2"
-                width="20"
-                x="2"
-                y="5"
-              />
-              <line
-                x1="2"
-                x2="22"
-                y1="10"
-                y2="10"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Payment Methods
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/orders"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-credit-card h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="14"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="5"
+                />
+                <line
+                  x1="2"
+                  x2="22"
+                  y1="10"
+                  y2="10"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Payment Methods
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/orders"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-receipt h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
-              />
-              <path
-                d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
-              />
-              <path
-                d="M12 17.5v-11"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Order History
-            </h3>
-          </div>
-        </a>
-      </div>
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-receipt h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
+                />
+                <path
+                  d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
+                />
+                <path
+                  d="M12 17.5v-11"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Order History
+              </h3>
+            </div>
+          </a>
+        </li>
+      </ul>
     </div>
   </div>
 </div>
@@ -1882,164 +1921,181 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
       >
         Quick Links
       </h2>
-      <div
+      <ul
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        role="list"
       >
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account"
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-user h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
-              />
-              <circle
-                cx="12"
-                cy="7"
-                r="4"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Account Details
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/addresses"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-user h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Account Details
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/addresses"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-map-pin h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-              />
-              <circle
-                cx="12"
-                cy="10"
-                r="3"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Manage Addresses
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/payment-methods"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-map-pin h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                />
+                <circle
+                  cx="12"
+                  cy="10"
+                  r="3"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Manage Addresses
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/payment-methods"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-credit-card h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <rect
-                height="14"
-                rx="2"
-                width="20"
-                x="2"
-                y="5"
-              />
-              <line
-                x1="2"
-                x2="22"
-                y1="10"
-                y2="10"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Payment Methods
-            </h3>
-          </div>
-        </a>
-        <a
-          class="group"
-          data-discover="true"
-          href="/global/en-GB/account/orders"
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-credit-card h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  height="14"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="5"
+                />
+                <line
+                  x1="2"
+                  x2="22"
+                  y1="10"
+                  y2="10"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Payment Methods
+              </h3>
+            </div>
+          </a>
+        </li>
+        <li
+          class="h-full"
         >
-          <div
-            class="h-full flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
+          <a
+            class="group h-full flex"
+            data-discover="true"
+            href="/global/en-GB/account/orders"
           >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-receipt h-4 w-4 text-foreground group-hover:text-primary transition-colors"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              class="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary"
             >
-              <path
-                d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
-              />
-              <path
-                d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
-              />
-              <path
-                d="M12 17.5v-11"
-              />
-            </svg>
-            <h3
-              class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
-            >
-              Order History
-            </h3>
-          </div>
-        </a>
-      </div>
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-receipt h-4 w-4 text-foreground group-hover:text-primary transition-colors"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"
+                />
+                <path
+                  d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
+                />
+                <path
+                  d="M12 17.5v-11"
+                />
+              </svg>
+              <h3
+                class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
+              >
+                Order History
+              </h3>
+            </div>
+          </a>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

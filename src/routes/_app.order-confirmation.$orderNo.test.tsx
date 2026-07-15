@@ -17,7 +17,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
-import { ApiError, type ShopperOrders, type ShopperStores } from '@/scapi';
+import { ApiError, type ShopperOrders, type ShopperProducts, type ShopperStores } from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import OrderConfirmationPage, { loader, ErrorBoundary } from './_app.order-confirmation.$orderNo';
@@ -141,7 +141,10 @@ const mockStoresByStoreId = new Map<string, ShopperStores.schemas['Store']>([['s
 
 // --- Helpers ---
 
-function renderRoute(order: ShopperOrders.schemas['Order']) {
+function renderRoute(
+    order: ShopperOrders.schemas['Order'],
+    productsById: Record<string, ShopperProducts.schemas['Product'] | undefined> = {}
+) {
     const Stub = createRoutesStub([
         {
             path: '/order-confirmation/:orderNo',
@@ -149,7 +152,7 @@ function renderRoute(order: ShopperOrders.schemas['Order']) {
             loader: () => ({
                 orderData: Promise.resolve({
                     order,
-                    productsById: {},
+                    productsById,
                     storesByStoreId: new Map(),
                 }),
                 showPostOrderRegistration: false,
@@ -437,7 +440,7 @@ describe('Order Confirmation Route', () => {
 
             await waitFor(() => {
                 const promotionsLabel = screen.getByText(t('checkout:confirmation.totals.promotions'));
-                const promotionsRow = promotionsLabel.closest('div');
+                const promotionsRow = promotionsLabel.closest('li');
                 const promotionsValue = promotionsRow?.querySelector('span:last-child');
                 expect(promotionsValue?.textContent).not.toContain('0.00');
             });
@@ -469,7 +472,7 @@ describe('Order Confirmation Route', () => {
 
             await waitFor(() => {
                 const promotionsLabel = screen.getByText(t('checkout:confirmation.totals.promotions'));
-                const promotionsRow = promotionsLabel.closest('div');
+                const promotionsRow = promotionsLabel.closest('li');
                 const promotionsValue = promotionsRow?.querySelector('span:last-child');
                 // -5 + -10 = -15, should not be 0
                 expect(promotionsValue?.textContent).not.toContain('0.00');
@@ -496,7 +499,7 @@ describe('Order Confirmation Route', () => {
 
             await waitFor(() => {
                 const promotionsLabel = screen.getByText(t('checkout:confirmation.totals.promotions'));
-                const promotionsRow = promotionsLabel.closest('div');
+                const promotionsRow = promotionsLabel.closest('li');
                 const promotionsValue = promotionsRow?.querySelector('span:last-child');
                 expect(promotionsValue?.textContent).toContain('0.00');
             });
@@ -523,7 +526,7 @@ describe('Order Confirmation Route', () => {
 
             await waitFor(() => {
                 const promotionsLabel = screen.getByText(t('checkout:confirmation.totals.promotions'));
-                const promotionsRow = promotionsLabel.closest('div');
+                const promotionsRow = promotionsLabel.closest('li');
                 const promotionsValue = promotionsRow?.querySelector('span:last-child');
                 expect(promotionsValue).toHaveClass('text-success');
             });
@@ -637,6 +640,155 @@ describe('Order Confirmation Route', () => {
 
             await waitFor(() => {
                 expect(screen.getByText(t('checkout:confirmation.summaryLabels.freeShipping'))).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('accessibility - list markup', () => {
+        test('renders product items as semantic list with role="list"', async () => {
+            const order: ShopperOrders.schemas['Order'] = {
+                ...baseOrder,
+                productItems: [
+                    {
+                        itemId: 'item1',
+                        productId: 'product1',
+                        productName: 'Checked Silk Tie',
+                        quantity: 1,
+                        basePrice: 50.0,
+                        price: 50.0,
+                    },
+                    {
+                        itemId: 'item2',
+                        productId: 'product2',
+                        productName: 'Leather Belt',
+                        quantity: 2,
+                        basePrice: 35.0,
+                        price: 35.0,
+                    },
+                ],
+            };
+
+            renderRoute(order);
+
+            await waitFor(() => {
+                const list = screen.getByTestId('order-confirmation-product-list');
+                expect(list).toBeInTheDocument();
+                const listItems = list.querySelectorAll(':scope > li');
+                expect(listItems.length).toBe(2);
+            });
+        });
+
+        test('renders single product item in semantic list', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                const list = screen.getByTestId('order-confirmation-product-list');
+                expect(list).toBeInTheDocument();
+                const listItems = list.querySelectorAll(':scope > li');
+                expect(listItems.length).toBe(1);
+            });
+        });
+
+        test('does not render list when no product items', async () => {
+            const order: ShopperOrders.schemas['Order'] = {
+                ...baseOrder,
+                productItems: [],
+            };
+
+            renderRoute(order);
+
+            await waitFor(() => {
+                expect(screen.getByText(t('checkout:confirmation.emptyItemsFallback'))).toBeInTheDocument();
+                // Other lists (help actions, shipping, totals) always render; only the
+                // product list must disappear when there are no items.
+                expect(screen.queryByTestId('order-confirmation-product-list')).not.toBeInTheDocument();
+            });
+        });
+
+        test('renders help actions in semantic list', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                // Anchor off the FAQ action; <Link to="#"> resolves to a real href, so the
+                // list can't be found by a[href="#"].
+                const helpActionsList = screen
+                    .getByText(t('checkout:confirmation.helpLinks.faq'))
+                    .closest('ul[role="list"]');
+                expect(helpActionsList).toBeInTheDocument();
+                const listItems = helpActionsList?.querySelectorAll(':scope > li');
+                expect(listItems?.length).toBe(3);
+            });
+        });
+
+        test('renders delivery shipments in semantic list', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                const shippingSection = screen
+                    .getByText(t('checkout:confirmation.summaryLabels.arriving'))
+                    .closest('ul[role="list"]');
+                expect(shippingSection).toBeInTheDocument();
+            });
+        });
+
+        test('renders variation values as a description list', async () => {
+            const orderWithVariations: ShopperOrders.schemas['Order'] = {
+                ...baseOrder,
+                productItems: [
+                    {
+                        productId: 'prod-1',
+                        productName: 'Test Product',
+                        quantity: 1,
+                        price: 50.0,
+                        priceAfterItemDiscount: 50.0,
+                    },
+                ],
+            };
+
+            // Variation labels/values only render when the loader resolved product data
+            // carrying variationAttributes + matching variationValues.
+            const productWithVariations: ShopperProducts.schemas['Product'] = {
+                id: 'prod-1',
+                name: 'Test Product',
+                variationAttributes: [
+                    {
+                        id: 'color',
+                        name: 'Color',
+                        values: [{ value: 'RED', name: 'Red' }],
+                    },
+                    {
+                        id: 'size',
+                        name: 'Size',
+                        values: [{ value: 'M', name: 'Medium' }],
+                    },
+                ],
+                variationValues: { color: 'RED', size: 'M' },
+            };
+
+            renderRoute(orderWithVariations, { 'prod-1': productWithVariations });
+
+            // Variation pairs use <dl>/<dt>/<dd> so screen readers announce "term, description".
+            const colorTerm = await screen.findByText('Color:');
+            expect(colorTerm.tagName).toBe('DT');
+            const list = colorTerm.closest('dl');
+            expect(list).toBeInTheDocument();
+
+            expect(screen.getByText('Size:').tagName).toBe('DT');
+            const redValue = screen.getByText('Red');
+            expect(redValue.tagName).toBe('DD');
+            expect(screen.getByText('Medium').tagName).toBe('DD');
+        });
+
+        test('renders summary rows in semantic list', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                const summarySection = screen
+                    .getByText(t('checkout:confirmation.totals.total'))
+                    .closest('ul[role="list"]');
+                expect(summarySection).toBeInTheDocument();
+                const listItems = summarySection?.querySelectorAll(':scope > li');
+                expect(listItems?.length).toBe(5);
             });
         });
     });

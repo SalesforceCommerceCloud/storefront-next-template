@@ -5,8 +5,9 @@ exports[`ProductItemsList stories snapshot > Empty story renders and matches sna
   <div
     class="max-w-2xl mx-auto"
   >
-    <div
+    <ul
       class="space-y-4"
+      role="list"
     />
   </div>
 </div>
@@ -17,10 +18,11 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
   <div
     class="max-w-2xl mx-auto"
   >
-    <div
+    <ul
       class="space-y-4"
+      role="list"
     >
-      <div
+      <li
         class="border-b border-muted-foreground/10 last:border-b-0"
       >
         <div
@@ -181,8 +183,8 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
             </div>
           </div>
         </div>
-      </div>
-      <div
+      </li>
+      <li
         class="border-b border-muted-foreground/10 last:border-b-0"
       >
         <div
@@ -374,8 +376,8 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </li>
+    </ul>
   </div>
 </div>
 `;

@@ -89,12 +89,13 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="space-y-3"
         >
           <div
-            aria-label="Color"
+            aria-labelledby="swatch-group-label-_r_0_"
             class="flex flex-col gap-3"
             role="radiogroup"
           >
             <div
               class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+              id="swatch-group-label-_r_0_"
             >
               <span>
                 Color
@@ -226,12 +227,13 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="space-y-3"
         >
           <div
-            aria-label="Color"
+            aria-labelledby="swatch-group-label-_r_1_"
             class="flex flex-col gap-3"
             role="radiogroup"
           >
             <div
               class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+              id="swatch-group-label-_r_1_"
             >
               <span>
                 Color
@@ -363,12 +365,13 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="space-y-3"
         >
           <div
-            aria-label="Color"
+            aria-labelledby="swatch-group-label-_r_2_"
             class="flex flex-col gap-3"
             role="radiogroup"
           >
             <div
               class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+              id="swatch-group-label-_r_2_"
             >
               <span>
                 Color
@@ -431,7 +434,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
         <label
           class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
           data-slot="label"
-          for="quantity"
+          for="quantity-_r_3_"
         >
           Quantity
         </label>
@@ -447,8 +450,8 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
             −
           </button>
           <input
-            aria-label="Quantity"
             class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            id="quantity-_r_3_"
             min="1"
             step="1"
             type="number"

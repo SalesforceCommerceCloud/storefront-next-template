@@ -38,12 +38,13 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -125,7 +126,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -207,7 +208,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -289,7 +290,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -480,6 +481,7 @@ exports[`PopularCategories stories snapshot > Default story renders and matches 
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             />
           </div>
           <button
@@ -605,6 +607,7 @@ exports[`PopularCategories stories snapshot > Loading story renders and matches 
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             />
           </div>
           <button
@@ -718,12 +721,13 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -805,7 +809,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -887,7 +891,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -969,7 +973,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1051,7 +1055,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1133,7 +1137,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1336,12 +1340,13 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1423,7 +1428,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1505,7 +1510,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1587,7 +1592,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1778,12 +1783,13 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1865,7 +1871,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1947,7 +1953,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2029,7 +2035,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2220,12 +2226,13 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2288,7 +2295,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2351,7 +2358,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2414,7 +2421,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"

@@ -58,17 +58,17 @@ describe('SwatchGroup', () => {
 
     test('renders with proper radiogroup accessibility attributes', () => {
         render(
-            <SwatchGroup label="Color" ariaLabel="Choose a color">
+            <SwatchGroup label="Color">
                 <MockSwatch value="red">Red</MockSwatch>
                 <MockSwatch value="blue">Blue</MockSwatch>
             </SwatchGroup>
         );
 
         const radioGroup = screen.getByRole('radiogroup');
-        expect(radioGroup).toHaveAttribute('aria-label', 'Choose a color');
+        expect(radioGroup).toHaveAttribute('aria-labelledby');
     });
 
-    test('uses label as aria-label when ariaLabel not provided', () => {
+    test('links radiogroup to visible label via aria-labelledby', () => {
         render(
             <SwatchGroup label="Size">
                 <MockSwatch value="small">S</MockSwatch>
@@ -77,7 +77,13 @@ describe('SwatchGroup', () => {
         );
 
         const radioGroup = screen.getByRole('radiogroup');
-        expect(radioGroup).toHaveAttribute('aria-label', 'Size');
+        const labelledById = radioGroup.getAttribute('aria-labelledby');
+        expect(labelledById).toBeTruthy();
+        if (labelledById) {
+            const labelElement = document.getElementById(labelledById);
+            expect(labelElement).toBeInTheDocument();
+            expect(labelElement).toHaveTextContent('Size:');
+        }
     });
 
     test('calls handleChange when selection changes', async () => {

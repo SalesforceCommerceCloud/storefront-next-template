@@ -167,7 +167,7 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
             class="relative mt-2 inline-block"
           >
             <div
-              aria-controls="radix-_r_c_"
+              aria-controls="radix-_r_e_"
               aria-haspopup="dialog"
               class="relative inline-block"
               data-slot="popover-trigger"
@@ -297,12 +297,13 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
             class="space-y-3"
           >
             <div
-              aria-label="Size"
+              aria-labelledby="swatch-group-label-_r_k_"
               class="inline-flex flex-col gap-3"
               role="radiogroup"
             >
               <div
                 class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+                id="swatch-group-label-_r_k_"
               >
                 <span>
                   Size
@@ -510,7 +511,7 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
             <label
               class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
               data-slot="label"
-              for="quantity"
+              for="quantity-_r_n_"
             >
               Quantity
             </label>
@@ -526,8 +527,8 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
                 −
               </button>
               <input
-                aria-label="Quantity"
                 class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                id="quantity-_r_n_"
                 min="1"
                 step="1"
                 type="number"
@@ -774,7 +775,7 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
             class="relative mt-2 inline-block"
           >
             <div
-              aria-controls="radix-_r_m_"
+              aria-controls="radix-_r_q_"
               aria-haspopup="dialog"
               class="relative inline-block"
               data-slot="popover-trigger"
@@ -904,12 +905,13 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
             class="space-y-3"
           >
             <div
-              aria-label="Size"
+              aria-labelledby="swatch-group-label-_r_10_"
               class="inline-flex flex-col gap-3"
               role="radiogroup"
             >
               <div
                 class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+                id="swatch-group-label-_r_10_"
               >
                 <span>
                   Size
@@ -998,7 +1000,7 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
             <label
               class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
               data-slot="label"
-              for="quantity"
+              for="quantity-_r_11_"
             >
               Quantity
             </label>
@@ -1014,8 +1016,8 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
                 −
               </button>
               <input
-                aria-label="Quantity"
                 class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                id="quantity-_r_11_"
                 min="1"
                 step="1"
                 type="number"
@@ -1400,12 +1402,13 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
             class="space-y-3"
           >
             <div
-              aria-label="Size"
+              aria-labelledby="swatch-group-label-_r_8_"
               class="inline-flex flex-col gap-3"
               role="radiogroup"
             >
               <div
                 class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+                id="swatch-group-label-_r_8_"
               >
                 <span>
                   Size
@@ -1613,7 +1616,7 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
             <label
               class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
               data-slot="label"
-              for="quantity"
+              for="quantity-_r_b_"
             >
               Quantity
             </label>
@@ -1629,8 +1632,8 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
                 −
               </button>
               <input
-                aria-label="Quantity"
                 class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                id="quantity-_r_b_"
                 min="1"
                 step="1"
                 type="number"

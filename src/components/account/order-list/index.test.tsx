@@ -350,4 +350,28 @@ describe('OrderListBody Component', () => {
         render(<OrderListBody orders={testOrders} />);
         expect(screen.queryByRole('heading', { level: 4 })).not.toBeInTheDocument();
     });
+
+    describe('Semantic list markup', () => {
+        test('renders orders in a ul with role="list"', () => {
+            render(<OrderListBody orders={testOrders} />);
+
+            const list = screen.getByRole('list');
+            expect(list).toBeInTheDocument();
+            expect(list.tagName).toBe('UL');
+        });
+
+        test('renders each order in a li element', () => {
+            render(<OrderListBody orders={testOrders} />);
+
+            const list = screen.getByRole('list');
+            const listItems = list.querySelectorAll('li');
+            expect(listItems).toHaveLength(3);
+        });
+
+        test('does not render list when orders is empty', () => {
+            render(<OrderListBody orders={[]} />);
+
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
+    });
 });

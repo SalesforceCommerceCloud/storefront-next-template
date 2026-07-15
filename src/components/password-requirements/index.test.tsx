@@ -206,4 +206,22 @@ describe('PasswordRequirement', () => {
             expect(checkIcons.length).toBeGreaterThan(0);
         });
     });
+
+    describe('Semantic list markup', () => {
+        it('renders requirements in a ul with role="list"', () => {
+            render(<PasswordRequirement password="" />);
+
+            const list = screen.getByRole('list');
+            expect(list).toBeInTheDocument();
+            expect(list.tagName).toBe('UL');
+        });
+
+        it('renders each requirement in a li element', () => {
+            render(<PasswordRequirement password="" />);
+
+            const list = screen.getByRole('list');
+            const listItems = list.querySelectorAll('li');
+            expect(listItems).toHaveLength(5);
+        });
+    });
 });

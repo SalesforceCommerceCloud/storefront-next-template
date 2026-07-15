@@ -64,10 +64,11 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -94,8 +95,8 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -122,8 +123,8 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -150,8 +151,8 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -178,8 +179,8 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -206,8 +207,8 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
       <div>
@@ -310,10 +311,11 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -340,8 +342,8 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -368,8 +370,8 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -396,8 +398,8 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -424,8 +426,8 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -452,8 +454,8 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
       <div>
@@ -565,10 +567,11 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -595,8 +598,8 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -623,8 +626,8 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -651,8 +654,8 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -679,8 +682,8 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -707,8 +710,8 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
       <div>

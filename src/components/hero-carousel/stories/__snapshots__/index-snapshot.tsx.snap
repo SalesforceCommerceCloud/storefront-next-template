@@ -20,13 +20,14 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
     >
       <div
         class="flex -ml-4 h-full"
+        role="list"
         style="transform: translate3d(0px,0px,0px);"
       >
         <div
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -87,7 +88,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -148,7 +149,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -338,13 +339,14 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
     >
       <div
         class="flex -ml-4 h-full"
+        role="list"
         style="transform: translate3d(0px,0px,0px);"
       >
         <div
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -405,7 +407,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -466,7 +468,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -644,13 +646,14 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
     >
       <div
         class="flex -ml-4 h-full"
+        role="list"
         style="transform: translate3d(0px,0px,0px);"
       >
         <div
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -711,7 +714,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -772,7 +775,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"
@@ -950,13 +953,14 @@ exports[`HeroCarousel stories snapshot > SingleSlide story renders and matches s
     >
       <div
         class="flex -ml-4 h-full"
+        role="list"
         style="transform: translate3d(0px,0px,0px);"
       >
         <div
           aria-roledescription="slide"
           class="min-w-0 shrink-0 grow-0 basis-full pl-4 h-full"
           data-slot="carousel-item"
-          role="group"
+          role="listitem"
         >
           <div
             class="relative w-full h-full overflow-hidden"

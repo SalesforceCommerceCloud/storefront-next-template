@@ -108,11 +108,11 @@ export function PasswordRequirement({ password, className }: PasswordRequirement
             <p role="heading" aria-level={4} className="text-sm font-medium text-foreground">
                 {t('password.requirements.title')}
             </p>
-            <div className="space-y-1.5">
+            <ul role="list" className="space-y-1.5">
                 {requirements.map((requirement) => {
                     const isValid = requirement.validator(password);
                     return (
-                        <div
+                        <li
                             key={requirement.id}
                             className={cn(
                                 'flex items-center gap-2 text-sm transition-colors',
@@ -124,10 +124,10 @@ export function PasswordRequirement({ password, className }: PasswordRequirement
                                 <X className="h-4 w-4 text-muted-foreground" data-testid="x-icon" />
                             )}
                             <span>{t(requirement.textKey as never)}</span>
-                        </div>
+                        </li>
                     );
                 })}
-            </div>
+            </ul>
         </div>
     );
 }

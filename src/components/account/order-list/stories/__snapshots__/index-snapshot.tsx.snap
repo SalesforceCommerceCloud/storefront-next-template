@@ -25,144 +25,211 @@ exports[`OrderList stories snapshot > Default story renders and matches snapshot
       </p>
     </div>
   </div>
-  <div
+  <ul
     class="space-y-4 m-0 border-x border-t border-border rounded-t-none"
+    role="list"
   >
-    <a
-      class="block transition-opacity hover:opacity-95 m-0"
-      href="/account/orders/INV001"
-    >
-      <div
-        class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
-        data-slot="card"
+    <li>
+      <a
+        class="block transition-opacity hover:opacity-95 m-0"
+        href="/account/orders/INV001"
       >
         <div
-          class="p-6 space-y-4 border-b border-separator"
-          data-slot="card-content"
+          class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
+          data-slot="card"
         >
           <div
-            class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
+            class="p-6 space-y-4 border-b border-separator"
+            data-slot="card-content"
           >
             <div
-              class="flex flex-wrap gap-x-8 gap-y-2"
+              class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
             >
               <div
-                class="space-y-2"
+                class="flex flex-wrap gap-x-8 gap-y-2"
               >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
+                <div
+                  class="space-y-2"
                 >
-                  Order ID
-                </p>
-                <p
-                  class="text-sm leading-none text-left text-foreground font-medium"
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Order ID
+                  </p>
+                  <p
+                    class="text-sm leading-none text-left text-foreground font-medium"
+                  >
+                    #INV001
+                  </p>
+                </div>
+                <div
+                  class="space-y-2"
                 >
-                  #INV001
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Order Date
+                  </p>
+                  <p
+                    class="text-sm font-medium leading-none text-left text-foreground"
+                  >
+                    14 Sept 2024
+                  </p>
+                </div>
+                <div
+                  class="space-y-2"
                 >
-                  Order Date
-                </p>
-                <p
-                  class="text-sm font-medium leading-none text-left text-foreground"
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Total
+                  </p>
+                  <p
+                    class="text-sm font-medium leading-none text-left text-foreground"
+                  >
+                    £48.38
+                  </p>
+                </div>
+                <div
+                  class="space-y-2"
                 >
-                  14 Sept 2024
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Total
-                </p>
-                <p
-                  class="text-sm font-medium leading-none text-left text-foreground"
-                >
-                  £48.38
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Items
-                </p>
-                <p
-                  class="text-sm leading-none text-left text-foreground font-semibold"
-                >
-                  2
-                </p>
-              </div>
-            </div>
-            <span
-              class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
-              data-slot="badge"
-              data-testid="order-status-badge"
-            >
-              Created
-            </span>
-          </div>
-          <div
-            class="flex flex-wrap gap-2"
-          >
-            <div
-              class="relative"
-            >
-              <div
-                class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
-              >
-                <img
-                  alt="Classic Shirt"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  src="__ASSET_MOCK__"
-                />
-              </div>
-            </div>
-            <div
-              class="relative"
-            >
-              <div
-                class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
-              >
-                <img
-                  alt="Dress Pants"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  src="__ASSET_MOCK__"
-                />
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Items
+                  </p>
+                  <p
+                    class="text-sm leading-none text-left text-foreground font-semibold"
+                  >
+                    2
+                  </p>
+                </div>
               </div>
               <span
-                aria-label="Quantity: 2"
-                class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
+                class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+                data-slot="badge"
+                data-testid="order-status-badge"
               >
-                2
+                Created
               </span>
             </div>
-          </div>
-          <div
-            class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui rounded-ui bg-muted border-border p-0"
-            data-slot="card"
-          >
             <div
-              class="p-4 space-y-2"
-              data-slot="card-content"
+              class="flex flex-wrap gap-2"
             >
               <div
-                class="flex items-center gap-2"
+                class="relative"
               >
+                <div
+                  class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                >
+                  <img
+                    alt="Classic Shirt"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    src="__ASSET_MOCK__"
+                  />
+                </div>
+              </div>
+              <div
+                class="relative"
+              >
+                <div
+                  class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                >
+                  <img
+                    alt="Dress Pants"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    src="__ASSET_MOCK__"
+                  />
+                </div>
+                <span
+                  aria-label="Quantity: 2"
+                  class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
+                >
+                  2
+                </span>
+              </div>
+            </div>
+            <div
+              class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui rounded-ui bg-muted border-border p-0"
+              data-slot="card"
+            >
+              <div
+                class="p-4 space-y-2"
+                data-slot="card-content"
+              >
+                <div
+                  class="flex items-center gap-2"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-map-pin size-4 text-muted-foreground"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
+                    />
+                    <circle
+                      cx="12"
+                      cy="10"
+                      r="3"
+                    />
+                  </svg>
+                  <span
+                    class="text-sm leading-none text-left font-semibold text-foreground"
+                  >
+                    Pickup Location
+                  </span>
+                </div>
+                <div
+                  class="space-y-1 pl-6"
+                >
+                  <div>
+                    <p
+                      class="text-left text-xs font-normal text-muted-foreground"
+                    >
+                      Location
+                    </p>
+                    <p
+                      class="text-sm font-medium leading-none text-left text-foreground"
+                    >
+                      Salesforce Foundations San Francisco
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      class="text-left text-xs font-normal text-muted-foreground"
+                    >
+                      Address
+                    </p>
+                    <p
+                      class="text-sm leading-none text-left text-foreground font-normal"
+                    >
+                      415 Mission Street, San Francisco, CA 94105
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="pt-2"
+            >
+              <span
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+              >
+                View Order Details
                 <svg
                   aria-hidden="true"
-                  class="lucide lucide-map-pin size-4 text-muted-foreground"
+                  class="lucide lucide-chevron-right size-4"
                   fill="none"
                   height="24"
                   stroke="currentColor"
@@ -174,393 +241,333 @@ exports[`OrderList stories snapshot > Default story renders and matches snapshot
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-                  />
-                  <circle
-                    cx="12"
-                    cy="10"
-                    r="3"
+                    d="m9 18 6-6-6-6"
                   />
                 </svg>
-                <span
-                  class="text-sm leading-none text-left font-semibold text-foreground"
-                >
-                  Pickup Location
-                </span>
-              </div>
+              </span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a
+        class="block transition-opacity hover:opacity-95 m-0"
+        href="/account/orders/INV002"
+      >
+        <div
+          class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
+          data-slot="card"
+        >
+          <div
+            class="p-6 space-y-4 border-b border-separator"
+            data-slot="card-content"
+          >
+            <div
+              class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
+            >
               <div
-                class="space-y-1 pl-6"
+                class="flex flex-wrap gap-x-8 gap-y-2"
               >
-                <div>
+                <div
+                  class="space-y-2"
+                >
                   <p
-                    class="text-left text-xs font-normal text-muted-foreground"
+                    class="text-left text-xs font-medium text-muted-foreground"
                   >
-                    Location
+                    Order ID
+                  </p>
+                  <p
+                    class="text-sm leading-none text-left text-foreground font-medium"
+                  >
+                    #INV002
+                  </p>
+                </div>
+                <div
+                  class="space-y-2"
+                >
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Order Date
                   </p>
                   <p
                     class="text-sm font-medium leading-none text-left text-foreground"
                   >
-                    Salesforce Foundations San Francisco
+                    12 Sept 2024
                   </p>
                 </div>
-                <div>
+                <div
+                  class="space-y-2"
+                >
                   <p
-                    class="text-left text-xs font-normal text-muted-foreground"
+                    class="text-left text-xs font-medium text-muted-foreground"
                   >
-                    Address
+                    Total
                   </p>
                   <p
-                    class="text-sm leading-none text-left text-foreground font-normal"
+                    class="text-sm font-medium leading-none text-left text-foreground"
                   >
-                    415 Mission Street, San Francisco, CA 94105
+                    £43.00
                   </p>
                 </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="pt-2"
-          >
-            <span
-              class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              View Order Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-right size-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m9 18 6-6-6-6"
-                />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
-    </a>
-    <a
-      class="block transition-opacity hover:opacity-95 m-0"
-      href="/account/orders/INV002"
-    >
-      <div
-        class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
-        data-slot="card"
-      >
-        <div
-          class="p-6 space-y-4 border-b border-separator"
-          data-slot="card-content"
-        >
-          <div
-            class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
-          >
-            <div
-              class="flex flex-wrap gap-x-8 gap-y-2"
-            >
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
+                <div
+                  class="space-y-2"
                 >
-                  Order ID
-                </p>
-                <p
-                  class="text-sm leading-none text-left text-foreground font-medium"
-                >
-                  #INV002
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Order Date
-                </p>
-                <p
-                  class="text-sm font-medium leading-none text-left text-foreground"
-                >
-                  12 Sept 2024
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Total
-                </p>
-                <p
-                  class="text-sm font-medium leading-none text-left text-foreground"
-                >
-                  £43.00
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Items
-                </p>
-                <p
-                  class="text-sm leading-none text-left text-foreground font-semibold"
-                >
-                  1
-                </p>
-              </div>
-            </div>
-            <span
-              class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
-              data-slot="badge"
-              data-testid="order-status-badge"
-            >
-              New
-            </span>
-          </div>
-          <div
-            class="flex flex-wrap gap-2"
-          >
-            <div
-              class="relative"
-            >
-              <div
-                class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
-              >
-                <img
-                  alt="Summer Dress"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  src="__ASSET_MOCK__"
-                />
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Items
+                  </p>
+                  <p
+                    class="text-sm leading-none text-left text-foreground font-semibold"
+                  >
+                    1
+                  </p>
+                </div>
               </div>
               <span
-                aria-label="Quantity: 2"
-                class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
+                class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+                data-slot="badge"
+                data-testid="order-status-badge"
               >
-                2
+                New
               </span>
             </div>
-          </div>
-          <div
-            class="pt-2"
-          >
-            <span
-              class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              View Order Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-right size-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m9 18 6-6-6-6"
-                />
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
-    </a>
-    <a
-      class="block transition-opacity hover:opacity-95 m-0"
-      href="/account/orders/INV003"
-    >
-      <div
-        class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
-        data-slot="card"
-      >
-        <div
-          class="p-6 space-y-4 border-b border-separator"
-          data-slot="card-content"
-        >
-          <div
-            class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
-          >
             <div
-              class="flex flex-wrap gap-x-8 gap-y-2"
+              class="flex flex-wrap gap-2"
             >
               <div
-                class="space-y-2"
+                class="relative"
               >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
+                <div
+                  class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
                 >
-                  Order ID
-                </p>
-                <p
-                  class="text-sm leading-none text-left text-foreground font-medium"
-                >
-                  #INV003
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Order Date
-                </p>
-                <p
-                  class="text-sm font-medium leading-none text-left text-foreground"
-                >
-                  8 Sept 2024
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Total
-                </p>
-                <p
-                  class="text-sm font-medium leading-none text-left text-foreground"
-                >
-                  £95.92
-                </p>
-              </div>
-              <div
-                class="space-y-2"
-              >
-                <p
-                  class="text-left text-xs font-medium text-muted-foreground"
-                >
-                  Items
-                </p>
-                <p
-                  class="text-sm leading-none text-left text-foreground font-semibold"
+                  <img
+                    alt="Summer Dress"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    src="__ASSET_MOCK__"
+                  />
+                </div>
+                <span
+                  aria-label="Quantity: 2"
+                  class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
                 >
                   2
-                </p>
+                </span>
               </div>
-            </div>
-            <span
-              class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-critical/20 text-status-critical-foreground"
-              data-slot="badge"
-              data-testid="order-status-badge"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-x mr-1 size-3.5"
-                data-testid="order-status-icon"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18 6 6 18"
-                />
-                <path
-                  d="m6 6 12 12"
-                />
-              </svg>
-              Cancelled
-            </span>
-          </div>
-          <div
-            class="flex flex-wrap gap-2"
-          >
-            <div
-              class="relative"
-            >
-              <div
-                class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
-              >
-                <img
-                  alt="Cancelled Item 1"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  src="__ASSET_MOCK__"
-                />
-              </div>
-              <span
-                aria-label="Quantity: 2"
-                class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
-              >
-                2
-              </span>
             </div>
             <div
-              class="relative"
+              class="pt-2"
             >
-              <div
-                class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
-              >
-                <img
-                  alt="Cancelled Item 2"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  src="__ASSET_MOCK__"
-                />
-              </div>
               <span
-                aria-label="Quantity: 3"
-                class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
               >
-                3
+                View Order Details
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-right size-4"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m9 18 6-6-6-6"
+                  />
+                </svg>
               </span>
             </div>
-          </div>
-          <div
-            class="pt-2"
-          >
-            <span
-              class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
-            >
-              View Order Details
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-chevron-right size-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="m9 18 6-6-6-6"
-                />
-              </svg>
-            </span>
           </div>
         </div>
-      </div>
-    </a>
-  </div>
+      </a>
+    </li>
+    <li>
+      <a
+        class="block transition-opacity hover:opacity-95 m-0"
+        href="/account/orders/INV003"
+      >
+        <div
+          class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui shadow-ui order-list-item-card py-0 border-0 border-b border-separator hover:bg-transparent"
+          data-slot="card"
+        >
+          <div
+            class="p-6 space-y-4 border-b border-separator"
+            data-slot="card-content"
+          >
+            <div
+              class="flex flex-wrap items-start justify-between -mx-6 -mt-6 px-6 pt-3 pb-3 mb-6 border-b border-separator bg-muted"
+            >
+              <div
+                class="flex flex-wrap gap-x-8 gap-y-2"
+              >
+                <div
+                  class="space-y-2"
+                >
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Order ID
+                  </p>
+                  <p
+                    class="text-sm leading-none text-left text-foreground font-medium"
+                  >
+                    #INV003
+                  </p>
+                </div>
+                <div
+                  class="space-y-2"
+                >
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Order Date
+                  </p>
+                  <p
+                    class="text-sm font-medium leading-none text-left text-foreground"
+                  >
+                    8 Sept 2024
+                  </p>
+                </div>
+                <div
+                  class="space-y-2"
+                >
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Total
+                  </p>
+                  <p
+                    class="text-sm font-medium leading-none text-left text-foreground"
+                  >
+                    £95.92
+                  </p>
+                </div>
+                <div
+                  class="space-y-2"
+                >
+                  <p
+                    class="text-left text-xs font-medium text-muted-foreground"
+                  >
+                    Items
+                  </p>
+                  <p
+                    class="text-sm leading-none text-left text-foreground font-semibold"
+                  >
+                    2
+                  </p>
+                </div>
+              </div>
+              <span
+                class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-critical/20 text-status-critical-foreground"
+                data-slot="badge"
+                data-testid="order-status-badge"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-x mr-1 size-3.5"
+                  data-testid="order-status-icon"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6 6 18"
+                  />
+                  <path
+                    d="m6 6 12 12"
+                  />
+                </svg>
+                Cancelled
+              </span>
+            </div>
+            <div
+              class="flex flex-wrap gap-2"
+            >
+              <div
+                class="relative"
+              >
+                <div
+                  class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                >
+                  <img
+                    alt="Cancelled Item 1"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    src="__ASSET_MOCK__"
+                  />
+                </div>
+                <span
+                  aria-label="Quantity: 2"
+                  class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
+                >
+                  2
+                </span>
+              </div>
+              <div
+                class="relative"
+              >
+                <div
+                  class="w-16 h-16 overflow-hidden rounded-ui bg-muted border border-border"
+                >
+                  <img
+                    alt="Cancelled Item 2"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    src="__ASSET_MOCK__"
+                  />
+                </div>
+                <span
+                  aria-label="Quantity: 3"
+                  class="absolute -top-1 -right-1 flex min-w-4 h-4 items-center justify-center border-2 border-background bg-primary px-0.5 text-[10px] font-bold text-primary-foreground"
+                >
+                  3
+                </span>
+              </div>
+            </div>
+            <div
+              class="pt-2"
+            >
+              <span
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+              >
+                View Order Details
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-right size-4"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m9 18 6-6-6-6"
+                  />
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </li>
+  </ul>
   <div
     class="p-6 m-0 border-b border-x border-border rounded-b-xl flex flex-row items-center w-full gap-4"
   >

@@ -37,12 +37,13 @@ exports[`BonusProductSelection stories snapshot > Default story renders and matc
         >
           <div
             class="flex -ml-3 justify-start"
+            role="list"
           >
             <div
               aria-roledescription="slide"
               class="min-w-0 shrink-0 grow-0 basis-[220px] pl-3"
               data-slot="carousel-item"
-              role="group"
+              role="listitem"
             >
               <article
                 aria-label="Bonus bundle product card"
@@ -115,7 +116,7 @@ exports[`BonusProductSelection stories snapshot > Default story renders and matc
               aria-roledescription="slide"
               class="min-w-0 shrink-0 grow-0 basis-[220px] pl-3"
               data-slot="carousel-item"
-              role="group"
+              role="listitem"
             >
               <article
                 aria-label="Bonus bundle product card"
@@ -188,7 +189,7 @@ exports[`BonusProductSelection stories snapshot > Default story renders and matc
               aria-roledescription="slide"
               class="min-w-0 shrink-0 grow-0 basis-[220px] pl-3"
               data-slot="carousel-item"
-              role="group"
+              role="listitem"
             >
               <article
                 aria-label="Bonus bundle product card"

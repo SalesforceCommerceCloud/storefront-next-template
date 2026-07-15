@@ -94,10 +94,11 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -124,8 +125,8 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -152,8 +153,8 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -180,8 +181,8 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -208,8 +209,8 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -236,8 +237,8 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
       <div>
@@ -370,10 +371,11 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -400,8 +402,8 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -428,8 +430,8 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -456,8 +458,8 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -484,8 +486,8 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -512,8 +514,8 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
       <div>
@@ -775,10 +777,11 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -805,8 +808,8 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -833,8 +836,8 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -861,8 +864,8 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -889,8 +892,8 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -917,8 +920,8 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
       <div>

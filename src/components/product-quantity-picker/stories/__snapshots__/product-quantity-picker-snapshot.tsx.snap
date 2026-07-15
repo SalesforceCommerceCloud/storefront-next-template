@@ -7,7 +7,7 @@ exports[`ProductQuantityPicker stories snapshot > Default story renders and matc
   <label
     class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
     data-slot="label"
-    for="quantity"
+    for="quantity-_r_0_"
   >
     Quantity
   </label>
@@ -23,8 +23,8 @@ exports[`ProductQuantityPicker stories snapshot > Default story renders and matc
       −
     </button>
     <input
-      aria-label="Quantity"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      id="quantity-_r_0_"
       min="1"
       step="1"
       type="number"
@@ -48,7 +48,7 @@ exports[`ProductQuantityPicker stories snapshot > IncrementPastStock story rende
   <label
     class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
     data-slot="label"
-    for="quantity"
+    for="quantity-_r_1_"
   >
     Quantity
   </label>
@@ -64,8 +64,8 @@ exports[`ProductQuantityPicker stories snapshot > IncrementPastStock story rende
       −
     </button>
     <input
-      aria-label="Quantity"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      id="quantity-_r_1_"
       min="1"
       step="1"
       type="number"
@@ -89,7 +89,7 @@ exports[`ProductQuantityPicker stories snapshot > LowStockWarning story renders 
   <label
     class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
     data-slot="label"
-    for="quantity"
+    for="quantity-_r_3_"
   >
     Quantity
   </label>
@@ -104,8 +104,8 @@ exports[`ProductQuantityPicker stories snapshot > LowStockWarning story renders 
       −
     </button>
     <input
-      aria-label="Quantity"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      id="quantity-_r_3_"
       min="1"
       step="1"
       type="number"
@@ -136,7 +136,7 @@ exports[`ProductQuantityPicker stories snapshot > OutOfStock story renders and m
   <label
     class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
     data-slot="label"
-    for="quantity"
+    for="quantity-_r_2_"
   >
     Quantity
   </label>
@@ -152,9 +152,9 @@ exports[`ProductQuantityPicker stories snapshot > OutOfStock story renders and m
       −
     </button>
     <input
-      aria-label="Quantity"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       disabled=""
+      id="quantity-_r_2_"
       min="1"
       step="1"
       type="number"

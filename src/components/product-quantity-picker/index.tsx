@@ -15,7 +15,7 @@
  */
 
 // React
-import { type ReactElement, useCallback, useState } from 'react';
+import { type ReactElement, useCallback, useState, useId } from 'react';
 
 // Components
 import QuantityPicker from '@/components/quantity-picker/quantity-picker';
@@ -71,6 +71,7 @@ export default function ProductQuantityPicker({
     const { t: tQuantity } = useTranslation('quantitySelector');
     const { t: tProduct } = useTranslation('product');
     const { t: tCommon } = useTranslation('common');
+    const quantityId = `quantity-${useId()}`;
 
     // Handle quantity change - let QuantityPicker handle validation with min=1
     const handleQuantityChange = useCallback(
@@ -110,10 +111,11 @@ export default function ProductQuantityPicker({
 
     return (
         <div className={cn('space-y-2', className)}>
-            <Label htmlFor="quantity" className="text-base font-semibold leading-6 text-card-foreground">
+            <Label htmlFor={quantityId} className="text-base font-semibold leading-6 text-card-foreground">
                 {tQuantity('quantity')}
             </Label>
             <QuantityPicker
+                id={quantityId}
                 value={quantity}
                 min={1}
                 max={maxQuantity}

@@ -1021,4 +1021,63 @@ describe('ProductItemsList', () => {
             expect(screen.getByTestId('sf-product-item-product-2')).toBeInTheDocument();
         });
     });
+
+    describe('Semantic list markup', () => {
+        test('renders items in a ul with role="list"', () => {
+            const productItems = [mockProductItem];
+            const productsByItemId = { 'item-1': mockProduct };
+
+            const { container } = renderWithRouter(
+                <ProductItemsList productItems={productItems} productsByItemId={productsByItemId} />
+            );
+
+            const list = container.querySelector('ul[role="list"]');
+            expect(list).toBeInTheDocument();
+        });
+
+        test('renders each item in a li element', () => {
+            const productItems = [
+                mockProductItem,
+                { ...mockProductItem, itemId: 'item-2', productId: 'product-2', productName: 'Test Product 2' },
+                { ...mockProductItem, itemId: 'item-3', productId: 'product-3', productName: 'Test Product 3' },
+            ];
+            const productsByItemId = {
+                'item-1': mockProduct,
+                'item-2': { ...mockProduct, id: 'product-2' },
+                'item-3': { ...mockProduct, id: 'product-3' },
+            };
+
+            const { container } = renderWithRouter(
+                <ProductItemsList productItems={productItems} productsByItemId={productsByItemId} />
+            );
+
+            const list = container.querySelector('ul[role="list"]');
+            expect(list).toBeInTheDocument();
+
+            const listItems = container.querySelectorAll('ul[role="list"] > li');
+            expect(listItems).toHaveLength(3);
+        });
+
+        test('renders items in li elements when separateCards is true', () => {
+            const productItems = [mockProductItem, { ...mockProductItem, itemId: 'item-2', productId: 'product-2' }];
+            const productsByItemId = {
+                'item-1': mockProduct,
+                'item-2': { ...mockProduct, id: 'product-2' },
+            };
+
+            const { container } = renderWithRouter(
+                <ProductItemsList productItems={productItems} productsByItemId={productsByItemId} separateCards />
+            );
+
+            const list = container.querySelector('ul[role="list"]');
+            expect(list).toBeInTheDocument();
+
+            const listItems = container.querySelectorAll('ul[role="list"] > li');
+            expect(listItems).toHaveLength(2);
+
+            listItems.forEach((li) => {
+                expect(li.querySelector('[data-slot="card"]')).toBeInTheDocument();
+            });
+        });
+    });
 });

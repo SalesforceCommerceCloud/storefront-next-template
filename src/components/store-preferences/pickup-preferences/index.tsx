@@ -103,7 +103,7 @@ export default function PickupPreferences(): ReactElement {
             <CardContent className="space-y-6 border-t border-border pt-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between gap-y-1">
                     <div className="min-w-0">
-                        <Label className="text-sm font-medium text-foreground">
+                        <Label htmlFor="auto-select-store" className="text-sm font-medium text-foreground">
                             {t('storePreferences.pickupPreferences.autoSelectStore')}
                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -111,16 +111,16 @@ export default function PickupPreferences(): ReactElement {
                         </p>
                     </div>
                     <Switch
+                        id="auto-select-store"
                         checked={preferences.autoSelectStore}
                         disabled={!isEditing}
                         onCheckedChange={setAutoSelectStore}
-                        aria-label={t('storePreferences.pickupPreferences.autoSelectStore')}
                         className="shrink-0"
                     />
                 </div>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between gap-y-1">
                     <div className="min-w-0">
-                        <Label className="text-sm font-medium text-foreground">
+                        <Label htmlFor="pickup-notifications" className="text-sm font-medium text-foreground">
                             {t('storePreferences.pickupPreferences.pickupNotifications')}
                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -128,16 +128,16 @@ export default function PickupPreferences(): ReactElement {
                         </p>
                     </div>
                     <Switch
+                        id="pickup-notifications"
                         checked={preferences.pickupNotifications}
                         disabled={!isEditing}
                         onCheckedChange={setPickupNotifications}
-                        aria-label={t('storePreferences.pickupPreferences.pickupNotifications')}
                         className="shrink-0"
                     />
                 </div>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between gap-y-1">
                     <div className="min-w-0">
-                        <Label className="text-sm font-medium text-foreground">
+                        <Label htmlFor="store-events-promotions" className="text-sm font-medium text-foreground">
                             {t('storePreferences.pickupPreferences.storeEventsPromotions')}
                         </Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -145,10 +145,10 @@ export default function PickupPreferences(): ReactElement {
                         </p>
                     </div>
                     <Switch
+                        id="store-events-promotions"
                         checked={preferences.storeEventsPromotions}
                         disabled={!isEditing}
                         onCheckedChange={setStoreEventsPromotions}
-                        aria-label={t('storePreferences.pickupPreferences.storeEventsPromotions')}
                         className="shrink-0"
                     />
                 </div>

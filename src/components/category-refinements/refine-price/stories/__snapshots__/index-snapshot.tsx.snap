@@ -8,25 +8,36 @@ exports[`RefinePrice stories snapshot > FullyFeatured story renders and matches 
     class="flex flex-row gap-3 items-center justify-start self-stretch shrink-0 relative"
   >
     <div
-      class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start flex-1 relative overflow-hidden rounded-ui shadow-xs"
+      class="flex-1"
     >
-      <span
-        aria-hidden="true"
-        class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+      <label
+        class="sr-only"
+        for="_r_1_-price-min"
       >
-        £
-      </span>
+        Min
+      </label>
       <div
-        class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start relative overflow-hidden rounded-ui shadow-xs"
       >
-        <input
-          class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
-          data-slot="input"
-          min="0"
-          placeholder="Min"
-          type="number"
-          value=""
-        />
+        <span
+          aria-hidden="true"
+          class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+        >
+          £
+        </span>
+        <div
+          class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        >
+          <input
+            class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
+            data-slot="input"
+            id="_r_1_-price-min"
+            min="0"
+            placeholder="Min"
+            type="number"
+            value=""
+          />
+        </div>
       </div>
     </div>
     <div
@@ -35,25 +46,36 @@ exports[`RefinePrice stories snapshot > FullyFeatured story renders and matches 
       to
     </div>
     <div
-      class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start flex-1 relative overflow-hidden rounded-ui shadow-xs"
+      class="flex-1"
     >
-      <span
-        aria-hidden="true"
-        class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+      <label
+        class="sr-only"
+        for="_r_1_-price-max"
       >
-        £
-      </span>
+        Max
+      </label>
       <div
-        class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start relative overflow-hidden rounded-ui shadow-xs"
       >
-        <input
-          class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
-          data-slot="input"
-          min="0"
-          placeholder="Max"
-          type="number"
-          value=""
-        />
+        <span
+          aria-hidden="true"
+          class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+        >
+          £
+        </span>
+        <div
+          class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        >
+          <input
+            class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
+            data-slot="input"
+            id="_r_1_-price-max"
+            min="0"
+            placeholder="Max"
+            type="number"
+            value=""
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -197,25 +219,36 @@ exports[`RefinePrice stories snapshot > NoPredefinedRanges story renders and mat
     class="flex flex-row gap-3 items-center justify-start self-stretch shrink-0 relative"
   >
     <div
-      class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start flex-1 relative overflow-hidden rounded-ui shadow-xs"
+      class="flex-1"
     >
-      <span
-        aria-hidden="true"
-        class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+      <label
+        class="sr-only"
+        for="_r_3_-price-min"
       >
-        £
-      </span>
+        Min
+      </label>
       <div
-        class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start relative overflow-hidden rounded-ui shadow-xs"
       >
-        <input
-          class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
-          data-slot="input"
-          min="0"
-          placeholder="Min"
-          type="number"
-          value=""
-        />
+        <span
+          aria-hidden="true"
+          class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+        >
+          £
+        </span>
+        <div
+          class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        >
+          <input
+            class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
+            data-slot="input"
+            id="_r_3_-price-min"
+            min="0"
+            placeholder="Min"
+            type="number"
+            value=""
+          />
+        </div>
       </div>
     </div>
     <div
@@ -224,25 +257,36 @@ exports[`RefinePrice stories snapshot > NoPredefinedRanges story renders and mat
       to
     </div>
     <div
-      class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start flex-1 relative overflow-hidden rounded-ui shadow-xs"
+      class="flex-1"
     >
-      <span
-        aria-hidden="true"
-        class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+      <label
+        class="sr-only"
+        for="_r_3_-price-max"
       >
-        £
-      </span>
+        Max
+      </label>
       <div
-        class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        class="border-solid border-[var(--input)] border py-2 px-3 flex flex-row gap-2 items-center justify-start relative overflow-hidden rounded-ui shadow-xs"
       >
-        <input
-          class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
-          data-slot="input"
-          min="0"
-          placeholder="Max"
-          type="number"
-          value=""
-        />
+        <span
+          aria-hidden="true"
+          class="shrink-0 flex items-center justify-center text-sm text-muted-foreground"
+        >
+          £
+        </span>
+        <div
+          class="text-muted-foreground text-left text-sm leading-normal font-normal relative overflow-hidden flex-1 truncate whitespace-nowrap"
+        >
+          <input
+            class="file:text-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input min-w-0 rounded-ui shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-0 p-0 h-auto text-sm bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground w-full"
+            data-slot="input"
+            id="_r_3_-price-max"
+            min="0"
+            placeholder="Max"
+            type="number"
+            value=""
+          />
+        </div>
       </div>
     </div>
   </div>

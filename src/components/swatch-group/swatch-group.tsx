@@ -36,8 +36,6 @@ interface SwatchChild {
  * Props for the SwatchGroup component
  */
 interface SwatchGroupProps {
-    /** Accessible label for screen readers */
-    ariaLabel?: string;
     /** Display name shown next to the label */
     displayName?: string;
     /** Swatch components to render within the group */
@@ -78,7 +76,6 @@ const noop = (..._args: unknown[]): void => {
  * ```
  */
 export const SwatchGroup: React.FC<SwatchGroupProps> = ({
-    ariaLabel,
     displayName,
     children,
     label = '',
@@ -87,6 +84,7 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
     className,
 }) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const labelId = `swatch-group-label-${React.useId()}`;
 
     const onKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
@@ -164,9 +162,9 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
             <div
                 className={isSquareSwatchGroup ? 'inline-flex flex-col gap-3' : 'flex flex-col gap-3'}
                 role="radiogroup"
-                aria-label={ariaLabel || label}>
+                aria-labelledby={label ? labelId : undefined}>
                 {label && (
-                    <div className={labelClasses}>
+                    <div id={labelId} className={labelClasses}>
                         <span>{label}:</span>
                         {displayName && <span>{displayName}</span>}
                     </div>

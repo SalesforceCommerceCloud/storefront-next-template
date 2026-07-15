@@ -43,6 +43,8 @@ interface QuantityPickerProps {
     disabled?: boolean;
     /** Additional class names for the container */
     className?: string;
+    /** ID for the input element to enable label linkage */
+    id?: string;
 }
 
 /**
@@ -65,6 +67,7 @@ export default function QuantityPicker({
     productName,
     disabled = false,
     className,
+    id,
 }: QuantityPickerProps): ReactElement {
     const { t: tQuantity } = useTranslation('quantitySelector');
     const { t: tCommon } = useTranslation('common');
@@ -103,6 +106,7 @@ export default function QuantityPicker({
             {/* Input Field */}
             <input
                 ref={inputRef}
+                id={id}
                 type="number"
                 min={min}
                 max={max}
@@ -117,7 +121,7 @@ export default function QuantityPicker({
                     'w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed',
                     '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                 )}
-                aria-label={tQuantity('quantity')}
+                aria-label={id ? undefined : tQuantity('quantity')}
             />
 
             {/* Increment Button */}

@@ -38,8 +38,12 @@ export default function Signup(): ReactElement {
     return (
         <UITarget targetId="sfcc.emailSignUp.consent.marketing">
             <form onSubmit={handleSubmit} className="flex flex-row gap-2 sm:gap-3 w-full max-w-md">
+                <label htmlFor="footer-newsletter-email" className="sr-only">
+                    {t('newsletter.emailPlaceholder')}
+                </label>
                 <Input
                     ref={inputRef}
+                    id="footer-newsletter-email"
                     type="email"
                     placeholder={t('newsletter.emailPlaceholder')}
                     className="flex-1 h-10 bg-background text-sm font-normal leading-5 text-muted-foreground truncate"

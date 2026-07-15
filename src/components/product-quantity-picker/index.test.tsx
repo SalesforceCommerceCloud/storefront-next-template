@@ -154,7 +154,7 @@ describe('ProductQuantityPicker', () => {
         // Check that the QuantityPicker receives the correct props
         const quantityInput = screen.getByDisplayValue('3');
         expect(quantityInput).toHaveAttribute('min', '1');
-        expect(quantityInput).toHaveAttribute('aria-label', 'Quantity');
+        expect(quantityInput.getAttribute('id')).toMatch(/^quantity-/);
     });
 
     test('initializes with value prop and maintains internal state', () => {

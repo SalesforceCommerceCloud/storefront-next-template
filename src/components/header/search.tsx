@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type FormEvent, type ReactElement, useCallback, useRef, useState, useEffect, useMemo } from 'react';
+import { type FormEvent, type ReactElement, useCallback, useRef, useState, useEffect, useMemo, useId } from 'react';
 import { useNavigate } from '@/hooks/use-navigate';
 import debounce from 'lodash.debounce';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,7 @@ export default function SearchBar(): ReactElement {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const queryRef = useRef(query);
     const refetchRef = useRef<() => Promise<void>>(() => Promise.resolve());
+    const searchInputId = `header-search-input-${useId()}`;
 
     const { data: suggestions, refetch } = useSearchSuggestions({
         q: query,
@@ -157,16 +158,19 @@ export default function SearchBar(): ReactElement {
             <Popover open={showSuggestions}>
                 <form onSubmit={handleSubmit} className="relative z-10">
                     <div className="relative">
+                        <label htmlFor={searchInputId} className="sr-only">
+                            {t('searchPlaceholder')}
+                        </label>
                         <PopoverTrigger asChild>
                             <Input
                                 ref={inputRef}
+                                id={searchInputId}
                                 type="text"
                                 placeholder={t('searchPlaceholder')}
                                 className="w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground"
                                 onChange={handleInputChange}
                                 onFocus={shouldOpenPopover}
                                 onBlur={() => setShowSuggestions(false)}
-                                aria-label={t('searchPlaceholder')}
                                 aria-autocomplete="list"
                                 aria-expanded={showSuggestions}
                                 aria-haspopup="listbox"

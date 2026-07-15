@@ -170,16 +170,17 @@ export function OrderListBody({
             {orders.length === 0 ? (
                 <OrderListEmpty message={emptyMessage} />
             ) : (
-                <div className="space-y-4 m-0 border-x border-t border-border rounded-t-none">
+                <ul role="list" className="space-y-4 m-0 border-x border-t border-border rounded-t-none">
                     {orders.map((order) => (
-                        <OrderListItem
-                            key={order.orderNo}
-                            order={toOrderListItemData(order)}
-                            maxThumbnails={maxThumbnails}
-                            onViewDetails={onViewDetails}
-                        />
+                        <li key={order.orderNo}>
+                            <OrderListItem
+                                order={toOrderListItemData(order)}
+                                maxThumbnails={maxThumbnails}
+                                onViewDetails={onViewDetails}
+                            />
+                        </li>
                     ))}
-                </div>
+                </ul>
             )}
             <div className="p-6 m-0 border-b border-x border-border rounded-b-xl flex flex-row items-center w-full gap-4">
                 <Typography

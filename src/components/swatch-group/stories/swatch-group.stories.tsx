@@ -42,10 +42,6 @@ const meta: Meta<typeof SwatchGroup> = {
             control: 'text',
         },
         handleChange: { table: { disable: true } },
-        ariaLabel: {
-            description: 'Accessible label for screen readers',
-            control: 'text',
-        },
         displayName: {
             description: 'Display name shown next to the label',
             control: 'text',
@@ -62,17 +58,16 @@ type Story = StoryObj<typeof SwatchGroup>;
 
 /**
  * Rich-but-realistic baseline. The Controls panel exposes every text prop the
- * `SwatchGroup` reads (`label`, `displayName`, `value`, `ariaLabel`,
- * `className`). Children — the swatches themselves — are composite React
- * elements, so they stay defined in the story body. The dedicated stories
- * below remain bookmarked entry points for the most common variants.
+ * `SwatchGroup` reads (`label`, `displayName`, `value`, `className`). Children
+ * — the swatches themselves — are composite React elements, so they stay
+ * defined in the story body. The dedicated stories below remain bookmarked
+ * entry points for the most common variants.
  */
 export const Playground: Story = {
     args: {
         label: 'Color',
         displayName: 'Red',
         value: 'red',
-        ariaLabel: 'Color picker',
         handleChange: () => {},
         children: (
             <>
