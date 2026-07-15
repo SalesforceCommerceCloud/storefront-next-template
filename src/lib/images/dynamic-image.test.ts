@@ -214,6 +214,32 @@ describe('isDynamicImageSource()', () => {
     });
 });
 
+describe('getSrc() DIS dimension clamp', () => {
+    // DIS rejects sw/sh outside 10–3000px with HTTP 400, which renders as a broken image.
+    // The 2× DPR candidate for a 100vw image at the 2xl breakpoint (1536px) is 3072px, so getSrc
+    // must clamp the emitted sw=/sh= to 3000 while callers keep the true width for the `w` descriptor.
+    const disSrc = disImageURL.withoutOptionalParams;
+
+    test('clamps sw= above 3000 down to 3000', () => {
+        expect(getSrc(disSrc, { w: 3072 })).toContain('sw=3000');
+        expect(getSrc(disSrc, { w: 3072 })).not.toContain('sw=3072');
+    });
+
+    test('clamps sh= above 3000 down to 3000', () => {
+        expect(getSrc(disSrc, { h: 5000 })).toContain('sh=3000');
+    });
+
+    test('leaves in-range sw= untouched', () => {
+        expect(getSrc(disSrc, { w: 1536 })).toContain('sw=1536');
+        expect(getSrc(disSrc, { w: 3000 })).toContain('sw=3000');
+    });
+
+    test('clamps an over-cap sw= placeholder already present in the URL', () => {
+        // The `[?sw={width}]` placeholder resolves to sw=3072, which must still be clamped.
+        expect(getSrc(disImageURL.withOptionalParams, { w: 3072, f: 'webp' })).toContain('sw=3000');
+    });
+});
+
 describe('getResponsivePictureAttributes()', () => {
     test('vw widths', () => {
         let props = getResponsivePictureAttributes({

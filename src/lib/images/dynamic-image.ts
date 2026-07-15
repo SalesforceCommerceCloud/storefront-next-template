@@ -39,6 +39,20 @@ const DASH_REGEX = /-/g;
 const HAS_QUALITY_PARAM_REGEX = /[?&]q=/;
 
 /**
+ * DIS caps `scaleWidth` (`sw`) and `scaleHeight` (`sh`) at 3000px — a request above it is rejected
+ * with HTTP 400 (`Parameter sw out of range (10 <= 'sw' <= 3000)`), which renders as a broken image.
+ * A 2× DPR candidate for a full-viewport (`100vw`) image at the `2xl` breakpoint (1536px) resolves to
+ * `sw=3072`, so we clamp every `sw`/`sh` we emit to this ceiling.
+ *
+ * @see https://help.salesforce.com/s/articleView?id=cc.b2c_creating_image_transformation_urls.htm
+ * ("The scaleWidth and scaleHeight parameters are integers. Valid parameter values are from 10–3000 pixels.")
+ */
+const DIS_MAX_SCALE_DIMENSION = 3000;
+
+/** Clamp a DIS `sw`/`sh` value to the service's supported 10–3000px range. */
+const clampDisDimension = (value: number): number => Math.min(DIS_MAX_SCALE_DIMENSION, Math.max(10, Math.round(value)));
+
+/**
  * Sentinel base used to parse relative URLs so their query string can be read. The hostname is
  * irrelevant — we only inspect `searchParams` — so an unresolvable `.invalid` host is intentional.
  */
@@ -769,21 +783,26 @@ export const getSrc = (
     // Part 1: Stop the leak - only inject DIS params if URL is DIS-eligible
     const isDisEligible = isDisTransformed(result, config);
 
-    // Handle sw= parameter - only added when width is explicitly provided and URL is DIS-eligible
+    // Handle sw= parameter - only added when width is explicitly provided and URL is DIS-eligible.
+    // Clamp to DIS's 10–3000px range so an over-cap request (e.g. a 2× DPR 100vw candidate at 3072px)
+    // never triggers the 400 that renders as a broken image.
     if (w != null && isDisEligible) {
+        const sw = clampDisDimension(w);
         if (hasUrlParam(result, 'sw')) {
-            result = result.replace(/([?&])sw=\d+/, `$1sw=${w}`);
+            result = result.replace(/([?&])sw=\d+/, `$1sw=${sw}`);
         } else {
-            result = `${result}${getSep(result)}sw=${w}`;
+            result = `${result}${getSep(result)}sw=${sw}`;
         }
     }
 
-    // Handle sh= parameter - only added when height is explicitly provided and URL is DIS-eligible
+    // Handle sh= parameter - only added when height is explicitly provided and URL is DIS-eligible.
+    // Same 10–3000px clamp as sw= above.
     if (h != null && isDisEligible) {
+        const sh = clampDisDimension(h);
         if (hasUrlParam(result, 'sh')) {
-            result = result.replace(/([?&])sh=\d+/, `$1sh=${h}`);
+            result = result.replace(/([?&])sh=\d+/, `$1sh=${sh}`);
         } else {
-            result = `${result}${getSep(result)}sh=${h}`;
+            result = `${result}${getSep(result)}sh=${sh}`;
         }
     }
 
