@@ -28,6 +28,10 @@ const typographyVariants = cva('', {
             h5: 'text-sm font-semibold tracking-tight',
             h6: 'text-base font-semibold tracking-tight',
             p: 'leading-7 [&:not(:first-child)]:mt-6',
+            // Sized body copy. `p` is prose-rhythm only (line-height + top margin); `body` is the
+            // sized sibling used where a self-contained paragraph needs an explicit size/weight
+            // (e.g. Hero's "Paragraph" preset).
+            body: 'text-base font-normal leading-7',
             blockquote: 'mt-6 border-l-2 pl-6 italic',
             'inline-code': 'relative rounded-ui bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-medium',
             lead: 'text-2xl text-muted-foreground',
@@ -90,6 +94,7 @@ function getDefaultElement(variant: TypographyProps['variant']): string {
         case 'product-price':
         case 'product-description':
         case 'p':
+        case 'body':
         case 'lead':
         case 'large':
         case 'small':

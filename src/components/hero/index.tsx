@@ -15,6 +15,7 @@
  */
 import { type CSSProperties, type ReactElement, useId } from 'react';
 import { Link } from '@/components/link';
+import { typographyVariants } from '@/components/typography';
 import { DynamicImage } from '@/components/dynamic-image';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Component } from '@/lib/decorators/component';
@@ -62,26 +63,33 @@ const BUTTON_STYLE_TO_VARIANT: Record<ButtonStyle, NonNullable<VariantProps<type
     Tertiary: 'outline',
 };
 
+/**
+ * The Heading/Paragraph presets derive from the shared Typography scale
+ * (`typographyVariants`) so there is a single source of truth for those sizes.
+ * `Default` is Hero-only (no cva equivalent) and stays local. `align: null`
+ * opts out of the cva `align` default — Hero controls text alignment on the
+ * container, so these presets must emit size/weight only.
+ */
 const TITLE_TYPOGRAPHY_CLASS: Record<HeroTypography, string> = {
     Default: 'text-6xl font-bold leading-none [letter-spacing:-1.5px]',
-    Paragraph: 'text-base font-normal leading-7',
-    'Heading 1': 'text-4xl font-bold tracking-tight',
-    'Heading 2': 'text-3xl font-semibold tracking-tight',
-    'Heading 3': 'text-2xl font-semibold tracking-tight',
-    'Heading 4': 'text-2xl font-semibold tracking-tight',
-    'Heading 5': 'text-sm font-semibold tracking-tight',
-    'Heading 6': 'text-base font-semibold tracking-tight',
+    Paragraph: typographyVariants({ variant: 'body', align: null }),
+    'Heading 1': typographyVariants({ variant: 'h1', align: null }),
+    'Heading 2': typographyVariants({ variant: 'h2', align: null }),
+    'Heading 3': typographyVariants({ variant: 'h3', align: null }),
+    'Heading 4': typographyVariants({ variant: 'h4', align: null }),
+    'Heading 5': typographyVariants({ variant: 'h5', align: null }),
+    'Heading 6': typographyVariants({ variant: 'h6', align: null }),
 };
 
 const SUBTITLE_TYPOGRAPHY_CLASS: Record<HeroTypography, string> = {
     Default: 'text-lg font-normal leading-[120%]',
-    Paragraph: 'text-base font-normal leading-7',
-    'Heading 1': 'text-4xl font-bold tracking-tight',
-    'Heading 2': 'text-3xl font-semibold tracking-tight',
-    'Heading 3': 'text-2xl font-semibold tracking-tight',
-    'Heading 4': 'text-2xl font-semibold tracking-tight',
-    'Heading 5': 'text-sm font-semibold tracking-tight',
-    'Heading 6': 'text-base font-semibold tracking-tight',
+    Paragraph: typographyVariants({ variant: 'body', align: null }),
+    'Heading 1': typographyVariants({ variant: 'h1', align: null }),
+    'Heading 2': typographyVariants({ variant: 'h2', align: null }),
+    'Heading 3': typographyVariants({ variant: 'h3', align: null }),
+    'Heading 4': typographyVariants({ variant: 'h4', align: null }),
+    'Heading 5': typographyVariants({ variant: 'h5', align: null }),
+    'Heading 6': typographyVariants({ variant: 'h6', align: null }),
 };
 
 const HEX_COLOR_REGEX = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
