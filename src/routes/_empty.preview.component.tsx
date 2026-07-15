@@ -21,6 +21,7 @@ import { PREVIEW_REGION_ID } from '@/lib/page-designer/preview-page';
 import { PageType } from '@/lib/decorators/page-type';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
 import { Region } from '@/components/region';
+import { RootComponentProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 
 /**
  * Mini-PD component-preview route.
@@ -86,5 +87,14 @@ export async function loader(args: Route.LoaderArgs) {
 // route and bubbles the thrown 404 Response to root's branded ErrorBoundary, rather
 // than emitting a bare resource-route response (same idiom as `_empty.$.tsx`).
 export default function PreviewComponentRoute({ loaderData }: Route.ComponentProps) {
-    return <Region page={loaderData.page} regionId={PREVIEW_REGION_ID} />;
+    // The previewed component is the canvas root — it cannot be moved or deleted
+    // (you can't reposition or remove the block you opened to edit). The `preview`
+    // region holds exactly this one component, so RootComponentProvider marks it
+    // as root; the design decorators then suppress its move/delete handles while
+    // keeping it selectable. No effect at runtime, where the decorators don't render.
+    return (
+        <RootComponentProvider>
+            <Region page={loaderData.page} regionId={PREVIEW_REGION_ID} />
+        </RootComponentProvider>
+    );
 }

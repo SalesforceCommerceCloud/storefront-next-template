@@ -134,7 +134,7 @@ const DesignOverlay = () => {
 
 //#endregion
 //#region src/design/react/components/DesignFrame.tsx
-const DesignFrame = ({ componentId, children, name, parentId, regionId, contentLinkUuid, localized = false, showFrame = false, showToolbox = true, isMoveable = true, className }) => {
+const DesignFrame = ({ componentId, children, name, parentId, regionId, contentLinkUuid, localized = false, showFrame = false, showToolbox = true, isMoveable = true, isDeletable = true, className }) => {
 	const componentType = useComponentType(componentId ?? "");
 	const { deleteComponent } = useDesignState();
 	const labels = useLabels();
@@ -185,9 +185,9 @@ const DesignFrame = ({ componentId, children, name, parentId, regionId, contentL
 					})
 				]
 			}),
-			showToolbox && /* @__PURE__ */ jsxs("div", {
+			showToolbox && (isMoveable || isDeletable) && /* @__PURE__ */ jsxs("div", {
 				className: "pd-design__frame__toolbox",
-				children: [isMoveable && /* @__PURE__ */ jsx(MoveToolboxButton, { title: labels.moveComponent ?? "Move component" }), /* @__PURE__ */ jsx(DeleteToolboxButton, {
+				children: [isMoveable && /* @__PURE__ */ jsx(MoveToolboxButton, { title: labels.moveComponent ?? "Move component" }), isDeletable && /* @__PURE__ */ jsx(DeleteToolboxButton, {
 					title: labels.deleteComponent ?? "Delete component",
 					onMouseDown: stopPropagation,
 					onClick: handleDelete

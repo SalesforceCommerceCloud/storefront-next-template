@@ -6369,8 +6369,8 @@ packages:
     resolution: {integrity: sha512-trLf4SzuuUxfusZADLINj+dE8clK1frKdmqiJNb1Es75fmI5oY6X2mxLVUciLLjxqw/xr72Dhy+lER6dGd02FQ==}
     engines: {node: '>=10'}
 
-  fuse.js@7.4.2:
-    resolution: {integrity: sha512-LVbzjD4WA6UP5B1UnP8wuaXJiLnqMdM/E4fiJXTJ5haJ5b/MBNsK29h2fm6swEoQaVQjvYFWKLE2RanyZIoRVQ==}
+  fuse.js@7.5.0:
+    resolution: {integrity: sha512-sQtrEfA+ez/3G0cCZecF70oqpCRttCexYUG4mUrtWL49ULUzUyxokt5kyqwtKzj1270RaKih+hcP3qLcumccow==}
     engines: {node: '>=10'}
 
   generator-function@2.0.1:
@@ -6634,8 +6634,8 @@ packages:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
     engines: {node: '>= 0.8'}
 
-  http-link-header@1.1.3:
-    resolution: {integrity: sha512-3cZ0SRL8fb9MUlU3mKM61FcQvPfXx2dBrZW3Vbg5CXa8jFlK8OaEpePenLe1oEXQduhz8b0QjsqfS59QP4AJDQ==}
+  http-link-header@1.1.4:
+    resolution: {integrity: sha512-xT3GPW6/ZbGuw4UvwHqErSCEjNUlwbQJuZn9/q5U4WEKfp2kENVCAlousG1zLxHeaQ/ffOHUNpWamvkbBW0eNw==}
     engines: {node: '>=6.0.0'}
 
   http-proxy-agent@7.0.2:
@@ -15617,7 +15617,7 @@ snapshots:
       figures: 3.2.0
       fn-args: 4.0.0
       fs-extra: 11.3.2
-      fuse.js: 7.4.2
+      fuse.js: 7.5.0
       glob: 11.1.0
       html-minifier-terser: 7.2.0
       inquirer: 8.2.7(@types/node@24.3.0)
@@ -17098,7 +17098,7 @@ snapshots:
 
   fuse.js@7.1.0: {}
 
-  fuse.js@7.4.2: {}
+  fuse.js@7.5.0: {}
 
   generator-function@2.0.1: {}
 
@@ -17413,7 +17413,7 @@ snapshots:
       statuses: 2.0.2
       toidentifier: 1.0.1
 
-  http-link-header@1.1.3: {}
+  http-link-header@1.1.4: {}
 
   http-proxy-agent@7.0.2:
     dependencies:
@@ -18800,7 +18800,7 @@ snapshots:
       csp_evaluator: 1.1.5
       devtools-protocol: 0.0.1467305
       enquirer: 2.4.1
-      http-link-header: 1.1.3
+      http-link-header: 1.1.4
       intl-messageformat: 10.7.18
       jpeg-js: 0.4.4
       js-library-detector: 6.7.0

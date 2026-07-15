@@ -20,6 +20,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DesignComponent } from './DesignComponent';
 import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
 import { EmbeddedSubtreeProvider } from '../core/EmbeddedSubtreeContext';
+import { RootComponentProvider } from '../core/RootComponentContext';
 import type { ComponentDecoratorProps } from '../core/component.types';
 
 vi.mock('../hooks/useComponentDecoratorClasses', () => ({
@@ -59,15 +60,21 @@ vi.mock('./DesignFrame', () => ({
         children,
         showFrame,
         showToolbox = true,
+        isMoveable = true,
+        isDeletable = true,
     }: {
         children: React.ReactNode;
         showFrame?: boolean;
         showToolbox?: boolean;
+        isMoveable?: boolean;
+        isDeletable?: boolean;
     }) => (
         <div
             data-testid="design-frame"
             data-show-frame={String(Boolean(showFrame))}
-            data-show-toolbox={String(Boolean(showToolbox))}>
+            data-show-toolbox={String(Boolean(showToolbox))}
+            data-is-moveable={String(Boolean(isMoveable))}
+            data-is-deletable={String(Boolean(isDeletable))}>
             {children}
         </div>
     ),
@@ -160,5 +167,65 @@ describe('DesignComponent - embedded regions', () => {
 
         getByTestId('design-component-test-1').click();
         expect(mockSetSelectedComponent).toHaveBeenCalledWith('test-1-uuid');
+    });
+});
+
+describe('DesignComponent - root component', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        cleanup();
+    });
+
+    it('suppresses move and delete for the root component but keeps it selectable', () => {
+        const { getByTestId } = render(
+            <RootComponentProvider>
+                <DesignComponent {...componentProps} />
+            </RootComponentProvider>
+        );
+
+        const frame = getByTestId('design-frame');
+        expect(frame.getAttribute('data-is-moveable')).toBe('false');
+        expect(frame.getAttribute('data-is-deletable')).toBe('false');
+
+        // Still selectable — the interactive wrapper is present and clicking selects.
+        getByTestId('design-component-test-1').click();
+        expect(mockSetSelectedComponent).toHaveBeenCalledWith('test-1-uuid');
+    });
+
+    it('does not suppress a nested child of the root (non-propagation)', () => {
+        const { getAllByTestId } = render(
+            <RootComponentProvider>
+                <DesignComponent {...componentProps}>
+                    <DesignComponent
+                        {...({
+                            designMetadata: {
+                                id: 'child-1',
+                                contentLinkUuid: 'child-1-uuid',
+                                isFragment: false,
+                                isVisible: true,
+                                isLocalized: true,
+                            },
+                        } as unknown as ComponentDecoratorProps<unknown>)}
+                    />
+                </DesignComponent>
+            </RootComponentProvider>
+        );
+
+        // Frames render in DOM order: root's frame first, the nested child's frame last.
+        const frames = getAllByTestId('design-frame');
+        const childFrame = frames[frames.length - 1];
+        expect(childFrame.getAttribute('data-is-deletable')).toBe('true');
+        expect(childFrame.getAttribute('data-is-moveable')).toBe('true');
+    });
+
+    it('leaves non-root components unchanged when no provider is present', () => {
+        const { getByTestId } = render(<DesignComponent {...componentProps} />);
+
+        const frame = getByTestId('design-frame');
+        expect(frame.getAttribute('data-is-deletable')).toBe('true');
+        expect(frame.getAttribute('data-is-moveable')).toBe('true');
     });
 });

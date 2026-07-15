@@ -27,6 +27,7 @@ import { useComponentDiscovery } from '../hooks/useComponentDiscovery';
 import { useComponentType } from '../hooks/useComponentType';
 import { useThrottledCallback } from '../hooks/useThrottledCallback';
 import { useComponentInfo } from '../hooks/useComponentInfo';
+import { useIsRootComponent, RootComponentResetProvider } from '../core/RootComponentContext';
 
 export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.JSX.Element {
     const { designMetadata, children } = props;
@@ -53,6 +54,12 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     // content. The embedded owner declares the subtree via the provider, keyed
     // on its own `embedded` flag — the sole source of truth for embeddedness.
     const isEmbedded = useIsWithinEmbeddedSubtree();
+
+    // The standalone content block being edited is the canvas root — it cannot
+    // be moved or deleted (you can't reposition or remove the thing you opened).
+    // The template declares this via RootComponentProvider; root-ness is reset
+    // for descendants below so nested children keep their handles.
+    const isRoot = useIsRootComponent();
 
     const {
         selectedContentLinkUuid,
@@ -227,9 +234,12 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
                 localized={isLocalized}
                 name={componentName}
                 parentId={parentComponentId}
-                isMoveable={isDraggable}
+                isMoveable={isDraggable && !isRoot}
+                isDeletable={!isRoot}
                 regionId={regionId}>
-                <ComponentContext.Provider value={context}>{children}</ComponentContext.Provider>
+                <RootComponentResetProvider>
+                    <ComponentContext.Provider value={context}>{children}</ComponentContext.Provider>
+                </RootComponentResetProvider>
             </DesignFrame>
         </div>
     );

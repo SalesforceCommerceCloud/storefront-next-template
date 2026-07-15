@@ -21,3 +21,4 @@ export { createReactComponentDesignDecorator } from './ComponentDecorator';
 export { createReactRegionDesignDecorator } from './RegionDecorator';
 export { createReactAdapter } from './adapter';
 export type { ReactDesignComponentType } from './adapter';
+export { RootComponentProvider, useIsRootComponent } from './RootComponentContext';

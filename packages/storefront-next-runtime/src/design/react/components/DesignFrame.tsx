@@ -32,6 +32,7 @@ export const DesignFrame = ({
     showFrame = false,
     showToolbox = true,
     isMoveable = true,
+    isDeletable = true,
     className,
 }: React.PropsWithChildren<{
     componentId?: string;
@@ -43,6 +44,7 @@ export const DesignFrame = ({
     showToolbox?: boolean;
     showFrame?: boolean;
     isMoveable?: boolean;
+    isDeletable?: boolean;
     className?: string;
 }>): React.JSX.Element => {
     const componentType = useComponentType(componentId ?? '');
@@ -93,14 +95,16 @@ export const DesignFrame = ({
                     <span className="pd-design__frame__fallback-badge">{labels.fallback ?? 'Fallback'}</span>
                 )}
             </div>
-            {showToolbox && (
+            {showToolbox && (isMoveable || isDeletable) && (
                 <div className="pd-design__frame__toolbox">
                     {isMoveable && <MoveToolboxButton title={labels.moveComponent ?? 'Move component'} />}
-                    <DeleteToolboxButton
-                        title={labels.deleteComponent ?? 'Delete component'}
-                        onMouseDown={stopPropagation}
-                        onClick={handleDelete}
-                    />
+                    {isDeletable && (
+                        <DeleteToolboxButton
+                            title={labels.deleteComponent ?? 'Delete component'}
+                            onMouseDown={stopPropagation}
+                            onClick={handleDelete}
+                        />
+                    )}
                 </div>
             )}
             <DesignOverlay />

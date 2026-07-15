@@ -3,6 +3,7 @@ import { a as useDesignState, i as useThrottledCallback, r as useDesignContext, 
 import "./modeDetection.js";
 import "./PageDesignerProvider.js";
 import { i as useRegionContext, n as useIsWithinEmbeddedSubtree } from "./EmbeddedSubtreeContext.js";
+import { n as RootComponentResetProvider, r as useIsRootComponent } from "./RootComponentContext.js";
 import { a as useComponentType, n as useComponentContext, o as useNodeToTargetStore, r as DesignFrame, t as ComponentContext } from "./ComponentContext.js";
 import React, { useCallback, useRef } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
@@ -87,6 +88,7 @@ function DesignComponent(props) {
 	const { regionId } = useRegionContext() ?? {};
 	const { componentId: parentComponentId } = useComponentContext() ?? {};
 	const isEmbedded = useIsWithinEmbeddedSubtree();
+	const isRoot = useIsRootComponent();
 	const { selectedContentLinkUuid, hoveredContentLinkUuid, setSelectedComponent, setHoveredComponent, startComponentMove, setPendingDragContentLinkUuid, dragState: { pendingDragContentLinkUuid, isDragging, sourceContentLinkUuid: draggingSourceContentLinkUuid }, registerContentLink } = useDesignState();
 	React.useEffect(() => {
 		if (contentLinkUuid && componentId && !isEmbedded) registerContentLink(contentLinkUuid, componentId);
@@ -186,12 +188,13 @@ function DesignComponent(props) {
 			localized: isLocalized,
 			name: componentName,
 			parentId: parentComponentId,
-			isMoveable: isDraggable,
+			isMoveable: isDraggable && !isRoot,
+			isDeletable: !isRoot,
 			regionId,
-			children: /* @__PURE__ */ jsx(ComponentContext.Provider, {
+			children: /* @__PURE__ */ jsx(RootComponentResetProvider, { children: /* @__PURE__ */ jsx(ComponentContext.Provider, {
 				value: context,
 				children
-			})
+			}) })
 		})]
 	});
 }

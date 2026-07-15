@@ -2,7 +2,7 @@ import { r as ShopperExperience } from "./types2.js";
 import { i as FrameworkAdapter, n as ComponentModule } from "./types3.js";
 import { g as IsomorphicConfiguration } from "./index.js";
 import { r as RegionDecoratorProps, t as ComponentDecoratorProps } from "./component.types.js";
-import React$1 from "react";
+import React$1, { JSX, PropsWithChildren } from "react";
 import * as react_jsx_runtime0 from "react/jsx-runtime";
 
 //#region src/design/react/core/PageDesignerProvider.d.ts
@@ -127,5 +127,24 @@ declare class ReactAdapter<TProps> implements FrameworkAdapter<TProps, ReactDesi
  */
 declare function createReactAdapter<TProps>(): ReactAdapter<TProps>;
 //#endregion
-export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, type ReactDesignComponentType, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
+//#region src/design/react/core/RootComponentContext.d.ts
+/**
+ * Marks the single component rendered directly beneath it as the design-canvas
+ * root — the standalone content block being edited, which cannot be moved or
+ * deleted. Non-sticky: {@link DesignComponent} consumes it once and re-provides
+ * `false` (via {@link RootComponentResetProvider}) to its own children, so
+ * root-ness never propagates into nested components. No effect outside design
+ * mode, where the design decorators do not render.
+ */
+declare function RootComponentProvider({
+  children
+}: PropsWithChildren): JSX.Element;
+/**
+ * Whether the caller is the design-canvas root component. `false` when no
+ * {@link RootComponentProvider} is present, so full-page content — which the
+ * template never wraps — is never treated as root.
+ */
+declare function useIsRootComponent(): boolean;
+//#endregion
+export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, type ReactDesignComponentType, RootComponentProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useIsRootComponent, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
 //# sourceMappingURL=design-react-core.d.ts.map

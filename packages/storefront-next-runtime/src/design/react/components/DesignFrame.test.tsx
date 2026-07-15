@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 import type React from 'react';
-import { cleanup as tlCleanup, fireEvent } from '@testing-library/react';
+import { cleanup as tlCleanup, fireEvent, render as tlRender } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { createComponentTestBed } from '../../test/component-test-bed';
+import { DesignFrame } from './DesignFrame';
+import { PageDesignerProvider } from '../core/PageDesignerProvider';
 
 // Test component to wrap DesignFrame
 const TestComponent: React.FC<React.PropsWithChildren> = ({ children }) => (
@@ -251,5 +253,41 @@ describe('DesignFrame', () => {
             fireEvent.click(element);
             expect(frame.classList.contains('pd-design__frame--visible')).toBe(true);
         });
+    });
+});
+
+describe('DesignFrame - Toolbox affordance gating', () => {
+    afterEach(() => {
+        vi.clearAllMocks();
+        tlCleanup();
+    });
+
+    const renderFrame = (props: Partial<React.ComponentProps<typeof DesignFrame>>) =>
+        tlRender(
+            <PageDesignerProvider clientId="test1" targetOrigin="*" mode="EDIT">
+                <DesignFrame name="Test" showToolbox showFrame {...props} />
+            </PageDesignerProvider>
+        );
+
+    it('renders both move and delete by default', () => {
+        const { container } = renderFrame({});
+        const toolbox = container.querySelector('.pd-design__frame__toolbox');
+        expect(toolbox).not.toBeNull();
+        expect(container.querySelector('[title="Move component"]')).not.toBeNull();
+        expect(container.querySelector('[title="Delete component"]')).not.toBeNull();
+    });
+
+    it('hides the delete button when isDeletable is false', () => {
+        const { container, queryByTitle } = renderFrame({ isDeletable: false });
+        expect(container.querySelector('.pd-design__frame__toolbox')).not.toBeNull();
+        expect(queryByTitle('Delete component')).toBeNull();
+        expect(queryByTitle('Move component')).not.toBeNull();
+    });
+
+    it('renders no toolbox container when both isMoveable and isDeletable are false', () => {
+        const { container } = renderFrame({ isMoveable: false, isDeletable: false });
+        expect(container.querySelector('.pd-design__frame__toolbox')).toBeNull();
+        // Frame + label still render.
+        expect(container.querySelector('.pd-design__frame__label')).not.toBeNull();
     });
 });
