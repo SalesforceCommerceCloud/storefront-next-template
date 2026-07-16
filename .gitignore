@@ -63,3 +63,7 @@ dw.json
 # tsconfig.json (fashion/default) is checked in; non-default verticals are
 # generated on demand by `typecheck:<vertical>`.
 /tsconfig.cosmetic.json
+/tsconfig.foundations.json
+# The generator test writes a throwaway tsconfig.fashion.json for the route-less
+# case and deletes it in afterAll; ignore it so an interrupted run can't stage it.
+/tsconfig.fashion.json
