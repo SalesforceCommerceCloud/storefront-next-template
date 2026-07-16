@@ -42,6 +42,7 @@ import type { CheckoutActionData } from '@/components/checkout/types';
 import type { ShopperBasketsV2 } from '@/scapi';
 import { useTranslation } from 'react-i18next';
 import { formatAddress } from '@/lib/address/address-utils';
+import { getShippingArrivalLabel } from '@/lib/checkout/shipping-arrival-label';
 
 /**
  * Represents a shipping method option available for selection.
@@ -59,6 +60,8 @@ interface ShippingMethod {
     price: number;
     /** Optional estimated arrival time or date string */
     estimatedArrivalTime?: string;
+    /** Optional structured delivery window (RFC 3339 timestamps); preferred over estimatedArrivalTime */
+    deliveryWindow?: ShopperBasketsV2.schemas['DeliveryWindow'];
 }
 
 /**
@@ -132,7 +135,7 @@ export default function ShippingMultiOptions({
     onEdit,
 }: ShippingMultiOptionsProps) {
     const customerProfile = useCustomerProfile();
-    const { t } = useTranslation('checkout');
+    const { t, i18n } = useTranslation('checkout');
     const { t: tMultiship } = useTranslation('extMultiship');
     // Track if we've already auto-submitted to prevent infinite loops
     const hasAutoSubmitted = useRef(false);
@@ -155,6 +158,7 @@ export default function ShippingMultiOptions({
                         estimatedArrivalTime: (method.estimatedArrivalTime ?? method.c_estimatedArrivalTime) as
                             | string
                             | undefined,
+                        deliveryWindow: method.deliveryWindow,
                     })) || [];
 
             const selectedMethod = shipment.shippingMethod;
@@ -306,50 +310,50 @@ export default function ShippingMultiOptions({
                                             aria-label={tMultiship('checkout.shippingMethodsForShipment', {
                                                 number: shipmentNumber,
                                             })}>
-                                            {data.availableShippingMethods.map((method) => (
-                                                <div
-                                                    key={method.id}
-                                                    className="group flex items-center space-x-4 p-4 rounded-ui border-2 transition-all duration-200 hover:border-primary/50 hover:bg-accent/30 has-[:checked]:border-primary has-[:checked]:bg-accent has-[:checked]:shadow-md">
-                                                    <RadioGroupItem
-                                                        value={method.id}
-                                                        id={`${shipmentId}-${method.id}`}
-                                                        className="w-5 h-5"
-                                                        autoFocus={
-                                                            isEditing &&
-                                                            shipmentIndex === 0 &&
-                                                            data.availableShippingMethods.indexOf(method) === 0
-                                                        }
-                                                    />
-                                                    <Label
-                                                        htmlFor={`${shipmentId}-${method.id}`}
-                                                        className="flex-1 cursor-pointer group-has-[:checked]:text-foreground">
-                                                        <div className="space-y-1">
-                                                            {method.estimatedArrivalTime && (
+                                            {data.availableShippingMethods.map((method) => {
+                                                const arrivalLabel = getShippingArrivalLabel(method, t, i18n.language);
+                                                return (
+                                                    <div
+                                                        key={method.id}
+                                                        className="group flex items-center space-x-4 p-4 rounded-ui border-2 transition-all duration-200 hover:border-primary/50 hover:bg-accent/30 has-[:checked]:border-primary has-[:checked]:bg-accent has-[:checked]:shadow-md">
+                                                        <RadioGroupItem
+                                                            value={method.id}
+                                                            id={`${shipmentId}-${method.id}`}
+                                                            className="w-5 h-5"
+                                                            autoFocus={
+                                                                isEditing &&
+                                                                shipmentIndex === 0 &&
+                                                                data.availableShippingMethods.indexOf(method) === 0
+                                                            }
+                                                        />
+                                                        <Label
+                                                            htmlFor={`${shipmentId}-${method.id}`}
+                                                            className="flex-1 cursor-pointer group-has-[:checked]:text-foreground">
+                                                            <div className="space-y-1">
+                                                                {arrivalLabel && (
+                                                                    <Typography
+                                                                        variant="small"
+                                                                        className="text-muted-foreground group-has-[:checked]:text-foreground font-bold text-base">
+                                                                        {arrivalLabel}
+                                                                    </Typography>
+                                                                )}
                                                                 <Typography
                                                                     variant="small"
-                                                                    className="text-muted-foreground group-has-[:checked]:text-foreground font-bold text-base">
-                                                                    {t('shippingOptions.arrives', {
-                                                                        estimatedArrivalTime:
-                                                                            method.estimatedArrivalTime,
-                                                                    })}
+                                                                    className="text-muted-foreground group-has-[:checked]:text-foreground text-base">
+                                                                    {method.name}
                                                                 </Typography>
-                                                            )}
-                                                            <Typography
-                                                                variant="small"
-                                                                className="text-muted-foreground group-has-[:checked]:text-foreground text-base">
-                                                                {method.name}
-                                                            </Typography>
-                                                        </div>
-                                                    </Label>
-                                                    <Typography
-                                                        variant="small"
-                                                        className="text-muted-foreground group-has-[:checked]:text-foreground font-bold text-base">
-                                                        {method.price === 0
-                                                            ? t('shippingOptions.free')
-                                                            : `$${method.price.toFixed(2)}`}
-                                                    </Typography>
-                                                </div>
-                                            ))}
+                                                            </div>
+                                                        </Label>
+                                                        <Typography
+                                                            variant="small"
+                                                            className="text-muted-foreground group-has-[:checked]:text-foreground font-bold text-base">
+                                                            {method.price === 0
+                                                                ? t('shippingOptions.free')
+                                                                : `$${method.price.toFixed(2)}`}
+                                                        </Typography>
+                                                    </div>
+                                                );
+                                            })}
                                         </RadioGroup>
                                     ) : (
                                         <div className="flex items-center justify-center p-6 border-2 border-dashed border-muted">
@@ -386,8 +390,20 @@ export default function ShippingMultiOptions({
                     ) : (
                         shipmentsData.map((data, shipmentIndex) => {
                             const selectedMethod = data.selectedMethod;
-                            const summaryArrivalTime = (selectedMethod?.estimatedArrivalTime ??
-                                selectedMethod?.c_estimatedArrivalTime) as string | undefined;
+                            const selectedAvailableMethod = data.availableShippingMethods.find(
+                                (method) => method.id === selectedMethod?.id
+                            );
+                            const summaryArrivalLabel = getShippingArrivalLabel(
+                                {
+                                    deliveryWindow:
+                                        selectedAvailableMethod?.deliveryWindow ?? selectedMethod?.deliveryWindow,
+                                    estimatedArrivalTime: (selectedAvailableMethod?.estimatedArrivalTime ??
+                                        selectedMethod?.estimatedArrivalTime ??
+                                        selectedMethod?.c_estimatedArrivalTime) as string | undefined,
+                                },
+                                t,
+                                i18n.language
+                            );
                             const shipmentNumber = shipmentIndex + 1;
 
                             return (
@@ -411,11 +427,9 @@ export default function ShippingMultiOptions({
                                     )}
                                     {selectedMethod ? (
                                         <div className="space-y-1">
-                                            {summaryArrivalTime && (
+                                            {summaryArrivalLabel && (
                                                 <Typography variant="small" className="text-muted-foreground">
-                                                    {t('shippingOptions.arrives', {
-                                                        estimatedArrivalTime: summaryArrivalTime,
-                                                    })}
+                                                    {summaryArrivalLabel}
                                                 </Typography>
                                             )}
                                             <Typography variant="small" className="text-muted-foreground">

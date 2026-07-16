@@ -715,3 +715,78 @@ export const DesktopView: Story = {
         expect(canvasElement).toBeInTheDocument();
     },
 };
+
+const mockShipmentsWithDeliveryWindow: ShopperBasketsV2.schemas['Shipment'][] = [
+    {
+        shipmentId: 'shipment-1',
+        shippingAddress: mockAddress1,
+        productItems: [
+            {
+                itemId: 'item-1',
+                productId: 'product-1',
+                productName: 'Test Product One',
+                quantity: 1,
+                price: 29.99,
+            },
+        ],
+    },
+];
+
+const mockShippingMethodsMapWithDeliveryWindow: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {
+    'shipment-1': {
+        applicableShippingMethods: [
+            {
+                id: 'standard',
+                name: 'Standard Shipping',
+                description: 'Delivery in 5-7 business days',
+                price: 0,
+                // deliveryWindow is preferred; c_estimatedArrivalTime is the fallback and should be ignored here.
+                deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                c_estimatedArrivalTime: 'Dec 15-17',
+            },
+            {
+                id: 'express',
+                name: 'Express Shipping',
+                description: 'Delivery in 2-3 business days',
+                price: 14.99,
+                // No deliveryWindow — falls back to c_estimatedArrivalTime.
+                c_estimatedArrivalTime: 'Dec 12-13',
+            },
+        ],
+        defaultShippingMethodId: 'standard',
+    },
+};
+
+export const WithDeliveryWindow: Story = {
+    args: {
+        shipments: mockShipmentsWithDeliveryWindow,
+        shippingMethodsMap: mockShippingMethodsMapWithDeliveryWindow,
+        isEditing: true,
+        isCompleted: false,
+        isLoading: false,
+        onEdit: () => {
+            action('edit-shipping-multi-options')();
+        },
+        onSubmit: (formData: FormData) => {
+            action('submit-shipping-multi-options')(Object.fromEntries(formData));
+        },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'A method with a structured deliveryWindow shows the formatted date range, while a method without one falls back to c_estimatedArrivalTime.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Standard uses the formatted delivery window, not its c_estimatedArrivalTime.
+        expect(canvas.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(canvas.queryByText(/Dec 15-17/i)).not.toBeInTheDocument();
+
+        // Express has no delivery window, so it falls back to c_estimatedArrivalTime.
+        expect(canvas.getByText(/Dec 12-13/i)).toBeInTheDocument();
+    },
+};

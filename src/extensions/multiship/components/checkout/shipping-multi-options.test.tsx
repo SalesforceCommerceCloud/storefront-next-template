@@ -424,6 +424,188 @@ describe('ShippingMultiOptions', () => {
         expect(screen.getByText(/2-3 business days/i)).toBeInTheDocument();
     });
 
+    test('prefers deliveryWindow over estimatedArrivalTime when both are present', () => {
+        const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
+            {
+                shipmentId: 'ship-1',
+                shippingAddress: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    address1: '123 Main St',
+                    city: 'Springfield',
+                    stateCode: 'IL',
+                    postalCode: '62701',
+                    countryCode: 'US',
+                },
+            },
+        ];
+
+        const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {
+            'ship-1': {
+                applicableShippingMethods: [
+                    {
+                        id: 'express',
+                        name: 'Express Shipping',
+                        price: 12.99,
+                        estimatedArrivalTime: '2-3 business days',
+                        deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                    },
+                ],
+            },
+        };
+
+        render(
+            <ShippingMultiOptions
+                {...createDefaultProps({
+                    shipments,
+                    shippingMethodsMap,
+                })}
+            />,
+            { wrapper }
+        );
+
+        // The formatted delivery window is shown; the raw estimatedArrivalTime is not.
+        expect(screen.getByText(/Arrives/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(screen.queryByText(/2-3 business days/i)).not.toBeInTheDocument();
+    });
+
+    test('falls back to estimatedArrivalTime when no deliveryWindow', () => {
+        const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
+            {
+                shipmentId: 'ship-1',
+                shippingAddress: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    address1: '123 Main St',
+                    city: 'Springfield',
+                    stateCode: 'IL',
+                    postalCode: '62701',
+                    countryCode: 'US',
+                },
+            },
+        ];
+
+        const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {
+            'ship-1': {
+                applicableShippingMethods: [
+                    {
+                        id: 'express',
+                        name: 'Express Shipping',
+                        price: 12.99,
+                        c_estimatedArrivalTime: 'Dec 15-17',
+                    } as any,
+                ],
+            },
+        };
+
+        render(
+            <ShippingMultiOptions
+                {...createDefaultProps({
+                    shipments,
+                    shippingMethodsMap,
+                })}
+            />,
+            { wrapper }
+        );
+
+        expect(screen.getByText(/Dec 15-17/i)).toBeInTheDocument();
+    });
+
+    test('summary view shows the deliveryWindow of the selected method, not c_estimatedArrivalTime', () => {
+        // The selected shipping method on the shipment carries only the id; the delivery window
+        // lives on the matching applicableShippingMethods entry. The summary must resolve it.
+        const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
+            {
+                shipmentId: 'ship-1',
+                shippingMethod: { id: 'express' },
+                shippingAddress: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    address1: '123 Main St',
+                    city: 'Springfield',
+                    stateCode: 'IL',
+                    postalCode: '62701',
+                    countryCode: 'US',
+                },
+            },
+        ];
+
+        const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {
+            'ship-1': {
+                applicableShippingMethods: [
+                    {
+                        id: 'express',
+                        name: 'Express Shipping',
+                        price: 12.99,
+                        c_estimatedArrivalTime: '2-3 business days',
+                        deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                    } as any,
+                ],
+            },
+        };
+
+        render(
+            <ShippingMultiOptions
+                {...createDefaultProps({
+                    shipments,
+                    shippingMethodsMap,
+                    isEditing: false,
+                    isCompleted: true,
+                })}
+            />,
+            { wrapper }
+        );
+
+        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(screen.queryByText(/2-3 business days/i)).not.toBeInTheDocument();
+    });
+
+    test('summary view falls back to c_estimatedArrivalTime when the selected method has no deliveryWindow', () => {
+        const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
+            {
+                shipmentId: 'ship-1',
+                shippingMethod: { id: 'express' },
+                shippingAddress: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    address1: '123 Main St',
+                    city: 'Springfield',
+                    stateCode: 'IL',
+                    postalCode: '62701',
+                    countryCode: 'US',
+                },
+            },
+        ];
+
+        const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {
+            'ship-1': {
+                applicableShippingMethods: [
+                    {
+                        id: 'express',
+                        name: 'Express Shipping',
+                        price: 12.99,
+                        c_estimatedArrivalTime: '2 Business Days',
+                    } as any,
+                ],
+            },
+        };
+
+        render(
+            <ShippingMultiOptions
+                {...createDefaultProps({
+                    shipments,
+                    shippingMethodsMap,
+                    isEditing: false,
+                    isCompleted: true,
+                })}
+            />,
+            { wrapper }
+        );
+
+        expect(screen.getByText(/2 Business Days/i)).toBeInTheDocument();
+    });
+
     test('displays free shipping when price is 0', () => {
         const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
             {
