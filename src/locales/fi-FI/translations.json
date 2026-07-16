@@ -405,6 +405,7 @@
             "emailInvalid": "Anna kelvollinen sähköpostiosoite.",
             "countryCodeLabel": "Koodi",
             "phoneLabel": "Puhelinnumero",
+            "phoneFormatDescription": "10-numeroinen puhelinnumero",
             "phoneRequired": "Anna puhelinnumerosi.",
             "phoneInvalid": "Kirjoita kelvollinen puhelinnumero.",
             "notProvided": "Ei vielä annettu",

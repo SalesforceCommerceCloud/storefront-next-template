@@ -413,7 +413,7 @@ describe('ContactInfo - persist edited email on proceed-as-guest', () => {
         const emailInput = screen.getByLabelText(/email address\*/i);
         await user.clear(emailInput);
         await user.type(emailInput, 'new@example.com');
-        const phoneInput = screen.getByPlaceholderText('(000) 000-0000');
+        const phoneInput = screen.getByLabelText(/phone number\*/i);
         await user.type(phoneInput, '5551234567');
 
         await user.click(screen.getByTestId('otp-checkout-as-guest'));
@@ -480,7 +480,7 @@ describe('ContactInfo - persist edited email on proceed-as-guest', () => {
         const emailInput = screen.getByLabelText(/email address\*/i);
         await user.clear(emailInput);
         await user.type(emailInput, 'new@example.com');
-        const phoneInput = screen.getByPlaceholderText('(000) 000-0000');
+        const phoneInput = screen.getByLabelText(/phone number\*/i);
         await user.type(phoneInput, '5551234567');
 
         await user.click(screen.getByTestId('login-modal-checkout-as-guest'));

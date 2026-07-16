@@ -408,6 +408,7 @@
             "emailInvalid": "請輸入有效的電子郵件地址。",
             "countryCodeLabel": "代碼",
             "phoneLabel": "電話號碼",
+            "phoneFormatDescription": "10位數電話號碼",
             "phoneRequired": "請輸入您的電話號碼。",
             "phoneInvalid": "請輸入有效的電話號碼。",
             "notProvided": "尚未提供",

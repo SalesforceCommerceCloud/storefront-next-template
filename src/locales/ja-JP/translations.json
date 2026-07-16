@@ -407,6 +407,7 @@
             "emailInvalid": "有効なメールアドレスを入力してください。",
             "countryCodeLabel": "コード",
             "phoneLabel": "電話番号",
+            "phoneFormatDescription": "10桁の電話番号",
             "phoneRequired": "電話番号を入力してください。",
             "phoneInvalid": "有効な電話番号を入力してください。",
             "notProvided": "まだ指定されていません",

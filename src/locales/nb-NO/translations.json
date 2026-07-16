@@ -406,6 +406,7 @@
             "emailInvalid": "Skriv inn en gyldig e-postadresse.",
             "countryCodeLabel": "Kode",
             "phoneLabel": "Telefonnummer",
+            "phoneFormatDescription": "10-sifret telefonnummer",
             "phoneRequired": "Skriv inn telefonnummeret ditt.",
             "phoneInvalid": "Skriv inn et gyldig telefonnummer.",
             "notProvided": "Ikke oppgitt ennå",

@@ -415,6 +415,7 @@
             "emailInvalid": "Wprowadź prawidłowy adres e-mail.",
             "countryCodeLabel": "Kod",
             "phoneLabel": "Numer telefonu",
+            "phoneFormatDescription": "10-cyfrowy numer telefonu",
             "phoneRequired": "Wprowadź numer telefonu.",
             "phoneInvalid": "Wprowadź prawidłowy numer telefonu.",
             "notProvided": "Jeszcze nie podano",

@@ -404,6 +404,7 @@
             "emailRequired": "Voer je e-mailadres in.",
             "emailInvalid": "Voer een geldig e-mailadres in.",
             "phoneLabel": "Telefoonnummer",
+            "phoneFormatDescription": "Telefoonnummer van 10 cijfers",
             "phoneRequired": "Voer je telefoonnummer in.",
             "phoneInvalid": "Voer een geldig telefoonnummer in.",
             "notProvided": "Nog niet opgegeven",

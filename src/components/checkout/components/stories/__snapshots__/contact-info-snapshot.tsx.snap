@@ -139,19 +139,36 @@ exports[`ContactInfo stories snapshot > EditView story renders and matches snaps
                   Phone Number
                   *
                 </label>
-                <input
-                  aria-invalid="false"
-                  autocomplete="tel-national"
-                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-slot="input"
-                  id="_r_2_-form-item"
-                  inputmode="numeric"
-                  maxlength="14"
-                  name="phone"
-                  placeholder="(000) 000-0000"
-                  type="tel"
-                  value=""
-                />
+                <p
+                  class="text-muted-foreground text-sm sr-only"
+                  data-slot="form-description"
+                  id="_r_2_-form-item-description"
+                >
+                  10-digit phone number
+                </p>
+                <div
+                  class="relative"
+                >
+                  <input
+                    aria-describedby="_r_2_-form-item-description"
+                    aria-invalid="false"
+                    autocomplete="tel-national"
+                    class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-slot="input"
+                    id="_r_2_-form-item"
+                    inputmode="numeric"
+                    maxlength="14"
+                    name="phone"
+                    type="tel"
+                    value=""
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground md:text-sm"
+                  >
+                    (000) 000-0000
+                  </span>
+                </div>
               </div>
             </div>
           </fieldset>
@@ -315,19 +332,36 @@ exports[`ContactInfo stories snapshot > SavingState story renders and matches sn
                   Phone Number
                   *
                 </label>
-                <input
-                  aria-invalid="false"
-                  autocomplete="tel-national"
-                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-slot="input"
-                  id="_r_8_-form-item"
-                  inputmode="numeric"
-                  maxlength="14"
-                  name="phone"
-                  placeholder="(000) 000-0000"
-                  type="tel"
-                  value=""
-                />
+                <p
+                  class="text-muted-foreground text-sm sr-only"
+                  data-slot="form-description"
+                  id="_r_8_-form-item-description"
+                >
+                  10-digit phone number
+                </p>
+                <div
+                  class="relative"
+                >
+                  <input
+                    aria-describedby="_r_8_-form-item-description"
+                    aria-invalid="false"
+                    autocomplete="tel-national"
+                    class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-slot="input"
+                    id="_r_8_-form-item"
+                    inputmode="numeric"
+                    maxlength="14"
+                    name="phone"
+                    type="tel"
+                    value=""
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground md:text-sm"
+                  >
+                    (000) 000-0000
+                  </span>
+                </div>
               </div>
             </div>
           </fieldset>
@@ -512,19 +546,36 @@ exports[`ContactInfo stories snapshot > SendingOtp story renders and matches sna
                   Phone Number
                   *
                 </label>
-                <input
-                  aria-invalid="false"
-                  autocomplete="tel-national"
-                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-slot="input"
-                  id="_r_5_-form-item"
-                  inputmode="numeric"
-                  maxlength="14"
-                  name="phone"
-                  placeholder="(000) 000-0000"
-                  type="tel"
-                  value=""
-                />
+                <p
+                  class="text-muted-foreground text-sm sr-only"
+                  data-slot="form-description"
+                  id="_r_5_-form-item-description"
+                >
+                  10-digit phone number
+                </p>
+                <div
+                  class="relative"
+                >
+                  <input
+                    aria-describedby="_r_5_-form-item-description"
+                    aria-invalid="false"
+                    autocomplete="tel-national"
+                    class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-slot="input"
+                    id="_r_5_-form-item"
+                    inputmode="numeric"
+                    maxlength="14"
+                    name="phone"
+                    type="tel"
+                    value=""
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground md:text-sm"
+                  >
+                    (000) 000-0000
+                  </span>
+                </div>
               </div>
             </div>
           </fieldset>
@@ -748,19 +799,36 @@ exports[`ContactInfo stories snapshot > WithValidationErrors story renders and m
                   Phone Number
                   *
                 </label>
-                <input
-                  aria-invalid="false"
-                  autocomplete="tel-national"
-                  class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
-                  data-slot="input"
-                  id="_r_b_-form-item"
-                  inputmode="numeric"
-                  maxlength="14"
-                  name="phone"
-                  placeholder="(000) 000-0000"
-                  type="tel"
-                  value=""
-                />
+                <p
+                  class="text-muted-foreground text-sm sr-only"
+                  data-slot="form-description"
+                  id="_r_b_-form-item-description"
+                >
+                  10-digit phone number
+                </p>
+                <div
+                  class="relative"
+                >
+                  <input
+                    aria-describedby="_r_b_-form-item-description"
+                    aria-invalid="false"
+                    autocomplete="tel-national"
+                    class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+                    data-slot="input"
+                    id="_r_b_-form-item"
+                    inputmode="numeric"
+                    maxlength="14"
+                    name="phone"
+                    type="tel"
+                    value=""
+                  />
+                  <span
+                    aria-hidden="true"
+                    class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground md:text-sm"
+                  >
+                    (000) 000-0000
+                  </span>
+                </div>
               </div>
             </div>
           </fieldset>

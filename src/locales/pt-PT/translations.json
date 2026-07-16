@@ -409,6 +409,7 @@
             "emailInvalid": "Insira um endereço de e-mail válido.",
             "countryCodeLabel": "Código",
             "phoneLabel": "Número de telefone",
+            "phoneFormatDescription": "Número de telefone de 10 dígitos",
             "phoneRequired": "Insira seu telefone.",
             "phoneInvalid": "Introduza um número de telefone válido.",
             "notProvided": "Ainda não fornecido",

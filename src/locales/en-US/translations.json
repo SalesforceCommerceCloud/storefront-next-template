@@ -449,6 +449,7 @@
             "countryCodeLabel": "Code",
             "phoneLabel": "Phone Number",
             "phonePlaceholder": "(000) 000-0000",
+            "phoneFormatDescription": "10-digit US phone number",
             "phoneRequired": "Please enter your phone number.",
             "phoneInvalid": "Please enter a valid phone number.",
             "notProvided": "Not provided yet",

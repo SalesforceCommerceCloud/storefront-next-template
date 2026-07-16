@@ -442,6 +442,7 @@
             "emailInvalid": "Inserisci un indirizzo e-mail valido.",
             "countryCodeLabel": "Codice",
             "phoneLabel": "Numero di telefono",
+            "phoneFormatDescription": "Numero di telefono a 10 cifre",
             "phoneRequired": "Inserisci il numero di telefono.",
             "phoneInvalid": "Inserisci un numero di telefono valido.",
             "notProvided": "Non ancora fornito",

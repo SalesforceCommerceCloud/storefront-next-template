@@ -405,6 +405,7 @@
             "emailRequired": "Bitte geben Sie Ihre E-Mail-Adresse ein.",
             "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
             "phoneLabel": "Telefonnummer",
+            "phoneFormatDescription": "10-stellige Telefonnummer",
             "phoneRequired": "Bitte geben Sie Ihre Telefonnummer ein.",
             "phoneInvalid": "Bitte geben Sie eine gültige Telefonnummer ein.",
             "notProvided": "Noch nicht bereitgestellt",

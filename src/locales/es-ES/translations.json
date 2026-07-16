@@ -405,6 +405,7 @@
             "emailInvalid": "Ingresa una dirección de correo electrónico válida.",
             "countryCodeLabel": "Código",
             "phoneLabel": "Número de teléfono",
+            "phoneFormatDescription": "Número de teléfono de 10 dígitos",
             "phoneRequired": "Ingresa tu número de teléfono.",
             "phoneInvalid": "Ingresa un número de teléfono válido.",
             "notProvided": "Todavía no se proporciona",

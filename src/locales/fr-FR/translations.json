@@ -411,6 +411,7 @@
             "emailInvalid": "Veuillez saisir une adresse e-mail valide.",
             "phoneLabel": "Numéro de téléphone",
             "phonePlaceholder": "+1 (000) 000-0000",
+            "phoneFormatDescription": "Numéro de téléphone à 10 chiffres",
             "phoneRequired": "Veuillez indiquer votre numéro de téléphone.",
             "phoneInvalid": "Veuillez saisir un numéro de téléphone valide.",
             "notProvided": "Pas encore fourni",

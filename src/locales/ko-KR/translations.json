@@ -405,6 +405,7 @@
             "emailInvalid": "유효한 이메일 주소를 입력하십시오.",
             "countryCodeLabel": "코드",
             "phoneLabel": "전화번호",
+            "phoneFormatDescription": "10자리 전화번호",
             "phoneRequired": "전화번호를 입력하십시오.",
             "phoneInvalid": "올바른 전화번호를 입력하십시오.",
             "notProvided": "아직 제공되지 않음",

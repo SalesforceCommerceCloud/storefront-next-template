@@ -270,7 +270,7 @@ describe('ContactInfo Integration Tests', () => {
             await waitFor(() => {
                 expect(screen.getByLabelText(/^code$/i)).toBeInTheDocument();
             });
-            expect(screen.getByPlaceholderText('(000) 000-0000')).toBeInTheDocument();
+            expect(screen.getByLabelText(/phone number\*/i)).toBeInTheDocument();
         });
 
         test('shows phone fields for logged-in users', async () => {
@@ -282,7 +282,7 @@ describe('ContactInfo Integration Tests', () => {
             renderWithRouter(<ContactInfo {...createDefaultProps()} />);
 
             await waitFor(() => {
-                expect(screen.getByPlaceholderText('(000) 000-0000')).toBeInTheDocument();
+                expect(screen.getByLabelText(/phone number\*/i)).toBeInTheDocument();
             });
         });
 
@@ -295,16 +295,99 @@ describe('ContactInfo Integration Tests', () => {
             });
         });
 
+        test('renders persistent format description alongside phone input and links it via aria-describedby (WCAG 3.3.2)', async () => {
+            renderWithRouter(<ContactInfo {...createDefaultProps()} />);
+
+            const phoneInput = await screen.findByLabelText(/phone number\*/i);
+            const formItem = phoneInput.closest('[data-slot="form-item"]');
+            if (!formItem) throw new Error('phone FormItem not found');
+
+            const description = formItem.querySelector('[data-slot="form-description"]');
+            if (!description) throw new Error('FormDescription not rendered next to phone input');
+            expect(description.textContent).toMatch(/./);
+
+            // Screen readers only announce the description when the input references it via
+            // aria-describedby. The visible text alone doesn't satisfy WCAG 3.3.2.
+            const describedBy = phoneInput.getAttribute('aria-describedby');
+            if (describedBy === null) throw new Error('phone input missing aria-describedby');
+            expect(describedBy.split(/\s+/)).toContain(description.id);
+        });
+
+        test('phone aria-describedby references BOTH description and validation message when the field is in error', async () => {
+            const user = userEvent.setup();
+            const { container } = renderWithRouter(<ContactInfo {...createDefaultProps()} />);
+
+            // Submit with an empty phone to trigger the required-phone validation message.
+            const emailInput = await screen.findByPlaceholderText(/email address/i);
+            await user.clear(emailInput);
+            await user.type(emailInput, 'valid.email@example.com');
+
+            const formElement = container.querySelector('form');
+            if (!formElement) throw new Error('Form element not found');
+            fireEvent.submit(formElement);
+
+            const phoneInput = screen.getByLabelText(/phone number\*/i);
+            await waitFor(() => {
+                const formItem = phoneInput.closest('[data-slot="form-item"]');
+                if (!formItem) throw new Error('phone FormItem not found');
+
+                const description = formItem.querySelector('[data-slot="form-description"]');
+                const message = formItem.querySelector('[data-slot="form-message"]');
+                if (!description) throw new Error('FormDescription not rendered next to phone input');
+                if (!message) throw new Error('FormMessage not rendered on validation error');
+
+                const describedBy = phoneInput.getAttribute('aria-describedby');
+                if (describedBy === null) throw new Error('phone input missing aria-describedby');
+                const ids = describedBy.split(/\s+/).filter(Boolean);
+                expect(ids).toContain(description.id);
+                expect(ids).toContain(message.id);
+            });
+        });
+
         test('formats phone number on blur', async () => {
             const user = userEvent.setup();
             renderWithRouter(<ContactInfo {...createDefaultProps()} />);
 
-            const phoneInput = screen.getByPlaceholderText('(000) 000-0000');
+            const phoneInput = screen.getByLabelText(/phone number\*/i);
             await user.type(phoneInput, '5551234567');
             expect(phoneInput).toHaveValue('5551234567');
 
             await user.tab();
             expect(phoneInput).toHaveValue('(555) 123-4567');
+        });
+
+        test('does not show required-phone error when the shopper focuses and blurs the empty field without typing', async () => {
+            const user = userEvent.setup();
+            renderWithRouter(<ContactInfo {...createDefaultProps()} />);
+
+            const phoneInput = await screen.findByLabelText(/phone number\*/i);
+            expect(phoneInput).toHaveValue('');
+
+            // Focus the empty phone field, then blur without typing anything.
+            await user.click(phoneInput);
+            await user.tab();
+
+            // No validation error should render. Prior to this fix, the phone
+            // onBlur handler called field.onChange('') which triggered
+            // mode: 'onChange' required-phone validation before the shopper had
+            // typed anything.
+            expect(screen.queryByText(/please enter your phone number/i)).not.toBeInTheDocument();
+            expect(phoneInput.getAttribute('aria-invalid')).not.toBe('true');
+        });
+
+        test('visible phone-format mask is hidden from assistive technology', async () => {
+            renderWithRouter(<ContactInfo {...createDefaultProps()} />);
+
+            const phoneInput = await screen.findByLabelText(/phone number\*/i);
+            const formItem = phoneInput.closest('[data-slot="form-item"]');
+            if (!formItem) throw new Error('phone FormItem not found');
+
+            // The empty field renders a visual placeholder mask ("(000) 000-0000").
+            // Locate it by its visible text, then assert it is aria-hidden so screen
+            // readers announce the format once (via the sr-only FormDescription linked
+            // through aria-describedby), not twice.
+            const mask = within(formItem as HTMLElement).getByText('(000) 000-0000');
+            expect(mask).toHaveAttribute('aria-hidden', 'true');
         });
     });
 
@@ -322,7 +405,7 @@ describe('ContactInfo Integration Tests', () => {
             await waitFor(() => {
                 expect(screen.getByPlaceholderText(/email address/i)).toBeInTheDocument();
             });
-            expect(screen.getByPlaceholderText('(000) 000-0000')).toBeInTheDocument();
+            expect(screen.getByLabelText(/phone number\*/i)).toBeInTheDocument();
         });
 
         test('handles logged-in user flow', async () => {
@@ -341,7 +424,7 @@ describe('ContactInfo Integration Tests', () => {
             await waitFor(() => {
                 expect(screen.getByPlaceholderText(/email address/i)).toBeInTheDocument();
             });
-            expect(screen.getByPlaceholderText('(000) 000-0000')).toBeInTheDocument();
+            expect(screen.getByLabelText(/phone number\*/i)).toBeInTheDocument();
         });
     });
 
@@ -417,7 +500,7 @@ describe('ContactInfo Integration Tests', () => {
             const emailInput = await screen.findByPlaceholderText(/email address/i);
             await user.clear(emailInput);
             await user.type(emailInput, 'pending@example.com');
-            const phoneInput = screen.getByPlaceholderText('(000) 000-0000');
+            const phoneInput = screen.getByLabelText(/phone number\*/i);
             await user.type(phoneInput, '5551234567');
             await user.tab();
 
@@ -449,7 +532,7 @@ describe('ContactInfo Integration Tests', () => {
             await user.clear(emailInput);
             await user.type(emailInput, 'valid.email@example.com');
 
-            const phoneInput = screen.getByPlaceholderText('(000) 000-0000');
+            const phoneInput = screen.getByLabelText(/phone number\*/i);
             await user.clear(phoneInput);
             await user.type(phoneInput, '5551234567');
 

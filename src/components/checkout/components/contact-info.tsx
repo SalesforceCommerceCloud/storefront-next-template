@@ -21,7 +21,7 @@ import { ToggleCard, ToggleCardEdit, ToggleCardSummary } from '@/components/togg
 import { Button } from '@/components/ui/button';
 import { FormInput, FormNativeSelect } from '@/components/form-fields';
 import { Typography } from '@/components/typography';
-import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormDescription, FormMessage, useFormField } from '@/components/ui/form';
 import { useBasket } from '@/providers/basket';
 import { createContactInfoSchema, type ContactInfoData } from '@/lib/checkout/schemas';
 import { useLoginSuggestion } from '@/hooks/use-customer-lookup';
@@ -48,6 +48,18 @@ import { resourceRoutes } from '@/route-paths';
 
 const OtpModal = lazy(() => import('@/components/login/otp-modal'));
 const LoginModal = lazy(() => import('@/components/login/login-modal'));
+
+/**
+ * FormInput variant that also references the sibling FormDescription element via
+ * aria-describedby so screen readers announce the format instruction when focus
+ * enters the field. Required by WCAG 3.3.2 when the description holds instructions
+ * the shopper needs to complete the field.
+ */
+function FormInputWithDescription(props: React.ComponentProps<typeof FormInput>) {
+    const { formDescriptionId, formMessageId, error } = useFormField();
+    const describedBy = error ? `${formDescriptionId} ${formMessageId}` : formDescriptionId;
+    return <FormInput aria-describedby={describedBy} {...props} />;
+}
 
 interface ContactInfoProps {
     onSubmit: (data: ContactInfoData) => void;
@@ -592,25 +604,41 @@ export default function ContactInfo({
                                         render={({ field }) => (
                                             <FormItem className="flex-1">
                                                 <FormLabel>{t('contactInfo.phoneLabel')}*</FormLabel>
-                                                <FormInput
-                                                    type="tel"
-                                                    inputMode="numeric"
-                                                    placeholder={t('contactInfo.phonePlaceholder')}
-                                                    autoComplete="tel-national"
-                                                    maxLength={14}
-                                                    {...field}
-                                                    onChange={(e) => {
-                                                        field.onChange(stripNonDigits(e.target.value).slice(0, 10));
-                                                    }}
-                                                    onBlur={(e) => {
-                                                        field.onBlur();
-                                                        field.onChange(formatPhoneInput(e.target.value));
-                                                    }}
-                                                    onFocus={(e) => {
-                                                        const digits = stripNonDigits(e.target.value);
-                                                        if (digits !== e.target.value) field.onChange(digits);
-                                                    }}
-                                                />
+                                                <FormDescription className="sr-only">
+                                                    {t('contactInfo.phoneFormatDescription')}
+                                                </FormDescription>
+                                                <div className="relative">
+                                                    <FormInputWithDescription
+                                                        type="tel"
+                                                        inputMode="numeric"
+                                                        autoComplete="tel-national"
+                                                        maxLength={14}
+                                                        {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(stripNonDigits(e.target.value).slice(0, 10));
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            field.onBlur();
+                                                            // Skip reformat when the field is empty so we don't
+                                                            // fire an onChange that triggers required-phone
+                                                            // validation before the shopper has typed anything.
+                                                            if (e.target.value) {
+                                                                field.onChange(formatPhoneInput(e.target.value));
+                                                            }
+                                                        }}
+                                                        onFocus={(e) => {
+                                                            const digits = stripNonDigits(e.target.value);
+                                                            if (digits !== e.target.value) field.onChange(digits);
+                                                        }}
+                                                    />
+                                                    {!field.value && (
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground md:text-sm">
+                                                            {t('contactInfo.phonePlaceholder')}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <FormMessage />
                                             </FormItem>
                                         )}

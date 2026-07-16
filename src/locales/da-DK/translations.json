@@ -404,6 +404,7 @@
             "emailInvalid": "Indtast en gyldig e-mailadresse.",
             "countryCodeLabel": "Kode",
             "phoneLabel": "Telefonnummer",
+            "phoneFormatDescription": "10-cifret telefonnummer",
             "phoneRequired": "Indtast dit telefonnummer.",
             "phoneInvalid": "Indtast et gyldigt telefonnummer.",
             "notProvided": "Ikke angivet endnu",
