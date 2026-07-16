@@ -50,8 +50,8 @@ const WISHLIST_MUTATIONS: readonly string[] = [resourceRoutes.wishlistAdd, resou
  * The one denied class is the wishlist toggle from a cart line (`wishlist-add` / `wishlist-remove`). Two reasons, both
  * decisive:
  *
- *   1. **Correctness/UX.** The route pins `wishlistProductIdsPromise` and `wishlistInitialState` via lazy `useState`,
- *      and the cart-line wishlist button tracks its own state through the client-side `useWishlist` fetcher. A
+ *   1. **Correctness/UX.** The route pins `wishlistProductIdsPromise` via lazy `useState`, and the cart-line wishlist
+ *      button tracks its own state through the client-side `useWishlist` fetcher. A
  *      revalidation here re-runs the loader → fresh basket Promise identity → the basket `<Await>` re-suspends →
  *      cart-line Suspense subtrees unmount → the in-flight wishlist `useFetcher` is orphaned mid-submit (see the route
  *      component's pinning rationale in `_app.cart.tsx`).

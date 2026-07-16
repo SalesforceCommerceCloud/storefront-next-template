@@ -17,8 +17,6 @@ import BasketProvider from '../src/providers/basket';
 import CheckoutOneClickProvider from '../src/components/checkout/utils/checkout-context';
 import ProductViewProvider from '../src/providers/product-view';
 import StoreLocatorProvider from '../src/extensions/store-locator/providers/store-locator';
-import { WishlistProvider } from '../src/providers/wishlist';
-import { EMPTY_WISHLIST_STATE } from '../src/lib/wishlist/state';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockConfig } from '../src/test-utils/config';
@@ -149,14 +147,6 @@ export const StorybookProductViewProvider = ({ children }: PropsWithChildren) =>
 );
 
 /**
- * Storybook WishlistProvider wrapper with empty wishlist state
- * Required by `WishlistButton` and any component that renders it (PDP, PLP tiles, recs).
- */
-export const StorybookWishlistProvider = ({ children }: PropsWithChildren) => (
-    <WishlistProvider initialState={EMPTY_WISHLIST_STATE}>{children}</WishlistProvider>
-);
-
-/**
  * Array of Storybook provider wrappers in the correct order
  * This order matches the application's provider hierarchy in root.tsx
  *
@@ -171,7 +161,6 @@ export const storybookProviders = [
     StorybookSiteProvider,
     StorybookAuthProvider,
     StorybookBasketProvider,
-    StorybookWishlistProvider,
     StorybookStoreLocatorProvider,
     StorybookCheckoutProvider,
 ] as const;

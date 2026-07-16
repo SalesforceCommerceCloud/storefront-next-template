@@ -26,8 +26,6 @@ import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import DynamicImageProvider from '@/providers/dynamic-image';
 import { ProductTileProvider } from '../context';
-import { WishlistProvider } from '@/providers/wishlist';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
 
 const mockSite = mockSiteObject;
 
@@ -141,11 +139,9 @@ const meta: Meta<typeof ProductTile> = {
                     currency={mockSiteObject.defaultCurrency}>
                     <DynamicImageProvider value={{ widths: ['50vw', '50vw', '15vw'] }}>
                         <ProductTileProvider>
-                            <WishlistProvider initialState={EMPTY_WISHLIST_STATE}>
-                                <div className="w-64">
-                                    <Story />
-                                </div>
-                            </WishlistProvider>
+                            <div className="w-64">
+                                <Story />
+                            </div>
                         </ProductTileProvider>
                     </DynamicImageProvider>
                 </SiteProvider>

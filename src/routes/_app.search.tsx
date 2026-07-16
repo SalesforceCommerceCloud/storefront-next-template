@@ -19,9 +19,6 @@ import type { Route } from './+types/_app.search';
 import type { ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { fetchSearchProducts } from '@/lib/api/search.server';
-import { fetchWishlistInitialState } from '@/lib/wishlist/fetch-initial-state.server';
-import type { WishlistInitialState } from '@/lib/wishlist/state';
-import { WishlistProvider } from '@/providers/wishlist';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getLogger } from '@/lib/logger.server';
@@ -82,7 +79,6 @@ export type SearchPageData = {
     currency: string;
     locale: string;
     initialFiltersOpen?: boolean;
-    wishlistInitialState: Promise<WishlistInitialState>;
 };
 
 /**
@@ -149,7 +145,6 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
         currency,
         locale,
         initialFiltersOpen,
-        wishlistInitialState: fetchWishlistInitialState(context),
     };
 }
 
@@ -183,7 +178,6 @@ export default function SearchPage({
         currency,
         locale,
         initialFiltersOpen,
-        wishlistInitialState,
     },
 }: {
     loaderData: SearchPageData;
@@ -274,7 +268,7 @@ export default function SearchPage({
     }, [analytics, searchTerm, analyticsKey, nonCriticalPromise]);
 
     return (
-        <WishlistProvider initialState={wishlistInitialState}>
+        <>
             <SeoMeta
                 title={
                     searchTerm
@@ -370,6 +364,6 @@ export default function SearchPage({
                     </div>
                 </div>
             </div>
-        </WishlistProvider>
+        </>
     );
 }

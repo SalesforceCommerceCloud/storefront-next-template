@@ -19,7 +19,6 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
 import { uiConfig } from '@/lib/config.ui';
 
 // CartContent is heavy and not what's under test — render its `recommendationsSlot`
@@ -108,7 +107,7 @@ const renderCartRoute = async (loaderData: {
                 loader: () => ({
                     basketDataPromise: Promise.resolve(mockBasketData),
                     wishlistProductIdsPromise: Promise.resolve([]),
-                    wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
+
                     cartMayAlsoLikePromise: loaderData.cartMayAlsoLikePromise,
                     cartRecentlyViewedPromise: loaderData.cartRecentlyViewedPromise,
                     ruleBasedBonusProductsPromise: Promise.resolve({}),
@@ -178,7 +177,7 @@ describe('Cart route component', () => {
                         loader: () => ({
                             basketDataPromise: pendingBasket,
                             wishlistProductIdsPromise: Promise.resolve([]),
-                            wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
+
                             cartMayAlsoLikePromise: pendingRecs,
                             cartRecentlyViewedPromise: pendingRecs,
                             ruleBasedBonusProductsPromise: Promise.resolve({}),

@@ -143,6 +143,7 @@ export const resourceRoutes = {
     updateBasketBillingAddress: '/resource/update-basket-billing-address',
     wishlistAdd: '/action/wishlist-add',
     wishlistRemove: '/action/wishlist-remove',
+    wishlistState: '/action/wishlist-state',
     paymentMethodAdd: '/action/payment-method-add',
     paymentMethodRemove: '/action/payment-method-remove',
     paymentMethodSetDefault: '/action/payment-method-set-default',

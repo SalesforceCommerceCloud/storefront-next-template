@@ -20,7 +20,6 @@ import type { LoaderFunctionArgs } from 'react-router';
 import type { ShopperExperience, ShopperProducts, ShopperSearch } from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import HomePage, { type HomePageData, loader } from './_app._index';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
 import { createTestContext } from '@/lib/test-utils';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
@@ -234,8 +233,8 @@ vi.mock('@/lib/logger.server', () => ({
     })),
 }));
 
-vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() => Promise.resolve(EMPTY_WISHLIST_STATE)),
+vi.mock('@/middlewares/auth.server', () => ({
+    getAuth: vi.fn(() => ({ customerId: null })),
 }));
 
 const renderComponent = (loaderDataOverrides?: Partial<HomePageData>) => {
@@ -246,7 +245,7 @@ const renderComponent = (loaderDataOverrides?: Partial<HomePageData>) => {
         }),
         searchResult: Promise.resolve(mockSearchResult),
         categories: Promise.resolve(mockCategories),
-        wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
+
         pageUrl: 'http://localhost/',
         ogImageUrl: 'http://localhost/__ASSET_MOCK__',
     };

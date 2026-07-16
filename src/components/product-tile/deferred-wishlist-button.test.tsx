@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { WishlistButton } from '@/components/buttons/wishlist-button';
 import { DeferredWishlistButton } from './deferred-wishlist-button';
-import { WishlistProvider } from '@/providers/wishlist';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
+import { resetWishlistStore, seedWishlistStore } from '@/test-utils/wishlist';
 
 type WishlistButtonProps = ComponentProps<typeof WishlistButton>;
+
+// Spy on the lazy-load trigger while keeping the real provider/store behavior.
+const loadSpy = vi.fn();
+vi.mock('@/providers/wishlist', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/providers/wishlist')>();
+    return { ...actual, useWishlistLoader: () => loadSpy };
+});
 
 // Mock react-i18next so HeartIcon can call useTranslation
 vi.mock('react-i18next', () => ({
@@ -57,57 +63,47 @@ const defaultProps: WishlistButtonProps = {
     tabIndex: -1,
 };
 
-function withProvider(ui: ReactNode) {
-    return <WishlistProvider initialState={EMPTY_WISHLIST_STATE}>{ui}</WishlistProvider>;
-}
-
 describe('DeferredWishlistButton', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        resetWishlistStore();
     });
 
     describe('initial render (placeholder)', () => {
         test('renders a HeartIcon placeholder button', () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
             const button = screen.getByRole('button');
             expect(button).toBeInTheDocument();
         });
 
         test('passes size, className, and tabIndex to the placeholder HeartIcon', () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
             const button = screen.getByRole('button');
             expect(button).toHaveClass('custom-class');
             expect(button).toHaveAttribute('tabindex', '-1');
         });
 
         test('does not render the real WishlistButton before interaction', () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
             expect(screen.queryByTestId('real-wishlist-button')).not.toBeInTheDocument();
         });
 
         test('placeholder paints filled when product is already in the wishlist', () => {
-            render(
-                <WishlistProvider
-                    initialState={{
-                        customerId: 'cust-1',
-                        productIds: new Set(['test-product']),
-                    }}>
-                    <DeferredWishlistButton {...defaultProps} />
-                </WishlistProvider>
-            );
+            seedWishlistStore('cust-1', ['test-product']);
+            render(<DeferredWishlistButton {...defaultProps} />);
             // HeartIcon's aria-label flips from 'Add to wishlist' → 'Remove from wishlist' when filled.
             expect(screen.getByRole('button', { name: 'Remove from wishlist' })).toBeInTheDocument();
         });
 
         test('placeholder paints empty when product is not in the wishlist', () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
             expect(screen.getByRole('button', { name: 'Add to wishlist' })).toBeInTheDocument();
         });
     });
 
     describe('lazy loading on pointer enter', () => {
         test('loads the real WishlistButton after pointerEnter', async () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
 
             const placeholder = screen.getByRole('button');
             fireEvent.pointerEnter(placeholder);
@@ -118,7 +114,7 @@ describe('DeferredWishlistButton', () => {
         });
 
         test('does not revert to placeholder after loading', async () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
 
             fireEvent.pointerEnter(screen.getByRole('button'));
 
@@ -134,7 +130,7 @@ describe('DeferredWishlistButton', () => {
 
     describe('Suspense fallback', () => {
         test('shows a HeartIcon fallback while the lazy component is loading', async () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
 
             // Before interaction — placeholder HeartIcon is rendered
             expect(screen.getByRole('button')).toBeInTheDocument();
@@ -149,9 +145,29 @@ describe('DeferredWishlistButton', () => {
         });
     });
 
+    describe('lazy load on first tile intent', () => {
+        test('triggers the load on pointerEnter', () => {
+            render(<DeferredWishlistButton {...defaultProps} />);
+            fireEvent.pointerEnter(screen.getByRole('button'));
+            expect(loadSpy).toHaveBeenCalled();
+        });
+
+        test('triggers the load on focus (keyboard)', () => {
+            render(<DeferredWishlistButton {...defaultProps} />);
+            fireEvent.focus(screen.getByRole('button'));
+            expect(loadSpy).toHaveBeenCalled();
+        });
+
+        test('triggers the load on touchStart (mobile)', () => {
+            render(<DeferredWishlistButton {...defaultProps} />);
+            fireEvent.touchStart(screen.getByRole('button'));
+            expect(loadSpy).toHaveBeenCalled();
+        });
+    });
+
     describe('prop forwarding', () => {
         test('forwards all props to the real WishlistButton once loaded', async () => {
-            render(withProvider(<DeferredWishlistButton {...defaultProps} />));
+            render(<DeferredWishlistButton {...defaultProps} />);
 
             fireEvent.pointerEnter(screen.getByRole('button'));
 
@@ -166,7 +182,7 @@ describe('DeferredWishlistButton', () => {
                 product: { productId: 'minimal-product' },
                 surface: 'plp',
             };
-            expect(() => render(withProvider(<DeferredWishlistButton {...minimalProps} />))).not.toThrow();
+            expect(() => render(<DeferredWishlistButton {...minimalProps} />)).not.toThrow();
         });
     });
 });

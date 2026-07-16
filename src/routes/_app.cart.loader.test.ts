@@ -38,8 +38,8 @@ vi.mock('@/lib/cart/cart-wishlist.server', () => ({
     fetchWishlistProductIdsForCart: vi.fn(),
 }));
 
-vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() => Promise.resolve({ customerId: null, productIds: new Set() })),
+vi.mock('@/middlewares/auth.server', () => ({
+    getAuth: vi.fn(() => ({ customerId: null })),
 }));
 
 vi.mock('@/lib/product/recommendations.server', () => ({

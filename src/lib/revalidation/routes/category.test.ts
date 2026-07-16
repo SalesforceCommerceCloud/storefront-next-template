@@ -225,10 +225,10 @@ describe.each(LISTINGS)('$name shouldRevalidate', ({ listing, otherListing }) =>
         });
     });
 
-    // An identity transition re-scopes the auth-dependent wishlistInitialState the loader feeds the WishlistProvider.
+    // An identity transition re-scopes the loader's customer-group-scoped SCAPI reads (pricing / promotions).
     // If an in-place auth submission (e.g. a useFetcher LoginModal) ever keeps a listing route mounted across the
-    // mutation, this gate must re-run the loader to re-seed the now-registered/now-guest wishlist. The identity routes
-    // are site/locale-prefixed, so they are matched on the trailing segment, unlike the unprefixed /action/* routes.
+    // mutation, this gate must re-run the loader to refresh them for the now-registered/now-guest session. The identity
+    // routes are site/locale-prefixed, so they are matched on the trailing segment, unlike the unprefixed /action/* routes.
     describe('auth identity transitions are allowed through', () => {
         test('revalidates after a logout submitted on the listing', () => {
             expect(shouldRevalidate(args({ formMethod: 'POST', formAction: '/RefArchGlobal/en-US/logout' }))).toBe(

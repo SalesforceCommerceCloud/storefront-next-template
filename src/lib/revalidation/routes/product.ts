@@ -30,15 +30,16 @@ import { getActionPath, isAmbientMutation } from './shared';
  *
  * - **{@link isAmbientMutation}** — the shared request-wide dimensions. `set-site-context` (currency → per-currency
  *   prices) and `update-shopper-context` (a cross-cutting input to all SCAPI pricing/promotions) change the product
- *   read; `/login` `/signup` `/logout` re-scope the auth-dependent `fetchWishlistInitialState` seed the loader feeds
- *   the `WishlistProvider`. A logout submitted while on the PDP keeps the route matched, so this gate must re-run it.
+ *   read; `/login` `/signup` `/logout` change customer-group-scoped SCAPI output (pricing / promotions). A logout
+ *   submitted while on the PDP keeps the route matched, so this gate must re-run it. (Wishlist eviction is handled by
+ *   the `_app` shell from client auth, not this loader.)
  * - **Store selection** — `setSelectedStore` / `cartPickupStoreUpdate` change the selected store, and the PDP loader
  *   passes `inventoryIds: [selectedStoreInfo.inventoryId]` to `getProduct`, so the store-scoped `inventories[].ats`
  *   the loader reads goes stale (`shared-backend-state`, keyed on the `inventory_ids` param).
  * - **`addReview`** — changes the reviews summary/list the loader reads for this product.
  *
  * Everything else is skipped by omission: cart / promo / wishlist state reaches the client without this loader (basket
- * via the `__sfdc_basket` cookie + `BasketProvider`, wishlist via the client-side `WishlistProvider` store), and
+ * via the `__sfdc_basket` cookie + `BasketProvider`, wishlist via the client-side module-level store), and
  * account / payment / address writes touch only `getBasket` / `getCustomer`, which the PDP never reads. The audit
  * explicitly refutes a cart→availability edge (a cart edit reserves no inventory) and a cart→reviews-summary edge.
  * `updateTrackingConsent` is omitted deliberately: its coupling is unsettled and the loader reads no consent-gated

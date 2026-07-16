@@ -22,7 +22,6 @@ import { MemoryRouter } from 'react-router';
 import type { ShopperExperience, ShopperSearch } from '@/scapi';
 import SearchPage, { loader, shouldRevalidate, type SearchPageData, SearchPageMetadata } from './_app.search';
 import { shouldRevalidate as sharedShouldRevalidate } from '@/lib/revalidation/routes/category';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
 import { createLoaderArgs, createTestContext } from '@/lib/test-utils';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
@@ -205,8 +204,8 @@ vi.mock('@/lib/page-designer/page-loader.server', () => ({
     fetchPageWithComponentData: vi.fn(),
 }));
 
-vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() => Promise.resolve(EMPTY_WISHLIST_STATE)),
+vi.mock('@/middlewares/auth.server', () => ({
+    getAuth: vi.fn(() => ({ customerId: null })),
 }));
 
 // Mock analytics with controllable mock functions
@@ -613,7 +612,6 @@ describe('SearchPage', () => {
                 initialFiltersOpen: true,
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             const closedLoaderData: SearchPageData = {
@@ -658,7 +656,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -697,7 +694,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -725,7 +721,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -751,7 +746,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -777,7 +771,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -803,7 +796,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -839,7 +831,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -878,7 +869,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -905,7 +895,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -931,7 +920,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             const { rerender } = render(
@@ -971,7 +959,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -998,7 +985,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1032,7 +1018,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1064,7 +1049,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1097,7 +1081,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1132,7 +1115,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1165,7 +1147,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1200,7 +1181,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1235,7 +1215,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             render(
@@ -1273,7 +1252,6 @@ describe('SearchPage', () => {
                 locale: 'en-US',
                 refine: [],
                 pageUrl: 'http://localhost/search',
-                wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
             };
 
             // Should render without errors even when analytics is null

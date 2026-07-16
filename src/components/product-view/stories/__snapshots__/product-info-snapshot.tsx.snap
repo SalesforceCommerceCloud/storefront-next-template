@@ -1,25 +1,2382 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and matches snapshot 1`] = `
-<h2>
-  Unexpected Application Error!
-</h2>
+<div
+  class="relative grid gap-4"
+>
+  <div
+    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+  >
+    <button
+      aria-label="Add to Wishlist"
+      class="absolute top-2 right-2 z-10 w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed !static border border-border bg-background/90 hover:border-muted-foreground/50 hover:bg-background"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 transition-all duration-200 ease-in-out text-muted-foreground scale-100"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Share"
+      class="w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 !static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 text-muted-foreground transition-all duration-200 ease-in-out"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"
+        />
+        <polyline
+          points="16 6 12 2 8 6"
+        />
+        <line
+          x1="12"
+          x2="12"
+          y1="2"
+          y2="15"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="flex items-start justify-between gap-4"
+  >
+    <div
+      class="pr-20 min-w-0"
+    >
+      <h1
+        class="text-3xl font-bold text-card-foreground tracking-tight"
+        data-testid="product-title"
+      >
+        Premium Cotton T-Shirt
+      </h1>
+      <p
+        class="mt-2 text-xs leading-none text-secondary-foreground"
+      >
+        SKU:
+         
+        test-product-123
+      </p>
+      <p
+        class="mt-2 text-base font-normal leading-6 text-accent-foreground"
+      >
+        Soft, breathable cotton t-shirt perfect for everyday wear
+      </p>
+    </div>
+  </div>
+  <div
+    class="relative mt-2 inline-block"
+  >
+    <div
+      aria-controls="radix-_r_19_"
+      aria-haspopup="dialog"
+      class="relative inline-block"
+      data-slot="popover-trigger"
+      data-state="closed"
+      type="button"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <div
+          class="flex flex-col gap-1"
+        >
+          <div
+            class="flex items-center gap-2"
+          >
+            <div
+              aria-label="0 out of 5 stars, 0 reviews"
+              class="flex items-center gap-0.5"
+              role="group"
+            >
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      class="items-center gap-2"
+    >
+      <span
+        aria-label="Current price: £29.99"
+        aria-live="polite"
+        class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
+      >
+        £29.99
+      </span>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        class="sr-only"
+      >
+        Premium Cotton T-Shirt
+         
+        Current price: £29.99
+      </span>
+       
+    </div>
+  </div>
+  <div
+    class="flex items-center gap-2"
+    data-slot="inventory-message"
+  >
+    <span
+      aria-hidden="true"
+      class="h-2 w-2 shrink-0 bg-current text-status-positive"
+    />
+    <p
+      class="text-sm font-medium text-status-positive"
+    >
+      In stock
+    </p>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_1f_"
+      class="flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_1f_"
+      >
+        <span>
+          Color
+          :
+        </span>
+        <span>
+          Blue
+        </span>
+      </div>
+      <div
+        class="flex flex-wrap gap-[var(--swatch-pill-gap,0.5rem)] focus:outline-none"
+        data-slot="swatch-container"
+      >
+        <button
+          aria-checked="false"
+          aria-label="Red"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-labeled="true"
+          data-swatch-type="color"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+          type="button"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Red swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: red; background-image: url("https://placehold.co/50x50/ff0000/ffffff?text=R"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Red
+            </span>
+          </div>
+        </button>
+        <button
+          aria-checked="true"
+          aria-label="Blue"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border-selected,black)] bg-[var(--swatch-color-bg-selected,transparent)] text-[var(--swatch-color-text-selected,inherit)] shadow-[var(--swatch-color-shadow,none)]"
+          data-labeled="true"
+          data-swatch-type="color"
+          position="relative"
+          role="radio"
+          tabindex="0"
+          type="button"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Blue swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: blue; background-image: url("https://placehold.co/50x50/0000ff/ffffff?text=B"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Blue
+            </span>
+          </div>
+        </button>
+        <button
+          aria-checked="false"
+          aria-label="Green"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-labeled="true"
+          data-swatch-type="color"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+          type="button"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Green swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: green; background-image: url("https://placehold.co/50x50/00ff00/ffffff?text=G"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Green
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_1g_"
+      class="inline-flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_1g_"
+      >
+        <span>
+          Size
+          :
+        </span>
+        <span>
+          Medium
+        </span>
+      </div>
+      <div
+        class="inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1"
+        data-slot="swatch-container"
+      >
+        <button
+          aria-checked="false"
+          aria-label="Small"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-labeled="true"
+          data-swatch-type="label"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+          type="button"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Small
+            </span>
+          </div>
+        </button>
+        <button
+          aria-checked="true"
+          aria-label="Medium"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg-selected border border-swatch-border-selected text-swatch-text-selected shadow-2xs"
+          data-labeled="true"
+          data-swatch-type="label"
+          position="relative"
+          role="radio"
+          tabindex="0"
+          type="button"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Medium
+            </span>
+          </div>
+        </button>
+        <button
+          aria-checked="false"
+          aria-label="Large"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-labeled="true"
+          data-swatch-type="label"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+          type="button"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Large
+            </span>
+          </div>
+        </button>
+        <button
+          aria-checked="false"
+          aria-label="Extra Large"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-labeled="true"
+          data-swatch-type="label"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+          type="button"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Extra Large
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mt-6"
+  >
+    <div
+      class="space-y-4"
+    >
+      <div
+        class="w-full"
+      >
+        <div
+          aria-required="false"
+          class="grid grid-cols-2 gap-2"
+          data-slot="radio-group"
+          data-testid="delivery-option-select"
+          dir="ltr"
+          role="radiogroup"
+          style="outline: none;"
+          tabindex="0"
+        >
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+            data-slot="label"
+            for="delivery-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              id="delivery-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="delivery"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Deliver to
+                </span>
+                <p
+                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+                >
+                  Enter ZIP code to see delivery estimate
+                </p>
+              </div>
+            </div>
+          </label>
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
+            data-slot="label"
+            for="pickup-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-disabled=""
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              disabled=""
+              id="pickup-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="pickup"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Pickup unavailable at
+                </span>
+                <div
+                  class="mt-0.5"
+                >
+                  <button
+                    class="text-xs text-primary hover:underline cursor-pointer"
+                    type="button"
+                  />
+                  <p
+                    class="text-xs font-normal text-destructive mt-1"
+                  >
+                    Try another store
+                  </p>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-2"
+  >
+    <label
+      class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+      data-slot="label"
+      for="quantity-_r_1j_"
+    >
+      Quantity
+    </label>
+    <div
+      class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    >
+      <button
+        aria-label="Decrement Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-decrement"
+        disabled=""
+      >
+        −
+      </button>
+      <input
+        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        id="quantity-_r_1j_"
+        min="1"
+        step="1"
+        type="number"
+        value="1"
+      />
+      <button
+        aria-label="Increment Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-increment"
+      >
+        +
+      </button>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and matches snapshot 1`] = `
-<h2>
-  Unexpected Application Error!
-</h2>
+<div
+  class="relative grid gap-4"
+>
+  <div
+    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+  >
+    <button
+      aria-label="Add to Wishlist"
+      class="absolute top-2 right-2 z-10 w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed !static border border-border bg-background/90 hover:border-muted-foreground/50 hover:bg-background"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 transition-all duration-200 ease-in-out text-muted-foreground scale-100"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Share"
+      class="w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 !static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 text-muted-foreground transition-all duration-200 ease-in-out"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"
+        />
+        <polyline
+          points="16 6 12 2 8 6"
+        />
+        <line
+          x1="12"
+          x2="12"
+          y1="2"
+          y2="15"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="flex items-start justify-between gap-4"
+  >
+    <div
+      class="pr-20 min-w-0"
+    >
+      <h1
+        class="text-3xl font-bold text-card-foreground tracking-tight"
+        data-testid="product-title"
+      >
+        Premium Cotton T-Shirt
+      </h1>
+      <p
+        class="mt-2 text-xs leading-none text-secondary-foreground"
+      >
+        SKU:
+         
+        test-product-123
+      </p>
+      <p
+        class="mt-2 text-base font-normal leading-6 text-accent-foreground"
+      >
+        Soft, breathable cotton t-shirt perfect for everyday wear
+      </p>
+    </div>
+  </div>
+  <div
+    class="relative mt-2 inline-block"
+  >
+    <div
+      aria-controls="radix-_r_f_"
+      aria-haspopup="dialog"
+      class="relative inline-block"
+      data-slot="popover-trigger"
+      data-state="closed"
+      type="button"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <div
+          class="flex flex-col gap-1"
+        >
+          <div
+            class="flex items-center gap-2"
+          >
+            <div
+              aria-label="0 out of 5 stars, 0 reviews"
+              class="flex items-center gap-0.5"
+              role="group"
+            >
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      class="items-center gap-2"
+    >
+      <span
+        aria-label="Current price: £29.99"
+        aria-live="polite"
+        class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
+      >
+        £29.99
+      </span>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        class="sr-only"
+      >
+        Premium Cotton T-Shirt
+         
+        Current price: £29.99
+      </span>
+       
+    </div>
+  </div>
+  <div
+    class="flex items-center gap-2"
+    data-slot="inventory-message"
+  >
+    <span
+      aria-hidden="true"
+      class="h-2 w-2 shrink-0 bg-current text-status-critical"
+    />
+    <p
+      class="text-sm font-medium text-status-critical"
+    >
+      Out of stock
+    </p>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_l_"
+      class="flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_l_"
+      >
+        <span>
+          Color
+          :
+        </span>
+      </div>
+      <div
+        class="flex flex-wrap gap-[var(--swatch-pill-gap,0.5rem)] focus:outline-none"
+        data-slot="swatch-container"
+      >
+        <a
+          aria-checked="false"
+          aria-label="Red"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=red"
+          position="relative"
+          role="radio"
+          tabindex="0"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Red swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: red; background-image: url("https://placehold.co/50x50/ff0000/ffffff?text=R"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Red
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Blue"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=blue"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Blue swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: blue; background-image: url("https://placehold.co/50x50/0000ff/ffffff?text=B"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Blue
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Green"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=green"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Green swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: green; background-image: url("https://placehold.co/50x50/00ff00/ffffff?text=G"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Green
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_m_"
+      class="inline-flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_m_"
+      >
+        <span>
+          Size
+          :
+        </span>
+      </div>
+      <div
+        class="inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1"
+        data-slot="swatch-container"
+      >
+        <a
+          aria-checked="false"
+          aria-label="Small"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=S"
+          position="relative"
+          role="radio"
+          tabindex="0"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Small
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Medium"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=M"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Medium
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Large"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=L"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Large
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Extra Large"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=XL"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Extra Large
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mt-6"
+  >
+    <div
+      class="space-y-4"
+    >
+      <div
+        class="w-full"
+      >
+        <div
+          aria-required="false"
+          class="grid grid-cols-2 gap-2"
+          data-slot="radio-group"
+          data-testid="delivery-option-select"
+          dir="ltr"
+          role="radiogroup"
+          style="outline: none;"
+          tabindex="-1"
+        >
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
+            data-slot="label"
+            for="delivery-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-disabled=""
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              disabled=""
+              id="delivery-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="delivery"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Deliver to
+                </span>
+                <p
+                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+                >
+                  Enter ZIP code to see delivery estimate
+                </p>
+              </div>
+            </div>
+          </label>
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
+            data-slot="label"
+            for="pickup-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-disabled=""
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              disabled=""
+              id="pickup-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="pickup"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Pickup unavailable at
+                </span>
+                <div
+                  class="mt-0.5"
+                >
+                  <button
+                    class="text-xs text-primary hover:underline cursor-pointer"
+                    type="button"
+                  />
+                  <p
+                    class="text-xs font-normal text-destructive mt-1"
+                  >
+                    Try another store
+                  </p>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-2"
+  >
+    <label
+      class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+      data-slot="label"
+      for="quantity-_r_p_"
+    >
+      Quantity
+    </label>
+    <div
+      class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    >
+      <button
+        aria-label="Decrement Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-decrement"
+        disabled=""
+      >
+        −
+      </button>
+      <input
+        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        id="quantity-_r_p_"
+        min="1"
+        step="1"
+        type="number"
+        value="1"
+      />
+      <button
+        aria-label="Increment Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-increment"
+      >
+        +
+      </button>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`ProductInfo stories snapshot > Playground story renders and matches snapshot 1`] = `
-<h2>
-  Unexpected Application Error!
-</h2>
+<div
+  class="relative grid gap-4"
+>
+  <div
+    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+  >
+    <button
+      aria-label="Add to Wishlist"
+      class="absolute top-2 right-2 z-10 w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed !static border border-border bg-background/90 hover:border-muted-foreground/50 hover:bg-background"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 transition-all duration-200 ease-in-out text-muted-foreground scale-100"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Share"
+      class="w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 !static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 text-muted-foreground transition-all duration-200 ease-in-out"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"
+        />
+        <polyline
+          points="16 6 12 2 8 6"
+        />
+        <line
+          x1="12"
+          x2="12"
+          y1="2"
+          y2="15"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="flex items-start justify-between gap-4"
+  >
+    <div
+      class="pr-20 min-w-0"
+    >
+      <p
+        class="mb-1 text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground"
+      >
+        Salesforce Apparel
+      </p>
+      <h1
+        class="text-3xl font-bold text-card-foreground tracking-tight"
+        data-testid="product-title"
+      >
+        Premium Cotton T-Shirt
+      </h1>
+      <p
+        class="mt-2 text-xs leading-none text-secondary-foreground"
+      >
+        SKU:
+         
+        test-product-123
+      </p>
+      <p
+        class="mt-2 text-base font-normal leading-6 text-accent-foreground"
+      >
+        Soft, breathable cotton t-shirt perfect for everyday wear
+      </p>
+    </div>
+  </div>
+  <div
+    class="relative mt-2 inline-block"
+  >
+    <div
+      aria-controls="radix-_r_2_"
+      aria-haspopup="dialog"
+      class="relative inline-block"
+      data-slot="popover-trigger"
+      data-state="closed"
+      type="button"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <div
+          class="flex flex-col gap-1"
+        >
+          <div
+            class="flex items-center gap-2"
+          >
+            <div
+              aria-label="0 out of 5 stars, 0 reviews"
+              class="flex items-center gap-0.5"
+              role="group"
+            >
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      class="items-center gap-2"
+    >
+      <span
+        aria-label="Current price: £29.99"
+        aria-live="polite"
+        class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
+      >
+        £29.99
+      </span>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        class="sr-only"
+      >
+        Premium Cotton T-Shirt
+         
+        Current price: £29.99
+      </span>
+       
+    </div>
+  </div>
+  <div
+    class="flex items-center gap-2"
+    data-slot="inventory-message"
+  >
+    <span
+      aria-hidden="true"
+      class="h-2 w-2 shrink-0 bg-current text-status-positive"
+    />
+    <p
+      class="text-sm font-medium text-status-positive"
+    >
+      In stock
+    </p>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_8_"
+      class="flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_8_"
+      >
+        <span>
+          Color
+          :
+        </span>
+      </div>
+      <div
+        class="flex flex-wrap gap-[var(--swatch-pill-gap,0.5rem)] focus:outline-none"
+        data-slot="swatch-container"
+      >
+        <a
+          aria-checked="false"
+          aria-label="Red"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=red"
+          position="relative"
+          role="radio"
+          tabindex="0"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Red swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: red; background-image: url("https://placehold.co/50x50/ff0000/ffffff?text=R"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Red
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Blue"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=blue"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Blue swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: blue; background-image: url("https://placehold.co/50x50/0000ff/ffffff?text=B"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Blue
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Green"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=green"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Green swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: green; background-image: url("https://placehold.co/50x50/00ff00/ffffff?text=G"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Green
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_9_"
+      class="inline-flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_9_"
+      >
+        <span>
+          Size
+          :
+        </span>
+      </div>
+      <div
+        class="inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1"
+        data-slot="swatch-container"
+      >
+        <a
+          aria-checked="false"
+          aria-label="Small"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=S"
+          position="relative"
+          role="radio"
+          tabindex="0"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Small
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Medium"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=M"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Medium
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Large"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=L"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Large
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Extra Large"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=XL"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Extra Large
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mt-6"
+  >
+    <div
+      class="space-y-4"
+    >
+      <div
+        class="w-full"
+      >
+        <div
+          aria-required="false"
+          class="grid grid-cols-2 gap-2"
+          data-slot="radio-group"
+          data-testid="delivery-option-select"
+          dir="ltr"
+          role="radiogroup"
+          style="outline: none;"
+          tabindex="0"
+        >
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+            data-slot="label"
+            for="delivery-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              id="delivery-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="delivery"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Deliver to
+                </span>
+                <p
+                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+                >
+                  Enter ZIP code to see delivery estimate
+                </p>
+              </div>
+            </div>
+          </label>
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
+            data-slot="label"
+            for="pickup-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-disabled=""
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              disabled=""
+              id="pickup-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="pickup"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Pickup unavailable at
+                </span>
+                <div
+                  class="mt-0.5"
+                >
+                  <button
+                    class="text-xs text-primary hover:underline cursor-pointer"
+                    type="button"
+                  />
+                  <p
+                    class="text-xs font-normal text-destructive mt-1"
+                  >
+                    Try another store
+                  </p>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-2"
+  >
+    <label
+      class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+      data-slot="label"
+      for="quantity-_r_c_"
+    >
+      Quantity
+    </label>
+    <div
+      class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    >
+      <button
+        aria-label="Decrement Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-decrement"
+        disabled=""
+      >
+        −
+      </button>
+      <input
+        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        id="quantity-_r_c_"
+        min="1"
+        step="1"
+        type="number"
+        value="1"
+      />
+      <button
+        aria-label="Increment Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-increment"
+      >
+        +
+      </button>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and matches snapshot 1`] = `
-<h2>
-  Unexpected Application Error!
-</h2>
+<div
+  class="relative grid gap-4"
+>
+  <div
+    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+  >
+    <button
+      aria-label="Add to Wishlist"
+      class="absolute top-2 right-2 z-10 w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed !static border border-border bg-background/90 hover:border-muted-foreground/50 hover:bg-background"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 transition-all duration-200 ease-in-out text-muted-foreground scale-100"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Share"
+      class="w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 !static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 text-muted-foreground transition-all duration-200 ease-in-out"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"
+        />
+        <polyline
+          points="16 6 12 2 8 6"
+        />
+        <line
+          x1="12"
+          x2="12"
+          y1="2"
+          y2="15"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="flex items-start justify-between gap-4"
+  >
+    <div
+      class="pr-20 min-w-0"
+    >
+      <h1
+        class="text-3xl font-bold text-card-foreground tracking-tight"
+        data-testid="product-title"
+      >
+        Premium Cotton T-Shirt
+      </h1>
+      <p
+        class="mt-2 text-xs leading-none text-secondary-foreground"
+      >
+        SKU:
+         
+        test-product-123
+      </p>
+      <p
+        class="mt-2 text-base font-normal leading-6 text-accent-foreground"
+      >
+        Soft, breathable cotton t-shirt perfect for everyday wear
+      </p>
+    </div>
+  </div>
+  <div
+    class="relative mt-2 inline-block"
+  >
+    <div
+      aria-controls="radix-_r_s_"
+      aria-haspopup="dialog"
+      class="relative inline-block"
+      data-slot="popover-trigger"
+      data-state="closed"
+      type="button"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <div
+          class="flex flex-col gap-1"
+        >
+          <div
+            class="flex items-center gap-2"
+          >
+            <div
+              aria-label="0 out of 5 stars, 0 reviews"
+              class="flex items-center gap-0.5"
+              role="group"
+            >
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      class="items-center gap-2"
+    >
+      <span
+        aria-label="Current price: £29.99"
+        aria-live="polite"
+        class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
+      >
+        £29.99
+      </span>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        class="sr-only"
+      >
+        Premium Cotton T-Shirt
+         
+        Current price: £29.99
+      </span>
+       
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    class="items-center gap-2 hidden"
+    data-slot="inventory-message"
+  >
+    <span
+      aria-hidden="true"
+      class="h-2 w-2 shrink-0 bg-current text-muted-foreground"
+    />
+    <p
+      class="text-sm font-medium text-muted-foreground"
+    >
+      Inventory unavailable
+    </p>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_12_"
+      class="flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_12_"
+      >
+        <span>
+          Color
+          :
+        </span>
+      </div>
+      <div
+        class="flex flex-wrap gap-[var(--swatch-pill-gap,0.5rem)] focus:outline-none"
+        data-slot="swatch-container"
+      >
+        <a
+          aria-checked="false"
+          aria-label="Red"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=red"
+          position="relative"
+          role="radio"
+          tabindex="0"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Red swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: red; background-image: url("https://placehold.co/50x50/ff0000/ffffff?text=R"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Red
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Blue"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=blue"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Blue swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: blue; background-image: url("https://placehold.co/50x50/0000ff/ffffff?text=B"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Blue
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Green"
+          class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-not-allowed before:content-[""] before:absolute before:top-1/2 before:left-1/2 before:h-[32px] before:w-[1px] before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-45 before:bg-black before:z-[1] !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] gap-[var(--swatch-color-gap,0px)] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] opacity-50"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="color"
+          href="/RefArchGlobal/en-GB/product/test-product?color=green"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              aria-label="Green swatch"
+              class="bg-cover bg-center bg-no-repeat"
+              data-slot="swatch-dot"
+              style="width: var(--swatch-color-dot, 100%); height: var(--swatch-color-dot, 100%); background-color: green; background-image: url("https://placehold.co/50x50/00ff00/ffffff?text=G"); border: var(--swatch-color-dot-border, none);"
+            />
+            <span
+              class="text-xs font-medium capitalize ml-1"
+              data-slot="swatch-text"
+              style="display: var(--swatch-color-label);"
+            >
+              Green
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_13_"
+      class="inline-flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_13_"
+      >
+        <span>
+          Size
+          :
+        </span>
+      </div>
+      <div
+        class="inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1"
+        data-slot="swatch-container"
+      >
+        <a
+          aria-checked="false"
+          aria-label="Small"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=S"
+          position="relative"
+          role="radio"
+          tabindex="0"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Small
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Medium"
+          class="flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 px-3 py-1 cursor-pointer !w-auto !h-auto !min-w-[var(--swatch-labeled-min-size)] !min-h-[var(--swatch-labeled-min-size)] !p-[var(--swatch-labeled-padding)] bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs hover:border-[var(--swatch-color-border-hover,transparent)]"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="label"
+          href="/RefArchGlobal/en-GB/product/test-product?size=M"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <span
+              class="text-xs font-medium"
+            >
+              Medium
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mt-6"
+  >
+    <div
+      class="space-y-4"
+    >
+      <div
+        class="w-full"
+      >
+        <div
+          aria-required="false"
+          class="grid grid-cols-2 gap-2"
+          data-slot="radio-group"
+          data-testid="delivery-option-select"
+          dir="ltr"
+          role="radiogroup"
+          style="outline: none;"
+          tabindex="0"
+        >
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
+            data-slot="label"
+            for="delivery-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              id="delivery-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="delivery"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Deliver to
+                </span>
+                <p
+                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+                >
+                  Enter ZIP code to see delivery estimate
+                </p>
+              </div>
+            </div>
+          </label>
+          <label
+            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
+            data-slot="label"
+            for="pickup-option-test-product-123"
+          >
+            <button
+              aria-checked="false"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+              data-disabled=""
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              disabled=""
+              id="pickup-option-test-product-123"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="pickup"
+            />
+            <div
+              class="mt-0.5 shrink-0"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="flex-1 min-w-0"
+            >
+              <div
+                class="flex flex-col"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Pickup unavailable at
+                </span>
+                <div
+                  class="mt-0.5"
+                >
+                  <button
+                    class="text-xs text-primary hover:underline cursor-pointer"
+                    type="button"
+                  />
+                  <p
+                    class="text-xs font-normal text-destructive mt-1"
+                  >
+                    Try another store
+                  </p>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-2"
+  >
+    <label
+      class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+      data-slot="label"
+      for="quantity-_r_16_"
+    >
+      Quantity
+    </label>
+    <div
+      class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    >
+      <button
+        aria-label="Decrement Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-decrement"
+        disabled=""
+      >
+        −
+      </button>
+      <input
+        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        id="quantity-_r_16_"
+        min="1"
+        step="1"
+        type="number"
+        value="1"
+      />
+      <button
+        aria-label="Increment Quantity for Premium Cotton T-Shirt"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-increment"
+      >
+        +
+      </button>
+    </div>
+  </div>
+</div>
 `;

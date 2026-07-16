@@ -31,14 +31,14 @@ import { resourceRoutes, routes } from '@/route-paths';
  *   SCAPI response: pricing, promotions, A/B segments). These are unprefixed `/action/*` resource routes, matched
  *   exactly.
  * - **Auth identity** ({@link isIdentityMutation}) — `/login`, `/signup`, `/logout`. An identity transition re-scopes
- *   every customer-scoped read and any auth-dependent loader seed (e.g. `fetchWishlistInitialState`, which seeds the
- *   `WishlistProvider`). These are site/locale-prefixed (`buildUrl` prefixes them; they are not in `url.excludeRoutes`),
- *   so they are matched on the trailing path segment, anchored on a leading slash so a route like `/account/auto-logout`
- *   cannot match `/logout`.
+ *   every customer-scoped read and any customer-group-scoped SCAPI output (pricing / promotions) a page loader reads.
+ *   These are site/locale-prefixed (`buildUrl` prefixes them; they are not in `url.excludeRoutes`), so they are matched
+ *   on the trailing path segment, anchored on a leading slash so a route like `/account/auto-logout` cannot match
+ *   `/logout`. (Wishlist eviction rides the `_app` shell's client-auth binding, not a loader value.)
  *
  * {@link isAmbientMutation} is the union — the right gate for a page loader that stays matched across an identity
- * redirect back to its own route (home, the product listing pages), so it must re-run to re-seed the auth-dependent
- * wishlist. The resource-route fetcher policy (`api-client.ts`) admits {@link isContextMutation} only: identity routes
+ * redirect back to its own route (home, the product listing pages), so it must re-run to refresh customer-group-scoped
+ * reads. The resource-route fetcher policy (`api-client.ts`) admits {@link isContextMutation} only: identity routes
  * navigate away and the basket it governs is re-seeded server-side on that redirect, so a fetcher reload is redundant.
  *
  * Not modeled here, by design — a suppress-by-default policy must justify each omission against the route's loader:

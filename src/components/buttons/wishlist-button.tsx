@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ShopperSearch } from '@/scapi';
 import { HeartIcon } from '../icons';
 import { useToast } from '@/components/toast';
-import { useIsInWishlist, useWishlistActions } from '@/providers/wishlist';
+import { useIsInWishlist, useWishlistActions, useWishlistLoader } from '@/providers/wishlist';
 import { useAnalytics } from '@/hooks/use-analytics';
 
 interface WishlistButtonProps {
@@ -35,6 +35,14 @@ const WishlistButton = ({ product, variant, size = 'md', className, tabIndex, su
     const { addToast } = useToast();
     const { toggle, isPending } = useWishlistActions();
     const { trackWishlistItemAdded, trackWishlistItemRemoved } = useAnalytics();
+    const loadWishlist = useWishlistLoader();
+
+    // This heart is visible at load on the PDP (unlike the hover-gated tile heart), so it kicks
+    // the once-per-session lazy read on mount — otherwise a returning shopper's saved PDP would
+    // paint an empty heart until some unrelated intent. Idempotent (module-level guard).
+    useEffect(() => {
+        void loadWishlist();
+    }, [loadWishlist]);
 
     const productId = variant?.productId || product.productId;
     // Per-product subscription via useSyncExternalStore — only re-renders when *this*

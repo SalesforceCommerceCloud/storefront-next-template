@@ -25,6 +25,8 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import ResponsiveNavigationMenu from '@/components/navigation-menu-mega';
 import { WishlistMergeToast } from '@/components/wishlist/wishlist-merge-toast';
+import { useAuth } from '@/providers/auth';
+import { useWishlistSession } from '@/providers/wishlist';
 import { EmbeddedComponentRegion } from '@/components/region/embedded-component-region';
 import { SkipLink } from '@/components/skip-link';
 import {
@@ -128,10 +130,15 @@ export default function DefaultLayout({ loaderData: { root, subs, headerComponen
     // would otherwise be added after first paint. Inert if no CSS matches.
     const mainPaddingAttrs = mainPaddingDataAttributes(usePageUIConfig());
 
+    // Bind the module-level wishlist store (see providers/wishlist) to the current shopper here,
+    // once, from client auth context. `customerId` only changes on login/logout — both are
+    // redirects that revalidate the root loader, refreshing `useAuth()` — so the shell re-runs
+    // this on every identity change and evicts the prior shopper's hearts. Plain browse never
+    // changes it. The actual read stays lazy, fired by the first product intent.
+    useWishlistSession(useAuth()?.customerId ?? null);
+
     // <WishlistMergeToast> stays at the app shell — it reads URL params and a one-time
-    // cookie set by the post-login redirect target, not wishlist state. Routes that need
-    // wishlist hooks mount their own <DeferredWishlistProvider> so the SCAPI call only
-    // fires on pages that actually render wishlist UI.
+    // cookie set by the post-login redirect target, not wishlist state.
     return (
         <>
             <SkipLink />

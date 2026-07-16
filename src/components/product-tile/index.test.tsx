@@ -15,7 +15,7 @@
  */
 import type React from 'react';
 import { vi, test, describe, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
@@ -36,6 +36,14 @@ vi.mock('@/hooks/use-scapi-fetcher', () => ({
         success: true,
     }),
 }));
+
+// Spy on the lazy-load trigger while keeping the real provider/store behavior, so we can
+// assert tile-level intent (not just heart-icon intent) kicks the load.
+const loadSpy = vi.fn();
+vi.mock('@/providers/wishlist', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/providers/wishlist')>();
+    return { ...actual, useWishlistLoader: () => loadSpy };
+});
 
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 vi.mock('@/extensions/ratings-reviews/providers/product-reviews-context', () => ({
@@ -183,6 +191,37 @@ describe('ProductTile — rendering', () => {
     test('renders a quick-add button with a custom label', () => {
         renderTile({ quickAddLabel: 'Fast Add' });
         expect(screen.getByRole('button', { name: /fast add/i })).toBeInTheDocument();
+    });
+});
+
+describe('ProductTile — lazy wishlist load on tile intent', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    // The heart is opacity-0 until tile hover, so the trigger must live on the tile itself.
+    const getTile = (): HTMLElement => {
+        const card = screen.getByText('Simple Test Product').closest('.product-card');
+        expect(card).not.toBeNull();
+        return card as HTMLElement;
+    };
+
+    test('triggers the load on pointerEnter of the tile (not just the heart)', () => {
+        renderTile();
+        fireEvent.pointerEnter(getTile());
+        expect(loadSpy).toHaveBeenCalled();
+    });
+
+    test('triggers the load on focus within the tile (keyboard)', () => {
+        renderTile();
+        fireEvent.focus(getTile());
+        expect(loadSpy).toHaveBeenCalled();
+    });
+
+    test('triggers the load on touchStart of the tile (mobile)', () => {
+        renderTile();
+        fireEvent.touchStart(getTile());
+        expect(loadSpy).toHaveBeenCalled();
     });
 });
 

@@ -39,9 +39,6 @@ import { fetchProductsInBasket } from '@/lib/cart/basket-products.server';
 import { fetchPromotionsForBasket } from '@/lib/cart/basket-promotions.server';
 import { fetchWishlistProductIdsForCart } from '@/lib/cart/cart-wishlist.server';
 import { fetchRuleBasedBonusProductsForBasket } from '@/lib/cart/rule-based-bonus.server';
-import { fetchWishlistInitialState } from '@/lib/wishlist/fetch-initial-state.server';
-import type { WishlistInitialState } from '@/lib/wishlist/state';
-import { WishlistProvider } from '@/providers/wishlist';
 import { fetchProductRecommendations } from '@/lib/product/recommendations.server';
 import { EINSTEIN_RECOMMENDERS } from '@/lib/product/einstein-recommenders';
 import { uiConfig } from '@/lib/config.ui';
@@ -96,7 +93,6 @@ type CartPageData = {
         storesByStoreId: Record<string, ShopperStores.schemas['Store']>;
     }>;
     wishlistProductIdsPromise: Promise<string[]>;
-    wishlistInitialState: Promise<WishlistInitialState>;
     cartMayAlsoLikePromise: Promise<Recommendation>;
     cartRecentlyViewedPromise: Promise<Recommendation>;
     ruleBasedBonusProductsPromise: Promise<Record<string, ShopperSearch.schemas['ProductSearchHit'][]>>;
@@ -205,7 +201,6 @@ export const loader = ({ context, request }: Route.LoaderArgs): CartPageData => 
     return {
         basketDataPromise,
         wishlistProductIdsPromise,
-        wishlistInitialState: fetchWishlistInitialState(context),
         cartMayAlsoLikePromise,
         cartRecentlyViewedPromise,
         ruleBasedBonusProductsPromise,
@@ -245,12 +240,6 @@ export default function Cart(): ReactElement {
     // instances (wishlist toggle, quantity update) get orphaned.
     const [pinnedWishlistPromise] = useState(() => pageData.wishlistProductIdsPromise);
 
-    // Same rationale for the new wishlist provider's initial-state seed: pin so cart
-    // revalidations (basket mutations re-run the loader and produce a fresh Promise
-    // identity) don't re-trigger the provider's hydration effect and clobber any
-    // post-hydration optimistic state.
-    const [pinnedWishlistInitialState] = useState(() => pageData.wishlistInitialState);
-
     // Pin recommendation promises here (not in CartBody): if pinned downstream, the basket
     // re-suspending would unmount CartBody and lose its useState pinning. Pinning at the route
     // level keeps the rec promise references stable across cart revalidations.
@@ -289,7 +278,7 @@ export default function Cart(): ReactElement {
     ) : undefined;
 
     return (
-        <WishlistProvider initialState={pinnedWishlistInitialState}>
+        <>
             <SeoMeta
                 title={t('meta.title', { defaultValue: 'Cart' })}
                 description={t('meta.description', {
@@ -338,7 +327,7 @@ export default function Cart(): ReactElement {
                     )}
                 </Await>
             </Suspense>
-        </WishlistProvider>
+        </>
     );
 }
 

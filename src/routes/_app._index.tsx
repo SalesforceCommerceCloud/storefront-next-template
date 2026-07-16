@@ -19,9 +19,6 @@ import type { Route } from './+types/_app._index';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { fetchCarouselProducts } from '@/components/product-carousel/loaders';
 import { fetchCategories } from '@/lib/api/categories.server';
-import { fetchWishlistInitialState } from '@/lib/wishlist/fetch-initial-state.server';
-import type { WishlistInitialState } from '@/lib/wishlist/state';
-import { WishlistProvider } from '@/providers/wishlist';
 import { siteContext, resolvePrefix, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { Region } from '@/components/region';
 import PopularCategories from '@/components/home/popular-categories';
@@ -88,7 +85,6 @@ export type HomePageData = {
     page: ReturnType<typeof fetchPageWithComponentData>;
     searchResult: Promise<ShopperSearch.schemas['ProductSearchResult']>;
     categories: Promise<ShopperProducts.schemas['Category'][]>;
-    wishlistInitialState: Promise<WishlistInitialState>;
     pageUrl: string;
     ogImageUrl: string;
 };
@@ -131,7 +127,6 @@ export function loader(args: Route.LoaderArgs): HomePageData {
             currency: currency ?? undefined,
         }),
         categories: fetchCategories(args.context, 'root', 1),
-        wishlistInitialState: fetchWishlistInitialState(args.context),
         pageUrl,
         ogImageUrl: new URL(hero01, requestUrl.origin).href,
     };
@@ -193,7 +188,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
     ];
 
     return (
-        <WishlistProvider initialState={loaderData.wishlistInitialState}>
+        <>
             <div className="pb-16 -mt-8">
                 <SeoMeta
                     rawTitle
@@ -303,6 +298,6 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
                     }
                 />
             </div>
-        </WishlistProvider>
+        </>
     );
 }

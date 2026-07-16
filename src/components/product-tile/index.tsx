@@ -38,6 +38,7 @@ import {
 import { getProductRating } from '@/lib/product/product-utils-plp';
 import { isDesktopViewport, useProductTileContext } from './context';
 import { DeferredWishlistButton } from './deferred-wishlist-button';
+import { useWishlistLoader } from '@/providers/wishlist';
 import { PickupIcon } from '@/components/icons';
 import { QuickAddButton } from './quick-add-button';
 import { ProductTileSwatchesSkeleton } from '@/components/category-skeleton';
@@ -393,6 +394,15 @@ const ProductTile = memo(
                 product && handleProductClick?.(product);
             }, [handleProductClick, product]);
 
+            // Gate the lazy wishlist load on first hover/focus/touch of the whole tile, not the
+            // heart icon. The heart is `opacity-0 group-hover:opacity-100` — revealed by hovering
+            // the tile — so binding the trigger to the heart alone means it never fires until the
+            // pointer reaches the heart's box, leaving the revealed heart empty. Idempotent.
+            const loadWishlist = useWishlistLoader();
+            const handleTileIntent = useCallback(() => {
+                void loadWishlist();
+            }, [loadWishlist]);
+
             const productUrl = createProductUrl(product?.productId ?? '', null, 'color', defaultVariantPid);
             const productName = product?.productName ?? '';
 
@@ -430,6 +440,9 @@ const ProductTile = memo(
                         pageDesignerStyles,
                         className
                     )}
+                    onPointerEnter={handleTileIntent}
+                    onFocus={handleTileIntent}
+                    onTouchStart={handleTileIntent}
                     {...props}>
                     {/* Image area */}
                     <div className="product-image relative">

@@ -24,8 +24,6 @@ import { expect, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig } from '@/test-utils/config';
-import { WishlistProvider } from '@/providers/wishlist';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
 
 const WISHLIST_HARNESS_ATTR = 'data-wishlist-harness';
 
@@ -79,11 +77,9 @@ function WishlistStoryHarness({ children }: { children: ReactNode }): ReactEleme
 
     return (
         <ConfigProvider config={configValue}>
-            <WishlistProvider initialState={EMPTY_WISHLIST_STATE}>
-                <div ref={containerRef} {...{ [WISHLIST_HARNESS_ATTR]: 'true' }}>
-                    {children}
-                </div>
-            </WishlistProvider>
+            <div ref={containerRef} {...{ [WISHLIST_HARNESS_ATTR]: 'true' }}>
+                {children}
+            </div>
         </ConfigProvider>
     );
 }

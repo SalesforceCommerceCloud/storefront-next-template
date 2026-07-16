@@ -24,8 +24,6 @@ import ProductGrid from '../grid';
 const { t } = getTranslation();
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockLocale, mockSiteObject } from '@/test-utils/config';
-import { WishlistProvider } from '@/providers/wishlist';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
 import {
     mockProductSearchItem,
     mockStandardProductHit,
@@ -92,11 +90,9 @@ const meta: Meta<typeof ProductGrid> = {
                 locale={mockLocale}
                 language={mockSiteObject.defaultLocale}
                 currency={mockSiteObject.defaultCurrency}>
-                <WishlistProvider initialState={EMPTY_WISHLIST_STATE}>
-                    <div className="section-container py-8 bg-background">
-                        <Story />
-                    </div>
-                </WishlistProvider>
+                <div className="section-container py-8 bg-background">
+                    <Story />
+                </div>
             </SiteProvider>
         ),
     ],

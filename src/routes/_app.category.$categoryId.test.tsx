@@ -205,8 +205,8 @@ vi.mock('@/utils/category-schema', () => ({
     generateCategorySchema: vi.fn(),
 }));
 
-vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() => Promise.resolve({ customerId: null, productIds: new Set() })),
+vi.mock('@/middlewares/auth.server', () => ({
+    getAuth: vi.fn(() => ({ customerId: null })),
 }));
 
 // Mock analytics with controllable mock functions
@@ -796,10 +796,6 @@ describe('CategoryPage', () => {
                 pageUrl: 'http://localhost/category/test',
                 initialFiltersOpen: true,
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             const closedLoaderData: CategoryPageData = {
@@ -850,10 +846,6 @@ describe('CategoryPage', () => {
                     '@type': 'CollectionPage',
                     name: 'Electronics',
                 }),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -898,10 +890,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -930,10 +918,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -962,10 +946,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -993,10 +973,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             const { rerender } = render(
@@ -1038,10 +1014,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1070,10 +1042,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1109,10 +1077,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1146,10 +1110,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1184,10 +1144,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1224,10 +1180,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1262,10 +1214,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1302,10 +1250,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1341,10 +1285,6 @@ describe('CategoryPage', () => {
                     '@type': 'CollectionPage',
                     name: 'Electronics',
                 }),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1378,10 +1318,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1416,10 +1352,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             render(
@@ -1459,10 +1391,6 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
-                wishlistInitialState: Promise.resolve({
-                    customerId: null,
-                    productIds: new Set(),
-                }),
             };
 
             // Should render without errors even when analytics is null
