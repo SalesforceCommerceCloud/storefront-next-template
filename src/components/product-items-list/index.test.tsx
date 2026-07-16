@@ -1054,7 +1054,9 @@ describe('ProductItemsList', () => {
             const list = container.querySelector('ul[role="list"]');
             expect(list).toBeInTheDocument();
 
-            const listItems = container.querySelectorAll('ul[role="list"] > li');
+            // Scope to the outer list's direct children; ProductItem renders its own
+            // nested `ul[role="list"]` for variation attributes, which must not be counted.
+            const listItems = list?.querySelectorAll(':scope > li') ?? [];
             expect(listItems).toHaveLength(3);
         });
 
@@ -1072,7 +1074,9 @@ describe('ProductItemsList', () => {
             const list = container.querySelector('ul[role="list"]');
             expect(list).toBeInTheDocument();
 
-            const listItems = container.querySelectorAll('ul[role="list"] > li');
+            // Scope to the outer list's direct children; ProductItem renders its own
+            // nested `ul[role="list"]` for variation attributes, which must not be counted.
+            const listItems = list?.querySelectorAll(':scope > li') ?? [];
             expect(listItems).toHaveLength(2);
 
             listItems.forEach((li) => {
