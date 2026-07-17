@@ -26,6 +26,10 @@ const VERTICALS = {
 	cosmetic: {
 		label: "Salesforce B2C Commerce Beauty Storefront (Cosmetic)",
 		url: "https://github.com/SalesforceCommerceCloud/storefront-next-beauty"
+	},
+	foundations: {
+		label: "Salesforce B2C Commerce Foundations Storefront (Foundations)",
+		url: "https://github.com/SalesforceCommerceCloud/storefront-next-foundations"
 	}
 };
 const DEFAULT_VERTICAL = "fashion";
@@ -239,7 +243,11 @@ var CreateStorefront = class CreateStorefront extends Command {
 		vertical: Flags.string({
 			char: "V",
 			description: "Vertical template to generate from. Selects the matching published template repository. Ignored if --template is provided.",
-			options: ["fashion", "cosmetic"]
+			options: [
+				"fashion",
+				"cosmetic",
+				"foundations"
+			]
 		}),
 		"template-branch": Flags.string({
 			char: "b",

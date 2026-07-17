@@ -945,6 +945,21 @@ describe('create-storefront', () => {
             expect(prompts).not.toHaveBeenCalledWith(expect.objectContaining({ name: 'template' }));
         });
 
+        it('should clone the foundations vertical repo without prompting when --vertical foundations is provided', async () => {
+            mockRemoteClone();
+
+            await createStorefront({ name: 'my-storefront', vertical: 'foundations', defaults: true });
+
+            expect(execFileSync).toHaveBeenCalledWith('git', [
+                'clone',
+                '--depth',
+                '1',
+                'https://github.com/SalesforceCommerceCloud/storefront-next-foundations',
+                'my-storefront',
+            ]);
+            expect(prompts).not.toHaveBeenCalledWith(expect.objectContaining({ name: 'template' }));
+        });
+
         it('should abort with a helpful message when an unknown vertical is provided', async () => {
             vi.mocked(execSync).mockImplementation(() => '');
 

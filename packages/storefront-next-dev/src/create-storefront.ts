@@ -35,6 +35,7 @@ const DEFAULT_STOREFRONT = 'sfcc-storefront';
 // these — or a custom URL the user supplies.
 const STOREFRONT_FASHION_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-template';
 const STOREFRONT_COSMETIC_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-beauty';
+const STOREFRONT_FOUNDATIONS_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-foundations';
 
 /**
  * Available storefront verticals, keyed by the value accepted by the `--vertical` flag.
@@ -45,6 +46,10 @@ const STOREFRONT_COSMETIC_URL = 'https://github.com/SalesforceCommerceCloud/stor
 const VERTICALS: Record<string, { label: string; url: string }> = {
     fashion: { label: 'Salesforce B2C Commerce Retail Storefront (Fashion)', url: STOREFRONT_FASHION_URL },
     cosmetic: { label: 'Salesforce B2C Commerce Beauty Storefront (Cosmetic)', url: STOREFRONT_COSMETIC_URL },
+    foundations: {
+        label: 'Salesforce B2C Commerce Foundations Storefront (Foundations)',
+        url: STOREFRONT_FOUNDATIONS_URL,
+    },
 };
 
 // The vertical used when `--defaults` is set but no template/vertical is specified.
