@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, userEvent, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import type { ShopperOrders, ShopperProducts } from '@/scapi';
 import { OrderDetails } from '../index';
@@ -290,5 +290,107 @@ export const WithPaymentMethod: Story = {
             lastDigits: '4242',
         });
         await expect(canvas.getByText(expected)).toBeInTheDocument();
+    },
+};
+
+// Two OMS shipments, each with an externalizable carrier link → the top
+// "Track Shipment" action becomes a dropdown of both. Covers the dropdown branch
+// that no other story exercised.
+const orderTwoCarrierLinks: ShopperOrders.schemas['Order'] = {
+    ...order,
+    orderNo: 'INO002',
+    omsData: {
+        shipments: [
+            { id: 'oms-1', trackingNumber: 'UPS-111', trackingUrl: 'www.ups.com/track/111' },
+            { id: 'oms-2', trackingNumber: 'FEDEX-222', trackingUrl: 'www.fedex.com/track/222' },
+        ],
+    },
+} as ShopperOrders.schemas['Order'];
+
+export const TrackShipmentDropdown: Story = {
+    args: {
+        order: orderTwoCarrierLinks,
+        productsById,
+    },
+    parameters: {
+        a11y: {
+            config: {
+                rules: [
+                    // The play test opens the dropdown and leaves it open. Radix intentionally sets
+                    // aria-hidden="true" on the rest of the page (order-actions row, product links)
+                    // while the menu is open to trap focus — correct behavior, but axe's
+                    // aria-hidden-focus rule flags the now-hidden focusable content. Same precedent
+                    // as the Share Button and Address Modal stories.
+                    { id: 'aria-hidden-focus', enabled: false },
+                ],
+            },
+        },
+        docs: {
+            description: {
+                story: 'Two shipments with externalizable carrier links → the top **Track Shipment** action renders as a dropdown, one option per tracking number (each opens the carrier in a new tab).',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const trigger = canvas.getByTestId('order-actions-track');
+        await expect(trigger).toBeEnabled();
+        await expect(trigger).toHaveTextContent(t('account:orders.actions.trackShipment'));
+
+        // Open the menu and assert each option deep-links to its carrier in a new tab.
+        // The menu content is portalled to <body>, so query the whole document, not canvas.
+        await userEvent.click(trigger);
+        const body = within(canvasElement.ownerDocument.body);
+        const options = await body.findAllByTestId('order-actions-track-option');
+        await expect(options).toHaveLength(2);
+        // ensureExternalUrl normalizes the scheme-less carrier hosts to absolute https URLs.
+        await expect(options[0]).toHaveAttribute('href', 'https://www.ups.com/track/111');
+        await expect(options[1]).toHaveAttribute('href', 'https://www.fedex.com/track/222');
+        for (const option of options) {
+            await expect(option).toHaveAttribute('target', '_blank');
+            await expect(option).toHaveAttribute('rel', 'noopener noreferrer');
+        }
+        // Options are labeled by tracking number, with the "new tab" affordance in the aria-label.
+        await expect(options[0]).toHaveTextContent(
+            t('account:orders.actions.trackNumber', { trackingNumber: 'UPS-111' })
+        );
+        await expect(options[0]).toHaveAccessibleName(
+            t('account:orders.actions.trackNumberNewTab', { trackingNumber: 'UPS-111' })
+        );
+    },
+};
+
+// One OMS shipment whose ONLY tracking field is a relative/unsafe URL that
+// `ensureExternalUrl` rejects: displayable (so it isn't dropped by the mapper) but not
+// card-visible (no number/provider/date), so the in-page tracking section never mounts
+// and there is no valid carrier href. There is no usable Track Shipment target, so the
+// action renders nothing and the order-actions row collapses (empty:hidden) — an enabled
+// button here would deep-link to a `#order-tracking` anchor that scrolls nowhere.
+// Regression fixture for the review finding on this PR.
+const orderUnsafeUrlOnly: ShopperOrders.schemas['Order'] = {
+    ...order,
+    orderNo: 'INO003',
+    omsData: {
+        shipments: [{ id: 'oms-unsafe', trackingUrl: '/internal/relative/path' }],
+    },
+} as ShopperOrders.schemas['Order'];
+
+export const TrackShipmentHiddenUnsafeUrl: Story = {
+    args: {
+        order: orderUnsafeUrlOnly,
+        productsById,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'A shipment whose only tracking field is an unsafe/relative URL (rejected by `ensureExternalUrl`). There is no externalizable carrier link and no tracking section to anchor to, so the top **Track Shipment** action renders nothing and the order-actions row collapses — rather than linking to an anchor that never mounts.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        await expect(canvas.queryByTestId('order-actions-track')).not.toBeInTheDocument();
     },
 };

@@ -18,8 +18,13 @@ import { render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import type { OrderLike } from '@/lib/order-management/types';
-import OrderTracking, { TrackShipmentAction } from './index';
-import { getTrackShipmentHref, ORDER_TRACKING_SECTION_ID } from './track-shipment';
+import OrderTracking from './index';
+import {
+    getTrackOptionLabels,
+    getTrackShipmentHref,
+    getTrackShipmentTargets,
+    ORDER_TRACKING_SECTION_ID,
+} from './track-shipment';
 
 const renderWithProviders = (ui: ReactElement) => render(ui, { wrapper: AllProvidersWrapper });
 
@@ -196,39 +201,63 @@ describe('OrderTracking', () => {
     });
 });
 
-describe('TrackShipmentAction', () => {
-    it('renders with the authoritative label and deep-links to the carrier when a trackingUrl exists', () => {
-        renderWithProviders(
-            <TrackShipmentAction
-                order={omsOrder([{ id: 's1', trackingNumber: 'T1', trackingUrl: 'https://carrier.test/deep' }])}
-            />
+describe('getTrackShipmentTargets', () => {
+    it('returns one target per entry with an externalizable carrier URL, in order', () => {
+        const targets = getTrackShipmentTargets(
+            omsOrder([
+                { id: 's1', trackingNumber: 'T1', trackingUrl: 'https://carrier.test/t1' },
+                { id: 's2', trackingNumber: 'T2', trackingUrl: 'www.carrier.test/t2' },
+            ])
         );
-        const action = screen.getByTestId('track-shipment-action');
-        expect(action).toHaveTextContent('Track shipment');
-        expect(action).toHaveAttribute('href', 'https://carrier.test/deep');
-        expect(action).toHaveAttribute('target', '_blank');
-        expect(action).toHaveAttribute('rel', 'noopener noreferrer');
-        // external action conveys "opens in a new tab" to assistive tech (icon is aria-hidden)
-        expect(action).toHaveAccessibleName(/opens in a new tab/i);
+        expect(targets).toEqual([
+            { id: 's1', trackingNumber: 'T1', href: 'https://carrier.test/t1' },
+            // scheme-less host is normalized to an absolute external URL
+            { id: 's2', trackingNumber: 'T2', href: 'https://www.carrier.test/t2' },
+        ]);
     });
 
-    it('links to the in-page tracking section when tracking exists but no entry has a URL', () => {
-        renderWithProviders(<TrackShipmentAction order={omsOrder([{ id: 's1', trackingNumber: 'T1' }])} />);
-        const action = screen.getByTestId('track-shipment-action');
-        expect(action).toHaveAttribute('href', `#${ORDER_TRACKING_SECTION_ID}`);
-        expect(action).not.toHaveAttribute('target');
-    });
-
-    it('is hidden when there is no tracking at all', () => {
-        renderWithProviders(<TrackShipmentAction order={ecomOrder([])} />);
-        expect(screen.queryByTestId('track-shipment-action')).not.toBeInTheDocument();
-    });
-
-    it('is hidden for a status-only entry (nothing trackable yet)', () => {
-        renderWithProviders(
-            <TrackShipmentAction order={ecomOrder([{ shipmentId: 'me', shippingStatus: 'not_shipped' }])} />
+    it('skips entries without an externalizable URL (no URL, unsafe URL, relative path)', () => {
+        const targets = getTrackShipmentTargets(
+            omsOrder([
+                { id: 's1', trackingNumber: 'T1' }, // no URL
+                { id: 's2', trackingNumber: 'T2', trackingUrl: 'https://www.ups.com@evil.com' }, // userinfo spoof
+                { id: 's3', trackingNumber: 'T3', trackingUrl: '/account/orders/1' }, // relative
+                { id: 's4', trackingNumber: 'T4', trackingUrl: 'https://carrier.test/t4' }, // kept
+            ])
         );
-        expect(screen.queryByTestId('track-shipment-action')).not.toBeInTheDocument();
+        expect(targets).toEqual([{ id: 's4', trackingNumber: 'T4', href: 'https://carrier.test/t4' }]);
+    });
+
+    it('keeps a target with a carrier URL but no tracking number (number is optional)', () => {
+        const targets = getTrackShipmentTargets(omsOrder([{ id: 's1', trackingUrl: 'https://carrier.test/t' }]));
+        expect(targets).toEqual([{ id: 's1', trackingNumber: undefined, href: 'https://carrier.test/t' }]);
+    });
+
+    it('returns an empty array when there is no tracking', () => {
+        expect(getTrackShipmentTargets(ecomOrder([]))).toEqual([]);
+    });
+});
+
+describe('getTrackOptionLabels', () => {
+    // A minimal typed t() that returns the key + interpolation, so we assert the
+    // key/var wiring without depending on the resolved English copy.
+    const t = ((key: string, vars?: Record<string, unknown>) =>
+        vars ? `${key}:${JSON.stringify(vars)}` : key) as unknown as Parameters<typeof getTrackOptionLabels>[2];
+
+    it('labels a target by its tracking number (visible + new-tab aria) when a number is present', () => {
+        const labels = getTrackOptionLabels({ id: 's1', trackingNumber: '1Z999', href: 'https://c.test/x' }, 0, t);
+        expect(labels).toEqual({
+            label: 'orders.actions.trackNumber:{"trackingNumber":"1Z999"}',
+            ariaLabel: 'orders.actions.trackNumberNewTab:{"trackingNumber":"1Z999"}',
+        });
+    });
+
+    it('falls back to the 1-based position when the target has no tracking number', () => {
+        const labels = getTrackOptionLabels({ id: 's2', href: 'https://c.test/y' }, 1, t);
+        expect(labels).toEqual({
+            label: 'orders.actions.trackShipmentNumber:{"number":2}',
+            ariaLabel: 'orders.actions.trackShipmentNumberNewTab:{"number":2}',
+        });
     });
 });
 

@@ -15,7 +15,7 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { OrderLike } from '@/lib/order-management/types';
-import OrderTracking, { TrackShipmentAction } from '../index';
+import OrderTracking from '../index';
 
 /**
  * Synthetic args that mutate the order fixture (they are NOT real component props —
@@ -73,7 +73,7 @@ const meta: Meta<PlaygroundArgs> = {
         docs: {
             description: {
                 component:
-                    'Per-shipment OMS tracking block for the Order Details page. Renders the tracking number as the carrier link (`data-testid="tracking-number-link"`) when a `trackingUrl` is present, plain text (`tracking-number-text`) otherwise; plus carrier/provider and expected/actual delivery dates. Sourced from `getOrderTrackingEntries` (OMS-preferred, ECOM fallback — ECOM carries only a number + status). Renders nothing when there is no displayable tracking (e.g. a not-yet-shipped order). The companion `TrackShipmentAction` (`track-shipment-action`) deep-links to the carrier, or to the in-page tracking section when no carrier link exists, and is hidden when nothing is trackable.',
+                    'Per-shipment OMS tracking block for the Order Details page. Renders the tracking number as the carrier link (`data-testid="tracking-number-link"`) when a `trackingUrl` is present, plain text (`tracking-number-text`) otherwise; plus carrier/provider and expected/actual delivery dates. Sourced from `getOrderTrackingEntries` (OMS-preferred, ECOM fallback — ECOM carries only a number + status). Renders nothing when there is no displayable tracking (e.g. a not-yet-shipped order). The "Track Shipment" affordance lives in the top order-actions row (see the Order Details stories), not in this block.',
             },
         },
     },
@@ -136,24 +136,6 @@ export const Playground: Story = {
         secondShipment: false,
     },
     render: (args) => <OrderTracking order={buildOrder(args)} />,
-};
-
-/**
- * The standalone "Track shipment" order-action (rendered in the order-actions row).
- * Deep-links to the carrier when a tracking URL exists.
- */
-export const TrackShipmentActionStory: Story = {
-    name: 'Track Shipment Action',
-    args: {
-        source: 'oms',
-        hasTrackingNumber: true,
-        hasCarrierLink: true,
-        hasProvider: false,
-        hasExpectedDate: false,
-        hasActualDate: false,
-        secondShipment: false,
-    },
-    render: (args) => <TrackShipmentAction order={buildOrder(args)} />,
 };
 
 // --- Edge cases ---------------------------------------------------------------
@@ -233,14 +215,4 @@ export const ProviderAndDatesNoNumber: Story = {
             ])}
         />
     ),
-};
-
-/**
- * The "Track shipment" action when no entry has a usable carrier URL: it links to
- * the in-page `#order-tracking` section (no external icon) rather than deep-linking
- * to a carrier.
- */
-export const TrackShipmentActionInPage: Story = {
-    name: 'Track Shipment Action (in-page anchor)',
-    render: () => <TrackShipmentAction order={omsOrder([{ id: 's1', status: 'shipped', trackingNumber: '1Z-1' }])} />,
 };

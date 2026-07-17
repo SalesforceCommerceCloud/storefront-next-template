@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 import { type ReactElement } from 'react';
-import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import type { OrderLike } from '@/lib/order-management/types';
 import { getOrderTrackingEntries, parseTrackingDate } from '@/lib/order-management/tracking';
 import { ensureExternalUrl } from '@/lib/utils';
-import {
-    ORDER_TRACKING_SECTION_ID,
-    getTrackShipmentHref,
-    hasVisibleTrackingCard,
-} from '@/components/account/order-tracking/track-shipment';
+import { ORDER_TRACKING_SECTION_ID, hasVisibleTrackingCard } from '@/components/account/order-tracking/track-shipment';
 
 /** Format an OMS delivery date for display, or `null` if absent/unparseable (see {@link parseTrackingDate}). */
 function formatDeliveryDate(value: string | null | undefined, locale: string): string | null {
@@ -44,8 +39,9 @@ export type OrderTrackingProps = {
  *
  * Fed by {@link getOrderTrackingEntries} (OMS-preferred, ECOM fallback). Renders,
  * per shipment: the tracking number as the carrier link (anchored to `trackingUrl`
- * when present, plain text otherwise), provider, status, and expected/actual
- * delivery dates. Renders nothing when there are no tracking entries.
+ * when present, plain text otherwise), provider, and expected/actual delivery
+ * dates. Shipment status is shown by a separate badge, not on the tracking card.
+ * Renders nothing when there are no tracking entries.
  */
 export default function OrderTracking({ order }: OrderTrackingProps): ReactElement | null {
     const { t, i18n } = useTranslation('account');
@@ -84,7 +80,7 @@ export default function OrderTracking({ order }: OrderTrackingProps): ReactEleme
                                             rel="noopener noreferrer"
                                             data-testid="tracking-number-link"
                                             aria-label={t('orders.tracking.trackingNumberLinkLabel', {
-                                                number: entry.trackingNumber,
+                                                trackingNumber: entry.trackingNumber,
                                             })}
                                             className="text-sm font-medium text-primary underline break-all">
                                             {entry.trackingNumber}
@@ -118,34 +114,5 @@ export default function OrderTracking({ order }: OrderTrackingProps): ReactEleme
                 );
             })}
         </div>
-    );
-}
-
-/** The "Track shipment" order-action link; renders nothing when no tracking exists. */
-export function TrackShipmentAction({ order }: OrderTrackingProps): ReactElement | null {
-    const { t } = useTranslation('account');
-    const target = getTrackShipmentHref(order);
-    if (!target) {
-        return null;
-    }
-    const externalProps = target.external
-        ? {
-              target: '_blank',
-              rel: 'noopener noreferrer',
-              // Convey "opens in a new tab" to assistive tech — the visible
-              // ExternalLink icon is aria-hidden, so without this the new-tab
-              // affordance would be sighted-only.
-              'aria-label': t('orders.actions.trackShipmentNewTab'),
-          }
-        : {};
-    return (
-        <a
-            href={target.href}
-            data-testid="track-shipment-action"
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary underline"
-            {...externalProps}>
-            {t('orders.actions.trackShipment')}
-            {target.external ? <ExternalLink className="size-3.5" aria-hidden={true} /> : null}
-        </a>
     );
 }

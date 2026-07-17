@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 import { type ReactElement, useCallback, useEffect, useState } from 'react';
-import { Check, Hash, X } from 'lucide-react';
+import { Check, ChevronDown, ExternalLink, Hash, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useTranslation } from 'react-i18next';
 import type { ShopperOrders } from '@/scapi';
 import OrderItemsList, { type ProductDataById } from '@/components/account/order-details/order-items-list';
-import OrderTracking, { TrackShipmentAction } from '@/components/account/order-tracking';
+import OrderTracking from '@/components/account/order-tracking';
 import { getOrderTrackingEntries } from '@/lib/order-management/tracking';
-import { hasDisplayableTracking } from '@/components/account/order-tracking/track-shipment';
+import {
+    getTrackOptionLabels,
+    getTrackShipmentHref,
+    getTrackShipmentTargets,
+    hasVisibleTrackingCard,
+} from '@/components/account/order-tracking/track-shipment';
 import OrderSummary from '@/components/order-summary';
 import ShippingAddressDisplay from '@/components/checkout/components/shipping-address-display';
 import {
@@ -163,10 +175,19 @@ export function OrderDetails({ order, productsById }: OrderDetailsProps): ReactE
     const OrderStatusIcon = orderStatusConfig?.icon === 'check' ? Check : orderStatusConfig?.icon === 'x' ? X : null;
     const itemsByShipmentId = groupProductItemsByShipmentId(productItems);
     const paymentMethodDisplays = getPaymentMethodDisplays(order, t);
-    // Whether the order has anything to show in the tracking section — when false,
-    // both OrderTracking and TrackShipmentAction render null, so skip the wrapper
-    // (it would otherwise leave an empty spacing div).
-    const hasTracking = getOrderTrackingEntries(order).some(hasDisplayableTracking);
+    // Whether the order has a card to show in the tracking section. Gate on the SAME
+    // predicate OrderTracking uses to render a card (hasVisibleTrackingCard), not the
+    // looser hasDisplayableTracking: an entry with only a trackingUrl is displayable but
+    // has no card-visible content, so the looser gate would mount the heading + wrapper
+    // over an OrderTracking that renders null — an orphan heading above an empty div.
+    const hasTracking = getOrderTrackingEntries(order).some(hasVisibleTrackingCard);
+    // Top Order-Actions "Track Shipment" affordance: the list of externalizable carrier
+    // links (>1 → dropdown) and the single-target fallback (1 link → deep-link, else the
+    // in-page tracking anchor). Both come from the same source as the tracking cards, so
+    // the top action and the cards can never diverge. When there is no usable target the
+    // action renders nothing and the actions row collapses (empty:hidden).
+    const trackShipmentTargets = getTrackShipmentTargets(order);
+    const trackShipmentTarget = getTrackShipmentHref(order);
 
     return (
         <div data-section="order-details">
@@ -200,6 +221,86 @@ export function OrderDetails({ order, productsById }: OrderDetailsProps): ReactE
                                 ) : null}
                                 {orderStatusConfig ? t(orderStatusConfig.labelKey) : orderStatusLabelFallback}
                             </Badge>
+                        ) : null}
+                    </div>
+
+                    {/* Order Actions row (matches the design's top actions area). Currently the
+                        only action is Track Shipment; more actions (return, cancel, get help) are
+                        added later for full parity. empty:hidden collapses the whole row when no
+                        action renders (e.g. an order with no usable tracking target yet). */}
+                    <div className="flex flex-wrap gap-2 empty:hidden" data-slot="order-actions">
+                        {trackShipmentTargets.length > 1 ? (
+                            // More than one externalizable carrier link → a dropdown so the
+                            // shopper picks which to open. We can't say which tracking maps to
+                            // which shipment (OMS and ECOM shipments share no join key), so
+                            // options are labeled by tracking number, not by contents.
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        data-slot="order-actions-track"
+                                        data-testid="order-actions-track"
+                                        className="w-full sm:w-auto">
+                                        {t('orders.actions.trackShipment')}
+                                        <ChevronDown className="size-3.5" aria-hidden={true} />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" data-testid="order-actions-track-options">
+                                    {trackShipmentTargets.map((target, index) => {
+                                        // Visible label omits "opens in a new tab"; the new-tab
+                                        // affordance is conveyed to assistive tech via aria-label
+                                        // (the ExternalLink icon is aria-hidden). getTrackOptionLabels
+                                        // keeps the visible and aria strings in sync.
+                                        const { label, ariaLabel } = getTrackOptionLabels(target, index, t);
+                                        return (
+                                            <DropdownMenuItem key={target.id} asChild>
+                                                <a
+                                                    href={target.href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    data-testid="order-actions-track-option"
+                                                    aria-label={ariaLabel}
+                                                    className="cursor-pointer">
+                                                    {label}
+                                                    <ExternalLink className="size-3.5" aria-hidden={true} />
+                                                </a>
+                                            </DropdownMenuItem>
+                                        );
+                                    })}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : trackShipmentTarget ? (
+                            // Exactly one usable target → an enabled single button. Deep-links to
+                            // the carrier in a new tab when the target is an externalizable URL,
+                            // otherwise to the in-page tracking section. Gating on a non-null
+                            // trackShipmentTarget is deliberate: getTrackShipmentHref returns null for a
+                            // displayable-but-not-card-visible entry (e.g. a shipment whose only field is
+                            // an ensureExternalUrl-rejected trackingUrl), where the #order-tracking anchor
+                            // never mounts — so those render nothing rather than link to an anchor that
+                            // scrolls nowhere, and the row collapses via empty:hidden.
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                data-slot="order-actions-track"
+                                data-testid="order-actions-track"
+                                className="w-full sm:w-auto">
+                                <a
+                                    href={trackShipmentTarget.href}
+                                    {...(trackShipmentTarget.external
+                                        ? {
+                                              target: '_blank',
+                                              rel: 'noopener noreferrer',
+                                              'aria-label': t('orders.actions.trackShipmentNewTab'),
+                                          }
+                                        : {})}>
+                                    {t('orders.actions.trackShipment')}
+                                    {trackShipmentTarget.external ? (
+                                        <ExternalLink className="size-3.5" aria-hidden={true} />
+                                    ) : null}
+                                </a>
+                            </Button>
                         ) : null}
                     </div>
                     <div className="border-t border-muted-foreground/20" aria-hidden />
@@ -271,12 +372,12 @@ export function OrderDetails({ order, productsById }: OrderDetailsProps): ReactE
                                 </CardContent>
                             </Card>
 
-                            {/* Shipment tracking (OMS-preferred, ECOM fallback) + the Track-shipment action */}
+                            {/* Shipment tracking (OMS-preferred, ECOM fallback). The Track Shipment
+                                affordance lives in the top order-actions row, not here. */}
                             {hasTracking ? (
                                 <div className="space-y-3">
                                     <UITarget targetId="sfcc.myAccount.orderDetails.tracking" />
                                     <OrderTracking order={order} />
-                                    <TrackShipmentAction order={order} />
                                 </div>
                             ) : null}
                         </div>

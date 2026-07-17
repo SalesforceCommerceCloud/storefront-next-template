@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { TFunction } from 'i18next';
 import type { OrderLike, OrderTrackingEntry } from '@/lib/order-management/types';
 import { getOrderTrackingEntries } from '@/lib/order-management/tracking';
 import { ensureExternalUrl } from '@/lib/utils';
@@ -59,6 +60,66 @@ export function hasDisplayableTracking(entry: OrderTrackingEntry): boolean {
  */
 export function hasVisibleTrackingCard(entry: OrderTrackingEntry): boolean {
     return Boolean(entry.trackingNumber || entry.provider || entry.expectedDeliveryDate || entry.actualDeliveryDate);
+}
+
+/** A single carrier deep-link target for one tracking entry. */
+export type TrackShipmentTarget = {
+    /** The tracking entry id (stable key for list rendering). */
+    id: string;
+    /** The tracking number, when present (used as the option label). */
+    trackingNumber?: string;
+    /** The externalizable carrier URL (already passed through {@link ensureExternalUrl}). */
+    href: string;
+};
+
+/**
+ * Every tracking entry that has an externalizable carrier `trackingUrl`, in order.
+ *
+ * This is the multi-shipment companion to {@link getTrackShipmentHref}: when an order
+ * has more than one shipment with a usable carrier link, the "Track shipment" action
+ * becomes a dropdown of these targets (one per carrier link) so the shopper can pick
+ * which to open. Entries without an externalizable URL are skipped (same
+ * `ensureExternalUrl` gate the single-link path and the card links use), so a
+ * relative/unsafe URL never produces a dropdown option that navigates in-app.
+ */
+export function getTrackShipmentTargets(order: OrderLike): TrackShipmentTarget[] {
+    return getOrderTrackingEntries(order)
+        .filter(hasDisplayableTracking)
+        .map((entry): TrackShipmentTarget | null => {
+            const href = ensureExternalUrl(entry.trackingUrl);
+            return href ? { id: entry.id, trackingNumber: entry.trackingNumber, href } : null;
+        })
+        .filter((target): target is TrackShipmentTarget => target !== null);
+}
+
+/**
+ * Visible label + assistive-tech aria-label for one dropdown "Track shipment" option.
+ *
+ * A target with a tracking number is labeled by it (`Track 1Z…`, via `{{trackingNumber}}`);
+ * one without falls back to its 1-based position (`Track Shipment 2`, via `{{number}}`). The
+ * two branches interpolate distinct variables so a translator can style a real tracking string
+ * (casing, typography) without corrupting the positional-integer copy. Keeping both strings in
+ * one place ensures the visible text and the aria-label (which adds "opens in a new tab") never
+ * drift apart.
+ *
+ * @param target the carrier target for this option
+ * @param index 0-based index in the target list (used for the number-less fallback label)
+ */
+export function getTrackOptionLabels(
+    target: TrackShipmentTarget,
+    index: number,
+    t: TFunction<'account'>
+): { label: string; ariaLabel: string } {
+    if (target.trackingNumber) {
+        return {
+            label: t('orders.actions.trackNumber', { trackingNumber: target.trackingNumber }),
+            ariaLabel: t('orders.actions.trackNumberNewTab', { trackingNumber: target.trackingNumber }),
+        };
+    }
+    return {
+        label: t('orders.actions.trackShipmentNumber', { number: index + 1 }),
+        ariaLabel: t('orders.actions.trackShipmentNumberNewTab', { number: index + 1 }),
+    };
 }
 
 /**

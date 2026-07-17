@@ -866,11 +866,15 @@
                 "provider": "Carrier",
                 "expectedDelivery": "Expected delivery",
                 "delivered": "Delivered",
-                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
+                "trackingNumberLinkLabel": "Track shipment {{trackingNumber}} (opens in a new tab)"
             },
             "actions": {
-                "trackShipment": "Track shipment",
-                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
+                "trackShipment": "Track Shipment",
+                "trackShipmentNewTab": "Track Shipment (opens in a new tab)",
+                "trackNumber": "Track {{trackingNumber}}",
+                "trackShipmentNumber": "Track Shipment {{number}}",
+                "trackNumberNewTab": "Track {{trackingNumber}} (opens in a new tab)",
+                "trackShipmentNumberNewTab": "Track Shipment {{number}} (opens in a new tab)"
             },
             "shippingAddress": "運送地址",
             "paymentMethod": "付款方式",
