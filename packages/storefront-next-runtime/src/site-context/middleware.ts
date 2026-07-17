@@ -164,10 +164,12 @@ export function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunct
     // Create cookies based on configured names and optional cookie options
     const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, config.cookieOptions);
     const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, config.cookieOptions);
-    const currencyCookie = createCurrencyCookie(
-        config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME,
-        config.cookieOptions
-    );
+    // Currency is JS-readable so the client can restore the selected currency under a
+    // cached app shell. Scoped to this cookie only — site/locale stay httpOnly.
+    const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
+        ...config.cookieOptions,
+        httpOnly: false,
+    });
 
     const settings: SiteSettings = {
         ...config,

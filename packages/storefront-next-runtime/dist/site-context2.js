@@ -566,7 +566,10 @@ function createSiteContextMiddleware(config) {
 	};
 	const siteCookie = createSiteContextCookie(siteDetectionConfig.lookupCookie, config.cookieOptions);
 	const localeCookie = createSiteContextCookie(localeDetectionConfig.lookupCookie, config.cookieOptions);
-	const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, config.cookieOptions);
+	const currencyCookie = createCurrencyCookie(config.currencyCookieName ?? DEFAULT_CURRENCY_COOKIE_NAME, {
+		...config.cookieOptions,
+		httpOnly: false
+	});
 	const settings = {
 		...config,
 		siteDetectionConfig,

@@ -100,6 +100,7 @@ import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
 
 // Lib/Utils
 import type { PublicSessionData } from '@/lib/api/types';
+import { useCurrency } from '@/lib/currency/use-currency';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { PageViewTracker } from '@/analytics/page-view-tracker';
 import { initializeRegistry } from '@/lib/page-designer/static-registry';
@@ -632,7 +633,7 @@ export default function App({
         clientAuth,
         basketSnapshot,
         getI18next,
-        currency,
+        currency: loaderCurrency,
         correlationId,
         pageDesignerMode,
         site,
@@ -645,7 +646,7 @@ export default function App({
     loaderData: LoaderData;
 }) {
     // Currency is always provided by loader (which reads from middleware)
-    if (!currency) {
+    if (!loaderCurrency) {
         throw new Error('Currency is required but not provided by loader');
     }
 
@@ -667,6 +668,15 @@ export default function App({
     initializeRegistry();
 
     const i18next = (typeof window === 'undefined' ? getI18next?.() : i18nextOnClient) as i18n;
+
+    // Under a cached shell the loader currency is frozen; restore from the cookie post-hydration.
+    // The cookie name is bundled app config (never changes at runtime), so read it straight from
+    // appConfig rather than threading it through the loader.
+    const currency = useCurrency(
+        loaderCurrency,
+        site.supportedCurrencies,
+        appConfig.siteContext?.currencyCookieName ?? 'currency'
+    );
 
     // Memoize the providers array to prevent unnecessary remounting of providers on render
     const providers = useMemo(
