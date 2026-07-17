@@ -94,17 +94,20 @@ Unnecessary re-renders inflate [Interaction to Next Paint](https://web.dev/artic
 
 Overlay components that are hidden on initial render, such as modals, drawers, and dialogs, must use [`React.lazy()`](https://react.dev/reference/react/lazy) with deferred mounting. Mount the `<Suspense>` subtree only after the first user interaction, not on page load. This keeps the overlay's code out of the main chunk entirely until it's actually needed, reducing page load size and [Total Blocking Time](https://web.dev/articles/tbt) (TBT).
 
+Gate the mount on the overlay's `open` state so the subtree unmounts when the overlay closes. Use `useDeferredUnmount(open)` to keep it mounted for a short window after close — long enough for the exit animation to play — then unmount. `React.lazy` memoizes the resolved chunk at module scope, so re-opening after unmount does **not** re-download the JavaScript; only the closed overlay's in-memory state (and any resource fetchers it holds) is released.
+
 ```jsx
 const MyModal = lazy(() => import('@/components/my-modal').then((m) => ({ default: m.MyModal })));
 
 function MyComponent() {
-  const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
+  // Mounted while open, then unmounts shortly after close so the exit animation plays.
+  const mounted = useDeferredUnmount(open);
 
   return (
     <>
-      <Button onClick={() => { setLoaded(true); setOpen(true); }}>Open</Button>
-      {loaded && (
+      <Button onClick={() => setOpen(true)}>Open</Button>
+      {mounted && (
         <Suspense fallback={null}>
           <MyModal open={open} onOpenChange={setOpen} />
         </Suspense>
@@ -114,11 +117,13 @@ function MyComponent() {
 }
 ```
 
-- `loaded` flips once on first click — controls when the chunk is fetched and the component mounts.
-- `open` toggles visibility — re-opening after first load is instant.
+- First open triggers the lazy import and mounts the subtree; `React.lazy` caches the chunk, so subsequent opens are instant without keeping the subtree alive.
+- `open` toggles visibility; `mounted` follows `open` but lags the close by the unmount delay so the exit animation can finish.
 
 > [!IMPORTANT]
 > **Anti-pattern:** Importing overlay components synchronously (non-lazy) bundles them into the main chunk, increasing page load size and TBT.
+>
+> **Anti-pattern:** A sticky "loaded" latch (`const [loaded, setLoaded] = useState(false)` that flips `true` on first open and never resets, gating `{loaded && <Suspense>…}`). It keeps the overlay's subtree mounted forever after the first open. Any resource fetcher the overlay loads on open (`fetcher.load()`, `useScapiFetcher`) then stays registered after close and is re-run on every later revalidation — currency/locale/site switch, store selection — for an overlay the shopper already dismissed. Gate on `open` (via `useDeferredUnmount`) instead. See [Revalidation](./README-REVALIDATION.md) for the fan-out cost.
 >
 > **Discouraged:** `<Suspense><LazyComponent /></Suspense>` without a guard — the chunk is separate but still fetched and parsed on mount, adding to TBT during page startup.
 

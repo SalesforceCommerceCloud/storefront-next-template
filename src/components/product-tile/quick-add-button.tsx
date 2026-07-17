@@ -16,6 +16,7 @@
 import { lazy, Suspense, useState, useCallback, type MouseEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { createProductUrl } from '@/lib/product/product-utils';
+import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 import { useProductTileContext } from './context';
 
 interface QuickAddButtonProps {
@@ -50,8 +51,10 @@ export function QuickAddButton({
     initialVariantSelections,
     label,
 }: QuickAddButtonProps) {
-    const [loaded, setLoaded] = useState(false);
     const [open, setOpen] = useState(false);
+    // Keep the modal subtree mounted while open, then unmount shortly after close so its
+    // Radix exit animation plays and its SCAPI fetchers deregister from the registry (W-23068739).
+    const mounted = useDeferredUnmount(open);
     const { navigate, t } = useProductTileContext();
 
     const resolvedLabel = label ?? t('quickAdd');
@@ -62,7 +65,6 @@ export function QuickAddButton({
     }, [navigate, productId, selectedColorValue]);
     const handleOpenModal = useCallback((e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        setLoaded(true);
         setOpen(true);
     }, []);
 
@@ -77,7 +79,7 @@ export function QuickAddButton({
                 {resolvedLabel}
             </Button>
 
-            {loaded && (
+            {mounted && (
                 <Suspense fallback={null}>
                     <CartItemModal
                         productId={productId}
