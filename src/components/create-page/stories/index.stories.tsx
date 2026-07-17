@@ -40,7 +40,7 @@ type CreatePageArgs = {
 // doesn't share a prop signature with ExamplePageComponent. Drop `component:` from the meta —
 // Storybook's autodocs will fall back to the title.
 const meta: Meta<CreatePageArgs> = {
-    title: 'COMMON/Create Page',
+    title: 'Core/Utilities/Create Page',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'centered',

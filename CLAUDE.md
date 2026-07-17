@@ -271,6 +271,14 @@ The bridge variables are inlined at compile time by Tailwind's `@theme inline { 
 }
 ```
 
+### Storybook story titles
+
+- Set `meta.title` to a `Domain/Component` prefix (e.g. `Account/Addresses/Address Card`)
+- Fit the story into one of the fixed top-level groups; only add a new group when none genuinely fits
+- Use Title Case With Spaces for each segment
+
+See [docs/README-STORYBOOK.md](./docs/README-STORYBOOK.md#story-titles--sidebar-taxonomy) for the list of groups.
+
 ## Testing
 
 Three strategies — see [docs/README-TESTS.md](./docs/README-TESTS.md) for patterns.

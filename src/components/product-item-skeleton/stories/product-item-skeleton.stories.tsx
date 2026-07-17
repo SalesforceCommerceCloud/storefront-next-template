@@ -19,7 +19,7 @@ import { expect } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof ProductItemSkeleton> = {
-    title: 'Components/ProductItemSkeleton',
+    title: 'Products/Product Item Skeleton',
     component: ProductItemSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

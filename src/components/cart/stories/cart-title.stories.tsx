@@ -50,7 +50,7 @@ function CartTitleHarness({ deliveryCount, withShippingAddress }: CartTitleHarne
 }
 
 const meta: Meta<typeof CartTitleHarness> = {
-    title: 'CART/Cart Title',
+    title: 'Cart/Cart Title',
     component: CartTitleHarness,
     tags: ['autodocs', 'interaction'],
     parameters: {

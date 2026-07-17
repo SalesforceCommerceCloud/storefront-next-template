@@ -92,7 +92,7 @@ const mockStoreNoDistance: ShopperStores.schemas['Store'] = createMockStore('sto
 });
 
 const meta: Meta<typeof StoreDetails> = {
-    title: 'Extensions/StoreLocator/StoreDetails',
+    title: 'Extensions/Store Locator/Store Details',
     component: StoreDetails,
     tags: ['autodocs', 'interaction'],
     parameters: {

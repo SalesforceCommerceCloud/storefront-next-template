@@ -76,7 +76,7 @@ function ExampleDialogContent() {
 }
 
 const meta: Meta<typeof Dialog> = {
-    title: 'UI/Dialog',
+    title: 'Design System/UI/Dialog',
     component: Dialog,
     parameters: {
         layout: 'centered',

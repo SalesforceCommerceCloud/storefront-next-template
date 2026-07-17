@@ -46,7 +46,7 @@ function ProductRatingSummaryWrapper({ interactive }: { interactive?: boolean })
 }
 
 const meta: Meta<typeof ProductRatingSummaryWrapper> = {
-    title: 'Components/ProductView/ProductRatingSummary',
+    title: 'Products/Product View/Product Rating Summary',
     component: ProductRatingSummaryWrapper,
     tags: ['autodocs'],
     parameters: {

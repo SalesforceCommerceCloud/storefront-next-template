@@ -74,7 +74,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof PopularCategories> = {
-    title: 'HOME/Popular Categories',
+    title: 'Home/Popular Categories',
     component: PopularCategories,
     tags: ['autodocs', 'interaction'],
     parameters: {

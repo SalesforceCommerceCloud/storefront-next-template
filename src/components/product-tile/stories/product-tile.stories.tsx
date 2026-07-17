@@ -42,7 +42,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof ProductTile> = {
-    title: 'Components/ProductTile/ProductTile',
+    title: 'Products/Product Tile/Product Tile',
     component: ProductTile,
     tags: ['autodocs'],
     parameters: {

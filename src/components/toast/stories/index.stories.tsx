@@ -35,7 +35,7 @@ function ToastDemo({ triggerLabel, onTrigger }: { triggerLabel: string; onTrigge
 }
 
 const meta: Meta = {
-    title: 'FEEDBACK/Toast',
+    title: 'Core/Feedback/Toast',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'fullscreen',

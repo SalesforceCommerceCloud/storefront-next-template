@@ -77,7 +77,7 @@ type StoryArgs = React.ComponentProps<typeof RemoveItemButtonWithConfirmation> &
 };
 
 const meta: Meta<StoryArgs> = {
-    title: 'ACTIONS/Remove Item Button With Confirmation',
+    title: 'Core/Actions/Remove Item Button With Confirmation',
     component: RemoveItemButtonWithConfirmation,
     tags: ['autodocs', 'interaction'],
     parameters: {

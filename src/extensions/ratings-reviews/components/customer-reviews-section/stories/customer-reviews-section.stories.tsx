@@ -61,7 +61,7 @@ function CustomerReviewsSectionHarness(): ReactElement {
 }
 
 const meta: Meta<typeof CustomerReviewsSectionHarness> = {
-    title: 'Components/CustomerReviewsSection',
+    title: 'Extensions/Ratings & Reviews/Customer Reviews Section',
     component: CustomerReviewsSectionHarness,
     tags: ['autodocs'],
     parameters: {

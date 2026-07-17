@@ -51,7 +51,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof RefineSize> = {
-    title: 'CATEGORY/Category Refinements/Refine Size',
+    title: 'Category/Category Refinements/Refine Size',
     component: RefineSize,
     tags: ['autodocs', 'interaction'],
     parameters: {

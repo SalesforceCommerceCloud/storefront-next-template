@@ -23,7 +23,7 @@ import { AddressModal } from '../address-modal';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof AddressModal> = {
-    title: 'CHECKOUT/AddressModal',
+    title: 'Checkout/Address/Address Modal',
     component: AddressModal,
     parameters: {
         ...checkoutStrictA11yParameters,

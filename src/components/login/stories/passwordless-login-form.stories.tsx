@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import PasswordlessLoginForm from '../passwordless-login-form';
 
 const meta: Meta<typeof PasswordlessLoginForm> = {
-    title: 'AUTHENTICATION/Passwordless Login Form',
+    title: 'Authentication/Passwordless Login Form',
     component: PasswordlessLoginForm,
     tags: ['autodocs', 'interaction'],
     parameters: {

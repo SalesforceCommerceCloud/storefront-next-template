@@ -21,7 +21,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof ProductPrice> = {
-    title: 'Components/ProductPrice',
+    title: 'Products/Product Price',
     component: ProductPrice,
     tags: ['autodocs', 'interaction'],
     parameters: {

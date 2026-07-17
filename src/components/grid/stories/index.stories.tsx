@@ -27,7 +27,7 @@ function renderItems(count: number, variant: 'muted' | 'card' = 'muted') {
 }
 
 const meta: Meta<typeof Grid> = {
-    title: 'COMMON/Grid',
+    title: 'Core/Data Display/Grid',
     component: Grid,
     tags: ['autodocs'],
     parameters: {

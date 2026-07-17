@@ -84,7 +84,7 @@ function PasswordUpdateFieldsHarness({ defaultValues, fetcherState = 'idle', sho
 }
 
 const meta: Meta<HarnessProps> = {
-    title: 'ACCOUNT/Password Update Form',
+    title: 'Account/Profile/Password Update Form',
     component: PasswordUpdateFieldsHarness,
     tags: ['autodocs', 'interaction'],
     parameters: {

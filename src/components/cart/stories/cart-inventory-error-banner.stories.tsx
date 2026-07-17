@@ -21,7 +21,7 @@ import { CartInventoryErrorBanner } from '../cart-inventory-error-banner';
 import type { CartInventoryIssue } from '@/lib/cart/inventory-validation';
 
 const meta: Meta<typeof CartInventoryErrorBanner> = {
-    title: 'CART/Cart Inventory Error Banner',
+    title: 'Cart/Cart Inventory Error Banner',
     component: CartInventoryErrorBanner,
     tags: ['autodocs', 'interaction'],
     parameters: {

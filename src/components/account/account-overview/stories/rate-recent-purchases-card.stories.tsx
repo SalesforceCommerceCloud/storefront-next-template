@@ -42,7 +42,7 @@ const sampleOrder: Order = {
 };
 
 const meta: Meta<typeof RateRecentPurchasesCard> = {
-    title: 'ACCOUNT/Account Overview/Rate Recent Purchases Card',
+    title: 'Account/Overview/Rate Recent Purchases Card',
     component: RateRecentPurchasesCard,
     tags: ['autodocs', 'skip-a11y'],
     parameters: {

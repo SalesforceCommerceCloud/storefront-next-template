@@ -48,7 +48,7 @@ function StatefulSortFilter(props: ComponentProps<typeof WishlistSortFilter>) {
 }
 
 const meta: Meta<typeof WishlistSortFilter> = {
-    title: 'ACCOUNT/Wishlist Sort Filter',
+    title: 'Account/Wishlist/Wishlist Sort Filter',
     component: WishlistSortFilter,
     tags: ['autodocs', 'interaction'],
     parameters: {

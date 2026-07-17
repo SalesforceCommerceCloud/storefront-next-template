@@ -76,7 +76,7 @@ function FormSubmitStoryHarness({ children }: { children: ReactNode }): ReactEle
 }
 
 const meta: Meta<typeof FormSubmitButton> = {
-    title: 'ACTIONS/Form Submit Button',
+    title: 'Core/Actions/Form Submit Button',
     component: FormSubmitButton,
     tags: ['autodocs', 'interaction'],
     parameters: {

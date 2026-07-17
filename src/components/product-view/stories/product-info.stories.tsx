@@ -161,7 +161,7 @@ const createMockProduct = (
  * It handles product variations, inventory status, pricing, and cart/wishlist actions.
  */
 const meta: Meta<typeof ProductInfo> = {
-    title: 'PRODUCTS/Product View/Product Info',
+    title: 'Products/Product View/Product Info',
     component: ProductInfo,
     parameters: {
         layout: 'padded',

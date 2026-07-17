@@ -21,7 +21,7 @@ import PickupOrDeliveryDropdown from '../pickup-or-delivery-dropdown';
 import { DELIVERY_OPTIONS, type DeliveryOption } from '@/extensions/bopis/constants';
 
 const meta: Meta<typeof PickupOrDeliveryDropdown> = {
-    title: 'Extensions/BOPIS/PickupOrDeliveryDropdown',
+    title: 'Extensions/BOPIS/Pickup Or Delivery Dropdown',
     component: PickupOrDeliveryDropdown,
     tags: ['autodocs', 'interaction'],
     parameters: {

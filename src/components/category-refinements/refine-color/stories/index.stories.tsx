@@ -50,7 +50,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof RefineColor> = {
-    title: 'CATEGORY/Category Refinements/Refine Color',
+    title: 'Category/Category Refinements/Refine Color',
     component: RefineColor,
     tags: ['autodocs', 'interaction'],
     parameters: {

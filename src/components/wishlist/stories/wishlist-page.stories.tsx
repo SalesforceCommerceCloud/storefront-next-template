@@ -102,7 +102,7 @@ const productsByProductId: Record<string, ShopperProducts.schemas['Product']> = 
 };
 
 const meta: Meta<typeof WishlistPageContent> = {
-    title: 'ACCOUNT/Wishlist Page',
+    title: 'Account/Wishlist/Wishlist Page',
     component: WishlistPageContent,
     tags: ['autodocs'],
     parameters: {

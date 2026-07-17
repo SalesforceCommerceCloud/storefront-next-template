@@ -80,7 +80,7 @@ const mockStore: ShopperStores.schemas['Store'] = createMockStore('store-1', 'in
 });
 
 const meta: Meta<typeof CartPickup> = {
-    title: 'Extensions/BOPIS/CartPickup',
+    title: 'Extensions/BOPIS/Cart Pickup',
     component: CartPickup,
     tags: ['autodocs', 'interaction'],
     args: {

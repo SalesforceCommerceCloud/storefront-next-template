@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { LoginGuestWishlistBanner } from '../login-guest-wishlist-banner';
 
 const meta: Meta<typeof LoginGuestWishlistBanner> = {
-    title: 'AUTHENTICATION/Login Guest Wishlist Banner',
+    title: 'Authentication/Login Guest Wishlist Banner',
     component: LoginGuestWishlistBanner,
     tags: ['autodocs', 'interaction'],
     parameters: {

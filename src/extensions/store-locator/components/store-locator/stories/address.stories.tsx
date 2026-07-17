@@ -65,7 +65,7 @@ const mockStore: ShopperStores.schemas['Store'] = createMockStore('store-1', 'in
 });
 
 const meta: Meta<typeof StoreAddress> = {
-    title: 'Extensions/StoreLocator/StoreAddress',
+    title: 'Extensions/Store Locator/Store Address',
     component: StoreAddress,
     tags: ['autodocs', 'interaction'],
     parameters: {

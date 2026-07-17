@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Typography } from '../index';
 
 const meta: Meta<typeof Typography> = {
-    title: 'UI/Typography',
+    title: 'Design System/UI/Typography',
     component: Typography,
     parameters: {
         layout: 'padded',

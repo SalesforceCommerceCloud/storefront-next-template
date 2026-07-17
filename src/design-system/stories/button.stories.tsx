@@ -48,7 +48,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 const meta: Meta<typeof Button> = {
-    title: 'UI/Button',
+    title: 'Design System/UI/Button',
     component: Button,
     parameters: {
         layout: 'padded',

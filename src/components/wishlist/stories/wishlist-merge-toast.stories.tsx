@@ -54,7 +54,7 @@ function StoryHost({ flag }: WishlistMergeToastArgs): ReactElement {
 }
 
 const meta: Meta<typeof StoryHost> = {
-    title: 'ACCOUNT/Wishlist Merge Toast',
+    title: 'Account/Wishlist/Wishlist Merge Toast',
     component: StoryHost,
     tags: ['autodocs', 'interaction'],
     parameters: {

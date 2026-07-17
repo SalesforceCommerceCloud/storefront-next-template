@@ -46,7 +46,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof RefineDefault> = {
-    title: 'CATEGORY/Category Refinements/Refine Default',
+    title: 'Category/Category Refinements/Refine Default',
     component: RefineDefault,
     tags: ['autodocs', 'interaction'],
     parameters: {

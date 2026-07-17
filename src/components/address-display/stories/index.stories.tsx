@@ -100,7 +100,7 @@ function renderDisplay(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof AddressDisplay> = {
-    title: 'COMMON/Address Display',
+    title: 'Core/Data Display/Address Display',
     component: AddressDisplay,
     parameters: {
         layout: 'centered',

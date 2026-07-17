@@ -82,7 +82,7 @@ const mockCustomerNoFirstName = {
 };
 
 const meta: Meta<typeof AccountOverview> = {
-    title: 'ACCOUNT/Account Overview',
+    title: 'Account/Overview',
     component: AccountOverview,
     // skip-a11y: ProductRecommendations needs provider context the a11y runner can't set up.
     tags: ['autodocs', 'skip-a11y', 'interaction'],

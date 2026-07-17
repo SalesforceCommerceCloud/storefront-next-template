@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof ApplePayLogo> = {
-    title: 'CHECKOUT/ApplePayLogo',
+    title: 'Checkout/Payment/Logos/Apple Pay Logo',
     component: ApplePayLogo,
     parameters: {
         ...checkoutStrictA11yParameters,

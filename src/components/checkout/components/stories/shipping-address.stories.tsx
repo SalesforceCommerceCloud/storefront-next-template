@@ -29,7 +29,7 @@ import type { CustomerProfile } from '@/components/checkout/utils/checkout-conte
 
 const meta: Meta<typeof ShippingAddress> = {
     component: ShippingAddress,
-    title: 'CHECKOUT/ShippingAddress',
+    title: 'Checkout/Shipping/Shipping Address',
     tags: ['autodocs', 'interaction'],
     parameters: {
         ...checkoutStrictA11yParameters,

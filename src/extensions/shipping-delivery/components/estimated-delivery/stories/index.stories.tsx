@@ -71,7 +71,7 @@ const mockData: EstimatedDeliveryData = {
 };
 
 const meta: Meta<typeof EstimatedDelivery> = {
-    title: 'EXTENSIONS/Shipping Delivery/Estimated Delivery',
+    title: 'Extensions/Shipping Delivery/Estimated Delivery',
     component: EstimatedDelivery,
     tags: ['autodocs', 'interaction'],
     parameters: {

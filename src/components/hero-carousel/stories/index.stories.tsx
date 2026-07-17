@@ -58,7 +58,7 @@ function buildSlides(count: number, longCopy: boolean): HeroSlide[] {
 }
 
 const meta: Meta<HeroCarouselArgs> = {
-    title: 'COMMON/Hero Carousel',
+    title: 'Content/Marketing/Hero Carousel',
     component: HeroCarousel,
     tags: ['autodocs', 'interaction'],
     parameters: {

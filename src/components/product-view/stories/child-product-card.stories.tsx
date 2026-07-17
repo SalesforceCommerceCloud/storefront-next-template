@@ -46,7 +46,7 @@ const resolveParent = (parentType: ParentType): ParentResolution => {
 };
 
 const meta: Meta<typeof ChildProductCard> = {
-    title: 'Components/ProductView/ChildProductCard',
+    title: 'Products/Product View/Child Product Card',
     component: ChildProductCard,
     tags: ['autodocs'],
     parameters: {

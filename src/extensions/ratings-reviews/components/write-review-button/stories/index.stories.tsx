@@ -96,7 +96,7 @@ function WriteReviewButtonWrapper(): ReactElement {
 }
 
 const meta: Meta<typeof WriteReviewButtonWrapper> = {
-    title: 'Components/WriteReviewButton',
+    title: 'Extensions/Ratings & Reviews/Write Review Button',
     component: WriteReviewButtonWrapper,
     tags: ['autodocs'],
     parameters: {

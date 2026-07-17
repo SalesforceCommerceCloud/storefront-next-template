@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { PostOrderRegistration } from '../post-order-registration';
 
 const meta: Meta<typeof PostOrderRegistration> = {
-    title: 'CHECKOUT/PostOrderRegistration',
+    title: 'Checkout/Registration/Post Order Registration',
     component: PostOrderRegistration,
     tags: ['autodocs', 'interaction'],
     parameters: {

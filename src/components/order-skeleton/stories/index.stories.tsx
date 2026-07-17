@@ -17,7 +17,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import OrderSkeleton from '../index';
 
 const meta: Meta<typeof OrderSkeleton> = {
-    title: 'SKELETON/OrderSkeleton',
+    title: 'Account/Orders/Order Skeleton',
     component: OrderSkeleton,
     parameters: {
         layout: 'fullscreen',

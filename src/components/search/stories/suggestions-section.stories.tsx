@@ -81,7 +81,7 @@ const ALL_POPULAR = [
 ];
 
 const meta: Meta<typeof SuggestionSection> = {
-    title: 'Search/SuggestionsSection',
+    title: 'Search/Suggestions Section',
     component: SuggestionSection,
     parameters: {
         layout: 'centered',

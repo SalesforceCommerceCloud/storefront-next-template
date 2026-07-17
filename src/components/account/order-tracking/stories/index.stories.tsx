@@ -67,7 +67,7 @@ function buildOrder(a: PlaygroundArgs): OrderLike {
 }
 
 const meta: Meta<PlaygroundArgs> = {
-    title: 'ACCOUNT/Order Tracking',
+    title: 'Account/Orders/Order Tracking',
     parameters: {
         layout: 'padded',
         docs: {

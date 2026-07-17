@@ -29,7 +29,7 @@ const baseItems: AccountNavItemData[] = [
 ];
 
 const meta: Meta<typeof AccountNavList> = {
-    title: 'ACCOUNT/Account Navigation/Nav List',
+    title: 'Account/Navigation/Nav List',
     component: AccountNavList,
     tags: ['autodocs', 'interaction'],
     parameters: {

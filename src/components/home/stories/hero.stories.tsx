@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import HeroSkeleton from '../hero';
 
 const meta: Meta<typeof HeroSkeleton> = {
-    title: 'HOME/HeroSkeleton',
+    title: 'Home/Hero Skeleton',
     component: HeroSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

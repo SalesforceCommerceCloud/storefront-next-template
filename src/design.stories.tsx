@@ -849,7 +849,7 @@ function ModeDecorator({ Story, mode }: { Story: React.ComponentType; mode: Desi
 }
 
 const meta = {
-    title: 'Design Layer/Page Designer',
+    title: 'Content/Page Designer/Overview',
     parameters: {
         layout: 'fullscreen',
         docs: {

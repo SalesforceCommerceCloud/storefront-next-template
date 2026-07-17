@@ -53,7 +53,7 @@ const buildExampleWithPromise = () => {
 };
 
 const meta: Meta<typeof ExampleWithSuspense> = {
-    title: 'COMMON/With Suspense',
+    title: 'Core/Utilities/With Suspense',
     component: ExampleWithSuspense,
     tags: ['autodocs', 'interaction'],
     parameters: {

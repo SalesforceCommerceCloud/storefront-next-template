@@ -73,7 +73,7 @@ const registeredSession: SessionData = {
 };
 
 const meta: Meta<typeof UserActions> = {
-    title: 'LAYOUT/Header/User Actions',
+    title: 'Layout/Header/User Actions',
     component: UserActions,
     tags: ['autodocs', 'interaction'],
     parameters: {

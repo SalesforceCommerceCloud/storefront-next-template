@@ -18,7 +18,7 @@ import { action } from 'storybook/actions';
 import { StarRatingDistributions } from '../star-rating-distributions';
 
 const meta = {
-    title: 'Components/ProductRatings/StarRatingDistributions',
+    title: 'Products/Product Ratings/Star Rating Distributions',
     component: StarRatingDistributions,
     parameters: {
         layout: 'centered',

@@ -148,7 +148,7 @@ const mockProductsByItemId = {
 
 const meta: Meta<typeof CheckoutPickup> = {
     component: CheckoutPickup,
-    title: 'CHECKOUT/CheckoutPickup',
+    title: 'Extensions/BOPIS/Checkout Pickup',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',

@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import ProductQuantityPicker from '../index';
 
 const meta: Meta<typeof ProductQuantityPicker> = {
-    title: 'PRODUCTS/Product Quantity Picker',
+    title: 'Products/Product Quantity Picker',
     component: ProductQuantityPicker,
     parameters: {
         layout: 'padded',

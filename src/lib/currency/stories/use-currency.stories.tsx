@@ -32,7 +32,7 @@ function CurrencyHarness() {
 }
 
 const meta: Meta<typeof CurrencyHarness> = {
-    title: 'Lib/Currency/useCurrency',
+    title: 'Core/Utilities/useCurrency',
     component: CurrencyHarness,
     tags: ['interaction'],
 };

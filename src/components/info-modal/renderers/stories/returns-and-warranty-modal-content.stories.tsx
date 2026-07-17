@@ -48,7 +48,7 @@ const mockData: ReturnsAndWarrantyData = {
 };
 
 const meta: Meta<typeof ReturnsAndWarrantyModalContent> = {
-    title: 'COMMON/Info Modal/Returns And Warranty Modal Content',
+    title: 'Core/Overlays/Info Modal/Returns And Warranty Modal Content',
     component: ReturnsAndWarrantyModalContent,
     tags: ['autodocs'],
     parameters: {

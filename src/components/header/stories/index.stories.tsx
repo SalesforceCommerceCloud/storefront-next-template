@@ -56,7 +56,7 @@ function CheckoutHeaderHarness(): ReactElement {
 }
 
 const meta: Meta<HeaderStoryArgs> = {
-    title: 'LAYOUT/Header',
+    title: 'Layout/Header',
     tags: ['autodocs', 'interaction', 'chromatic-core'],
     parameters: {
         layout: 'fullscreen',

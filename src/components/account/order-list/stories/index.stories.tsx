@@ -69,7 +69,7 @@ const testOrders: Order[] = [
 ];
 
 const meta: Meta<typeof OrderList> = {
-    title: 'ACCOUNT/Order List',
+    title: 'Account/Orders/Order List',
     component: OrderList,
     parameters: {
         layout: 'padded',

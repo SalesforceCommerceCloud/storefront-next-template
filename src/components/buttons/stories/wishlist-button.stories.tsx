@@ -85,7 +85,7 @@ function WishlistStoryHarness({ children }: { children: ReactNode }): ReactEleme
 }
 
 const meta: Meta<typeof WishlistButton> = {
-    title: 'ACTIONS/Wishlist Button',
+    title: 'Core/Actions/Wishlist Button',
     component: WishlistButton,
     tags: ['autodocs', 'interaction'],
     parameters: {

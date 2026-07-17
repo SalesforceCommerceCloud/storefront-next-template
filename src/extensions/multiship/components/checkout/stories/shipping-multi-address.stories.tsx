@@ -153,7 +153,7 @@ const mockProductItemsWithVariations: ShopperBasketsV2.schemas['ProductItem'][] 
 
 const meta: Meta<typeof ShippingMultiAddress> = {
     component: ShippingMultiAddress,
-    title: 'CHECKOUT/ShippingMultiAddress',
+    title: 'Extensions/Multiship/Shipping Multi Address',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',

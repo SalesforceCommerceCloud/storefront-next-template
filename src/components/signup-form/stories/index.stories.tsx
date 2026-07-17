@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import SignupForm from '../index';
 
 const meta: Meta<typeof SignupForm> = {
-    title: 'AUTHENTICATION/Signup Form',
+    title: 'Authentication/Signup Form',
     component: SignupForm,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -26,7 +26,7 @@ import BasketProvider from '@/providers/basket';
 
 const meta: Meta<typeof ShippingOptions> = {
     component: ShippingOptions,
-    title: 'CHECKOUT/ShippingOptions',
+    title: 'Checkout/Shipping/Shipping Options',
     tags: ['autodocs', 'interaction'],
     parameters: {
         ...checkoutStrictA11yParameters,

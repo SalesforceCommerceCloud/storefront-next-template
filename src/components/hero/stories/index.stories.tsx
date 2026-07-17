@@ -53,7 +53,7 @@ const OVERLAY_ALIGNMENT_OPTIONS = ['left', 'center', 'right'] as const;
 const HEIGHT_OPTIONS = ['sm', 'md', 'lg', 'xl', 'full'] as const;
 
 const meta: Meta<HeroArgs> = {
-    title: 'COMMON/Hero',
+    title: 'Content/Marketing/Hero',
     component: Hero,
     tags: ['autodocs', 'interaction'],
     parameters: {

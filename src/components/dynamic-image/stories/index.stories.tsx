@@ -34,7 +34,7 @@ type PlaygroundArgs = Pick<
 };
 
 const meta: Meta<typeof DynamicImage> = {
-    title: 'PAGE DESIGNER/Atomic/Image',
+    title: 'Content/Page Designer/Atomic/Image',
     component: DynamicImage,
     tags: ['autodocs', 'interaction'],
     parameters: {

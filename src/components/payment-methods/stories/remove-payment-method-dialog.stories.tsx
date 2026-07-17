@@ -111,7 +111,7 @@ function PlaygroundHarness(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof RemovePaymentMethodDialog> = {
-    title: 'Components/Payment Methods/Remove Payment Method Dialog',
+    title: 'Account/Payment Methods/Remove Payment Method Dialog',
     component: RemovePaymentMethodDialog,
     parameters: {
         layout: 'centered',

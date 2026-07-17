@@ -96,7 +96,7 @@ function renderCard(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof AddressCard> = {
-    title: 'Components/Address Card',
+    title: 'Account/Addresses/Address Card',
     component: AddressCard,
     parameters: {
         layout: 'padded',

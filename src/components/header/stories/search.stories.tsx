@@ -80,7 +80,7 @@ function SearchStoryHarness({ children }: { children: ReactNode }): ReactElement
 }
 
 const meta: Meta<typeof SearchBar> = {
-    title: 'LAYOUT/Header/Search',
+    title: 'Layout/Header/Search',
     component: SearchBar,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -65,7 +65,7 @@ function PreviewCanvas() {
 }
 
 const meta: Meta<typeof PreviewCanvas> = {
-    title: 'PAGE DESIGNER/Component Preview Canvas',
+    title: 'Content/Page Designer/Component Preview Canvas',
     component: PreviewCanvas,
     tags: ['interaction'],
     parameters: { layout: 'fullscreen' },

@@ -129,7 +129,7 @@ function ModalTriggerHarness(args: ModalArgs): ReactElement {
 }
 
 const meta: Meta<typeof ModalTriggerHarness> = {
-    title: 'CART/Cart Item Modal',
+    title: 'Cart/Items/Cart Item Modal',
     component: ModalTriggerHarness,
     tags: ['autodocs', 'interaction'],
     parameters: {

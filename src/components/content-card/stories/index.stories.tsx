@@ -26,7 +26,7 @@ type ContentCardArgs = React.ComponentProps<typeof ContentCard> & {
 const SAMPLE_IMAGE = 'https://via.placeholder.com/400x300';
 
 const meta: Meta<ContentCardArgs> = {
-    title: 'COMMON/Content Card',
+    title: 'Content/Marketing/Content Card',
     component: ContentCard,
     tags: ['autodocs', 'interaction'],
     parameters: {

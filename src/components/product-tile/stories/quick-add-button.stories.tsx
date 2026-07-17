@@ -20,7 +20,7 @@ import { expect, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof QuickAddButton> = {
-    title: 'Components/ProductTile/Quick Add Button',
+    title: 'Products/Product Tile/Quick Add Button',
     component: QuickAddButton,
     tags: ['autodocs', 'interaction'],
     parameters: {

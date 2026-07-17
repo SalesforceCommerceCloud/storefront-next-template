@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import HeroCarouselSkeleton from '../skeleton';
 
 const meta: Meta<typeof HeroCarouselSkeleton> = {
-    title: 'COMMON/HeroCarouselSkeleton',
+    title: 'Content/Marketing/Hero Carousel Skeleton',
     component: HeroCarouselSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

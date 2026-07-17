@@ -33,7 +33,7 @@ function PopoverHarness({ header, body }: PopoverHarnessArgs): ReactElement {
 }
 
 const meta: Meta<typeof PopoverHarness> = {
-    title: 'CART/Promo Popover',
+    title: 'Cart/Promo Codes/Promo Popover',
     component: PopoverHarness,
     tags: ['autodocs', 'interaction'],
     parameters: {

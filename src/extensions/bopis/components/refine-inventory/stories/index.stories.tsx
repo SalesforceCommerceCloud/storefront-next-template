@@ -103,7 +103,7 @@ function StoreSetter({
 }
 
 const meta: Meta<typeof RefineInventory> = {
-    title: 'Extensions/BOPIS/RefineInventory',
+    title: 'Extensions/BOPIS/Refine Inventory',
     component: RefineInventory,
     tags: ['autodocs', 'interaction'],
     parameters: {

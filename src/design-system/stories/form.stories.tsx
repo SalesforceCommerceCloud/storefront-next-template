@@ -83,7 +83,7 @@ function StateColumn({ label, children }: { label: string; children: React.React
 }
 
 const meta: Meta = {
-    title: 'UI/Form',
+    title: 'Design System/UI/Form',
     parameters: {
         layout: 'padded',
         docs: {

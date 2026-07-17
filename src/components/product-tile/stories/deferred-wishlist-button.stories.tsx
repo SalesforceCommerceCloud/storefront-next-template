@@ -22,7 +22,7 @@ import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig } from '@/test-utils/config';
 
 const meta: Meta<typeof DeferredWishlistButton> = {
-    title: 'Components/ProductTile/DeferredWishlistButton',
+    title: 'Products/Product Tile/Deferred Wishlist Button',
     component: DeferredWishlistButton,
     tags: ['autodocs', 'interaction'],
     parameters: {

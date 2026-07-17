@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { TextSeparator } from '../text-separator';
 
 const meta: Meta<typeof TextSeparator> = {
-    title: 'Extensions/StoreLocator/TextSeparator',
+    title: 'Extensions/Store Locator/Text Separator',
     component: TextSeparator,
     tags: ['autodocs', 'interaction'],
     parameters: {

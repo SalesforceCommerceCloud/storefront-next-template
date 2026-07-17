@@ -266,7 +266,7 @@ function ColorGroupSection({ group }: { group: ColorGroup }) {
 }
 
 const meta: Meta = {
-    title: 'Theme/Colors',
+    title: 'Design System/Theme/Colors',
     parameters: {
         layout: 'padded',
         docs: {

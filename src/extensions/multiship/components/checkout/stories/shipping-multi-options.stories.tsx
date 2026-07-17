@@ -224,7 +224,7 @@ const mockShipmentsWithSelectedMethods: ShopperBasketsV2.schemas['Shipment'][] =
 
 const meta: Meta<typeof ShippingMultiOptions> = {
     component: ShippingMultiOptions,
-    title: 'CHECKOUT/ShippingMultiOptions',
+    title: 'Extensions/Multiship/Shipping Multi Options',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',

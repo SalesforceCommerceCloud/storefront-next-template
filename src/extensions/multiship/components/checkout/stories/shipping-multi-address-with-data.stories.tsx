@@ -109,7 +109,7 @@ const mockBasket: ShopperBasketsV2.schemas['Basket'] = {
 
 const meta: Meta<typeof ShippingMultiAddressWithData> = {
     component: ShippingMultiAddressWithData,
-    title: 'CHECKOUT/ShippingMultiAddressWithData',
+    title: 'Extensions/Multiship/Shipping Multi Address With Data',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',

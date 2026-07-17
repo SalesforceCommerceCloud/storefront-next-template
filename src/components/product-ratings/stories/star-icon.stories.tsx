@@ -30,7 +30,7 @@ const SIZE_CLASSES: Record<SizePreset, string> = {
 type StoryArgs = ComponentProps<typeof StarIcon> & { size: SizePreset };
 
 const meta: Meta<StoryArgs> = {
-    title: 'Components/ProductRatings/StarIcon',
+    title: 'Products/Product Ratings/Star Icon',
     component: StarIcon,
     tags: ['autodocs'],
     parameters: {

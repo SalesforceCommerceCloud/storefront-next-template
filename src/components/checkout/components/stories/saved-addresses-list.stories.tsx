@@ -82,7 +82,7 @@ const addresses: AddressBookItem[] = [
 ];
 
 const meta: Meta<typeof SavedAddressesList> = {
-    title: 'CHECKOUT/SavedAddressesList',
+    title: 'Checkout/Address/Saved Addresses List',
     component: SavedAddressesList,
     parameters: {
         ...checkoutStrictA11yParameters,

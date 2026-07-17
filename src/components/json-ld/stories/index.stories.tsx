@@ -17,7 +17,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { JsonLd } from '../index';
 
 const meta: Meta<typeof JsonLd> = {
-    title: 'SEO/Json Ld',
+    title: 'Core/SEO/JSON-LD',
     component: JsonLd,
     tags: ['autodocs'],
     parameters: {

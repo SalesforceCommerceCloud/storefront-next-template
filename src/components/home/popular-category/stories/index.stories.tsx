@@ -84,7 +84,7 @@ const mockCategoryNoImage: ShopperProducts.schemas['Category'] = {
 };
 
 const meta: Meta<typeof PopularCategory> = {
-    title: 'HOME/Popular Category',
+    title: 'Home/Popular Category',
     component: PopularCategory,
     tags: ['autodocs', 'interaction'],
     parameters: {

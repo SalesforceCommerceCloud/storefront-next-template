@@ -77,7 +77,7 @@ const BODY_AND_TEXT: TypeStep[] = [
 ];
 
 const meta: Meta = {
-    title: 'Theme/Typography',
+    title: 'Design System/Theme/Typography',
     parameters: {
         layout: 'padded',
         docs: {

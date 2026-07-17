@@ -107,7 +107,7 @@ function renderPaymentMethods(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof PaymentMethods> = {
-    title: 'Components/Payment Methods/Payment Methods',
+    title: 'Account/Payment Methods/Payment Methods',
     component: PaymentMethods,
     parameters: {
         layout: 'padded',

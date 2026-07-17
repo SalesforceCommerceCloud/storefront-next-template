@@ -57,7 +57,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof ProductImage> = {
-    title: 'Components/ProductImage/ProductImage',
+    title: 'Products/Product Image/Product Image',
     component: ProductImage,
     tags: ['autodocs', 'interaction'],
     parameters: {

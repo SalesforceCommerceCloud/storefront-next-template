@@ -44,7 +44,7 @@ function NavigateOnMount({ to }: { to: string }): ReactElement {
 const SLOW_NAV_PATH = '/storybook-loading-target';
 
 const meta: Meta<typeof Loading> = {
-    title: 'FEEDBACK/Loading',
+    title: 'Core/Feedback/Loading',
     component: Loading,
     tags: ['autodocs', 'interaction'],
     parameters: {

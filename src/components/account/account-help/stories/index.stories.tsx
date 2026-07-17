@@ -37,7 +37,7 @@ const accountHelpStoryConfig = {
 };
 
 const meta: Meta<typeof AccountHelp> = {
-    title: 'ACCOUNT/Account Help',
+    title: 'Account/Help',
     component: AccountHelp,
     tags: ['autodocs', 'interaction'],
     parameters: {

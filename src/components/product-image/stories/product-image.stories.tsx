@@ -26,7 +26,7 @@ import { mockConfig } from '@/test-utils/config';
 import DynamicImageProvider from '@/providers/dynamic-image';
 
 const meta: Meta<typeof ProductImageContainer> = {
-    title: 'Components/ProductImage',
+    title: 'Products/Product Image',
     component: ProductImageContainer,
     tags: ['autodocs', 'interaction'],
     parameters: {

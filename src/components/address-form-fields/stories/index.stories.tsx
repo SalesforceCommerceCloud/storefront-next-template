@@ -207,7 +207,7 @@ function BillingAddressFormWrapper() {
 }
 
 const meta: Meta<typeof AddressFormFields> = {
-    title: 'Components/AddressFormFields',
+    title: 'Core/Forms/Address Form Fields',
     component: AddressFormFields,
     tags: ['autodocs', 'interaction'],
     parameters: {

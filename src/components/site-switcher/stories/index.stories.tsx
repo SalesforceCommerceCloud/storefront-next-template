@@ -25,7 +25,7 @@ const site = mockSiteObject;
 const siteWithAlias = { ...site, alias: mockConfig.siteAliasMap?.[site.id] };
 
 const meta: Meta<typeof SiteSwitcher> = {
-    title: 'LAYOUT/Site Switcher',
+    title: 'Layout/Switchers/Site Switcher',
     component: SiteSwitcher,
     tags: ['autodocs', 'interaction'],
     parameters: {

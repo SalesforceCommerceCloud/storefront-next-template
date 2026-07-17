@@ -24,7 +24,7 @@ import { basketWithOneItem } from '@/components/__mocks__/basket-with-dress';
 import basketWithOneItemSnapshot from '@/components/__mocks__/basket-with-dress-snapshot';
 
 const meta: Meta<typeof CartBadge> = {
-    title: 'LAYOUT/Header/Cart Badge',
+    title: 'Layout/Header/Cart Badge',
     component: CartBadge,
     tags: ['autodocs', 'interaction'],
     parameters: {

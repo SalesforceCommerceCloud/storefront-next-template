@@ -20,7 +20,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof SwatchGroup> = {
-    title: 'SWATCH/SwatchGroup',
+    title: 'Products/Swatches/Swatch Group',
     component: SwatchGroup,
     parameters: {
         layout: 'padded',

@@ -34,7 +34,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<ComponentType<SyntheticArgs>> = {
-    title: 'Components/ReviewCards/ReviewCard',
+    title: 'Extensions/Ratings & Reviews/Review Card',
     component: ReviewCard as unknown as ComponentType<SyntheticArgs>,
     tags: ['autodocs'],
     parameters: {

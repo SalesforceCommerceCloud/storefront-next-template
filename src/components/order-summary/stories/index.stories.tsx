@@ -34,7 +34,7 @@ import { mockStandardProductOrderable } from '@/components/__mocks__/standard-pr
 const mockSite = mockSiteObject;
 
 const meta: Meta<typeof OrderSummary> = {
-    title: 'CHECKOUT/Order Summary',
+    title: 'Checkout/Order Summary',
     component: OrderSummary,
     parameters: {
         layout: 'padded',

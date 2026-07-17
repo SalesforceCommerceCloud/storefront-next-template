@@ -19,7 +19,7 @@ import { expect, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady, SITE_PREFIX } from '@storybook/test-utils';
 
 const meta: Meta<typeof Swatch> = {
-    title: 'SWATCH/Swatch',
+    title: 'Products/Swatches/Swatch',
     component: Swatch,
     parameters: {
         layout: 'centered',

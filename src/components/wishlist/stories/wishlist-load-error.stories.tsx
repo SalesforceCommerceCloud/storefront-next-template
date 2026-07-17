@@ -26,7 +26,7 @@ import { WishlistLoadError } from '../wishlist-load-error';
  * prop does. The DEV-only error details branch is exercised by the unit test.
  */
 const meta: Meta<typeof WishlistLoadError> = {
-    title: 'ACCOUNT/Wishlist Load Error',
+    title: 'Account/Wishlist/Wishlist Load Error',
     component: WishlistLoadError,
     tags: ['autodocs', 'interaction'],
     parameters: {

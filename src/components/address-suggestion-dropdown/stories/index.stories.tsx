@@ -124,7 +124,7 @@ function renderDropdown(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof AddressSuggestionDropdown> = {
-    title: 'Components/AddressSuggestionDropdown',
+    title: 'Core/Forms/Address Suggestion Dropdown',
     component: AddressSuggestionDropdown,
     tags: ['autodocs', 'interaction'],
     parameters: {

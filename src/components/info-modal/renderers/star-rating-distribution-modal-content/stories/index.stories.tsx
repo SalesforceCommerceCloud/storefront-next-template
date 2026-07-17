@@ -59,7 +59,7 @@ function StarRatingDistributionModalContentWrapper({
 }
 
 const meta: Meta<typeof StarRatingDistributionModalContentWrapper> = {
-    title: 'COMMON/Info Modal/Star Rating Distribution Modal Content',
+    title: 'Core/Overlays/Info Modal/Star Rating Distribution Modal Content',
     component: StarRatingDistributionModalContentWrapper,
     tags: ['autodocs'],
     parameters: {

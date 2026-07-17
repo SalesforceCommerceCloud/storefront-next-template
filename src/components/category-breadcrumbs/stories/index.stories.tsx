@@ -55,7 +55,7 @@ function buildCategory({ depth, leafCategoryName }: SyntheticArgs): ShopperProdu
 }
 
 const meta: Meta<typeof CategoryBreadcrumbs> = {
-    title: 'CATEGORY/Category Breadcrumbs',
+    title: 'Category/Category Breadcrumbs',
     component: CategoryBreadcrumbs,
     tags: ['autodocs', 'interaction'],
     parameters: {

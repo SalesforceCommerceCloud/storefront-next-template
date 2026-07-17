@@ -72,7 +72,7 @@ const ALL_PRODUCTS: ProductSearchHit[] = Array.from({ length: 24 }).map((_, idx)
 const MAX_PRODUCTS = ALL_PRODUCTS.length;
 
 const meta: Meta<typeof ProductGrid> = {
-    title: 'PRODUCTS/Product Grid',
+    title: 'Products/Product Grid',
     component: ProductGrid,
     tags: ['autodocs', 'interaction', 'chromatic-core'],
     parameters: {

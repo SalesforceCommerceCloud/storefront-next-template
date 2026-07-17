@@ -85,7 +85,7 @@ const mockStore: SelectedStoreInfo = {
 };
 
 const meta: Meta<typeof DeliveryOptions> = {
-    title: 'Extensions/BOPIS/DeliveryOptions',
+    title: 'Extensions/BOPIS/Delivery Options',
     component: DeliveryOptions,
     tags: ['autodocs', 'interaction'],
     parameters: {

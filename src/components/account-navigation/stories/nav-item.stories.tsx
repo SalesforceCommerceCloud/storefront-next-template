@@ -21,7 +21,7 @@ import { LogOut, User } from 'lucide-react';
 import { AccountNavItem } from '../index';
 
 const meta: Meta<typeof AccountNavItem> = {
-    title: 'ACCOUNT/Account Navigation/Nav Item',
+    title: 'Account/Navigation/Nav Item',
     component: AccountNavItem,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -46,7 +46,7 @@ async function assertStepStateCounts(
 }
 
 const meta: Meta<typeof CheckoutProgress> = {
-    title: 'CHECKOUT/Checkout Progress',
+    title: 'Checkout/Progress',
     component: CheckoutProgress,
     tags: ['autodocs', 'interaction'],
     parameters: {

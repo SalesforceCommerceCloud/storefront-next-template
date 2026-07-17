@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof PayPalLogo> = {
-    title: 'CHECKOUT/PayPalLogo',
+    title: 'Checkout/Payment/Logos/PayPal Logo',
     component: PayPalLogo,
     parameters: {
         ...checkoutStrictA11yParameters,

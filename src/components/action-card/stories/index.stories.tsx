@@ -42,7 +42,7 @@ const createRemoveHandler = (label: string, userHandler?: () => void | Promise<u
 };
 
 const meta: Meta<typeof ActionCard> = {
-    title: 'ACTIONS/Action Card',
+    title: 'Core/Actions/Action Card',
     component: ActionCard,
     tags: ['autodocs', 'interaction'],
     parameters: {

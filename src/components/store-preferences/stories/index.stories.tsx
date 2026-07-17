@@ -23,7 +23,7 @@ import StorePreferences from '..';
 const { t } = getTranslation();
 
 const meta: Meta<typeof StorePreferences> = {
-    title: 'ROUTES/Account/Store Preferences',
+    title: 'Account/Store Preferences',
     component: StorePreferences,
     tags: ['autodocs', 'sfdc-ext-store-locator'],
     parameters: {

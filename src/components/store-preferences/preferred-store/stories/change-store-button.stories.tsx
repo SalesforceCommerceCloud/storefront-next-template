@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import ChangeStoreButton from '../change-store-button';
 
 const meta: Meta<typeof ChangeStoreButton> = {
-    title: 'Components/Store Preferences/Change Store Button',
+    title: 'Account/Store Preferences/Change Store Button',
     component: ChangeStoreButton,
     tags: ['autodocs', 'sfdc-ext-store-locator'],
     parameters: {

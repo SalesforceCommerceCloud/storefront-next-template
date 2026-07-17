@@ -38,7 +38,7 @@ const RADII: { className: string; label: string }[] = [
 ];
 
 const meta: Meta = {
-    title: 'Theme/Radius',
+    title: 'Design System/Theme/Radius',
     parameters: {
         layout: 'padded',
         docs: {

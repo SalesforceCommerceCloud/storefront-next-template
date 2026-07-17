@@ -144,7 +144,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
  * Each state has its own color scheme and messaging.
  */
 const meta: Meta<typeof InventoryMessage> = {
-    title: 'PRODUCTS/Inventory Message',
+    title: 'Products/Inventory Message',
     component: InventoryMessage,
     tags: ['autodocs', 'interaction'],
     parameters: {

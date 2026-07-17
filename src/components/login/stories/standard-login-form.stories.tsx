@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import StandardLoginForm from '../standard-login-form';
 
 const meta: Meta<typeof StandardLoginForm> = {
-    title: 'AUTHENTICATION/Standard Login Form',
+    title: 'Authentication/Standard Login Form',
     component: StandardLoginForm,
     tags: ['autodocs', 'interaction'],
     parameters: {

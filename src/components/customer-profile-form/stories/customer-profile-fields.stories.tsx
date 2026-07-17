@@ -135,7 +135,7 @@ function ValidationErrorsWrapper() {
 }
 
 const meta: Meta<typeof CustomerProfileFields> = {
-    title: 'ACCOUNT/Customer Profile Form/Customer Profile Fields',
+    title: 'Account/Profile/Customer Profile Fields',
     component: CustomerProfileFields,
     tags: ['autodocs', 'interaction'],
     parameters: {

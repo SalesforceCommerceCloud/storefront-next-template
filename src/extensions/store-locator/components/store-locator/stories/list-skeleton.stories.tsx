@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import ListSkeleton from '../list-skeleton';
 
 const meta: Meta<typeof ListSkeleton> = {
-    title: 'Extensions/StoreLocator/ListSkeleton',
+    title: 'Extensions/Store Locator/List Skeleton',
     component: ListSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

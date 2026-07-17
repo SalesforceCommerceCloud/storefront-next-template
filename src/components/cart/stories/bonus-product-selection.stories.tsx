@@ -62,7 +62,7 @@ interface StoryArgs {
 }
 
 const meta: Meta<StoryArgs> = {
-    title: 'CART/Bonus Product Selection',
+    title: 'Cart/Bonus Products/Bonus Product Selection',
     // No `component` field — the render function builds the real component
     // from the synthetic `bonusProductCount` arg, so the args type can't match
     // `<BonusProductSelection>`'s prop shape.

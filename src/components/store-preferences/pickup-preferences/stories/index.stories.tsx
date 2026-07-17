@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import PickupPreferences from '..';
 
 const meta: Meta<typeof PickupPreferences> = {
-    title: 'Components/Store Preferences/Pickup Preferences',
+    title: 'Account/Store Preferences/Pickup Preferences',
     component: PickupPreferences,
     tags: ['autodocs', 'interaction'],
     parameters: {

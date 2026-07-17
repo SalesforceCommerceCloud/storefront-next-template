@@ -19,7 +19,7 @@ import { action } from 'storybook/actions';
 import { StarRating } from '../star-rating';
 
 const meta: Meta<typeof StarRating> = {
-    title: 'Components/ProductRatings/StarRating',
+    title: 'Products/Product Ratings/Star Rating',
     component: StarRating,
     tags: ['autodocs'],
     parameters: {

@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import AnnouncementBanner from '../index';
 
 const meta: Meta<typeof AnnouncementBanner> = {
-    title: 'Components/AnnouncementBanner',
+    title: 'Content/Marketing/Announcement Banner',
     component: AnnouncementBanner,
     tags: ['autodocs', 'interaction'],
     parameters: {

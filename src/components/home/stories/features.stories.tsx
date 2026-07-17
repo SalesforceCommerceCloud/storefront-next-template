@@ -42,7 +42,7 @@ function FeaturesStoryHarness({ children }: { children: ReactNode }): ReactEleme
 }
 
 const meta: Meta<typeof Features> = {
-    title: 'HOME/Features',
+    title: 'Home/Features',
     component: Features,
     tags: ['autodocs', 'interaction'],
     parameters: {

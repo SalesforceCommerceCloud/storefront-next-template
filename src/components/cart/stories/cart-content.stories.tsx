@@ -53,7 +53,7 @@ import { basketWithOneItem } from '@/components/__mocks__/basket-with-dress';
 import { mockStandardProductOrderable } from '@/components/__mocks__/standard-product';
 
 const meta: Meta<typeof CartContent> = {
-    title: 'CART/Cart Content',
+    title: 'Cart/Cart Content',
     component: CartContent,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -78,7 +78,7 @@ const discountedProductMap: Record<string, Record<string, unknown>> = {
 };
 
 const meta: Meta<typeof MyCart> = {
-    title: 'CART/My Cart',
+    title: 'Cart/My Cart',
     component: MyCart,
     tags: ['autodocs', 'interaction', 'chromatic-core'],
     parameters: {

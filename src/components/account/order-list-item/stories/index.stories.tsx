@@ -36,7 +36,7 @@ const baseOrder: OrderListItemData = {
 };
 
 const meta: Meta<typeof OrderListItem> = {
-    title: 'ACCOUNT/Order List Item',
+    title: 'Account/Orders/Order List Item',
     component: OrderListItem,
     parameters: {
         layout: 'padded',

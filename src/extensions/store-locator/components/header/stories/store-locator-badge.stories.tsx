@@ -63,7 +63,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof StoreLocatorBadge> = {
-    title: 'Extensions/StoreLocator/StoreLocatorBadge',
+    title: 'Extensions/Store Locator/Store Locator Badge',
     component: StoreLocatorBadge,
     tags: ['autodocs', 'interaction'],
     parameters: {

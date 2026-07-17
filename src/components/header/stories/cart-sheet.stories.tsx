@@ -29,7 +29,7 @@ import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 
 const meta: Meta<typeof CartSheet> = {
-    title: 'LAYOUT/Header/Cart Sheet',
+    title: 'Layout/Header/Cart Sheet',
     component: CartSheet,
     tags: ['autodocs', 'interaction'],
     // Reset the module-scoped mini-cart open flag before each story — otherwise

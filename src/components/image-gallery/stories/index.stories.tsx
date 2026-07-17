@@ -47,7 +47,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<ComponentType<SyntheticArgs>> = {
-    title: 'COMMON/Image Gallery',
+    title: 'Products/Image Gallery',
     component: ImageGallery as unknown as ComponentType<SyntheticArgs>,
     tags: ['autodocs', 'interaction'],
     parameters: {

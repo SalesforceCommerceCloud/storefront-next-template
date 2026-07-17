@@ -40,7 +40,7 @@ function ShareStoryHarness({ children, providers }: { children: ReactNode; provi
 }
 
 const meta: Meta<typeof ShareButton> = {
-    title: 'ACTIONS/Share Button',
+    title: 'Core/Actions/Share Button',
     component: ShareButton,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -209,6 +209,30 @@ PDP FAQ and the account Need Help **Ask a question** action are gated in product
 
 ## Creating Stories
 
+### Story titles & sidebar taxonomy
+
+Every `meta.title` follows a `Domain/Component` (or `Domain/Subgroup/Component`) shape, where `Domain` is one of the fixed top-level groups below. Use Title Case With Spaces for each segment (`Account/Addresses/Address Card`), and place a new story under the domain that matches the component's purpose — not the folder it happens to live in. This keeps the sidebar consistent and shallow rather than one flat list.
+
+| Top-level group | What belongs here |
+|---|---|
+| `Account` | Logged-in account area: orders, addresses, wishlist, profile, payment methods, store preferences |
+| `Authentication` | Login, signup, password reset, OTP, passwordless, social login |
+| `Cart` | Cart page, mini cart, cart items, promo codes, bonus products |
+| `Category` | PLP chrome: banners, breadcrumbs, refinements, sorting, pagination |
+| `Checkout` | Checkout flow: address, contact, payment, shipping, order summary, registration |
+| `Content` | Authored content: marketing sections and Page Designer components |
+| `Core` | Cross-domain primitives: actions, forms, feedback, overlays, icons, navigation, SEO, security, utilities |
+| `Design System` | Theme tokens (`Theme/*`: colors, typography, radius, shadows) and UI primitives (`UI/*`: Button, Dialog, Input, Form) |
+| `Extensions` | Optional feature extensions: BOPIS, BNPL, Store Locator, Ratings & Reviews, Multiship, etc. |
+| `Home` | Homepage sections: hero, features, popular categories |
+| `Layout` | Global chrome: header, footer, navigation, switchers, logo |
+| `Products` | Product components: tiles, PDP view, price, ratings, swatches, carousels, grids |
+| `Search` | Search suggestions and recent searches |
+
+Pick the closest existing group before inventing a new one — a story with a novel top-level prefix lands as a sidebar outlier. Titles are convention, not lint-enforced; matching this taxonomy is on the author (and on any agent writing stories).
+
+> Customers own this template and may restructure the sidebar for their own brand — this taxonomy is our default, not a locked contract.
+
 ### Basic Story Structure
 
 ```typescript
@@ -216,7 +240,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { MyComponent } from './MyComponent';
 
 const meta: Meta<typeof MyComponent> = {
-  title: 'Components/MyComponent',
+  title: 'Core/Forms/MyComponent',
   component: MyComponent,
   tags: ['autodocs'],
 };
@@ -241,7 +265,7 @@ import { within, userEvent } from '@storybook/test';
 import { MyComponent } from './MyComponent';
 
 const meta: Meta<typeof MyComponent> = {
-  title: 'Components/MyComponent',
+  title: 'Core/Forms/MyComponent',
   component: MyComponent,
 };
 export default meta;
@@ -264,7 +288,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ActionLogger } from './ActionLogger';
 
 const meta: Meta<typeof ActionLogger> = {
-  title: 'Utils/ActionLogger',
+  title: 'Core/Utilities/ActionLogger',
   component: ActionLogger,
 };
 
@@ -287,7 +311,7 @@ export const Basic: Story = {
 
 **Do:**
 1. **Naming Convention**: Use PascalCase for story names (e.g., `Default`, `Loading`, `Error`)
-2. **Organization**: Group related stories under logical categories
+2. **Organization**: Title stories per the [sidebar taxonomy](#story-titles--sidebar-taxonomy) — a `Domain/Component` prefix from the fixed top-level groups
 3. **Documentation**: Include component descriptions and prop documentation
 4. **Controls**: Use `argTypes` to make components interactive
 5. **Variants**: Create stories for different states (loading, error, success)

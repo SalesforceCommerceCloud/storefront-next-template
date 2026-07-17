@@ -37,7 +37,7 @@ const SHADOWS: { className: string; label: string }[] = [
 ];
 
 const meta: Meta = {
-    title: 'Theme/Shadows',
+    title: 'Design System/Theme/Shadows',
     parameters: {
         layout: 'padded',
         docs: {

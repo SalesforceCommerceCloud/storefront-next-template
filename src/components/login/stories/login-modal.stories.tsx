@@ -31,7 +31,7 @@ function ModalWithTrigger(args: Omit<React.ComponentProps<typeof LoginModal>, 'i
 }
 
 const meta: Meta<typeof LoginModal> = {
-    title: 'AUTHENTICATION/Login Modal',
+    title: 'Authentication/Login Modal',
     component: LoginModal,
     tags: ['autodocs', 'interaction'],
     parameters: {

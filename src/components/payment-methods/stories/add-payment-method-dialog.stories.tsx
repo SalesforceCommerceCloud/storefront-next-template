@@ -91,7 +91,7 @@ function PlaygroundHarness(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof AddPaymentMethodDialog> = {
-    title: 'Components/Payment Methods/Add Payment Method Dialog',
+    title: 'Account/Payment Methods/Add Payment Method Dialog',
     component: AddPaymentMethodDialog,
     parameters: {
         layout: 'centered',

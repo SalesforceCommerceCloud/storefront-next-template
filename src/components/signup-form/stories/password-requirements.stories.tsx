@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { PasswordRequirement } from '@/components/password-requirements';
 
 const meta: Meta<typeof PasswordRequirement> = {
-    title: 'AUTHENTICATION/Password Requirements',
+    title: 'Authentication/Password Requirements',
     component: PasswordRequirement,
     tags: ['autodocs', 'interaction'],
     parameters: {

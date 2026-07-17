@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof VenmoLogo> = {
-    title: 'CHECKOUT/VenmoLogo',
+    title: 'Checkout/Payment/Logos/Venmo Logo',
     component: VenmoLogo,
     parameters: {
         ...checkoutStrictA11yParameters,

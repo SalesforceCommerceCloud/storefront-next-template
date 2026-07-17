@@ -21,7 +21,7 @@ import { CalendarDays, Truck, RotateCcw } from 'lucide-react';
 import ProductInfoCard from '../index';
 
 const meta: Meta<typeof ProductInfoCard> = {
-    title: 'Components/ProductInfoCard',
+    title: 'Products/Product Info Card',
     component: ProductInfoCard,
     tags: ['autodocs', 'interaction'],
     parameters: {

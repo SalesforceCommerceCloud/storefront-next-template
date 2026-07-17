@@ -31,7 +31,7 @@ const { showLineItemBonusBadge } = uiConfig.pages.cart;
 const mockSite = mockSiteObject;
 
 const meta: Meta<typeof ProductItem> = {
-    title: 'Components/ProductItem',
+    title: 'Products/Product Item',
     component: ProductItem,
     tags: ['autodocs', 'interaction'],
     parameters: {

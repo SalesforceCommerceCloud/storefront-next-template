@@ -18,7 +18,7 @@ import { expect, fn, userEvent, within } from 'storybook/test';
 import Signup from '../signup';
 
 const meta: Meta<typeof Signup> = {
-    title: 'LAYOUT/Footer/Signup',
+    title: 'Layout/Footer/Signup',
     component: Signup,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -50,7 +50,7 @@ function Field({
 }
 
 const meta: Meta<typeof Input> = {
-    title: 'UI/Input',
+    title: 'Design System/UI/Input',
     component: Input,
     parameters: {
         layout: 'padded',

@@ -83,7 +83,7 @@ const productsById: Record<string, ShopperProducts.schemas['Product'] | undefine
 };
 
 const meta: Meta<typeof OrderDetails> = {
-    title: 'ACCOUNT/Order Details',
+    title: 'Account/Orders/Order Details',
     component: OrderDetails,
     parameters: {
         layout: 'padded',

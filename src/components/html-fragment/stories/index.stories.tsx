@@ -22,7 +22,7 @@ import { ConfigWrapper } from '@/test-utils/config';
 const CONTENT_TYPE_OPTIONS = ['plain-text', 'bulleted-list', 'table-2-column'] as const;
 
 const meta: Meta<typeof HtmlFragment> = {
-    title: 'COMMON/Html Fragment',
+    title: 'Content/Marketing/HTML Fragment',
     component: HtmlFragment,
     tags: ['autodocs', 'interaction'],
     parameters: {

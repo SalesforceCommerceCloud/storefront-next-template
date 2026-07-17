@@ -25,7 +25,7 @@ import BasketProvider from '@/providers/basket';
 
 const meta: Meta<typeof ContactInfo> = {
     component: ContactInfo,
-    title: 'CHECKOUT/ContactInfo',
+    title: 'Checkout/Contact/Contact Info',
     tags: ['autodocs', 'interaction'],
     parameters: {
         ...checkoutStrictA11yParameters,

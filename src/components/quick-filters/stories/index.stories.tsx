@@ -62,7 +62,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof QuickFilters> = {
-    title: 'Components/QuickFilters',
+    title: 'Category/Quick Filters',
     component: QuickFilters,
     tags: ['autodocs', 'interaction'],
     parameters: {

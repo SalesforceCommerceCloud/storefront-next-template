@@ -28,7 +28,7 @@ import type { CustomerProfile } from '@/components/checkout/utils/checkout-conte
 
 const meta: Meta<typeof Payment> = {
     component: Payment,
-    title: 'CHECKOUT/Payment',
+    title: 'Checkout/Payment',
     tags: ['autodocs', 'interaction'],
     parameters: {
         ...checkoutStrictA11yParameters,

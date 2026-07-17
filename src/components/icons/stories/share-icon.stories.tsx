@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ShareIcon } from '../share-icon';
 
 const meta: Meta<typeof ShareIcon> = {
-    title: 'Components/Icons/Share Icon',
+    title: 'Core/Icons/Share Icon',
     component: ShareIcon,
     tags: ['autodocs'],
     parameters: {

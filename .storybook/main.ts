@@ -1,18 +1,55 @@
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
-import { existsSync } from 'node:fs';
+import { dirname, relative, resolve, sep } from 'node:path';
+import { existsSync, globSync } from 'node:fs';
 import type { StorybookConfig } from '@storybook/react-vite';
 import type { InlineConfig, Plugin } from 'vite';
 
 const CONFIG_DIR = dirname(fileURLToPath(import.meta.url)); // .storybook
+const SRC_DIR = `${CONFIG_DIR}/../src`;
 
 /**
  * Active vertical (`fashion` when unset), mirroring the dev/build scripts, the
  * vertical-first Vite resolver, and the runtime `verticalPublicOverlay()` plugin.
+ * Only this vertical's overlay stories load; other verticals stay out of the
+ * sidebar.
  *
  * @env VERTICAL - optional; `fashion` | `cosmetic`. Defaults to `fashion`.
  */
 const VERTICAL = process.env.VERTICAL || 'fashion';
+
+/** Turn an absolute story path into a `../`-prefixed specifier relative to `.storybook`. */
+function toSpecifier(absPath: string): string {
+    const rel = relative(CONFIG_DIR, absPath).split(sep).join('/');
+    return rel.startsWith('.') ? rel : `./${rel}`;
+}
+
+/**
+ * Build the story list with vertical awareness.
+ *
+ * Canonical `src/` stories load, minus `src/verticals/`. The active vertical's
+ * overlay stories load too, and each one *replaces* the canonical story it shadows
+ * (same path with the `verticals/<vertical>/` segment removed) — so a vertical that
+ * re-titles a component to its canonical title (e.g. `Cosmetic/Logo` → `Layout/Logo`)
+ * doesn't collide with the canonical twin. Overlays without a canonical twin are
+ * pure additions. In the flattened customer artifact there is no `src/verticals/`,
+ * so overlays fold into canonical paths and this degrades to a plain `src/` glob.
+ */
+function buildStoryList(): string[] {
+    const rels = [
+        ...globSync('**/*.stories.ts', { cwd: SRC_DIR }),
+        ...globSync('**/*.stories.tsx', { cwd: SRC_DIR }),
+    ].map((p) => p.split(sep).join('/'));
+
+    const overlayPrefix = `verticals/${VERTICAL}/`;
+    const canonical = new Set(rels.filter((p) => !p.startsWith('verticals/')));
+
+    for (const overlay of rels.filter((p) => p.startsWith(overlayPrefix))) {
+        canonical.delete(overlay.slice(overlayPrefix.length)); // drop the shadowed twin
+        canonical.add(overlay); // overlay wins
+    }
+
+    return [...canonical].sort().map((rel) => toSpecifier(`${SRC_DIR}/${rel}`));
+}
 
 /**
  * Static asset dirs served at the Storybook web root, mirroring the runtime
@@ -37,7 +74,11 @@ function buildStaticDirs(): string[] {
 
 const config: StorybookConfig = {
     staticDirs: buildStaticDirs(),
-    stories: ['../**/*.stories.@(ts|tsx)', '../**/*.mdx'],
+    // Plain array (not a function): `buildStoryList()` is synchronous, and the
+    // Storybook test-runner statically reads `main.stories` and rejects a
+    // function form (its `.length` is the param count → 0 → "Could not find
+    // stories"). An array keeps both the builder and the test-runner happy.
+    stories: [...buildStoryList(), '../src/**/*.mdx'],
     addons: [
         getAbsolutePath('@chromatic-com/storybook'),
         getAbsolutePath('@storybook/addon-docs'),

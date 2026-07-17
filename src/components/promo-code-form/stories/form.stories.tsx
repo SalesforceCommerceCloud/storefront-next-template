@@ -60,7 +60,7 @@ const basketWithNotApplicableCoupon = {
 
 const meta: Meta<typeof PromoCodeForm> = {
     component: PromoCodeForm,
-    title: 'CART/Promo Code Form',
+    title: 'Cart/Promo Codes/Promo Code Form',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',

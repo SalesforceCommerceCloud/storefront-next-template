@@ -45,7 +45,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof CategorySorting> = {
-    title: 'CATEGORY/Category Sorting',
+    title: 'Category/Category Sorting',
     component: CategorySorting,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -36,7 +36,7 @@ interface StoryArgs {
 // designers can edit cards via Controls. JSX `children` cannot be edited as
 // args, so a 1:1 typed Meta against `RadioCardGroupProps` would be misleading.
 const meta: Meta<StoryArgs> = {
-    title: 'COMMON/Radio Card',
+    title: 'Core/Forms/Radio Card',
     tags: ['autodocs'],
     parameters: {
         layout: 'centered',

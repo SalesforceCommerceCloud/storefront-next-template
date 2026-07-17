@@ -61,7 +61,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 
 // Combine skeletons into one meta since they are related
 const meta: Meta<typeof ProductMainSkeleton> = {
-    title: 'Components/Product/Skeletons',
+    title: 'Products/Skeletons',
     component: ProductMainSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

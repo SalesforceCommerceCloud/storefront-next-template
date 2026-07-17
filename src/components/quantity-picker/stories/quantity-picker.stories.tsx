@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import QuantityPicker from '../quantity-picker';
 
 const meta: Meta<typeof QuantityPicker> = {
-    title: 'FORMS/QuantityPicker',
+    title: 'Core/Forms/Quantity Picker',
     component: QuantityPicker,
     parameters: {
         chromatic: { modes: { desktop: allModes.desktop } },
