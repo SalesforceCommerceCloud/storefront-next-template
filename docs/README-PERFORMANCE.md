@@ -97,6 +97,7 @@ Overlay components that are hidden on initial render, such as modals, drawers, a
 Gate the mount on the overlay's `open` state so the subtree unmounts when the overlay closes. Use `useDeferredUnmount(open)` to keep it mounted for a short window after close — long enough for the exit animation to play — then unmount. `React.lazy` memoizes the resolved chunk at module scope, so re-opening after unmount does **not** re-download the JavaScript; only the closed overlay's in-memory state (and any resource fetchers it holds) is released.
 
 ```jsx
+import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 const MyModal = lazy(() => import('@/components/my-modal').then((m) => ({ default: m.MyModal })));
 
 function MyComponent() {

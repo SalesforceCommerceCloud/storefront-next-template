@@ -484,6 +484,31 @@ describe('AccountDetails', () => {
             });
         });
 
+        test('unmounts the OTP modal subtree after close so its fetcher and timer tear down', async () => {
+            await renderAccountDetails({ ...mockCustomer, emailVerified: false });
+
+            // The lazy OTP subtree is not mounted before the shopper opens it.
+            expect(screen.queryByTestId('otp-modal')).not.toBeInTheDocument();
+
+            act(() => {
+                screen.getByRole('button', { name: 'Verify Email' }).click();
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('otp-modal')).toBeInTheDocument();
+            });
+
+            // Closing must eventually tear the subtree down — not merely flip isOpen —
+            // so OtpModal's useFetcher, resend countdown timer, and effects stop existing.
+            act(() => {
+                capturedOtpModalProps?.onClose();
+            });
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('otp-modal')).not.toBeInTheDocument();
+            });
+        });
+
         test('translates invalid token OTP verify error in handleVerifyOtp', async () => {
             const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
                 new Response(

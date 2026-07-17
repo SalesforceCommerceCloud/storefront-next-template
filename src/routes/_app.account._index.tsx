@@ -44,6 +44,7 @@ import { getPasswordlessErrorMessageKey } from '@/lib/auth/error-handler';
 import { buildUrl } from '@salesforce/storefront-next-runtime/site-context';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useCurrentSiteAndLocaleRef } from '@/hooks/use-current-site-and-locale-ref';
+import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 
 // Lazy load OTP modal for passwordless email editing
 const OtpModal = lazy(() => import('@/components/login/otp-modal').then((m) => ({ default: m.default })));
@@ -100,7 +101,10 @@ function AccountDetailsContent({
     // OTP modal state for passwordless email editing
     const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
     const [otpModalEmail, setOtpModalEmail] = useState<string>('');
-    const [otpModalLoaded, setOtpModalLoaded] = useState(false);
+    // Keep the lazy OTP subtree mounted while open, then unmount shortly after close so its
+    // Radix exit animation plays and its useFetcher, resend-countdown timer, and effects tear
+    // down instead of lingering for the rest of the session.
+    const isOtpModalMounted = useDeferredUnmount(isOtpModalOpen);
     const [otpError, setOtpError] = useState<string | undefined>();
     const [otpModalMode, setOtpModalMode] = useState<'changeEmail' | 'verifyEmail' | 'reauthenticate'>('changeEmail');
 
@@ -370,8 +374,7 @@ function AccountDetailsContent({
             action: resourceRoutes.otpRequest,
         });
 
-        // Open OTP modal (lazy load if first time)
-        setOtpModalLoaded(true);
+        // Open OTP modal (lazy loads on first open, unmounts shortly after close)
         setIsOtpModalOpen(true);
     };
 
@@ -391,7 +394,6 @@ function AccountDetailsContent({
             action: resourceRoutes.otpRequest,
         });
 
-        setOtpModalLoaded(true);
         setIsOtpModalOpen(true);
     };
 
@@ -424,8 +426,7 @@ function AccountDetailsContent({
                 action: resourceRoutes.authorizePasswordlessEmail,
             });
 
-            // Open OTP modal (lazy load if first time)
-            setOtpModalLoaded(true);
+            // Open OTP modal (lazy loads on first open, unmounts shortly after close)
             setIsOtpModalOpen(true);
             return;
         }
@@ -889,7 +890,7 @@ function AccountDetailsContent({
             />
 
             {/* OTP Modal for passwordless email editing */}
-            {otpModalLoaded && (
+            {isOtpModalMounted && (
                 <Suspense fallback={null}>
                     <OtpModal
                         isOpen={isOtpModalOpen}
