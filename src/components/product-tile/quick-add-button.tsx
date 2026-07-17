@@ -53,7 +53,7 @@ export function QuickAddButton({
 }: QuickAddButtonProps) {
     const [open, setOpen] = useState(false);
     // Keep the modal subtree mounted while open, then unmount shortly after close so its
-    // Radix exit animation plays and its SCAPI fetchers deregister from the registry (W-23068739).
+    // Radix exit animation plays and its SCAPI fetchers deregister from the registry.
     const mounted = useDeferredUnmount(open);
     const { navigate, t } = useProductTileContext();
 

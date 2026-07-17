@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { useEffect } from 'react';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 // eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -96,6 +97,37 @@ vi.mock('@/components/inventory-message', () => ({
     ),
 }));
 
+// Tracks how many times the mocked modal has mounted/unmounted, so tests can assert the
+// subtree is actually torn down on close rather than just visually hidden. A stuck-mounted
+// modal keeps its SCAPI product/variant fetchers registered for revalidation, re-running load()
+// on every context mutation for a modal the shopper dismissed.
+const modalLifecycle = { mounts: 0, unmounts: 0 };
+
+// Thin harness for CartItemModal — the real modal's behaviour (fetching, swatches, variant
+// resolution) is covered by CartItemModal's own tests. Here we only need to observe the
+// mount/unmount lifecycle via `data-testid="modal-mounted"` and drive close via onOpenChange.
+vi.mock('@/components/cart-item-modal', () => ({
+    CartItemModal: ({ open, onOpenChange }: { open: boolean; onOpenChange?: (open: boolean) => void }) => {
+        useEffect(() => {
+            modalLifecycle.mounts += 1;
+            return () => {
+                modalLifecycle.unmounts += 1;
+            };
+        }, []);
+        return (
+            <div data-testid="modal-mounted">
+                {open ? (
+                    <div role="dialog" aria-label="Select options">
+                        <button type="button" onClick={() => onOpenChange?.(false)}>
+                            Close
+                        </button>
+                    </div>
+                ) : null}
+            </div>
+        );
+    },
+}));
+
 // Mock basket providers
 const mockSetMiniCartOpen = vi.fn();
 const mockUpdateBasket = vi.fn();
@@ -168,6 +200,8 @@ function renderWithRouter(component: React.ReactElement) {
 describe('WishlistListItem', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        modalLifecycle.mounts = 0;
+        modalLifecycle.unmounts = 0;
         mockGetConfig.mockReturnValue({
             commerce: {
                 api: {
@@ -187,6 +221,10 @@ describe('WishlistListItem', () => {
             canAddToCart: true, // Default to true for most tests
             isOrderable: true, // Default to orderable (in stock)
         } as any);
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     describe('rendering', () => {
@@ -681,6 +719,61 @@ describe('WishlistListItem', () => {
             );
 
             expect(screen.queryByRole('button', { name: t('product:selectOptions') })).not.toBeInTheDocument();
+        });
+
+        test('does not mount the modal subtree until "Select Options" is clicked', () => {
+            vi.mocked(useProductActions).mockReturnValue({
+                handleAddToCart: mockHandleAddToCart,
+                isAddingToOrUpdatingCart: false,
+                canAddToCart: false,
+                isOrderable: true,
+            } as any);
+
+            renderWithRouter(
+                <WishlistListItem product={masterProduct} wishlistItem={masterWishlistItem} onRemove={vi.fn()} />
+            );
+
+            // Modal (and its SCAPI product/variant fetchers) must not exist before first open.
+            expect(screen.queryByTestId('modal-mounted')).not.toBeInTheDocument();
+            expect(modalLifecycle.mounts).toBe(0);
+        });
+
+        // Uses fireEvent (not userEvent) so fake timers stay in control — userEvent's internal
+        // real-timer waits would deadlock against vi.useFakeTimers().
+        test('unmounts the modal subtree after close so its fetchers deregister', () => {
+            vi.useFakeTimers();
+            vi.mocked(useProductActions).mockReturnValue({
+                handleAddToCart: mockHandleAddToCart,
+                isAddingToOrUpdatingCart: false,
+                canAddToCart: false,
+                isOrderable: true,
+            } as any);
+
+            renderWithRouter(
+                <WishlistListItem product={masterProduct} wishlistItem={masterWishlistItem} onRemove={vi.fn()} />
+            );
+
+            fireEvent.click(screen.getByRole('button', { name: t('product:selectOptions') }));
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(modalLifecycle.mounts).toBe(1);
+            expect(modalLifecycle.unmounts).toBe(0);
+
+            // Closing via the dialog's own control (backdrop/Esc/X) must eventually tear the
+            // subtree down — not merely hide it — so useScapiFetcher's unmount cleanup fires.
+            fireEvent.click(screen.getByRole('button', { name: /Close/i }));
+
+            // Still mounted through the 200ms exit animation so it can finish playing.
+            act(() => {
+                vi.advanceTimersByTime(200);
+            });
+            expect(modalLifecycle.unmounts).toBe(0);
+
+            // Unmounts once the keep-alive delay (which outlasts the animation) elapses.
+            act(() => {
+                vi.advanceTimersByTime(50);
+            });
+            expect(modalLifecycle.unmounts).toBe(1);
+            expect(screen.queryByTestId('modal-mounted')).not.toBeInTheDocument();
         });
     });
 });

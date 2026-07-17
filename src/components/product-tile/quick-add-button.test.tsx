@@ -22,8 +22,8 @@ import { QuickAddButton } from './quick-add-button';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
 // Tracks how many times the mocked modal has mounted/unmounted, so tests can assert the
-// subtree is actually torn down on close (the fix for W-23068739) rather than just visually
-// hidden. A stuck-mounted modal keeps its SCAPI fetchers registered for revalidation.
+// subtree is actually torn down on close rather than just visually hidden. A stuck-mounted
+// modal keeps its SCAPI fetchers registered for revalidation.
 const modalLifecycle = { mounts: 0, unmounts: 0 };
 
 // Thin harness for CartItemModal — the real modal's behaviour (fetching, swatches,

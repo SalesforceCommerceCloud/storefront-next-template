@@ -31,6 +31,7 @@ import InventoryMessage from '@/components/inventory-message';
 import ProductPrice from '@/components/product-price';
 import { Button } from '@/components/ui/button';
 import { useProductActions } from '@/hooks/product/use-product-actions';
+import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 import { resourceRoutes } from '@/route-paths';
 
 // Lazy-load the modal so it only enters the bundle when a shopper actually opens it
@@ -183,12 +184,12 @@ export function WishlistListItem({ product, wishlistItem, onRemove }: WishlistLi
     // Variant-selection modal state. When a master product is saved to the wishlist without a
     // specific variant chosen, we open the same CartItemModal the PDP quick-add uses so the
     // shopper can pick size/color and add to cart without leaving the wishlist.
-    // Two flags: `Loaded` stays true after close so the lazy chunk + modal state persist
-    // across reopens; `Open` drives the modal's visibility.
-    const [isSelectOptionsModalLoaded, setIsSelectOptionsModalLoaded] = useState(false);
+    // `open` drives visibility; `useDeferredUnmount` keeps the subtree mounted briefly after
+    // close for the Radix exit animation, then unmounts it so the modal's SCAPI product/variant
+    // fetchers deregister from the registry instead of re-running on every context mutation.
     const [isSelectOptionsModalOpen, setIsSelectOptionsModalOpen] = useState(false);
+    const isSelectOptionsModalMounted = useDeferredUnmount(isSelectOptionsModalOpen);
     const handleOpenSelectOptions = useCallback(() => {
-        setIsSelectOptionsModalLoaded(true);
         setIsSelectOptionsModalOpen(true);
     }, []);
 
@@ -330,7 +331,7 @@ export function WishlistListItem({ product, wishlistItem, onRemove }: WishlistLi
             {/* Variant-selection modal
              * Reuses the PDP quick-add modal flow. Lazy loads.
              * Uses master product id to load all variation attributes and inventory. */}
-            {isSelectOptionsModalLoaded && masterId && (
+            {isSelectOptionsModalMounted && masterId && (
                 <Suspense fallback={null}>
                     <CartItemModal
                         productId={masterId}
