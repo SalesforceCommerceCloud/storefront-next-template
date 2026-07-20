@@ -108,6 +108,30 @@ vi.mock('@/components/ui/button', () => ({
         asChild ? children : <button className={className}>{children}</button>,
 }));
 
+// Mock the region <Component> wrapper so the region-delegation path can be exercised without a
+// populated Page Designer registry. The mock echoes the merged `data` the carousel injects into
+// each slide, so tests can assert overlay/priority/loading/fillHeight are threaded through.
+vi.mock('@/components/region/component', () => ({
+    Component: ({
+        component,
+        regionId,
+    }: {
+        component: { id: string; data?: Record<string, unknown> };
+        regionId: string;
+    }) => (
+        <div
+            data-testid="region-component"
+            data-region={regionId}
+            data-component-id={component.id}
+            data-overlay={String(component.data?.overlay)}
+            data-priority={String(component.data?.priority)}
+            data-loading={String(component.data?.loading)}
+            data-fill-height={String(component.data?.fillHeight)}>
+            {String(component.data?.title ?? '')}
+        </div>
+    ),
+}));
+
 // Router testing helper
 const renderWithRouter = (component: React.ReactElement) => {
     const router = createMemoryRouter(
@@ -419,6 +443,86 @@ describe('HeroCarousel', () => {
             renderWithRouter(<HeroCarousel slides={[]} />);
 
             expect(preloadMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Page Designer region delegation', () => {
+        // Component whose `slides` region holds authored Hero children.
+        const componentWithHeroes = (heroes: Array<{ id: string; data?: Record<string, unknown> }>) =>
+            ({
+                id: 'pd-hero-carousel',
+                typeId: 'Layout.heroCarousel',
+                regions: [{ id: 'slides', components: heroes.map((h) => ({ typeId: 'Content.hero', ...h })) }],
+            }) as any;
+
+        test('renders each authored Hero through the <Component> registry, not HeroSlideContent', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    component={componentWithHeroes([
+                        { id: 'hero-1', data: { title: 'Region Slide 1' } },
+                        { id: 'hero-2', data: { title: 'Region Slide 2' } },
+                    ])}
+                />
+            );
+
+            const delegated = screen.getAllByTestId('region-component');
+            expect(delegated).toHaveLength(2);
+            expect(delegated[0]).toHaveAttribute('data-region', 'slides');
+            expect(delegated[0]).toHaveTextContent('Region Slide 1');
+            expect(delegated[1]).toHaveTextContent('Region Slide 2');
+        });
+
+        test('forces uniform height and eager/high-priority only on the first slide', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    component={componentWithHeroes([
+                        { id: 'hero-1', data: { title: 'A' } },
+                        { id: 'hero-2', data: { title: 'B' } },
+                    ])}
+                />
+            );
+
+            const [first, second] = screen.getAllByTestId('region-component');
+            expect(first).toHaveAttribute('data-fill-height', 'true');
+            expect(second).toHaveAttribute('data-fill-height', 'true');
+            expect(first).toHaveAttribute('data-priority', 'high');
+            expect(first).toHaveAttribute('data-loading', 'eager');
+            expect(second).toHaveAttribute('data-priority', 'auto');
+            expect(second).toHaveAttribute('data-loading', 'lazy');
+        });
+
+        test('applies the carousel default overlay (Dark) when a slide has none', () => {
+            renderWithRouter(
+                <HeroCarousel component={componentWithHeroes([{ id: 'hero-1', data: { title: 'A' } }])} />
+            );
+            expect(screen.getByTestId('region-component')).toHaveAttribute('data-overlay', 'Dark');
+        });
+
+        test('per-slide Hero overlay overrides the carousel default', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    overlay="Dark"
+                    component={componentWithHeroes([{ id: 'hero-1', data: { title: 'A', overlay: 'Light' } }])}
+                />
+            );
+            expect(screen.getByTestId('region-component')).toHaveAttribute('data-overlay', 'Light');
+        });
+
+        test('the carousel overlay prop sets the inherited default for slides without one', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    overlay="None"
+                    component={componentWithHeroes([{ id: 'hero-1', data: { title: 'A' } }])}
+                />
+            );
+            expect(screen.getByTestId('region-component')).toHaveAttribute('data-overlay', 'None');
+        });
+
+        test('falls back to the slides prop when the region has no authored heroes', () => {
+            renderWithRouter(<HeroCarousel slides={mockSlides} component={componentWithHeroes([])} />);
+            // No delegated components; the prop-driven HeroSlideContent path renders instead.
+            expect(screen.queryByTestId('region-component')).not.toBeInTheDocument();
+            expect(screen.getByText('First Slide')).toBeInTheDocument();
         });
     });
 });

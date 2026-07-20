@@ -53,6 +53,15 @@
                     "required": false,
                     "description": "Field: showNavigation",
                     "default_value": true
+                },
+                {
+                    "id": "overlay",
+                    "name": "Slide Overlay",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Default gradient scrim applied to every slide to keep text legible. Individual Hero slides can override this with their own Overlay setting.",
+                    "values": ["None", "Light", "Dark"],
+                    "default_value": "Dark"
                 }
             ]
         }

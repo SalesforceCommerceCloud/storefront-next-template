@@ -45,6 +45,21 @@ type ButtonStyle = (typeof BUTTON_STYLE_VALUES)[number];
 const HERO_HEIGHT_VALUES = ['sm', 'md', 'lg', 'xl', 'full'] as const;
 type HeroHeight = (typeof HERO_HEIGHT_VALUES)[number];
 
+const HERO_OVERLAY_VALUES = ['None', 'Light', 'Dark'] as const;
+type HeroOverlay = (typeof HERO_OVERLAY_VALUES)[number];
+
+/**
+ * Gradient scrim layered between the image and the text so overlay copy stays legible on
+ * busy imagery. `None` renders no scrim (the default for a standalone Hero). `Dark`/`Light`
+ * darken/lighten from the bottom-left, matching the treatment the Hero Carousel applies to
+ * its slides. The carousel sets a default overlay that each slide inherits unless the Hero
+ * author sets its own overlay.
+ */
+const HERO_OVERLAY_BACKGROUND: Record<Exclude<HeroOverlay, 'None'>, string> = {
+    Dark: 'linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%)',
+    Light: 'linear-gradient(to top, color-mix(in oklch, var(--brand-white) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-white) 60%, transparent) 0%, color-mix(in oklch, var(--brand-white) 30%, transparent) 50%, transparent 100%)',
+};
+
 /** Hero is edge-to-edge at every breakpoint, so the image always requests a viewport-width variant from DIS. */
 const HERO_IMAGE_WIDTHS = ['100vw'];
 
@@ -119,6 +134,13 @@ function normalizeHeroHeight(value: string | undefined): HeroHeight {
         return value as HeroHeight;
     }
     return 'full';
+}
+
+function normalizeHeroOverlay(value: string | undefined): HeroOverlay {
+    if (value && (HERO_OVERLAY_VALUES as readonly string[]).includes(value)) {
+        return value as HeroOverlay;
+    }
+    return 'None';
 }
 
 function getCtaLabel(ctaText: string | undefined, ctaLink: string): string {
@@ -258,6 +280,17 @@ export class HeroMetadata {
     height?: string;
 
     @AttributeDefinition({
+        id: 'overlay',
+        name: 'Overlay',
+        description:
+            'Gradient scrim behind the text to keep overlay copy legible on busy imagery. None shows no scrim; Dark/Light darken/lighten the image.',
+        type: 'enum',
+        values: ['None', 'Light', 'Dark'],
+        defaultValue: 'None',
+    })
+    overlay?: string;
+
+    @AttributeDefinition({
         id: 'styleOverride',
         name: 'Style Override',
         description:
@@ -285,7 +318,11 @@ export default function Hero({
     overlayPosition,
     overlayAlignment,
     height,
+    overlay,
     styleOverride,
+    priority = 'high',
+    loading = 'eager',
+    fillHeight = false,
 }: {
     title?: string;
     titleTypography?: string;
@@ -302,7 +339,26 @@ export default function Hero({
     overlayPosition?: string;
     overlayAlignment?: string;
     height?: string;
+    /** Gradient scrim behind the text. Page-Designer authorable. */
+    overlay?: string;
     styleOverride?: string;
+    /**
+     * DIS image priority. Defaults to 'high' so a standalone Hero preloads its LCP image.
+     * The Hero Carousel passes 'auto' for off-screen slides to avoid competing for bandwidth.
+     * Not a Page-Designer attribute — set by the parent (e.g. the carousel), never a merchant.
+     */
+    priority?: 'high' | 'low' | 'auto';
+    /**
+     * Image loading strategy. Defaults to 'eager' (standalone Hero is above the fold). The
+     * carousel passes 'lazy' for non-first slides. Not a Page-Designer attribute.
+     */
+    loading?: 'eager' | 'lazy';
+    /**
+     * When true, the hero fills its parent's height (h-full) instead of applying its own
+     * `height` preset — used by the carousel to enforce uniform slide heights. Not a
+     * Page-Designer attribute.
+     */
+    fillHeight?: boolean;
 }): ReactElement {
     const uid = useId();
     const rawCss = styleOverride?.trim() || undefined;
@@ -320,8 +376,8 @@ export default function Hero({
                 src={imageUrl.url}
                 alt={imageAlt || ''}
                 widths={HERO_IMAGE_WIDTHS}
-                priority="high"
-                loading="eager"
+                priority={priority}
+                loading={loading}
                 className="absolute inset-0 w-full h-full"
                 imageProps={{
                     className: 'w-full h-full object-cover',
@@ -339,8 +395,13 @@ export default function Hero({
     const titleTypo = normalizeHeroTypography(titleTypography);
     const subtitleTypo = normalizeHeroTypography(subtitleTypography);
     const resolvedButtonStyle = normalizeButtonStyle(buttonStyle);
-    const heightClass = HERO_HEIGHT_CLASS[normalizeHeroHeight(height)];
+    // When the parent controls height (fillHeight, e.g. inside a carousel with uniform slide
+    // heights) the Hero's own height preset is ignored in favor of filling the parent.
+    const heightClass = fillHeight ? 'h-full' : HERO_HEIGHT_CLASS[normalizeHeroHeight(height)];
     const buttonVariant = BUTTON_STYLE_TO_VARIANT[resolvedButtonStyle];
+
+    const overlayMode = normalizeHeroOverlay(overlay);
+    const overlayBackground = overlayMode === 'None' ? undefined : HERO_OVERLAY_BACKGROUND[overlayMode];
 
     const titleHex = parseOptionalHex(titleColor);
     const subtitleHex = parseOptionalHex(subtitleColor);
@@ -381,6 +442,10 @@ export default function Hero({
             )}
             <div data-hero-id={uid} className={cn('relative w-full overflow-hidden', heightClass)}>
                 {renderImage()}
+
+                {overlayBackground && (
+                    <div className="absolute inset-0 z-[5]" style={{ background: overlayBackground }} aria-hidden />
+                )}
 
                 <div className={cn('absolute inset-0 z-10 flex', overlayRowClass, overlayEdgePaddingClass)}>
                     <div className="container mx-auto w-full section-container">

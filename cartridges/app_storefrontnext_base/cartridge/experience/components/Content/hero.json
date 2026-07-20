@@ -156,6 +156,15 @@
                     "default_value": "full"
                 },
                 {
+                    "id": "overlay",
+                    "name": "Overlay",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Gradient scrim behind the text to keep overlay copy legible on busy imagery. None shows no scrim; Dark/Light darken/lighten the image.",
+                    "values": ["None", "Light", "Dark"],
+                    "default_value": "None"
+                },
+                {
                     "id": "styleOverride",
                     "name": "Style Override",
                     "type": "text",

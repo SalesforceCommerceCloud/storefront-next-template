@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import HeroCarousel, { type HeroSlide } from '../index';
+import HeroCarousel, { HeroCarouselPlain, type HeroSlide } from '../index';
+import type { ComponentType } from '@/components/region';
 import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
@@ -179,6 +180,38 @@ export const SingleSlide: Story = {
         // No dots, no prev/next.
         await expect(canvas.queryByRole('tablist')).not.toBeInTheDocument();
         await expect(canvas.queryByRole('button', { name: /previous slide/i })).not.toBeInTheDocument();
+    },
+};
+
+export const PageDesignerMode: Story = {
+    parameters: {
+        docs: {
+            description: {
+                story: `Production shape: the carousel receives a Page Designer \`component\` payload and renders its \`slides\` region by delegating each authored Hero through the \`<Component>\` registry (so every Hero attribute — typography, colors, focal point, per-slide overlay — is honored, and the carousel sets uniform height + first-slide LCP priority).
+
+Storybook does not initialize the Page Designer component registry, so this story passes an empty \`regions\` payload and the carousel falls back to the \`slides\` prop (same fallback merchants see when a slides region is left empty). Real region-delegation rendering is covered by the unit tests, which mock the registry-backed \`<Component>\`.`,
+            },
+        },
+    },
+    render: () => (
+        <HeroCarouselPlain
+            slides={buildSlides(3, false)}
+            component={
+                {
+                    id: 'pd-hero-carousel-1',
+                    typeId: 'Layout.heroCarousel',
+                    regions: [{ id: 'slides', components: [] }],
+                } as unknown as ComponentType
+            }
+        />
+    ),
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await waitForStorybookReady(canvasElement);
+
+        // Empty region → falls back to the slides prop without crashing.
+        const carousel = await canvas.findByRole('region', { name: /hero carousel with 3 slides/i });
+        await expect(carousel).toBeInTheDocument();
     },
 };
 

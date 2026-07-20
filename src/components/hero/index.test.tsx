@@ -449,6 +449,56 @@ describe('Hero Component', () => {
             const { container } = renderHero({ height: 'invalid' });
             expect(container.firstChild).toHaveClass('h-[100vh]', 'md:h-[85vh]');
         });
+
+        test('fillHeight overrides the height preset with h-full', () => {
+            const { container } = renderHero({ height: 'sm', fillHeight: true });
+            expect(container.firstChild).toHaveClass('h-full');
+            expect(container.firstChild).not.toHaveClass('h-[250px]');
+        });
+    });
+
+    describe('Overlay scrim', () => {
+        test('renders no scrim by default (overlay omitted)', () => {
+            const { container } = renderHero({ title: 'T', imageUrl: { url: '/t.jpg' } });
+            // Only the two z-index layers exist (image wrapper + content); no z-[5] scrim.
+            expect(container.querySelector('.z-\\[5\\]')).not.toBeInTheDocument();
+        });
+
+        test('renders a scrim layer when overlay is Dark', () => {
+            const { container } = renderHero({ title: 'T', imageUrl: { url: '/t.jpg' }, overlay: 'Dark' });
+            const scrim = container.querySelector('.z-\\[5\\]');
+            expect(scrim).toBeInTheDocument();
+            expect(scrim).toHaveAttribute('aria-hidden');
+            expect((scrim as HTMLElement).style.background).toContain('--brand-black');
+        });
+
+        test('renders a light scrim when overlay is Light', () => {
+            const { container } = renderHero({ title: 'T', imageUrl: { url: '/t.jpg' }, overlay: 'Light' });
+            const scrim = container.querySelector('.z-\\[5\\]');
+            expect(scrim).toBeInTheDocument();
+            expect((scrim as HTMLElement).style.background).toContain('--brand-white');
+        });
+
+        test('renders no scrim for an invalid overlay value', () => {
+            const { container } = renderHero({ title: 'T', imageUrl: { url: '/t.jpg' }, overlay: 'bogus' });
+            expect(container.querySelector('.z-\\[5\\]')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Image priority/loading props', () => {
+        test('defaults to eager, high-priority (standalone LCP behavior)', () => {
+            renderHero({ imageUrl: { url: '/t.jpg' }, imageAlt: 'Hero' });
+            const image = screen.getByRole('img', { name: 'Hero' });
+            expect(image).toHaveAttribute('fetchpriority', 'high');
+            expect(image).toHaveAttribute('loading', 'eager');
+        });
+
+        test('honors auto priority and lazy loading (off-screen carousel slide)', () => {
+            renderHero({ imageUrl: { url: '/t.jpg' }, imageAlt: 'Hero', priority: 'auto', loading: 'lazy' });
+            const image = screen.getByRole('img', { name: 'Hero' });
+            expect(image).toHaveAttribute('loading', 'lazy');
+            expect(image).not.toHaveAttribute('fetchpriority', 'high');
+        });
     });
 
     describe('Component Behavior', () => {

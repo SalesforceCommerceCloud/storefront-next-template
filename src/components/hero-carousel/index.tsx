@@ -28,6 +28,7 @@ import { RegionDefinition } from '@/lib/decorators/region-definition';
 import heroImage from '/images/hero-01.webp';
 import { normalizeOverlayPosition, normalizeOverlayAlignment, overlayPositionLayout } from '@/components/hero/utils';
 import type { ComponentType } from '@/components/region';
+import { Component as RegionComponent } from '@/components/region/component';
 
 /** Each slide is edge-to-edge at every breakpoint, so the image always requests a viewport-width variant from DIS. */
 const HERO_IMAGE_WIDTHS = ['100vw'];
@@ -37,6 +38,8 @@ const heroCarouselDefaults = {
     autoPlayInterval: 5000,
     showDots: true,
     showNavigation: true,
+    /** Default gradient scrim applied to every slide; each Hero slide can override its own `overlay`. */
+    overlay: 'Dark',
 } as const;
 
 @Component('heroCarousel', {
@@ -67,6 +70,17 @@ export class HeroCarouselMetadata {
 
     @AttributeDefinition({ defaultValue: heroCarouselDefaults.showNavigation })
     showNavigation?: boolean;
+
+    @AttributeDefinition({
+        id: 'overlay',
+        name: 'Slide Overlay',
+        description:
+            'Default gradient scrim applied to every slide to keep text legible. Individual Hero slides can override this with their own Overlay setting.',
+        type: 'enum',
+        values: ['None', 'Light', 'Dark'],
+        defaultValue: heroCarouselDefaults.overlay,
+    })
+    overlay?: string;
 }
 
 type Image = {
@@ -130,6 +144,8 @@ interface HeroCarouselProps {
     autoPlayInterval?: number;
     showDots?: boolean;
     showNavigation?: boolean;
+    /** Default gradient scrim applied to every slide; a per-slide Hero `overlay` overrides it. */
+    overlay?: string;
     /** Component data containing regions from Page Designer */
     component?: ComponentType;
 }
@@ -141,38 +157,39 @@ export function HeroCarouselPlain({
     autoPlayInterval = heroCarouselDefaults.autoPlayInterval,
     showDots = heroCarouselDefaults.showDots,
     showNavigation = heroCarouselDefaults.showNavigation,
+    overlay = heroCarouselDefaults.overlay,
     component,
 }: HeroCarouselProps): ReactElement {
-    // Convert page designer heroes to slides format
-    const slidesFromComponent = useMemo(() => {
-        if (!Array.isArray(component?.regions)) {
-            return [];
-        }
-
+    // Production (Page Designer) path: render each slide by delegating to the real Hero
+    // component through the <Component> registry, so every authored Hero attribute (typography,
+    // colors, button style, focal point, styleOverride, …) is honored — instead of flattening a
+    // handful of fields into a bespoke slide renderer. Mirrors product-carousel's region path.
+    const regionComponents = useMemo(() => {
+        if (!Array.isArray(component?.regions)) return [];
         const slidesRegion = component.regions.find((r) => r.id === 'slides');
-        if (!Array.isArray(slidesRegion?.components)) {
-            return [];
-        }
-
-        return slidesRegion.components
-            .filter((comp) => comp.id && comp.typeId)
-            .map((comp) => {
-                const data = comp.data as Record<string, unknown> | undefined;
-                const imageUrl = data?.imageUrl as { url?: string } | undefined;
-                return {
-                    id: comp.id,
-                    title: (data?.title as string) || '',
-                    subtitle: data?.subtitle as string | undefined,
-                    imageUrl: imageUrl?.url || heroImage,
-                    imageAlt: (data?.imageAlt as string) || '',
-                    ctaText: data?.ctaText as string | undefined,
-                    ctaLink: data?.ctaLink as string | undefined,
-                };
-            });
+        if (!Array.isArray(slidesRegion?.components)) return [];
+        return slidesRegion.components.filter((comp) => comp.id && comp.typeId) as ComponentType[];
     }, [component]);
 
-    // Use component data slides if available, otherwise use prop slides
-    const slides = slidesFromComponent.length ? slidesFromComponent : propSlides;
+    // When the region has authored heroes we delegate to <Component>; otherwise we fall back to
+    // the `slides` prop (storybook/test path) rendered by the local HeroSlideContent.
+    const usingRegion = regionComponents.length > 0;
+    const slides = propSlides;
+
+    // Unified per-slide metadata (id + title) for dot indicators and the aria-live announcement,
+    // independent of which render path is active.
+    const slideMeta = useMemo(
+        () =>
+            usingRegion
+                ? regionComponents.map((comp) => ({
+                      id: comp.id,
+                      title: ((comp.data as Record<string, unknown> | undefined)?.title as string) || '',
+                  }))
+                : slides.map((slide) => ({ id: slide.id, title: slide.title })),
+        [usingRegion, regionComponents, slides]
+    );
+    const slideCount = slideMeta.length;
+
     const [currentSlide, setCurrentSlide] = useState(0);
     const [api, setApi] = useState<CarouselApi | null>(null);
     const [isPaused, setIsPaused] = useState(false);
@@ -215,11 +232,11 @@ export function HeroCarouselPlain({
 
     const goToSlide = useCallback(
         (index: number) => {
-            if (!api || index < 0 || index >= slides.length) return;
+            if (!api || index < 0 || index >= slideCount) return;
 
             api.scrollTo(index);
         },
-        [api, slides.length]
+        [api, slideCount]
     );
 
     const handleFocus = useCallback(() => setIsPaused(true), []);
@@ -246,11 +263,11 @@ export function HeroCarouselPlain({
                     break;
                 case 'End':
                     event.preventDefault();
-                    api.scrollTo(slides.length - 1);
+                    api.scrollTo(slideCount - 1);
                     break;
             }
         },
-        [api, slides.length]
+        [api, slideCount]
     );
 
     const emptyState = useMemo(
@@ -262,7 +279,7 @@ export function HeroCarouselPlain({
         []
     );
 
-    if (!slides || slides.length === 0) {
+    if (slideCount === 0) {
         return emptyState;
     }
 
@@ -271,7 +288,7 @@ export function HeroCarouselPlain({
             data-slot="hero-carousel"
             className="relative w-full overflow-hidden h-[400px] md:h-[500px] lg:h-[600px]"
             role="region"
-            aria-label={`Hero carousel with ${slides.length} slides`}
+            aria-label={`Hero carousel with ${slideCount} slides`}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onMouseEnter={handleMouseEnter}
@@ -288,28 +305,43 @@ export function HeroCarouselPlain({
                 className="w-full h-full [&_[data-slot=carousel-content]]:h-full [&_[data-slot=carousel-item]]:h-full">
                 {/* Passing -ml-4 to the CarouselContent to prevent CLS issues during hydration */}
                 <CarouselContent className="h-full">
-                    {slides.map((slide, index) => (
-                        <CarouselItem key={slide.id} className="h-full">
-                            <HeroSlideContent
-                                slide={image ? { ...slide, imageUrl: image.url } : slide}
-                                priority={index === 0}
-                            />
-                        </CarouselItem>
-                    ))}
+                    {usingRegion
+                        ? regionComponents.map((comp, index) => (
+                              <CarouselItem key={comp.contentLinkUuid ?? comp.id} className="h-full">
+                                  <RegionComponent
+                                      component={withSlideProps(comp, {
+                                          overlay,
+                                          priority: index === 0 ? 'high' : 'auto',
+                                          loading: index === 0 ? 'eager' : 'lazy',
+                                          fillHeight: true,
+                                      })}
+                                      regionId="slides"
+                                      className="h-full w-full"
+                                  />
+                              </CarouselItem>
+                          ))
+                        : slides.map((slide, index) => (
+                              <CarouselItem key={slide.id} className="h-full">
+                                  <HeroSlideContent
+                                      slide={image ? { ...slide, imageUrl: image.url } : slide}
+                                      priority={index === 0}
+                                  />
+                              </CarouselItem>
+                          ))}
                 </CarouselContent>
             </Carousel>
 
-            {slides.length > 1 && (
+            {slideCount > 1 && (
                 <div className="absolute bottom-6 inset-x-0 z-30 section-container">
                     <div className="relative flex items-center justify-center">
                         {showDots && (
                             <div className="flex gap-2" role="tablist" aria-label="Slide navigation">
-                                {slides.map((slide, index) => (
+                                {slideMeta.map((slide, index) => (
                                     <DotButton
                                         key={`dot-${slide.id}`}
                                         index={index}
                                         isActive={currentSlide === index}
-                                        totalSlides={slides.length}
+                                        totalSlides={slideCount}
                                         onClick={goToSlide}
                                     />
                                 ))}
@@ -322,14 +354,14 @@ export function HeroCarouselPlain({
                                     onClick={() => api?.scrollPrev()}
                                     disabled={!canScrollPrev}
                                     currentSlide={currentSlide + 1}
-                                    totalSlides={slides.length}
+                                    totalSlides={slideCount}
                                 />
                                 <NavigationButton
                                     direction="next"
                                     onClick={() => api?.scrollNext()}
                                     disabled={!canScrollNext}
                                     currentSlide={currentSlide + 1}
-                                    totalSlides={slides.length}
+                                    totalSlides={slideCount}
                                 />
                             </div>
                         )}
@@ -338,10 +370,36 @@ export function HeroCarouselPlain({
             )}
 
             <div className="sr-only" aria-live="polite" aria-atomic="true">
-                Slide {currentSlide + 1} of {slides.length}: {slides[currentSlide]?.title}
+                Slide {currentSlide + 1} of {slideCount}: {slideMeta[currentSlide]?.title}
             </div>
         </div>
     );
+}
+
+/**
+ * Clone a Page Designer Hero component with carousel-controlled slide props merged into its
+ * `data` (which <Component> spreads onto the Hero). A per-slide Hero `overlay` authored in
+ * Page Designer wins over the carousel default; `priority`/`loading`/`fillHeight` are always
+ * set by the carousel (they're not Page-Designer attributes).
+ */
+function withSlideProps(
+    comp: ComponentType,
+    slideProps: { overlay: string; priority: 'high' | 'auto'; loading: 'eager' | 'lazy'; fillHeight: boolean }
+): ComponentType {
+    const data = (comp.data as Record<string, unknown> | undefined) ?? {};
+    return {
+        ...comp,
+        data: {
+            ...data,
+            // Per-slide overlay overrides the carousel default; carousel default fills in when unset.
+            overlay: (data.overlay as string | undefined) ?? slideProps.overlay,
+            priority: slideProps.priority,
+            loading: slideProps.loading,
+            fillHeight: slideProps.fillHeight,
+        },
+        // SCAPI types Component.data as Record<string, never>; the runtime payload is arbitrary
+        // attribute data, so cast through unknown to attach the carousel-controlled slide props.
+    } as unknown as ComponentType;
 }
 
 const DotButton = React.memo(
