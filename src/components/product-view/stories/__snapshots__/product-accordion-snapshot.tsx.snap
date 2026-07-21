@@ -23,7 +23,7 @@ exports[`ProductAccordion stories snapshot > Playground story renders and matche
         <button
           aria-controls="radix-_r_1_"
           aria-expanded="false"
-          class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
+          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
           data-orientation="vertical"
           data-radix-collection-item=""
           data-slot="accordion-trigger"
@@ -77,7 +77,7 @@ exports[`ProductAccordion stories snapshot > Playground story renders and matche
         <button
           aria-controls="radix-_r_3_"
           aria-expanded="false"
-          class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
+          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
           data-orientation="vertical"
           data-radix-collection-item=""
           data-slot="accordion-trigger"
@@ -131,7 +131,7 @@ exports[`ProductAccordion stories snapshot > Playground story renders and matche
         <button
           aria-controls="radix-_r_5_"
           aria-expanded="false"
-          class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
+          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
           data-orientation="vertical"
           data-radix-collection-item=""
           data-slot="accordion-trigger"
@@ -185,7 +185,7 @@ exports[`ProductAccordion stories snapshot > Playground story renders and matche
         <button
           aria-controls="radix-_r_7_"
           aria-expanded="false"
-          class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
+          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left font-semibold text-sm"
           data-orientation="vertical"
           data-radix-collection-item=""
           data-slot="accordion-trigger"

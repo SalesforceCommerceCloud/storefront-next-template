@@ -46,7 +46,7 @@ exports[`ContentCard stories snapshot > CustomClassNames story renders and match
               </p>
             </div>
             <a
-              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground button-override-sentinel"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground button-override-sentinel"
               data-size="default"
               data-slot="button"
               data-variant="default"
@@ -108,7 +108,7 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
               </p>
             </div>
             <a
-              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
               data-size="default"
               data-slot="button"
               data-variant="default"
@@ -181,7 +181,7 @@ exports[`ContentCard stories snapshot > LongCopy story renders and matches snaps
               </p>
             </div>
             <a
-              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
               data-size="default"
               data-slot="button"
               data-variant="default"
@@ -243,7 +243,7 @@ exports[`ContentCard stories snapshot > NoBackground story renders and matches s
               </p>
             </div>
             <a
-              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
               data-size="default"
               data-slot="button"
               data-variant="default"
@@ -305,7 +305,7 @@ exports[`ContentCard stories snapshot > Playground story renders and matches sna
               </p>
             </div>
             <a
-              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
               data-size="default"
               data-slot="button"
               data-variant="default"
@@ -407,7 +407,7 @@ exports[`ContentCard stories snapshot > WithoutImage story renders and matches s
             </p>
           </div>
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-fit text-sm font-medium leading-5 text-primary-foreground"
             data-size="default"
             data-slot="button"
             data-variant="default"

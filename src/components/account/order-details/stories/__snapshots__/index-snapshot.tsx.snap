@@ -69,7 +69,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -99,7 +99,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
         data-slot="order-actions"
       >
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
           data-size="sm"
           data-slot="order-actions-track"
           data-testid="order-actions-track"
@@ -228,7 +228,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -478,7 +478,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -490,7 +490,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
         data-slot="order-actions"
       >
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
           data-size="sm"
           data-slot="order-actions-track"
           data-testid="order-actions-track"
@@ -619,7 +619,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -869,7 +869,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -997,7 +997,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -1143,7 +1143,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -1349,7 +1349,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -1379,7 +1379,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
         data-slot="order-actions"
       >
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
           data-size="sm"
           data-slot="order-actions-track"
           data-testid="order-actions-track"
@@ -1508,7 +1508,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -1758,7 +1758,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -1772,7 +1772,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
         <button
           aria-expanded="false"
           aria-haspopup="menu"
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
           data-size="sm"
           data-slot="order-actions-track"
           data-state="closed"
@@ -1920,7 +1920,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -2201,7 +2201,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -2331,7 +2331,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -2548,7 +2548,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -2560,7 +2560,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
         data-slot="order-actions"
       >
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
           data-size="sm"
           data-slot="order-actions-track"
           data-testid="order-actions-track"
@@ -2689,7 +2689,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"
@@ -2966,7 +2966,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
           </p>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-info text-info-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -2978,7 +2978,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
         data-slot="order-actions"
       >
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
           data-size="sm"
           data-slot="order-actions-track"
           data-testid="order-actions-track"
@@ -3024,7 +3024,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                     Shipment 1
                   </p>
                   <span
-                    class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
+                    class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-white"
                     data-slot="badge"
                     data-testid="shipping-status-badge"
                   >
@@ -3114,7 +3114,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                              
                           </div>
                           <a
-                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+                            class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
                             data-discover="true"
                             data-size="sm"
                             data-slot="button"

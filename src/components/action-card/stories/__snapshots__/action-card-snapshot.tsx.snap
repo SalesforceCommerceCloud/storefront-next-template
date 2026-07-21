@@ -40,7 +40,7 @@ exports[`ActionCard stories snapshot > Default story renders and matches snapsho
   >
     <button
       aria-label="Edit"
-      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 font-bold"
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 font-bold"
       data-size="sm"
       data-slot="button"
       data-variant="link"
@@ -49,7 +49,7 @@ exports[`ActionCard stories snapshot > Default story renders and matches snapsho
     </button>
     <button
       aria-label="Remove"
-      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 text-destructive hover:text-destructive/80 font-bold"
+      class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 text-destructive hover:text-destructive/80 font-bold"
       data-size="sm"
       data-slot="button"
       data-variant="link"
@@ -103,7 +103,7 @@ exports[`ActionCard stories snapshot > RemoveLoadingOverlay story renders and ma
     >
       <button
         aria-label="Edit"
-        class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 font-bold"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 font-bold"
         data-size="sm"
         data-slot="button"
         data-variant="link"
@@ -112,7 +112,7 @@ exports[`ActionCard stories snapshot > RemoveLoadingOverlay story renders and ma
       </button>
       <button
         aria-label="Remove"
-        class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 text-destructive hover:text-destructive/80 font-bold"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive underline-offset-4 hover:underline h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 text-destructive hover:text-destructive/80 font-bold"
         data-size="sm"
         data-slot="button"
         data-variant="link"

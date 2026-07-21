@@ -77,7 +77,7 @@ exports[`OrderListItem stories snapshot > Default story renders and matches snap
           </div>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -230,7 +230,7 @@ exports[`OrderListItem stories snapshot > WithPickupLocation story renders and m
           </div>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >
@@ -452,7 +452,7 @@ exports[`OrderListItem stories snapshot > WithThumbnailOverflow story renders an
           </div>
         </div>
         <span
-          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
+          class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-muted text-foreground"
           data-slot="badge"
           data-testid="order-status-badge"
         >

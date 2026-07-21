@@ -35,7 +35,7 @@ exports[`AccountNavItem stories snapshot > Default story renders and matches sna
 
 exports[`AccountNavItem stories snapshot > Disabled story renders and matches snapshot 1`] = `
 <button
-  class="rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-ui has-[>svg]:px-2.5 w-full px-3 py-2 text-left text-sm font-normal leading-none flex items-center justify-start gap-2 overflow-hidden text-ellipsis whitespace-nowrap opacity-50 cursor-not-allowed pointer-events-none text-muted-foreground"
+  class="rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 h-8 rounded-ui has-[>svg]:px-2.5 w-full px-3 py-2 text-left text-sm font-normal leading-none flex items-center justify-start gap-2 overflow-hidden text-ellipsis whitespace-nowrap opacity-50 cursor-not-allowed pointer-events-none text-muted-foreground"
   data-size="sm"
   data-slot="button"
   data-variant="ghost"

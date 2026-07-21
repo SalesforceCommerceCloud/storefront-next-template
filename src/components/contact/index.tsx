@@ -46,7 +46,7 @@ export default function Contact(): ReactElement {
                     toast: 'flex w-full max-w-md items-center gap-3 rounded-ui border border-border bg-card p-4 text-card-foreground shadow-lg',
                     title: 'text-sm font-medium text-foreground',
                     actionButton:
-                        'inline-flex shrink-0 items-center justify-center rounded-ui border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-xs outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
+                        'inline-flex shrink-0 items-center justify-center rounded-ui border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-xs outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring',
                 },
                 action: {
                     label: 'Close',

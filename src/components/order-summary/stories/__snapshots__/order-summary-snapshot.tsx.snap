@@ -46,7 +46,7 @@ exports[`OrderSummary stories snapshot > CartItemsAccordionInteraction story ren
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -208,7 +208,7 @@ exports[`OrderSummary stories snapshot > Default story renders and matches snaps
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -370,7 +370,7 @@ exports[`OrderSummary stories snapshot > EmptyBasket story renders and matches s
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -532,7 +532,7 @@ exports[`OrderSummary stories snapshot > EstimateMode story renders and matches 
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -739,7 +739,7 @@ exports[`OrderSummary stories snapshot > MobileCollapsible story renders and mat
       <button
         aria-controls="radix-«x»"
         aria-expanded="false"
-        class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 px-[var(--cart-summary-px)] py-4 hover:no-underline"
+        class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 px-[var(--cart-summary-px)] py-4 hover:no-underline"
         data-orientation="vertical"
         data-radix-collection-item=""
         data-slot="accordion-trigger"
@@ -913,7 +913,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -1059,7 +1059,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                 <button
                   aria-controls="radix-«x»"
                   aria-expanded="true"
-                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+                  class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                   data-orientation="vertical"
                   data-radix-collection-item=""
                   data-slot="accordion-trigger"
@@ -1127,7 +1127,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                         >
                           <input
                             aria-invalid="false"
-                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                             data-slot="input"
                             id="_r_6_-form-item"
                             name="code"
@@ -1135,7 +1135,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                             value=""
                           />
                           <button
-                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                             data-size="default"
                             data-slot="button"
                             data-variant="secondary"
@@ -1162,7 +1162,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                 class="inline-flex items-stretch"
               >
                 <span
-                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                   data-slot="badge"
                 >
                   <svg
@@ -1186,7 +1186,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                 </span>
                 <button
                   aria-label="Remove SAVE20"
-                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
+                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
                   data-size="icon-sm"
                   data-slot="button"
                   data-variant="secondary"
@@ -1274,7 +1274,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="true"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -1411,7 +1411,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                               </li>
                             </ul>
                             <span
-                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                               data-slot="badge"
                             >
                               Saved £79.99
@@ -1485,7 +1485,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                           >
                             <span
                               aria-label="This item is a free bonus product"
-                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
                               data-slot="badge"
                               role="status"
                             >
@@ -1590,7 +1590,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                           >
                             <span
                               aria-label="This item is a free bonus product"
-                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
                               data-slot="badge"
                               role="status"
                             >
@@ -1668,7 +1668,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                     </li>
                   </ul>
                   <a
-                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
                     href="/RefArchGlobal/en-GB/cart"
                   >
                     Edit cart
@@ -1842,7 +1842,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                 <button
                   aria-controls="radix-«x»"
                   aria-expanded="true"
-                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+                  class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                   data-orientation="vertical"
                   data-radix-collection-item=""
                   data-slot="accordion-trigger"
@@ -1910,7 +1910,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                         >
                           <input
                             aria-invalid="false"
-                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                             data-slot="input"
                             id="_r_d_-form-item"
                             name="code"
@@ -1918,7 +1918,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                             value=""
                           />
                           <button
-                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                             data-size="default"
                             data-slot="button"
                             data-variant="secondary"
@@ -1945,7 +1945,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                 class="inline-flex items-stretch"
               >
                 <span
-                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                   data-slot="badge"
                 >
                   <svg
@@ -1969,7 +1969,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                 </span>
                 <button
                   aria-label="Remove SAVE10"
-                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
+                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
                   data-size="icon-sm"
                   data-slot="button"
                   data-variant="secondary"
@@ -2057,7 +2057,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="true"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -2194,7 +2194,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                               </li>
                             </ul>
                             <span
-                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                               data-slot="badge"
                             >
                               Saved £161.60
@@ -2241,7 +2241,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                     </li>
                   </ul>
                   <a
-                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
                     href="/RefArchGlobal/en-GB/cart"
                   >
                     Edit cart

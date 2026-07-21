@@ -49,16 +49,23 @@
     --info: #0369a1;
     --info-foreground: #dbeafe;
 
-    --border: #9ca3af;
-    --border-subtle: #d1d5db;
+    /* Both meet WCAG SC 1.4.11 (3:1 for UI component boundaries) on #FFFFFF, and
+       --border is kept a step darker than --border-subtle for a visible hierarchy.
+       The subtle/separator tier (3.45:1 on white) can dip below 3:1 on darker panels
+       such as --accent and muted-hover; 1.4.11 exempts purely decorative dividers,
+       and --border still clears 3:1 on those surfaces. */
+    --border: #767676; /* 4.54:1 on #FFFFFF */
+    --border-subtle: #8a8a8a; /* 3.45:1 on #FFFFFF */
     /* not in Figma JSON for light mode (Figma only defines `input` in dark) */
-    --input: #e8e8e8;
+    /* 3.45:1 on #FFFFFF — meets WCAG SC 1.4.11 (3:1 for control boundaries). */
+    --input: #8a8a8a;
     /* 3.66:1 on #FFFFFF — meets WCAG SC 1.4.11 (3:1 for graphics); use for focus rings only,
        not as text color on white. */
     --ring: #3b82f6;
 
     /* not in Figma JSON */
-    --separator: rgba(0, 0, 0, 0.08);
+    /* solid 3.45:1 on #FFFFFF — meets WCAG SC 1.4.11 (was rgba(0,0,0,0.08), ~1.2:1). */
+    --separator: #8a8a8a;
     --separator-foreground: #9e9e9e;
 
     /* not in Figma JSON */
