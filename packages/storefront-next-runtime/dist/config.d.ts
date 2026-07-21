@@ -2,8 +2,8 @@ import { n as Site, r as Url, t as Locale } from "./types.js";
 import { n as DefineConfigOptions, r as defineConfig, t as BaseConfig } from "./schema.js";
 import { n as defaultSecurityHeaders } from "./defaults.js";
 import { ReactNode } from "react";
-import * as react_jsx_runtime2 from "react/jsx-runtime";
-import * as react_router20 from "react-router";
+import * as react_jsx_runtime1 from "react/jsx-runtime";
+import * as react_router1 from "react-router";
 import { RouterContextProvider } from "react-router";
 
 //#region src/config/context.d.ts
@@ -46,7 +46,7 @@ interface ClientFacingAppConfigShape {}
  * app-config middleware; read via `context.get(appConfigContext)` in loaders,
  * actions, and other middleware. Returns the augmented `AppConfigShape`.
  */
-declare const appConfigContext: react_router20.RouterContext<AppConfigShape>;
+declare const appConfigContext: react_router1.RouterContext<AppConfigShape>;
 /**
  * Router context for the **client-safe view** of the application configuration —
  * `appConfigContext` minus any server-only namespaces (which namespaces are server-only
@@ -62,7 +62,7 @@ declare const appConfigContext: react_router20.RouterContext<AppConfigShape>;
  * full shape. For a stronger narrow at the read site, augment `ClientFacingAppConfigShape`
  * (the same slot that narrows `useConfig()`) and cast through `ClientFacingAppConfig`.
  */
-declare const clientAppConfigContext: react_router20.RouterContext<Partial<AppConfigShape>>;
+declare const clientAppConfigContext: react_router1.RouterContext<Partial<AppConfigShape>>;
 interface ConfigProviderProps {
   config: AppConfigShape;
   children: ReactNode;
@@ -76,7 +76,7 @@ interface ConfigProviderProps {
 declare function ConfigProvider({
   config,
   children
-}: ConfigProviderProps): react_jsx_runtime2.JSX.Element;
+}: ConfigProviderProps): react_jsx_runtime1.JSX.Element;
 //#endregion
 //#region src/config/get-config.d.ts
 /**
