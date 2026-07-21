@@ -140,8 +140,13 @@ export function PostOrderRegistration({
                                 onChange={handlePasswordChange}
                                 className="mt-1"
                                 placeholder={t('confirmation.postOrderRegistration.passwordPlaceholder')}
+                                aria-describedby="post-order-password-requirements"
                             />
-                            <PasswordRequirement password={password} className="mt-2" />
+                            <PasswordRequirement
+                                password={password}
+                                className="mt-2"
+                                id="post-order-password-requirements"
+                            />
                         </div>
 
                         <div>
@@ -160,10 +165,18 @@ export function PostOrderRegistration({
                                 onChange={handleConfirmPasswordChange}
                                 className="mt-1"
                                 aria-invalid={showPasswordMismatch && confirmPassword ? true : undefined}
+                                aria-describedby={
+                                    showPasswordMismatch && confirmPassword
+                                        ? 'post-order-confirm-password-error'
+                                        : undefined
+                                }
                                 placeholder={t('confirmation.postOrderRegistration.confirmPasswordPlaceholder')}
                             />
                             {showPasswordMismatch && confirmPassword && (
-                                <p className="mt-1 text-sm text-destructive">
+                                <p
+                                    id="post-order-confirm-password-error"
+                                    role="alert"
+                                    className="mt-1 text-sm text-destructive">
                                     {t('confirmation.postOrderRegistration.passwordMismatch')}
                                 </p>
                             )}

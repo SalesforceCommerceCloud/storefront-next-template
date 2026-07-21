@@ -67,6 +67,8 @@ const useFormField = () => {
 
 type FormItemContextValue = {
   id: string
+  hasDescription: boolean
+  setHasDescription: (value: boolean) => void
 }
 
 const FormItemContext = React.createContext<FormItemContextValue>(
@@ -75,9 +77,10 @@ const FormItemContext = React.createContext<FormItemContextValue>(
 
 function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   const id = React.useId()
+  const [hasDescription, setHasDescription] = React.useState(false)
 
   return (
-    <FormItemContext.Provider value={{ id }}>
+    <FormItemContext.Provider value={{ id, hasDescription, setHasDescription }}>
       <div
         data-slot="form-item"
         className={cn("grid gap-2", className)}
@@ -106,16 +109,22 @@ function FormLabel({
 
 function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  const itemContext = React.useContext(FormItemContext)
+
+  // Compose aria-describedby from description (if rendered) and error message (if present).
+  // Only include IDs for elements that are actually in the DOM.
+  const describedBy = [
+    itemContext.hasDescription ? formDescriptionId : null,
+    error ? formMessageId : null,
+  ]
+    .filter(Boolean)
+    .join(' ') || undefined
 
   return (
     <Slot
       data-slot="form-control"
       id={formItemId}
-      aria-describedby={
-        !error
-          ? `${formDescriptionId}`
-          : `${formDescriptionId} ${formMessageId}`
-      }
+      aria-describedby={describedBy}
       aria-invalid={!!error}
       {...props}
     />
@@ -124,6 +133,12 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
 
 function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   const { formDescriptionId } = useFormField()
+  const itemContext = React.useContext(FormItemContext)
+
+  React.useEffect(() => {
+    itemContext.setHasDescription(true)
+    return () => itemContext.setHasDescription(false)
+  }, [itemContext])
 
   return (
     <p

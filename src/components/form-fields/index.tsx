@@ -23,14 +23,16 @@ import { useFormField } from '@/components/ui/form';
  * square-corner rule from applying.
  *
  * Only sets aria-describedby when a validation message exists, avoiding references
- * to non-existent FormDescription elements in strict a11y checks.
+ * to non-existent FormDescription elements in strict a11y checks. If the consumer passes
+ * an aria-describedby prop, it will be composed with the form message ID.
  */
-export function FormInput(props: React.ComponentProps<typeof Input>) {
+export function FormInput({ 'aria-describedby': consumerDescribedBy, ...props }: React.ComponentProps<typeof Input>) {
     const { formItemId, formMessageId, error } = useFormField();
 
-    return (
-        <Input id={formItemId} aria-describedby={error ? formMessageId : undefined} aria-invalid={!!error} {...props} />
-    );
+    // Compose aria-describedby from consumer-provided IDs and form message (if error).
+    const describedBy = [consumerDescribedBy, error ? formMessageId : null].filter(Boolean).join(' ') || undefined;
+
+    return <Input id={formItemId} aria-describedby={describedBy} aria-invalid={!!error} {...props} />;
 }
 
 export function FormNativeSelect(props: React.ComponentProps<typeof NativeSelect>) {

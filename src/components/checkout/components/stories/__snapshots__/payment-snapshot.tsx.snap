@@ -405,7 +405,6 @@ exports[`Payment stories snapshot > EditView story renders and matches snapshot 
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_6_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -801,7 +800,6 @@ exports[`Payment stories snapshot > EditViewWithDifferentBilling story renders a
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_d_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -1197,7 +1195,6 @@ exports[`Payment stories snapshot > SavingState story renders and matches snapsh
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_1u_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -1722,7 +1719,6 @@ exports[`Payment stories snapshot > WithBillingValidationErrors story renders an
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_r_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -2118,7 +2114,6 @@ exports[`Payment stories snapshot > WithNewBillingAddress story renders and matc
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_1g_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -2514,7 +2509,6 @@ exports[`Payment stories snapshot > WithNewCreditCard story renders and matches 
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_1n_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -2910,7 +2904,6 @@ exports[`Payment stories snapshot > WithSavedBillingAddresses story renders and 
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_19_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -3306,7 +3299,6 @@ exports[`Payment stories snapshot > WithSavedPaymentMethods story renders and ma
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_12_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -3734,7 +3726,6 @@ exports[`Payment stories snapshot > WithValidationErrors story renders and match
                   >
                     <button
                       aria-checked="false"
-                      aria-describedby="_r_k_-form-item-description"
                       aria-invalid="false"
                       aria-label="Use a different billing address"
                       class="peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-ui border shadow-ui transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"

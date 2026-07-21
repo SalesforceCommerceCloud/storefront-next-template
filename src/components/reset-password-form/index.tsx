@@ -76,8 +76,9 @@ export function ResetPasswordForm({ error, token, email }: ResetPasswordFormProp
                         onChange={handlePasswordChange}
                         className="mt-1"
                         placeholder={t('newPasswordPlaceholder')}
+                        aria-describedby="reset-password-requirements"
                     />
-                    <PasswordRequirement password={password} />
+                    <PasswordRequirement password={password} id="reset-password-requirements" />
                 </div>
 
                 <div>

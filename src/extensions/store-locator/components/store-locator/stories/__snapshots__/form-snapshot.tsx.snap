@@ -21,7 +21,6 @@ exports[`StoreLocatorForm stories snapshot > Default story renders and matches s
           Country
         </label>
         <div
-          aria-describedby="_r_0_-form-item-description"
           aria-invalid="false"
           class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
           data-slot="form-control"
@@ -91,7 +90,6 @@ exports[`StoreLocatorForm stories snapshot > Default story renders and matches s
             Postal Code
           </label>
           <input
-            aria-describedby="_r_1_-form-item-description"
             aria-invalid="false"
             aria-label="Postal Code"
             class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
@@ -164,7 +162,6 @@ exports[`StoreLocatorForm stories snapshot > DesktopLayout story renders and mat
           Country
         </label>
         <div
-          aria-describedby="_r_4_-form-item-description"
           aria-invalid="false"
           class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
           data-slot="form-control"
@@ -234,7 +231,6 @@ exports[`StoreLocatorForm stories snapshot > DesktopLayout story renders and mat
             Postal Code
           </label>
           <input
-            aria-describedby="_r_5_-form-item-description"
             aria-invalid="false"
             aria-label="Postal Code"
             class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
@@ -307,7 +303,6 @@ exports[`StoreLocatorForm stories snapshot > MobileLayout story renders and matc
           Country
         </label>
         <div
-          aria-describedby="_r_2_-form-item-description"
           aria-invalid="false"
           class="w-full [&_[data-slot='native-select-wrapper']]:w-full"
           data-slot="form-control"
@@ -377,7 +372,6 @@ exports[`StoreLocatorForm stories snapshot > MobileLayout story renders and matc
             Postal Code
           </label>
           <input
-            aria-describedby="_r_3_-form-item-description"
             aria-invalid="false"
             aria-label="Postal Code"
             class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"

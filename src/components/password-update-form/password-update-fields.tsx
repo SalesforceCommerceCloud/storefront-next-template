@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { PasswordRequirement } from '@/components/password-requirements';
+import { FormInput } from '@/components/form-fields';
 
 import { FETCHER_STATES } from '@/lib/fetcher-states';
 import { type PasswordUpdateFieldsProps } from './types';
@@ -78,10 +79,11 @@ export function PasswordUpdateFields({ form, updateFetcher, onCancel }: Password
                             {t('password.newPassword')}
                         </FormLabel>
                         <FormControl>
-                            <Input
+                            <FormInput
                                 type="password"
                                 placeholder={t('password.newPasswordPlaceholder')}
                                 className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
+                                aria-describedby="password-update-requirements"
                                 {...field}
                             />
                         </FormControl>
@@ -113,7 +115,7 @@ export function PasswordUpdateFields({ form, updateFetcher, onCancel }: Password
             />
 
             {/* Password Requirements */}
-            <PasswordRequirement password={password} />
+            <PasswordRequirement password={password} id="password-update-requirements" />
 
             <div className="flex gap-2 pt-2">
                 <Button type="submit" disabled={isSubmitting} className="">

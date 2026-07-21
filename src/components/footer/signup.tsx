@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type FormEvent, type ReactElement, useCallback, useRef } from 'react';
+import { type FormEvent, type ReactElement, useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,40 +22,58 @@ import { UITarget } from '@/targets/ui-target';
 export default function Signup(): ReactElement {
     const { t } = useTranslation('footer');
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = useCallback(
         (e: FormEvent) => {
             e.preventDefault();
+            setError(null);
             if (inputRef.current?.value?.trim()) {
                 const email = inputRef.current.value;
+                // Basic email validation
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    setError(t('newsletter.invalidEmail'));
+                    return;
+                }
                 // eslint-disable-next-line no-alert
                 alert(`Signup email address: ${email}`);
+            } else {
+                setError(t('newsletter.emailRequired'));
             }
         },
-        [inputRef]
+        [inputRef, t]
     );
 
     return (
         <UITarget targetId="sfcc.emailSignUp.consent.marketing">
-            <form onSubmit={handleSubmit} className="flex flex-row gap-2 sm:gap-3 w-full max-w-md">
+            <form onSubmit={handleSubmit} className="w-full max-w-md">
                 <label htmlFor="footer-newsletter-email" className="sr-only">
-                    {t('newsletter.emailPlaceholder')}
+                    {t('newsletter.emailLabel')}
                 </label>
-                <Input
-                    ref={inputRef}
-                    id="footer-newsletter-email"
-                    type="email"
-                    placeholder={t('newsletter.emailPlaceholder')}
-                    className="flex-1 h-10 bg-background text-sm font-normal leading-5 text-muted-foreground truncate"
-                />
-                <UITarget targetId="sfcc.emailSignUp.consent.tos" />
-                <Button
-                    type="submit"
-                    variant="secondary"
-                    size="lg"
-                    className="bg-primary-foreground rounded-ui shadow-2xs">
-                    {t('newsletter.subscribeButton')}
-                </Button>
+                <div className="flex flex-row gap-2 sm:gap-3">
+                    <Input
+                        ref={inputRef}
+                        id="footer-newsletter-email"
+                        type="email"
+                        placeholder={t('newsletter.emailPlaceholder')}
+                        className="flex-1 h-10 bg-background text-sm font-normal leading-5 text-muted-foreground truncate"
+                        aria-describedby={error ? 'footer-newsletter-error' : undefined}
+                        aria-invalid={!!error}
+                    />
+                    <UITarget targetId="sfcc.emailSignUp.consent.tos" />
+                    <Button
+                        type="submit"
+                        variant="secondary"
+                        size="lg"
+                        className="bg-primary-foreground rounded-ui shadow-2xs">
+                        {t('newsletter.subscribeButton')}
+                    </Button>
+                </div>
+                {error && (
+                    <div id="footer-newsletter-error" role="alert" className="mt-2 text-sm text-destructive">
+                        {error}
+                    </div>
+                )}
             </form>
         </UITarget>
     );

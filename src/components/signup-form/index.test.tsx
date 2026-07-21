@@ -72,7 +72,7 @@ describe('SignupForm', () => {
             expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-            expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
         });
 
@@ -82,7 +82,7 @@ describe('SignupForm', () => {
             const firstNameInput = screen.getByLabelText(/first name/i);
             const lastNameInput = screen.getByLabelText(/last name/i);
             const emailInput = screen.getByLabelText(/email/i);
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
             expect(firstNameInput).toHaveAttribute('name', 'firstName');
@@ -129,7 +129,7 @@ describe('SignupForm', () => {
             expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
 
-            expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
+            expect(screen.queryByLabelText(/^password/i)).not.toBeInTheDocument();
             expect(screen.queryByLabelText(/confirm password/i)).not.toBeInTheDocument();
             expect(screen.queryByTestId('password-requirement')).not.toBeInTheDocument();
 
@@ -152,7 +152,7 @@ describe('SignupForm', () => {
 
             fireEvent.click(screen.getByRole('button', { name: t('signup:form.createAccountWithPassword') }));
 
-            expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
             expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
             expect(screen.getByRole('button', { name: t('signup:form.createAccountButton') })).toBeInTheDocument();
             expect(screen.getByRole('button', { name: t('signup:form.continueWithoutPassword') })).toBeInTheDocument();
@@ -162,10 +162,10 @@ describe('SignupForm', () => {
             render(<SignupForm isPasswordless />);
 
             fireEvent.click(screen.getByRole('button', { name: t('signup:form.createAccountWithPassword') }));
-            expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
 
             fireEvent.click(screen.getByRole('button', { name: t('signup:form.continueWithoutPassword') }));
-            expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
+            expect(screen.queryByLabelText(/^password/i)).not.toBeInTheDocument();
             expect(screen.getByRole('button', { name: t('signup:form.continueButton') })).toBeInTheDocument();
         });
 
@@ -213,7 +213,7 @@ describe('SignupForm', () => {
         it('should validate password and update PasswordRequirement', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             fireEvent.change(passwordInput, { target: { value: 'TestPass123!' } });
 
             const passwordRequirement = screen.getByTestId('password-requirement');
@@ -229,7 +229,7 @@ describe('SignupForm', () => {
         it('should show password mismatch error when passwords do not match', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
             fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
@@ -241,7 +241,7 @@ describe('SignupForm', () => {
         it('should hide password mismatch error when passwords match again', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
             fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
@@ -257,7 +257,7 @@ describe('SignupForm', () => {
         it('should set aria-invalid when passwords do not match', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
 
             fireEvent.change(passwordInput, { target: { value: 'Password123!' } });
@@ -272,7 +272,7 @@ describe('SignupForm', () => {
             mockIsPasswordValid.mockReturnValue(false);
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
             const submitButton = screen.getByRole('button', { name: /create account/i });
 
@@ -286,7 +286,7 @@ describe('SignupForm', () => {
             mockIsPasswordValid.mockReturnValue(true);
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
             const submitButton = screen.getByRole('button', { name: /create account/i });
 
@@ -300,7 +300,7 @@ describe('SignupForm', () => {
             mockIsPasswordValid.mockReturnValue(true);
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
             const submitButton = screen.getByRole('button', { name: /create account/i });
 
@@ -323,7 +323,7 @@ describe('SignupForm', () => {
             mockIsPasswordValid.mockReturnValue(true);
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
             const submitButton = screen.getByRole('button', { name: /create account/i });
 
@@ -342,7 +342,7 @@ describe('SignupForm', () => {
         it('should update password value on change', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             fireEvent.change(passwordInput, { target: { value: 'NewPassword123!' } });
 
             expect(passwordInput).toHaveValue('NewPassword123!');
@@ -360,7 +360,7 @@ describe('SignupForm', () => {
         it('should maintain state across multiple changes', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
 
             fireEvent.change(passwordInput, { target: { value: 'Pass1' } });
             expect(passwordInput).toHaveValue('Pass1');
@@ -377,7 +377,7 @@ describe('SignupForm', () => {
         it('should handle empty password input', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             fireEvent.change(passwordInput, { target: { value: '' } });
 
             expect(passwordInput).toHaveValue('');
@@ -387,7 +387,7 @@ describe('SignupForm', () => {
         it('should handle special characters in password', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const specialPassword = 'P@ssw0rd!#$%^&*()';
 
             fireEvent.change(passwordInput, { target: { value: specialPassword } });
@@ -398,7 +398,7 @@ describe('SignupForm', () => {
         it('should handle very long passwords', () => {
             render(<SignupForm />);
 
-            const passwordInput = screen.getByLabelText(/^password$/i);
+            const passwordInput = screen.getByLabelText(/^password/i);
             const longPassword = `${'A'.repeat(100)}1!`;
 
             fireEvent.change(passwordInput, { target: { value: longPassword } });

@@ -25,6 +25,8 @@ export interface PasswordRequirementProps {
     password: string;
     /** Optional CSS class name for custom styling */
     className?: string;
+    /** Optional ID for the container, used for aria-describedby linking */
+    id?: string;
 }
 
 /**
@@ -49,6 +51,7 @@ interface Requirement {
  * @param props - The component props
  * @param props.password - The password string to validate against requirements
  * @param props.className - Optional CSS class name for custom styling
+ * @param props.id - Optional ID for the container, used for aria-describedby linking
  *
  * @returns JSX element containing the password requirements checklist
  *
@@ -62,14 +65,18 @@ interface Requirement {
  *
  *   return (
  *     <div>
- *       <input type="password" {...register('password')} />
- *       <PasswordRequirement password={password} />
+ *       <input
+ *         type="password"
+ *         aria-describedby="password-requirements"
+ *         {...register('password')}
+ *       />
+ *       <PasswordRequirement password={password} id="password-requirements" />
  *     </div>
  *   );
  * }
  * ```
  */
-export function PasswordRequirement({ password, className }: PasswordRequirementProps) {
+export function PasswordRequirement({ password, className, id }: PasswordRequirementProps) {
     const { t } = useTranslation('account');
 
     /**
@@ -104,7 +111,7 @@ export function PasswordRequirement({ password, className }: PasswordRequirement
     ];
 
     return (
-        <div className={cn('space-y-2', className)}>
+        <div id={id} className={cn('space-y-2', className)}>
             <p role="heading" aria-level={4} className="text-sm font-medium text-foreground">
                 {t('password.requirements.title')}
             </p>

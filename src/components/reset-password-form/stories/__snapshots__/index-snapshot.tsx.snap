@@ -44,6 +44,7 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
           New Password
         </label>
         <input
+          aria-describedby="reset-password-requirements"
           autocomplete="new-password"
           class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
@@ -56,6 +57,7 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
         />
         <div
           class="space-y-2"
+          id="reset-password-requirements"
         >
           <p
             aria-level="4"
@@ -291,6 +293,7 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
           New Password
         </label>
         <input
+          aria-describedby="reset-password-requirements"
           autocomplete="new-password"
           class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
@@ -303,6 +306,7 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
         />
         <div
           class="space-y-2"
+          id="reset-password-requirements"
         >
           <p
             aria-level="4"
@@ -547,6 +551,7 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
           New Password
         </label>
         <input
+          aria-describedby="reset-password-requirements"
           autocomplete="new-password"
           class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
@@ -559,6 +564,7 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
         />
         <div
           class="space-y-2"
+          id="reset-password-requirements"
         >
           <p
             aria-level="4"

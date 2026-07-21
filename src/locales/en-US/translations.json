@@ -178,6 +178,7 @@
         "passwordsDoNotMatch": "Passwords don't match.",
         "passwordNotSecure": "Password doesn't meet security requirements.",
         "form": {
+            "nameFieldsLegend": "Name",
             "firstNameLabel": "First Name",
             "firstNamePlaceholder": "Enter your first name",
             "lastNameLabel": "Last Name",
@@ -1315,7 +1316,10 @@
             "title": "Join Our Community",
             "description": "Be the first to discover new arrivals, exclusive offers, and style inspiration.",
             "emailPlaceholder": "Your email",
-            "subscribeButton": "Subscribe"
+            "emailLabel": "Email address for newsletter subscription",
+            "subscribeButton": "Subscribe",
+            "emailRequired": "Email address is required",
+            "invalidEmail": "Please enter a valid email address"
         },
         "copyright": "Salesforce or its affiliates. All rights reserved. This is a demo store only. Orders made WILL NOT be processed.",
         "address": "415 Mission St, San Francisco, CA 94105",
