@@ -493,13 +493,16 @@ const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; pr
                 className="absolute inset-0 w-full h-full"
                 imageProps={{ className: 'w-full h-full object-cover' }}
             />
-            <div
-                className="absolute inset-0"
-                style={{
-                    background:
-                        'linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%)',
-                }}
-            />
+            {/*
+             * Scrim for WCAG 1.4.3 text contrast. The overlay text is white and can be placed at any of the
+             * 9 overlayPosition slots over an arbitrary merchant photo, so a directional gradient cannot
+             * guarantee legibility everywhere (a top or centre heading over a bright sky measured ~1.7:1). A
+             * uniform scrim floor keeps the composited background dark enough for white text over any region
+             * of any image: worst case (a blown-out white region behind) is 5.7:1 for fashion and 4.7:1 for
+             * cosmetic, both clearing the 4.5:1 AA minimum. The scrim is mixed from each vertical's
+             * `--brand-black` so it keeps the brand's warm/neutral tint rather than forcing pure black. The
+             * image itself is unchanged. */}
+            <div className="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]" />
 
             <div className={cn('relative h-full flex z-20 overflow-hidden', overlayRowClass, overlayEdgePaddingClass)}>
                 <div className="section-container w-full">

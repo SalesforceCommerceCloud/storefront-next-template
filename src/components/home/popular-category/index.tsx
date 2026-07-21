@@ -138,7 +138,12 @@ export default function PopularCategory({
                         />
                     </div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent">
+                {/*
+                 * Scrim for WCAG 1.4.3: the title/description are white and pinned to the bottom edge over an
+                 * arbitrary merchant photo. The gradient stays image-visible at the top (to-transparent) but
+                 * raises the floor in the lower half so the composited background behind the text stays at or
+                 * below ~#707070, keeping white text >=4.5:1 over any image. The image is unchanged. */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
                     <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end">
                         <div>
                             <h3 className="text-2xl font-bold leading-[120%] tracking-[-0.6px] text-card mb-1">

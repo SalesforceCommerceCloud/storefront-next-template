@@ -33,7 +33,7 @@ export default function CategoryBannerSkeleton() {
             <Skeleton className="absolute inset-0 w-full h-full" />
 
             {/* Gradient overlay — matches real component */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/65 to-black/85" />
 
             {/* Content skeletons anchored to the bottom */}
             <div className="absolute inset-0 flex items-end">

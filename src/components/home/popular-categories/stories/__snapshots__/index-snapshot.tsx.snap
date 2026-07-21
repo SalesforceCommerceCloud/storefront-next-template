@@ -95,7 +95,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -177,7 +177,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -259,7 +259,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -341,7 +341,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -778,7 +778,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -860,7 +860,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -942,7 +942,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1024,7 +1024,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1106,7 +1106,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1188,7 +1188,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1397,7 +1397,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1479,7 +1479,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1561,7 +1561,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1643,7 +1643,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1840,7 +1840,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1922,7 +1922,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2004,7 +2004,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2086,7 +2086,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2264,7 +2264,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2327,7 +2327,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2390,7 +2390,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2453,7 +2453,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"

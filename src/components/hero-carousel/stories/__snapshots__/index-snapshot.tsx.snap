@@ -44,8 +44,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -105,8 +104,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -166,8 +164,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -363,8 +360,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -424,8 +420,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -485,8 +480,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -670,8 +664,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -731,8 +724,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -792,8 +784,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -977,8 +968,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -1038,8 +1028,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -1099,8 +1088,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -1284,8 +1272,7 @@ exports[`HeroCarousel stories snapshot > SingleSlide story renders and matches s
               />
             </div>
             <div
-              class="absolute inset-0"
-              style="background: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);"
+              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"

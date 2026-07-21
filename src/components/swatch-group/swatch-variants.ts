@@ -97,19 +97,23 @@ const swatchVariants = cva(
                 disabled: false,
                 class: 'bg-swatch-bg-selected border border-swatch-border-selected text-swatch-text-selected shadow-2xs',
             },
-            // Square disabled (not selected)
+            // Square disabled (not selected) — WCAG 1.4.3: a sold-out size renders as a navigable NavLink
+            // (still focusable/clickable in uncontrolled PDP mode), so the inactive-component exemption does
+            // not apply and its label text must meet 4.5:1. The diagonal strikethrough (`before:` pseudo)
+            // already conveys the unavailable state, so we drop `opacity-50` here to keep the label at full
+            // contrast (~11:1) rather than dimming it to ~3.9:1.
             {
                 shape: 'label',
                 selected: false,
                 disabled: true,
-                class: 'bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs opacity-50',
+                class: 'bg-swatch-bg border border-swatch-border text-swatch-text shadow-2xs',
             },
-            // Square selected and disabled
+            // Square selected and disabled — same rationale as the unselected disabled label above.
             {
                 shape: 'label',
                 selected: true,
                 disabled: true,
-                class: 'bg-swatch-bg-selected border border-swatch-border-selected text-swatch-text-selected shadow-2xs opacity-50',
+                class: 'bg-swatch-bg-selected border border-swatch-border-selected text-swatch-text-selected shadow-2xs',
             },
         ],
         defaultVariants: {
