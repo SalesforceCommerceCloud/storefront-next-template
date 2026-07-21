@@ -21,6 +21,9 @@ pnpm lint
 # Lint and auto-fix issues
 pnpm lint:fix
 
+# Report only accessibility (jsx-a11y) findings
+pnpm lint:a11y
+
 # Check that no JavaScript files exist in source
 node scripts/check-typescript-only.js
 
@@ -68,6 +71,22 @@ The ESLint configuration includes specific rules for React 19:
 - **Client Components**: Stricter rules for interactive components
 - **Hooks**: Proper React Hooks usage enforcement
 - **Refresh**: React Refresh compatibility checks
+
+## Accessibility rules (`jsx-a11y`)
+
+The shared config enables the full `eslint-plugin-jsx-a11y` recommended set at `error`, plus two extra guards. Because the template runs `pnpm lint` with `--max-warnings 0`, any accessibility violation fails CI. Run `pnpm lint:a11y` to see only the `jsx-a11y/*` findings while iterating.
+
+| Rule | Setting | Why |
+|------|---------|-----|
+| `jsx-a11y` recommended set | `error` | Catches the common WCAG defects (missing labels, invalid ARIA, non-interactive handlers) at lint time. |
+| `jsx-a11y/no-aria-hidden-on-focusable` | `error` | Not in the recommended set. A focusable element hidden from assistive tech is a high-severity trap; the guard finds nothing today, so it only stops regressions. |
+| `jsx-a11y/anchor-ambiguous-text` | `error` | Not in the recommended set. Flags link text like "click here" that gives screen-reader users no destination context. |
+| `jsx-a11y/no-redundant-roles` | `['error', { ul: ['list'] }]` | `role="list"` on `<ul>` is a deliberate Safari + VoiceOver workaround: Tailwind's `list-style: none` strips list semantics in Safari, so the explicit role is kept allowed rather than flagged as redundant. |
+| `jsx-a11y/alt-text` | `error`, extended to `DynamicImage`/`ProductImage` | The repo's custom image components are treated like `<img>` for alt-text enforcement. |
+
+The `jsx-a11y/label-has-associated-control` rule depends on `minimatch`; the template pins `minimatch` and `eslint-plugin-jsx-a11y>minimatch` in `package.json` `pnpm.overrides` so the rule resolves the same way in a generated customer project as it does in the monorepo.
+
+A few intentional patterns keep scoped `eslint-disable-next-line` comments (autofocus on section open, arrow-key roving within swatch and option groups, the labelled carousel region, Page Designer edit-mode drag handles). Test files relax a handful of these rules, since fixtures use ad-hoc roles and handlers that never ship.
 
 ## Performance tuning
 

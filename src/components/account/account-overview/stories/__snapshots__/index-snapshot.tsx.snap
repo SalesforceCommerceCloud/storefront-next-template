@@ -46,7 +46,6 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
             >
               <h2
                 class="text-lg font-bold leading-[120%] text-card-foreground"
-                tabindex="0"
               >
                 Recent Orders
               </h2>
@@ -927,7 +926,6 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
             >
               <h2
                 class="text-lg font-bold leading-[120%] text-card-foreground"
-                tabindex="0"
               >
                 Recent Orders
               </h2>
@@ -1734,7 +1732,6 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
             >
               <h2
                 class="text-lg font-bold leading-[120%] text-card-foreground"
-                tabindex="0"
               >
                 Recent Orders
               </h2>

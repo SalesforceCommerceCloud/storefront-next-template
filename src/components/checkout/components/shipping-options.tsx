@@ -119,6 +119,7 @@ export default function ShippingOptions({
                                             value={method.id}
                                             id={`shipping-${method.id}`}
                                             className="shrink-0"
+                                            // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first radio on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                             autoFocus={isEditing && availableShippingMethods.indexOf(method) === 0}
                                         />
                                         <span className="flex flex-1 items-center gap-2">

@@ -71,6 +71,7 @@ export function CreditCardInputFields<TFormValues extends FieldValues & Partial<
                         <FormInput
                             placeholder={t('payment.cardholderPlaceholder')}
                             autoComplete="cc-name"
+                            // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first field on payment form section open (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                             autoFocus={autoFocus}
                             {...field}
                         />

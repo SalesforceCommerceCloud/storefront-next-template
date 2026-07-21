@@ -84,6 +84,7 @@ export const DesignFrame = ({
                     <div className="pd-design__frame--y" />
                 </>
             )}
+            {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Page Designer design-mode frame label; onMouseDown only stops drag propagation, not an interactive control */}
             <div className="pd-design__frame__label" onMouseDown={stopPropagation}>
                 {componentType?.image && (
                     <span className="pd-design__icon">

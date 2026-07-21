@@ -272,6 +272,7 @@ export default function OtpModal({
                                     onKeyDown={(e) => otpInputs.handleKeyDown(index, e)}
                                     onPaste={otpInputs.handlePaste}
                                     disabled={isVerifying || isLoading}
+                                    // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first digit on modal open (WCAG 2.4.3 focus order); dialog is the exception the rule warns about
                                     autoFocus={index === 0}
                                     className="w-full min-w-0 h-14 text-center text-sm font-bold border-2"
                                     aria-label={`${t('otpCodeLabel')} ${index + 1} of ${visibleCount}`}

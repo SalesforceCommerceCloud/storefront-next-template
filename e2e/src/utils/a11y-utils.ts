@@ -26,6 +26,7 @@ import {
     type AxeViolation,
     A11yBaselineError,
     WCAG_TAGS,
+    REPORTING_TAGS,
     getViolationCountsByRule,
     groupViolationsByImpact,
     compareWithBaseline,
@@ -199,11 +200,20 @@ export async function beginScan(pageKey: string): Promise<'desktop' | 'mobile'> 
  * @param viewport - Viewport key returned by {@link beginScan}.
  */
 export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobile'): Promise<void> {
+    // The blocking scan ALWAYS runs on WCAG_TAGS (WCAG 2.1 AA). This is the only
+    // scan the baseline assert below reads, so widening the report can never change
+    // what fails CI.
     const results: A11yScanResults = await runAxeScan();
     const key = `${pageKey}/${viewport}`;
 
     if (isCollectMode) {
-        collectResults(key, results);
+        // Report/collect path only (pnpm a11y:report, nightly, local suite scans):
+        // persist a WIDENED scan (WCAG 2.2 AA + best-practice + the incomplete
+        // "needs manual review" bucket) so the report is richer than the gate.
+        // This branch is never taken by the PR gate (which does not set
+        // A11Y_COLLECT_RESULTS), so it adds zero blocking surface.
+        const reportResults = await runAxeScan({ tags: REPORTING_TAGS });
+        collectResults(key, reportResults);
     }
 
     const baseline = loadBaseline();
@@ -246,4 +256,45 @@ export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobi
             `  ⓘ ${informationalCount} moderate/minor rule${informationalCount !== 1 ? 's' : ''} exceeded baseline (not blocking — update with pnpm a11y:update-baseline)`
         );
     }
+}
+
+/**
+ * Run a WIDENED, NON-BLOCKING axe scan against the DOM in whatever state it is
+ * currently in, and (in collect mode) write it to the report under a state-suffixed
+ * key. This is the primitive the a11y suite skills use for "forced-state" scans:
+ * the caller first drives the page into a non-default state (open the cart drawer,
+ * submit a form to surface validation errors, select an out-of-stock variant, move
+ * focus after an action), THEN calls this — because a plain scan only ever sees the
+ * settled default DOM and misses the states where most audit findings live.
+ *
+ * It NEVER asserts and NEVER touches the baseline, so it cannot fail CI. It is not
+ * wired into the blocking public spec; it exists for `pnpm a11y:report` enrichment
+ * and for the suite's local per-WI verification. To gate on a state you would add an
+ * explicit {@link scanAndAssert}-style check with its own baseline entry — a separate
+ * decision.
+ *
+ * @param pageKey - Short page identifier, e.g. 'pdp'.
+ * @param stateLabel - The state the caller drove the DOM into, e.g. 'out-of-stock'.
+ * @param viewport - Viewport key returned by {@link beginScan}.
+ * @returns The widened scan results (violations + the incomplete needs-review bucket).
+ */
+export async function scanState(
+    pageKey: string,
+    stateLabel: string,
+    viewport: 'desktop' | 'mobile'
+): Promise<A11yScanResults> {
+    const results = await runAxeScan({ tags: REPORTING_TAGS });
+    const key = `${pageKey}-${stateLabel}/${viewport}`;
+
+    if (isCollectMode) {
+        collectResults(key, results);
+    }
+
+    const violationNodes = results.violations.reduce((sum, v) => sum + v.nodes.length, 0);
+    const reviewNodes = results.incomplete.reduce((sum, v) => sum + v.nodes.length, 0);
+    console.log(
+        `  ⓘ state scan [${pageKey}:${stateLabel}/${viewport}] — ${violationNodes} widened violation${violationNodes !== 1 ? 's' : ''}, ${reviewNodes} needs-review (non-blocking)`
+    );
+
+    return results;
 }

@@ -343,6 +343,7 @@ export default function ShippingAddress({
                                     form={form}
                                     showPhone={false}
                                     showCountry={true}
+                                    // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first field on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                     autoFocus={isEditing}
                                     autoFocusField="firstName"
                                     countryCode={DEFAULT_COUNTRY_CODE}

@@ -284,6 +284,7 @@ export function HeroCarouselPlain({
     }
 
     return (
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- labelled carousel region: keydown/hover handlers pause autoplay and drive arrow-key slide nav, not the primary control
         <div
             data-slot="hero-carousel"
             className="relative w-full overflow-hidden h-[400px] md:h-[500px] lg:h-[600px]"
@@ -294,6 +295,7 @@ export function HeroCarouselPlain({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onKeyDown={handleKeyDown}
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- intentional tab stop so keyboard users can reach the carousel's arrow-key slide navigation
             tabIndex={0}>
             <Carousel
                 setApi={setApi}

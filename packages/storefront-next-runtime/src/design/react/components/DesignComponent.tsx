@@ -214,6 +214,7 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     }
 
     return (
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events -- Page Designer design-mode drop target (mouse drag-and-drop only); keyboard-accessible move/delete are provided by the toolbox buttons in DesignFrame
         <div
             ref={dragRef}
             className={classes}

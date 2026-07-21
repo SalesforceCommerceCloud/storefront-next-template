@@ -320,6 +320,7 @@ export default function ShippingMultiOptions({
                                                             value={method.id}
                                                             id={`${shipmentId}-${method.id}`}
                                                             className="w-5 h-5"
+                                                            // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first radio of first shipment on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                                             autoFocus={
                                                                 isEditing &&
                                                                 shipmentIndex === 0 &&

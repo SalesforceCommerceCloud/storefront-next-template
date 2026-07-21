@@ -263,6 +263,7 @@ export default function Payment({
                                                     <legend className="sr-only">{t('payment.creditCardOption')}</legend>
                                                     <CreditCardInputFields
                                                         form={form}
+                                                        // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first field on payment section open when new card selected (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                                         autoFocus={isEditing && paymentRadioValue === 'new'}
                                                     />
                                                 </fieldset>
@@ -437,6 +438,7 @@ export default function Payment({
                                                             showPhone={false}
                                                             showCountry
                                                             countryCode="US"
+                                                            // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first field on billing address section open (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                                             autoFocus
                                                             autoFocusField="firstName"
                                                         />

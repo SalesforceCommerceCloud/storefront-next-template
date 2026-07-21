@@ -199,7 +199,6 @@ export function AddPaymentMethodDialog({
                             <Form {...paymentForm}>
                                 <CreditCardInputFields
                                     form={paymentForm as unknown as Parameters<typeof CreditCardInputFields>[0]['form']}
-                                    autoFocus={false}
                                     showIsDefaultOption
                                     defaultOptionLabel={t('paymentMethods.saveAsDefault')}
                                 />
@@ -253,7 +252,6 @@ export function AddPaymentMethodDialog({
                                             form={paymentForm}
                                             fieldPrefix="billing"
                                             showPhone={false}
-                                            autoFocus={false}
                                             countryCode={countryCode}
                                         />
                                     </Form>

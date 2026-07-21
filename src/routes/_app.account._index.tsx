@@ -643,9 +643,7 @@ function AccountDetailsContent({
             {/* Page Header Card */}
             <Card className="bg-card border-border">
                 <CardContent className="px-6 py-3">
-                    <h1 className="text-2xl font-semibold text-foreground mb-1" tabIndex={0}>
-                        {t('title')}
-                    </h1>
+                    <h1 className="text-2xl font-semibold text-foreground mb-1">{t('title')}</h1>
                     <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
                 </CardContent>
             </Card>

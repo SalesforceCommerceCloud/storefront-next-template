@@ -206,9 +206,7 @@ function AccountAddressesContent({
                 <CardContent className="px-6 py-3">
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-2xl font-semibold text-foreground mb-1" tabIndex={0}>
-                                {t('navigation.addresses')}
-                            </h1>
+                            <h1 className="text-2xl font-semibold text-foreground mb-1">{t('navigation.addresses')}</h1>
                             <p className="text-sm text-muted-foreground">{t('addresses.subtitle')}</p>
                         </div>
                         <Button onClick={handleAdd} className="">

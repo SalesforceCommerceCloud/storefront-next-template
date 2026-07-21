@@ -182,7 +182,7 @@ function RecentOrdersListBlock({ result, onViewDetails }: RecentOrdersListBlockP
                 <CardContent className="px-5">
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col items-start gap-1.5 flex-1">
-                            <h2 className="text-lg font-bold leading-[120%] text-card-foreground" tabIndex={0}>
+                            <h2 className="text-lg font-bold leading-[120%] text-card-foreground">
                                 {t('overview.recentOrders.title')}
                             </h2>
                             <p className="text-sm font-normal leading-5 text-muted-foreground">

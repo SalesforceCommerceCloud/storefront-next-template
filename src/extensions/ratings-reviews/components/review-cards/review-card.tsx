@@ -199,6 +199,7 @@ export function ReviewCard({ review, className }: ReviewCardProps): ReactElement
                     {lightboxPhoto &&
                         typeof document !== 'undefined' &&
                         createPortal(
+                            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- modal backdrop click-to-dismiss; dialog also has Escape + focus-trap + explicit Close button
                             <div
                                 ref={lightboxOverlayRef}
                                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
@@ -218,6 +219,7 @@ export function ReviewCard({ review, className }: ReviewCardProps): ReactElement
                                     onClick={(e) => e.stopPropagation()}
                                     className="max-h-[90vh] max-w-[90vw] focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                                     tabIndex={0}>
+                                    {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- img stopPropagation on backdrop click; keyboard navigation via outer Close button + Escape */}
                                     <img
                                         src={lightboxPhoto.src}
                                         alt={lightboxPhoto.alt}

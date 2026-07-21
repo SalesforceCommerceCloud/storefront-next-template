@@ -228,6 +228,19 @@ const baseConfig = defineConfig([
             // TODO: Commerce SDK types migration - turn this on once issues resolved.
             '@typescript-eslint/no-redundant-type-constituents': 'off',
 
+            // Accessibility: enable the full eslint-plugin-jsx-a11y recommended set.
+            // Spread first so the repo's explicit `alt-text`/`img-redundant-alt`
+            // overrides below win (custom img components, warn severity).
+            ...jsxA11y.flatConfigs.recommended.rules,
+            // Beyond recommended: two zero-cost prevention guards for high-severity
+            // WCAG failures the audit surfaced (focusable aria-hidden, ambiguous link
+            // text). They find nothing today, so they only stop regressions.
+            'jsx-a11y/no-aria-hidden-on-focusable': 'error',
+            'jsx-a11y/anchor-ambiguous-text': 'error',
+            // role="list" on <ul> is a deliberate Safari+VoiceOver workaround (Tailwind's
+            // list-style:none strips list semantics in Safari); keep it allowed.
+            'jsx-a11y/no-redundant-roles': ['error', { ul: ['list'] }],
+
             // React rules (beyond the ones defined by `react.configs.flat.recommended`)
             'react/no-array-index-key': 'error',
             'react/no-danger': 'error',
@@ -361,6 +374,12 @@ const baseConfig = defineConfig([
                     ],
                 },
             ],
+            // jsx-a11y targets shipping UI; test fixtures use ad-hoc roles/handlers/props.
+            'jsx-a11y/no-autofocus': 'off',
+            'jsx-a11y/anchor-is-valid': 'off',
+            'jsx-a11y/click-events-have-key-events': 'off',
+            'jsx-a11y/no-static-element-interactions': 'off',
+            'jsx-a11y/aria-role': 'off',
         },
     },
     {

@@ -49,6 +49,7 @@ function PaginationLink({
   ...props
 }: PaginationLinkProps) {
   return (
+    // eslint-disable-next-line jsx-a11y/anchor-has-content -- base pass-through primitive; content (page number, or Previous/Next label + aria-label) is supplied by every consumer via props/children
     <a
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"

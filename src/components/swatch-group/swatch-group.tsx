@@ -158,6 +158,7 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
         : 'flex flex-wrap gap-[var(--swatch-pill-gap,0.5rem)] focus:outline-none';
 
     return (
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- radiogroup composite widget: arrow-key roving handled at group level per ARIA APG
         <div className={containerClasses} onKeyDown={onKeyDown}>
             <div
                 className={isSquareSwatchGroup ? 'inline-flex flex-col gap-3' : 'flex flex-col gap-3'}
