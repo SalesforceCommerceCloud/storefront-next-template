@@ -140,10 +140,13 @@ export default function ProductCartActions({
 
     return (
         <div className="mt-6">
-            {/* Options Selection Message */}
-            {isMasterOrVariantProduct && !currentVariant && !isProductASet && !isProductABundle && (
-                <div className="text-destructive font-medium">{t('selectAllOptions')}</div>
-            )}
+            {/* Options Selection Message. role="status" lives on a persistent container so the
+                prompt is announced when it appears/clears as the shopper selects variant options. */}
+            <div role="status" aria-atomic="true">
+                {isMasterOrVariantProduct && !currentVariant && !isProductASet && !isProductABundle && (
+                    <span className="text-destructive font-medium">{t('selectAllOptions')}</span>
+                )}
+            </div>
             <UITarget targetId="sfcc.pdp.tax.productMessage" />
 
             {/* Action Buttons */}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { ReactElement, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -25,7 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
  */
 function CartEmptySkeleton(): ReactElement {
     return (
-        <div className="bg-muted flex-1 min-w-full w-full" data-testid="sf-cart-empty-skeleton">
+        <div className="bg-muted flex-1 min-w-full w-full" data-testid="sf-cart-empty-skeleton" aria-busy="true">
             <div className="section-container py-8 lg:py-14">
                 <div className="bg-background p-8 md:p-16 text-center">
                     {/* Empty Cart Icon (real svg is w-24 h-24 with mb-6) */}
@@ -52,8 +53,23 @@ export default function CartSkeleton({
     productItemCount?: number;
     recommendationsSlot?: ReactNode;
 }): ReactElement {
+    const { t } = useTranslation('cart');
+
+    // Announce the loading state to screen readers. role="status" (aria-live="polite")
+    // reads the label out when the skeleton mounts, without interrupting the shopper.
+    const loadingStatus = (
+        <span role="status" className="sr-only">
+            {t('loadingLabel', { defaultValue: 'Loading your cart' })}
+        </span>
+    );
+
     if (!productItemCount) {
-        return <CartEmptySkeleton />;
+        return (
+            <>
+                {loadingStatus}
+                <CartEmptySkeleton />
+            </>
+        );
     }
 
     const productItemSkeletonIds = Array.from(
@@ -62,7 +78,11 @@ export default function CartSkeleton({
     );
 
     return (
-        <div className="flex-1 min-h-screen bg-background mb-10 md:mb-10 pb-32 md:pb-0" data-testid="sf-cart-skeleton">
+        <div
+            className="flex-1 min-h-screen bg-background mb-10 md:mb-10 pb-32 md:pb-0"
+            data-testid="sf-cart-skeleton"
+            aria-busy="true">
+            {loadingStatus}
             <div className="section-container">
                 {/* Page heading — Typography h1 (text-4xl font-bold) with mb-6 */}
                 <Skeleton className="h-10 w-48 mb-6" />

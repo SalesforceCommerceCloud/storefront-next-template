@@ -2,9 +2,16 @@
 
 exports[`CartSkeleton stories snapshot > Default story renders and matches snapshot 1`] = `
 <div
+  aria-busy="true"
   class="flex-1 min-h-screen bg-background mb-10 md:mb-10 pb-32 md:pb-0"
   data-testid="sf-cart-skeleton"
 >
+  <span
+    class="sr-only"
+    role="status"
+  >
+    Loading your cart
+  </span>
   <div
     class="section-container"
   >

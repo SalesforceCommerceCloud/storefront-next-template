@@ -199,8 +199,10 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
     </div>
   </div>
   <div
+    aria-atomic="true"
     class="flex items-center gap-2"
     data-slot="inventory-message"
+    role="status"
   >
     <span
       aria-hidden="true"
@@ -803,8 +805,10 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
     </div>
   </div>
   <div
+    aria-atomic="true"
     class="flex items-center gap-2"
     data-slot="inventory-message"
+    role="status"
   >
     <span
       aria-hidden="true"
@@ -1415,8 +1419,10 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
     </div>
   </div>
   <div
+    aria-atomic="true"
     class="flex items-center gap-2"
     data-slot="inventory-message"
+    role="status"
   >
     <span
       aria-hidden="true"
@@ -2020,20 +2026,11 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
     </div>
   </div>
   <div
-    aria-hidden="true"
-    class="items-center gap-2 hidden"
+    aria-atomic="true"
+    class="flex items-center gap-2"
     data-slot="inventory-message"
-  >
-    <span
-      aria-hidden="true"
-      class="h-2 w-2 shrink-0 bg-current text-muted-foreground"
-    />
-    <p
-      class="text-sm font-medium text-muted-foreground"
-    >
-      Inventory unavailable
-    </p>
-  </div>
+    role="status"
+  />
   <div
     class="space-y-3"
   >

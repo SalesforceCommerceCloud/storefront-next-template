@@ -164,10 +164,14 @@ describe('InventoryMessage', () => {
             ],
         } as ShopperProducts.schemas['Product'];
 
-        const { container } = render(<InventoryMessage product={masterShowsOosWithVariants} />);
+        render(<InventoryMessage product={masterShowsOosWithVariants} />);
 
-        expect(container.querySelector('div')).toHaveAttribute('aria-hidden', 'true');
-        expect(container).toHaveTextContent('Inventory unavailable');
+        // The live region persists in the a11y tree (so the first stock message after a variant
+        // is selected is announced) but renders empty while the status is unknown/hidden.
+        const region = screen.getByRole('status');
+        expect(region).not.toHaveAttribute('aria-hidden');
+        expect(region).toBeEmptyDOMElement();
+        expect(screen.queryByText('Inventory unavailable')).not.toBeInTheDocument();
     });
 
     it('shows out-of-stock for a variant product once currentVariant is resolved', () => {
@@ -329,19 +333,20 @@ describe('InventoryMessage', () => {
         expect(screen.getByText('Available for back order')).toBeInTheDocument();
     });
 
-    it('renders hidden element when no inventory data is available (unknown status hidden by default)', () => {
+    it('renders an empty persistent live region when no inventory data is available (unknown status hidden by default)', () => {
         const productWithoutInventory = {
             ...baseProduct,
             inventory: undefined,
         };
 
-        const { container } = render(<InventoryMessage product={productWithoutInventory} />);
+        render(<InventoryMessage product={productWithoutInventory} />);
 
-        // The element exists but the text should not be visible to screen readers
-        expect(container.querySelector('div')).toBeInTheDocument();
-        expect(container.querySelector('div')).toHaveAttribute('aria-hidden', 'true');
-        // The text content exists but is visually hidden
-        expect(container).toHaveTextContent('Inventory unavailable');
+        // The live region stays in the a11y tree (never aria-hidden) so a later status change is
+        // announced, but it holds no content while the status is unknown/hidden.
+        const region = screen.getByRole('status');
+        expect(region).not.toHaveAttribute('aria-hidden');
+        expect(region).toBeEmptyDOMElement();
+        expect(screen.queryByText('Inventory unavailable')).not.toBeInTheDocument();
     });
 
     it('renders visible unknown status message when showUnknownStatus is true', () => {
@@ -471,20 +476,18 @@ describe('InventoryMessage', () => {
             expect(screen.getByText('Available for back order')).toBeInTheDocument();
         });
 
-        it('renders hidden unknown status when custom getInventoryStatus returns unknown', () => {
+        it('renders an empty persistent live region when custom getInventoryStatus returns unknown', () => {
             const customGetInventoryStatus = vi.fn().mockReturnValue('unknown');
 
-            const { container } = render(
-                <InventoryMessage product={baseProduct} getInventoryStatus={customGetInventoryStatus} />
-            );
+            render(<InventoryMessage product={baseProduct} getInventoryStatus={customGetInventoryStatus} />);
 
             expect(customGetInventoryStatus).toHaveBeenCalledWith(baseProduct, undefined);
 
-            // The element exists but is hidden from screen readers
-            expect(container.querySelector('div')).toBeInTheDocument();
-            expect(container.querySelector('div')).toHaveAttribute('aria-hidden', 'true');
-            // The text content exists but is visually hidden
-            expect(container).toHaveTextContent('Inventory unavailable');
+            // The live region persists (never aria-hidden) but holds no content while unknown/hidden.
+            const region = screen.getByRole('status');
+            expect(region).not.toHaveAttribute('aria-hidden');
+            expect(region).toBeEmptyDOMElement();
+            expect(screen.queryByText('Inventory unavailable')).not.toBeInTheDocument();
         });
 
         it('renders visible unknown status when custom getInventoryStatus returns unknown and showUnknownStatus is true', () => {

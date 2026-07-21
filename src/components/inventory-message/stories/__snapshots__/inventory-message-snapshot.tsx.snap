@@ -9,8 +9,10 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
       class="flex flex-wrap gap-4"
     >
       <div
+        aria-atomic="true"
         class="flex items-center gap-2"
         data-slot="inventory-message"
+        role="status"
       >
         <span
           aria-hidden="true"
@@ -23,8 +25,10 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
         </p>
       </div>
       <div
+        aria-atomic="true"
         class="flex items-center gap-2"
         data-slot="inventory-message"
+        role="status"
       >
         <span
           aria-hidden="true"
@@ -37,8 +41,10 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
         </p>
       </div>
       <div
+        aria-atomic="true"
         class="flex items-center gap-2"
         data-slot="inventory-message"
+        role="status"
       >
         <span
           aria-hidden="true"
@@ -51,8 +57,10 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
         </p>
       </div>
       <div
+        aria-atomic="true"
         class="flex items-center gap-2"
         data-slot="inventory-message"
+        role="status"
       >
         <span
           aria-hidden="true"
@@ -65,8 +73,10 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
         </p>
       </div>
       <div
+        aria-atomic="true"
         class="flex items-center gap-2"
         data-slot="inventory-message"
+        role="status"
       >
         <span
           aria-hidden="true"
@@ -89,8 +99,10 @@ exports[`InventoryMessage stories snapshot > Perpetual story renders and matches
     class="p-8"
   >
     <div
+      aria-atomic="true"
       class="flex items-center gap-2"
       data-slot="inventory-message"
+      role="status"
     >
       <span
         aria-hidden="true"

@@ -56,8 +56,10 @@ exports[`WishlistListItem stories snapshot > Default renders and matches snapsho
           </div>
         </div>
         <div
+          aria-atomic="true"
           class="flex items-center gap-2 text-xs px-2 py-0.5"
           data-slot="inventory-message"
+          role="status"
         >
           <span
             aria-hidden="true"
@@ -199,8 +201,10 @@ exports[`WishlistListItem stories snapshot > MasterProduct renders and matches s
           </div>
         </div>
         <div
+          aria-atomic="true"
           class="flex items-center gap-2 text-xs px-2 py-0.5"
           data-slot="inventory-message"
+          role="status"
         >
           <span
             aria-hidden="true"
@@ -316,8 +320,10 @@ exports[`WishlistListItem stories snapshot > MinimalData renders and matches sna
           Simple Product
         </a>
         <div
+          aria-atomic="true"
           class="flex items-center gap-2 text-xs px-2 py-0.5"
           data-slot="inventory-message"
+          role="status"
         >
           <span
             aria-hidden="true"
@@ -411,8 +417,10 @@ exports[`WishlistListItem stories snapshot > OnSale renders and matches snapshot
           Laptop Briefcase with wheels (37L)
         </a>
         <div
+          aria-atomic="true"
           class="flex items-center gap-2 text-xs px-2 py-0.5"
           data-slot="inventory-message"
+          role="status"
         >
           <span
             aria-hidden="true"
@@ -529,8 +537,10 @@ exports[`WishlistListItem stories snapshot > OutOfStock renders and matches snap
           Laptop Briefcase with wheels (37L)
         </a>
         <div
+          aria-atomic="true"
           class="flex items-center gap-2 text-xs px-2 py-0.5"
           data-slot="inventory-message"
+          role="status"
         >
           <span
             aria-hidden="true"
@@ -666,8 +676,10 @@ exports[`WishlistListItem stories snapshot > OutOfStockVariant renders and match
           </div>
         </div>
         <div
+          aria-atomic="true"
           class="flex items-center gap-2 text-xs px-2 py-0.5"
           data-slot="inventory-message"
+          role="status"
         >
           <span
             aria-hidden="true"

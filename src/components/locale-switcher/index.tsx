@@ -72,13 +72,16 @@ export default function LocaleSwitcher(): ReactElement {
         window.location.href = pathname;
     };
 
+    // WCAG 3.2.2 On Input: fold the context-change advice into the accessible name so it is read
+    // on focus, before the shopper changes the value. Kept on aria-label (not a separate
+    // aria-describedby span) so it adds no server-rendered DOM to every page.
+    const label = `${t('ariaLabel')}. ${t('changesContextHint', {
+        defaultValue: 'Selecting a language reloads the page in that language.',
+    })}`;
+
     return (
         <div className="*:not-first:mt-2">
-            <NativeSelect
-                id={id}
-                onChange={(e) => void handleLocaleChange(e)}
-                aria-label={t('ariaLabel')}
-                value={i18n.language}>
+            <NativeSelect id={id} onChange={(e) => void handleLocaleChange(e)} aria-label={label} value={i18n.language}>
                 {supportedLngs.map((locale) => {
                     return (
                         <option key={locale} value={locale}>

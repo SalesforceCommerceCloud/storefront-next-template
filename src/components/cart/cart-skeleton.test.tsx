@@ -45,6 +45,13 @@ describe('CartSkeleton', () => {
             expect(buttonSkeleton).toBeInTheDocument();
         });
 
+        test('marks the empty-path skeleton as busy for assistive tech', () => {
+            // The empty path is a loading placeholder (item count not yet known), so it must
+            // carry aria-busy like the itemized path — the two loading states stay consistent.
+            render(<CartSkeleton productItemCount={0} />);
+            expect(screen.getByTestId('sf-cart-empty-skeleton')).toHaveAttribute('aria-busy', 'true');
+        });
+
         test('should render a single CTA button', () => {
             const { container } = render(<CartSkeleton productItemCount={0} />);
             // Real cart-empty.tsx renders one "Continue Shopping" button for guests and registered alike.

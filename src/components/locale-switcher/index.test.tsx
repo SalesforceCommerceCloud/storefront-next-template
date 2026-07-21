@@ -102,8 +102,9 @@ describe('LocaleSwitcher', () => {
     test('renders a language selector with proper accessibility label', () => {
         renderWithRouter();
 
+        // The accessible name folds the SC 3.2.2 context-change hint into aria-label.
         const selector = screen.getByRole('combobox', {
-            name: t('localeSwitcher:ariaLabel'),
+            name: `${t('localeSwitcher:ariaLabel')}. ${t('localeSwitcher:changesContextHint')}`,
         });
         expect(selector).toBeInTheDocument();
     });

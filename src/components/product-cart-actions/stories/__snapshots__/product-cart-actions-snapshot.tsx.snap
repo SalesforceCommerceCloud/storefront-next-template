@@ -5,6 +5,10 @@ exports[`ProductCartActions stories snapshot > CompactWithBuyNow story renders a
   class="mt-6"
 >
   <div
+    aria-atomic="true"
+    role="status"
+  />
+  <div
     class="flex flex-col gap-3"
   >
     <div
@@ -36,6 +40,10 @@ exports[`ProductCartActions stories snapshot > Default story renders and matches
   class="mt-6"
 >
   <div
+    aria-atomic="true"
+    role="status"
+  />
+  <div
     class="flex flex-col gap-3"
   >
     <button
@@ -55,6 +63,10 @@ exports[`ProductCartActions stories snapshot > EditMode story renders and matche
 <div
   class="mt-6"
 >
+  <div
+    aria-atomic="true"
+    role="status"
+  />
   <div
     class="flex flex-col gap-3"
   >
@@ -76,9 +88,14 @@ exports[`ProductCartActions stories snapshot > NoVariantSelected story renders a
   class="mt-6"
 >
   <div
-    class="text-destructive font-medium"
+    aria-atomic="true"
+    role="status"
   >
-    Select all your options above
+    <span
+      class="text-destructive font-medium"
+    >
+      Select all your options above
+    </span>
   </div>
   <div
     class="flex flex-col gap-3"

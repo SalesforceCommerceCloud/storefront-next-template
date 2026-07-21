@@ -617,5 +617,9 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
       Add Bundle to Cart
     </button>
   </div>
+  <div
+    aria-atomic="true"
+    role="status"
+  />
 </div>
 `;

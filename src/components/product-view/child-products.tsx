@@ -329,10 +329,13 @@ export default function ChildProducts({
                 </Button>
             </div>
 
-            {/* Error Messages */}
-            {!areAllChildProductsSelected && (
-                <div className="text-center text-destructive">{t('selectAllOptionsAbove')}</div>
-            )}
+            {/* Error Messages. role="status" on a persistent container so the prompt is
+                announced when it appears/clears as child products are selected. */}
+            <div role="status" aria-atomic="true">
+                {!areAllChildProductsSelected && (
+                    <span className="block text-center text-destructive">{t('selectAllOptionsAbove')}</span>
+                )}
+            </div>
         </div>
     );
 }

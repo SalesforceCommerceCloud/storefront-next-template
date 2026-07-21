@@ -319,6 +319,7 @@
     },
     "cart": {
         "title": "Cart",
+        "loadingLabel": "Loading your cart",
         "meta": {
             "title": "Cart",
             "description": "View and manage items in your shopping cart"
@@ -1507,7 +1508,8 @@
         "validation": {
             "unsupportedLocale": "Locale not supported",
             "usingDefault": "Using default locale: {{locale}}"
-        }
+        },
+        "changesContextHint": "Selecting a language reloads the page in that language."
     },
     "currencySwitcher": {
         "ariaLabel": "Currency switcher",
@@ -1528,7 +1530,8 @@
         "validation": {
             "unsupportedCurrency": "Currency not supported",
             "usingDefault": "Using default currency: {{currency}}"
-        }
+        },
+        "changesContextHint": "Selecting a currency updates prices across the site."
     },
     "addressSuggestionDropdown": {
         "suggested": "SUGGESTED",

@@ -280,8 +280,10 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
             </div>
           </div>
           <div
+            aria-atomic="true"
             class="flex items-center gap-2"
             data-slot="inventory-message"
+            role="status"
           >
             <span
               aria-hidden="true"
@@ -547,6 +549,10 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
         <div
           class="mt-6"
         >
+          <div
+            aria-atomic="true"
+            role="status"
+          />
           <div
             class="flex flex-col gap-3"
           >
@@ -888,8 +894,10 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
             </div>
           </div>
           <div
+            aria-atomic="true"
             class="flex items-center gap-2"
             data-slot="inventory-message"
+            role="status"
           >
             <span
               aria-hidden="true"
@@ -1043,6 +1051,10 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
         <div
           class="mt-6"
         >
+          <div
+            aria-atomic="true"
+            role="status"
+          />
           <div
             class="flex flex-col gap-3"
           >
@@ -1385,8 +1397,10 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
             </div>
           </div>
           <div
+            aria-atomic="true"
             class="flex items-center gap-2"
             data-slot="inventory-message"
+            role="status"
           >
             <span
               aria-hidden="true"
@@ -1652,6 +1666,10 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
         <div
           class="mt-6"
         >
+          <div
+            aria-atomic="true"
+            role="status"
+          />
           <div
             class="flex flex-col gap-3"
           >

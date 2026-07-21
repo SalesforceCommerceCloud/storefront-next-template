@@ -198,14 +198,25 @@ export default function InventoryMessage({
 
     const statusInfo = getInventoryMessage(status, t, stockLevel);
     const isUnknown = status === InventoryStatus.UNKNOWN;
+    const hideContent = isUnknown && !showUnknownStatus;
 
+    // The wrapper is a persistent live region: role="status" (aria-live="polite") stays in the
+    // accessibility tree at all times, so the FIRST stock message after variant selection is
+    // announced. When the status is unknown and unshown (e.g. a master product before a variant
+    // is picked) we render the region empty rather than hiding it, so it is never removed from
+    // the a11y tree. aria-atomic makes the whole message read out on each change, not just the diff.
     return (
         <div
             data-slot="inventory-message"
-            className={cn('flex items-center gap-2', className, isUnknown && !showUnknownStatus && 'hidden')}
-            {...(isUnknown && !showUnknownStatus && { 'aria-hidden': true })}>
-            <span aria-hidden="true" className={cn('h-2 w-2 shrink-0 bg-current', statusInfo.className)} />
-            <p className={cn('text-sm font-medium', statusInfo.className)}>{statusInfo.message}</p>
+            role="status"
+            aria-atomic="true"
+            className={cn('flex items-center gap-2', className)}>
+            {!hideContent && (
+                <>
+                    <span aria-hidden="true" className={cn('h-2 w-2 shrink-0 bg-current', statusInfo.className)} />
+                    <p className={cn('text-sm font-medium', statusInfo.className)}>{statusInfo.message}</p>
+                </>
+            )}
         </div>
     );
 }
