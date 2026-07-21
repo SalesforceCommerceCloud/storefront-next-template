@@ -2,6 +2,8 @@
 
 This project uses Storybook for component development, testing, and documentation. Storybook provides an isolated environment to develop and test UI components in isolation.
 
+> **Writing your first story?** Jump to [Contributing a story](#contributing-a-story) for the step-by-step walkthrough, from naming through verifying it before you open a PR.
+
 ## Story-writing principles
 
 Stories should be the *minimum* setup needed to render a component in a particular state. The four rules below keep stories cheap to write and resilient to internal refactors:
@@ -109,7 +111,8 @@ pnpm storybook:test --type=a11y --static
 
 | Command | Description |
 |---------|-------------|
-| `pnpm storybook` | Start Storybook development server on port 6006 |
+| `pnpm storybook` | Start Storybook development server on port 6006 (default vertical: `fashion`) |
+| `VERTICAL=cosmetic pnpm storybook` | Start Storybook rendering a specific vertical's overlays (`fashion` \| `cosmetic`) |
 | `pnpm storybook:build` | Build static Storybook for production deployment |
 | `pnpm storybook:test --type=snapshot` | Run snapshot tests |
 | `pnpm storybook:test --type=snapshot --update` | Update snapshot files locally and run tests |
@@ -132,7 +135,6 @@ This Storybook setup includes the following addons:
 - **@storybook/addon-docs** - Automatic documentation generation
 - **@storybook/addon-a11y** - Accessibility testing and validation
 - **@storybook/addon-vitest** - Integration with Vitest for component testing
-- **@chromatic-com/storybook** - Visual testing and review (optional)
 - **Viewport Toolbar** - Built-in toolbar for testing different screen sizes (Mobile, Tablet, Desktop)
 
 > **Note**: We use Storybook's built-in viewport toolbar instead of creating separate viewport stories. Use the viewport selector in the Storybook toolbar to test components at different screen sizes.
@@ -356,13 +358,159 @@ This project includes `eslint-plugin-storybook` for Storybook-specific linting:
 - Review existing stories in the project for examples
 - Use the Storybook UI to explore available controls and addons
 
-## Contributing
+## Contributing a story
 
-When adding new components:
+The step-by-step for adding or changing a story so it matches conventions and passes CI. The sections above (taxonomy, decorators, mock routes) are the reference this walkthrough points back to.
 
-1. Create the component in the appropriate directory
-2. Add a corresponding `.stories.tsx` file
-3. Include multiple story variants
-4. Test accessibility with the a11y addon
-5. Document the component's purpose and usage
-6. Ensure the story passes ESLint checks
+### The guiding principle
+
+A story should be the *minimum* setup needed to render a component in a particular state — cheap to write, resilient to internal refactors. The four [story-writing principles](#story-writing-principles) at the top of this doc (props-first, mock at the boundary, JSON-serializable args, one reason to update a mock) are the whole game; everything below applies them.
+
+### Naming conventions
+
+| Thing | Convention | Example |
+|---|---|---|
+| Story file | `*.stories.tsx` in a `stories/` subfolder next to the component | `footer/stories/index.stories.tsx` |
+| Story export | PascalCase, names the *state* | `Default`, `Loading`, `InvalidEmailError`, `MobileView` |
+| `meta.title` | `Domain/Component` (or `Domain/Subgroup/Component`), Title Case With Spaces | `Account/Profile/Email Update Fields` |
+| Snapshot fixture | `<name>-snapshot.tsx` alongside the story | `signup-snapshot.tsx` |
+
+The `stories/` subdirectory is **required** — coverage tooling only matches stories there (`cart/cart-content.tsx` → `cart/stories/cart-content.stories.tsx`). See [Story Coverage](./README-STORY-COVERAGE.md) for the matching rules and [Project Structure](#project-structure) for the three folder shapes.
+
+### Args, controls & argTypes
+
+`args` are the props; `argTypes` configure how the Controls panel edits them. **Expose only what visibly drives the canvas; hide the noise.**
+
+```tsx
+argTypes: {
+    label: { control: 'text', description: 'Label in the summary row' },
+    defaultOpen: { control: 'boolean', description: 'Whether the section starts open' },
+
+    // className is utility-class noise — hide it from the panel.
+    className: { control: false, table: { disable: true } },
+
+    // ReactNode props can't be usefully edited as JSX — hide, or expose as a
+    // `text` control when the component renders strings inline.
+    children: { control: 'text' },
+
+    // Callbacks become logged Actions instead of controls.
+    onCancel: { action: 'cancel' },
+}
+```
+
+**State seeded from a prop won't react to a Control unless you remount.** If a component copies a prop into `useState` once (no `useEffect` resync), toggling that Control is silently ignored. Re-key the story on the prop so it remounts:
+
+```tsx
+decorators: [(Story, ctx) => <Story key={`defaultOpen-${String(ctx.args.defaultOpen)}`} />],
+```
+
+(Real example: [`collapsible-section/stories/index.stories.tsx`](../src/components/collapsible-section/stories/index.stories.tsx).)
+
+### Test data
+
+**Reuse shared fixtures — don't recreate the component's data shape inside the story.** Curated fixtures in [`src/components/__mocks__/`](../src/components/__mocks__/) are shared by stories *and* unit tests:
+
+```tsx
+import { basketWithOneItem, inBasketProductDetails } from '@/components/__mocks__';
+```
+
+Feed data through the [story-level parameters](#story-level-overrides) (`routeLoaderData` / `scapiMock` / `miniCartData` / `mockRoutes`) so the component exercises its real data-reading path. A route-level mock survives a hook-signature refactor; a `vi.mock('use-some-hook')` breaks on it. When a component needs a React Router fetcher, hand it a small mock object — see `createMockFetcher` in [`email-update-fields.stories.tsx`](../src/components/email-update-form/stories/email-update-fields.stories.tsx).
+
+### Interaction tests (play functions)
+
+An interaction test is a `play` function that drives the component with real user events and asserts the result. Tag the story `['autodocs', 'interaction']`.
+
+```tsx
+import { expect, within, userEvent, waitFor } from 'storybook/test';
+import { waitForStorybookReady } from '@storybook/test-utils';
+
+export const Interactive: Story = {
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);   // 1. always first — waits out the mount placeholder
+        const canvas = within(canvasElement);          // 2. scope queries to the story canvas
+
+        const input = canvas.getByRole('textbox');
+        await userEvent.type(input, 'hello');           // 3. drive with userEvent
+        await expect(input).toHaveValue('hello');       // 4. assert the resulting state
+    },
+};
+```
+
+Rules that keep plays deterministic:
+
+- **`await waitForStorybookReady(canvasElement)` first**, always — so you don't assert against a half-mounted component.
+- **Radix/portal content lives on `document.body`, not the canvas.** Query dialogs/sheets/popovers with `within(document.body)`, and `await waitFor(...)` for them to appear:
+  ```tsx
+  await userEvent.click(trigger);
+  await waitFor(() => expect(within(document.body).queryByRole('dialog', { hidden: false })).toBeInTheDocument());
+  ```
+- **Assert Radix state via `aria-expanded` / `data-state`, not native `open`** — a Radix Accordion is not a `<details>`.
+- **`await waitFor(...)` for anything async** (validation messages, state settling).
+
+Pick the archetype closest to your component and model on its exemplar:
+
+| Archetype | Exemplar | Key move |
+|---|---|---|
+| **Form** | [`email-update-fields`](../src/components/email-update-form/stories/email-update-fields.stories.tsx) (`Interactive`, `InvalidEmailError`) | type → submit → `waitFor` validation message |
+| **Modal / drawer** | [`cart-sheet`](../src/components/header/stories/cart-sheet.stories.tsx) | click trigger → `waitFor` portal dialog on `document.body` |
+| **Selector** | [`product-info`](../src/components/product-view/stories/product-info.stories.tsx) | click option → assert callback fired + `aria-checked` moved |
+| **Accordion / disclosure** | [`collapsible-section`](../src/components/collapsible-section/stories/index.stories.tsx) | click summary → assert expanded → click → assert collapsed |
+
+**What NOT to interaction-test:** mutations that hit action routes (add-to-cart, wishlist toggle, cart qty/remove, promo apply, checkout navigation) — they're flaky. Assert the pre-mutation state (button present/enabled), not the round-trip. And don't chase 100% coverage — test what can break, not every subcomponent in isolation.
+
+### Add a new component story from scratch
+
+Worked example: a static component `PromoBadge` at `src/components/promo-badge/index.tsx`.
+
+1. **Create the story file** at `src/components/promo-badge/stories/index.stories.tsx` with the [copyright header](../CLAUDE.md#copyright-header-required), then:
+
+   ```tsx
+   import type { Meta, StoryObj } from '@storybook/react-vite';
+   import { PromoBadge } from '../index';
+
+   const meta: Meta<typeof PromoBadge> = {
+       title: 'Products/Promo Badge',   // pick the taxonomy group by purpose, not by folder
+       component: PromoBadge,
+       tags: ['autodocs'],
+       args: { label: '20% off' },       // minimal shared default
+   };
+
+   export default meta;
+   type Story = StoryObj<typeof meta>;
+
+   export const Default: Story = {};
+   ```
+
+2. **Run it up** — `pnpm storybook` (http://localhost:6006) — and confirm it renders and lands in the right sidebar group.
+3. **Add variant stories** for the states that matter (loading, error, empty, a size variant). Override only the args that change.
+4. **Trim the Controls panel** — hide `className` and ReactNode props; expose the props that visibly drive the canvas.
+5. **If it's interactive, add a `play` function** and add `'interaction'` to `tags`. If it reads global context or loader data, wire it via [story-level parameters](#story-level-overrides), not by mocking hooks.
+6. **If it needs a committed snapshot baseline**, add a `<name>-snapshot.tsx` fixture next to the story (copy the tiny wrapper from [`collapsible-section-snapshot.tsx`](../src/components/collapsible-section/stories/collapsible-section-snapshot.tsx)) and generate the baseline in the next step.
+7. **Verify** (below), then add a changeset (`pnpm changeset`, pick `@salesforce/template`).
+
+### Verify before you open a PR
+
+Run from `packages/template`. Interaction and a11y tests need Chromium once: `pnpm exec playwright install chromium`.
+
+```bash
+# Run the three Storybook suites (what CI runs on every PR)
+pnpm storybook:test --type=snapshot        # jsdom snapshot — the committed-baseline visual regression gate
+pnpm storybook:test --type=interaction      # real Chromium, runs your play()
+pnpm storybook:test --type=a11y             # axe-core — new stories must pass
+
+# If your change intentionally alters the DOM, refresh baselines and commit the diff:
+pnpm storybook:test --type=snapshot --update
+```
+
+The snapshot suite serializes each story's DOM and diffs it against a committed `__snapshots__/*.snap` baseline — a DOM change you didn't intend shows up as a failure. Only run `--update` for a change you *meant* to make, and confirm the diff is additive (new keys, no surprise deletions) before committing.
+
+### Anti-patterns
+
+- **Recreating the component's data shape inside the story** — huge nested literals instead of props/fixtures. Use `@/components/__mocks__`.
+- **Promises (or other non-serializable data) in `args`** — breaks Controls and snapshots. Move to `parameters`.
+- **`vi.mock(...)` of a hook inside a story** — mock at the route boundary instead.
+- **Reaching for the global provider stack when props would do** — it's an escape hatch.
+- **Interaction-testing mutations** (add-to-cart, wishlist, promo apply) — flaky; assert the pre-mutation state.
+- **Duplicating a story per viewport** — use the viewport toolbar, not `MobileDefault` + `DesktopDefault` copies.
+- **Copy-pasting the same `play` across stories** or defining an action logger per story — define shared harnesses once in `meta`.
+- **Chasing 100% coverage** — test reusable components and what can break, not every leaf subcomponent in isolation.
