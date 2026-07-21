@@ -64,7 +64,9 @@ export function formatDateForLocale(dateString: string | undefined, locale: stri
 
 /**
  * Formats a delivery window (RFC 3339 timestamps) to a locale-aware date string.
- * Returns a range ("Apr 30, 2026 – May 7, 2026") or a single date when start === end.
+ * Includes the localized day of the week so shoppers can see which day delivery lands on.
+ * The year is omitted to keep the label compact — delivery windows are always near-term.
+ * Returns a range ("Wed, Oct 24 – Fri, Oct 26") or a single date when start === end.
  * Returns undefined if the window is absent or timestamps are invalid.
  *
  * @param window - Object with startAt and endAt as RFC 3339 date-time strings
@@ -83,9 +85,9 @@ export function formatDeliveryWindow(
         // Pin to UTC so SSR (MRT = UTC) and client produce the same calendar date regardless of
         // the shopper's local timezone. Delivery window timestamps are UTC instants from the hook.
         const options: Intl.DateTimeFormatOptions = {
+            weekday: 'short',
             month: 'short',
             day: 'numeric',
-            year: 'numeric',
             timeZone: 'UTC',
         };
         const startFormatted = startDate.toLocaleDateString(locale, options);

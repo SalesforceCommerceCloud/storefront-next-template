@@ -424,7 +424,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
                   <span
                     class="flex-1 text-sm font-medium leading-none"
                   >
-                    Arrives 30 Apr 2026 – 7 May 2026
+                    Arrives Thu 30 Apr – Thu 7 May
                   </span>
                   <span
                     class="flex shrink-0 items-center gap-1.5"
@@ -483,7 +483,7 @@ exports[`ShippingOptions stories snapshot > EditViewWithDeliveryWindow story ren
                   <span
                     class="flex-1 text-sm font-medium leading-none"
                   >
-                    Arrives 30 Apr 2026
+                    Arrives Thu 30 Apr
                   </span>
                   <span
                     class="flex shrink-0 items-center gap-1.5"

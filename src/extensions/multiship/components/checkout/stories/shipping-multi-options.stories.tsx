@@ -783,7 +783,7 @@ export const WithDeliveryWindow: Story = {
         const canvas = within(canvasElement);
 
         // Standard uses the formatted delivery window, not its c_estimatedArrivalTime.
-        expect(canvas.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(canvas.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
         expect(canvas.queryByText(/Dec 15-17/i)).not.toBeInTheDocument();
 
         // Express has no delivery window, so it falls back to c_estimatedArrivalTime.

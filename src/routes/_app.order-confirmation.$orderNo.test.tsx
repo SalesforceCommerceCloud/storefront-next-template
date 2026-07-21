@@ -582,7 +582,7 @@ describe('Order Confirmation Route', () => {
             renderRoute(order);
 
             await waitFor(() => {
-                expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+                expect(screen.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
             });
         });
 

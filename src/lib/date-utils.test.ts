@@ -87,20 +87,20 @@ describe('formatDateForLocale', () => {
 
 describe('formatDeliveryWindow', () => {
     describe('valid windows', () => {
-        it('should format a date range with different start and end', () => {
+        it('should format a date range with the weekday and no year', () => {
             const result = formatDeliveryWindow(
                 { startAt: '2026-04-30T14:00:00Z', endAt: '2026-05-07T14:00:00Z' },
                 'en-US'
             );
-            expect(result).toBe('Apr 30, 2026 – May 7, 2026');
+            expect(result).toBe('Thu, Apr 30 – Thu, May 7');
         });
 
-        it('should return a single date when startAt and endAt format to the same string', () => {
+        it('should return a single date with the weekday when startAt and endAt format to the same string', () => {
             const result = formatDeliveryWindow(
                 { startAt: '2026-04-30T12:00:00Z', endAt: '2026-04-30T18:00:00Z' },
                 'en-US'
             );
-            expect(result).toBe('Apr 30, 2026');
+            expect(result).toBe('Thu, Apr 30');
         });
 
         it('should format consistently in UTC regardless of local timezone', () => {
@@ -110,15 +110,16 @@ describe('formatDeliveryWindow', () => {
                 { startAt: '2026-04-30T23:30:00Z', endAt: '2026-05-01T00:30:00Z' },
                 'en-US'
             );
-            expect(result).toBe('Apr 30, 2026 – May 1, 2026');
+            expect(result).toBe('Thu, Apr 30 – Fri, May 1');
         });
 
-        it('should format with a different locale', () => {
+        it('should format the localized weekday with a different locale', () => {
             const result = formatDeliveryWindow(
                 { startAt: '2026-04-30T14:00:00Z', endAt: '2026-05-07T14:00:00Z' },
                 'de-DE'
             );
-            expect(result).toMatch(/30\. Apr\. 2026/);
+            // German short weekday for Thursday ("Do.") plus localized date, no year.
+            expect(result).toMatch(/Do\., 30\. Apr\./);
         });
     });
 

@@ -466,7 +466,7 @@ describe('ShippingMultiOptions', () => {
 
         // The formatted delivery window is shown; the raw estimatedArrivalTime is not.
         expect(screen.getByText(/Arrives/)).toBeInTheDocument();
-        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
         expect(screen.queryByText(/2-3 business days/i)).not.toBeInTheDocument();
     });
 
@@ -557,7 +557,7 @@ describe('ShippingMultiOptions', () => {
             { wrapper }
         );
 
-        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
         expect(screen.queryByText(/2-3 business days/i)).not.toBeInTheDocument();
     });
 

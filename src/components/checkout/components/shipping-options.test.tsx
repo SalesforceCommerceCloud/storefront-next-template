@@ -748,7 +748,7 @@ describe('ShippingOptions Component', () => {
         render(<ShippingOptions {...createDefaultProps({ shippingMethods: methods })} />);
 
         expect(screen.getByText(/Arrives/)).toBeInTheDocument();
-        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
     });
 
     test('does not show delivery window in edit view when absent', () => {
@@ -796,7 +796,7 @@ describe('ShippingOptions Component', () => {
         );
 
         expect(screen.getByText(/Arrives/)).toBeInTheDocument();
-        expect(screen.getByText(/30.*Apr.*2026|Apr 30.*2026/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
     });
 
     test('does not show delivery window in summary view when absent on selected method', () => {

@@ -40,8 +40,8 @@ describe('getShippingArrivalLabel', () => {
         );
         expect(calls).toHaveLength(1);
         expect(calls[0].key).toBe('shippingOptions.deliveryWindow');
-        expect(calls[0].opts.window).toContain('Apr 30, 2026');
-        expect(calls[0].opts.window).toContain('May 7, 2026');
+        expect(calls[0].opts.window).toContain('Apr 30');
+        expect(calls[0].opts.window).toContain('May 7');
         expect(label).toContain('shippingOptions.deliveryWindow');
     });
 
