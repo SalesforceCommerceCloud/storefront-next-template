@@ -139,7 +139,8 @@ describe('Component', () => {
                 isFragment: false,
                 isVisible: true,
                 isLocalized: true,
-                contentLinkUuid: undefined,
+                // No contentLinkUuid on the component, falls back to id.
+                contentLinkUuid: 'comp1',
             });
         });
 
@@ -203,7 +204,7 @@ describe('Component', () => {
                 isFragment: false,
                 isVisible: false,
                 isLocalized: false,
-                contentLinkUuid: undefined,
+                contentLinkUuid: 'comp3',
             });
         });
 
@@ -237,7 +238,7 @@ describe('Component', () => {
                 isFragment: false,
                 isVisible: false,
                 isLocalized: false,
-                contentLinkUuid: undefined,
+                contentLinkUuid: 'comp4',
             });
         });
 
@@ -468,7 +469,9 @@ describe('Component', () => {
                 isFragment: false,
                 isVisible: true,
                 isLocalized: true,
-                contentLinkUuid: undefined,
+                // designMetadata.contentLinkUuid is ignored; the component-level field is
+                // undefined here, so it falls back to id.
+                contentLinkUuid: 'meta-comp',
             });
         });
 
@@ -498,7 +501,7 @@ describe('Component', () => {
                 isFragment: false,
                 isVisible: false,
                 isLocalized: false,
-                contentLinkUuid: undefined,
+                contentLinkUuid: 'minimal-comp',
             });
         });
 
@@ -543,7 +546,7 @@ describe('Component', () => {
             });
         });
 
-        test('handles missing contentLinkUuid', async () => {
+        test('falls back to component id when contentLinkUuid is missing (mini-PD)', async () => {
             (registry.getFallback as any).mockReturnValue(undefined);
 
             let capturedMetadata: any;
@@ -563,7 +566,31 @@ describe('Component', () => {
             render(<Component component={component} regionId="main" />);
 
             expect(await screen.findByTestId('no-uuid-test')).toBeInTheDocument();
-            expect(capturedMetadata.contentLinkUuid).toBeUndefined();
+            expect(capturedMetadata.contentLinkUuid).toBe('regular-comp');
+        });
+
+        test('prefers component contentLinkUuid over id fallback when present', async () => {
+            (registry.getFallback as any).mockReturnValue(undefined);
+
+            let capturedMetadata: any;
+            const Dynamic: FC<any> = (props) => {
+                capturedMetadata = props.designMetadata;
+                return <div data-testid="uuid-preferred-test" />;
+            };
+            (registry.getComponent as any).mockReturnValue(Dynamic);
+
+            const component = {
+                id: 'regular-comp',
+                typeId: 'banner',
+                contentLinkUuid: 'real-uuid',
+            } as unknown as ComponentType;
+
+            mockUseComponentDataById.mockReturnValue(undefined);
+
+            render(<Component component={component} regionId="main" />);
+
+            expect(await screen.findByTestId('uuid-preferred-test')).toBeInTheDocument();
+            expect(capturedMetadata.contentLinkUuid).toBe('real-uuid');
         });
     });
 });

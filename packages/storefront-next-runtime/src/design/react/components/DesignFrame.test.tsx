@@ -291,3 +291,68 @@ describe('DesignFrame - Toolbox affordance gating', () => {
         expect(container.querySelector('.pd-design__frame__label')).not.toBeNull();
     });
 });
+
+describe('DesignFrame - Label placement (above vs inside)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        tlCleanup();
+    });
+
+    const renderFrame = (props: Partial<React.ComponentProps<typeof DesignFrame>>) =>
+        tlRender(
+            <PageDesignerProvider clientId="test1" targetOrigin="*" mode="EDIT">
+                <DesignFrame name="Test" showToolbox showFrame {...props} />
+            </PageDesignerProvider>
+        );
+
+    // jsdom's getBoundingClientRect returns all-zero rects, so the label-placement
+    // effect (frame top < label height) can't be exercised without stubbing.
+    // Drive the frame's top and the label's height independently to hit each branch.
+    const stubRects = ({ frameTop, labelHeight }: { frameTop: number; labelHeight: number }) => {
+        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+            const height = this.classList.contains('pd-design__frame__label') ? labelHeight : 0;
+            const top = this.classList.contains('pd-design__frame') ? frameTop : 0;
+            return {
+                top,
+                height,
+                bottom: top + height,
+                left: 0,
+                right: 0,
+                width: 0,
+                x: 0,
+                y: top,
+                toJSON: () => ({}),
+            } as DOMRect;
+        });
+    };
+
+    it('renders the label above when there is room above the component', () => {
+        stubRects({ frameTop: 200, labelHeight: 32 });
+        const { container } = renderFrame({});
+        const label = container.querySelector('.pd-design__frame__label');
+        expect(label).not.toBeNull();
+        expect(label?.classList.contains('pd-design__frame__label--inside')).toBe(false);
+    });
+
+    it('renders the label inside when the component is flush to the top (top < label height)', () => {
+        stubRects({ frameTop: 10, labelHeight: 32 });
+        const { container } = renderFrame({});
+        const label = container.querySelector('.pd-design__frame__label');
+        expect(label?.classList.contains('pd-design__frame__label--inside')).toBe(true);
+    });
+
+    it('uses the measured label height as the threshold', () => {
+        // top (35) is below the default 32 but under the measured 40 → inside.
+        stubRects({ frameTop: 35, labelHeight: 40 });
+        const { container } = renderFrame({});
+        const label = container.querySelector('.pd-design__frame__label');
+        expect(label?.classList.contains('pd-design__frame__label--inside')).toBe(true);
+    });
+
+    it('does not apply --inside when the frame is hidden', () => {
+        stubRects({ frameTop: 0, labelHeight: 32 });
+        const { container } = renderFrame({ showFrame: false });
+        const label = container.querySelector('.pd-design__frame__label');
+        expect(label?.classList.contains('pd-design__frame__label--inside')).toBe(false);
+    });
+});

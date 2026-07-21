@@ -16,6 +16,7 @@
   --pd-design-region-border-color: #3e3e3c;
   --pd-design-drop-target-offset: 10px;
   --pd-design-base-z-index: 50;
+  --pd-design-label-height: 32px;
 }
 
 .pd-design__component,
@@ -106,12 +107,12 @@
   font-family: 'Salesforce Sans', sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
-  height: 32px;
+  height: var(--pd-design-label-height);
   left: 50%;
   letter-spacing: 0.5px;
   padding: 0 12px;
   position: absolute;
-  top: -32px;
+  top: calc(-1 * var(--pd-design-label-height));
   transform: translateX(-50%);
   display: none;
   white-space: nowrap;
@@ -135,6 +136,16 @@
 .pd-design__frame.pd-design__frame--visible > .pd-design__frame__label {
   display: inline-flex;
   z-index: calc(var(--pd-design-base-z-index) + 3);
+}
+
+/* When there's no room above the component, render the label inside
+   the top edge instead of 32px above it, where it would be clipped. */
+.pd-design__frame__label.pd-design__frame__label--inside {
+  top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 
 .pd-design__component.pd-design__decorator--selected {

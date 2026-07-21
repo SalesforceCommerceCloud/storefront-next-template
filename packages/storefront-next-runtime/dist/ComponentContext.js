@@ -139,6 +139,13 @@ const DesignFrame = ({ componentId, children, name, parentId, regionId, contentL
 	const { deleteComponent } = useDesignState();
 	const labels = useLabels();
 	const nodeRef = React.useRef(null);
+	const [labelInside, setLabelInside] = React.useState(false);
+	React.useLayoutEffect(() => {
+		const frame = nodeRef.current;
+		if (!showFrame || !frame) return;
+		const labelHeight = frame.querySelector(".pd-design__frame__label")?.getBoundingClientRect().height ?? 0;
+		setLabelInside(frame.getBoundingClientRect().top < labelHeight);
+	}, [showFrame]);
 	const handleDelete = React.useCallback((event) => {
 		event.stopPropagation();
 		if (componentId) deleteComponent({
@@ -155,17 +162,19 @@ const DesignFrame = ({ componentId, children, name, parentId, regionId, contentL
 		regionId
 	]);
 	const stopPropagation = (event) => event.stopPropagation();
+	const classes = [
+		"pd-design__frame",
+		showFrame && "pd-design__frame--visible",
+		className
+	].filter(Boolean).join(" ");
+	const labelClasses = ["pd-design__frame__label", labelInside && "pd-design__frame__label--inside"].filter(Boolean).join(" ");
 	return /* @__PURE__ */ jsxs("div", {
-		className: [
-			"pd-design__frame",
-			showFrame && "pd-design__frame--visible",
-			className
-		].filter(Boolean).join(" "),
+		className: classes,
 		ref: nodeRef,
 		children: [
 			showFrame && /* @__PURE__ */ jsxs(Fragment, { children: [/* @__PURE__ */ jsx("div", { className: "pd-design__frame--x" }), /* @__PURE__ */ jsx("div", { className: "pd-design__frame--y" })] }),
 			/* @__PURE__ */ jsxs("div", {
-				className: "pd-design__frame__label",
+				className: labelClasses,
 				onMouseDown: stopPropagation,
 				children: [
 					componentType?.image && /* @__PURE__ */ jsx("span", {
