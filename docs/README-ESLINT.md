@@ -88,6 +88,8 @@ The `jsx-a11y/label-has-associated-control` rule depends on `minimatch`; the tem
 
 A few intentional patterns keep scoped `eslint-disable-next-line` comments (autofocus on section open, arrow-key roving within swatch and option groups, the labelled carousel region, Page Designer edit-mode drag handles). Test files relax a handful of these rules, since fixtures use ad-hoc roles and handlers that never ship.
 
+> **`anchor-ambiguous-text` only sees static JSX.** It reads the literal text in the source, not what `t(...)` resolves to at runtime, so a link whose text comes from a translation key (e.g. `<Link>{t('cta.learnMore')}</Link>`) is never checked, and a translation that renders to "click here" in some locale will not be flagged. Ambiguous *translated* link text needs a separate audit of the locale JSON, not this lint rule.
+
 ## Performance tuning
 
 ### `@typescript-eslint/no-misused-promises` — `checksVoidReturn.attributes: false`

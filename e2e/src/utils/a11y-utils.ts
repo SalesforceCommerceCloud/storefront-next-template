@@ -29,6 +29,7 @@ import {
     REPORTING_TAGS,
     getViolationCountsByRule,
     groupViolationsByImpact,
+    filterViolationsByTags,
     compareWithBaseline,
     formatViolationReport,
     formatBaselineFailure,
@@ -200,20 +201,26 @@ export async function beginScan(pageKey: string): Promise<'desktop' | 'mobile'> 
  * @param viewport - Viewport key returned by {@link beginScan}.
  */
 export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobile'): Promise<void> {
-    // The blocking scan ALWAYS runs on WCAG_TAGS (WCAG 2.1 AA). This is the only
-    // scan the baseline assert below reads, so widening the report can never change
-    // what fails CI.
-    const results: A11yScanResults = await runAxeScan();
     const key = `${pageKey}/${viewport}`;
 
+    // The baseline assert below ALWAYS reads a WCAG_TAGS (WCAG 2.1 AA) view, so
+    // widening the report can never change what fails CI.
+    //
+    // PR gate (default, A11Y_COLLECT_RESULTS unset): a single narrow WCAG scan.
+    // Collect/report path (pnpm a11y:report, nightly, local suite scans): a single
+    // WIDENED scan (WCAG 2.2 AA + best-practice + the incomplete "needs manual
+    // review" bucket) is persisted for the report, and the narrow assert view is
+    // DERIVED from it by filtering to WCAG_TAGS. Because axe runs each rule
+    // independently, that filtered view is identical to a standalone narrow scan —
+    // so collect mode now runs one axe pass per page instead of two, with the
+    // blocking gate input unchanged.
+    let results: A11yScanResults;
     if (isCollectMode) {
-        // Report/collect path only (pnpm a11y:report, nightly, local suite scans):
-        // persist a WIDENED scan (WCAG 2.2 AA + best-practice + the incomplete
-        // "needs manual review" bucket) so the report is richer than the gate.
-        // This branch is never taken by the PR gate (which does not set
-        // A11Y_COLLECT_RESULTS), so it adds zero blocking surface.
         const reportResults = await runAxeScan({ tags: REPORTING_TAGS });
         collectResults(key, reportResults);
+        results = filterViolationsByTags(reportResults, WCAG_TAGS);
+    } else {
+        results = await runAxeScan();
     }
 
     const baseline = loadBaseline();
@@ -241,7 +248,7 @@ export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobi
     const totalViolations = Object.values(results.violationCounts).reduce((a, b) => a + b, 0);
 
     if (Object.keys(comparison.decreasedViolations).length > 0) {
-        console.log(`↓ ${key} — violations decreased, run pnpm a11y:update-baseline`);
+        console.log(`↓ ${key} — violations decreased, run pnpm --filter ./e2e a11y:update-baseline`);
     } else {
         console.log(
             `✓ PASS: ${key} — ${totalViolations} violation${totalViolations !== 1 ? 's' : ''} (within baseline)`
@@ -253,7 +260,7 @@ export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobi
         Object.keys(comparison.informationalIncreasedViolations).length;
     if (informationalCount > 0) {
         console.log(
-            `  ⓘ ${informationalCount} moderate/minor rule${informationalCount !== 1 ? 's' : ''} exceeded baseline (not blocking — update with pnpm a11y:update-baseline)`
+            `  ⓘ ${informationalCount} moderate/minor rule${informationalCount !== 1 ? 's' : ''} exceeded baseline (not blocking — update with pnpm --filter ./e2e a11y:update-baseline)`
         );
     }
 }
@@ -276,7 +283,9 @@ export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobi
  * @param pageKey - Short page identifier, e.g. 'pdp'.
  * @param stateLabel - The state the caller drove the DOM into, e.g. 'out-of-stock'.
  * @param viewport - Viewport key returned by {@link beginScan}.
- * @returns The widened scan results (violations + the incomplete needs-review bucket).
+ * @returns The widened scan results (violations + the incomplete needs-review
+ *   bucket). Never throws on a violation and never asserts — a caller can await it
+ *   purely to enrich the report without risking a failed scenario.
  */
 export async function scanState(
     pageKey: string,

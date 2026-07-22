@@ -46,6 +46,14 @@ export interface AxeViolation {
     description: string;
     /** axe-core documentation URL for this rule. */
     helpUrl?: string;
+    /**
+     * Tags of the rule that flagged this violation (e.g. `wcag2aa`, `wcag22aa`,
+     * `best-practice`). axe-core always populates this on a rule result. Optional
+     * here only so hand-built test fixtures need not supply it; real scan output
+     * always carries it. Used by {@link filterViolationsByTags} to derive the narrow
+     * WCAG view from a single widened scan.
+     */
+    tags?: string[];
     nodes: Array<{ target: string[]; html?: string }>;
 }
 
@@ -143,6 +151,37 @@ export function groupViolationsByImpact(violations: AxeViolation[]): A11yScanRes
         serious: violations.filter((v) => v.impact === 'serious'),
         moderate: violations.filter((v) => v.impact === 'moderate'),
         minor: violations.filter((v) => v.impact === 'minor'),
+    };
+}
+
+/**
+ * Narrow a widened scan's results down to the violations a scan restricted to
+ * `tags` would have produced, recomputing the derived count/impact views so the
+ * result is indistinguishable from a standalone narrow scan.
+ *
+ * This is exact, not an approximation: axe runs each rule independently, and
+ * `AxeBuilder.withTags(tags)` runs precisely the rules carrying one of those tags.
+ * So the set of violations from a narrow scan equals the widened scan's violations
+ * whose own `tags` intersect the narrow set. Running one widened scan and filtering
+ * therefore yields the same blocking input as running a separate narrow scan — one
+ * axe pass instead of two on the same page.
+ *
+ * A violation with no `tags` (only hand-built fixtures; real axe output always has
+ * them) is treated as NOT matching, so it never leaks into the narrow gate view.
+ *
+ * @param results - Results from a widened scan (e.g. {@link REPORTING_TAGS}).
+ * @param tags - The narrow tag set to keep, e.g. {@link WCAG_TAGS}.
+ * @returns A results object carrying only the matching violations, with
+ *   `violationCounts` and `violationsByImpact` recomputed to match.
+ */
+export function filterViolationsByTags(results: A11yScanResults, tags: string[]): A11yScanResults {
+    const wanted = new Set(tags);
+    const violations = results.violations.filter((v) => (v.tags ?? []).some((t) => wanted.has(t)));
+    return {
+        ...results,
+        violations,
+        violationCounts: getViolationCountsByRule(violations),
+        violationsByImpact: groupViolationsByImpact(violations),
     };
 }
 

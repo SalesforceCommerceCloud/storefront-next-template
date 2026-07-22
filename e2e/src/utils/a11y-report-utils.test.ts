@@ -18,6 +18,7 @@ import { describe, it, expect } from 'vitest';
 import {
     getViolationCountsByRule,
     groupViolationsByImpact,
+    filterViolationsByTags,
     formatViolationReport,
     compareWithBaseline,
     formatBaselineFailure,
@@ -41,13 +42,14 @@ function makeViolation(
     id: string,
     impact: AxeViolation['impact'],
     nodeCount: number,
-    opts: { helpUrl?: string; html?: string } = {}
+    opts: { helpUrl?: string; html?: string; tags?: string[] } = {}
 ): AxeViolation {
     return {
         id,
         impact,
         description: `Description for ${id}`,
         helpUrl: opts.helpUrl,
+        tags: opts.tags,
         nodes: Array.from({ length: nodeCount }, (_, i) => ({
             target: [`#${id}-${i}`],
             html: opts.html ? `<div id="${id}-${i}">${opts.html}</div>` : undefined,
@@ -526,5 +528,81 @@ describe('formatMarkdownReport widened reporting', () => {
         const results = makeScanResults([], [makeViolation('aria-allowed-attr', null, 13)]);
         const md = formatMarkdownReport({ 'pdp/desktop': results });
         expect(md).toContain('... and 3 more');
+    });
+});
+
+// =============================================================================
+// filterViolationsByTags
+// =============================================================================
+
+describe('filterViolationsByTags', () => {
+    it('keeps only violations whose tags intersect the requested set', () => {
+        const wide = makeScanResults([
+            makeViolation('color-contrast', 'serious', 2, { tags: ['wcag2aa', 'wcag143'] }),
+            makeViolation('target-size', 'serious', 1, { tags: ['wcag22aa'] }),
+            makeViolation('region', 'moderate', 3, { tags: ['best-practice'] }),
+        ]);
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(narrow.violations.map((v) => v.id)).toEqual(['color-contrast']);
+    });
+
+    it('recomputes counts and impact grouping to match the filtered set', () => {
+        const wide = makeScanResults([
+            makeViolation('color-contrast', 'serious', 2, { tags: ['wcag2aa'] }),
+            makeViolation('link-name', 'critical', 1, { tags: ['wcag2a'] }),
+            makeViolation('target-size', 'serious', 4, { tags: ['wcag22aa'] }),
+        ]);
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        // target-size (wcag22aa only) is dropped; counts/impact reflect only the kept rules.
+        expect(narrow.violationCounts).toEqual({ 'color-contrast': 2, 'link-name': 1 });
+        expect(narrow.violationsByImpact.serious.map((v) => v.id)).toEqual(['color-contrast']);
+        expect(narrow.violationsByImpact.critical.map((v) => v.id)).toEqual(['link-name']);
+    });
+
+    it('is exactly equivalent to a standalone narrow scan of the same DOM', () => {
+        // Axe runs each rule independently: a narrow scan produces exactly the WCAG-tagged
+        // subset of a wide scan. So filtering the wide result must equal scanning narrow.
+        const wcagOnly = [
+            makeViolation('color-contrast', 'serious', 2, { tags: ['wcag2aa'] }),
+            makeViolation('link-name', 'critical', 1, { tags: ['wcag2a'] }),
+        ];
+        const standaloneNarrow = makeScanResults(wcagOnly);
+        const wide = makeScanResults([
+            ...wcagOnly,
+            makeViolation('target-size', 'serious', 4, { tags: ['wcag22aa'] }),
+            makeViolation('region', 'moderate', 3, { tags: ['best-practice'] }),
+        ]);
+
+        const derivedNarrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(derivedNarrow.violations).toEqual(standaloneNarrow.violations);
+        expect(derivedNarrow.violationCounts).toEqual(standaloneNarrow.violationCounts);
+        expect(derivedNarrow.violationsByImpact).toEqual(standaloneNarrow.violationsByImpact);
+    });
+
+    it('excludes a violation with no tags so it never leaks into the narrow gate view', () => {
+        const wide = makeScanResults([
+            makeViolation('color-contrast', 'serious', 1, { tags: ['wcag2aa'] }),
+            makeViolation('mystery-rule', 'critical', 5), // no tags
+        ]);
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(narrow.violations.map((v) => v.id)).toEqual(['color-contrast']);
+    });
+
+    it('preserves the incomplete needs-review bucket untouched', () => {
+        const wide = makeScanResults(
+            [makeViolation('color-contrast', 'serious', 1, { tags: ['wcag2aa'] })],
+            [makeViolation('link-in-text-block', null, 2, { tags: ['best-practice'] })]
+        );
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(narrow.incomplete).toEqual(wide.incomplete);
     });
 });
