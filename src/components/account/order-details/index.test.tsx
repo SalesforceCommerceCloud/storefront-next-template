@@ -18,14 +18,21 @@ import { describe, test, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import { OrderDetails } from './index';
 
-vi.mock('@/targets/ui-target', () => ({ UITarget: () => null }));
+// The returns UITarget slot renders real children (Return Items button + dialog) — a null-mock
+// swallows that entirely and hides real regressions in the eligibility gate.
+vi.mock('@/targets/ui-target', () => ({
+    UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
 vi.mock('@/extensions/ratings-reviews/components/target/order-line-review-target', () => ({
     default: () => null,
 }));
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { ConfigWrapper, mockLocale, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import AuthProvider from '@/providers/auth';
 import type { ShopperOrders, ShopperProducts } from '@/scapi';
+import type { OmsMetaDataResult } from '@/lib/api/order.server';
+import type { PublicSessionData } from '@/lib/api/types';
 
 const mockSite = mockSiteObject;
 
@@ -80,7 +87,15 @@ const defaultProductsById: Record<string, ShopperProducts.schemas['Product'] | u
 };
 
 /** Wraps OrderDetails with required router + config + currency context. */
-function OrderDetailsWithProviders({ order = defaultOrder }: { order?: ShopperOrders.schemas['Order'] }) {
+function OrderDetailsWithProviders({
+    order = defaultOrder,
+    omsMetaData,
+    customerId,
+}: {
+    order?: ShopperOrders.schemas['Order'];
+    omsMetaData?: Promise<OmsMetaDataResult>;
+    customerId?: string;
+}) {
     return (
         <MemoryRouter>
             <ConfigWrapper>
@@ -89,7 +104,10 @@ function OrderDetailsWithProviders({ order = defaultOrder }: { order?: ShopperOr
                     locale={mockLocale}
                     language={mockSiteObject.defaultLocale}
                     currency={mockSiteObject.defaultCurrency}>
-                    <OrderDetails order={order} productsById={defaultProductsById} />
+                    <AuthProvider
+                        value={customerId ? ({ customerId, userType: 'registered' } as PublicSessionData) : undefined}>
+                        <OrderDetails order={order} productsById={defaultProductsById} omsMetaData={omsMetaData} />
+                    </AuthProvider>
                 </SiteProvider>
             </ConfigWrapper>
         </MemoryRouter>
@@ -142,6 +160,53 @@ describe('OrderDetails', () => {
         } as ShopperOrders.schemas['Order']);
         expect(screen.getByText(t('account:orders.status.cancelled'))).toBeInTheDocument();
         expect(screen.getByTestId('order-status-icon')).toBeInTheDocument();
+    });
+
+    describe('return status badge', () => {
+        // Each row: item omsData statuses → expected derived return label → expected badge shell.
+        // In-progress returns use `info` (blue); complete returns use `muted` (gray).
+        it.each([
+            [['returned'], 'Return Complete', 'muted'],
+            [['returned', 'ordered'], 'Partial Return Complete', 'muted'],
+            [['return_initiated'], 'Return Initiated', 'info'],
+            [['return_initiated', 'ordered'], 'Partial Return Initiated', 'info'],
+        ] as const)(
+            'renders %s as the "%s" return badge instead of the raw status',
+            (statuses, expectedLabel, shell) => {
+                const order = {
+                    ...defaultOrder,
+                    status: 'completed',
+                    productItems: statuses.map((status, i) => ({
+                        itemId: `item-${i}`,
+                        productId: `prod-${i}`,
+                        productName: `Product ${i}`,
+                        quantity: 1,
+                        omsData: { status },
+                    })),
+                } as ShopperOrders.schemas['Order'];
+
+                renderOrderDetails(order);
+
+                const badge = screen.getByTestId('order-return-status-badge');
+                expect(badge).toHaveTextContent(expectedLabel);
+                if (shell === 'info') {
+                    expect(badge.className).toContain('bg-info');
+                    expect(badge.className).toContain('text-info-foreground');
+                } else {
+                    expect(badge.className).toContain('bg-muted');
+                    expect(badge.className).toContain('text-muted-foreground');
+                }
+                // Return badge takes precedence: the raw status badge is suppressed.
+                expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+                expect(screen.queryByText(t('account:orders.status.completed'))).not.toBeInTheDocument();
+            }
+        );
+
+        it('renders the raw status badge when no item has a return status', () => {
+            renderOrderDetails({ ...defaultOrder, status: 'completed' } as ShopperOrders.schemas['Order']);
+            expect(screen.getByTestId('order-status-badge')).toBeInTheDocument();
+            expect(screen.queryByTestId('order-return-status-badge')).not.toBeInTheDocument();
+        });
     });
 
     test('order-status badge prefers OMS status when ECOM status is absent (consistent with the order-history list)', () => {
@@ -401,5 +466,252 @@ describe('OrderDetails', () => {
     test('does not show Payment Method section when paymentInstruments is empty array', () => {
         renderOrderDetails({ ...defaultOrder, paymentInstruments: [] } as ShopperOrders.schemas['Order']);
         expect(screen.queryByText(t('account:orders.paymentMethod'))).not.toBeInTheDocument();
+    });
+
+    describe('Cancel Order eligibility gate', () => {
+        const cancellableOrder: ShopperOrders.schemas['Order'] = {
+            ...defaultOrder,
+            customerInfo: { customerId: 'cust-123' },
+            omsData: {},
+            productItems: [
+                {
+                    ...defaultOrder.productItems?.[0],
+                    omsData: { quantityAvailableToCancel: 1, quantityOrdered: 1 },
+                },
+            ],
+        } as ShopperOrders.schemas['Order'];
+
+        function renderWith(props: {
+            order?: ShopperOrders.schemas['Order'];
+            omsMetaData?: Promise<OmsMetaDataResult>;
+            customerId?: string;
+        }) {
+            return render(<OrderDetailsWithProviders {...props} />);
+        }
+
+        test('does not render Cancel Order button when omsMetaData prop is omitted', () => {
+            renderWith({ order: cancellableOrder, customerId: 'cust-123' });
+            expect(screen.queryByRole('button', { name: t('account:orders.cancelOrder') })).not.toBeInTheDocument();
+        });
+
+        test('does not render Cancel Order button for an unauthenticated shopper', async () => {
+            renderWith({
+                order: cancellableOrder,
+                omsMetaData: Promise.resolve({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.cancelOrder') })).not.toBeInTheDocument();
+        });
+
+        test('does not render Cancel Order button when the shopper does not own the order', async () => {
+            renderWith({
+                order: cancellableOrder,
+                customerId: 'someone-else',
+                omsMetaData: Promise.resolve({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.cancelOrder') })).not.toBeInTheDocument();
+        });
+
+        test('does not render Cancel Order button when the order has no OMS data', async () => {
+            const orderWithoutOms = { ...cancellableOrder, omsData: undefined };
+            renderWith({
+                order: orderWithoutOms as ShopperOrders.schemas['Order'],
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.cancelOrder') })).not.toBeInTheDocument();
+        });
+
+        test('renders an enabled Cancel Order button for an eligible, OMS-active order', async () => {
+            renderWith({
+                order: cancellableOrder,
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({
+                    omsActive: true,
+                    cancelReasonCodes: [{ reason: 'Changed my mind', default: true }],
+                    returnReasonCodes: [],
+                }),
+            });
+            const button = await screen.findByRole('button', { name: t('account:orders.cancelOrder') });
+            expect(button).toBeInTheDocument();
+            expect(button).not.toHaveAttribute('aria-disabled', 'true');
+        });
+
+        test('hides the Cancel Order button entirely when omsActive is false (409)', async () => {
+            renderWith({
+                order: cancellableOrder,
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({ omsActive: false, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.cancelOrder') })).not.toBeInTheDocument();
+        });
+
+        test('renders a disabled Cancel Order button when items are not fully cancellable', async () => {
+            const notCancellable = {
+                ...cancellableOrder,
+                productItems: [
+                    {
+                        ...defaultOrder.productItems?.[0],
+                        omsData: { quantityAvailableToCancel: 0, quantityOrdered: 1 },
+                    },
+                ],
+            } as ShopperOrders.schemas['Order'];
+            renderWith({
+                order: notCancellable,
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({
+                    omsActive: true,
+                    cancelReasonCodes: [{ reason: 'Changed my mind', default: true }],
+                    returnReasonCodes: [],
+                }),
+            });
+            // PWA parity: unavailable action stays visible but disabled, not hidden.
+            const button = await screen.findByRole('button', { name: t('account:orders.cancelOrder') });
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+            expect(screen.getByText(t('account:orders.cancelUnavailable'))).toBeInTheDocument();
+        });
+
+        test('renders order-cancel-status-badge when all items have omsData.status "canceled"', () => {
+            const cancelledOrder = {
+                ...defaultOrder,
+                productItems: [
+                    {
+                        ...defaultOrder.productItems?.[0],
+                        omsData: { status: 'canceled' },
+                    },
+                ],
+            } as ShopperOrders.schemas['Order'];
+            renderWith({ order: cancelledOrder });
+            expect(screen.getByTestId('order-cancel-status-badge')).toBeInTheDocument();
+            expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Return Items eligibility gate', () => {
+        const returnableOrder: ShopperOrders.schemas['Order'] = {
+            ...defaultOrder,
+            customerInfo: { customerId: 'cust-123' },
+            omsData: {},
+            productItems: [
+                {
+                    ...defaultOrder.productItems?.[0],
+                    omsData: { quantityAvailableToReturn: 1 },
+                },
+            ],
+        } as ShopperOrders.schemas['Order'];
+
+        function renderWith(props: {
+            order?: ShopperOrders.schemas['Order'];
+            omsMetaData?: Promise<OmsMetaDataResult>;
+            customerId?: string;
+        }) {
+            return render(<OrderDetailsWithProviders {...props} />);
+        }
+
+        test('does not render Return Items button when omsMetaData prop is omitted', () => {
+            renderWith({ order: returnableOrder, customerId: 'cust-123' });
+            expect(screen.queryByRole('button', { name: t('account:orders.returnItems') })).not.toBeInTheDocument();
+        });
+
+        test('does not render Return Items button for an unauthenticated shopper', async () => {
+            renderWith({
+                order: returnableOrder,
+                omsMetaData: Promise.resolve({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.returnItems') })).not.toBeInTheDocument();
+        });
+
+        test('does not render Return Items button when the shopper does not own the order', async () => {
+            renderWith({
+                order: returnableOrder,
+                customerId: 'someone-else',
+                omsMetaData: Promise.resolve({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.returnItems') })).not.toBeInTheDocument();
+        });
+
+        test('does not render Return Items button when the order has no OMS data', async () => {
+            const orderWithoutOms = { ...returnableOrder, omsData: undefined };
+            renderWith({
+                order: orderWithoutOms as ShopperOrders.schemas['Order'],
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.returnItems') })).not.toBeInTheDocument();
+        });
+
+        test('renders an enabled Return Items button for an eligible, OMS-active order', async () => {
+            renderWith({
+                order: returnableOrder,
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({
+                    omsActive: true,
+                    cancelReasonCodes: [],
+                    returnReasonCodes: [{ reason: 'Does not fit', default: true }],
+                }),
+            });
+            const button = await screen.findByRole('button', { name: t('account:orders.returnItems') });
+            expect(button).toBeInTheDocument();
+            expect(button).not.toHaveAttribute('aria-disabled', 'true');
+        });
+
+        test('hides the Return Items button entirely when omsActive is false (409)', async () => {
+            renderWith({
+                order: returnableOrder,
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({ omsActive: false, cancelReasonCodes: [], returnReasonCodes: [] }),
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(screen.queryByRole('button', { name: t('account:orders.returnItems') })).not.toBeInTheDocument();
+        });
+
+        test('closing the return dialog restores focus to the Return Items button', async () => {
+            const user = (await import('@testing-library/user-event')).default.setup();
+            renderWith({
+                order: returnableOrder,
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({
+                    omsActive: true,
+                    cancelReasonCodes: [],
+                    returnReasonCodes: [{ reason: 'Does not fit', default: true }],
+                }),
+            });
+            const returnButton = await screen.findByRole('button', { name: t('account:orders.returnItems') });
+            await user.click(returnButton);
+            // Dialog is now open; the shopper cancels/dismisses it.
+            await user.keyboard('{Escape}');
+            expect(returnButton).toHaveFocus();
+        });
+
+        test('renders a disabled Return Items button when nothing is returnable', async () => {
+            const nothingReturnable = {
+                ...returnableOrder,
+                productItems: [
+                    {
+                        ...returnableOrder.productItems?.[0],
+                        omsData: { quantityAvailableToReturn: 0 },
+                    },
+                ],
+            } as ShopperOrders.schemas['Order'];
+            renderWith({
+                order: nothingReturnable,
+                customerId: 'cust-123',
+                omsMetaData: Promise.resolve({
+                    omsActive: true,
+                    cancelReasonCodes: [],
+                    returnReasonCodes: [{ reason: 'Does not fit', default: true }],
+                }),
+            });
+            // PWA parity: unavailable action stays visible but disabled, not hidden.
+            const button = await screen.findByRole('button', { name: t('account:orders.returnItems') });
+            expect(button).toHaveAttribute('aria-disabled', 'true');
+            expect(screen.getByText(t('account:orders.returnUnavailable'))).toBeInTheDocument();
+        });
     });
 });

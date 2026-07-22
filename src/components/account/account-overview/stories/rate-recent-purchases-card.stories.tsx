@@ -97,3 +97,14 @@ export const SingleLineNoImage: Story = {
         },
     },
 };
+
+// A derived return status surfaces in the caption instead of the raw order status.
+export const WithReturnStatus: Story = {
+    args: {
+        order: {
+            ...sampleOrder,
+            status: 'completed',
+            returnStatus: 'RETURN_COMPLETE',
+        },
+    },
+};

@@ -861,20 +861,6 @@
             "productPlaceholderInitial": "Artikel",
             "quantityLabel": "Antal: {{count}}",
             "trackingNumber": "Spårningsnummer",
-            "tracking": {
-                "provider": "Carrier",
-                "expectedDelivery": "Expected delivery",
-                "delivered": "Delivered",
-                "trackingNumberLinkLabel": "Track shipment {{trackingNumber}} (opens in a new tab)"
-            },
-            "actions": {
-                "trackShipment": "Track Shipment",
-                "trackShipmentNewTab": "Track Shipment (opens in a new tab)",
-                "trackNumber": "Track {{trackingNumber}}",
-                "trackShipmentNumber": "Track Shipment {{number}}",
-                "trackNumberNewTab": "Track {{trackingNumber}} (opens in a new tab)",
-                "trackShipmentNumberNewTab": "Track Shipment {{number}} (opens in a new tab)"
-            },
             "shippingAddress": "Fraktadress",
             "paymentMethod": "Betalningsmetod",
             "paymentMethodEndingIn": "{{cardType}} som slutar med {{lastDigits}}"

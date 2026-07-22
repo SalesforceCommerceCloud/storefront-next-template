@@ -303,7 +303,7 @@ function SummaryBodyContent({
             {showPromoCodeForm && <hr className="mx-[calc(var(--cart-summary-px)*-1)] border-border" />}
             <UITarget targetId="sfcc.orderSummary.promoCode.before" />
             <UITarget targetId="sfcc.orderSummary.promoCode">
-                {showPromoCodeForm ? <PromoCodeForm basket={basket} /> : null}
+                {showPromoCodeForm ? <PromoCodeForm basket={basket as ShopperBasketsV2.schemas['Basket']} /> : null}
             </UITarget>
             <UITarget targetId="sfcc.orderSummary.promoCode.after" />
             <UITarget targetId="sfcc.cart.giftCards.apply" />

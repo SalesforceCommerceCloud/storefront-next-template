@@ -198,3 +198,110 @@ exports[`RateRecentPurchasesCard stories snapshot > SingleLineNoImage story rend
   </div>
 </div>
 `;
+
+exports[`RateRecentPurchasesCard stories snapshot > WithReturnStatus story renders and matches snapshot 1`] = `
+<div
+  class="max-w-3xl"
+>
+  <div
+    class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui py-0"
+    data-slot="card"
+  >
+    <div
+      class="p-6"
+      data-slot="card-content"
+    >
+      <div
+        class="space-y-4"
+      >
+        <div>
+          <h2
+            class="text-lg font-semibold text-foreground"
+          >
+            Rate Your Recent Purchases
+          </h2>
+          <p
+            class="text-sm text-muted-foreground mt-1"
+          >
+            Share your experience and help others discover great products
+          </p>
+        </div>
+        <div
+          class="rounded-ui border border-border p-4 sm:p-5"
+        >
+          <div
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+          >
+            <div
+              class="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4"
+            >
+              <div
+                class="flex shrink-0 flex-wrap gap-2"
+              >
+                <a
+                  class="relative block"
+                  data-discover="true"
+                  href="/RefArchGlobal/en-GB/product/701643108633M"
+                >
+                  <div
+                    class="h-16 w-16 overflow-hidden border border-border bg-muted"
+                  >
+                    <div
+                      class="flex h-full w-full items-center justify-center text-xs text-muted-foreground"
+                    >
+                      Item
+                    </div>
+                  </div>
+                </a>
+                <a
+                  class="relative block"
+                  data-discover="true"
+                  href="/RefArchGlobal/en-GB/product/701643108634M"
+                >
+                  <div
+                    class="h-16 w-16 overflow-hidden border border-border bg-muted"
+                  >
+                    <div
+                      class="flex h-full w-full items-center justify-center text-xs text-muted-foreground"
+                    >
+                      Item
+                    </div>
+                  </div>
+                </a>
+              </div>
+              <div
+                class="min-w-0 flex-1 space-y-1 text-left"
+              >
+                <p
+                  class="text-sm font-medium text-foreground line-clamp-4"
+                >
+                  Charcoal Crewneck, Navy Tee
+                </p>
+                <p
+                  class="text-xs text-muted-foreground"
+                >
+                  Order #INV001 • Return Complete
+                </p>
+              </div>
+            </div>
+            <div
+              class="flex w-full shrink-0 justify-end sm:w-auto sm:self-center"
+            >
+              <a
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-9 px-4 py-2 has-[>svg]:px-3 min-w-[10.5rem] bg-foreground text-background hover:bg-foreground/90"
+                data-discover="true"
+                data-size="default"
+                data-slot="button"
+                data-variant="default"
+                href="/RefArchGlobal/en-GB/account/orders/INV001"
+              >
+                Rate & review
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

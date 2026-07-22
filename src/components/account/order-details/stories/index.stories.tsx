@@ -21,6 +21,9 @@ import { OrderDetails } from '../index';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { ConfigWrapper, mockLocale, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import type { OmsMetaDataResult } from '@/lib/api/order.server';
+import AuthProvider from '@/providers/auth';
+import type { PublicSessionData } from '@/lib/api/types';
 
 const { t } = getTranslation();
 
@@ -234,6 +237,35 @@ export const ReplacedStatus: Story = {
     },
 };
 
+export const WithReturnStatus: Story = {
+    args: {
+        order: {
+            ...order,
+            status: 'completed',
+            productItems: order.productItems?.map((item) => ({
+                ...item,
+                omsData: { status: 'returned' },
+            })),
+        },
+        productsById,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'All items have `omsData.status: "returned"` — the derived **return status** badge ("Return Complete", informational blue, `data-testid="order-return-status-badge"`) replaces the raw order-status badge.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        await expect(canvas.getByTestId('order-return-status-badge')).toHaveTextContent(
+            t('account:orders.returnStatus.complete')
+        );
+        await expect(canvas.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+    },
+};
+
 export const WithShippingStatus: Story = {
     args: {
         order: {
@@ -290,6 +322,137 @@ export const WithPaymentMethod: Story = {
             lastDigits: '4242',
         });
         await expect(canvas.getByText(expected)).toBeInTheDocument();
+    },
+};
+
+export const CancelledOrder: Story = {
+    args: {
+        order: {
+            ...order,
+            productItems: order.productItems?.map((item) => ({
+                ...item,
+                omsData: { status: 'canceled' },
+            })),
+        },
+        productsById,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'All items have `omsData.status: "canceled"` — the derived **cancel status** badge ("Cancelled", destructive styling, `data-testid="order-cancel-status-badge"`) replaces the raw order-status badge.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        await expect(canvas.getByTestId('order-cancel-status-badge')).toBeInTheDocument();
+        await expect(canvas.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+    },
+};
+
+const cancellableOmsOrder: ShopperOrders.schemas['Order'] = {
+    ...order,
+    customerInfo: { customerId: 'cust-story-123', email: 'test@example.com' },
+    omsData: {},
+    productItems: order.productItems?.map((item) => ({
+        ...item,
+        omsData: { quantityAvailableToCancel: 1, quantityOrdered: 1 },
+    })),
+};
+
+const omsMetaDataResolved: Promise<OmsMetaDataResult> = Promise.resolve({
+    omsActive: true,
+    cancelReasonCodes: [
+        { reason: 'Changed my mind', default: true },
+        { reason: 'Found better price', default: false },
+    ],
+    returnReasonCodes: [],
+});
+
+export const WithCancelButton: Story = {
+    args: {
+        order: cancellableOmsOrder,
+        productsById,
+        omsMetaData: omsMetaDataResolved,
+    },
+    decorators: [
+        (Story) => (
+            <ConfigWrapper>
+                <SiteProvider
+                    site={mockSiteObject}
+                    locale={mockLocale}
+                    language={mockSiteObject.defaultLocale}
+                    currency={mockSiteObject.defaultCurrency}>
+                    <AuthProvider value={{ customerId: 'cust-story-123', userType: 'registered' } as PublicSessionData}>
+                        <Story />
+                    </AuthProvider>
+                </SiteProvider>
+            </ConfigWrapper>
+        ),
+    ],
+    parameters: {
+        docs: {
+            description: {
+                story: 'OMS-active order with all items fully cancellable — **Cancel Order** button is rendered and enabled. Requires auth context (registered shopper who owns the order).',
+            },
+        },
+        mockRoutes: [
+            {
+                path: '/action/cancel-order',
+                action: async () => ({ success: true }),
+            },
+        ],
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const cancelButton = await canvas.findByRole('button', { name: t('account:orders.cancelOrder') });
+        await expect(cancelButton).toBeInTheDocument();
+        await expect(cancelButton).not.toHaveAttribute('aria-disabled', 'true');
+    },
+};
+
+export const WithCancelButtonDisabled: Story = {
+    args: {
+        order: {
+            ...cancellableOmsOrder,
+            productItems: order.productItems?.map((item) => ({
+                ...item,
+                omsData: { quantityAvailableToCancel: 0, quantityOrdered: 1 },
+            })),
+        },
+        productsById,
+        omsMetaData: omsMetaDataResolved,
+    },
+    decorators: [
+        (Story) => (
+            <ConfigWrapper>
+                <SiteProvider
+                    site={mockSiteObject}
+                    locale={mockLocale}
+                    language={mockSiteObject.defaultLocale}
+                    currency={mockSiteObject.defaultCurrency}>
+                    <AuthProvider value={{ customerId: 'cust-story-123', userType: 'registered' } as PublicSessionData}>
+                        <Story />
+                    </AuthProvider>
+                </SiteProvider>
+            </ConfigWrapper>
+        ),
+    ],
+    parameters: {
+        docs: {
+            description: {
+                story: 'OMS-active order where items are NOT fully cancellable — the **Cancel Order** button renders **disabled** (aria-disabled) rather than being hidden, matching PWA Kit. A visually-hidden reason is linked via `aria-describedby`.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        const cancelButton = await canvas.findByRole('button', { name: t('account:orders.cancelOrder') });
+        await expect(cancelButton).toHaveAttribute('aria-disabled', 'true');
+        await expect(canvas.getByText(t('account:orders.cancelUnavailable'))).toBeInTheDocument();
     },
 };
 

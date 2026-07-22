@@ -124,8 +124,13 @@ export function getOrderTrackingEntries(order: OrderLike): OrderTrackingEntry[] 
  * 2. A truthy-but-unparseable string yields an Invalid Date, caught via
  *    `isNaN(getTime())`, so it renders nothing instead of throwing in
  *    downstream formatting.
+ * 3. A truthy epoch-era sentinel string (e.g. `"1970-01-01T00:00:00Z"`) parses
+ *    to a *valid* Date — the falsy check in guard 1 doesn't catch it — and would
+ *    render "Jan 1, 1970". OMS does not currently send such a sentinel; this is
+ *    cheap insurance if it ever does. (Note `new Date("0")` is year 2000, not the
+ *    epoch, so this specifically targets truthy 1970-era strings.)
  *
- * Returns the parsed `Date`, or `null` if either guard trips.
+ * Returns the parsed `Date`, or `null` if any guard trips.
  */
 export function parseTrackingDate(value: string | undefined | null): Date | null {
     if (!value) {
@@ -133,6 +138,9 @@ export function parseTrackingDate(value: string | undefined | null): Date | null
     }
     const date = new Date(value);
     if (isNaN(date.getTime())) {
+        return null;
+    }
+    if (date.getUTCFullYear() <= 1970) {
         return null;
     }
     return date;

@@ -196,7 +196,7 @@ describe('getOrderTrackingEntries', () => {
     });
 });
 
-describe('parseTrackingDate (two-layer guard)', () => {
+describe('parseTrackingDate (three-layer guard)', () => {
     it('returns null for null — THE load-bearing guard-1 regression line', () => {
         // `null` is the ONLY input that requires guard 1 (`if (!value) return null`).
         // `new Date(null)` is the 1970 epoch (getTime() === 0), NOT an Invalid Date,
@@ -219,7 +219,18 @@ describe('parseTrackingDate (two-layer guard)', () => {
         expect(parseTrackingDate('not-a-date')).toBeNull();
     });
 
-    it('parses a valid ISO date string', () => {
+    it('returns null for a truthy epoch-era sentinel string (guard 3 — no "Jan 1, 1970")', () => {
+        // A truthy string like "1970-01-01T00:00:00Z" parses to a *valid* Date (unlike
+        // null/"" which the falsy guard handles), so without the epoch-year guard it
+        // would render "Jan 1, 1970" to the shopper. OMS does not currently send such a
+        // sentinel, but the guard is cheap insurance if it ever does.
+        expect(parseTrackingDate('1970-01-01T00:00:00Z')).toBeNull();
+        expect(parseTrackingDate('1969-12-31T00:00:00Z')).toBeNull();
+        // sanity: confirm the trap — this string IS a valid Date, not NaN
+        expect(isNaN(new Date('1970-01-01T00:00:00Z').getTime())).toBe(false);
+    });
+
+    it('parses a valid ISO date string (guard 3 does not over-suppress recent dates)', () => {
         const d = parseTrackingDate('2026-06-20T10:00:00.000Z');
         expect(d).toBeInstanceOf(Date);
         expect(d?.toISOString()).toBe('2026-06-20T10:00:00.000Z');

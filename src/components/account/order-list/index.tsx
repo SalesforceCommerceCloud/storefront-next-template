@@ -27,7 +27,7 @@ import {
     type PickupLocation,
 } from '@/components/account/order-list-item';
 import { getOffsetLimitPaginationState } from '@/lib/pagination-utils';
-import type { OrderStatusType } from '@/lib/order/status';
+import type { OrderReturnStatusType, OrderStatusType } from '@/lib/order/status';
 import { routes } from '@/route-paths';
 
 /** Re-export for consumers. Single source of truth: @/lib/order/status */
@@ -42,6 +42,10 @@ export type Order = {
     orderDate: string;
     status: string;
     statusLabel?: string;
+    /** Derived order-level cancel status; takes priority over return and raw status. */
+    cancelStatus?: 'cancelled';
+    /** Derived order-level return status; overrides the raw status badge when set. */
+    returnStatus?: OrderReturnStatusType;
     total: number;
     currency?: string;
     itemCount: number;
@@ -74,6 +78,8 @@ function toOrderListItemData(order: Order): OrderListItemData {
         currency: order.currency,
         status: order.status,
         statusLabel: order.statusLabel,
+        cancelStatus: order.cancelStatus,
+        returnStatus: order.returnStatus,
         itemCount: order.itemCount,
         productItems: order.productItems,
         pickupLocation: order.pickupLocation,

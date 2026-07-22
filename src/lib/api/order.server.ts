@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import type { LoaderFunctionArgs } from 'react-router';
-import type { ShopperCustomers, ShopperOrders, ShopperProducts } from '@/scapi';
+import { ApiError, type ShopperCustomers, type ShopperOrders, type ShopperProducts } from '@/scapi';
 import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
-import { resolveOrderStatus } from '@/lib/order/status';
+import { getLogger } from '@/lib/logger.server';
+import { getOrderReturnStatus, resolveOrderStatus } from '@/lib/order/status';
+import { isOrderCancelled } from '@/lib/order-management/cancel';
 import type { Order } from '@/components/account/order-list';
 
 export type OrderProductDataById = Record<string, ShopperProducts.schemas['Product'] | undefined>;
@@ -37,6 +39,74 @@ export type FetchOrderWithProductsResult = {
     orderDataPromise: Promise<OrderWithProducts>;
     orderPromise: Promise<ShopperOrders.schemas['Order']>;
 };
+
+/**
+ * OMS reason-code metadata needed to render the cancel and return experiences,
+ * normalized into a tri-state the order-detail page can consume without error
+ * handling of its own.
+ *
+ * - `omsActive: false` means OMS is not enabled for this org (the API returned
+ *   409). Callers hide the cancel/return entry points entirely.
+ * - `omsActive: true` with populated arrays is the happy path.
+ * - `omsActive: true` with empty arrays is a transient metadata failure (5xx /
+ *   network / parse). Eligibility still comes from per-item `omsData`, so the
+ *   entry points stay visible; the dialog degrades to a reason-load retry state.
+ *
+ * A single `GET /orders/oms-meta-data` response carries both `cancelReasonCodes`
+ * and `returnReasonCodes`, so this one fetch serves both the cancel and return
+ * features — do not add a second fetch.
+ */
+export type OmsMetaDataResult = {
+    omsActive: boolean;
+    cancelReasonCodes: ShopperOrders.schemas['OmsReasonCode'][];
+    returnReasonCodes: ShopperOrders.schemas['OmsReasonCode'][];
+};
+
+/**
+ * Fetches OMS cancel/return reason codes via `GET /orders/oms-meta-data`.
+ *
+ * Never throws — a failed metadata fetch must not break the order-detail page.
+ * A 409 (OMS not active) is distinguished from a transient failure so callers
+ * can hide vs. degrade (see {@link OmsMetaDataResult}). `siteId`/`organizationId`
+ * are injected by `createApiClients`.
+ *
+ * @param context - React Router loader context (for API clients + logging)
+ * @returns Tri-state metadata result; resolves even when the fetch fails.
+ */
+export async function fetchOmsMetaData(context: LoaderFunctionArgs['context']): Promise<OmsMetaDataResult> {
+    const clients = createApiClients(context);
+    try {
+        // The `shopperOrders` client auto-injects `locale` into every operation's query
+        // (it's needed by `getOrder`), but `GET /orders/oms-meta-data` only accepts `siteId`
+        // and rejects an unexpected `locale` with 400. Override it back to `undefined` so the
+        // query serializer drops it. Caller-provided query values take precedence over the
+        // client's global defaults. The cast is required because the SDK query type
+        // intentionally omits `locale` (the endpoint doesn't support it).
+        // TODO: this per-call `locale: undefined` override is a call-site bandaid — every
+        // future locale-incompatible SCAPI operation needs the same. The SDK client factory should
+        // support per-operation locale opt-out so callers don't hand-roll (and cast) this each time.
+        const { data } = await clients.shopperOrders.getOmsMetaData({
+            params: { query: { locale: undefined } as { siteId?: string; locale?: string } },
+        });
+        return {
+            omsActive: true,
+            cancelReasonCodes: data.cancelReasonCodes ?? [],
+            returnReasonCodes: data.returnReasonCodes ?? [],
+        };
+    } catch (error) {
+        // 409 = OMS not active for this org → hide cancel/return entirely.
+        if (error instanceof ApiError && error.status === 409) {
+            return { omsActive: false, cancelReasonCodes: [], returnReasonCodes: [] };
+        }
+        // 5xx / network / parse: OMS is on but metadata is transiently unavailable.
+        // Keep the entry points (eligibility comes from item omsData); the dialog
+        // degrades to a reason-load retry state.
+        getLogger(context).warn('fetchOmsMetaData: metadata fetch failed, degrading to empty reason codes', {
+            error: error instanceof Error ? error.message : String(error),
+        });
+        return { omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] };
+    }
+}
 
 /**
  * Fetches an order by number and its product details (images, variations).
@@ -58,9 +128,11 @@ export function fetchOrderWithProducts(
         .getOrder({
             params: {
                 path: { orderNo },
-                // Request OMS shipment-tracking enrichment. On a non-SOM org the
-                // expand tokens are silently disregarded (OAS degrade contract),
-                // so the ECOM path is unaffected when omsData is absent.
+                // `expand=oms,oms_shipments` loads Order Management enrichment (per-item
+                // `omsData.quantityAvailableToReturn`, fulfillment/shipment data) onto the
+                // order. Without it SCAPI omits `omsData` entirely and the return/cancel
+                // entry points never render. On a non-SOM org the tokens are silently
+                // disregarded (OAS degrade contract), so the ECOM path is unaffected.
                 query: { expand: ['oms', 'oms_shipments'] },
             },
         })
@@ -154,6 +226,10 @@ export function transformOrderForList(
         orderNo: scapiOrder.orderNo ?? '',
         orderDate: scapiOrder.creationDate ?? '',
         status,
+        // Derived order-level cancel/return status from item-level omsData.status
+        // (present only when the list request expands 'oms'). undefined when not applicable.
+        cancelStatus: isOrderCancelled(scapiOrder) ? ('cancelled' as const) : undefined,
+        returnStatus: getOrderReturnStatus(scapiOrder),
         total: scapiOrder.orderTotal ?? 0,
         currency: scapiOrder.currency,
         itemCount,
@@ -206,11 +282,11 @@ export async function fetchCustomerOrders(
                 query: {
                     offset,
                     limit,
-                    // Enrich each order with OMS status so the history badge reflects
-                    // fresh SOM status. getCustomerOrders's expand is the scalar enum
-                    // `'oms'` (NOT an array, and no `oms_shipments`), so this is
-                    // status-only — per-shipment tracking can't appear on the list.
-                    // On a non-SOM org the token is silently disregarded (OAS degrade).
+                    // Loads item-level Order Management enrichment (productItems[*].omsData.status)
+                    // so the list can derive an order-level return badge. getCustomerOrders's
+                    // expand is the scalar enum `'oms'` (NOT an array, and no `oms_shipments`),
+                    // so this is status-only — per-shipment tracking can't appear on the list.
+                    // Non-OMS/non-SOM orgs silently ignore this (OAS degrade) — ECOM unaffected.
                     expand: 'oms',
                 },
             },

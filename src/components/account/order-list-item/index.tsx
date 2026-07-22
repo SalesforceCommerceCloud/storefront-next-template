@@ -24,7 +24,13 @@ import { Check, ChevronRight, MapPin, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/currency';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { cn } from '@/lib/utils';
-import { formatStatusFallbackLabel, getOrderStatusConfig } from '@/lib/order/status';
+import {
+    ORDER_STATUS_BADGE_CLASS,
+    formatStatusFallbackLabel,
+    getOrderReturnStatusConfig,
+    getOrderStatusConfig,
+    type OrderReturnStatusType,
+} from '@/lib/order/status';
 import { routes, routeHref } from '@/route-paths';
 
 const BADGE_BASE_CLASSES = 'shrink-0 font-semibold border-0 py-1 w-fit';
@@ -64,6 +70,14 @@ export interface OrderListItemData {
     currency?: string;
     status: string;
     statusLabel?: string;
+    /** Derived order-level cancel status; takes priority over return, fulfillment, and raw status badges. */
+    cancelStatus?: 'cancelled';
+    /**
+     * Derived order-level return status (aggregated from item-level omsData). When
+     * set, the status badge shows the informational return label instead of the raw
+     * `status`, which stays stale after a return. See `getOrderReturnStatus`.
+     */
+    returnStatus?: OrderReturnStatusType;
     itemCount: number;
     productItems?: OrderProductItem[];
     pickupLocation?: PickupLocation;
@@ -102,9 +116,44 @@ function formatOrderDate(dateString: string, locale: string, invalidDateLabel: s
     }
 }
 
-/** Known SCAPI status → colored badge; otherwise show `status` / `statusLabel` as-is (neutral). */
-function OrderStatusBadge({ status, label }: { status: string; label?: string }): ReactNode {
+/**
+ * Cancel status → Return status → known SCAPI status → raw fallback label.
+ * Mirrors PWA Kit's `OrderStatusBadge` precedence — the raw `status` field already
+ * falls back through `Order.status ?? Order.omsData?.status` in the loader.
+ */
+function OrderStatusBadge({
+    status,
+    label,
+    cancelStatus,
+    returnStatus,
+}: {
+    status: string;
+    label?: string;
+    cancelStatus?: 'cancelled';
+    returnStatus?: OrderReturnStatusType;
+}): ReactNode {
     const { t } = useTranslation('account');
+    if (cancelStatus) {
+        return (
+            <Badge
+                data-testid="order-cancel-status-badge"
+                className={cn(
+                    BADGE_BASE_CLASSES,
+                    'border-transparent bg-status-critical/20 text-status-critical-foreground'
+                )}>
+                <X data-testid="order-status-icon" className="mr-1 inline size-3.5" aria-hidden />
+                {t('orders.status.cancelled')}
+            </Badge>
+        );
+    }
+    const returnConfig = getOrderReturnStatusConfig(returnStatus);
+    if (returnConfig) {
+        return (
+            <Badge data-testid="order-return-status-badge" className={cn(BADGE_BASE_CLASSES, returnConfig.className)}>
+                {t(returnConfig.labelKey)}
+            </Badge>
+        );
+    }
     const config = getOrderStatusConfig(status);
     const raw = label?.trim() || formatStatusFallbackLabel(status);
     if (config) {
@@ -120,9 +169,7 @@ function OrderStatusBadge({ status, label }: { status: string; label?: string })
         return null;
     }
     return (
-        <Badge
-            data-testid="order-status-badge"
-            className={cn(BADGE_BASE_CLASSES, 'border-transparent bg-muted text-foreground')}>
+        <Badge data-testid="order-status-badge" className={cn(BADGE_BASE_CLASSES, ORDER_STATUS_BADGE_CLASS.success)}>
             {raw}
         </Badge>
     );
@@ -298,7 +345,7 @@ export function OrderListItem({
                             </div>
                             <div className="space-y-2">
                                 <Typography variant="small" as="p" className={ORDER_HEADER_LABEL_CLASS}>
-                                    {t('orders.items')}
+                                    {t('orders.items', { count: order.itemCount })}
                                 </Typography>
                                 <Typography variant="small" as="p" className="text-foreground font-semibold">
                                     {order.itemCount}
@@ -306,7 +353,12 @@ export function OrderListItem({
                             </div>
                         </div>
 
-                        <OrderStatusBadge status={order.status} label={order.statusLabel} />
+                        <OrderStatusBadge
+                            status={order.status}
+                            label={order.statusLabel}
+                            cancelStatus={order.cancelStatus}
+                            returnStatus={order.returnStatus}
+                        />
                     </div>
 
                     {/* Product Thumbnails */}

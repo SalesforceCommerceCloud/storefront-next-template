@@ -174,6 +174,44 @@ describe('OrderListItem', () => {
         });
     });
 
+    describe('return status', () => {
+        it.each([
+            ['RETURN_INITIATED', 'Return Initiated', 'info'],
+            ['PARTIAL_RETURN_INITIATED', 'Partial Return Initiated', 'info'],
+            ['RETURN_COMPLETE', 'Return Complete', 'muted'],
+            ['PARTIAL_RETURN_COMPLETE', 'Partial Return Complete', 'muted'],
+        ] as const)('renders the %s return badge instead of the raw status', (returnStatus, expectedLabel, shell) => {
+            const order: OrderListItemData = {
+                ...mockOrder,
+                status: 'completed',
+                statusLabel: 'Completed',
+                returnStatus,
+            };
+            renderWithProviders(<OrderListItem order={order} />);
+
+            const badge = screen.getByTestId('order-return-status-badge');
+            expect(badge).toHaveTextContent(expectedLabel);
+            // In-progress returns use `info` (blue); complete returns use `muted` (gray).
+            if (shell === 'info') {
+                expect(badge.className).toContain('bg-info');
+                expect(badge.className).toContain('text-info-foreground');
+            } else {
+                expect(badge.className).toContain('bg-muted');
+                expect(badge.className).toContain('text-muted-foreground');
+            }
+            // Raw status badge is suppressed when a return status is present.
+            expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+            expect(screen.queryByText('Completed')).not.toBeInTheDocument();
+        });
+
+        it('falls back to the raw status badge when no return status is set', () => {
+            renderWithProviders(<OrderListItem order={mockOrder} />);
+
+            expect(screen.getByTestId('order-status-badge')).toBeInTheDocument();
+            expect(screen.queryByTestId('order-return-status-badge')).not.toBeInTheDocument();
+        });
+    });
+
     describe('callbacks', () => {
         it('calls onViewDetails when View Order Details is clicked', async () => {
             const user = userEvent.setup();
@@ -282,7 +320,10 @@ describe('OrderListItem', () => {
             expect(screen.getByText('Invalid Date')).toBeInTheDocument();
         });
 
-        it('renders raw status in neutral badge when not in SCAPI enum (prefers statusLabel)', () => {
+        it('renders raw status in green badge when not in SCAPI enum (prefers statusLabel)', () => {
+            // Mirrors PWA Kit's OrderStatusBadge: the raw fallback (e.g. an OMS status string
+            // like "Approved"/"Processing") renders in the green success badge, same as the
+            // known SCAPI enum statuses.
             const order: OrderListItemData = {
                 ...mockOrder,
                 status: 'processing',
@@ -293,7 +334,7 @@ describe('OrderListItem', () => {
 
             const badge = screen.getByTestId('order-status-badge');
             expect(badge).toHaveTextContent('Processing');
-            expect(badge.className).toContain('bg-muted');
+            expect(badge.className).toContain('bg-status-positive');
         });
 
         it('renders without productItems', () => {

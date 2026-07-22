@@ -226,13 +226,13 @@ describe('AccountOrders Page', () => {
         test('renders created status badge', async () => {
             await renderAccountOrders();
             const createdBadge = screen.getByText('Created').closest('span');
-            expect(createdBadge).toHaveClass('bg-info');
+            expect(createdBadge).toHaveClass('bg-status-positive');
         });
 
         test('renders new status badge', async () => {
             await renderAccountOrders();
             const newBadge = screen.getByText('New').closest('span');
-            expect(newBadge).toHaveClass('bg-info');
+            expect(newBadge).toHaveClass('bg-status-positive');
         });
 
         test('renders completed status badge', async () => {

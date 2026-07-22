@@ -180,7 +180,7 @@ describe('OrderList Component', () => {
                 ],
             });
             const badge = screen.getByText('New').closest('span');
-            expect(badge).toHaveClass('bg-info');
+            expect(badge).toHaveClass('bg-status-positive');
         });
     });
 
@@ -349,6 +349,27 @@ describe('OrderListBody Component', () => {
     test('does not render header elements', () => {
         render(<OrderListBody orders={testOrders} />);
         expect(screen.queryByRole('heading', { level: 4 })).not.toBeInTheDocument();
+    });
+
+    // Guards Order → OrderListItemData threading through toOrderListItemData: an
+    // Order carrying returnStatus must surface the return badge in the list item.
+    test('threads returnStatus through to the OrderListItem return badge', () => {
+        const returnedOrder: Order = {
+            orderNo: 'ORD-RET',
+            orderDate: '2024-09-14T10:30:00Z',
+            status: 'completed',
+            statusLabel: 'Completed',
+            returnStatus: 'RETURN_COMPLETE',
+            total: 100,
+            itemCount: 1,
+            productItems: [{ productId: 'prod-1', quantity: 1 }],
+        };
+
+        render(<OrderListBody orders={[returnedOrder]} />);
+
+        const badge = screen.getByTestId('order-return-status-badge');
+        expect(badge).toHaveTextContent('Return Complete');
+        expect(screen.queryByText('Completed')).not.toBeInTheDocument();
     });
 
     describe('Semantic list markup', () => {

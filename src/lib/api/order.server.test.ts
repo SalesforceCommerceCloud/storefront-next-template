@@ -14,14 +14,37 @@
  * limitations under the License.
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import type { ShopperCustomers, ShopperOrders, ShopperProducts } from '@/scapi';
+import { ApiError, type ShopperCustomers, type ShopperOrders, type ShopperProducts } from '@/scapi';
 import { createApiClients } from '@/lib/api-clients.server';
 import { createTestContext } from '@/lib/test-utils';
-import { fetchOrderWithProducts, transformOrderForList, fetchCustomerOrders } from './order.server';
+import { fetchOmsMetaData, fetchOrderWithProducts, transformOrderForList, fetchCustomerOrders } from './order.server';
 
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),
 }));
+
+const mockWarn = vi.fn();
+vi.mock('@/lib/logger.server', () => ({
+    getLogger: vi.fn(() => ({
+        error: vi.fn(),
+        warn: mockWarn,
+        info: vi.fn(),
+        debug: vi.fn(),
+    })),
+}));
+
+/** Build an ApiError with the given HTTP status for exercising catch-branch classification. */
+function makeApiError(status: number): ApiError {
+    return new ApiError({
+        status,
+        statusText: 'Error',
+        headers: new Headers(),
+        body: { type: 'about:blank', title: 'Error', detail: 'error' },
+        rawBody: '',
+        url: 'https://example.com/oms-meta-data',
+        method: 'GET',
+    });
+}
 
 describe('fetchOrderWithProducts', () => {
     const mockGetOrder = vi.fn();
@@ -277,6 +300,7 @@ describe('transformOrderForList', () => {
             orderNo: 'ORD-123',
             orderDate: '2024-09-14T10:30:00Z',
             status: 'new',
+            returnStatus: undefined,
             total: 100.5,
             currency: 'USD',
             itemCount: 2,
@@ -420,6 +444,7 @@ describe('transformOrderForList', () => {
             orderNo: '',
             orderDate: '',
             status: 'created',
+            returnStatus: undefined,
             total: 0,
             currency: undefined,
             itemCount: 0,
@@ -438,6 +463,34 @@ describe('transformOrderForList', () => {
 
         expect(result.itemCount).toBe(0);
         expect(result.productItems).toEqual([]);
+    });
+
+    test('derives returnStatus from item-level omsData.status', () => {
+        const allReturned = {
+            orderNo: 'ORD-RET',
+            productItems: [
+                { productId: 'p1', quantity: 1, itemId: 'i1', omsData: { status: 'returned' } },
+                { productId: 'p2', quantity: 1, itemId: 'i2', omsData: { status: 'returned' } },
+            ],
+        } as unknown as ShopperCustomers.schemas['Order'];
+        expect(transformOrderForList(allReturned).returnStatus).toBe('RETURN_COMPLETE');
+
+        const partiallyInitiated = {
+            orderNo: 'ORD-INIT',
+            productItems: [
+                { productId: 'p1', quantity: 1, itemId: 'i1', omsData: { status: 'return_initiated' } },
+                { productId: 'p2', quantity: 1, itemId: 'i2', omsData: { status: 'ordered' } },
+            ],
+        } as unknown as ShopperCustomers.schemas['Order'];
+        expect(transformOrderForList(partiallyInitiated).returnStatus).toBe('PARTIAL_RETURN_INITIATED');
+    });
+
+    test('returnStatus is undefined for non-return orders', () => {
+        const scapiOrder = {
+            orderNo: 'ORD-NORET',
+            productItems: [{ productId: 'p1', quantity: 1, itemId: 'i1', omsData: { status: 'ordered' } }],
+        } as unknown as ShopperCustomers.schemas['Order'];
+        expect(transformOrderForList(scapiOrder).returnStatus).toBeUndefined();
     });
 
     test('defaults quantity to 1 when undefined', () => {
@@ -794,5 +847,84 @@ describe('fetchCustomerOrders', () => {
 
         expect(result.orders).toHaveLength(1);
         expect(result.orders[0].productItems?.[0]?.imageUrl).toBeUndefined();
+    });
+});
+
+describe('fetchOmsMetaData', () => {
+    const mockGetOmsMetaData = vi.fn();
+    const mockClients = {
+        shopperOrders: { getOmsMetaData: mockGetOmsMetaData },
+    };
+
+    const cancelCode: ShopperOrders.schemas['OmsReasonCode'] = { reason: 'Changed my mind', default: true };
+    const returnCode: ShopperOrders.schemas['OmsReasonCode'] = { reason: 'Does not fit', default: true };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(createApiClients).mockReturnValue(mockClients as never);
+    });
+
+    test('200: returns omsActive true and passes both reason-code arrays through', async () => {
+        mockGetOmsMetaData.mockResolvedValue({
+            data: { cancelReasonCodes: [cancelCode], returnReasonCodes: [returnCode] },
+        });
+
+        const context = createTestContext();
+        const result = await fetchOmsMetaData(context);
+
+        expect(createApiClients).toHaveBeenCalledWith(context);
+        // `locale` is overridden to undefined so it's stripped from the query — the
+        // oms-meta-data endpoint only accepts `siteId` and 400s on an unexpected `locale`.
+        expect(mockGetOmsMetaData).toHaveBeenCalledWith({
+            params: { query: { locale: undefined } },
+        });
+        expect(result).toEqual({
+            omsActive: true,
+            cancelReasonCodes: [cancelCode],
+            returnReasonCodes: [returnCode],
+        });
+        expect(mockWarn).not.toHaveBeenCalled();
+    });
+
+    test('200 with missing arrays: defaults both to empty arrays', async () => {
+        mockGetOmsMetaData.mockResolvedValue({ data: {} });
+
+        const result = await fetchOmsMetaData(createTestContext());
+
+        expect(result).toEqual({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] });
+        expect(mockWarn).not.toHaveBeenCalled();
+    });
+
+    test('409 (OMS not active): returns omsActive false with empty arrays, no warn', async () => {
+        mockGetOmsMetaData.mockRejectedValue(makeApiError(409));
+
+        const result = await fetchOmsMetaData(createTestContext());
+
+        expect(result).toEqual({ omsActive: false, cancelReasonCodes: [], returnReasonCodes: [] });
+        expect(mockWarn).not.toHaveBeenCalled();
+    });
+
+    test('500: degrades to omsActive true with empty arrays and warns', async () => {
+        mockGetOmsMetaData.mockRejectedValue(makeApiError(500));
+
+        const result = await fetchOmsMetaData(createTestContext());
+
+        expect(result).toEqual({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] });
+        expect(mockWarn).toHaveBeenCalledTimes(1);
+    });
+
+    test('network error (non-ApiError): degrades to omsActive true with empty arrays and warns', async () => {
+        mockGetOmsMetaData.mockRejectedValue(new Error('network down'));
+
+        const result = await fetchOmsMetaData(createTestContext());
+
+        expect(result).toEqual({ omsActive: true, cancelReasonCodes: [], returnReasonCodes: [] });
+        expect(mockWarn).toHaveBeenCalledTimes(1);
+    });
+
+    test('never rejects, even on failure', async () => {
+        mockGetOmsMetaData.mockRejectedValue(makeApiError(503));
+
+        await expect(fetchOmsMetaData(createTestContext())).resolves.toBeDefined();
     });
 });

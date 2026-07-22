@@ -122,6 +122,26 @@ export const Default: Story = {
     },
 };
 
+// An order carrying a derived returnStatus renders the informational return badge
+// (threaded through toOrderListItemData → OrderListItem) instead of the raw status.
+export const WithReturnStatus: Story = {
+    args: {
+        orders: [
+            { ...testOrders[0], status: 'completed', statusLabel: 'Completed', returnStatus: 'RETURN_COMPLETE' },
+            { ...testOrders[1], returnStatus: 'PARTIAL_RETURN_INITIATED' },
+        ],
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        const badges = canvas.getAllByTestId('order-return-status-badge');
+        await expect(badges).toHaveLength(2);
+        await expect(badges[0]).toHaveTextContent(t('account:orders.returnStatus.complete'));
+        await expect(badges[1]).toHaveTextContent(t('account:orders.returnStatus.partialInitiated'));
+    },
+};
+
 export const EmptyState: Story = {
     args: { orders: [] },
     play: async ({ canvasElement }) => {

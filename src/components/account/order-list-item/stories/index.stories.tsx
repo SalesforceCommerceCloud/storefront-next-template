@@ -88,6 +88,18 @@ export const WithPickupLocation: Story = {
     },
 };
 
+// Derived return status overrides the raw status badge with an informational label.
+export const WithReturnStatus: Story = {
+    args: {
+        order: {
+            ...baseOrder,
+            status: 'completed',
+            statusLabel: 'Completed',
+            returnStatus: 'PARTIAL_RETURN_COMPLETE',
+        },
+    },
+};
+
 // 18 items + maxThumbnails: 12 → "+6" overflow indicator
 export const WithThumbnailOverflow: Story = {
     args: {
