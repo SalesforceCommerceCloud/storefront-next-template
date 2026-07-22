@@ -15,6 +15,7 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import ContentCard from '../index';
+import { CONTENT_CARD_TYPOGRAPHY_VALUES } from '../typography';
 import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
@@ -24,6 +25,10 @@ type ContentCardArgs = React.ComponentProps<typeof ContentCard> & {
 };
 
 const SAMPLE_IMAGE = 'https://via.placeholder.com/400x300';
+
+// Reuse the ContentCard PD enum directly so the Controls select can never drift
+// from the component's actual typography presets.
+const TYPOGRAPHY_OPTIONS = CONTENT_CARD_TYPOGRAPHY_VALUES;
 
 const meta: Meta<ContentCardArgs> = {
     title: 'Content/Marketing/Content Card',
@@ -62,6 +67,8 @@ A flexible card component for displaying authored content with optional image, t
             control: { type: 'inline-radio' },
             options: ['lazy', 'eager'],
         },
+        titleTypography: { control: 'select', options: TYPOGRAPHY_OPTIONS },
+        descriptionTypography: { control: 'select', options: TYPOGRAPHY_OPTIONS },
         className: { table: { disable: true } },
         cardFooterClassName: { table: { disable: true } },
         cardDescriptionClassName: { table: { disable: true } },
@@ -261,6 +268,39 @@ export const NoBackground: Story = {
         const card = canvasElement.querySelector('.bg-transparent');
         await expect(card).not.toBeNull();
         await expect(canvasElement.querySelector('.bg-muted\\/50')).toBeNull();
+    },
+};
+
+export const TypographyPresets: Story = {
+    args: {
+        title: 'Preset Heading',
+        titleTypography: 'Heading 2',
+        description: 'Description rendered with the shared Paragraph typography preset.',
+        descriptionTypography: 'Paragraph',
+        imageAlt: 'Typography presets',
+        hasImage: false,
+        hasButton: false,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Exercises the non-`Default` title/description typography presets. `Default` reproduces the original hardcoded look; the other presets derive from the shared `typographyVariants` scale. The snapshot captures the resolved class strings, so a change to `typographyVariants` (or the preset wiring) fails CI here instead of silently altering authored cards.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await waitForStorybookReady(canvasElement);
+
+        // `Heading 2` → typographyVariants({ variant: 'h2' }) = text-3xl font-semibold tracking-tight.
+        const heading = await canvas.findByRole('heading', { name: /preset heading/i });
+        await expect(heading).toHaveClass('text-3xl', 'font-semibold', 'tracking-tight');
+        // The local `Default` size must NOT leak in when a preset is selected.
+        await expect(heading).not.toHaveClass('text-2xl');
+
+        // `Paragraph` → typographyVariants({ variant: 'body' }) = text-base font-normal leading-7.
+        const description = await canvas.findByText(/shared paragraph typography preset/i);
+        await expect(description).toHaveClass('text-base', 'font-normal', 'leading-7');
     },
 };
 

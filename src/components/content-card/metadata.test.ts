@@ -17,6 +17,7 @@ import { describe, test, expect } from 'vitest';
 import 'reflect-metadata';
 import { getAttributeDefinitions } from '@/lib/decorators/attribute-definition';
 import { ContentCardMetadata } from './index';
+import { CONTENT_CARD_TYPOGRAPHY_VALUES, normalizeTypography } from './typography';
 
 describe('ContentCardMetadata - PD default alignment', () => {
     test('showBackground has defaultValue: true matching React component default', () => {
@@ -29,5 +30,35 @@ describe('ContentCardMetadata - PD default alignment', () => {
         const metadata = getAttributeDefinitions(ContentCardMetadata.prototype);
         expect(metadata.fields.showBorder).toBeDefined();
         expect(metadata.fields.showBorder?.defaultValue).toBe(true);
+    });
+
+    test('titleTypography defaults to Default, preserving the original hardcoded look', () => {
+        const metadata = getAttributeDefinitions(ContentCardMetadata.prototype);
+        expect(metadata.fields.titleTypography).toBeDefined();
+        expect(metadata.fields.titleTypography?.type).toBe('enum');
+        expect(metadata.fields.titleTypography?.defaultValue).toBe('Default');
+        // Lock the enum options to the shared const so a drift in
+        // CONTENT_CARD_TYPOGRAPHY_VALUES can't slip past type/defaultValue checks.
+        expect(metadata.fields.titleTypography?.values).toEqual([...CONTENT_CARD_TYPOGRAPHY_VALUES]);
+    });
+
+    test('descriptionTypography defaults to Default, preserving the original hardcoded look', () => {
+        const metadata = getAttributeDefinitions(ContentCardMetadata.prototype);
+        expect(metadata.fields.descriptionTypography).toBeDefined();
+        expect(metadata.fields.descriptionTypography?.type).toBe('enum');
+        expect(metadata.fields.descriptionTypography?.defaultValue).toBe('Default');
+        expect(metadata.fields.descriptionTypography?.values).toEqual([...CONTENT_CARD_TYPOGRAPHY_VALUES]);
+    });
+});
+
+describe('normalizeTypography - fallback to Default', () => {
+    test('passes through a known preset value', () => {
+        expect(normalizeTypography('Heading 2')).toBe('Heading 2');
+    });
+
+    test('falls back to Default for undefined, empty, or unknown values', () => {
+        expect(normalizeTypography(undefined)).toBe('Default');
+        expect(normalizeTypography('')).toBe('Default');
+        expect(normalizeTypography('NotAPreset')).toBe('Default');
     });
 });

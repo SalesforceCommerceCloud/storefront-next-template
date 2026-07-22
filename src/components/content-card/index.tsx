@@ -15,6 +15,12 @@
  */
 import { forwardRef, type ComponentProps } from 'react';
 import { Link } from '@/components/link';
+import {
+    CONTENT_CARD_TYPOGRAPHY_VALUES,
+    TITLE_TYPOGRAPHY_CLASS,
+    DESCRIPTION_TYPOGRAPHY_CLASS,
+    normalizeTypography,
+} from './typography';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { cn, resolveAssetUrl } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,7 +37,9 @@ const contentCardDefaults = {
 
 interface ContentCardProps extends ComponentProps<'div'> {
     title?: string;
+    titleTypography?: string;
     description?: string;
+    descriptionTypography?: string;
     imageUrl?: Image | string;
     imageAlt?: string;
     buttonText?: string;
@@ -61,8 +69,28 @@ export class ContentCardMetadata {
     @AttributeDefinition()
     title?: string;
 
+    @AttributeDefinition({
+        id: 'titleTypography',
+        name: 'Title Typography',
+        description: 'Visual typography for the title',
+        type: 'enum',
+        values: [...CONTENT_CARD_TYPOGRAPHY_VALUES],
+        defaultValue: 'Default',
+    })
+    titleTypography?: string;
+
     @AttributeDefinition()
     description?: string;
+
+    @AttributeDefinition({
+        id: 'descriptionTypography',
+        name: 'Description Typography',
+        description: 'Visual typography for the description',
+        type: 'enum',
+        values: [...CONTENT_CARD_TYPOGRAPHY_VALUES],
+        defaultValue: 'Default',
+    })
+    descriptionTypography?: string;
 
     @AttributeDefinition({ type: 'image' })
     imageUrl?: Image;
@@ -97,7 +125,9 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
             cardDescriptionClassName,
             buttonClassName,
             title,
+            titleTypography,
             description,
+            descriptionTypography,
             imageUrl,
             imageAlt,
             buttonText,
@@ -127,6 +157,11 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
         const hasText = !!(title || description);
         const hasContent = hasText || hasCta;
 
+        // Resolve the typography presets once. `Default` reproduces the
+        // original hardcoded look verbatim, so untouched cards are unchanged.
+        const titleTypographyClass = TITLE_TYPOGRAPHY_CLASS[normalizeTypography(titleTypography)];
+        const descriptionTypographyClass = DESCRIPTION_TYPOGRAPHY_CLASS[normalizeTypography(descriptionTypography)];
+
         // Title/description/CTA. Shared by the image branch (rendered as a
         // gradient overlay) and the text-only branch (rendered on the card
         // surface) so authored copy is never silently dropped when an image is
@@ -145,7 +180,9 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                             {title && (
                                 <h3
                                     className={cn(
-                                        'order-2 text-2xl font-semibold leading-[120%] tracking-[-0.6px] mb-4',
+                                        'order-2',
+                                        titleTypographyClass,
+                                        'mb-4',
                                         onImage ? 'text-card' : 'text-foreground'
                                     )}>
                                     {title}
@@ -154,7 +191,9 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                             {description && (
                                 <p
                                     className={cn(
-                                        'order-1 text-sm font-normal leading-5 mb-2 whitespace-pre-line',
+                                        'order-1',
+                                        descriptionTypographyClass,
+                                        'mb-2 whitespace-pre-line',
                                         onImage ? 'text-muted' : 'text-muted-foreground'
                                     )}>
                                     {description}
