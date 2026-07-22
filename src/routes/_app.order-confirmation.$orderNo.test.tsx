@@ -644,6 +644,32 @@ describe('Order Confirmation Route', () => {
         });
     });
 
+    describe('Shipping detail markup', () => {
+        // The per-shipment labels are description-list terms, not headings: promoting them
+        // to h2 inside the shipment .map emits a repeated context-free heading list on
+        // multi-shipment orders. <dt>/<dd> pairs the label with its value instead.
+        test('renders shipping detail labels as description-list terms', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                expect(screen.getByText(t('checkout:confirmation.summaryLabels.arriving'))).toBeInTheDocument();
+            });
+
+            for (const label of [
+                t('checkout:confirmation.summaryLabels.arriving'),
+                t('checkout:confirmation.summaryLabels.shippingAddress'),
+                t('checkout:confirmation.summaryLabels.shippingMethod'),
+            ]) {
+                const term = screen.getByText(label);
+                expect(term.tagName).toBe('DT');
+            }
+
+            expect(
+                screen.queryByRole('heading', { name: t('checkout:confirmation.summaryLabels.arriving') })
+            ).not.toBeInTheDocument();
+        });
+    });
+
     describe('accessibility - list markup', () => {
         test('renders product items as semantic list with role="list"', async () => {
             const order: ShopperOrders.schemas['Order'] = {

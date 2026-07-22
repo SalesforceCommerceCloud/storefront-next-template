@@ -37,16 +37,20 @@ export default function CategoryBreadcrumbs({
                         {t('breadcrumbs.home')}
                     </Link>
                 </li>
-                {items.map((item) => (
-                    <li key={item.id} className="flex items-center">
-                        <ChevronRight className="mx-1 size-3" />
-                        <Link
-                            to={routeHref(routes.category, { categoryId: item.id ?? '' })}
-                            className="hover:underline">
-                            {item.name}
-                        </Link>
-                    </li>
-                ))}
+                {items.map((item, index) => {
+                    const isLast = index === items.length - 1;
+                    return (
+                        <li key={item.id} className="flex items-center">
+                            <ChevronRight className="mx-1 size-3" />
+                            <Link
+                                to={routeHref(routes.category, { categoryId: item.id ?? '' })}
+                                className="hover:underline"
+                                aria-current={isLast ? 'page' : undefined}>
+                                {item.name}
+                            </Link>
+                        </li>
+                    );
+                })}
             </ol>
         </nav>
     );

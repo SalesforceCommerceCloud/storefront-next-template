@@ -1138,4 +1138,16 @@ describe('AccountDetails', () => {
             expect(within(passwordCard).getByRole('button', { name: 'Change password' })).toBeInTheDocument();
         });
     });
+
+    describe('Heading structure', () => {
+        test('uses h2 for section titles', async () => {
+            await renderAccountDetails(mockCustomer);
+
+            // The visible section title sits at the same level as the sibling Email and
+            // Password sections, so it is not skipped from heading navigation.
+            expect(screen.getByRole('heading', { level: 2, name: 'Personal Information' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { level: 2, name: 'Email Address' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { level: 2, name: 'Password' })).toBeInTheDocument();
+        });
+    });
 });

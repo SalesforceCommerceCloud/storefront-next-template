@@ -248,6 +248,34 @@ describe('SwatchGroup', () => {
         expect(greenSwatch).toHaveAttribute('tabIndex', '-1');
     });
 
+    test('falls the tabstop back to the first enabled swatch when the selected value is disabled', () => {
+        // An out-of-stock variant named in the URL makes the selected swatch disabled.
+        // A disabled swatch forces tabIndex=-1, so the group must move the sole tabstop
+        // to the first enabled swatch, otherwise the whole group is keyboard-unreachable.
+        renderInRouter(
+            <SwatchGroup label="Color" value="blue">
+                <Swatch value="red" href="/red">
+                    Red
+                </Swatch>
+                <Swatch value="blue" href="/blue" disabled>
+                    Blue
+                </Swatch>
+                <Swatch value="green" href="/green">
+                    Green
+                </Swatch>
+            </SwatchGroup>
+        );
+
+        const redSwatch = screen.getByRole('radio', { name: /red/i });
+        const blueSwatch = screen.getByRole('radio', { name: /blue/i });
+        const greenSwatch = screen.getByRole('radio', { name: /green/i });
+
+        // Disabled selected swatch is not the tabstop; the first enabled swatch is.
+        expect(blueSwatch).toHaveAttribute('tabIndex', '-1');
+        expect(redSwatch).toHaveAttribute('tabIndex', '0');
+        expect(greenSwatch).toHaveAttribute('tabIndex', '-1');
+    });
+
     test('applies custom className when provided', () => {
         renderInRouter(
             <SwatchGroup label="Color" className="custom-swatch-group">
@@ -271,6 +299,65 @@ describe('SwatchGroup', () => {
         );
 
         expect(screen.queryByText(/:/)).not.toBeInTheDocument();
+    });
+
+    test('announces out-of-stock state in accessible name', () => {
+        renderInRouter(
+            <SwatchGroup label="Color">
+                <Swatch value="red" href="/red">
+                    Red
+                </Swatch>
+                <Swatch value="blue" href="/blue" disabled>
+                    Blue
+                </Swatch>
+            </SwatchGroup>
+        );
+
+        const redSwatch = screen.getByRole('radio', { name: /red/i });
+        const blueSwatch = screen.getByRole('radio', { name: /blue.*out of stock/i });
+
+        expect(redSwatch).toBeInTheDocument();
+        expect(blueSwatch).toBeInTheDocument();
+        expect(blueSwatch).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    test('disabled swatch has correct aria attributes', () => {
+        renderInRouter(
+            <SwatchGroup label="Size" value="small">
+                <Swatch value="small" href="/small">
+                    Small
+                </Swatch>
+                <Swatch value="medium" href="/medium" disabled>
+                    Medium
+                </Swatch>
+                <Swatch value="large" href="/large">
+                    Large
+                </Swatch>
+            </SwatchGroup>
+        );
+
+        const mediumSwatch = screen.getByRole('radio', { name: /medium.*out of stock/i });
+
+        expect(mediumSwatch).toHaveAttribute('aria-disabled', 'true');
+        expect(mediumSwatch).toHaveAttribute('aria-checked', 'false');
+    });
+
+    test('disabled and selected swatch maintains both states', () => {
+        renderInRouter(
+            <SwatchGroup label="Color" value="blue">
+                <Swatch value="red" href="/red">
+                    Red
+                </Swatch>
+                <Swatch value="blue" href="/blue" disabled>
+                    Blue
+                </Swatch>
+            </SwatchGroup>
+        );
+
+        const blueSwatch = screen.getByRole('radio', { name: /blue.*out of stock/i });
+
+        expect(blueSwatch).toHaveAttribute('aria-checked', 'true');
+        expect(blueSwatch).toHaveAttribute('aria-disabled', 'true');
     });
 
     test('updates selected index when value prop changes', () => {
@@ -309,5 +396,82 @@ describe('SwatchGroup', () => {
 
         expect(redSwatch).not.toBeChecked();
         expect(blueSwatch).toBeChecked();
+    });
+
+    test('disabled swatch with href does not navigate on click', async () => {
+        const user = userEvent.setup();
+
+        renderInRouter(
+            <SwatchGroup label="Size">
+                <Swatch value="small" href="/small">
+                    Small
+                </Swatch>
+                <Swatch value="medium" href="/medium" disabled>
+                    Medium
+                </Swatch>
+            </SwatchGroup>
+        );
+
+        const mediumSwatch = screen.getByRole('radio', { name: /medium.*out of stock/i });
+
+        // Click the disabled swatch
+        await user.click(mediumSwatch);
+
+        // URL should still be initial (not /medium)
+        await waitFor(() => {
+            expect(window.location.pathname).toBe('/');
+        });
+    });
+
+    test('disabled swatch with href is not keyboard focusable', () => {
+        renderInRouter(
+            <SwatchGroup label="Size">
+                <Swatch value="small" href="/small">
+                    Small
+                </Swatch>
+                <Swatch value="medium" href="/medium" disabled>
+                    Medium
+                </Swatch>
+            </SwatchGroup>
+        );
+
+        const mediumSwatch = screen.getByRole('radio', { name: /medium.*out of stock/i });
+
+        expect(mediumSwatch).toHaveAttribute('tabIndex', '-1');
+    });
+
+    test('arrow key navigation skips disabled swatches without calling handleChange', async () => {
+        const user = userEvent.setup();
+        const handleChange = vi.fn();
+
+        renderInRouter(
+            <SwatchGroup label="Size" handleChange={handleChange}>
+                <Swatch value="small" href="/small">
+                    Small
+                </Swatch>
+                <Swatch value="medium" href="/medium" disabled>
+                    Medium
+                </Swatch>
+                <Swatch value="large" href="/large">
+                    Large
+                </Swatch>
+            </SwatchGroup>
+        );
+
+        const swatches = screen.getAllByRole('radio');
+
+        // Focus first swatch
+        swatches[0].focus();
+        handleChange.mockClear();
+
+        // Arrow right should move focus to medium (disabled) but NOT call handleChange
+        await user.keyboard('{ArrowRight}');
+        expect(swatches[1]).toHaveFocus();
+        expect(handleChange).not.toHaveBeenCalled();
+
+        // Arrow right again should move to large and call handleChange
+        await user.keyboard('{ArrowRight}');
+        expect(swatches[2]).toHaveFocus();
+        expect(handleChange).toHaveBeenCalledWith('large');
     });
 });

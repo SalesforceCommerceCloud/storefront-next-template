@@ -287,11 +287,16 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
           >
             <span
               aria-hidden="true"
-              class="h-2 w-2 shrink-0 bg-current text-status-positive"
+              class="h-2 w-2 shrink-0 rounded-full bg-current text-status-positive"
             />
             <p
               class="text-sm font-medium text-status-positive"
             >
+              <span
+                class="sr-only"
+              >
+                Available: 
+              </span>
               In stock
             </p>
           </div>
@@ -901,11 +906,16 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
           >
             <span
               aria-hidden="true"
-              class="h-2 w-2 shrink-0 bg-current text-status-positive"
+              class="h-2 w-2 shrink-0 rounded-full bg-current text-status-positive"
             />
             <p
               class="text-sm font-medium text-status-positive"
             >
+              <span
+                class="sr-only"
+              >
+                Available: 
+              </span>
               In stock
             </p>
           </div>
@@ -1404,11 +1414,16 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
           >
             <span
               aria-hidden="true"
-              class="h-2 w-2 shrink-0 bg-current text-status-positive"
+              class="h-2 w-2 shrink-0 rounded-full bg-current text-status-positive"
             />
             <p
               class="text-sm font-medium text-status-positive"
             >
+              <span
+                class="sr-only"
+              >
+                Available: 
+              </span>
               In stock
             </p>
           </div>

@@ -410,37 +410,39 @@ function OrderConfirmationContent({
                             return (
                                 <li key={shipment.shipmentId}>
                                     <Card className="border border-border/70">
-                                        <CardContent className="grid gap-6 p-6 md:grid-cols-3">
-                                            <div>
-                                                <p className="text-base font-semibold tracking-wide text-foreground">
-                                                    {t('confirmation.summaryLabels.arriving')}
-                                                </p>
-                                                <p className="mt-3 text-sm font-medium text-muted-foreground">
-                                                    {estimatedDeliveryTime}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-base font-semibold tracking-wide text-foreground">
-                                                    {t('confirmation.summaryLabels.shippingAddress')}
-                                                </p>
-                                                <div className="mt-3 space-y-2">
-                                                    {shippingAddress ? (
-                                                        <AddressDisplay address={shippingAddress} />
-                                                    ) : (
-                                                        <p className="text-sm font-medium text-muted-foreground">
-                                                            {t('confirmation.summaryLabels.noAddress')}
-                                                        </p>
-                                                    )}
+                                        <CardContent className="p-6">
+                                            <dl className="grid gap-6 md:grid-cols-3">
+                                                <div>
+                                                    <dt className="text-base font-semibold tracking-wide text-foreground">
+                                                        {t('confirmation.summaryLabels.arriving')}
+                                                    </dt>
+                                                    <dd className="mt-3 text-sm font-medium text-muted-foreground">
+                                                        {estimatedDeliveryTime}
+                                                    </dd>
                                                 </div>
-                                            </div>
-                                            <div>
-                                                <p className="text-base font-semibold tracking-wide text-foreground">
-                                                    {t('confirmation.summaryLabels.shippingMethod')}
-                                                </p>
-                                                <p className="mt-3 text-sm font-medium text-muted-foreground">
-                                                    {shippingMethodName}
-                                                </p>
-                                            </div>
+                                                <div>
+                                                    <dt className="text-base font-semibold tracking-wide text-foreground">
+                                                        {t('confirmation.summaryLabels.shippingAddress')}
+                                                    </dt>
+                                                    <dd className="mt-3 space-y-2">
+                                                        {shippingAddress ? (
+                                                            <AddressDisplay address={shippingAddress} />
+                                                        ) : (
+                                                            <p className="text-sm font-medium text-muted-foreground">
+                                                                {t('confirmation.summaryLabels.noAddress')}
+                                                            </p>
+                                                        )}
+                                                    </dd>
+                                                </div>
+                                                <div>
+                                                    <dt className="text-base font-semibold tracking-wide text-foreground">
+                                                        {t('confirmation.summaryLabels.shippingMethod')}
+                                                    </dt>
+                                                    <dd className="mt-3 text-sm font-medium text-muted-foreground">
+                                                        {shippingMethodName}
+                                                    </dd>
+                                                </div>
+                                            </dl>
                                             <UITarget targetId="sfcc.orderConfirmation.shipping.tracking" />
                                         </CardContent>
                                     </Card>

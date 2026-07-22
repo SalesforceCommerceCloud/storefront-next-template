@@ -424,7 +424,8 @@ export default function ProductInfo({
                             value={swatchValue}
                             name={valueName}
                             shape={id === 'color' ? 'color' : 'label'}
-                            labeled>
+                            labeled
+                            outOfStockSuffix={t('outOfStockSuffix')}>
                             {content}
                         </Swatch>
                     );

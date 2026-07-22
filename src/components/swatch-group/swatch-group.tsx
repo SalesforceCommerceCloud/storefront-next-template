@@ -118,7 +118,8 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
                 // Call handleChange when navigating with keyboard
                 const newChildElement = childrenArray[index] as React.ReactElement<SwatchChild['props']>;
                 const newValue = newChildElement?.props?.value;
-                if (newValue) {
+                const isDisabled = newChildElement?.props?.disabled;
+                if (newValue && !isDisabled) {
                     handleChange(newValue);
                 }
 
@@ -157,6 +158,21 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
         ? 'inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1'
         : 'flex flex-wrap gap-[var(--swatch-pill-gap,0.5rem)] focus:outline-none';
 
+    // Exactly one swatch carries the group's tabstop (roving tabindex). Prefer the
+    // selected swatch, but a disabled swatch forces its own tabIndex to -1, so if the
+    // selected value maps to a disabled swatch (e.g. an out-of-stock variant named in
+    // the URL) the tabstop would vanish and the whole group become keyboard-unreachable.
+    // Fall back to the first enabled swatch in that case, then to index 0.
+    const childArray = Children.toArray(children) as React.ReactElement<SwatchChild['props']>[];
+    const selectedIndex = value ? childArray.findIndex((c) => c.props?.value === value) : -1;
+    const firstEnabledIndex = childArray.findIndex((c) => !c.props?.disabled);
+    const focusableIndex =
+        selectedIndex !== -1 && !childArray[selectedIndex].props?.disabled
+            ? selectedIndex
+            : firstEnabledIndex !== -1
+              ? firstEnabledIndex
+              : 0;
+
     return (
         // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- radiogroup composite widget: arrow-key roving handled at group level per ARIA APG
         <div className={containerClasses} onKeyDown={onKeyDown}>
@@ -171,15 +187,14 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
                     </div>
                 )}
                 <div ref={wrapperRef} className={swatchesWrapperClasses} data-slot="swatch-container">
-                    {Children.toArray(children).map((child, index) => {
-                        const childElement = child as React.ReactElement<SwatchChild['props']>;
+                    {childArray.map((childElement, index) => {
                         const selected = childElement.props?.value === value;
 
                         return React.cloneElement(childElement, {
                             key: childElement.props?.value || index,
                             handleSelect: handleChange,
                             selected,
-                            isFocusable: value ? selected : index === 0,
+                            isFocusable: index === focusableIndex,
                         });
                     })}
                 </div>

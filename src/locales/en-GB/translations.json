@@ -32,6 +32,10 @@
             "loadFailed": "Unable to load additional products."
         },
         "quickCategoryFilters": "Quick category filters",
+        "carousel": {
+            "play": "Play carousel",
+            "pause": "Pause carousel"
+        },
         "skipToMainContent": "Skip to main content"
     },
     "search": {
@@ -1666,6 +1670,17 @@
         "preOrder": "Available for pre-order",
         "backOrder": "Available for back order",
         "outOfStockLabel": "Out of stock",
+        "outOfStockSuffix": "(out of stock)",
+        "inventory": {
+            "srPrefix": {
+                "inStock": "Available: ",
+                "lowStock": "Limited availability: ",
+                "outOfStock": "Not available: ",
+                "preOrder": "Pre-order: ",
+                "backOrder": "Back order: "
+            },
+            "unavailable": "Inventory unavailable"
+        },
         "selectAllOptions": "Select all your options above",
         "description": "Description",
         "imageAlt": "Product Image",

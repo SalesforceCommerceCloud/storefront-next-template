@@ -17,9 +17,10 @@ import React, { type ReactElement, useState, useEffect, useMemo, useCallback } f
 import { cn } from '@/lib/utils';
 import { Link } from '@/components/link';
 import { DynamicImage } from '@/components/dynamic-image';
+import { useTranslation } from 'react-i18next';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import withSuspense from '@/components/with-suspense';
@@ -175,6 +176,7 @@ export function HeroCarouselPlain({
     // the `slides` prop (storybook/test path) rendered by the local HeroSlideContent.
     const usingRegion = regionComponents.length > 0;
     const slides = propSlides;
+    const { t } = useTranslation('common');
 
     // Unified per-slide metadata (id + title) for dot indicators and the aria-live announcement,
     // independent of which render path is active.
@@ -189,22 +191,35 @@ export function HeroCarouselPlain({
         [usingRegion, regionComponents, slides]
     );
     const slideCount = slideMeta.length;
-
     const [currentSlide, setCurrentSlide] = useState(0);
     const [api, setApi] = useState<CarouselApi | null>(null);
     const [isPaused, setIsPaused] = useState(false);
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
+    const [isManuallyPaused, setIsManuallyPaused] = useState(false);
+
+    // Check for prefers-reduced-motion
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (mediaQuery.matches && autoPlay) {
+            setIsManuallyPaused(true);
+        }
+    }, [autoPlay]);
 
     useEffect(() => {
-        if (!autoPlay || !api || isPaused) return;
+        if (!autoPlay || !api || isPaused || isManuallyPaused) return;
 
         const interval = setInterval(() => {
             api.scrollNext();
         }, autoPlayInterval);
 
         return () => clearInterval(interval);
-    }, [api, autoPlay, autoPlayInterval, isPaused]);
+    }, [api, autoPlay, autoPlayInterval, isPaused, isManuallyPaused]);
+
+    const togglePlayPause = useCallback(() => {
+        setIsManuallyPaused((prev) => !prev);
+    }, []);
 
     const onSelect = useCallback(() => {
         if (!api) return;
@@ -349,24 +364,39 @@ export function HeroCarouselPlain({
                                 ))}
                             </div>
                         )}
-                        {showNavigation && (
-                            <div className="absolute right-0 flex gap-2">
-                                <NavigationButton
-                                    direction="prev"
-                                    onClick={() => api?.scrollPrev()}
-                                    disabled={!canScrollPrev}
-                                    currentSlide={currentSlide + 1}
-                                    totalSlides={slideCount}
-                                />
-                                <NavigationButton
-                                    direction="next"
-                                    onClick={() => api?.scrollNext()}
-                                    disabled={!canScrollNext}
-                                    currentSlide={currentSlide + 1}
-                                    totalSlides={slideCount}
-                                />
-                            </div>
-                        )}
+                        <div className="absolute right-0 flex gap-2">
+                            {autoPlay && (
+                                <button
+                                    type="button"
+                                    onClick={togglePlayPause}
+                                    className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                                    aria-label={isManuallyPaused ? t('carousel.play') : t('carousel.pause')}>
+                                    {isManuallyPaused ? (
+                                        <Play className="w-6 h-6 text-primary-foreground" strokeWidth={2} />
+                                    ) : (
+                                        <Pause className="w-6 h-6 text-primary-foreground" strokeWidth={2} />
+                                    )}
+                                </button>
+                            )}
+                            {showNavigation && (
+                                <>
+                                    <NavigationButton
+                                        direction="prev"
+                                        onClick={() => api?.scrollPrev()}
+                                        disabled={!canScrollPrev}
+                                        currentSlide={currentSlide + 1}
+                                        totalSlides={slideCount}
+                                    />
+                                    <NavigationButton
+                                        direction="next"
+                                        onClick={() => api?.scrollNext()}
+                                        disabled={!canScrollNext}
+                                        currentSlide={currentSlide + 1}
+                                        totalSlides={slideCount}
+                                    />
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -417,6 +447,7 @@ const DotButton = React.memo(
         onClick: (index: number) => void;
     }): ReactElement => (
         <button
+            type="button"
             onClick={() => onClick(index)}
             className={`rounded-ui transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 ${
                 isActive ? 'w-8 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/75'
@@ -450,6 +481,7 @@ const NavigationButton = React.memo(
 
         return (
             <button
+                type="button"
                 onClick={onClick}
                 disabled={disabled}
                 className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/50"

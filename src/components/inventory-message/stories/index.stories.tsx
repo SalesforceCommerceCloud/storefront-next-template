@@ -253,11 +253,13 @@ export const AllVariants: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        await expect(canvas.getByText(/in stock/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/pre-order/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/back order/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/out of stock/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/inventory unavailable/i)).toBeInTheDocument();
+        // Assert the exact visible message text — the sr-only status prefixes ("Pre-order: ",
+        // "Back order: ") would otherwise double-match a loose regex.
+        await expect(canvas.getByText('In stock')).toBeInTheDocument();
+        await expect(canvas.getByText('Available for pre-order')).toBeInTheDocument();
+        await expect(canvas.getByText('Available for back order')).toBeInTheDocument();
+        await expect(canvas.getByText('Out of stock')).toBeInTheDocument();
+        await expect(canvas.getByText('Inventory unavailable')).toBeInTheDocument();
     },
 };
 

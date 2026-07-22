@@ -16,11 +16,16 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
       >
         <span
           aria-hidden="true"
-          class="h-2 w-2 shrink-0 bg-current text-status-positive"
+          class="h-2 w-2 shrink-0 rounded-full bg-current text-status-positive"
         />
         <p
           class="text-sm font-medium text-status-positive"
         >
+          <span
+            class="sr-only"
+          >
+            Available: 
+          </span>
           In stock
         </p>
       </div>
@@ -32,11 +37,16 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
       >
         <span
           aria-hidden="true"
-          class="h-2 w-2 shrink-0 bg-current text-status-info"
+          class="h-2 w-2 shrink-0 rounded-full bg-current text-status-info"
         />
         <p
           class="text-sm font-medium text-status-info"
         >
+          <span
+            class="sr-only"
+          >
+            Pre-order: 
+          </span>
           Available for pre-order
         </p>
       </div>
@@ -48,11 +58,16 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
       >
         <span
           aria-hidden="true"
-          class="h-2 w-2 shrink-0 bg-current text-status-warning"
+          class="h-2 w-2 shrink-0 rounded-full bg-current text-status-warning"
         />
         <p
           class="text-sm font-medium text-status-warning"
         >
+          <span
+            class="sr-only"
+          >
+            Back order: 
+          </span>
           Available for back order
         </p>
       </div>
@@ -64,11 +79,16 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
       >
         <span
           aria-hidden="true"
-          class="h-2 w-2 shrink-0 bg-current text-status-critical"
+          class="h-2 w-2 shrink-0 rounded-full bg-current text-status-critical"
         />
         <p
           class="text-sm font-medium text-status-critical"
         >
+          <span
+            class="sr-only"
+          >
+            Not available: 
+          </span>
           Out of stock
         </p>
       </div>
@@ -80,11 +100,14 @@ exports[`InventoryMessage stories snapshot > AllVariants story renders and match
       >
         <span
           aria-hidden="true"
-          class="h-2 w-2 shrink-0 bg-current text-muted-foreground"
+          class="h-2 w-2 shrink-0 rounded-full bg-current text-muted-foreground"
         />
         <p
           class="text-sm font-medium text-muted-foreground"
         >
+          <span
+            class="sr-only"
+          />
           Inventory unavailable
         </p>
       </div>
@@ -106,11 +129,16 @@ exports[`InventoryMessage stories snapshot > Perpetual story renders and matches
     >
       <span
         aria-hidden="true"
-        class="h-2 w-2 shrink-0 bg-current text-status-positive"
+        class="h-2 w-2 shrink-0 rounded-full bg-current text-status-positive"
       />
       <p
         class="text-sm font-medium text-status-positive"
       >
+        <span
+          class="sr-only"
+        >
+          Available: 
+        </span>
         In stock
       </p>
     </div>

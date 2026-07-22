@@ -101,6 +101,8 @@ vi.mock('@/components/ui/carousel', () => ({
 vi.mock('lucide-react', () => ({
     ChevronLeft: () => <div data-testid="chevron-left" />,
     ChevronRight: () => <div data-testid="chevron-right" />,
+    Pause: () => <div data-testid="pause" />,
+    Play: () => <div data-testid="play" />,
 }));
 
 vi.mock('@/components/ui/button', () => ({

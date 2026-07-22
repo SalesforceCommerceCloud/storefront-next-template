@@ -143,7 +143,7 @@ function getInventoryMessage(
         case InventoryStatus.UNKNOWN:
         default:
             return {
-                message: 'Inventory unavailable',
+                message: t('inventory.unavailable'),
                 className: 'text-muted-foreground',
             };
     }
@@ -213,8 +213,20 @@ export default function InventoryMessage({
             className={cn('flex items-center gap-2', className)}>
             {!hideContent && (
                 <>
-                    <span aria-hidden="true" className={cn('h-2 w-2 shrink-0 bg-current', statusInfo.className)} />
-                    <p className={cn('text-sm font-medium', statusInfo.className)}>{statusInfo.message}</p>
+                    <span
+                        aria-hidden="true"
+                        className={cn('h-2 w-2 shrink-0 rounded-full bg-current', statusInfo.className)}
+                    />
+                    <p className={cn('text-sm font-medium', statusInfo.className)}>
+                        <span className="sr-only">
+                            {status === InventoryStatus.IN_STOCK && t('inventory.srPrefix.inStock')}
+                            {status === InventoryStatus.LOW_STOCK && t('inventory.srPrefix.lowStock')}
+                            {status === InventoryStatus.OUT_OF_STOCK && t('inventory.srPrefix.outOfStock')}
+                            {status === InventoryStatus.PRE_ORDER && t('inventory.srPrefix.preOrder')}
+                            {status === InventoryStatus.BACK_ORDER && t('inventory.srPrefix.backOrder')}
+                        </span>
+                        {statusInfo.message}
+                    </p>
                 </>
             )}
         </div>

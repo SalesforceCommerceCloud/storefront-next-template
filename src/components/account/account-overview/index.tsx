@@ -128,9 +128,9 @@ export function QuickLinksSection(): ReactElement {
                                 <Link to={link.path} className="group h-full flex">
                                     <div className="h-full flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-ui border transition-all duration-200 hover:shadow-md hover:border-primary/50 group-focus-visible:ring-2 group-focus-visible:ring-primary">
                                         <Icon className="h-4 w-4 text-foreground group-hover:text-primary transition-colors" />
-                                        <h3 className="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors">
+                                        <span className="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors">
                                             {link.label}
-                                        </h3>
+                                        </span>
                                     </div>
                                 </Link>
                             </li>

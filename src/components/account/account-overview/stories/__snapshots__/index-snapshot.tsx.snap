@@ -737,11 +737,11 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   r="4"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Account Details
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -778,11 +778,11 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   r="3"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Manage Addresses
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -824,11 +824,11 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   y2="10"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Payment Methods
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -866,11 +866,11 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   d="M12 17.5v-11"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Order History
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -1149,11 +1149,11 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
                   r="4"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Account Details
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -1190,11 +1190,11 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
                   r="3"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Manage Addresses
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -1236,11 +1236,11 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
                   y2="10"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Payment Methods
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -1278,11 +1278,11 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
                   d="M12 17.5v-11"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Order History
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -1955,11 +1955,11 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
                   r="4"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Account Details
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -1996,11 +1996,11 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
                   r="3"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Manage Addresses
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -2042,11 +2042,11 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
                   y2="10"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Payment Methods
-              </h3>
+              </span>
             </div>
           </a>
         </li>
@@ -2084,11 +2084,11 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
                   d="M12 17.5v-11"
                 />
               </svg>
-              <h3
+              <span
                 class="text-sm font-medium text-foreground text-center leading-5 group-hover:text-primary transition-colors"
               >
                 Order History
-              </h3>
+              </span>
             </div>
           </a>
         </li>

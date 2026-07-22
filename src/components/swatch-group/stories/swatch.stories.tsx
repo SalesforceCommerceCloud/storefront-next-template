@@ -160,8 +160,8 @@ export const Disabled: Story = {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
-        const swatch = canvas.getByRole('radio', { name: /green/i });
-        await expect(swatch).toBeDisabled();
+        const swatch = canvas.getByRole('radio', { name: /green.*out of stock/i });
+        await expect(swatch).toHaveAttribute('aria-disabled', 'true');
     },
 };
 
