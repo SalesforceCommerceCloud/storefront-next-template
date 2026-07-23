@@ -131,6 +131,34 @@ describe('PostOrderRegistration', () => {
         expect(form).toHaveAttribute('action', resourceRoutes.postOrderRegister);
     });
 
+    it('keeps a status live region present but empty while the form is shown', () => {
+        renderComponent();
+
+        // The polite live region must exist (empty) before success so the later message is
+        // written into an existing node and gets announced, rather than mounting pre-filled.
+        const liveRegion = screen.getByRole('status');
+        expect(liveRegion).toBeInTheDocument();
+        expect(liveRegion).toHaveTextContent('');
+    });
+
+    it('fills the status live region with the success message on success', () => {
+        const Stub = createRoutesStub([
+            {
+                path: '/',
+                Component: () => <PostOrderRegistration {...defaultProps} defaultSuccess />,
+            },
+        ]);
+        render(
+            <AllProvidersWrapper>
+                <Stub initialEntries={['/']} />
+            </AllProvidersWrapper>
+        );
+
+        const liveRegion = screen.getByRole('status');
+        expect(liveRegion).toHaveTextContent(/account created/i);
+        expect(liveRegion).toHaveTextContent(/guest@example\.com/i);
+    });
+
     it('includes hidden fields for firstName, lastName, and orderNo', () => {
         renderComponent();
 

@@ -539,4 +539,64 @@ describe('QuantityPicker', () => {
             expect(input).not.toHaveAttribute('max');
         });
     });
+
+    describe('Focus management at value boundaries (WCAG 2.4.3)', () => {
+        // A boundary button disables itself once the limit is reached. A disabled control
+        // cannot hold focus, so focus would fall to the document body. The picker moves focus
+        // to the input first so keyboard users keep a logical focus position.
+        //
+        // React assigns the object ref's `.current` to the real input node on mount, so the
+        // spy is attached after render, once `inputRef.current` points at the rendered element
+        // the component actually calls `.focus()` on.
+        const setupWithRef = (inputValue: string) => {
+            const inputRef: { current: HTMLInputElement | null } = { current: null };
+            mockUseQuantityPicker.mockReturnValue({
+                inputValue,
+                inputRef,
+                isDecrementDisabled: false,
+                isIncrementDisabled: false,
+                isFocused: false,
+                handleIncrement: vi.fn(),
+                handleDecrement: vi.fn(),
+                handleInputChange: vi.fn(),
+                handleInputFocus: vi.fn(),
+                handleInputBlur: vi.fn(),
+                handleKeyDown: vi.fn(),
+            });
+            return inputRef;
+        };
+
+        test('moves focus to the input when decrementing to the value where the button disables', async () => {
+            // Decrement disables at value 1 (see use-quantity-picker). Going 2 -> 1 is the
+            // transition that would strand focus on the about-to-be-disabled button.
+            setupWithRef('2');
+
+            render(<QuantityPicker value="2" onChange={vi.fn()} min={0} productName="Test Product" />);
+            const focusSpy = vi.spyOn(screen.getByDisplayValue('2'), 'focus');
+            await userEvent.click(screen.getByTestId('quantity-decrement'));
+
+            expect(focusSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test('moves focus to the input when incrementing to the maximum', async () => {
+            setupWithRef('4');
+
+            render(<QuantityPicker value="4" onChange={vi.fn()} min={0} max={5} productName="Test Product" />);
+            const focusSpy = vi.spyOn(screen.getByDisplayValue('4'), 'focus');
+            await userEvent.click(screen.getByTestId('quantity-increment'));
+
+            expect(focusSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not move focus when a click stays away from a boundary', async () => {
+            setupWithRef('3');
+
+            render(<QuantityPicker value="3" onChange={vi.fn()} min={0} max={10} productName="Test Product" />);
+            const focusSpy = vi.spyOn(screen.getByDisplayValue('3'), 'focus');
+            await userEvent.click(screen.getByTestId('quantity-increment'));
+            await userEvent.click(screen.getByTestId('quantity-decrement'));
+
+            expect(focusSpy).not.toHaveBeenCalled();
+        });
+    });
 });

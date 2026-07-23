@@ -22,7 +22,7 @@
 // integration tests. The core validation logic is thoroughly tested in index.test.tsx.
 /* c8 ignore end */
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -109,6 +109,18 @@ export const PasswordUpdateForm = ({
             onError?.(errorMessage);
         },
     });
+
+    // Focus management: move focus to first error field on validation error (WCAG 3.3.1)
+    useEffect(() => {
+        const errors = form.formState.errors;
+        const errorKeys = Object.keys(errors);
+        if (errorKeys.length > 0) {
+            const firstErrorField = errorKeys[0];
+            if (firstErrorField !== 'root') {
+                form.setFocus(firstErrorField as keyof PasswordUpdateFormData);
+            }
+        }
+    }, [form, form.formState.errors]);
 
     /**
      * Handles form submission for changing password.

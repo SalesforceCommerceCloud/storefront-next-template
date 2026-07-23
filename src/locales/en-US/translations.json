@@ -712,7 +712,8 @@
                 "title": "Get 10% off your next order. Join email list.",
                 "subtitle": "Stay up to date on product drops and exclusive offers.",
                 "placeholder": "Email address",
-                "cta": "Join"
+                "cta": "Join",
+                "label": "Email address"
             },
             "postOrderRegistration": {
                 "title": "Create an account for a faster checkout next time",
@@ -1198,7 +1199,8 @@
                 "emailInvalid": "Enter a valid email address.",
                 "phoneInvalid": "Enter a valid phone number.",
                 "birthdayFuture": "Date of birth cannot be in the future."
-            }
+            },
+            "phoneDescription": "Enter phone number including area code"
         },
         "email": {
             "title": "Email Address",

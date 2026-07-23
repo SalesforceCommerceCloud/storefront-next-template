@@ -22,7 +22,7 @@
 /* c8 ignore end */
 
 import { Button } from '@/components/ui/button';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 
@@ -123,6 +123,7 @@ export function CustomerProfileFields({
                                     {...field}
                                 />
                             </FormControl>
+                            <FormDescription>{t('profile.phoneDescription')}</FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}

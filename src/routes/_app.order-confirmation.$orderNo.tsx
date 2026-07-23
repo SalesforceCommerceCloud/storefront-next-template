@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Fragment, type ReactElement, Suspense, useEffect } from 'react';
+import { Fragment, type ReactElement, Suspense, useEffect, useId } from 'react';
 import { UITarget } from '@/targets/ui-target';
 import AddressDisplay from '@/components/address-display';
 import { Await, useFetcher, useParams, useRouteError } from 'react-router';
@@ -233,6 +233,7 @@ function OrderConfirmationContent({
     const { t, i18n } = useTranslation('checkout');
     const { currency } = useSite();
     const resetBasket = useBasketReset();
+    const newsletterEmailId = useId();
 
     // Track registration fetcher to keep showing the card after revalidation
     // (loader flips showPostOrderRegistration to false once the user is logged in)
@@ -608,7 +609,11 @@ function OrderConfirmationContent({
                         {/* This is a static placeholder form. Integrators should handle submit events here
                            (e.g., call their marketing/newsletter API or hook into an existing newsletter service). */}
                         <form className="flex flex-col gap-3 sm:flex-row">
+                            <label htmlFor={newsletterEmailId} className="sr-only">
+                                {t('confirmation.newsletter.label')}
+                            </label>
                             <Input
+                                id={newsletterEmailId}
                                 type="email"
                                 placeholder={t('confirmation.newsletter.placeholder')}
                                 className="h-12 flex-1"

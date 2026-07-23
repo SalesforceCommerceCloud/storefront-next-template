@@ -295,6 +295,7 @@ export default function CategoryPage({
 
     const analytics = useAnalytics();
     const lastTrackedDataRef = useRef<string | null>(null);
+    const resultsHeadingRef = useRef<HTMLHeadingElement>(null);
 
     const location = useLocation();
     const navigation = useNavigation();
@@ -334,6 +335,18 @@ export default function CategoryPage({
     );
 
     const [, startTransition] = useTransition();
+    const lastSearchParamsRef = useRef<string>(location.search);
+
+    useEffect(() => {
+        // Move focus to results heading after refinement or sort changes
+        if (navigation.state === 'idle' && lastSearchParamsRef.current !== location.search) {
+            lastSearchParamsRef.current = location.search;
+            // Allow the DOM to update before moving focus
+            requestAnimationFrame(() => {
+                resultsHeadingRef.current?.focus();
+            });
+        }
+    }, [navigation.state, location.search]);
 
     useEffect(() => {
         // Only track if we haven't already tracked this specific data combination
@@ -401,7 +414,10 @@ export default function CategoryPage({
                     </div>
 
                     <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <h1 className="text-3xl font-bold leading-none tracking-[-0.75px] text-card-foreground">
+                        <h1
+                            ref={resultsHeadingRef}
+                            tabIndex={-1}
+                            className="text-3xl font-bold leading-none tracking-[-0.75px] text-card-foreground rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                             {category?.name || category.id} ({searchResultCritical.total})
                         </h1>
                         <UITarget targetId="sfcc.plp.search.summary" />

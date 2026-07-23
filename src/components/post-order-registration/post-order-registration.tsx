@@ -72,28 +72,41 @@ export function PostOrderRegistration({
     const registrationSuccess = fetcher.data?.success === true || defaultSuccess;
     const error = fetcher.data?.error ?? defaultError;
 
-    if (registrationSuccess) {
-        return (
-            <Card className="border border-border/70">
-                <CardHeader>
-                    <CardTitle>{t('confirmation.postOrderRegistration.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center py-10 space-y-3">
-                    <div className="flex items-center justify-center size-12 rounded-full bg-primary/10">
-                        <Check className="size-6 text-primary" />
-                    </div>
-                    <p className="text-lg font-semibold text-foreground text-center">
-                        {t('confirmation.postOrderRegistration.successTitle')}
-                    </p>
-                    <p className="text-sm text-muted-foreground text-center max-w-md">
-                        {t('confirmation.postOrderRegistration.successDescription', { email })}
-                    </p>
-                </CardContent>
-            </Card>
-        );
-    }
+    // Persistent, initially-empty polite live region. It stays mounted across both the form
+    // and success states, so when registration succeeds the message is written into an
+    // existing region and assistive tech announces it. A status node that first mounts already
+    // populated (the earlier early-return placement) generally stays silent.
+    const liveRegion = (
+        <div role="status" className="sr-only">
+            {registrationSuccess ? (
+                <>
+                    {t('confirmation.postOrderRegistration.successTitle')}{' '}
+                    {t('confirmation.postOrderRegistration.successDescription', { email })}
+                </>
+            ) : null}
+        </div>
+    );
 
-    return (
+    const successView = (
+        <Card className="border border-border/70">
+            <CardHeader>
+                <CardTitle>{t('confirmation.postOrderRegistration.title')}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center py-10 space-y-3">
+                <div className="flex items-center justify-center size-12 rounded-full bg-primary/10">
+                    <Check className="size-6 text-primary" />
+                </div>
+                <p className="text-lg font-semibold text-foreground text-center">
+                    {t('confirmation.postOrderRegistration.successTitle')}
+                </p>
+                <p className="text-sm text-muted-foreground text-center max-w-md">
+                    {t('confirmation.postOrderRegistration.successDescription', { email })}
+                </p>
+            </CardContent>
+        </Card>
+    );
+
+    const formView = (
         <Card className="border border-border/70">
             <CardHeader>
                 <CardTitle>{t('confirmation.postOrderRegistration.title')}</CardTitle>
@@ -197,5 +210,12 @@ export function PostOrderRegistration({
                 </fetcher.Form>
             </CardContent>
         </Card>
+    );
+
+    return (
+        <>
+            {liveRegion}
+            {registrationSuccess ? successView : formView}
+        </>
     );
 }

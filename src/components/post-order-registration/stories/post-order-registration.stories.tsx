@@ -279,7 +279,14 @@ export const SuccessState: Story = {
         // Form replaced by confirmation
         await expect(canvas.queryByRole('textbox')).toBeNull();
 
-        await expect(canvas.getByText(/account created/i)).toBeInTheDocument();
-        await expect(canvas.getByText(/jane\.doe@example\.com/i)).toBeInTheDocument();
+        // A polite live region carries the success message so screen readers announce it.
+        // The message is intentionally present twice: once visibly in the card and once in the
+        // sr-only live region, so match all occurrences.
+        const liveRegion = canvas.getByRole('status');
+        await expect(liveRegion).toHaveTextContent(/account created/i);
+        await expect(liveRegion).toHaveTextContent(/jane\.doe@example\.com/i);
+
+        await expect(canvas.getAllByText(/account created/i).length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText(/jane\.doe@example\.com/i).length).toBeGreaterThan(0);
     },
 };
