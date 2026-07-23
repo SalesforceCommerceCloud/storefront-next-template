@@ -20,20 +20,25 @@ Feature('Reset Password').tag('@core').tag('@auth');
 // instead of the UI signup form, so the magic-link scenario's setup no longer
 // flakes (cc-nx_ cookie timeout / "Last Name Input" disappearing mid-form).
 //
-// "User can request password reset" depends on SLAS environment state that is
-// NOT version-controlled here. It asserts the "Check Your Email" heading, which
-// only renders after POST /password/reset succeeds. That request can fail for
-// several environment-side reasons, all surfacing as the heading never showing:
-//   - Monthly password-reset email quota exhausted (resetPassword.mode='email'
-//     has SLAS send the email itself, which is metered) → FEATURE_UNAVAILABLE.
-//   - SLAS client's callback_uri not registered / doesn't match the test origin
-//     → FEATURE_UNAVAILABLE.
-//   - SLAS client missing password-reset Site Configuration (e.g. Domain
-//     Identity) in the SLAS Admin UI.
-// If this starts failing on "Check Your Email", check the SLAS Admin UI client
-// (Clients > select client id > Site Configuration) before looking for a code
-// cause. See the skip note on the scenario below for the currently-suspected
-// cause and how to restore it.
+// "User can request password reset" depends on SLAS environment state. It
+// asserts the "Check Your Email" heading, which only renders after the reset
+// request to SLAS succeeds. That request can fail for several environment-side
+// reasons, all surfacing as the heading never showing:
+//   - Too many reset emails sent at once, exceeding the email provider's
+//     rate/concurrency limits so the send is refused. This is why the scenario
+//     is @nightly-only (below): running it on every PR triggers many concurrent
+//     sends.
+//   - Password-reset email quota exhausted (when resetPassword.mode='email',
+//     SLAS sends the metered email itself) → FEATURE_UNAVAILABLE.
+//   - The SLAS client's callback_uri is not registered / doesn't match the
+//     request origin → FEATURE_UNAVAILABLE.
+//   - The SLAS client is missing password-reset Site Configuration in the SLAS
+//     Admin UI (e.g. the Domain Identity is not set).
+// This stability depends on SLAS environment state that isn't version-controlled
+// here, so a client-config regression flakes the scenario with no code-level
+// signal. If it starts failing on "Check Your Email", check the SLAS client's
+// Site Configuration (Clients > select client id > Site Configuration > Domain
+// Identity) and the email-send path before looking for a code cause.
 const { storefrontPage, forgotPasswordPage, resetPasswordPage, apiSignupFlow } = inject();
 import { expect } from 'chai';
 
@@ -57,13 +62,10 @@ Before(async () => {
     }
 });
 
-// Skipped: SLAS client c9c45bfd-0ed3-4aa2-9971-40f88962b836 monthly
-// password-reset email quota exhausted (resetPassword.mode='email' → SLAS sends
-// the email itself, which is metered). SLAS returns FEATURE_UNAVAILABLE on
-// POST /password/reset, so the "Check Your Email" heading never renders. Runs in
-// e2e-template-pr and e2e-template-nightly (@core). Restore (.skip → Scenario)
-// once the client quota is raised/reset.
-Scenario.skip('User can request password reset', () => {
+// @nightly-only: sends a real reset email, so it runs on a schedule rather than
+// on every PR to stay within the email provider's limits. See the header
+// comment above for details.
+Scenario('User can request password reset', () => {
     // Navigate to the forgot password page
     forgotPasswordPage.navigate();
 
@@ -80,7 +82,8 @@ Scenario.skip('User can request password reset', () => {
     forgotPasswordPage.validateCheckEmailHeading();
 })
     .tag('@reset-password')
-    .tag('@forgot-password-form');
+    .tag('@forgot-password-form')
+    .tag('@nightly-only');
 
 Scenario('User can reset password using magic link', async () => {
     // Test data
