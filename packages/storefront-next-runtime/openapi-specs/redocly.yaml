@@ -27,6 +27,10 @@ apis:
     root: ./shopper-customers-oas-1.8.0/shopper-customers-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-customers-v1.ts
+  shopper-delivery-estimates-v1:
+    root: ./shopper-delivery-estimates-oas-1.1.0/shopper-delivery-estimates-oas-v1-public.yaml
+    x-openapi-ts:
+      output: ../src/scapi-client/generated/shopper-delivery-estimates-v1.ts
   shopper-experience-v1:
     root: ./shopper-experience-oas-1.6.0/shopper-experience-oas-v1-public.yaml
     x-openapi-ts:

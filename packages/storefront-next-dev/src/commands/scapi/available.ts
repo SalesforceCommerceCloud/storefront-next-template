@@ -39,6 +39,12 @@ const BUILT_IN_APIS: Array<{ apiFamily: string; apiName: string; apiVersion: str
     { apiFamily: 'shopper', apiName: 'shopper-consents', apiVersion: 'v1', clientKey: 'shopperConsents' },
     { apiFamily: 'shopper', apiName: 'shopper-context', apiVersion: 'v1', clientKey: 'shopperContext' },
     { apiFamily: 'customer', apiName: 'shopper-customers', apiVersion: 'v1', clientKey: 'shopperCustomers' },
+    {
+        apiFamily: 'product',
+        apiName: 'shopper-delivery-estimates',
+        apiVersion: 'v1',
+        clientKey: 'shopperDeliveryEstimates',
+    },
     { apiFamily: 'experience', apiName: 'shopper-experience', apiVersion: 'v1', clientKey: 'shopperExperience' },
     {
         apiFamily: 'pricing',

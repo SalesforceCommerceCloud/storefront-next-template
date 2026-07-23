@@ -43,6 +43,7 @@ export const BUILT_IN_CLIENT_DEFAULTS = {
     shopperConsents: { basePath: '/shopper/shopper-consents/v1', supportsLocale: true },
     shopperContext: { basePath: '/shopper/shopper-context/v1', supportsLocale: false },
     shopperCustomers: { basePath: '/customer/shopper-customers/v1', supportsLocale: false },
+    shopperDeliveryEstimates: { basePath: '/product/shopper-delivery-estimates/v1', supportsLocale: false },
     shopperExperience: { basePath: '/experience/shopper-experience/v1', supportsLocale: true },
     shopperGiftCertificates: { basePath: '/pricing/shopper-gift-certificates/v1', supportsLocale: false },
     shopperLogin: { basePath: '/shopper/auth/v1', supportsLocale: false },

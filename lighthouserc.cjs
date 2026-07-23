@@ -132,11 +132,11 @@ module.exports = {
                         // local imports so customer artifacts re-tighten under the baseline budget.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 490000, aggregationMethod: 'median' },
+                            { maxNumericValue: 493000, aggregationMethod: 'median' },
                         ],
                         'resource-summary:document:size': [
                             'error',
-                            { maxNumericValue: 31000, aggregationMethod: 'median' },
+                            { maxNumericValue: 31500, aggregationMethod: 'median' },
                         ],
                     },
                 },

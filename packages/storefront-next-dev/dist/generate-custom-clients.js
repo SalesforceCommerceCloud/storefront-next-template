@@ -34,6 +34,7 @@ const BUILT_IN_NAMESPACE_BY_KEY = {
 	shopperConsents: "ShopperConsents",
 	shopperContext: "ShopperContext",
 	shopperCustomers: "ShopperCustomers",
+	shopperDeliveryEstimates: "ShopperDeliveryEstimates",
 	shopperExperience: "ShopperExperience",
 	shopperGiftCertificates: "ShopperGiftCertificates",
 	shopperLogin: "ShopperLogin",

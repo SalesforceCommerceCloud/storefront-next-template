@@ -97,6 +97,7 @@ describe('createCommerceApiClients', () => {
             expect(clients.shopperConsents).toBeDefined();
             expect(clients.shopperContext).toBeDefined();
             expect(clients.shopperCustomers).toBeDefined();
+            expect(clients.shopperDeliveryEstimates).toBeDefined();
             expect(clients.shopperExperience).toBeDefined();
             expect(clients.shopperGiftCertificates).toBeDefined();
             expect(clients.shopperLogin).toBeDefined();
@@ -158,6 +159,7 @@ describe('createCommerceApiClients', () => {
             const consentsSpy = vi.spyOn(clients.shopperConsents, 'use');
             const contextSpy = vi.spyOn(clients.shopperContext, 'use');
             const customersSpy = vi.spyOn(clients.shopperCustomers, 'use');
+            const deliveryEstimatesSpy = vi.spyOn(clients.shopperDeliveryEstimates, 'use');
             const experienceSpy = vi.spyOn(clients.shopperExperience, 'use');
             const giftCertsSpy = vi.spyOn(clients.shopperGiftCertificates, 'use');
             const loginSpy = vi.spyOn(clients.shopperLogin, 'use');
@@ -181,6 +183,7 @@ describe('createCommerceApiClients', () => {
             expect(consentsSpy).toHaveBeenCalledWith(middleware);
             expect(contextSpy).toHaveBeenCalledWith(middleware);
             expect(customersSpy).toHaveBeenCalledWith(middleware);
+            expect(deliveryEstimatesSpy).toHaveBeenCalledWith(middleware);
             expect(experienceSpy).toHaveBeenCalledWith(middleware);
             expect(giftCertsSpy).toHaveBeenCalledWith(middleware);
             expect(loginSpy).toHaveBeenCalledWith(middleware);
@@ -219,6 +222,7 @@ describe('createCommerceApiClients', () => {
             expect(clients.shopperConsents).toBeDefined();
             expect(clients.shopperContext).toBeDefined();
             expect(clients.shopperCustomers).toBeDefined();
+            expect(clients.shopperDeliveryEstimates).toBeDefined();
             expect(clients.shopperExperience).toBeDefined();
             expect(clients.shopperGiftCertificates).toBeDefined();
             expect(clients.shopperLogin).toBeDefined();

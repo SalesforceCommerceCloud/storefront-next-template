@@ -55,6 +55,12 @@ const BUILT_IN_APIS = [
 		clientKey: "shopperCustomers"
 	},
 	{
+		apiFamily: "product",
+		apiName: "shopper-delivery-estimates",
+		apiVersion: "v1",
+		clientKey: "shopperDeliveryEstimates"
+	},
+	{
 		apiFamily: "experience",
 		apiName: "shopper-experience",
 		apiVersion: "v1",

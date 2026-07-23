@@ -65,6 +65,7 @@ const BUILT_IN_NAMESPACE_BY_KEY: Record<string, string> = {
     shopperConsents: 'ShopperConsents',
     shopperContext: 'ShopperContext',
     shopperCustomers: 'ShopperCustomers',
+    shopperDeliveryEstimates: 'ShopperDeliveryEstimates',
     shopperExperience: 'ShopperExperience',
     shopperGiftCertificates: 'ShopperGiftCertificates',
     shopperLogin: 'ShopperLogin',

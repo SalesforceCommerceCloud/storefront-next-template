@@ -71,6 +71,14 @@ export namespace ShopperCustomers {
     export type operations = ShopperCustomersTypes.operations;
 }
 
+// Shopper Delivery Estimates
+import type * as ShopperDeliveryEstimatesTypes from './generated/shopper-delivery-estimates-v1';
+export namespace ShopperDeliveryEstimates {
+    export type endpoints = ShopperDeliveryEstimatesTypes.paths;
+    export type schemas = ShopperDeliveryEstimatesTypes.components['schemas'];
+    export type operations = ShopperDeliveryEstimatesTypes.operations;
+}
+
 // Shopper Experience
 import type * as ShopperExperienceTypes from './generated/shopper-experience-v1';
 export namespace ShopperExperience {

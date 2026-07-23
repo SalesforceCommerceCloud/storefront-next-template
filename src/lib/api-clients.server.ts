@@ -744,6 +744,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
         'shopperConsents',
         'shopperContext',
         'shopperCustomers',
+        'shopperDeliveryEstimates',
         'shopperExperience',
         'shopperGiftCertificates',
         'shopperLogin',

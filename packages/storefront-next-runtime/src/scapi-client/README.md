@@ -702,6 +702,7 @@ clients.shopperBasketsV2     // Basket operations (v2)
 clients.shopperConsents      // Consent management
 clients.shopperContext       // Context/session operations
 clients.shopperCustomers     // Customer management
+clients.shopperDeliveryEstimates  // Delivery estimates
 clients.shopperExperience    // Experience/page content
 clients.shopperGiftCertificates  // Gift certificate operations
 clients.shopperLogin         // Authentication

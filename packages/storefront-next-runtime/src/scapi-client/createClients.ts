@@ -22,6 +22,7 @@ import type {
     ShopperConsents,
     ShopperContext,
     ShopperCustomers,
+    ShopperDeliveryEstimates,
     ShopperExperience,
     ShopperGiftCertificates,
     ShopperLogin,
@@ -83,6 +84,7 @@ import { operations as shopperConfigurationsOps } from './generated/shopper-conf
 import { operations as shopperConsentsOps } from './generated/shopper-consents-v1.operations';
 import { operations as shopperContextOps } from './generated/shopper-context-v1.operations';
 import { operations as shopperCustomersOps } from './generated/shopper-customers-v1.operations';
+import { operations as shopperDeliveryEstimatesOps } from './generated/shopper-delivery-estimates-v1.operations';
 import { operations as shopperExperienceOps } from './generated/shopper-experience-v1.operations';
 import { operations as shopperGiftCertificatesOps } from './generated/shopper-gift-certificates-v1.operations';
 // May 2026 - The shopper login has been renamed to auth but we continue to ship the client namespace as `shopperLogin` for backwards compatibility
@@ -103,6 +105,10 @@ export type Clients = {
     shopperConsents: ProxyClient<Client<ShopperConsents.endpoints>, typeof shopperConsentsOps>;
     shopperContext: ProxyClient<Client<ShopperContext.endpoints>, typeof shopperContextOps>;
     shopperCustomers: ProxyClient<Client<ShopperCustomers.endpoints>, typeof shopperCustomersOps>;
+    shopperDeliveryEstimates: ProxyClient<
+        Client<ShopperDeliveryEstimates.endpoints>,
+        typeof shopperDeliveryEstimatesOps
+    >;
     shopperExperience: ProxyClient<Client<ShopperExperience.endpoints>, typeof shopperExperienceOps>;
     shopperGiftCertificates: ProxyClient<Client<ShopperGiftCertificates.endpoints>, typeof shopperGiftCertificatesOps>;
     shopperLogin: ProxyClient<Client<ShopperLogin.endpoints>, typeof shopperLoginOps>;
@@ -233,6 +239,15 @@ export function createCommerceApiClients(config: CommerceApiClientConfig): Clien
         paramsFor('shopperCustomers'),
         createClientOptions
     );
+    const shopperDeliveryEstimates = createClient(
+        createBaseClient<ShopperDeliveryEstimates.endpoints>({
+            baseUrl: baseUrlFor('shopperDeliveryEstimates'),
+            ...clientOptions,
+        }),
+        shopperDeliveryEstimatesOps,
+        paramsFor('shopperDeliveryEstimates'),
+        createClientOptions
+    );
     const shopperExperience = createClient(
         createBaseClient<ShopperExperience.endpoints>({ baseUrl: baseUrlFor('shopperExperience'), ...clientOptions }),
         shopperExperienceOps,
@@ -305,6 +320,7 @@ export function createCommerceApiClients(config: CommerceApiClientConfig): Clien
         shopperConsents,
         shopperContext,
         shopperCustomers,
+        shopperDeliveryEstimates,
         shopperExperience,
         shopperGiftCertificates,
         shopperLogin,
@@ -362,6 +378,7 @@ export function createCommerceApiClients(config: CommerceApiClientConfig): Clien
         shopperConsents,
         shopperContext,
         shopperCustomers,
+        shopperDeliveryEstimates,
         shopperExperience,
         shopperGiftCertificates,
         shopperLogin,

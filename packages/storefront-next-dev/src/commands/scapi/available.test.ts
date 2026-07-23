@@ -127,6 +127,7 @@ describe('scapi available command', () => {
             'shopper/shopper-consents/v1',
             'shopper/shopper-context/v1',
             'customer/shopper-customers/v1',
+            'product/shopper-delivery-estimates/v1',
             'experience/shopper-experience/v1',
             'pricing/shopper-gift-certificates/v1',
             'shopper/auth/v1',
