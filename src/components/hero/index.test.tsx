@@ -469,14 +469,16 @@ describe('Hero Component', () => {
             const scrim = container.querySelector('.z-\\[5\\]');
             expect(scrim).toBeInTheDocument();
             expect(scrim).toHaveAttribute('aria-hidden');
-            expect((scrim as HTMLElement).style.background).toContain('--brand-black');
+            // The gradient recipe lives in each vertical's brand.css; the component only
+            // wires up the per-mode token (see --hero-overlay-dark).
+            expect((scrim as HTMLElement).style.background).toContain('--hero-overlay-dark');
         });
 
         test('renders a light scrim when overlay is Light', () => {
             const { container } = renderHero({ title: 'T', imageUrl: { url: '/t.jpg' }, overlay: 'Light' });
             const scrim = container.querySelector('.z-\\[5\\]');
             expect(scrim).toBeInTheDocument();
-            expect((scrim as HTMLElement).style.background).toContain('--brand-white');
+            expect((scrim as HTMLElement).style.background).toContain('--hero-overlay-light');
         });
 
         test('renders no scrim for an invalid overlay value', () => {

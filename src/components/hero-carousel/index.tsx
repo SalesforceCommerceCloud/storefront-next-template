@@ -533,10 +533,11 @@ const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; pr
              * guarantee legibility everywhere (a top or centre heading over a bright sky measured ~1.7:1). A
              * uniform scrim floor keeps the composited background dark enough for white text over any region
              * of any image: worst case (a blown-out white region behind) is 5.7:1 for fashion and 4.7:1 for
-             * cosmetic, both clearing the 4.5:1 AA minimum. The scrim is mixed from each vertical's
-             * `--brand-black` so it keeps the brand's warm/neutral tint rather than forcing pure black. The
-             * image itself is unchanged. */}
-            <div className="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]" />
+             * cosmetic, both clearing the 4.5:1 AA minimum. The scrim recipe lives in each vertical's
+             * `theme/tokens/brand.css` as `--hero-scrim` (mixed from that brand's `--brand-black` so it keeps
+             * the warm/neutral tint rather than forcing pure black), so an omitted brand color can't silently
+             * collapse the scrim. The image itself is unchanged. */}
+            <div className="absolute inset-0 bg-[var(--hero-scrim)]" />
 
             <div className={cn('relative h-full flex z-20 overflow-hidden', overlayRowClass, overlayEdgePaddingClass)}>
                 <div className="section-container w-full">

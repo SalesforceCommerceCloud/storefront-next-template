@@ -54,10 +54,15 @@ type HeroOverlay = (typeof HERO_OVERLAY_VALUES)[number];
  * darken/lighten from the bottom-left, matching the treatment the Hero Carousel applies to
  * its slides. The carousel sets a default overlay that each slide inherits unless the Hero
  * author sets its own overlay.
+ *
+ * The gradient recipe itself lives in each vertical's `theme/tokens/brand.css`
+ * (`--hero-overlay-dark` / `--hero-overlay-light`), next to the `--brand-black`/`--brand-white`
+ * primitives it mixes, so the scrim geometry is brand-overridable and a vertical can't ship a
+ * brand color without the matching scrim.
  */
 const HERO_OVERLAY_BACKGROUND: Record<Exclude<HeroOverlay, 'None'>, string> = {
-    Dark: 'linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%)',
-    Light: 'linear-gradient(to top, color-mix(in oklch, var(--brand-white) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-white) 60%, transparent) 0%, color-mix(in oklch, var(--brand-white) 30%, transparent) 50%, transparent 100%)',
+    Dark: 'var(--hero-overlay-dark)',
+    Light: 'var(--hero-overlay-light)',
 };
 
 /** Hero is edge-to-edge at every breakpoint, so the image always requests a viewport-width variant from DIS. */

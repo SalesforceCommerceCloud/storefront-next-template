@@ -44,7 +44,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -104,7 +104,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -164,7 +164,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -399,7 +399,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -459,7 +459,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -519,7 +519,7 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -708,7 +708,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -768,7 +768,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -828,7 +828,7 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -1051,7 +1051,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -1111,7 +1111,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -1171,7 +1171,7 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
@@ -1394,7 +1394,7 @@ exports[`HeroCarousel stories snapshot > SingleSlide story renders and matches s
               />
             </div>
             <div
-              class="absolute inset-0 bg-[color-mix(in_oklch,var(--brand-black)_60%,transparent)]"
+              class="absolute inset-0 bg-[var(--hero-scrim)]"
             />
             <div
               class="relative h-full flex z-20 overflow-hidden items-center"
