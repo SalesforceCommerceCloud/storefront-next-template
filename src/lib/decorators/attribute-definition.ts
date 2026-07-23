@@ -42,6 +42,32 @@ export type AttributeType = (typeof VALID_ATTRIBUTE_TYPES)[number];
  * Configuration interface for the AttributeDefinition decorator
  * Matches the AttributeDefinition interface from component-registry.ts
  */
+/**
+ * Search-index configuration for an attribute (maps to the `searching` object in the
+ * Page Designer metadefinition schema). Not every attribute type supports searching, and
+ * some types narrow which sub-fields are allowed — the cartridge generator validates the
+ * combination and fails generation if it is invalid:
+ *  - `string` | `text` | `product` | `category`: all fields allowed.
+ *  - `markup`: `sortable` must be omitted or `false`.
+ *  - `custom` | `cms_record`: `refinable` must be `false`; `boostFactor`/`sortable` not allowed.
+ *  - `integer` | `boolean` | `file` | `page` | `image` | `url` | `enum`: searching not allowed.
+ */
+export interface AttributeSearchingConfig {
+    searchable: boolean; // Whether the attribute is indexed for full-text search
+    refinable: boolean; // Whether the attribute can be used as a search refinement (facet)
+    boostFactor?: number; // Relevance boost applied to matches (0.01–100)
+    sortable?: boolean; // Whether search results can be sorted by this attribute
+}
+
+/**
+ * Dynamic-lookup configuration for an attribute (maps to the `dynamic_lookup` object in the
+ * Page Designer metadefinition schema). Sources the attribute's value from an aspect attribute
+ * at render time instead of a stored value. Allowed on all attribute types.
+ */
+export interface AttributeDynamicLookupConfig {
+    aspectAttributeAlias: string; // Alias of the aspect attribute to source the value from
+}
+
 export interface AttributeDefinitionConfig {
     id?: string; // Unique identifier for the attribute
     name?: string; // Human-readable name for the attribute
@@ -55,6 +81,8 @@ export interface AttributeDefinitionConfig {
         type: string;
         configuration?: Record<string, unknown>;
     };
+    searching?: AttributeSearchingConfig; // Search-index configuration (type-gated; see AttributeSearchingConfig)
+    dynamicLookup?: AttributeDynamicLookupConfig; // Source value from an aspect attribute (see AttributeDynamicLookupConfig)
 }
 
 /**
@@ -84,6 +112,24 @@ export interface AttributeDefinitionConfig {
  *     description: 'Visual theme for the component'
  *   })
  *   theme: 'light' | 'dark';
+ *
+ *   // `searching` is type-gated — see AttributeSearchingConfig for which types allow it.
+ *   @AttributeDefinition({
+ *     id: 'headline',
+ *     name: 'Headline',
+ *     type: 'string',
+ *     searching: { searchable: true, refinable: true, boostFactor: 1.5 }
+ *   })
+ *   headline: string;
+ *
+ *   // `dynamicLookup` sources the value from an aspect attribute at render time.
+ *   @AttributeDefinition({
+ *     id: 'productName',
+ *     name: 'Product Name',
+ *     type: 'string',
+ *     dynamicLookup: { aspectAttributeAlias: 'product' }
+ *   })
+ *   productName: string;
  *
  *   constructor(
  *     @AttributeDefinition({

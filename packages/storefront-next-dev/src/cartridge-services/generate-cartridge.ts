@@ -98,6 +98,90 @@ function resolveAttributeType(decoratorType?: string, tsMorphType?: string, fiel
     return 'string';
 }
 
+// Attribute types for which the Page Designer metadefinition schema forbids `searching`.
+const SEARCHING_FORBIDDEN_TYPES = new Set(['integer', 'boolean', 'file', 'page', 'image', 'url', 'enum']);
+
+/**
+ * Validate an authored `searching` config against the resolved attribute type and map it to the
+ * snake_case schema shape. The metadefinition schema gates `searching` by type; an invalid
+ * combination fails cartridge generation (matching the strict behavior of `resolveAttributeType`).
+ *
+ * Rules (from attributedefinition.json):
+ *  - Forbidden entirely on integer/boolean/file/page/image/url/enum.
+ *  - `markup`: `sortable` must be false.
+ *  - `custom`/`cms_record`: `refinable` must be false; `boost_factor`/`sortable` not allowed.
+ *  - `string`/`text`/`product`/`category`: all fields allowed.
+ */
+function mapAttributeSearching(
+    searching: Record<string, unknown>,
+    resolvedType: string,
+    fieldName: string
+): Record<string, unknown> {
+    const fail = (reason: string): never => {
+        logger.error(`Invalid 'searching' config for attribute '${fieldName}' (type '${resolvedType}'): ${reason}`);
+        process.exit(1);
+    };
+
+    if (SEARCHING_FORBIDDEN_TYPES.has(resolvedType)) {
+        fail(`the '${resolvedType}' attribute type does not support searching.`);
+    }
+
+    const { searchable, refinable, boostFactor, sortable } = searching as {
+        searchable?: unknown;
+        refinable?: unknown;
+        boostFactor?: unknown;
+        sortable?: unknown;
+    };
+
+    if (typeof searchable !== 'boolean' || typeof refinable !== 'boolean') {
+        fail(`'searchable' and 'refinable' are required booleans.`);
+    }
+
+    if (resolvedType === 'markup' && sortable === true) {
+        fail(`'sortable' must be false for markup attributes.`);
+    }
+
+    if (resolvedType === 'custom' || resolvedType === 'cms_record') {
+        if (refinable === true) {
+            fail(`'refinable' must be false for ${resolvedType} attributes.`);
+        }
+        if (boostFactor !== undefined) {
+            fail(`'boostFactor' is not supported for ${resolvedType} attributes.`);
+        }
+        if (sortable === true) {
+            fail(`'sortable' must be false for ${resolvedType} attributes.`);
+        }
+    }
+
+    const mapped: Record<string, unknown> = { searchable, refinable };
+    if (boostFactor !== undefined) {
+        mapped.boost_factor = boostFactor;
+    }
+    if (sortable !== undefined) {
+        mapped.sortable = sortable;
+    }
+    return mapped;
+}
+
+/**
+ * Validate an authored `dynamicLookup` config and map it to the snake_case schema shape.
+ * The metadefinition schema allows `dynamic_lookup` on all attribute types but requires a
+ * single `aspect_attribute_alias` field (`additionalProperties: false`); a missing alias fails
+ * cartridge generation (matching the strict behavior of `resolveAttributeType`).
+ */
+function mapAttributeDynamicLookup(dynamicLookup: Record<string, unknown>, fieldName: string): Record<string, unknown> {
+    const { aspectAttributeAlias } = dynamicLookup as { aspectAttributeAlias?: unknown };
+
+    if (typeof aspectAttributeAlias !== 'string' || aspectAttributeAlias.length === 0) {
+        logger.error(
+            `Invalid 'dynamicLookup' config for attribute '${fieldName}': 'aspectAttributeAlias' is required and must be a non-empty string.`
+        );
+        process.exit(1);
+    }
+
+    return { aspect_attribute_alias: aspectAttributeAlias };
+}
+
 // Convert field name to human-readable name
 function toHumanReadableName(fieldName: string): string {
     return fieldName
@@ -372,6 +456,21 @@ function extractAttributesFromSource(sourceFile: SourceFile, className: string):
                 attribute.editor_definition = config.editorDefinition;
             }
 
+            if (config.searching !== undefined) {
+                attribute.searching = mapAttributeSearching(
+                    config.searching as Record<string, unknown>,
+                    attribute.type as string,
+                    String(attribute.id)
+                );
+            }
+
+            if (config.dynamicLookup !== undefined) {
+                attribute.dynamic_lookup = mapAttributeDynamicLookup(
+                    config.dynamicLookup as Record<string, unknown>,
+                    String(attribute.id)
+                );
+            }
+
             attributes.push(attribute);
         }
     } catch (error) {
@@ -460,9 +559,26 @@ function extractRegionDefinitionsFromSource(
                                 regionDefinition.allow_multiple = regionConfig.allowMultiple;
                             }
 
-                            if (regionConfig.defaultComponentConstructors) {
+                            if (Array.isArray(regionConfig.defaultComponentConstructors)) {
+                                // Map the decorator's authoring shape ({ id, typeId, data }) onto the
+                                // Page Designer componentconstructor schema, which only permits
+                                // `type_id` (required), `name`, and nested `region_component_constructors`.
+                                // The decorator's `id`/`data` fields have no place in the metadefinition
+                                // format (`additionalProperties: false`), so they are intentionally dropped.
                                 regionDefinition.default_component_constructors =
-                                    regionConfig.defaultComponentConstructors;
+                                    regionConfig.defaultComponentConstructors.map((constructor) => {
+                                        const { typeId, name } = constructor as {
+                                            typeId?: unknown;
+                                            name?: unknown;
+                                        };
+                                        const mapped: Record<string, unknown> = {
+                                            type_id: normalizeComponentTypeId(String(typeId), defaultComponentGroup),
+                                        };
+                                        if (name !== undefined) {
+                                            mapped.name = name;
+                                        }
+                                        return mapped;
+                                    });
                             }
 
                             regionDefinitions.push(regionDefinition);

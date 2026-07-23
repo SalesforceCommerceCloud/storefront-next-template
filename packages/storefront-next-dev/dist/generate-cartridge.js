@@ -159,6 +159,62 @@ function resolveAttributeType(decoratorType, tsMorphType, fieldName) {
 	if (tsMorphType && TYPE_MAPPING[tsMorphType]) return TYPE_MAPPING[tsMorphType];
 	return "string";
 }
+const SEARCHING_FORBIDDEN_TYPES = new Set([
+	"integer",
+	"boolean",
+	"file",
+	"page",
+	"image",
+	"url",
+	"enum"
+]);
+/**
+* Validate an authored `searching` config against the resolved attribute type and map it to the
+* snake_case schema shape. The metadefinition schema gates `searching` by type; an invalid
+* combination fails cartridge generation (matching the strict behavior of `resolveAttributeType`).
+*
+* Rules (from attributedefinition.json):
+*  - Forbidden entirely on integer/boolean/file/page/image/url/enum.
+*  - `markup`: `sortable` must be false.
+*  - `custom`/`cms_record`: `refinable` must be false; `boost_factor`/`sortable` not allowed.
+*  - `string`/`text`/`product`/`category`: all fields allowed.
+*/
+function mapAttributeSearching(searching, resolvedType, fieldName) {
+	const fail = (reason) => {
+		logger.error(`Invalid 'searching' config for attribute '${fieldName}' (type '${resolvedType}'): ${reason}`);
+		process.exit(1);
+	};
+	if (SEARCHING_FORBIDDEN_TYPES.has(resolvedType)) fail(`the '${resolvedType}' attribute type does not support searching.`);
+	const { searchable, refinable, boostFactor, sortable } = searching;
+	if (typeof searchable !== "boolean" || typeof refinable !== "boolean") fail(`'searchable' and 'refinable' are required booleans.`);
+	if (resolvedType === "markup" && sortable === true) fail(`'sortable' must be false for markup attributes.`);
+	if (resolvedType === "custom" || resolvedType === "cms_record") {
+		if (refinable === true) fail(`'refinable' must be false for ${resolvedType} attributes.`);
+		if (boostFactor !== void 0) fail(`'boostFactor' is not supported for ${resolvedType} attributes.`);
+		if (sortable === true) fail(`'sortable' must be false for ${resolvedType} attributes.`);
+	}
+	const mapped = {
+		searchable,
+		refinable
+	};
+	if (boostFactor !== void 0) mapped.boost_factor = boostFactor;
+	if (sortable !== void 0) mapped.sortable = sortable;
+	return mapped;
+}
+/**
+* Validate an authored `dynamicLookup` config and map it to the snake_case schema shape.
+* The metadefinition schema allows `dynamic_lookup` on all attribute types but requires a
+* single `aspect_attribute_alias` field (`additionalProperties: false`); a missing alias fails
+* cartridge generation (matching the strict behavior of `resolveAttributeType`).
+*/
+function mapAttributeDynamicLookup(dynamicLookup, fieldName) {
+	const { aspectAttributeAlias } = dynamicLookup;
+	if (typeof aspectAttributeAlias !== "string" || aspectAttributeAlias.length === 0) {
+		logger.error(`Invalid 'dynamicLookup' config for attribute '${fieldName}': 'aspectAttributeAlias' is required and must be a non-empty string.`);
+		process.exit(1);
+	}
+	return { aspect_attribute_alias: aspectAttributeAlias };
+}
 function toHumanReadableName(fieldName) {
 	return fieldName.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase()).trim();
 }
@@ -310,6 +366,8 @@ function extractAttributesFromSource(sourceFile, className) {
 			if (config.values) attribute.values = config.values;
 			if (config.defaultValue !== void 0) attribute.default_value = config.defaultValue;
 			if (config.editorDefinition !== void 0) attribute.editor_definition = config.editorDefinition;
+			if (config.searching !== void 0) attribute.searching = mapAttributeSearching(config.searching, attribute.type, String(attribute.id));
+			if (config.dynamicLookup !== void 0) attribute.dynamic_lookup = mapAttributeDynamicLookup(config.dynamicLookup, String(attribute.id));
 			attributes.push(attribute);
 		}
 	} catch (error) {
@@ -346,7 +404,12 @@ function extractRegionDefinitionsFromSource(sourceFile, className, defaultCompon
 						if (regionConfig.maxComponents !== void 0) regionDefinition.max_components = regionConfig.maxComponents;
 						if (regionConfig.minComponents !== void 0) regionDefinition.min_components = regionConfig.minComponents;
 						if (regionConfig.allowMultiple !== void 0) regionDefinition.allow_multiple = regionConfig.allowMultiple;
-						if (regionConfig.defaultComponentConstructors) regionDefinition.default_component_constructors = regionConfig.defaultComponentConstructors;
+						if (Array.isArray(regionConfig.defaultComponentConstructors)) regionDefinition.default_component_constructors = regionConfig.defaultComponentConstructors.map((constructor) => {
+							const { typeId, name } = constructor;
+							const mapped = { type_id: normalizeComponentTypeId(String(typeId), defaultComponentGroup) };
+							if (name !== void 0) mapped.name = name;
+							return mapped;
+						});
 						regionDefinitions.push(regionDefinition);
 					}
 				}

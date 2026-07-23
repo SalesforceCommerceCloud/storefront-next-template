@@ -1845,17 +1845,24 @@ describe('generateMetadata integration tests', () => {
         expect(writtenData.region_definitions?.[0]).not.toHaveProperty('description');
     });
 
-    test('should handle region definition with defaultComponentConstructors', async () => {
+    test('should map defaultComponentConstructors onto the componentconstructor schema shape', async () => {
         const projectDir = '/test/project';
         const metadataDir = '/test/metadata';
 
+        // The decorator authors constructors as { id, typeId, data }, but the Page Designer
+        // componentconstructor schema only permits type_id (required), name, and nested
+        // region_component_constructors. The generator must normalize typeId -> type_id,
+        // preserve name, and drop the schema-invalid id/data fields.
         const componentCode = `
             @Component({ id: 'testComponent', name: 'Test Component' })
             @RegionDefinition([
-                { 
-                    id: 'header', 
+                {
+                    id: 'header',
                     name: 'Header',
-                    defaultComponentConstructors: ['HeaderComponent']
+                    defaultComponentConstructors: [
+                        { id: 'default-hero', typeId: 'HeroComponent', name: 'Hero', data: { title: 'Welcome' } },
+                        { id: 'default-nav', typeId: 'other_group.NavComponent', data: {} }
+                    ]
                 }
             ])
             class TestComponent {
@@ -1879,6 +1886,12 @@ describe('generateMetadata integration tests', () => {
         await generateMetadata(projectDir, metadataDir);
 
         expect(writeFile).toHaveBeenCalled();
+        const writeCall = vi.mocked(writeFile).mock.calls[0];
+        const writtenData = JSON.parse(writeCall[1] as string);
+        expect(writtenData.region_definitions?.[0]?.default_component_constructors).toEqual([
+            { type_id: 'storefrontnext_base.HeroComponent', name: 'Hero' },
+            { type_id: 'other_group.NavComponent' },
+        ]);
     });
 
     test('should handle aspect file with supported_object_types', async () => {
@@ -3074,6 +3087,206 @@ describe('generateMetadata integration tests', () => {
         const plainAttr = attributes.find((attr: any) => attr.id === 'plainField');
         expect(plainAttr).toBeDefined();
         expect(plainAttr.editor_definition).toBeUndefined();
+    });
+
+    test('should map searching config to snake_case and preserve boostFactor', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const componentCode = `
+            @Component({ id: 'testComponent', name: 'Test Component' })
+            class TestComponent {
+                @AttributeDefinition({
+                    type: 'string',
+                    searching: { searchable: true, refinable: true, boostFactor: 2.5, sortable: false }
+                })
+                title: string;
+
+                @AttributeDefinition({ type: 'string' })
+                plainField: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'components', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([
+                { name: 'TestComponent.tsx', isDirectory: () => false, isFile: () => true } as any,
+            ]);
+
+        vi.mocked(readFile).mockResolvedValue(componentCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(processExitSpy).not.toHaveBeenCalled();
+        const writeCall = vi.mocked(writeFile).mock.calls[0];
+        const writtenData = JSON.parse(writeCall[1] as string);
+        const attributes = writtenData.attribute_definition_groups[0].attribute_definitions;
+
+        const titleAttr = attributes.find((attr: any) => attr.id === 'title');
+        expect(titleAttr.searching).toEqual({
+            searchable: true,
+            refinable: true,
+            boost_factor: 2.5,
+            sortable: false,
+        });
+
+        // Plain field without searching config should not gain a searching property
+        const plainAttr = attributes.find((attr: any) => attr.id === 'plainField');
+        expect(plainAttr.searching).toBeUndefined();
+    });
+
+    test('should fail generation when searching is used on a forbidden attribute type', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const componentCode = `
+            @Component({ id: 'testComponent', name: 'Test Component' })
+            class TestComponent {
+                @AttributeDefinition({
+                    type: 'boolean',
+                    searching: { searchable: true, refinable: true }
+                })
+                featured: boolean;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'components', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([
+                { name: 'TestComponent.tsx', isDirectory: () => false, isFile: () => true } as any,
+            ]);
+
+        vi.mocked(readFile).mockResolvedValue(componentCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.stringContaining('does not support searching')
+        );
+    });
+
+    test('should fail generation when custom attribute searching sets refinable true', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const componentCode = `
+            @Component({ id: 'testComponent', name: 'Test Component' })
+            class TestComponent {
+                @AttributeDefinition({
+                    type: 'custom',
+                    editorDefinition: { type: 'einstein.globalrecommenderselector' },
+                    searching: { searchable: true, refinable: true }
+                })
+                recommender: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'components', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([
+                { name: 'TestComponent.tsx', isDirectory: () => false, isFile: () => true } as any,
+            ]);
+
+        vi.mocked(readFile).mockResolvedValue(componentCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
+
+    test('should map dynamicLookup config to snake_case aspect_attribute_alias', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const componentCode = `
+            @Component({ id: 'testComponent', name: 'Test Component' })
+            class TestComponent {
+                @AttributeDefinition({
+                    type: 'string',
+                    dynamicLookup: { aspectAttributeAlias: 'product' }
+                })
+                productName: string;
+
+                @AttributeDefinition({ type: 'string' })
+                plainField: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'components', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([
+                { name: 'TestComponent.tsx', isDirectory: () => false, isFile: () => true } as any,
+            ]);
+
+        vi.mocked(readFile).mockResolvedValue(componentCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(processExitSpy).not.toHaveBeenCalled();
+        const writeCall = vi.mocked(writeFile).mock.calls[0];
+        const writtenData = JSON.parse(writeCall[1] as string);
+        const attributes = writtenData.attribute_definition_groups[0].attribute_definitions;
+
+        const productNameAttr = attributes.find((attr: any) => attr.id === 'productName');
+        expect(productNameAttr.dynamic_lookup).toEqual({ aspect_attribute_alias: 'product' });
+
+        // Plain field without dynamicLookup should not gain a dynamic_lookup property
+        const plainAttr = attributes.find((attr: any) => attr.id === 'plainField');
+        expect(plainAttr.dynamic_lookup).toBeUndefined();
+    });
+
+    test('should fail generation when dynamicLookup is missing aspectAttributeAlias', async () => {
+        const projectDir = '/test/project';
+        const metadataDir = '/test/metadata';
+
+        const componentCode = `
+            @Component({ id: 'testComponent', name: 'Test Component' })
+            class TestComponent {
+                @AttributeDefinition({
+                    type: 'string',
+                    dynamicLookup: {}
+                })
+                productName: string;
+            }
+        `;
+
+        vi.mocked(readdir)
+            .mockResolvedValueOnce([{ name: 'components', isDirectory: () => true, isFile: () => false } as any])
+            .mockResolvedValueOnce([
+                { name: 'TestComponent.tsx', isDirectory: () => false, isFile: () => true } as any,
+            ]);
+
+        vi.mocked(readFile).mockResolvedValue(componentCode);
+        vi.mocked(rm).mockResolvedValue(undefined);
+        vi.mocked(mkdir).mockResolvedValue(undefined);
+        vi.mocked(access).mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
+
+        await generateMetadata(projectDir, metadataDir);
+
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.stringContaining("'aspectAttributeAlias' is required")
+        );
     });
 
     test('should resolve property access on same-file const in defaultValue', async () => {
