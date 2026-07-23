@@ -47,6 +47,54 @@ exports[`UserActions stories snapshot > Authenticated story renders and matches 
 </div>
 `;
 
+exports[`UserActions stories snapshot > CachedShellRegisteredHint story renders and matches snapshot 1`] = `
+<div>
+  <div
+    class="p-8"
+  >
+    <div>
+      <a
+        aria-controls="radix-_r_2_"
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        aria-label="Sign In"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 py-2 has-[>svg]:px-3 cursor-pointer lg:px-4 px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
+        data-size="default"
+        data-slot="popover-trigger"
+        data-state="closed"
+        data-variant="ghost"
+        href="/login"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-log-in size-5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m10 17 5-5-5-5"
+          />
+          <path
+            d="M15 12H3"
+          />
+          <path
+            d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
+          />
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`UserActions stories snapshot > Guest story renders and matches snapshot 1`] = `
 <div>
   <div

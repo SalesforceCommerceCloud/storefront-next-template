@@ -52,6 +52,7 @@ import authMiddlewareServer, { getAuth as getAuthServer } from '@/middlewares/au
 import { getPublicSessionData } from '@/middlewares/auth.utils';
 import createBasketMiddleware, { basketResourceContext, type BasketSnapshot } from '@/middlewares/basket.server';
 import shopperContextMiddlewareServer from '@/middlewares/shopper-context.server';
+import { userTypeHintMiddleware } from '@/middlewares/user-type-hint.server';
 import legacyRoutesMiddlewareClient from '@/middlewares/legacy-routes.client';
 import {
     performanceMetricsMiddlewareClient,
@@ -160,6 +161,10 @@ export const middleware: MiddlewareFunction<Response>[] = [
     authMiddlewareServer,
     createBasketMiddleware(),
     shopperContextMiddlewareServer,
+    // Must run after authMiddlewareServer (reads the final session userType). Writes the JS-readable
+    // `__sfdc_usertype` hint in its response phase so AuthProvider can restore the header auth state
+    // under a cached app shell. Writes only the userType hint — never the httpOnly token cookies.
+    userTypeHintMiddleware,
 ];
 
 export const clientMiddleware: MiddlewareFunction<Record<string, DataStrategyResult>>[] = [
@@ -688,7 +693,10 @@ export default function App({
                 // include i18next.language since these infos tend to go together.
                 // site will drive the language/locale and currency
                 [SiteProvider, { site, locale, language: i18next.language, currency }],
-                [AuthProvider, { value: clientAuth }],
+                // siteId resolves the namespaced `__sfdc_usertype` hint cookie so AuthProvider can
+                // restore the header auth state under a cached app shell. Must be the raw site.id
+                // (not the alias) to match the cookie the userType-hint middleware writes.
+                [AuthProvider, { value: clientAuth, siteId: site.id }],
                 [BasketProvider, { snapshot: basketSnapshot }],
                 [CorrelationProvider, { value: correlationId }],
                 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR

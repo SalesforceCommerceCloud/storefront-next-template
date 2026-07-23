@@ -20,7 +20,23 @@ import { useEffect, useRef, type ReactNode, type ReactElement } from 'react';
 import { expect, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady, SITE_PREFIX } from '@storybook/test-utils';
 import AuthProvider from '@/providers/auth';
+import { getUserTypeCookieName } from '@/lib/auth/user-type-hint';
+import { mockSiteObject } from '@/test-utils/config';
 import type { SessionData } from '@/lib/api/types';
+
+// AuthProvider resolves the hint cookie from the siteId prop it is given (see below), so the cookie we
+// seed must be namespaced for that same site — the first configured mock site the SiteProvider uses.
+const HINT_SITE_ID = mockSiteObject.id;
+const USERTYPE_HINT_COOKIE = getUserTypeCookieName(HINT_SITE_ID);
+
+const setUserTypeHintCookie = (value: string) => {
+    // The middleware writes the hint as base64(JSON) (read back via the shared `parseCookie`), so the
+    // seeded cookie must use the same on-the-wire encoding as a real request.
+    document.cookie = `${USERTYPE_HINT_COOKIE}=${btoa(JSON.stringify(value))}; path=/`;
+};
+const clearUserTypeHintCookie = () => {
+    document.cookie = `${USERTYPE_HINT_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+};
 
 function UserActionsStoryHarness({ children }: { children: ReactNode }): ReactElement {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -180,5 +196,44 @@ User actions for authenticated users.
 
         // Click account link
         await userEvent.click(accountLink);
+    },
+};
+
+/**
+ * Simulates a cached app shell: the loader baked in the neutral guest value that the caching layer
+ * emits, but this visitor's own `__sfdc_usertype` hint cookie says they are registered. AuthProvider
+ * restores `userType` from the cookie post-hydration, so the header shows the account link — without
+ * emitting a React hydration-mismatch warning (the useSyncExternalStore server snapshot is null on
+ * both server and first client commit, so first paint matches SSR and only then reads the cookie).
+ */
+export const CachedShellRegisteredHint: Story = {
+    render: () => (
+        <AuthProvider value={guestSession} siteId={HINT_SITE_ID}>
+            <UserActions />
+        </AuthProvider>
+    ),
+    parameters: {
+        docs: {
+            description: {
+                story: 'Neutral guest loader value + a registered hint cookie → restores the account link.',
+            },
+        },
+    },
+    beforeEach: () => {
+        setUserTypeHintCookie('registered');
+        // Restore the shared document.cookie after the story runs so sibling stories are unaffected.
+        return () => clearUserTypeHintCookie();
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // The hint cookie wins over the baked-in guest value: the account link is shown.
+        const accountLink = await canvas.findByRole('link', { name: /my account/i }, { timeout: 5000 });
+        await expect(accountLink).toBeInTheDocument();
+        await expect(accountLink).toHaveAttribute('href', `${SITE_PREFIX}/account/overview`);
+
+        // The neutral guest Sign In link must no longer be present.
+        await expect(canvas.queryByRole('link', { name: /sign in/i })).toBeNull();
     },
 };

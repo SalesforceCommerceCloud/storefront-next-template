@@ -23,7 +23,10 @@ import { useTranslation } from 'react-i18next';
 export default function WishlistIcon(): ReactElement {
     const session = useAuth();
     const { t } = useTranslation('header');
-    const isAuthenticated = session?.userType === 'registered' && Boolean(session?.customerId);
+    // Gate on userType only — under a cached app shell the client restores userType from the
+    // `__sfdc_usertype` hint cookie, but customerId is never carried in that hint. userType is
+    // authoritative ('registered' iff the JWT carried a registered-customer id).
+    const isAuthenticated = session?.userType === 'registered';
     const wishlistLink = isAuthenticated ? '/account/wishlist' : '/wishlist';
 
     return (

@@ -26,8 +26,11 @@ export default function UserActions(): ReactElement {
     const { t } = useTranslation('header');
     const { t: tAccount } = useTranslation('account');
     const isAuthenticated: boolean = useMemo(() => {
-        // Check if user is authenticated (has valid token and is registered)
-        return Boolean(session?.userType === 'registered' && session?.customerId);
+        // Gate on userType only. Under a cached app shell the client restores userType from the
+        // `__sfdc_usertype` hint cookie, but customerId is never carried in that hint — gating on it
+        // too would wrongly keep a genuinely-registered visitor on the guest branch. userType is
+        // authoritative: it is 'registered' iff the JWT carried a registered-customer id.
+        return session?.userType === 'registered';
     }, [session]);
 
     const accountLink = isAuthenticated ? '/account/overview' : '/login';
