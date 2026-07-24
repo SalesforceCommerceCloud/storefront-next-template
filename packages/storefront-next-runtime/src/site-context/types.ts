@@ -23,8 +23,6 @@ export type Locale = BaseLocale & {
 };
 
 export type Site = Omit<BaseSite, 'supportedLocales'> & {
-    name?: string;
-    alias?: string;
     supportedLocales: Locale[];
 };
 

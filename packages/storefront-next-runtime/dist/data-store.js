@@ -830,6 +830,56 @@ const loginPreferencesMiddlewareLazy = createLazyDataStoreMiddleware({
 });
 
 //#endregion
+//#region src/data-store/middleware/sites.ts
+/**
+* Global data-store key written by the upstream sites producer. Must stay in
+* lockstep with the producer's key — a rename on either side silently breaks
+* multi-site config resolution.
+*/
+const ECOM_SITES_DATA_KEY = "ecomSitesData";
+const sitesContext = createDataStoreContext();
+const SITES_ON_UNAVAILABLE = process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === "throw" ? "throw" : "fallback";
+/**
+* Coalesce an empty sites array to `null`. A producer that has synced but has
+* no sites emits `{ data: [] }`; callers treat that identically to a missing
+* entry so they fall back to their static config rather than to zero sites.
+*/
+function nullIfEmpty(sites) {
+	return sites && sites.length > 0 ? sites : null;
+}
+/**
+* Read the DAL sites populated by {@link sitesMiddlewareLazy}. Triggers the
+* data-store fetch on first call within a request and reuses the cached promise
+* on subsequent calls. Returns `null` when the middleware did not run, the entry
+* is missing/invalid, or the producer synced zero sites.
+*
+* @param context - Router context provider
+* @returns Typed `DalSite[]`, or `null` when unavailable/empty
+*/
+function getSitesFromDataStoreLazy(context) {
+	return readLazyDataStoreEntry(context, sitesContext).then(nullIfEmpty);
+}
+/**
+* Lazy middleware that registers a memoized loader for the global `ecomSitesData`
+* entry. The DAL wraps the array in a `{ data: [...] }` envelope; the transform
+* unwraps it, coalescing a non-array `data` to `[]` so a malformed payload reads
+* as "no sites" rather than flowing a non-array value out typed as `DalSite[]`.
+* Only consumers that read via {@link getSitesFromDataStoreLazy} pay for the
+* data-store round trip.
+*
+* Defaults to graceful degradation: if the data store is unavailable or returns
+* a service error, the read resolves to `null`. Set
+* `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw` to opt into fail-fast. The env var
+* is read once at module load.
+*/
+const sitesMiddlewareLazy = createLazyDataStoreMiddleware({
+	entryKey: ECOM_SITES_DATA_KEY,
+	context: sitesContext,
+	onUnavailable: SITES_ON_UNAVAILABLE,
+	transform: (value) => Array.isArray(value.data) ? value.data : []
+});
+
+//#endregion
 //#region src/data-store/index.ts
 /**
 * @deprecated Use {@link dataStoreMiddlewareLazy}. This bundle wires all four preference
@@ -856,5 +906,5 @@ const dataStoreMiddlewareLazy = [
 ];
 
 //#endregion
-export { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, readLazyDataStoreEntry };
+export { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry };
 //# sourceMappingURL=data-store.js.map

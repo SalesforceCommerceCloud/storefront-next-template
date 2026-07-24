@@ -37,6 +37,8 @@ type Site = {
   defaultLocale: string;
   domain?: string;
   id: string;
+  name?: string;
+  alias?: string;
   supportedCurrencies: string[];
   supportedLocales: Array<Locale>;
 };
