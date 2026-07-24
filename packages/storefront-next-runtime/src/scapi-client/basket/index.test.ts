@@ -86,6 +86,36 @@ describe('getOrCreateBasket', () => {
         expect(result).toEqual(mockBasket);
     });
 
+    it('forwards a caller-supplied query (e.g. expand) onto getBasket', async () => {
+        mockShopperBasketsClient.getBasket.mockResolvedValue({ data: mockBasket });
+
+        const basketHelpers = createBasketHelpers(config);
+        await basketHelpers.getOrCreateBasket({
+            params: { path: { basketId: 'basket-123' }, query: { expand: ['approaching_discounts'] } },
+            body: { currency: 'USD' },
+        });
+
+        expect(mockShopperBasketsClient.getBasket).toHaveBeenCalledWith({
+            params: { path: { basketId: 'basket-123' }, query: { expand: ['approaching_discounts'] } },
+        });
+    });
+
+    it('forwards the query onto the fallback getBasket after a quota error', async () => {
+        mockShopperBasketsClient.getBasket
+            .mockRejectedValueOnce(createApiError(429, { basketIds: ['basket-fallback'] }))
+            .mockResolvedValue({ data: mockFallbackBasket });
+
+        const basketHelpers = createBasketHelpers(config);
+        await basketHelpers.getOrCreateBasket({
+            params: { path: { basketId: 'basket-123' }, query: { expand: ['approaching_discounts'] } },
+            body: { currency: 'USD' },
+        });
+
+        expect(mockShopperBasketsClient.getBasket).toHaveBeenLastCalledWith({
+            params: { path: { basketId: 'basket-fallback' }, query: { expand: ['approaching_discounts'] } },
+        });
+    });
+
     it('creates a basket when getBasket returns 404', async () => {
         mockShopperBasketsClient.getBasket.mockRejectedValue(createApiError(404));
         mockShopperBasketsClient.createBasket.mockResolvedValue({ data: mockBasket });

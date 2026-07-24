@@ -63,9 +63,13 @@ export function createBasketHelpers(config: BasketHelpersConfig): BasketHelpersN
     async function getOrCreateBasket(options: GetOrCreateBasketOptions): Promise<Basket> {
         const basketId = options.params?.path?.basketId;
         const currency = options.body.currency;
+        // Forward any caller-supplied query (e.g. `expand`) onto the GET basket calls, value-agnostic.
+        const query = options.params?.query;
 
         const createBasket = async (): Promise<Basket> => {
             try {
+                // `query` is not forwarded here: a fresh basket is empty, so expansions have nothing
+                // to return. Callers get expanded data on the subsequent `getBasket`.
                 const { data } = await shopperBasketsClient.createBasket({
                     params: {
                         query: {
@@ -82,7 +86,7 @@ export function createBasketHelpers(config: BasketHelpersConfig): BasketHelpersN
                     // Quota exceeded sometimes returns 429 (or 400) with basketIds; reuse the provided basket if present.
                     if ((error.status === 429 || error.status === 400) && fallbackId) {
                         const { data } = await shopperBasketsClient.getBasket({
-                            params: { path: { basketId: fallbackId as string } },
+                            params: { path: { basketId: fallbackId as string }, query },
                         });
                         return data;
                     }
@@ -94,7 +98,7 @@ export function createBasketHelpers(config: BasketHelpersConfig): BasketHelpersN
         if (basketId) {
             try {
                 const { data } = await shopperBasketsClient.getBasket({
-                    params: { path: { basketId } },
+                    params: { path: { basketId }, query },
                 });
                 return data;
             } catch (error) {
@@ -109,7 +113,7 @@ export function createBasketHelpers(config: BasketHelpersConfig): BasketHelpersN
                     const fallbackId = (Array.isArray(basketIds) ? basketIds : [basketIds].filter(Boolean)).at(0);
                     if (error.status === 429 && fallbackId) {
                         const { data } = await shopperBasketsClient.getBasket({
-                            params: { path: { basketId: fallbackId as string } },
+                            params: { path: { basketId: fallbackId as string }, query },
                         });
                         return data;
                     }

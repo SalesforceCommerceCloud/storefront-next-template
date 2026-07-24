@@ -1129,6 +1129,145 @@ describe('BasketProvider hooks', () => {
             });
             expect(result.current.basket).toBe(basketWithModified);
         });
+
+        it('upgrades a same-revision write that adds approachingDiscounts (expanded read wins the tie)', () => {
+            // A mini-cart quantity change publishes the SAME revision twice: the mutation response
+            // (updateItemInBasket cannot send expand → no approachingDiscounts) and the expanded read
+            // (getBasket with expand=approaching_discounts → approachingDiscounts present). Both carry
+            // the same lastModified. If the down-shaped response lands first, the plain <= dedup would
+            // drop the expanded read and the approaching-discounts banner could not render until a full
+            // reload. The tie-break must let the expanded shape through.
+            const mutationResponse: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-05-17T12:00:00.000Z',
+                productItems: [{ productId: 'p1', quantity: 4 }],
+            };
+            const expandedRead: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-05-17T12:00:00.000Z',
+                productItems: [{ productId: 'p1', quantity: 4 }],
+                approachingDiscounts: [
+                    { type: 'order', conditionThreshold: 100, merchandiseTotal: 60 },
+                ] as ShopperBasketsV2.schemas['Basket']['approachingDiscounts'],
+            };
+
+            const Consumer = () => ({ basket: useBasket(), update: useBasketUpdater() });
+            const { result } = renderHook(() => Consumer(), { wrapper: wrapperWithProps({}) });
+
+            act(() => {
+                result.current.update(mutationResponse);
+            });
+            expect(result.current.basket).toBe(mutationResponse);
+            expect(result.current.basket?.approachingDiscounts).toBeUndefined();
+
+            act(() => {
+                result.current.update(expandedRead);
+            });
+            // Same revision, but the incoming basket adds approachingDiscounts → shape upgrade wins.
+            expect(result.current.basket).toBe(expandedRead);
+            expect(result.current.basket?.approachingDiscounts).toHaveLength(1);
+        });
+
+        it('does not let a same-revision write DROP approachingDiscounts (expanded shape is not down-shaped)', () => {
+            // Reverse ordering: the expanded read lands first, then the down-shaped mutation response
+            // arrives with the same lastModified. The dedup must skip it so the banner data survives —
+            // the tie-break only upgrades TO a richer shape, never away from it.
+            const expandedRead: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-05-17T12:00:00.000Z',
+                productItems: [{ productId: 'p1', quantity: 4 }],
+                approachingDiscounts: [
+                    { type: 'order', conditionThreshold: 100, merchandiseTotal: 60 },
+                ] as ShopperBasketsV2.schemas['Basket']['approachingDiscounts'],
+            };
+            const mutationResponse: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-05-17T12:00:00.000Z',
+                productItems: [{ productId: 'p1', quantity: 4 }],
+            };
+
+            const Consumer = () => ({ basket: useBasket(), update: useBasketUpdater() });
+            const { result } = renderHook(() => Consumer(), { wrapper: wrapperWithProps({}) });
+
+            act(() => {
+                result.current.update(expandedRead);
+            });
+            expect(result.current.basket).toBe(expandedRead);
+
+            act(() => {
+                result.current.update(mutationResponse);
+            });
+            // Same revision, incoming lacks approachingDiscounts → deduped away, expanded shape retained.
+            expect(result.current.basket).toBe(expandedRead);
+            expect(result.current.basket?.approachingDiscounts).toHaveLength(1);
+        });
+
+        it('still dedups a same-revision write when both baskets already carry approachingDiscounts (upgrade is scoped to undefined→defined)', () => {
+            // The tie-break must fire ONLY on the undefined→defined transition. When prev already has
+            // approachingDiscounts, a same-revision incoming basket (even one that also has them) is a
+            // plain duplicate and must be deduped — otherwise every harmless revalidation would re-write
+            // context and fan out renders across all useBasket consumers.
+            const expandedA: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-05-17T12:00:00.000Z',
+                productItems: [{ productId: 'p1', quantity: 4 }],
+                approachingDiscounts: [
+                    { type: 'order', conditionThreshold: 100, merchandiseTotal: 60 },
+                ] as ShopperBasketsV2.schemas['Basket']['approachingDiscounts'],
+            };
+            const expandedADup: ShopperBasketsV2.schemas['Basket'] = {
+                ...expandedA,
+                approachingDiscounts: [
+                    { type: 'order', conditionThreshold: 100, merchandiseTotal: 60 },
+                ] as ShopperBasketsV2.schemas['Basket']['approachingDiscounts'],
+            };
+
+            const Consumer = () => ({ basket: useBasket(), update: useBasketUpdater() });
+            const { result } = renderHook(() => Consumer(), { wrapper: wrapperWithProps({}) });
+
+            act(() => {
+                result.current.update(expandedA);
+            });
+            expect(result.current.basket).toBe(expandedA);
+
+            act(() => {
+                result.current.update(expandedADup);
+            });
+            // Both sides carry approachingDiscounts, same revision → not an upgrade → deduped away.
+            expect(result.current.basket).toBe(expandedA);
+        });
+
+        it('does not treat a strictly older approachingDiscounts write as an upgrade (stale-clobber protection holds)', () => {
+            // The tie-break keys on lastModified EQUALITY. A strictly older revision that happens to
+            // carry approachingDiscounts must still be dropped — it is stale, not a shape upgrade.
+            const newer: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-05-17T12:00:01.000Z',
+                productItems: [{ productId: 'p1', quantity: 4 }],
+            };
+            const olderWithDiscounts: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-123',
+                lastModified: '2026-05-17T12:00:00.000Z',
+                productItems: [{ productId: 'p1', quantity: 3 }],
+                approachingDiscounts: [
+                    { type: 'order', conditionThreshold: 100, merchandiseTotal: 60 },
+                ] as ShopperBasketsV2.schemas['Basket']['approachingDiscounts'],
+            };
+
+            const Consumer = () => ({ basket: useBasket(), update: useBasketUpdater() });
+            const { result } = renderHook(() => Consumer(), { wrapper: wrapperWithProps({}) });
+
+            act(() => {
+                result.current.update(newer);
+            });
+            expect(result.current.basket).toBe(newer);
+
+            act(() => {
+                result.current.update(olderWithDiscounts);
+            });
+            // Older revision → skipped despite carrying approachingDiscounts.
+            expect(result.current.basket).toBe(newer);
+        });
     });
 
     describe('useBasketReset', () => {

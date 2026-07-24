@@ -433,13 +433,23 @@ export const useBasketUpdater = (): ((basket?: ShopperBasketsV2.schemas['Basket'
                 // registered handoff, destroy + recreate) always writes through, even if the new
                 // basket's `lastModified` predates the previous one. The undefined-basket clear-and-
                 // rehydrate path is unaffected — callers that want to wipe `current` still work.
+                //
+                // Shape-aware tie-break: a down-shaped mutation response and the expanded `getBasket` read
+                // share the same `lastModified`, so a plain `<=` dedup would drop the read and lose
+                // `approachingDiscounts`. Let a same-revision write that ADDS the field upgrade the shape;
+                // strictly older revisions are still skipped (stale-clobber protection unchanged).
+                const upgradesApproachingDiscounts =
+                    basket?.approachingDiscounts !== undefined &&
+                    prev?.current?.approachingDiscounts === undefined &&
+                    basket.lastModified === prev?.current?.lastModified;
                 if (
                     basket?.lastModified &&
                     prev?.current?.lastModified &&
                     prev.hydrated &&
                     basket.basketId &&
                     prev.current.basketId === basket.basketId &&
-                    basket.lastModified <= prev.current.lastModified
+                    basket.lastModified <= prev.current.lastModified &&
+                    !upgradesApproachingDiscounts
                 ) {
                     return prev;
                 }

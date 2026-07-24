@@ -283,8 +283,9 @@ export function useMiniCartData(): UseMiniCartDataResult {
     // internally, running the publisher body N times per session is wasted work. The basket payload is read through a
     // ref so the effect body sees the current value while the dep array tracks only the identity-defining fields.
     //
-    // Shape-safe: no basket read or mutation sets `expand`, so every response carries the SCAPI default and can't
-    // down-shape provider consumers.
+    // This loader fetches via getBasket (which sends `expand=approaching_discounts`), so the published basket
+    // carries `approachingDiscounts`; the provider's shape-aware tie-break lets it upgrade a same-revision
+    // down-shaped mutation write rather than deduping it away (see basket.tsx).
     const updateBasket = useBasketUpdater();
     const fetchedBasket = fetcherData?.basket;
     const fetchedBasketRef = useRef(fetchedBasket);

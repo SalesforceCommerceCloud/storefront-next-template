@@ -287,9 +287,9 @@ export function useCartQuantityUpdate<
     useEffect(() => {
         if (fetcher.state === 'idle' && fetcher.data) {
             if (fetcher.data.success) {
-                // Publish the new revision so useBasket() consumers stay in sync, matching the other basket
-                // mutation handlers. Dedups by `lastModified`. Shape-safe: no basket read or mutation sets
-                // `expand`, so every response carries the SCAPI default and can't down-shape provider consumers.
+                // Publish the new revision so useBasket() consumers stay in sync. This response is
+                // down-shaped (mutations can't send `expand=approaching_discounts`); the expanded
+                // re-fetch supplies `approachingDiscounts` via the provider tie-break (see basket.tsx).
                 if (fetcher.data.basket) {
                     updateBasket(fetcher.data.basket);
                 }

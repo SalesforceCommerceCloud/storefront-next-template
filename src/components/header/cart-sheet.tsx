@@ -114,9 +114,9 @@ const MiniCartItemContainer = memo(function MiniCartItemContainer({
             processedDataRef.current = fetcher.data;
             if (fetcher.data.success) {
                 if (fetcher.data.basket) {
-                    // Publish the new revision so useBasket() consumers stay in sync, matching the other basket
-                    // mutation handlers. Dedups by `lastModified`. Shape-safe: no basket read or mutation sets
-                    // `expand`, so every response carries the SCAPI default and can't down-shape provider consumers.
+                    // Publish the new revision so useBasket() consumers stay in sync. This response is
+                    // down-shaped (mutations can't send `expand=approaching_discounts`); the expanded
+                    // re-fetch supplies `approachingDiscounts` via the provider tie-break (see basket.tsx).
                     updateBasket(fetcher.data.basket);
                 }
                 addToast(t('success'), 'success');

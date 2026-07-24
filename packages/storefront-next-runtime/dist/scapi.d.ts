@@ -32928,6 +32928,12 @@ interface BasketHelpersNamespace {
   getOrCreateBasket: (options: GetOrCreateBasketOptions) => Promise<Basket>;
 }
 /**
+ * Query parameters accepted by the Shopper Baskets V2 `getBasket` operation (global params like
+ * `siteId` are auto-injected, so they're optional here). Callers request expansions; the SDK never
+ * hardcodes a value.
+ */
+type GetBasketQuery = NonNullable<NonNullable<Parameters<ShopperBasketsV2Client['getBasket']>[0]>['params']>['query'];
+/**
  * Options for retrieving or creating a basket.
  */
 interface GetOrCreateBasketOptions {
@@ -32935,6 +32941,8 @@ interface GetOrCreateBasketOptions {
     path?: {
       basketId?: string;
     };
+    /** Optional query forwarded to the GET basket operation (e.g. `{ expand: ['approaching_discounts'] }`). */
+    query?: GetBasketQuery;
   };
   body: {
     currency: string;

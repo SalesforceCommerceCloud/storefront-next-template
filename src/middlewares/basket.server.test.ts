@@ -120,6 +120,23 @@ describe('basket.server middleware', () => {
         expect(response.headers.get('Set-Cookie')).toContain('__sfdc_basket=');
     });
 
+    test('default (create) branch forwards expand=approaching_discounts to getOrCreateBasket (AC1/AC10)', async () => {
+        // The eager/default hydration path mints-or-reads the basket via getOrCreateBasket. It must
+        // opt into the same `approaching_discounts` expansion as the read branch so the banner data
+        // is present regardless of which code path hydrates the basket.
+        const basket = { basketId: 'basket-eager', currency: 'GBP', productItems: [] };
+        const getOrCreateBasket = vi.fn().mockResolvedValue(basket);
+        vi.mocked(createApiClients).mockReturnValue({
+            basket: { getOrCreateBasket },
+        } as any);
+
+        const middleware = createBasketMiddleware({ mode: 'eager' });
+        await middleware(createArgs(mockRequest, mockContext), mockNext);
+
+        expect(getOrCreateBasket).toHaveBeenCalledOnce();
+        expect(getOrCreateBasket.mock.calls[0][0].params.query.expand).toContain('approaching_discounts');
+    });
+
     test('custom cookie name is used in Set-Cookie header', async () => {
         const basket = { basketId: 'basket-2', currency: 'GBP', productItems: [] };
         vi.mocked(createApiClients).mockReturnValue({
@@ -478,11 +495,43 @@ describe('basket.server middleware', () => {
             const result = await getBasket(mockContext, { ensureBasket: 'read' });
 
             expect(getBasketRead).toHaveBeenCalledWith({
-                params: { path: { basketId: 'basket-existing' } },
+                params: {
+                    path: { basketId: 'basket-existing' },
+                    query: { expand: ['approaching_discounts'] },
+                },
             });
             expect(getOrCreateBasket).not.toHaveBeenCalled();
             expect(result.current).toEqual(fetchedBasket);
             expect(result.hydrated).toBe(true);
+        });
+
+        test('sends expand=approaching_discounts on the read-branch getBasket (AC1/AC10)', async () => {
+            // AC1/AC10: the single shared basket fetch opts into the SCAPI `approaching_discounts`
+            // expansion so `basket.approachingDiscounts` is populated for every surface without an
+            // extra round-trip. This asserts the read branch forwards the expand query.
+            const cookieConfig = vi.mocked(getCookieConfig).mock.results[0]?.value;
+            const basketCookie = createCookie('__sfdc_basket', cookieConfig);
+            const snapshot: BasketSnapshot = {
+                basketId: 'basket-existing',
+                totalItemCount: 1,
+                uniqueProductCount: 1,
+                lastModified: '',
+            };
+            const cookieHeader = await basketCookie.serialize(snapshot);
+            mockRequest = new Request('https://example.com', { headers: { Cookie: cookieHeader } });
+
+            const getBasketRead = vi.fn().mockResolvedValue({ data: { basketId: 'basket-existing' } });
+            vi.mocked(createApiClients).mockReturnValue({
+                basket: { getOrCreateBasket: vi.fn() },
+                shopperBasketsV2: { getBasket: getBasketRead },
+            } as any);
+
+            const middleware = createBasketMiddleware({ mode: 'lazy' });
+            await middleware(createArgs(mockRequest, mockContext), mockNext);
+            await getBasket(mockContext, { ensureBasket: 'read' });
+
+            expect(getBasketRead).toHaveBeenCalledOnce();
+            expect(getBasketRead.mock.calls[0][0].params.query.expand).toContain('approaching_discounts');
         });
 
         test('returns the cached basket without re-fetching when already loaded', async () => {
@@ -553,7 +602,7 @@ describe('basket.server middleware', () => {
             const result = await getBasket(mockContext, { ensureBasket: 'read' });
 
             expect(getOrCreateBasket).toHaveBeenCalledWith({
-                params: { path: { basketId: 'basket-stale' } },
+                params: { path: { basketId: 'basket-stale' }, query: { expand: ['approaching_discounts'] } },
                 body: { currency: 'GBP' },
             });
             expect(result.current).toEqual(freshBasket);
