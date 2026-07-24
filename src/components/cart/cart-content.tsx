@@ -350,6 +350,7 @@ export default function CartContent({
                         <UITarget targetId="sfcc.cart.orderSummary.before" />
                         <OrderSummary
                             basket={basket}
+                            surface="cart"
                             showCartItems={false}
                             isEstimate={true}
                             productsByItemId={productsByItemId}

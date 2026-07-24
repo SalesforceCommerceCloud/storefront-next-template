@@ -1182,6 +1182,7 @@ export default function CheckoutFormPage({
                                         <Suspense fallback={<OrderSummarySkeleton />}>
                                             <OrderSummary
                                                 basket={cart}
+                                                surface="checkout"
                                                 showCartItems={false}
                                                 showHeading={false}
                                                 showPromoCodeForm={true}

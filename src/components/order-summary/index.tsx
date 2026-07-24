@@ -62,6 +62,9 @@ import { routes } from '@/route-paths';
  * @property {boolean} [showCheckoutAction] - Whether to display the checkout button and payment icons
  * @property {() => void} [onSelectBonusProducts] - Optional callback for selecting bonus products from summary list
  * @property {string} [className] - Additional className for the outermost Card wrapper
+ * @property {'cart' | 'checkout'} [surface] - Selects the surface-specific extension slot rendered below the
+ *   heading (`sfcc.cart.orderSummary.body.before` or `sfcc.checkout.orderSummary.body.before`). Omit to expose
+ *   neither slot (e.g. the mobile accordion and order-details).
  *
  * Note : OrderSummary accepts both Basket and Order, make sure you pass other props accordingly.
  * Eg If you pass Order as basket, make sure you pass showPromoCodeForm, showCartItems as false etc.
@@ -80,6 +83,7 @@ interface OrderSummaryProps {
     onSelectBonusProducts?: () => void;
     className?: string;
     inventoryValidation?: CartInventoryValidationResult;
+    surface?: 'cart' | 'checkout';
 }
 
 /**
@@ -346,6 +350,7 @@ export default function OrderSummary({
     onSelectBonusProducts,
     className,
     inventoryValidation,
+    surface,
 }: OrderSummaryProps): ReactElement {
     const { t, i18n } = useTranslation('cart');
     const { currency } = useSite();
@@ -378,6 +383,12 @@ export default function OrderSummary({
     // Summary content - shared between mobile accordion and desktop card
     const summaryContent = (
         <div className="space-y-2" role="region" {...summaryRegionAccessibilityProps}>
+            {/*
+             * Surface-specific extension slot below the heading. `targetId` stays a static literal (the
+             * build-time target transform matches on it); `surface` only gates the render at runtime.
+             */}
+            {surface === 'cart' && <UITarget targetId="sfcc.cart.orderSummary.body.before" />}
+            {surface === 'checkout' && <UITarget targetId="sfcc.checkout.orderSummary.body.before" />}
             <SummaryBodyContent
                 basket={basket}
                 showCartItems={showCartItems}
