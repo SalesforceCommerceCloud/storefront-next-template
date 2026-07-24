@@ -65,7 +65,11 @@ Before(async () => {
 // @nightly-only: sends a real reset email, so it runs on a schedule rather than
 // on every PR to stay within the email provider's limits. See the header
 // comment above for details.
-Scenario('User can request password reset', () => {
+//
+// SKIPPED (W-23564722): temporarily disabled due to a backend environment issue
+// with the password-reset email quota that isn't fixable from the storefront.
+// See the GUS ticket for details. Restore (.skip → Scenario) once it's resolved.
+Scenario.skip('User can request password reset', () => {
     // Navigate to the forgot password page
     forgotPasswordPage.navigate();
 

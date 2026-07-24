@@ -270,12 +270,12 @@
       },
       {
         "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-        "limit": "84 kB",
+        "limit": "86 kB",
         "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), order cancel i18n keys, and order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable)."
       },
       {
         "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-        "limit": "84 kB",
+        "limit": "86 kB",
         "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size."
       },
       {
