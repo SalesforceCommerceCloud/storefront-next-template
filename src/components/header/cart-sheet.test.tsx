@@ -52,6 +52,10 @@ vi.mock('react-router', async (importOriginal) => {
 
 vi.mock('@/providers/basket', () => ({
     useBasketUpdater: () => mockUpdateBasket,
+    // The mini-cart renders the sfcc.miniCart.promotions.approachingDiscounts UITarget. When an
+    // extension fills that slot (via the build-time transform), its component calls useBasket().
+    // Return undefined so the target renders null and CartSheet tests stay independent of it.
+    useBasket: () => undefined,
 }));
 
 vi.mock('@/hooks/use-mini-cart-data', () => ({
