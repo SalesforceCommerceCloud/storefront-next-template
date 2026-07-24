@@ -19,7 +19,11 @@ import { getBasePath } from '../utils/paths';
 /**
  * Storefront Next preset for React Router configuration.
  * This preset enforces standard configuration for SFCC Storefront Next applications.
- * Users cannot override these values - they will be validated and an error will be thrown if modified.
+ * Most pinned values (`serverModuleFormat`, `ssr`, the `v8` future flags, `basename`, and — in
+ * workspace environments — `allowedActionOrigins`) cannot be overridden: they are validated and an
+ * error is thrown if modified. `routeDiscovery.mode` is the one exception — it defaults to
+ * `'initial'` but may be overridden (e.g. to `'lazy'`); overriding it emits a warning rather than
+ * throwing, so customers can opt into other modes at their own risk.
  *
  * Environment variables:
  * - `SFW_FALCON_INSTANCE` — (Optional) The Falcon instance identifier (e.g., `aws-dev2-uswest2`).
@@ -89,9 +93,14 @@ export function storefrontNextPreset(): Preset {
             // to absolute paths and we can't reliably determine the correct absolute path
             const errors: string[] = [];
 
+            // routeDiscovery.mode defaults to 'initial' but, unlike the values below, overriding it
+            // is NOT a hard error. Customers may opt into another mode (e.g. 'lazy' route discovery)
+            // to reduce the initial route-manifest payload on large route trees. This is unsupported
+            // and may behave unexpectedly, so we warn instead of throwing.
             if (reactRouterConfig.routeDiscovery?.mode !== presetConfig.routeDiscovery.mode) {
-                errors.push(
-                    `routeDiscovery.mode: expected "${presetConfig.routeDiscovery.mode}", got "${reactRouterConfig.routeDiscovery?.mode}"`
+                console.warn(
+                    `[storefront-next] routeDiscovery.mode is "${reactRouterConfig.routeDiscovery?.mode}", but Storefront Next pins it to "${presetConfig.routeDiscovery.mode}". ` +
+                        'Overriding it is unsupported and may cause unexpected behavior — test thoroughly before deploying.'
                 );
             }
 

@@ -206,19 +206,32 @@ describe('react-router.config', () => {
                 }).not.toThrow();
             });
 
-            it('should throw error when routeDiscovery.mode is overridden', () => {
+            it('should not warn when routeDiscovery.mode matches the preset default', () => {
+                const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
                 const preset = storefrontNextPreset();
-                const invalidConfig = createMockResolvedConfig({
+                const validConfig = createMockResolvedConfig();
+
+                expect(() => {
+                    void preset.reactRouterConfigResolved?.({ reactRouterConfig: validConfig });
+                }).not.toThrow();
+
+                expect(warnSpy).not.toHaveBeenCalled();
+            });
+
+            it('should warn (not throw) when routeDiscovery.mode is overridden', () => {
+                const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+                const preset = storefrontNextPreset();
+                const overriddenConfig = createMockResolvedConfig({
                     routeDiscovery: { mode: 'lazy' as const },
                 });
 
+                // routeDiscovery.mode is the one relaxed pin: overriding it warns instead of throwing.
                 expect(() => {
-                    void preset.reactRouterConfigResolved?.({ reactRouterConfig: invalidConfig });
-                }).toThrow('Storefront Next preset configuration was overridden');
+                    void preset.reactRouterConfigResolved?.({ reactRouterConfig: overriddenConfig });
+                }).not.toThrow();
 
-                expect(() => {
-                    void preset.reactRouterConfigResolved?.({ reactRouterConfig: invalidConfig });
-                }).toThrow('routeDiscovery.mode: expected "initial", got "lazy"');
+                expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('routeDiscovery.mode is "lazy"'));
+                expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('pins it to "initial"'));
             });
 
             it('should throw error when serverModuleFormat is overridden', () => {
@@ -298,6 +311,7 @@ describe('react-router.config', () => {
             });
 
             it('should throw error with all validation errors when multiple values are overridden', () => {
+                const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
                 const preset = storefrontNextPreset();
                 const invalidConfig = createMockResolvedConfig({
                     routeDiscovery: { mode: 'lazy' as const },
@@ -325,21 +339,30 @@ describe('react-router.config', () => {
                     errorMessage = (error as Error).message;
                 }
 
-                expect(errorMessage).toContain('routeDiscovery.mode: expected "initial", got "lazy"');
+                // routeDiscovery.mode is relaxed to a warning, so it must NOT appear in the thrown error.
+                expect(errorMessage).not.toContain('routeDiscovery.mode');
                 expect(errorMessage).toContain('serverModuleFormat: expected "cjs", got "esm"');
                 expect(errorMessage).toContain('ssr: expected true, got false');
                 expect(errorMessage).toContain('future.v8_middleware: expected true, got false');
                 expect(errorMessage).toContain('future.v8_viteEnvironmentApi: expected true, got false');
+
+                // …but it is still surfaced to the customer as a warning.
+                expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('routeDiscovery.mode is "lazy"'));
             });
 
-            it('should handle missing routeDiscovery object', () => {
+            it('should warn (not throw) when routeDiscovery object is missing', () => {
+                const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
                 const preset = storefrontNextPreset();
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { routeDiscovery, ...configWithoutRouteDiscovery } = createMockResolvedConfig();
 
+                // A missing routeDiscovery is treated like any other override of the default 'initial' mode:
+                // it warns rather than failing the build.
                 expect(() => {
                     void preset.reactRouterConfigResolved?.({ reactRouterConfig: configWithoutRouteDiscovery as any });
-                }).toThrow('routeDiscovery.mode: expected "initial", got "undefined"');
+                }).not.toThrow();
+
+                expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('routeDiscovery.mode is "undefined"'));
             });
 
             it('should handle missing future object', () => {
