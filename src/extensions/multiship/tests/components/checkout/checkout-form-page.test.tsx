@@ -114,39 +114,38 @@ vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: () => mockUseAnalytics(),
 }));
 
-const ExpressPaymentsMock = ({
-    onApplePayClick,
-    onGooglePayClick,
-    onAmazonPayClick,
-    onVenmoClick,
-    onPayPalClick,
-}: {
-    onApplePayClick: () => void;
-    onGooglePayClick: () => void;
-    onAmazonPayClick: () => void;
-    onVenmoClick: () => void;
-    onPayPalClick: () => void;
-}) => (
-    <div data-testid="express-payments">
-        <button type="button" onClick={onApplePayClick}>
-            Apple Pay
-        </button>
-        <button type="button" onClick={onGooglePayClick}>
-            Google Pay
-        </button>
-        <button type="button" onClick={onAmazonPayClick}>
-            Amazon Pay
-        </button>
-        <button type="button" onClick={onVenmoClick}>
-            Venmo
-        </button>
-        <button type="button" onClick={onPayPalClick}>
-            PayPal
-        </button>
-    </div>
-);
 vi.mock('@/components/checkout/components/express-payments', () => ({
-    default: ExpressPaymentsMock,
+    default: ({
+        onApplePayClick,
+        onGooglePayClick,
+        onAmazonPayClick,
+        onVenmoClick,
+        onPayPalClick,
+    }: {
+        onApplePayClick: () => void;
+        onGooglePayClick: () => void;
+        onAmazonPayClick: () => void;
+        onVenmoClick: () => void;
+        onPayPalClick: () => void;
+    }) => (
+        <div data-testid="express-payments">
+            <button type="button" onClick={onApplePayClick}>
+                Apple Pay
+            </button>
+            <button type="button" onClick={onGooglePayClick}>
+                Google Pay
+            </button>
+            <button type="button" onClick={onAmazonPayClick}>
+                Amazon Pay
+            </button>
+            <button type="button" onClick={onVenmoClick}>
+                Venmo
+            </button>
+            <button type="button" onClick={onPayPalClick}>
+                PayPal
+            </button>
+        </div>
+    ),
 }));
 
 vi.mock('@/extensions/multiship/components/checkout/shipping-multi-address', () => ({

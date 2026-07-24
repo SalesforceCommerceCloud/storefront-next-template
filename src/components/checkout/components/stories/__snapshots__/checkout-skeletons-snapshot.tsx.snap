@@ -2,7 +2,7 @@
 
 exports[`CheckoutSkeletons stories snapshot > ContactInfo story renders and matches snapshot 1`] = `
 <div
-  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4"
+  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4 min-h-[168px]"
   data-slot="card"
 >
   <div
@@ -814,7 +814,7 @@ exports[`CheckoutSkeletons stories snapshot > OrderSummary story renders and mat
 
 exports[`CheckoutSkeletons stories snapshot > Payment story renders and matches snapshot 1`] = `
 <div
-  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4"
+  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4 min-h-[280px]"
   data-slot="card"
 >
   <div
@@ -962,7 +962,7 @@ exports[`CheckoutSkeletons stories snapshot > Pickup story renders and matches s
 
 exports[`CheckoutSkeletons stories snapshot > ShippingAddress story renders and matches snapshot 1`] = `
 <div
-  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4"
+  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4 min-h-[520px]"
   data-slot="card"
 >
   <div
@@ -1076,7 +1076,7 @@ exports[`CheckoutSkeletons stories snapshot > ShippingAddress story renders and 
 
 exports[`CheckoutSkeletons stories snapshot > ShippingOptions story renders and matches snapshot 1`] = `
 <div
-  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4"
+  class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border py-6 shadow-ui relative gap-4 min-h-[180px]"
   data-slot="card"
 >
   <div

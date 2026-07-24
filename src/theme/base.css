@@ -26,6 +26,7 @@
      * target element clear of the header. (WCAG 2.1 SC 2.4.7 Focus Visible) */
     html {
         scroll-padding-top: var(--header-height, 145px);
+        scrollbar-gutter: stable;
     }
 
     @media (min-width: 64rem) {

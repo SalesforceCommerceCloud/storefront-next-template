@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, lazy, Suspense, use, useRef, useState, type FormEvent } from 'react';
+import {
+    useCallback,
+    useEffect,
+    lazy,
+    Suspense,
+    use,
+    useRef,
+    useState,
+    type FormEvent,
+    type ReactElement,
+} from 'react';
 import { useFetcher } from 'react-router';
 import { useCheckoutContext } from '@/hooks/use-checkout';
 import { useBasket, useBasketHydrated } from '@/providers/basket';
@@ -46,9 +56,14 @@ import { OrderSummaryMobileAccordion } from '@/components/order-summary/mobile-h
 import { isOrderTotalEstimated } from '@/components/order-summary/mobile-heading-utils';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import { filterDeliveryShippingMethods } from '@/extensions/bopis/lib/basket-utils';
+import ContactInfo from './components/contact-info';
+/** @feature-stub Express checkout buttons - remove this import and its JSX below to strip the stub */
+import ExpressPayments from './components/express-payments';
+import Payment from './components/payment';
+import ShippingAddress from './components/shipping-address';
+import ShippingOptions from './components/shipping-options';
 
 // Lazy load heavy components
-const ContactInfo = lazy(() => import('./components/contact-info'));
 // @sfdc-extension-line SFDC_EXT_BOPIS
 const CheckoutPickupWithData = lazy(() => import('@/extensions/bopis/components/checkout/checkout-pickup-with-data'));
 // @sfdc-extension-block-start SFDC_EXT_MULTISHIP
@@ -57,14 +72,9 @@ const ShippingMultiAddressWithData = lazy(
 );
 const ShippingMultiOptions = lazy(() => import('@/extensions/multiship/components/checkout/shipping-multi-options'));
 // @sfdc-extension-block-end SFDC_EXT_MULTISHIP
-const ShippingAddress = lazy(() => import('./components/shipping-address'));
-const ShippingOptions = lazy(() => import('./components/shipping-options'));
-const Payment = lazy(() => import('./components/payment'));
 const RegisterCustomerSelection = lazy(() => import('./components/register-customer-selection'));
-const OrderSummary = lazy(() => import('@/components/order-summary'));
 const MyCart = lazy(() => import('@/components/my-cart'));
-/** @feature-stub Express checkout buttons - remove this import and its JSX below to strip the stub */
-const ExpressPayments = lazy(() => import('./components/express-payments'));
+const OrderSummary = lazy(() => import('@/components/order-summary'));
 
 // Import skeleton components for accurate loading states
 import {
@@ -107,6 +117,18 @@ function doesPaymentSelectionDiffer(
     }
 
     return false;
+}
+
+// Reserves 119px of vertical space matching RegisterCustomerSelection's rendered label so
+// its lazy chunk arriving during hydration does not shift adjacent checkout content.
+export function RegisterCustomerFallback(): ReactElement {
+    return (
+        <div
+            aria-hidden="true"
+            data-testid="register-customer-fallback"
+            className="min-h-[119px] w-full rounded-ui border border-input"
+        />
+    );
 }
 
 interface GuestAccountCreationProps {
@@ -163,7 +185,7 @@ function GuestAccountCreation({
     }
 
     return (
-        <Suspense fallback={null}>
+        <Suspense fallback={<RegisterCustomerFallback />}>
             <RegisterCustomerSelection
                 onSaved={onSaved}
                 savePaymentToProfile={savePaymentToProfile}

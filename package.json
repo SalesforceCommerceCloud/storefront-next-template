@@ -244,6 +244,11 @@
         "comment": "App layout route chunk; at 58 kB after dependency updates"
       },
       {
+        "name": "assets/\\(routes\\)-_checkout.checkout.*.js",
+        "limit": "100 kB",
+        "comment": "Checkout route chunk; at ~95 kB after eager-importing the four always-mounted step components (ContactInfo, ShippingAddress, ShippingOptions, Payment) to eliminate a 273 ms hydration-time long task and 100+ ms TBT. See W-23528585 spec (docs/internal/specs/W-23528585-checkout-perf-cls-tbt.md, Decision 1) for the eager-vs-lazy tradeoff. Follow-up: route-level modulepreload for the remaining lazy chunks will let this shrink back."
+      },
+      {
         "name": "assets/\\(package\\)-\\(@radix-ui-*\\)-*.js",
         "limit": "150 kB",
         "comment": "Radix UI component packages (individually chunked by Vite). Used across the app including checkout."
