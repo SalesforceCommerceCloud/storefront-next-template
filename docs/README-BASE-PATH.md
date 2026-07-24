@@ -4,6 +4,8 @@ A base path is an optional URL prefix that allows multiple storefronts to share 
 
 This is useful when multiple MRT environments are served behind a shared domain, with a CDN or reverse proxy routing traffic to the correct environment based on the first path segment.
 
+> For the inverse scenario — **many domains served by one environment** — see [Multiple Domains, One Environment](./README-MULTI-DOMAIN.md).
+
 ## Configuration
 
 The base path is configured in `config.server.ts` under `runtime.ssrParameters.envBasePath`:
