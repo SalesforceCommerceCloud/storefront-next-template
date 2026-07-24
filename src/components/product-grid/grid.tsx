@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useCallback } from 'react';
+import { type ReactElement, type Ref, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import { useShowPickupAvailable } from './use-pickup-filter';
@@ -125,6 +125,10 @@ function ProductGridSkeleton({ count = 8 }: { count?: number }) {
 export default function ProductGrid({
     critical,
     nonCritical,
+    appended,
+    firstNewIndex,
+    firstNewItemRef,
+    appendPending = false,
     hasRefinementsPanel = true,
     handleProductClick,
     topCategoryName,
@@ -135,6 +139,17 @@ export default function ProductGrid({
 }: {
     critical?: ProductSearchHit[];
     nonCritical?: ProductSearchHit[];
+    /**
+     * Products appended after the initial page via the "Load more" / infinite-scroll control. Rendered
+     * inside the same grid container as critical/non-critical tiles so the whole listing flows as one grid.
+     */
+    appended?: ProductSearchHit[];
+    /** Index within `appended` of the first tile of the most recent batch — receives `firstNewItemRef`. */
+    firstNewIndex?: number | null;
+    /** Ref attached to the first newly appended tile so focus can move to it after a "load more". */
+    firstNewItemRef?: Ref<HTMLDivElement>;
+    /** Whether a "load more" fetch is in flight — sets `aria-busy` on the grid for assistive tech. */
+    appendPending?: boolean;
     hasRefinementsPanel?: boolean;
     handleProductClick?: (product: ProductSearchHit) => void;
     topCategoryName?: string;
@@ -172,7 +187,7 @@ export default function ProductGrid({
 
     return (
         <ProductTileProvider>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-8" aria-busy={appendPending}>
                 {l > 0 && (
                     <DynamicImageProvider value={{ hasSource, widths: responsiveImageWidths }}>
                         {criticalData.map((product) => (
@@ -199,9 +214,34 @@ export default function ProductGrid({
                         showPickupAvailable={showPickupAvailable}
                     />
                 )}
+                {appended && appended.length > 0 && (
+                    <DynamicImageProvider value={{ hasSource, widths: responsiveImageWidths }}>
+                        {appended.map((product, index) => (
+                            <ProductTile
+                                // The first tile of the most recently loaded batch gets a ref so the route
+                                // can move focus to it after a "load more" (accessibility). All appended
+                                // tiles fade in (200ms) to signal "these are new" without being distracting.
+                                ref={index === firstNewIndex ? firstNewItemRef : undefined}
+                                key={product.productId}
+                                product={product}
+                                handleProductClick={handleProductClick}
+                                showNavigationArrows
+                                topCategoryName={topCategoryName}
+                                className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200"
+                                // @sfdc-extension-line SFDC_EXT_BOPIS
+                                showPickupAvailable={showPickupAvailable}
+                            />
+                        ))}
+                    </DynamicImageProvider>
+                )}
                 {(skeletonCount ?? 0) > 0 &&
                     Array.from({ length: skeletonCount ?? 0 }, (_, i) => <ProductTileSkeleton key={`skeleton-${i}`} />)}
-                {!skeletonCount && <NoProductsMessage criticalSize={l} nonCriticalSize={nonCritical?.length ?? 0} />}
+                {!skeletonCount && (
+                    <NoProductsMessage
+                        criticalSize={l + (appended?.length ?? 0)}
+                        nonCriticalSize={nonCritical?.length ?? 0}
+                    />
+                )}
             </div>
         </ProductTileProvider>
     );

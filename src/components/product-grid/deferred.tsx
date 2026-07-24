@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, Suspense, useState } from 'react';
+import { type ReactElement, type Ref, Suspense, useState } from 'react';
 import { Await } from 'react-router';
 import type { ShopperSearch } from '@/scapi';
 import { useDeferredRender } from '@/hooks/use-deferred-render';
@@ -44,6 +44,10 @@ type ProductSearchHit = ShopperSearch.schemas['ProductSearchHit'];
 export default function DeferredProductGrid({
     critical,
     nonCritical,
+    appended,
+    firstNewIndex,
+    firstNewItemRef,
+    appendPending,
     nonCriticalCount = 0,
     hasRefinementsPanel,
     handleProductClick,
@@ -55,6 +59,17 @@ export default function DeferredProductGrid({
 }: {
     critical?: ProductSearchHit[];
     nonCritical: Promise<ProductSearchHit[]>;
+    /**
+     * Products appended after the initial page via the "Load more" / infinite-scroll control. Rendered
+     * inside the same grid container so critical, non-critical, and appended tiles flow as one grid.
+     */
+    appended?: ProductSearchHit[];
+    /** Index within `appended` of the first tile of the most recent batch — receives `firstNewItemRef`. */
+    firstNewIndex?: number | null;
+    /** Ref attached to the first newly appended tile so focus can move to it after a "load more". */
+    firstNewItemRef?: Ref<HTMLDivElement>;
+    /** Whether a "load more" fetch is in flight — sets `aria-busy` on the grid for assistive tech. */
+    appendPending?: boolean;
     nonCriticalCount?: number;
     hasRefinementsPanel?: boolean;
     handleProductClick?: (product: ProductSearchHit) => void;
@@ -77,6 +92,10 @@ export default function DeferredProductGrid({
 
     const gridProps = {
         critical,
+        appended,
+        firstNewIndex,
+        firstNewItemRef,
+        appendPending,
         hasRefinementsPanel,
         handleProductClick,
         topCategoryName,
@@ -85,7 +104,8 @@ export default function DeferredProductGrid({
         showPickupAvailable,
     };
 
-    // Phase 1: Pre-idle — show critical tiles + skeleton placeholders
+    // Phase 1: Pre-idle — show critical tiles + skeleton placeholders.
+    // (`appended` is empty here — the shopper can only load more once the initial page has resolved.)
     if (!shouldRenderNonCritical) {
         return <ProductGrid {...gridProps} skeletonCount={nonCriticalCount} />;
     }

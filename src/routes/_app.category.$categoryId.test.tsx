@@ -152,12 +152,32 @@ vi.mock('@/components/category-breadcrumbs', () => ({
     default: ({ category }: any) => <div data-testid="category-breadcrumbs">{category.name}</div>,
 }));
 
-vi.mock('@/components/category-pagination', () => ({
-    default: ({ limit, offset, total }: any) => (
-        <div data-testid="category-pagination">
-            {offset}-{Math.min(offset + limit, total)} of {total}
-        </div>
-    ),
+// Mock the "Load more" hook: no fetcher (which needs a data router), just derive hasMore from the
+// initial page vs total so behavior-driven tests still exercise the show/hide logic.
+vi.mock('@/hooks/use-load-more-products', () => ({
+    useLoadMoreProducts: ({ initialCount, total }: any) => ({
+        appended: [],
+        loadedCount: initialCount,
+        total,
+        hasMore: initialCount < total,
+        capReached: false,
+        isLoading: false,
+        hasError: false,
+        firstNewIndex: null,
+        loadMore: vi.fn(),
+        sentinelRef: vi.fn(),
+    }),
+}));
+
+// Mock the "Load more" control: mirror the real component's terminal-state logic — it renders whenever
+// there are products (button, end-of-catalog message, or cap prompt) and nothing only when total is 0.
+vi.mock('@/components/product-grid/load-more', () => ({
+    default: ({ loadedCount, total }: any) =>
+        total > 0 ? (
+            <div data-testid="load-more">
+                Showing {loadedCount} of {total}
+            </div>
+        ) : null,
 }));
 
 vi.mock('@/components/category-refinements', () => ({
@@ -796,6 +816,8 @@ describe('CategoryPage', () => {
                 pageUrl: 'http://localhost/category/test',
                 initialFiltersOpen: true,
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             const closedLoaderData: CategoryPageData = {
@@ -846,6 +868,8 @@ describe('CategoryPage', () => {
                     '@type': 'CollectionPage',
                     name: 'Electronics',
                 }),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -873,7 +897,7 @@ describe('CategoryPage', () => {
                     'lg:gap-4'
                 );
                 expect(screen.getByTestId('product-grid')).toBeInTheDocument();
-                expect(screen.getByTestId('category-pagination')).toBeInTheDocument();
+                expect(screen.getByTestId('load-more')).toBeInTheDocument();
             });
         });
 
@@ -890,6 +914,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -918,6 +944,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -933,7 +961,7 @@ describe('CategoryPage', () => {
             });
         });
 
-        test('should not render pagination when total is 1 or less', async () => {
+        test('renders the load-more control (end-of-catalog state) when all products fit on the first page', async () => {
             const searchResultWithOneItem = { ...mockSearchResult, total: 1 };
             const loaderData: CategoryPageData = {
                 category: mockCategory,
@@ -946,6 +974,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 1,
             };
 
             render(
@@ -956,8 +986,10 @@ describe('CategoryPage', () => {
                 </MemoryRouter>
             );
 
+            // Control still renders (it now carries the "Showing X of Y" / end-of-catalog state);
+            // the LoadMore component itself decides whether to show a button vs. an end message.
             await waitFor(() => {
-                expect(screen.queryByTestId('category-pagination')).not.toBeInTheDocument();
+                expect(screen.getByTestId('load-more')).toHaveTextContent('Showing 1 of 1');
             });
         });
 
@@ -973,6 +1005,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             const { rerender } = render(
@@ -1014,6 +1048,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1042,6 +1078,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1077,6 +1115,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1110,6 +1150,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1144,6 +1186,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1180,6 +1224,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1214,6 +1260,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1250,6 +1298,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1285,6 +1335,8 @@ describe('CategoryPage', () => {
                     '@type': 'CollectionPage',
                     name: 'Electronics',
                 }),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1318,6 +1370,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1352,6 +1406,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             render(
@@ -1391,6 +1447,8 @@ describe('CategoryPage', () => {
                 locale: 'en-US',
                 pageUrl: 'http://localhost/category/test',
                 categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
             };
 
             // Should render without errors even when analytics is null

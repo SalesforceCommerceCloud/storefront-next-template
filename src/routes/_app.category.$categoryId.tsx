@@ -26,11 +26,14 @@ import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import CategoryBreadcrumbs from '@/components/category-breadcrumbs';
 import CategoryPagination from '@/components/category-pagination';
+import LoadMore from '@/components/product-grid/load-more';
+import { useLoadMoreProducts } from '@/hooks/use-load-more-products';
 import ActiveFilters from '@/components/category-refinements/active-filters';
 import FiltersButton from '@/components/category-refinements/filters-button';
 import CategoryRefinements from '@/components/category-refinements';
 import CategorySorting from '@/components/category-sorting';
 import DeferredProductGrid from '@/components/product-grid';
+import { ProductTileSkeleton } from '@/components/category-skeleton';
 import QuickFilters from '@/components/quick-filters';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { PageType } from '@/lib/decorators/page-type';
@@ -93,6 +96,12 @@ type CategoryPageData = {
     locale: string;
     initialFiltersOpen?: boolean;
     categorySchema: Promise<ReturnType<typeof generateCategorySchema> | null>;
+    /** `rel=prev/next` crawl URLs for load-more mode, or `null` in traditional mode. */
+    seoPagination: { prevUrl: string | null; nextUrl: string | null } | null;
+    /** Products the server rendered on first paint. */
+    initialCount: number;
+    /** Server-side offset for `?page=N` entry in load-more mode (0 for normal entry). */
+    offset?: number;
 };
 
 /**
@@ -113,7 +122,6 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         categoryId,
         offset: parseInt(searchParams.get('offset') || '0', 10),
     });
-    const offset = parseInt(getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.OFFSET) || '0', 10);
     const sort = getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.SORT);
     const refine = getAllQueryParams(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.REFINE);
     const initialFiltersOpen = getInitialFiltersOpen(searchParams);
@@ -128,6 +136,19 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     const { currency } = siteCtx;
     const locale = siteCtx.locale.id;
     const limit = config.search.products.hits.limit;
+
+    // Pagination params. Which ones are honored depends on the merchant's pagination mode:
+    // - `traditional`: `?offset=N` drives the numbered page window (existing behavior).
+    // - `load-more`: the client persists loaded count to sessionStorage for back-nav restoration;
+    //   `?page=N` is the crawler/no-JS fallback that server-renders a single traditional page window.
+    const paginationConfig = uiConfig.pages.category.pagination;
+    const isLoadMoreMode = paginationConfig.mode === 'load-more';
+    const requestedOffset = parseInt(getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.OFFSET) || '0', 10) || 0;
+    const requestedPage = parseInt(searchParams.get('page') || '0', 10) || 0;
+    // In load-more mode a `?page=N` request is the SEO/no-JS path — serve that page's offset window.
+    const isPagedRequest = isLoadMoreMode && requestedPage > 1;
+    const offset = isPagedRequest ? (requestedPage - 1) * limit : requestedOffset;
+    const initialFetchLimit = limit;
 
     let categoryData: ShopperProducts.schemas['Category'] | undefined;
     try {
@@ -159,7 +180,9 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
 
     const effectiveCriticalCount = searchResultCritical.hits?.length ?? 0;
     const searchResultNonCritical = fetchSearchProducts(context, {
-        limit: limit - effectiveCriticalCount,
+        // On a `?loaded=N` restoration this widens to N so the full run is server-rendered; otherwise
+        // it's the normal single-page window.
+        limit: initialFetchLimit - effectiveCriticalCount,
         offset: offset + effectiveCriticalCount,
         sort,
         refine: effectiveRefine,
@@ -167,6 +190,27 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     });
 
     const pageUrl = buildCanonicalUrl(requestUrl.origin, requestUrl.pathname, requestUrl.search);
+
+    // SEO / crawler pagination (load-more mode only). Expose `rel=prev/next` URLs so bots can discover
+    // and crawl the full result set via `?page=N` even though shoppers use the JS "load more" flow.
+    // These use the clean path + a single `page` param (canonical stays the base URL; see SeoMeta).
+    const totalCount = searchResultCritical.total ?? 0;
+    const totalPages = Math.max(1, Math.ceil(totalCount / limit));
+    const currentPage = isPagedRequest ? requestedPage : 1;
+    const buildPageUrl = (p: number): string => {
+        const params = new URLSearchParams();
+        for (const r of refine) params.append('refine', r);
+        if (sort) params.set('sort', sort);
+        if (p > 1) params.set('page', String(p));
+        const qs = params.toString();
+        return `${requestUrl.origin}${requestUrl.pathname}${qs ? `?${qs}` : ''}`;
+    };
+    const seoPagination = isLoadMoreMode
+        ? {
+              prevUrl: currentPage > 1 ? buildPageUrl(currentPage - 1) : null,
+              nextUrl: currentPage < totalPages ? buildPageUrl(currentPage + 1) : null,
+          }
+        : null;
 
     // Generate category schema in loader (server-side) for SEO
     const categorySchemaPromise = searchResultNonCritical
@@ -220,6 +264,9 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         locale,
         initialFiltersOpen,
         categorySchema: categorySchemaPromise,
+        seoPagination,
+        initialCount: Math.min(initialFetchLimit, Math.max(0, (searchResultCritical.total ?? 0) - offset)),
+        offset,
     };
 }
 
@@ -275,6 +322,9 @@ export default function CategoryPage({
         currency,
         initialFiltersOpen,
         categorySchema,
+        seoPagination,
+        initialCount,
+        offset = 0,
     },
 }: {
     loaderData: CategoryPageData;
@@ -333,6 +383,85 @@ export default function CategoryPage({
         () => searchResultNonCritical.then((r) => r.hits ?? []),
         [searchResultNonCritical]
     );
+
+    // Pagination mode is merchant-configurable: `load-more` (button + infinite scroll, the default)
+    // or `traditional` (numbered prev/next that navigates the URL offset). See @/lib/config.ui.
+    const paginationConfig = uiConfig.pages.category.pagination;
+    const isLoadMoreMode = paginationConfig.mode === 'load-more';
+
+    // "Load more" / infinite scroll: the loader renders the first page (`initialCount` products) and
+    // this hook appends further pages via a non-navigating fetch, resetting whenever the underlying
+    // query changes (category / sort / refinements). On bfcache-miss back-nav, the hook reads
+    // `sfnextLoaded` from history.state and auto-fetches to restore the prior scroll depth.
+    const {
+        appended,
+        loadedCount,
+        total: loadMoreTotal,
+        hasMore,
+        capReached,
+        isLoading: isLoadingMore,
+        isRestoring,
+        restorationTarget,
+        hasError: loadMoreError,
+        firstNewIndex,
+        loadMore,
+        sentinelRef,
+    } = useLoadMoreProducts({
+        refine,
+        sort: searchResultCritical.selectedSortingOption,
+        currency,
+        initialCount,
+        total: searchResultCritical.total,
+        batchSize: paginationConfig.batchSize,
+        mobileBatchSize: paginationConfig.mobileBatchSize,
+        maxProducts: paginationConfig.maxProducts,
+        identity: productGridDataKey,
+        offset,
+    });
+
+    // Accessibility: after a "load more" appends a batch, move focus to its first tile so keyboard and
+    // screen-reader users land on the new content instead of staying on the (now mid-page) button.
+    const firstNewItemRef = useRef<HTMLDivElement>(null);
+    const focusTargetKey = firstNewIndex === null ? null : `${appended.length}-${firstNewIndex}`;
+    useEffect(() => {
+        if (focusTargetKey === null || !firstNewItemRef.current) {
+            return;
+        }
+        const node = firstNewItemRef.current;
+        // ProductTile's root isn't natively focusable; make it programmatically focusable, focus it,
+        // then drop the tabindex on blur so it doesn't linger in the tab order.
+        node.setAttribute('tabindex', '-1');
+        node.focus({ preventScroll: true });
+        const onBlur = () => node.removeAttribute('tabindex');
+        node.addEventListener('blur', onBlur, { once: true });
+        return () => node.removeEventListener('blur', onBlur);
+    }, [focusTargetKey]);
+
+    // Persist loaded count in sessionStorage keyed by React Router's history key. React Router
+    // overwrites history.state with { key } on navigation, so history.state is not safe for custom
+    // data. sessionStorage survives SPA navigations and is the same mechanism React Router uses
+    // for its own scroll positions. URL stays clean — no params exposed to users.
+    const STORAGE_KEY = 'sfnext:loadMore';
+    useEffect(() => {
+        if (!isLoadMoreMode || typeof window === 'undefined' || isRestoring) {
+            return;
+        }
+        const historyKey = (window.history.state as { key?: string } | null)?.key;
+        if (!historyKey) return;
+        try {
+            if (loadedCount > initialCount) {
+                const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+                stored[historyKey] = loadedCount;
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            } else {
+                const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
+                delete stored[historyKey];
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+            }
+        } catch {
+            // sessionStorage full or unavailable — non-critical, skip
+        }
+    }, [isLoadMoreMode, isRestoring, loadedCount, initialCount]);
 
     const [, startTransition] = useTransition();
     const lastSearchParamsRef = useRef<string>(location.search);
@@ -398,6 +527,10 @@ export default function CategoryPage({
                     url: pageUrl,
                 }}
             />
+            {/* SEO pagination hints: let crawlers walk the full result set via `?page=N` even though
+                shoppers use the JS "load more" flow. React 19 hoists these <link>s into <head>. */}
+            {seoPagination?.prevUrl && <link rel="prev" href={seoPagination.prevUrl} />}
+            {seoPagination?.nextUrl && <link rel="next" href={seoPagination.nextUrl} />}
             <div className="pb-16 -mt-8">
                 {/* plpTopFullWidth — full-width banner region, flush to the header (mirrors homepage pattern) */}
                 <Region
@@ -464,30 +597,61 @@ export default function CategoryPage({
 
                             <UITarget targetId="sfcc.plp.agent.categoryHelper" />
                             <UITarget targetId="sfcc.plp.search.results">
-                                <DeferredProductGrid
-                                    key={productGridDataKey}
-                                    critical={searchResultCritical.hits ?? []}
-                                    nonCritical={nonCriticalPromise}
-                                    nonCriticalCount={nonCriticalCount}
-                                    hasRefinementsPanel={filtersOpen}
-                                    isLoading={isProductGridLoading}
-                                    handleProductClick={handleProductClick}
-                                    topCategoryName={
-                                        category.parentCategoryTree?.find((p) => p.id !== 'root')?.name ?? category.name
-                                    }
-                                    errorElement={<ProductGridError />}
-                                />
+                                {isRestoring ? (
+                                    <div
+                                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-8"
+                                        aria-busy="true">
+                                        {Array.from({ length: restorationTarget }, (_, i) => (
+                                            <ProductTileSkeleton key={`restore-skeleton-${i}`} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <DeferredProductGrid
+                                        key={productGridDataKey}
+                                        critical={searchResultCritical.hits ?? []}
+                                        nonCritical={nonCriticalPromise}
+                                        appended={isLoadMoreMode ? appended : undefined}
+                                        firstNewIndex={isLoadMoreMode ? firstNewIndex : undefined}
+                                        firstNewItemRef={isLoadMoreMode ? firstNewItemRef : undefined}
+                                        appendPending={isLoadMoreMode ? isLoadingMore : undefined}
+                                        nonCriticalCount={nonCriticalCount}
+                                        hasRefinementsPanel={filtersOpen}
+                                        isLoading={isProductGridLoading}
+                                        handleProductClick={handleProductClick}
+                                        topCategoryName={
+                                            category.parentCategoryTree?.find((p) => p.id !== 'root')?.name ??
+                                            category.name
+                                        }
+                                        errorElement={<ProductGridError />}
+                                    />
+                                )}
                             </UITarget>
 
-                            {searchResultCritical.total > 1 && (
-                                <div className="mt-10">
-                                    <CategoryPagination
-                                        limit={limit}
-                                        offset={searchResultCritical.offset}
-                                        total={searchResultCritical.total}
-                                    />
-                                </div>
-                            )}
+                            {!isProductGridLoading &&
+                                (isLoadMoreMode ? (
+                                    <div className="mt-10">
+                                        <LoadMore
+                                            loadedCount={loadedCount}
+                                            total={loadMoreTotal}
+                                            hasMore={hasMore}
+                                            capReached={capReached}
+                                            isLoading={isLoadingMore}
+                                            hasError={loadMoreError}
+                                            onLoadMore={loadMore}
+                                            sentinelRef={sentinelRef}
+                                        />
+                                    </div>
+                                ) : (
+                                    searchResultCritical.total > 1 && (
+                                        <div className="mt-10">
+                                            <CategoryPagination
+                                                limit={limit}
+                                                offset={searchResultCritical.offset}
+                                                total={searchResultCritical.total}
+                                            />
+                                        </div>
+                                    )
+                                ))}
 
                             {/* plpBottom */}
                             <Region className="mt-8" page={page} regionId="plpBottom" />

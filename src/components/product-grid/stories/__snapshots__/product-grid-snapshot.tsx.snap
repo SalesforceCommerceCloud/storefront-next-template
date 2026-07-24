@@ -5,6 +5,7 @@ exports[`ProductGrid stories snapshot > EmptyState story renders and matches sna
   class="section-container py-8 bg-background"
 >
   <div
+    aria-busy="false"
     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-8"
   >
     <div
@@ -25,6 +26,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
   class="section-container py-8 bg-background"
 >
   <div
+    aria-busy="false"
     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-8"
   >
     <div
@@ -2530,6 +2532,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
   class="section-container py-8 bg-background"
 >
   <div
+    aria-busy="false"
     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-8"
   >
     <div

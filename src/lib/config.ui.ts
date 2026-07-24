@@ -85,8 +85,38 @@ export interface UIConfig {
              * @default false
              */
             showCategoryLabel: boolean;
+            /**
+             * How the product listing paginates its results.
+             *
+             * - `'load-more'`: a "Load more" button appends the next batch below the grid
+             *   without a page reload; the grid also auto-loads on scroll (infinite scroll).
+             * - `'traditional'`: numbered previous/next pagination that navigates the URL
+             *   `offset` and reloads the page.
+             *
+             * @default 'load-more'
+             */
+            pagination: PaginationConfig;
         };
     };
+}
+
+/**
+ * Product-listing pagination behavior. `mode` selects the interaction; the batch sizes and
+ * DOM cap only apply to `'load-more'`. Batch size falls back to the global
+ * `config.search.products.hits.limit` (SCAPI page size) when a mode-specific value is omitted.
+ */
+export interface PaginationConfig {
+    /** Pagination interaction mode. @default 'load-more' */
+    mode: 'load-more' | 'traditional';
+    /** Products fetched per "Load more" batch on desktop/tablet viewports. @default 24 */
+    batchSize: number;
+    /** Products fetched per "Load more" batch on mobile viewports (smaller for performance). @default 12 */
+    mobileBatchSize: number;
+    /**
+     * Maximum number of products kept in the DOM before the "Load more" control is replaced with
+     * a prompt to refine filters. Prevents DOM bloat / jank on low-end devices. @default 200
+     */
+    maxProducts: number;
 }
 
 export const uiConfig: UIConfig = {
@@ -100,6 +130,12 @@ export const uiConfig: UIConfig = {
         },
         category: {
             showCategoryLabel: false,
+            pagination: {
+                mode: 'load-more',
+                batchSize: 24,
+                mobileBatchSize: 12,
+                maxProducts: 200,
+            },
         },
     },
 };

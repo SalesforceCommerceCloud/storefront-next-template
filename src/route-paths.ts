@@ -166,6 +166,7 @@ export const resourceRoutes = {
     recommendations: '/resource/recommendations',
     basketProducts: '/resource/basket-products',
     reviewsSummary: '/resource/reviews-summary',
+    categoryProducts: '/resource/category-products',
     stores: '/resource/stores',
     analyticsProxy: '/resource/analytics-proxy',
     apiClient: '/resource/api/client/:resource',

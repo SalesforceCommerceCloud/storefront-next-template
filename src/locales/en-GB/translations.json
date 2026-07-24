@@ -1668,6 +1668,15 @@
             "next": "Next",
             "nextPage": "Next page",
             "page": "Page {{number}}"
+        },
+        "loadMore": {
+            "button": "Load more",
+            "loading": "Loading…",
+            "retry": "Try again",
+            "status": "Showing {{loaded}} of {{total}}",
+            "error": "Something went wrong. Please try again.",
+            "end": "You've reached the end of the results",
+            "capReached": "You've viewed {{loaded}} products. Refine your filters to narrow down the results."
         }
     },
     "maintenancePage": {
