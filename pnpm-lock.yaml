@@ -6624,8 +6624,8 @@ packages:
     engines: {node: ^14.13.1 || >=16.0.0}
     hasBin: true
 
-  html-parse-stringify@3.0.1:
-    resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
+  html-parse-stringify@3.1.0:
+    resolution: {integrity: sha512-E0oAXcELOtsXe+BmpJ2EZyedbldPpriV5vICzEuo6xjC/D1lDukOI7KrpfQGF2Qc4wWEy0nk3bFORS2K5ZAhFQ==}
 
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
@@ -17369,7 +17369,7 @@ snapshots:
       relateurl: 0.2.7
       terser: 5.49.0
 
-  html-parse-stringify@3.0.1:
+  html-parse-stringify@3.1.0:
     dependencies:
       void-elements: 3.1.0
 
@@ -20251,7 +20251,7 @@ snapshots:
   react-i18next@16.0.0(i18next@25.5.3(typescript@5.9.2))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.2):
     dependencies:
       '@babel/runtime': 7.29.7
-      html-parse-stringify: 3.0.1
+      html-parse-stringify: 3.1.0
       i18next: 25.5.3(typescript@5.9.2)
       react: 19.2.3
     optionalDependencies:

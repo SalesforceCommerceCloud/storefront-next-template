@@ -259,7 +259,9 @@ const CartSheetPanel = function CartSheetPanel({ onClose }: { onClose: () => voi
                         {/* Top Divider */}
                         <Separator className="bg-muted-foreground/10" />
 
-                        <UITarget targetId="sfcc.miniCart.promotions.approachingDiscounts" />
+                        <div className="px-6 [&:not(:empty)]:pt-4 [&:not(:empty)]:border-b [&:not(:empty)]:border-muted-foreground/10">
+                            <UITarget targetId="sfcc.miniCart.promotions.approachingDiscounts" />
+                        </div>
 
                         {/* Cart Items */}
                         {isLoading && enrichedProductItems.length === 0 ? (
