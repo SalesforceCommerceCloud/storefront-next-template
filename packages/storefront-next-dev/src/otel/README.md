@@ -16,9 +16,9 @@ exporter rationale.
 | `sfnext.request` | **SERVER** | Express middleware ([`express/middleware.ts`](./express/middleware.ts)) | Once per inbound HTTP request — the service entry point | `http.request.method`, `url.path`, `http.response.status_code`, `http.total_duration_ms` |
 | `sfnext.response_streaming` | INTERNAL | Express middleware | From the first byte written (first `writeHead`/`write`) until the response stream closes | `http.request.method`, `url.path`, `http.streaming_duration_ms`, `http.response.status_code` |
 | `sfnext.ssr` | INTERNAL | React Router handler ([`react-router/instrumentation.ts`](./react-router/instrumentation.ts)) | Around the SSR render for every request (document + data) | `http.request.method`, `url.path` |
-| `sfnext.middleware` | INTERNAL | React Router route | Around each route middleware in the chain | `rr.route.id`, `http.route` |
-| `sfnext.loader` | INTERNAL | React Router route | Around each route loader | `rr.route.id`, `http.route` |
-| `sfnext.action` | INTERNAL | React Router route | Around each route action (mutations) | `rr.route.id`, `http.route` |
+| `sfnext.middleware` | INTERNAL | React Router route | Around each route middleware in the chain | `http.route`, `site_name` |
+| `sfnext.loader` | INTERNAL | React Router route | Around each route loader | `http.route`, `site_name` |
+| `sfnext.action` | INTERNAL | React Router route | Around each route action (mutations) | `http.route`, `site_name` |
 | `sfnext.fetch` | CLIENT | undici auto-instrumentation ([`setup.ts`](./setup.ts)) | Around every outbound `fetch` (SCAPI, SLAS, …) | `http.request.method`, `url.full`, `url.path`, `url.query`, `server.address`, `http.response.status_code` |
 
 ## Naming convention
@@ -38,8 +38,27 @@ Variable detail lives in attributes, not the name:
 - The outbound request → `sfnext.fetch` for every CLIENT span; the method, host, and
   full target live in `http.request.method`, `server.address`, and `url.full`.
 
-`rr.route.id` is the React Router file-route id (e.g. `routes/_app.product.$productId`);
-`http.route` is the URL pattern. They are distinct and both useful, so both are recorded.
+`http.route` is the URL route template (e.g. `:siteId/:localeId/product/:productId`),
+a bounded/low-cardinality value — never the raw path with real ids.
+
+`site_name` carries the **resolved SFCC site id** (e.g. `RefArchGlobal`), read from the
+`siteContext` the site-context middleware sets. It is bounded/low-cardinality, so it lives
+as an attribute (backends can aggregate RED metrics per site). It appears on the
+route-level React Router spans (`sfnext.middleware`, `sfnext.loader`, `sfnext.action`),
+which always receive the router context. It does **not** appear on `sfnext.ssr`: React
+Router passes `context: undefined` to the request-handler instrumentation, so the site
+can't be read there. Nor on the Express `sfnext.request`/`sfnext.response_streaming` spans
+(created before the site is resolved) or `sfnext.fetch` (no request context). It is read
+just before each span ends, since the site may be unresolved at span start.
+
+**The key is `site_name`, and the value is the site id.** The MRT log→trace bridge filters
+span attributes against an allow list and drops keys not on it; `site_name` is on that list
+(confirmed with the MRT team) while `site_id` / `sfnext.*` keys are not, so `site_name` is
+the key that survives to the trace backend. The site config carries no separate display
+name, so the site id is the value we emit under it. This same allow list is why the
+framework's `rr.route.id` is no longer recorded — not on the list, silently dropped, so
+emitting it added local noise with no dashboard value. `http.route` survives because it is
+a standard semantic-convention key.
 
 ## SpanKind
 
@@ -61,13 +80,13 @@ render (`GET /global/en-US/`) looks like this:
 ```
 sfnext.request                      [SERVER]  url.path=/global/en-US/
 ├─ sfnext.ssr                       [INTERNAL]
-│  └─ sfnext.middleware  (× N)      [INTERNAL]  rr.route.id=root        ← see note
+│  └─ sfnext.middleware  (× N)      [INTERNAL]  http.route=:siteId/:localeId  ← see note
 │     ├─ sfnext.fetch               [CLIENT]    /shopper/auth/.../oauth2/token  (SLAS)
-│     ├─ sfnext.loader              [INTERNAL]  rr.route.id=root
-│     ├─ sfnext.loader              [INTERNAL]  rr.route.id=routes/_app
+│     ├─ sfnext.loader              [INTERNAL]  http.route=:siteId/:localeId  site_name=RefArchGlobal
+│     ├─ sfnext.loader              [INTERNAL]  http.route=:siteId/:localeId  site_name=RefArchGlobal
 │     │  ├─ sfnext.fetch            [CLIENT]    /experience/.../components/header
 │     │  └─ sfnext.fetch            [CLIENT]    /product/.../categories/{id}    (× categories)
-│     └─ sfnext.loader              [INTERNAL]  rr.route.id=routes/_app._index
+│     └─ sfnext.loader              [INTERNAL]  http.route=:siteId/:localeId  site_name=RefArchGlobal
 │        ├─ sfnext.fetch            [CLIENT]    /experience/.../pages/homepage
 │        ├─ sfnext.fetch            [CLIENT]    /search/.../product-search
 │        └─ sfnext.fetch            [CLIENT]    /customer/.../product-lists
@@ -77,10 +96,10 @@ sfnext.request                      [SERVER]  url.path=/global/en-US/
 > **Note — middleware nesting.** React Router runs middleware as an onion (each layer
 > calls the next), and the instrumentation wraps each layer with `startActiveSpan`, so
 > `sfnext.middleware` spans **nest linearly** and there are many of them per request
-> (the root middleware chain alone produced ~20). They all carry `rr.route.id=root` /
-> `http.route=/` and are indistinguishable from one another — this is inherent to how RR
-> instruments the chain, not a naming issue. The rename makes them aggregate cleanly
-> under one operation name (`sfnext.middleware`); it does not reduce the per-request count.
+> (the root middleware chain alone produced ~20). They all carry the same `http.route`
+> and are indistinguishable from one another — this is inherent to how RR instruments
+> the chain. They aggregate cleanly under one operation name (`sfnext.middleware`); that
+> does not reduce the per-request count.
 
 ## MRT log→trace bridge
 

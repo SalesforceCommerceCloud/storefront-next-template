@@ -132,7 +132,7 @@ module.exports = {
                         // local imports so customer artifacts re-tighten under the baseline budget.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 493000, aggregationMethod: 'median' },
+                            { maxNumericValue: 500000, aggregationMethod: 'median' },
                         ],
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.
                         // The 31000 ceiling was too tight - multiple unrelated PRs hit

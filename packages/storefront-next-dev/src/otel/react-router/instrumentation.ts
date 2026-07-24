@@ -26,8 +26,8 @@
  * - `sfnext.middleware` — child span per route middleware
  *
  * Span names are low-cardinality operation names; the route is carried in the
- * `rr.route.id` and `http.route` attributes rather than the name, so traces
- * aggregate by operation and filter by route.
+ * `http.route` attribute rather than the name, so traces aggregate by operation
+ * and filter by route.
  *
  * `tracer` is `null` when OTel is disabled. Each handler checks explicitly
  * and calls through immediately, so the disabled path is always obvious.
@@ -44,17 +44,66 @@
 import { type Tracer, type Attributes, SpanStatusCode } from '@opentelemetry/api';
 import type { ServerInstrumentation } from 'react-router';
 import { ATTR_HTTP_REQUEST_METHOD, ATTR_HTTP_ROUTE, ATTR_URL_PATH } from '@opentelemetry/semantic-conventions';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { initTelemetry } from '../setup';
 
 const tracer: Tracer | null = process.env.SFNEXT_OTEL_ENABLED === 'true' ? initTelemetry() : null;
 
 /**
+ * The read-only router context passed to each instrumentation callback. React
+ * Router types it as `ReadonlyContext`, which is a `.get`-bearing provider only
+ * when the app has enabled middleware (`MiddlewareEnabled`); the SDK's own
+ * tsconfig doesn't resolve that flag, so we accept an optionally-`get`-bearing
+ * value and narrow structurally at runtime.
+ */
+type MaybeReadonlyContext = { get?: (context: typeof siteContext) => unknown } | undefined;
+
+/**
+ * Reads the resolved site from the router context, or `undefined` if the site
+ * has not been resolved yet (or the context is unavailable).
+ *
+ * `siteContext` is set by the site-context middleware (which runs early in the
+ * middleware chain). We resolve it from the same `@salesforce/storefront-next-runtime`
+ * module the template's middleware writes to, so both share the one `createContext`
+ * singleton and this read observes the value that middleware set. Wrapped in a
+ * try/catch because OTel instrumentation must never break the request pipeline.
+ */
+function readSiteId(context: MaybeReadonlyContext): string | undefined {
+    try {
+        if (typeof context?.get !== 'function') return undefined;
+        const resolved = context.get(siteContext) as { site?: { id?: string } } | null | undefined;
+        return resolved?.site?.id;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
  * Runs `handle` inside an active OTel span, recording errors and ending the span.
  * When `tracer` is null (OTel disabled), calls `handle` directly with no overhead.
+ *
+ * The resolved site id is read from `context` and stamped just before the span
+ * ends. It is read at span end (not span start) because the site-context
+ * middleware runs as part of the wrapped work — at span start the site may not be
+ * resolved yet; by span end it is. The site id is a bounded, low-cardinality value.
+ *
+ * It is emitted under the key `site_name` (not `sfnext.site_id`): the MRT log→trace
+ * bridge filters span attributes against an allow list and only keeps matching
+ * keys, and `site_name` is on that list (confirmed with the MRT team) while
+ * `site_id`/`sfnext.*` keys are not. The site config carries no separate display
+ * name, so the site id is the value we have. See ../README.md ("MRT log→trace bridge").
+ *
+ * Route-level spans (`sfnext.loader`/`.action`/`.middleware`) always receive the
+ * router `context`, so they carry `site_name`. The handler-level `sfnext.ssr` span
+ * does NOT: React Router passes `context: undefined` to the request-handler
+ * instrumentation (confirmed at runtime), so `readSiteId` returns `undefined`
+ * there and the attribute is simply omitted. No branching needed — the
+ * `if (siteId)` guard handles both cases uniformly.
  */
 async function traced(
     spanName: string,
     attributes: Attributes,
+    context: MaybeReadonlyContext,
     handle: () => Promise<{ status: string; error?: Error }>
 ): Promise<void> {
     if (!tracer) {
@@ -72,6 +121,8 @@ async function traced(
                     span.recordException(result.error);
                 }
             } finally {
+                const siteId = readSiteId(context);
+                if (siteId) span.setAttribute('site_name', siteId);
                 span.end();
             }
         });
@@ -101,32 +152,35 @@ function httpAttributes(request: { method: string; url: string }): Attributes {
 export const platformInstrumentation: ServerInstrumentation = {
     handler(handler) {
         handler.instrument({
-            async request(handleRequest, { request }) {
-                await traced('sfnext.ssr', httpAttributes(request), handleRequest);
+            async request(handleRequest, { request, context }) {
+                await traced('sfnext.ssr', httpAttributes(request), context, handleRequest);
             },
         });
     },
     route(route) {
         // The request method/url.path live on the parent server span. At the route
-        // level the meaningful identifiers are the framework route id (`rr.route.id`)
-        // and the URL route template (`http.route`, the standard semantic-convention
-        // key — a bounded, low-cardinality value, never the raw path with ids).
+        // level the meaningful identifier is the URL route template (`http.route`,
+        // the standard semantic-convention key — a bounded, low-cardinality value,
+        // never the raw path with ids). The MRT log→trace bridge filters span
+        // attributes against an allow list and drops keys not on it, so we only emit
+        // attributes known to survive (`http.route` is a semantic-convention key the
+        // bridge keeps; the framework's `rr.route.id` is not on the list and was
+        // silently dropped, so it is no longer recorded).
         function routeAttributes(pattern: string): Attributes {
             return {
-                'rr.route.id': route.id,
                 [ATTR_HTTP_ROUTE]: pattern,
             };
         }
 
         route.instrument({
-            async loader(handleLoader, { pattern }) {
-                await traced('sfnext.loader', routeAttributes(pattern), handleLoader);
+            async loader(handleLoader, { pattern, context }) {
+                await traced('sfnext.loader', routeAttributes(pattern), context, handleLoader);
             },
-            async action(handleAction, { pattern }) {
-                await traced('sfnext.action', routeAttributes(pattern), handleAction);
+            async action(handleAction, { pattern, context }) {
+                await traced('sfnext.action', routeAttributes(pattern), context, handleAction);
             },
-            async middleware(handleMiddleware, { pattern }) {
-                await traced('sfnext.middleware', routeAttributes(pattern), handleMiddleware);
+            async middleware(handleMiddleware, { pattern, context }) {
+                await traced('sfnext.middleware', routeAttributes(pattern), context, handleMiddleware);
             },
         });
     },

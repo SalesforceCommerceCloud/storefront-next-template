@@ -1,5 +1,6 @@
 import { SpanStatusCode, context, trace } from "@opentelemetry/api";
 import { ATTR_HTTP_REQUEST_METHOD, ATTR_HTTP_ROUTE, ATTR_SERVICE_NAME, ATTR_URL_PATH } from "@opentelemetry/semantic-conventions";
+import { siteContext } from "@salesforce/storefront-next-runtime/site-context";
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 import { AlwaysOnSampler, ConsoleSpanExporter, ParentBasedSampler, SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
 import { ExportResultCode, W3CTraceContextPropagator, hrTimeToTimeStamp } from "@opentelemetry/core";
@@ -196,10 +197,46 @@ function initTelemetry() {
 //#region src/otel/react-router/instrumentation.ts
 const tracer = process.env.SFNEXT_OTEL_ENABLED === "true" ? initTelemetry() : null;
 /**
+* Reads the resolved site from the router context, or `undefined` if the site
+* has not been resolved yet (or the context is unavailable).
+*
+* `siteContext` is set by the site-context middleware (which runs early in the
+* middleware chain). We resolve it from the same `@salesforce/storefront-next-runtime`
+* module the template's middleware writes to, so both share the one `createContext`
+* singleton and this read observes the value that middleware set. Wrapped in a
+* try/catch because OTel instrumentation must never break the request pipeline.
+*/
+function readSiteId(context$1) {
+	try {
+		if (typeof context$1?.get !== "function") return void 0;
+		return context$1.get(siteContext)?.site?.id;
+	} catch {
+		return;
+	}
+}
+/**
 * Runs `handle` inside an active OTel span, recording errors and ending the span.
 * When `tracer` is null (OTel disabled), calls `handle` directly with no overhead.
+*
+* The resolved site id is read from `context` and stamped just before the span
+* ends. It is read at span end (not span start) because the site-context
+* middleware runs as part of the wrapped work — at span start the site may not be
+* resolved yet; by span end it is. The site id is a bounded, low-cardinality value.
+*
+* It is emitted under the key `site_name` (not `sfnext.site_id`): the MRT log→trace
+* bridge filters span attributes against an allow list and only keeps matching
+* keys, and `site_name` is on that list (confirmed with the MRT team) while
+* `site_id`/`sfnext.*` keys are not. The site config carries no separate display
+* name, so the site id is the value we have. See ../README.md ("MRT log→trace bridge").
+*
+* Route-level spans (`sfnext.loader`/`.action`/`.middleware`) always receive the
+* router `context`, so they carry `site_name`. The handler-level `sfnext.ssr` span
+* does NOT: React Router passes `context: undefined` to the request-handler
+* instrumentation (confirmed at runtime), so `readSiteId` returns `undefined`
+* there and the attribute is simply omitted. No branching needed — the
+* `if (siteId)` guard handles both cases uniformly.
 */
-async function traced(spanName, attributes, handle) {
+async function traced(spanName, attributes, context$1, handle) {
 	if (!tracer) {
 		await handle();
 		return;
@@ -218,6 +255,8 @@ async function traced(spanName, attributes, handle) {
 					span.recordException(result.error);
 				}
 			} finally {
+				const siteId = readSiteId(context$1);
+				if (siteId) span.setAttribute("site_name", siteId);
 				span.end();
 			}
 		});
@@ -240,26 +279,23 @@ function httpAttributes(request) {
 }
 const platformInstrumentation = {
 	handler(handler) {
-		handler.instrument({ async request(handleRequest, { request }) {
-			await traced("sfnext.ssr", httpAttributes(request), handleRequest);
+		handler.instrument({ async request(handleRequest, { request, context: context$1 }) {
+			await traced("sfnext.ssr", httpAttributes(request), context$1, handleRequest);
 		} });
 	},
 	route(route) {
 		function routeAttributes(pattern) {
-			return {
-				"rr.route.id": route.id,
-				[ATTR_HTTP_ROUTE]: pattern
-			};
+			return { [ATTR_HTTP_ROUTE]: pattern };
 		}
 		route.instrument({
-			async loader(handleLoader, { pattern }) {
-				await traced("sfnext.loader", routeAttributes(pattern), handleLoader);
+			async loader(handleLoader, { pattern, context: context$1 }) {
+				await traced("sfnext.loader", routeAttributes(pattern), context$1, handleLoader);
 			},
-			async action(handleAction, { pattern }) {
-				await traced("sfnext.action", routeAttributes(pattern), handleAction);
+			async action(handleAction, { pattern, context: context$1 }) {
+				await traced("sfnext.action", routeAttributes(pattern), context$1, handleAction);
 			},
-			async middleware(handleMiddleware, { pattern }) {
-				await traced("sfnext.middleware", routeAttributes(pattern), handleMiddleware);
+			async middleware(handleMiddleware, { pattern, context: context$1 }) {
+				await traced("sfnext.middleware", routeAttributes(pattern), context$1, handleMiddleware);
 			}
 		});
 	}

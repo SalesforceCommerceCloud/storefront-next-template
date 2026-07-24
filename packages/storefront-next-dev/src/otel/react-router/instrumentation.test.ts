@@ -18,11 +18,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Hoist mock objects so they can be referenced inside vi.mock() factories.
 // Set SFNEXT_OTEL_ENABLED before the module loads so the module-level tracer
 // is non-null (initTelemetry is called instead of returning null).
-const { mockSpan, mockTracer } = vi.hoisted(() => {
+const { mockSpan, mockTracer, SITE_CONTEXT } = vi.hoisted(() => {
     process.env.SFNEXT_OTEL_ENABLED = 'true';
     const span = {
         setStatus: vi.fn(),
         recordException: vi.fn(),
+        setAttribute: vi.fn(),
         end: vi.fn(),
     };
     const tracer = {
@@ -31,12 +32,31 @@ const { mockSpan, mockTracer } = vi.hoisted(() => {
             callback(span)
         ),
     };
-    return { mockSpan: span, mockTracer: tracer };
+    // Opaque sentinel standing in for the siteContext createContext singleton.
+    return { mockSpan: span, mockTracer: tracer, SITE_CONTEXT: Symbol('siteContext') };
 });
 
 vi.mock('../setup', () => ({
     initTelemetry: vi.fn(() => mockTracer),
 }));
+
+// The instrumentation reads the resolved site from this context singleton.
+// SITE_CONTEXT is an opaque sentinel (hoisted above); the fake router context
+// (see makeContext) keys off it.
+vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({
+    siteContext: SITE_CONTEXT,
+}));
+
+/**
+ * Build a fake ReadonlyContext whose `.get(siteContext)` returns a site with the
+ * given id, mirroring what the site-context middleware sets. Pass `undefined` to
+ * simulate a request where the site has not been resolved.
+ */
+function makeContext(siteId: string | undefined) {
+    return {
+        get: vi.fn((key: unknown) => (key === SITE_CONTEXT && siteId ? { site: { id: siteId } } : null)),
+    };
+}
 
 // Mirror the real numeric enum values used in assertions.
 vi.mock('@opentelemetry/api', async (importOriginal) => {
@@ -133,7 +153,7 @@ describe('platformInstrumentation', () => {
         const pattern = '/products';
         const routeId = 'routes/products';
 
-        it('starts a span named "sfnext.loader" with rr.route.id + http.route (method/path on parent server span)', async () => {
+        it('starts a span named "sfnext.loader" with http.route (method/path on parent server span)', async () => {
             const { loader } = getRouteCallbacks(platformInstrumentation, routeId);
 
             await loader(vi.fn().mockResolvedValue({ status: 'ok' }), {
@@ -145,7 +165,6 @@ describe('platformInstrumentation', () => {
                 'sfnext.loader',
                 {
                     attributes: {
-                        'rr.route.id': routeId,
                         'http.route': pattern,
                     },
                 },
@@ -186,7 +205,7 @@ describe('platformInstrumentation', () => {
         const pattern = '/cart';
         const routeId = 'routes/cart';
 
-        it('starts a span named "sfnext.action" with rr.route.id + http.route (method/path on parent server span)', async () => {
+        it('starts a span named "sfnext.action" with http.route (method/path on parent server span)', async () => {
             const { action } = getRouteCallbacks(platformInstrumentation, routeId);
 
             await action(vi.fn().mockResolvedValue({ status: 'ok' }), {
@@ -198,7 +217,6 @@ describe('platformInstrumentation', () => {
                 'sfnext.action',
                 {
                     attributes: {
-                        'rr.route.id': routeId,
                         'http.route': pattern,
                     },
                 },
@@ -239,7 +257,6 @@ describe('platformInstrumentation', () => {
                 'sfnext.middleware',
                 {
                     attributes: {
-                        'rr.route.id': routeId,
                         'http.route': pattern,
                     },
                 },
@@ -258,6 +275,87 @@ describe('platformInstrumentation', () => {
 
             expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: 2, message: 'middleware failed' });
             expect(mockSpan.recordException).toHaveBeenCalledWith(error);
+            expect(mockSpan.end).toHaveBeenCalledOnce();
+        });
+    });
+
+    // ─── site_name attribute (carries the resolved site id) ─────────────────────
+
+    describe('site_name attribute', () => {
+        const pattern = '/products';
+        const routeId = 'routes/products';
+
+        // React Router passes `context: undefined` to the request-handler instrumentation
+        // (confirmed at runtime), so the ssr span cannot read the site and omits the attribute.
+        it('does not set site_name on the ssr span (handler context is undefined in production)', async () => {
+            const { request } = getHandlerCallbacks(platformInstrumentation);
+
+            await request(vi.fn().mockResolvedValue({ status: 'ok' }), {
+                request: testRequest,
+                context: undefined,
+            });
+
+            expect(mockSpan.setAttribute).not.toHaveBeenCalledWith('site_name', expect.anything());
+        });
+
+        it('stamps site_name (= resolved site id) on loader, action, and middleware spans', async () => {
+            for (const kind of ['loader', 'action', 'middleware'] as const) {
+                mockSpan.setAttribute.mockClear();
+                const callbacks = getRouteCallbacks(platformInstrumentation, routeId);
+
+                await callbacks[kind](vi.fn().mockResolvedValue({ status: 'ok' }), {
+                    request: testRequest,
+                    pattern,
+                    context: makeContext('RefArchGlobal'),
+                });
+
+                expect(mockSpan.setAttribute).toHaveBeenCalledWith('site_name', 'RefArchGlobal');
+            }
+        });
+
+        it('does not set site_name when the site is not resolved', async () => {
+            const { loader } = getRouteCallbacks(platformInstrumentation, routeId);
+
+            await loader(vi.fn().mockResolvedValue({ status: 'ok' }), {
+                request: testRequest,
+                pattern,
+                context: makeContext(undefined),
+            });
+
+            expect(mockSpan.setAttribute).not.toHaveBeenCalledWith('site_name', expect.anything());
+        });
+
+        it('still stamps site_name when the handler errors (set in finally)', async () => {
+            const { loader } = getRouteCallbacks(platformInstrumentation, routeId);
+            const error = new Error('loader failed');
+
+            await loader(vi.fn().mockResolvedValue({ status: 'error', error }), {
+                request: testRequest,
+                pattern,
+                context: makeContext('RefArch'),
+            });
+
+            expect(mockSpan.setAttribute).toHaveBeenCalledWith('site_name', 'RefArch');
+            expect(mockSpan.end).toHaveBeenCalledOnce();
+        });
+
+        it('never throws when context.get itself throws', async () => {
+            const { loader } = getRouteCallbacks(platformInstrumentation, routeId);
+            const throwingContext = {
+                get: vi.fn(() => {
+                    throw new Error('context boom');
+                }),
+            };
+
+            await expect(
+                loader(vi.fn().mockResolvedValue({ status: 'ok' }), {
+                    request: testRequest,
+                    pattern,
+                    context: throwingContext,
+                })
+            ).resolves.toBeUndefined();
+
+            expect(mockSpan.setAttribute).not.toHaveBeenCalledWith('site_name', expect.anything());
             expect(mockSpan.end).toHaveBeenCalledOnce();
         });
     });
