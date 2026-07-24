@@ -131,16 +131,71 @@ interface AttributeDefinition {
 //#region src/design/data/types.d.ts
 
 /**
+ * Per-component metadata extracted from a Page Designer manifest, keyed by
+ * component ID inside {@link Manifest.componentInfo}. Carries visibility rules,
+ * locale-specific content overlays, data bindings, fragment marker, custom
+ * serializer output, and per-region configuration for the component.
+ */
+interface ComponentInfoEntry {
+  /** The visibility rules for this component. */
+  visibilityRules?: VisibilityRuleDef[];
+  /**
+   * Locale-specific content attributes for this component. Keyed by locale
+   * (e.g. `"en_US"`), each entry contains attribute values that are merged
+   * into the component's `data` during page processing.
+   */
+  content?: {
+    [locale: string]: Record<string, unknown>;
+  };
+  /** Data binding metadata for this component. Omitted when the component has no bindings. */
+  dataBinding?: ComponentDataBinding;
+  /** Whether this component is a fragment (a reusable, externally-managed content asset). */
+  fragment?: boolean;
+  /** Custom component data produced by the type's serialize script. Omitted when the component has no custom data. */
+  custom?: Record<string, unknown>;
+  /** Display name of the component. Omitted when the component has no name. */
+  name?: string;
+  /** Region-level configuration (e.g. maxComponents limits), keyed by region ID. */
+  regions?: {
+    [regionId: string]: RegionInfo;
+  };
+}
+/**
+ * Common base for every Page Designer manifest. Both {@link PageManifest} and
+ * {@link ComponentManifest} share a {@link context} (qualifiers/groups/data
+ * bindings hoisted from every visibility rule in the manifest) and a
+ * {@link componentInfo} map of per-node metadata. Mirrors the backend `Manifest`
+ * abstract class (`commerce/digital`).
+ *
+ * The {@link manifestType} discriminator is emitted by the backend on output
+ * (read-only on input — the concrete class supplies it). It's optional on the
+ * storefront type because legacy fixtures and existing in-memory manifests
+ * may not carry it; production wire data always does.
+ */
+interface Manifest {
+  /**
+   * Discriminator identifying the concrete manifest kind. Emitted by the
+   * backend on serialization; optional here because not every constructed
+   * or fixture manifest sets it.
+   */
+  manifestType?: 'PAGE' | 'COMPONENT';
+  /** Campaigns, customer groups, and data bindings hoisted from every visibility rule in this manifest. */
+  context: PageManifestContext;
+  /** Per-component metadata (visibility rules, locale content, data bindings, region config) keyed by component ID. */
+  componentInfo: Record<string, ComponentInfoEntry>;
+}
+/**
  * A manifest containing all variations of a single Page Designer page for a
  * specific locale. Variations are evaluated in {@link variationOrder} sequence;
  * the first whose visibility rule passes is selected. If none match, the
  * {@link defaultVariation} is used as a fallback.
+ *
+ * Inherits {@link Manifest.context} and {@link Manifest.componentInfo}.
  */
-interface PageManifest {
+interface PageManifest extends Manifest {
+  manifestType?: 'PAGE';
   /** The unique identifier of the page this manifest represents. */
   pageId: string;
-  /** Campaigns and customer groups referenced across all variations in this manifest. */
-  context: PageManifestContext;
   /** Ordered list of variation IDs defining the evaluation sequence. */
   variationOrder: string[];
   /** Map of variation ID to its entry data. */
@@ -163,37 +218,37 @@ interface PageManifest {
    * Optional — older manifests may not include this field.
    */
   pageLibraryDomain?: string;
+}
+/**
+ * A manifest for a single embedded (`embedded.*`) Page Designer content block —
+ * a header, mini-cart, mega-menu, and so on. Embedded components are page-less
+ * and served by SCAPI `getComponent`, so each is cached as a standalone unit
+ * keyed by component ID.
+ *
+ * Unlike {@link PageManifest}, there are no page-level variations: an embedded
+ * component either renders or not based on its own visibility rules. Inherits
+ * {@link Manifest.context} and {@link Manifest.componentInfo}; the renderable
+ * tree lives in {@link component} (SCAPI Component shape).
+ *
+ * Mirrors the backend `ComponentManifest` (`commerce/digital`).
+ */
+interface ComponentManifest extends Manifest {
+  manifestType?: 'COMPONENT';
+  /** The unique identifier of the embedded component this manifest represents. */
+  componentId: string;
   /**
-   * Component visibility rule definitions extracted from the page layout.
-   * Maps each component ID to its array of rule objects and a flag indicating
-   * if any rules are defined for that component.
+   * The renderable component tree, in SCAPI `Component` shape — the embedded
+   * component root plus its nested regions and child components.
    */
-  componentInfo: {
-    [componentId: string]: {
-      /** The visibility rules for this component. */
-      visibilityRules?: VisibilityRuleDef[];
-      /**
-       * Locale-specific content attributes for this component. Keyed by locale
-       * (e.g. `"en_US"`), each entry contains attribute values that are merged
-       * into the component's `data` during page processing.
-       */
-      content?: {
-        [locale: string]: Record<string, unknown>;
-      };
-      /** Data binding metadata for this component. Omitted when the component has no bindings. */
-      dataBinding?: ComponentDataBinding;
-      /** Whether this component is a fragment (a reusable, externally-managed content asset). */
-      fragment?: boolean;
-      /** Custom component data produced by the type's serialize script. Omitted when the component has no custom data. */
-      custom?: Record<string, unknown>;
-      /** Display name of the component. Omitted when the component has no name. */
-      name?: string;
-      /** Region-level configuration (e.g. maxComponents limits), keyed by region ID. */
-      regions?: {
-        [regionId: string]: RegionInfo;
-      };
-    };
-  };
+  component: ShopperExperience.schemas['Component'];
+  /**
+   * Whether resolving this component requires additional data from ECOM
+   * that MRT can't satisfy on its own — shopper qualifiers for visibility
+   * rules, or a runtime data binding. Pre-computed during manifest
+   * generation so the runtime can skip the ECOM round-trip entirely when
+   * `false`.
+   */
+  requiresContext: boolean;
 }
 /** Region-level configuration extracted from the page manifest, including type filters and component limits. */
 interface RegionInfo {
@@ -381,13 +436,14 @@ type QualifierContext = ShopperExperience.schemas['QualifierResolveResponse'];
  */
 type ResolvedDataBinding = Record<string, unknown>;
 /**
- * The type of identifier used to look up a page. Determines how the ID is
- * resolved to a page manifest:
+ * The type of identifier used to look up content. Determines how the ID is
+ * resolved to a manifest:
  * - `'page'` — Direct page ID, used as-is
  * - `'category'` — Category ID, resolved via content assignments with parent traversal
  * - `'product'` — Product ID, resolved via content assignments
+ * - `'component'` — Direct embedded-component ID, used as-is to fetch a {@link ComponentManifest}
  */
-type IdentifierType = 'page' | 'category' | 'product';
+type IdentifierType = 'page' | 'category' | 'product' | 'component';
 /**
  * Storage interface for fetching page and site manifests. Implementations
  * decouple the page resolution logic from the underlying data source (e.g.,
@@ -396,6 +452,8 @@ type IdentifierType = 'page' | 'category' | 'product';
 interface ManifestStorage {
   /** Fetch the page manifest for a given page ID. */
   getPageManifest(id: string): Promise<PageManifest | null>;
+  /** Fetch the embedded-component manifest for a given component ID. */
+  getComponentManifest(id: string): Promise<ComponentManifest | null>;
   /** Fetch the site-wide manifest for a given locale. */
   getSiteManifest(): Promise<SiteManifest | null>;
 }
@@ -405,17 +463,30 @@ type InferNodeFromType<TType extends VisitorContextType> = TType extends 'page' 
 //#endregion
 //#region src/design/data/page/process-page.d.ts
 /**
- * Context required for page processing. Contains the shopper's runtime
- * qualifiers, the component-level visibility rules, and the locale used
- * to resolve locale-specific component content from the page manifest.
+ * Context required for content processing. Carries the shopper's runtime
+ * qualifiers, the per-component visibility / locale-content rules, and the
+ * locale used to resolve locale-specific content. Shared between the
+ * page-rooted ({@link PageManifest}) and component-rooted
+ * ({@link ComponentManifest}) flows; {@link kind} selects which flow.
  */
 interface PageProcessorContext {
+  /**
+   * Selects the entry point: `'page'` starts at `transformPage`, `'component'`
+   * starts at `transformComponent`. Optional — defaults to `'page'` so older
+   * callers and fixtures that don't carry the discriminator still resolve as
+   * page-rooted (the original behaviour).
+   */
+  kind?: 'page' | 'component';
   /** The shopper's active qualifiers (campaigns, customer groups), or `null` if not resolved. */
   qualifiers: QualifierContext | null;
-  /** Component visibility rule definitions extracted from the page layout. */
-  componentInfo: PageManifest['componentInfo'];
-  /** Page-level region configuration (e.g. maxComponents limits) for top-level regions not nested under a component. */
-  pageInfo: {
+  /** Per-component metadata (visibility rules, locale content, region config) keyed by component ID. */
+  componentInfo: Manifest['componentInfo'];
+  /**
+   * Page-level region configuration (e.g. `maxComponents` limits) for top-level
+   * regions owned by the page itself. Only meaningful when {@link kind} is
+   * `'page'` — embedded components have no page-level regions.
+   */
+  pageInfo?: {
     regions: VariationEntry['regions'];
   };
   /** The locale to use when resolving locale-specific component content (e.g. `"en_US"`). */
@@ -424,9 +495,10 @@ interface PageProcessorContext {
   defaultLocale: string;
   /**
    * Per-request resolution surface used by {@link resolveAttributeValues} to
-   * convert manifest envelopes into the wire shape SCAPI `getPage` would have
-   * returned. The storefront-next middleware builds it once per request and
-   * Page Designer preview supplies an editor-mode equivalent.
+   * convert manifest envelopes into the wire shape SCAPI `getPage` /
+   * `getComponent` would have returned. The storefront-next middleware builds
+   * it once per request and Page Designer preview supplies an editor-mode
+   * equivalent.
    */
   attrCtx: AttributeResolutionContext;
   /**
@@ -446,7 +518,8 @@ interface PageProcessorContext {
    */
   pruneInvisible?: boolean;
 }
-declare function processPage(page: ShopperExperience.schemas['Page'], processorContext: PageProcessorContext): ShopperExperience.schemas['Page'];
+declare function processPage(node: ShopperExperience.schemas['Page'], processorContext: PageProcessorContext): ShopperExperience.schemas['Page'];
+declare function processPage(node: ShopperExperience.schemas['Component'], processorContext: PageProcessorContext): ShopperExperience.schemas['Component'];
 //#endregion
 //#region src/design/data/page/transform.d.ts
 /**
@@ -734,77 +807,21 @@ declare class RequiredError extends Error {
 //#endregion
 //#region src/design/data/page/resolve-page.d.ts
 /**
- * Main entry point for the page resolution pipeline. Orchestrates the full flow:
+ * Options accepted by {@link resolvePage}. The shape of `id` and the result
+ * are determined by `identifierType`:
  *
- * 1. **Resolve dynamic page ID** — For product/category identifiers, looks up
- *    the assigned page ID via content assignments in the site manifest.
- * 2. **Fetch page manifest** — Loads all variations for the resolved page.
- * 3. **Select variation** — Evaluates visibility rules to pick the right variation.
- * 4. **Load qualifier context** — Lazily fetches the shopper's context only if needed.
- * 5. **Process page** — Filters out components that fail visibility rules.
- *
- * Returns `null` if the page ID cannot be resolved, the manifest doesn't exist,
- * or no variation is available.
- *
- * @param options - The resolution options.
- * @param options.id - The identifier to resolve (product ID, category ID, or page ID).
- * @param options.identifierType - The type of identifier: `'product'`, `'category'`, or `'page'`.
- * @param options.locale - The locale to resolve the page for (e.g. `"en-US"`).
- * @param options.manifestStorage - Storage implementation for fetching manifests.
- * @param options.contextResolver - Optional async function that returns the shopper's qualifier context. Only called if a visibility rule needs it.
- * @param options.aspectType - The aspect type to resolve the page for when the identifier type is `'product'` or `'category'`.
- * @param options.categoryId - Optional fallback category ID (or a Promise resolving to one) used only when `identifierType` is `'product'` and the product has no content assignment for the requested aspect type. The promise is awaited lazily — the happy path never pays for it.
- * @param options.pruneInvisible - When `true` (default), invisible and overflow components are removed. When `false`, they are kept but marked `visible: false` for design/preview mode.
- * @returns The fully resolved and filtered page, or `null`.
- *
- * @example
- * ```ts
- * import { resolvePage } from '@salesforce/storefront-next-runtime/design/data';
- *
- * // Resolve the PDP page for a specific product with an active holiday campaign
- * const page = await resolvePage({
- *     id: 'nike-air-max-90',
- *     identifierType: 'product',
- *     aspectType: 'pdp',
- *     locale: 'en-US',
- *     manifestStorage: {
- *         async getPageManifest(id) {
- *             // Fetch from CDN, filesystem, or database
- *             return fetchManifest(`/manifests/${id}.json`);
- *         },
- *         async getSiteManifest() {
- *             return fetchManifest('/manifests/site.json');
- *         },
- *     },
- *     contextResolver: async () => ({
- *         customerGroups: { 'vip-customers': true },
- *         campaignQualifiers: {
- *             'holiday-sale-2026': { 'free-shipping': true },
- *         },
- *     }),
- * });
- *
- * if (page) {
- *     // page.regions contains only components visible to this VIP shopper
- *     // during the holiday sale campaign
- *     renderPage(page);
- * }
- * ```
+ * - For `'page' | 'category' | 'product'`, the id is resolved through site
+ *   content assignments (where applicable) into a {@link PageManifest} and a
+ *   personalised SCAPI {@link ShopperExperience.schemas#Page} is returned.
+ * - For `'component'`, the id is used directly to fetch a
+ *   {@link ComponentManifest} (no assignment lookup, no variation selection,
+ *   no aspect type) and a SCAPI {@link ShopperExperience.schemas#Component} is
+ *   returned.
  */
-declare function resolvePage({
-  id,
-  identifierType,
-  aspectType,
-  categoryId,
-  locale,
-  defaultLocale,
-  manifestStorage,
-  contextResolver,
-  attrCtx,
-  pruneInvisible
-}: {
+interface ResolvePageOptions {
   id: string;
   identifierType: IdentifierType;
+  /** Required only for `'product' | 'category'`; ignored for `'page'` and `'component'`. */
   aspectType?: string;
   /**
    * Fallback category ID (or a Promise resolving to one) consulted only
@@ -820,13 +837,72 @@ declare function resolvePage({
   /**
    * Per-request resolution surface for attribute envelope rewriting. Built
    * once per request by the storefront-next middleware (or Page Designer
-   * preview). The `componentTypes` map travels on the
-   * {@link PageManifest} itself and is read off the manifest below before
-   * being threaded into {@link processPage}.
+   * preview). For pages, the `componentTypes` map travels on the
+   * {@link PageManifest} itself and is read off the manifest before being
+   * threaded into {@link processPage}.
    */
   attrCtx: AttributeResolutionContext;
   pruneInvisible?: boolean;
+}
+/**
+ * Main entry point for the Page Designer content resolution pipeline. Handles
+ * both the page-rooted flow (`'page' | 'category' | 'product'`) and the
+ * embedded-component-rooted flow (`'component'`) behind a single callable
+ * surface so callers don't fork on identifier type.
+ *
+ * **Page flow** (`'page' | 'category' | 'product'`):
+ * 1. **Resolve dynamic page ID** — for product/category identifiers, look up
+ *    the assigned page ID via content assignments in the site manifest.
+ * 2. **Fetch page manifest** — load all variations for the resolved page.
+ * 3. **Select variation** — evaluate visibility rules to pick the right variation.
+ * 4. **Load qualifier context** — lazily fetch the shopper's context only if needed.
+ * 5. **Process** — filter out components that fail visibility rules.
+ *
+ * **Component flow** (`'component'`):
+ * 1. **Fetch component manifest** — direct DAL lookup by component ID.
+ * 2. **Load qualifier context** — only when `requiresContext === true` (skip
+ *    the ECOM round-trip entirely otherwise — pre-computed during generation).
+ * 3. **Process** — same visibility / locale / data-binding pipeline as pages.
+ *
+ * Returns `null` when the id cannot be resolved, the manifest is missing, or
+ * (page flow only) no variation is available — fail-open so the middleware can
+ * fall through to SCAPI.
+ *
+ * @param options - The resolution options. See {@link ResolvePageOptions}.
+ * @returns The resolved & filtered SCAPI Page (page flow) or Component
+ *          (component flow), or `null` on miss.
+ *
+ * @example
+ * ```ts
+ * // Page flow
+ * const page = await resolvePage({
+ *     id: 'nike-air-max-90',
+ *     identifierType: 'product',
+ *     aspectType: 'pdp',
+ *     locale: 'en-US',
+ *     defaultLocale: 'en-US',
+ *     manifestStorage,
+ *     attrCtx,
+ * });
+ *
+ * // Component flow (embedded `embedded.*` block — header, mini-cart, …)
+ * const header = await resolvePage({
+ *     id: 'header',
+ *     identifierType: 'component',
+ *     locale: 'en-US',
+ *     defaultLocale: 'en-US',
+ *     manifestStorage,
+ *     attrCtx,
+ * });
+ * ```
+ */
+declare function resolvePage(options: ResolvePageOptions & {
+  identifierType: 'component';
+}): Promise<ShopperExperience.schemas['Component'] | null>;
+declare function resolvePage(options: ResolvePageOptions & {
+  identifierType: 'page' | 'category' | 'product';
 }): Promise<ShopperExperience.schemas['Page'] | null>;
+declare function resolvePage(options: ResolvePageOptions): Promise<ShopperExperience.schemas['Page'] | ShopperExperience.schemas['Component'] | null>;
 //#endregion
 //#region src/design/data/validate-rule.d.ts
 /**
@@ -874,5 +950,5 @@ declare function resolvePage({
  */
 declare function validateRule(rule: VisibilityRuleDef, locale: string, context?: QualifierContext | null): boolean;
 //#endregion
-export { type AttributeResolutionContext, type AttributeResolutionWarning, type ContextResolver, type IdentifierType, type InferNodeFromType, type ManifestStorage, type PageManifest, type PageProcessorContext, type PageVisitor, type QualifierContext, RequiredError, type ResolvedDataBinding, type SiteManifest, type VisibilityRuleDef, type VisitorContext, type VisitorContextType, processPage, resolvePage, transformComponent, transformPage, transformRegion, validateRule };
+export { type AttributeResolutionContext, type AttributeResolutionWarning, type ComponentInfoEntry, type ComponentManifest, type ContextResolver, type IdentifierType, type InferNodeFromType, type Manifest, type ManifestStorage, type PageManifest, type PageProcessorContext, type PageVisitor, type QualifierContext, RequiredError, type ResolvePageOptions, type ResolvedDataBinding, type SiteManifest, type VisibilityRuleDef, type VisitorContext, type VisitorContextType, processPage, resolvePage, transformComponent, transformPage, transformRegion, validateRule };
 //# sourceMappingURL=design-data.d.ts.map

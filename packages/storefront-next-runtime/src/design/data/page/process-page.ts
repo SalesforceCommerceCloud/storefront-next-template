@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { transformPage } from './transform';
+import { transformPage, transformComponent, type PageVisitor } from './transform';
 import { resolveComponentDataBindings } from './resolve-data-bindings';
 import {
     resolveAttributeValues,
@@ -21,21 +21,34 @@ import {
     type AttributeResolutionContext,
 } from './attribute-resolution';
 import { validateRule } from '../validate-rule';
-import type { QualifierContext, PageManifest, VariationEntry, RegionInfo } from '../types';
+import type { QualifierContext, Manifest, VariationEntry, RegionInfo } from '../types';
 import type { ShopperExperience } from '@/scapi-client/types';
 
 /**
- * Context required for page processing. Contains the shopper's runtime
- * qualifiers, the component-level visibility rules, and the locale used
- * to resolve locale-specific component content from the page manifest.
+ * Context required for content processing. Carries the shopper's runtime
+ * qualifiers, the per-component visibility / locale-content rules, and the
+ * locale used to resolve locale-specific content. Shared between the
+ * page-rooted ({@link PageManifest}) and component-rooted
+ * ({@link ComponentManifest}) flows; {@link kind} selects which flow.
  */
 export interface PageProcessorContext {
+    /**
+     * Selects the entry point: `'page'` starts at `transformPage`, `'component'`
+     * starts at `transformComponent`. Optional — defaults to `'page'` so older
+     * callers and fixtures that don't carry the discriminator still resolve as
+     * page-rooted (the original behaviour).
+     */
+    kind?: 'page' | 'component';
     /** The shopper's active qualifiers (campaigns, customer groups), or `null` if not resolved. */
     qualifiers: QualifierContext | null;
-    /** Component visibility rule definitions extracted from the page layout. */
-    componentInfo: PageManifest['componentInfo'];
-    /** Page-level region configuration (e.g. maxComponents limits) for top-level regions not nested under a component. */
-    pageInfo: {
+    /** Per-component metadata (visibility rules, locale content, region config) keyed by component ID. */
+    componentInfo: Manifest['componentInfo'];
+    /**
+     * Page-level region configuration (e.g. `maxComponents` limits) for top-level
+     * regions owned by the page itself. Only meaningful when {@link kind} is
+     * `'page'` — embedded components have no page-level regions.
+     */
+    pageInfo?: {
         regions: VariationEntry['regions'];
     };
     /** The locale to use when resolving locale-specific component content (e.g. `"en_US"`). */
@@ -44,9 +57,10 @@ export interface PageProcessorContext {
     defaultLocale: string;
     /**
      * Per-request resolution surface used by {@link resolveAttributeValues} to
-     * convert manifest envelopes into the wire shape SCAPI `getPage` would have
-     * returned. The storefront-next middleware builds it once per request and
-     * Page Designer preview supplies an editor-mode equivalent.
+     * convert manifest envelopes into the wire shape SCAPI `getPage` /
+     * `getComponent` would have returned. The storefront-next middleware builds
+     * it once per request and Page Designer preview supplies an editor-mode
+     * equivalent.
      */
     attrCtx: AttributeResolutionContext;
     /**
@@ -66,9 +80,12 @@ export interface PageProcessorContext {
 }
 
 /**
- * Filters a page's components based on their visibility rules and resolves
- * data binding expressions in a single traversal. Traverses the page tree
- * using the visitor pattern and:
+ * Filters content components based on their visibility rules and resolves
+ * data binding expressions in a single traversal. Handles both page-rooted
+ * trees (a {@link ShopperExperience.schemas#Page} from a {@link PageManifest})
+ * and component-rooted trees (a {@link ShopperExperience.schemas#Component}
+ * from a {@link ComponentManifest}). The visitor logic is identical for both;
+ * only the root entry point differs.
  *
  * 1. Removes any component whose visibility rules do not pass against the
  *    shopper's qualifier context.
@@ -79,9 +96,9 @@ export interface PageProcessorContext {
  * If a component has rules and none of them pass, it is removed. Components
  * without rules are always included.
  *
- * @param page - The page to process.
+ * @param node - The root page or component to process.
  * @param context - The processing context with qualifier data, visibility rules, and resolved data bindings.
- * @returns A new page with invisible components filtered out and data binding expressions resolved.
+ * @returns A new page or component (matching the input shape) with invisible components filtered out and data binding expressions resolved.
  *
  * @example
  * ```ts
@@ -111,6 +128,10 @@ export interface PageProcessorContext {
  * const filtered = processPage(page, {
  *     qualifiers: { customerGroups: {}, campaignQualifiers: {} },
  *     componentInfo,
+ *     pageInfo: { regions: {} },
+ *     locale: 'en_US',
+ *     defaultLocale: 'en_US',
+ *     attrCtx,
  * });
  * // filtered.regions[0].components has only "public-banner"
  * // "loyalty-offer" was removed because the shopper isn't a loyalty member
@@ -177,12 +198,20 @@ function composeComponentData({
 }
 
 export function processPage(
-    page: ShopperExperience.schemas['Page'],
+    node: ShopperExperience.schemas['Page'],
     processorContext: PageProcessorContext
-): ShopperExperience.schemas['Page'] {
+): ShopperExperience.schemas['Page'];
+export function processPage(
+    node: ShopperExperience.schemas['Component'],
+    processorContext: PageProcessorContext
+): ShopperExperience.schemas['Component'];
+export function processPage(
+    node: ShopperExperience.schemas['Page'] | ShopperExperience.schemas['Component'],
+    processorContext: PageProcessorContext
+): ShopperExperience.schemas['Page'] | ShopperExperience.schemas['Component'] {
     const { pruneInvisible = true } = processorContext;
 
-    return transformPage(page, {
+    const visitor: PageVisitor = {
         visitPage(ctx) {
             // Page-level `data` is rare today (most pages carry no top-level
             // attributes), but the schema permits it and SCAPI passes whatever
@@ -213,7 +242,7 @@ export function processPage(
             let regionInfo: RegionInfo | undefined;
 
             if (ctx.parent?.type === 'page') {
-                regionInfo = processorContext.pageInfo.regions[ctx.node.id];
+                regionInfo = processorContext.pageInfo?.regions[ctx.node.id];
             } else if (ctx.parent?.type === 'component') {
                 regionInfo = processorContext.componentInfo[ctx.parent.node.id]?.regions?.[ctx.node.id];
             }
@@ -298,7 +327,7 @@ export function processPage(
             const name = componentInfo?.name ?? ctx.node.name;
             const fragment = componentInfo?.fragment ?? ctx.node.fragment ?? false;
 
-            let node: ShopperExperience.schemas['Component'] = {
+            let resolved: ShopperExperience.schemas['Component'] = {
                 ...ctx.node,
                 name,
                 fragment,
@@ -308,8 +337,8 @@ export function processPage(
             };
 
             // Resolve data binding expressions (overrides content for bound attributes).
-            node = resolveComponentDataBindings(
-                node,
+            resolved = resolveComponentDataBindings(
+                resolved,
                 componentInfo?.dataBinding,
                 processorContext.qualifiers?.dataBindings
             );
@@ -318,21 +347,42 @@ export function processPage(
             // Runs *after* the data-binding overlay so any binding-resolved values
             // are also passed through the resolver (e.g. markup/url rewriting).
             const resolvedData = resolveAttributeValues(
-                node.data as Record<string, unknown> | undefined,
-                node.typeId,
+                resolved.data as Record<string, unknown> | undefined,
+                resolved.typeId,
                 typeDefs,
                 processorContext.attrCtx
             );
 
-            node = {
-                ...node,
-                data: resolvedData as typeof node.data,
+            resolved = {
+                ...resolved,
+                data: resolvedData as typeof resolved.data,
             };
 
             return {
-                ...node,
+                ...resolved,
                 regions: ctx.visitRegions(ctx.node.regions),
             };
         },
-    }) as ShopperExperience.schemas['Page'];
+    };
+
+    // Dispatch on the explicit `kind` field. The visitor body is shared — only
+    // the entry point differs because traversal of a Page starts at `visitPage`
+    // while traversal of a Component starts at `visitComponent`. `visitRegion`
+    // already handles both `parent.type === 'page'` and `parent.type === 'component'`,
+    // so no fork is needed inside the walk.
+    //
+    // `kind` defaults to `'page'` when absent so legacy callers and fixtures
+    // that pre-date the component flow continue to resolve as pages (the
+    // original behaviour). Page and Component schemas share enough structural
+    // fields (`id`, `typeId`, `regions`) that node-shape detection is
+    // unreliable; the explicit discriminator keeps the contract obvious at the
+    // caller boundary.
+    if ((processorContext.kind ?? 'page') === 'page') {
+        return transformPage(node as ShopperExperience.schemas['Page'], visitor) as ShopperExperience.schemas['Page'];
+    }
+
+    return transformComponent(
+        node as ShopperExperience.schemas['Component'],
+        visitor
+    ) as ShopperExperience.schemas['Component'];
 }

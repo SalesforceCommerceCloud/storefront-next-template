@@ -17,7 +17,7 @@ import { describe, test, expect, vi } from 'vitest';
 import { resolvePage } from './resolve-page';
 import { RequiredError } from '../errors/required';
 import type { AttributeResolutionContext } from './attribute-resolution';
-import type { ManifestStorage, PageManifest, SiteManifest, QualifierContext } from '../types';
+import type { ManifestStorage, PageManifest, SiteManifest, QualifierContext, ComponentManifest } from '../types';
 import type { ShopperExperience } from '@/scapi-client/types';
 
 const testAttrCtx: AttributeResolutionContext = {
@@ -56,10 +56,25 @@ const makeSiteManifest = (overrides: Partial<SiteManifest> = {}): SiteManifest =
 
 const makeStorage = (
     pageManifest: PageManifest | null = makePageManifest(),
-    siteManifest: SiteManifest = makeSiteManifest()
+    siteManifest: SiteManifest = makeSiteManifest(),
+    componentManifest: ComponentManifest | null = null
 ): ManifestStorage => ({
     getPageManifest: vi.fn(() => Promise.resolve(pageManifest as PageManifest)),
+    getComponentManifest: vi.fn(() => Promise.resolve(componentManifest)),
     getSiteManifest: vi.fn(() => Promise.resolve(siteManifest)),
+});
+
+const makeComponentManifest = (overrides: Partial<ComponentManifest> = {}): ComponentManifest => ({
+    componentId: 'header',
+    component: {
+        id: 'header',
+        typeId: 'embedded.header',
+        regions: [],
+    },
+    context: { campaignQualifiers: [], customerGroups: [], dataBindings: [] },
+    componentInfo: {},
+    requiresContext: false,
+    ...overrides,
 });
 
 describe('resolvePage', () => {
@@ -499,6 +514,170 @@ describe('resolvePage', () => {
             expect(result).not.toBeNull();
             expect(result?.name).toBe('Default Name');
             expect(result?.pageTitle).toBe('Default Title');
+        });
+    });
+
+    describe('component identifier type', () => {
+        test('resolves an embedded component by id without site or page lookup', async () => {
+            const componentManifest = makeComponentManifest({
+                componentId: 'header',
+                component: {
+                    id: 'header',
+                    typeId: 'embedded.header',
+                    regions: [
+                        {
+                            id: 'main',
+                            components: [{ id: 'logo', typeId: 'commerce_assets.logo', regions: [] }],
+                        },
+                    ],
+                },
+            });
+            const storage = makeStorage(null, makeSiteManifest(), componentManifest);
+
+            const result = await resolvePage({
+                id: 'header',
+                attrCtx: testAttrCtx,
+                identifierType: 'component',
+                locale: 'en_US',
+                defaultLocale: 'en_US',
+                manifestStorage: storage,
+            });
+
+            expect(result).not.toBeNull();
+            expect(result?.id).toBe('header');
+            expect(result?.typeId).toBe('embedded.header');
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(storage.getComponentManifest).toHaveBeenCalledWith('header');
+            // Component flow must skip the site manifest and the page-manifest path.
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(storage.getSiteManifest).not.toHaveBeenCalled();
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(storage.getPageManifest).not.toHaveBeenCalled();
+        });
+
+        test('returns null when the component manifest is not found (fail-open)', async () => {
+            const storage = makeStorage(null, makeSiteManifest(), null);
+
+            const result = await resolvePage({
+                id: 'missing-component',
+                attrCtx: testAttrCtx,
+                identifierType: 'component',
+                locale: 'en_US',
+                defaultLocale: 'en_US',
+                manifestStorage: storage,
+            });
+
+            expect(result).toBeNull();
+        });
+
+        test('skips contextResolver when requiresContext is false', async () => {
+            const contextResolver = vi.fn(
+                (): Promise<QualifierContext> =>
+                    Promise.resolve({
+                        customerGroups: {},
+                        campaignQualifiers: {},
+                    })
+            );
+            const componentManifest = makeComponentManifest({ requiresContext: false });
+            const storage = makeStorage(null, makeSiteManifest(), componentManifest);
+
+            await resolvePage({
+                id: 'header',
+                attrCtx: testAttrCtx,
+                identifierType: 'component',
+                locale: 'en_US',
+                defaultLocale: 'en_US',
+                manifestStorage: storage,
+                contextResolver,
+            });
+
+            expect(contextResolver).not.toHaveBeenCalled();
+        });
+
+        test('calls contextResolver when requiresContext is true', async () => {
+            const contextResolver = vi.fn(
+                (): Promise<QualifierContext> =>
+                    Promise.resolve({
+                        customerGroups: { vip: true },
+                        campaignQualifiers: {},
+                    })
+            );
+            const componentManifest = makeComponentManifest({ requiresContext: true });
+            const storage = makeStorage(null, makeSiteManifest(), componentManifest);
+
+            await resolvePage({
+                id: 'header',
+                attrCtx: testAttrCtx,
+                identifierType: 'component',
+                locale: 'en_US',
+                defaultLocale: 'en_US',
+                manifestStorage: storage,
+                contextResolver,
+            });
+
+            expect(contextResolver).toHaveBeenCalledTimes(1);
+            expect(contextResolver).toHaveBeenCalledWith(componentManifest.context);
+        });
+
+        test('filters child components based on visibility rules', async () => {
+            const componentManifest = makeComponentManifest({
+                componentId: 'header',
+                component: {
+                    id: 'header',
+                    typeId: 'embedded.header',
+                    regions: [
+                        {
+                            id: 'main',
+                            components: [
+                                { id: 'public-logo', typeId: 'commerce_assets.logo', regions: [] },
+                                { id: 'vip-banner', typeId: 'commerce_assets.banner', regions: [] },
+                            ],
+                        },
+                    ],
+                },
+                componentInfo: {
+                    'public-logo': { visibilityRules: [], regions: {} },
+                    'vip-banner': {
+                        visibilityRules: [{ activeLocales: ['en_US'], customerGroups: ['vip'] }],
+                        regions: {},
+                    },
+                },
+                requiresContext: true,
+            });
+            const storage = makeStorage(null, makeSiteManifest(), componentManifest);
+
+            const result = await resolvePage({
+                id: 'header',
+                attrCtx: testAttrCtx,
+                identifierType: 'component',
+                locale: 'en_US',
+                defaultLocale: 'en_US',
+                manifestStorage: storage,
+                contextResolver: () =>
+                    Promise.resolve({
+                        customerGroups: {},
+                        campaignQualifiers: {},
+                    }),
+            });
+
+            expect(result?.regions?.[0].components?.map((c) => c.id)).toEqual(['public-logo']);
+        });
+
+        test('does not require aspectType for component identifier type', async () => {
+            const componentManifest = makeComponentManifest();
+            const storage = makeStorage(null, makeSiteManifest(), componentManifest);
+
+            // Neither aspectType nor categoryId — RequiredError should not fire.
+            const result = await resolvePage({
+                id: 'header',
+                attrCtx: testAttrCtx,
+                identifierType: 'component',
+                locale: 'en_US',
+                defaultLocale: 'en_US',
+                manifestStorage: storage,
+            });
+
+            expect(result).not.toBeNull();
         });
     });
 });

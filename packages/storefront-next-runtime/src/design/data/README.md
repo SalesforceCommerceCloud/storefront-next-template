@@ -1,8 +1,8 @@
 # @salesforce/storefront-next-runtime/design/data
 
-Runtime page resolution logic for Page Designer. Given a page identifier (a product ID, category ID, or direct page ID), this module resolves it through content assignments and manifest lookup, selects the correct page variation based on visibility rules, and returns a fully filtered page ready for rendering. This is SDK-level infrastructure consumed by all storefronts built on the platform.
+Runtime content resolution logic for Page Designer. Given an identifier (a product ID, category ID, direct page ID, or embedded-component ID), this module resolves it through content assignments and manifest lookup, selects the correct variation when applicable, and returns a fully filtered page or component ready for rendering. This is SDK-level infrastructure consumed by all storefronts built on the platform.
 
-## Page Resolution Pipeline
+## Content Resolution Pipeline
 
 The `resolvePage` function orchestrates the full pipeline:
 
@@ -27,12 +27,18 @@ Input: (id, identifierType, locale, manifestStorage, contextResolver)
 │     The shopper's context (active campaigns, customer group
 │     memberships) is only fetched if a variation's rule requires it.
 │
-└─ 5. Process page
-      Filter the selected page's components by their individual
-      visibility rules, removing any that don't match the context.
+└─ 5. Process content
+      Filter the selected page or component's children by their
+      individual visibility rules, removing any that don't match
+      the context.
 │
-Output: Page with only visible components, or null
+Output: Page or Component with only visible nodes, or null
 ```
+
+For `identifierType === 'component'`, steps 1–3 are skipped: the
+component manifest is fetched directly by id, qualifier context is loaded
+only when the manifest's pre-computed `requiresContext` flag is `true`,
+and the component tree is processed by the same pipeline as a page.
 
 ## Key Concepts
 

@@ -23,7 +23,7 @@
  * storefront's runtime config and per-request inputs.
  *
  * Usage: called once per `getPage` request from
- * `middlewares/page-designer-page-resolution.server.ts` (§A.7) and threaded
+ * `middlewares/page-designer-content-resolution.server.ts` (§A.7) and threaded
  * through `resolvePage(...)` as the new `attrCtx` parameter.
  */
 import type {

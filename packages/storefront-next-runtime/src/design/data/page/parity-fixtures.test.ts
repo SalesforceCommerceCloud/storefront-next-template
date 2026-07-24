@@ -107,6 +107,7 @@ function canonicalize<T>(value: T): T {
 function makeStorage(pageManifest: PageManifest): ManifestStorage {
     return {
         getPageManifest: () => Promise.resolve(pageManifest),
+        getComponentManifest: () => Promise.resolve(null),
         getSiteManifest: () => Promise.resolve({ contentObjectAssignments: {}, categories: {} } as SiteManifest),
     };
 }

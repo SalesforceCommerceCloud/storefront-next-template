@@ -821,9 +821,12 @@ function validateRule(rule, locale, context) {
 //#endregion
 //#region src/design/data/page/process-page.ts
 /**
-* Filters a page's components based on their visibility rules and resolves
-* data binding expressions in a single traversal. Traverses the page tree
-* using the visitor pattern and:
+* Filters content components based on their visibility rules and resolves
+* data binding expressions in a single traversal. Handles both page-rooted
+* trees (a {@link ShopperExperience.schemas#Page} from a {@link PageManifest})
+* and component-rooted trees (a {@link ShopperExperience.schemas#Component}
+* from a {@link ComponentManifest}). The visitor logic is identical for both;
+* only the root entry point differs.
 *
 * 1. Removes any component whose visibility rules do not pass against the
 *    shopper's qualifier context.
@@ -834,9 +837,9 @@ function validateRule(rule, locale, context) {
 * If a component has rules and none of them pass, it is removed. Components
 * without rules are always included.
 *
-* @param page - The page to process.
+* @param node - The root page or component to process.
 * @param context - The processing context with qualifier data, visibility rules, and resolved data bindings.
-* @returns A new page with invisible components filtered out and data binding expressions resolved.
+* @returns A new page or component (matching the input shape) with invisible components filtered out and data binding expressions resolved.
 *
 * @example
 * ```ts
@@ -866,6 +869,10 @@ function validateRule(rule, locale, context) {
 * const filtered = processPage(page, {
 *     qualifiers: { customerGroups: {}, campaignQualifiers: {} },
 *     componentInfo,
+*     pageInfo: { regions: {} },
+*     locale: 'en_US',
+*     defaultLocale: 'en_US',
+*     attrCtx,
 * });
 * // filtered.regions[0].components has only "public-banner"
 * // "loyalty-offer" was removed because the shopper isn't a loyalty member
@@ -907,9 +914,9 @@ function composeComponentData({ nodeData, literalDefaultContent, defaultContent,
 	}
 	return result;
 }
-function processPage(page, processorContext) {
+function processPage(node, processorContext) {
 	const { pruneInvisible = true } = processorContext;
-	return transformPage(page, {
+	const visitor = {
 		visitPage(ctx) {
 			const pageNode = ctx.node;
 			const result = {
@@ -924,7 +931,7 @@ function processPage(page, processorContext) {
 		},
 		visitRegion(ctx) {
 			let regionInfo;
-			if (ctx.parent?.type === "page") regionInfo = processorContext.pageInfo.regions[ctx.node.id];
+			if (ctx.parent?.type === "page") regionInfo = processorContext.pageInfo?.regions[ctx.node.id];
 			else if (ctx.parent?.type === "component") regionInfo = processorContext.componentInfo[ctx.parent.node.id]?.regions?.[ctx.node.id];
 			let components = ctx.visitComponents(ctx.node.components);
 			if (regionInfo?.maxComponents != null) if (pruneInvisible) components = components.slice(0, regionInfo.maxComponents);
@@ -970,7 +977,7 @@ function processPage(page, processorContext) {
 			});
 			const name = componentInfo?.name ?? ctx.node.name;
 			const fragment = componentInfo?.fragment ?? ctx.node.fragment ?? false;
-			let node = {
+			let resolved = {
 				...ctx.node,
 				name,
 				fragment,
@@ -978,18 +985,20 @@ function processPage(page, processorContext) {
 				visible: isVisible,
 				data: composedData
 			};
-			node = resolveComponentDataBindings(node, componentInfo?.dataBinding, processorContext.qualifiers?.dataBindings);
-			const resolvedData = resolveAttributeValues(node.data, node.typeId, typeDefs, processorContext.attrCtx);
-			node = {
-				...node,
+			resolved = resolveComponentDataBindings(resolved, componentInfo?.dataBinding, processorContext.qualifiers?.dataBindings);
+			const resolvedData = resolveAttributeValues(resolved.data, resolved.typeId, typeDefs, processorContext.attrCtx);
+			resolved = {
+				...resolved,
 				data: resolvedData
 			};
 			return {
-				...node,
+				...resolved,
 				regions: ctx.visitRegions(ctx.node.regions)
 			};
 		}
-	});
+	};
+	if ((processorContext.kind ?? "page") === "page") return transformPage(node, visitor);
+	return transformComponent(node, visitor);
 }
 
 //#endregion
@@ -1295,65 +1304,41 @@ function applyPageMetadataOverlay(variation, locale) {
 	for (const key of PAGE_METADATA_OVERLAY_KEYS) if (overlay[key] !== void 0) out[key] = overlay[key];
 	return out;
 }
+async function resolvePage(options) {
+	if (options.identifierType === "component") return resolveComponentFlow(options);
+	return resolvePageFlow(options);
+}
 /**
-* Main entry point for the page resolution pipeline. Orchestrates the full flow:
-*
-* 1. **Resolve dynamic page ID** — For product/category identifiers, looks up
-*    the assigned page ID via content assignments in the site manifest.
-* 2. **Fetch page manifest** — Loads all variations for the resolved page.
-* 3. **Select variation** — Evaluates visibility rules to pick the right variation.
-* 4. **Load qualifier context** — Lazily fetches the shopper's context only if needed.
-* 5. **Process page** — Filters out components that fail visibility rules.
-*
-* Returns `null` if the page ID cannot be resolved, the manifest doesn't exist,
-* or no variation is available.
-*
-* @param options - The resolution options.
-* @param options.id - The identifier to resolve (product ID, category ID, or page ID).
-* @param options.identifierType - The type of identifier: `'product'`, `'category'`, or `'page'`.
-* @param options.locale - The locale to resolve the page for (e.g. `"en-US"`).
-* @param options.manifestStorage - Storage implementation for fetching manifests.
-* @param options.contextResolver - Optional async function that returns the shopper's qualifier context. Only called if a visibility rule needs it.
-* @param options.aspectType - The aspect type to resolve the page for when the identifier type is `'product'` or `'category'`.
-* @param options.categoryId - Optional fallback category ID (or a Promise resolving to one) used only when `identifierType` is `'product'` and the product has no content assignment for the requested aspect type. The promise is awaited lazily — the happy path never pays for it.
-* @param options.pruneInvisible - When `true` (default), invisible and overflow components are removed. When `false`, they are kept but marked `visible: false` for design/preview mode.
-* @returns The fully resolved and filtered page, or `null`.
-*
-* @example
-* ```ts
-* import { resolvePage } from '@salesforce/storefront-next-runtime/design/data';
-*
-* // Resolve the PDP page for a specific product with an active holiday campaign
-* const page = await resolvePage({
-*     id: 'nike-air-max-90',
-*     identifierType: 'product',
-*     aspectType: 'pdp',
-*     locale: 'en-US',
-*     manifestStorage: {
-*         async getPageManifest(id) {
-*             // Fetch from CDN, filesystem, or database
-*             return fetchManifest(`/manifests/${id}.json`);
-*         },
-*         async getSiteManifest() {
-*             return fetchManifest('/manifests/site.json');
-*         },
-*     },
-*     contextResolver: async () => ({
-*         customerGroups: { 'vip-customers': true },
-*         campaignQualifiers: {
-*             'holiday-sale-2026': { 'free-shipping': true },
-*         },
-*     }),
-* });
-*
-* if (page) {
-*     // page.regions contains only components visible to this VIP shopper
-*     // during the holiday sale campaign
-*     renderPage(page);
-* }
-* ```
+* Resolves an embedded component (`embedded.*`) directly from a
+* {@link ComponentManifest}. Skips the assignment lookup and variation
+* selection that pages need — embedded components are keyed by id and have
+* no page-level variations. The qualifier context is only resolved when the
+* manifest's pre-computed `requiresContext` flag is `true`.
 */
-async function resolvePage({ id, identifierType, aspectType, categoryId, locale, defaultLocale, manifestStorage, contextResolver, attrCtx, pruneInvisible = true }) {
+async function resolveComponentFlow({ id, locale, defaultLocale, manifestStorage, contextResolver, attrCtx, pruneInvisible = true }) {
+	const componentManifest = await manifestStorage.getComponentManifest(id);
+	if (!componentManifest) return null;
+	let context = null;
+	if (componentManifest.requiresContext) context = await contextResolver?.(componentManifest.context) ?? null;
+	return processPage(componentManifest.component, {
+		kind: "component",
+		qualifiers: context,
+		componentInfo: componentManifest.componentInfo,
+		locale,
+		defaultLocale,
+		attrCtx,
+		pruneInvisible
+	});
+}
+/**
+* Page-rooted resolution flow shared by `'page' | 'category' | 'product'`
+* identifier types. Resolves a dynamic page id through site content assignments
+* where applicable, loads the page manifest, selects the variation matching the
+* shopper's qualifier context, applies the per-locale metadata overlay, and
+* returns a SCAPI Page — or `null` when the id can't be resolved, the manifest
+* is missing, or no variation qualifies.
+*/
+async function resolvePageFlow({ id, identifierType, aspectType, categoryId, locale, defaultLocale, manifestStorage, contextResolver, attrCtx, pruneInvisible = true }) {
 	let resolvedId = null;
 	if (ContentAssignmentResolvers.has(identifierType)) {
 		const siteManifest = await manifestStorage.getSiteManifest();
@@ -1382,6 +1367,7 @@ async function resolvePage({ id, identifierType, aspectType, categoryId, locale,
 		pageLibraryDomain: pageManifest.pageLibraryDomain
 	} : attrCtx;
 	return processPage(localizedPage, {
+		kind: "page",
 		qualifiers: context,
 		componentInfo: pageManifest.componentInfo,
 		pageInfo: { regions: pageResults.entry.regions },

@@ -17,16 +17,73 @@ import type { ShopperExperience } from '@/scapi-client/types';
 import type { AttributeDefinition } from './page/attribute-resolution';
 
 /**
+ * Per-component metadata extracted from a Page Designer manifest, keyed by
+ * component ID inside {@link Manifest.componentInfo}. Carries visibility rules,
+ * locale-specific content overlays, data bindings, fragment marker, custom
+ * serializer output, and per-region configuration for the component.
+ */
+export interface ComponentInfoEntry {
+    /** The visibility rules for this component. */
+    visibilityRules?: VisibilityRuleDef[];
+    /**
+     * Locale-specific content attributes for this component. Keyed by locale
+     * (e.g. `"en_US"`), each entry contains attribute values that are merged
+     * into the component's `data` during page processing.
+     */
+    content?: {
+        [locale: string]: Record<string, unknown>;
+    };
+    /** Data binding metadata for this component. Omitted when the component has no bindings. */
+    dataBinding?: ComponentDataBinding;
+    /** Whether this component is a fragment (a reusable, externally-managed content asset). */
+    fragment?: boolean;
+    /** Custom component data produced by the type's serialize script. Omitted when the component has no custom data. */
+    custom?: Record<string, unknown>;
+    /** Display name of the component. Omitted when the component has no name. */
+    name?: string;
+    /** Region-level configuration (e.g. maxComponents limits), keyed by region ID. */
+    regions?: {
+        [regionId: string]: RegionInfo;
+    };
+}
+
+/**
+ * Common base for every Page Designer manifest. Both {@link PageManifest} and
+ * {@link ComponentManifest} share a {@link context} (qualifiers/groups/data
+ * bindings hoisted from every visibility rule in the manifest) and a
+ * {@link componentInfo} map of per-node metadata. Mirrors the backend `Manifest`
+ * abstract class (`commerce/digital`).
+ *
+ * The {@link manifestType} discriminator is emitted by the backend on output
+ * (read-only on input — the concrete class supplies it). It's optional on the
+ * storefront type because legacy fixtures and existing in-memory manifests
+ * may not carry it; production wire data always does.
+ */
+export interface Manifest {
+    /**
+     * Discriminator identifying the concrete manifest kind. Emitted by the
+     * backend on serialization; optional here because not every constructed
+     * or fixture manifest sets it.
+     */
+    manifestType?: 'PAGE' | 'COMPONENT';
+    /** Campaigns, customer groups, and data bindings hoisted from every visibility rule in this manifest. */
+    context: PageManifestContext;
+    /** Per-component metadata (visibility rules, locale content, data bindings, region config) keyed by component ID. */
+    componentInfo: Record<string, ComponentInfoEntry>;
+}
+
+/**
  * A manifest containing all variations of a single Page Designer page for a
  * specific locale. Variations are evaluated in {@link variationOrder} sequence;
  * the first whose visibility rule passes is selected. If none match, the
  * {@link defaultVariation} is used as a fallback.
+ *
+ * Inherits {@link Manifest.context} and {@link Manifest.componentInfo}.
  */
-export interface PageManifest {
+export interface PageManifest extends Manifest {
+    manifestType?: 'PAGE';
     /** The unique identifier of the page this manifest represents. */
     pageId: string;
-    /** Campaigns and customer groups referenced across all variations in this manifest. */
-    context: PageManifestContext;
     /** Ordered list of variation IDs defining the evaluation sequence. */
     variationOrder: string[];
     /** Map of variation ID to its entry data. */
@@ -47,37 +104,38 @@ export interface PageManifest {
      * Optional — older manifests may not include this field.
      */
     pageLibraryDomain?: string;
+}
+
+/**
+ * A manifest for a single embedded (`embedded.*`) Page Designer content block —
+ * a header, mini-cart, mega-menu, and so on. Embedded components are page-less
+ * and served by SCAPI `getComponent`, so each is cached as a standalone unit
+ * keyed by component ID.
+ *
+ * Unlike {@link PageManifest}, there are no page-level variations: an embedded
+ * component either renders or not based on its own visibility rules. Inherits
+ * {@link Manifest.context} and {@link Manifest.componentInfo}; the renderable
+ * tree lives in {@link component} (SCAPI Component shape).
+ *
+ * Mirrors the backend `ComponentManifest` (`commerce/digital`).
+ */
+export interface ComponentManifest extends Manifest {
+    manifestType?: 'COMPONENT';
+    /** The unique identifier of the embedded component this manifest represents. */
+    componentId: string;
     /**
-     * Component visibility rule definitions extracted from the page layout.
-     * Maps each component ID to its array of rule objects and a flag indicating
-     * if any rules are defined for that component.
+     * The renderable component tree, in SCAPI `Component` shape — the embedded
+     * component root plus its nested regions and child components.
      */
-    componentInfo: {
-        [componentId: string]: {
-            /** The visibility rules for this component. */
-            visibilityRules?: VisibilityRuleDef[];
-            /**
-             * Locale-specific content attributes for this component. Keyed by locale
-             * (e.g. `"en_US"`), each entry contains attribute values that are merged
-             * into the component's `data` during page processing.
-             */
-            content?: {
-                [locale: string]: Record<string, unknown>;
-            };
-            /** Data binding metadata for this component. Omitted when the component has no bindings. */
-            dataBinding?: ComponentDataBinding;
-            /** Whether this component is a fragment (a reusable, externally-managed content asset). */
-            fragment?: boolean;
-            /** Custom component data produced by the type's serialize script. Omitted when the component has no custom data. */
-            custom?: Record<string, unknown>;
-            /** Display name of the component. Omitted when the component has no name. */
-            name?: string;
-            /** Region-level configuration (e.g. maxComponents limits), keyed by region ID. */
-            regions?: {
-                [regionId: string]: RegionInfo;
-            };
-        };
-    };
+    component: ShopperExperience.schemas['Component'];
+    /**
+     * Whether resolving this component requires additional data from ECOM
+     * that MRT can't satisfy on its own — shopper qualifiers for visibility
+     * rules, or a runtime data binding. Pre-computed during manifest
+     * generation so the runtime can skip the ECOM round-trip entirely when
+     * `false`.
+     */
+    requiresContext: boolean;
 }
 
 /** Region-level configuration extracted from the page manifest, including type filters and component limits. */
@@ -277,13 +335,14 @@ export type QualifierContext = ShopperExperience.schemas['QualifierResolveRespon
 export type ResolvedDataBinding = Record<string, unknown>;
 
 /**
- * The type of identifier used to look up a page. Determines how the ID is
- * resolved to a page manifest:
+ * The type of identifier used to look up content. Determines how the ID is
+ * resolved to a manifest:
  * - `'page'` — Direct page ID, used as-is
  * - `'category'` — Category ID, resolved via content assignments with parent traversal
  * - `'product'` — Product ID, resolved via content assignments
+ * - `'component'` — Direct embedded-component ID, used as-is to fetch a {@link ComponentManifest}
  */
-export type IdentifierType = 'page' | 'category' | 'product';
+export type IdentifierType = 'page' | 'category' | 'product' | 'component';
 
 /**
  * Storage interface for fetching page and site manifests. Implementations
@@ -293,6 +352,8 @@ export type IdentifierType = 'page' | 'category' | 'product';
 export interface ManifestStorage {
     /** Fetch the page manifest for a given page ID. */
     getPageManifest(id: string): Promise<PageManifest | null>;
+    /** Fetch the embedded-component manifest for a given component ID. */
+    getComponentManifest(id: string): Promise<ComponentManifest | null>;
     /** Fetch the site-wide manifest for a given locale. */
     getSiteManifest(): Promise<SiteManifest | null>;
 }

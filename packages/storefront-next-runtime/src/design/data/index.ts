@@ -22,11 +22,14 @@ export {
     transformRegion,
 } from './page/transform';
 export { RequiredError } from './errors/required';
-export { resolvePage } from './page/resolve-page';
+export { resolvePage, type ResolvePageOptions } from './page/resolve-page';
 export { validateRule } from './validate-rule';
 export type { AttributeResolutionContext, AttributeResolutionWarning } from './page/attribute-resolution';
 export type {
+    Manifest,
     PageManifest,
+    ComponentManifest,
+    ComponentInfoEntry,
     SiteManifest,
     ManifestStorage,
     ContextResolver,

@@ -72,77 +72,21 @@ function applyPageMetadataOverlay(variation: VariationEntry, locale: string): Sh
 }
 
 /**
- * Main entry point for the page resolution pipeline. Orchestrates the full flow:
+ * Options accepted by {@link resolvePage}. The shape of `id` and the result
+ * are determined by `identifierType`:
  *
- * 1. **Resolve dynamic page ID** — For product/category identifiers, looks up
- *    the assigned page ID via content assignments in the site manifest.
- * 2. **Fetch page manifest** — Loads all variations for the resolved page.
- * 3. **Select variation** — Evaluates visibility rules to pick the right variation.
- * 4. **Load qualifier context** — Lazily fetches the shopper's context only if needed.
- * 5. **Process page** — Filters out components that fail visibility rules.
- *
- * Returns `null` if the page ID cannot be resolved, the manifest doesn't exist,
- * or no variation is available.
- *
- * @param options - The resolution options.
- * @param options.id - The identifier to resolve (product ID, category ID, or page ID).
- * @param options.identifierType - The type of identifier: `'product'`, `'category'`, or `'page'`.
- * @param options.locale - The locale to resolve the page for (e.g. `"en-US"`).
- * @param options.manifestStorage - Storage implementation for fetching manifests.
- * @param options.contextResolver - Optional async function that returns the shopper's qualifier context. Only called if a visibility rule needs it.
- * @param options.aspectType - The aspect type to resolve the page for when the identifier type is `'product'` or `'category'`.
- * @param options.categoryId - Optional fallback category ID (or a Promise resolving to one) used only when `identifierType` is `'product'` and the product has no content assignment for the requested aspect type. The promise is awaited lazily — the happy path never pays for it.
- * @param options.pruneInvisible - When `true` (default), invisible and overflow components are removed. When `false`, they are kept but marked `visible: false` for design/preview mode.
- * @returns The fully resolved and filtered page, or `null`.
- *
- * @example
- * ```ts
- * import { resolvePage } from '@salesforce/storefront-next-runtime/design/data';
- *
- * // Resolve the PDP page for a specific product with an active holiday campaign
- * const page = await resolvePage({
- *     id: 'nike-air-max-90',
- *     identifierType: 'product',
- *     aspectType: 'pdp',
- *     locale: 'en-US',
- *     manifestStorage: {
- *         async getPageManifest(id) {
- *             // Fetch from CDN, filesystem, or database
- *             return fetchManifest(`/manifests/${id}.json`);
- *         },
- *         async getSiteManifest() {
- *             return fetchManifest('/manifests/site.json');
- *         },
- *     },
- *     contextResolver: async () => ({
- *         customerGroups: { 'vip-customers': true },
- *         campaignQualifiers: {
- *             'holiday-sale-2026': { 'free-shipping': true },
- *         },
- *     }),
- * });
- *
- * if (page) {
- *     // page.regions contains only components visible to this VIP shopper
- *     // during the holiday sale campaign
- *     renderPage(page);
- * }
- * ```
+ * - For `'page' | 'category' | 'product'`, the id is resolved through site
+ *   content assignments (where applicable) into a {@link PageManifest} and a
+ *   personalised SCAPI {@link ShopperExperience.schemas#Page} is returned.
+ * - For `'component'`, the id is used directly to fetch a
+ *   {@link ComponentManifest} (no assignment lookup, no variation selection,
+ *   no aspect type) and a SCAPI {@link ShopperExperience.schemas#Component} is
+ *   returned.
  */
-export async function resolvePage({
-    id,
-    identifierType,
-    aspectType,
-    categoryId,
-    locale,
-    defaultLocale,
-    manifestStorage,
-    contextResolver,
-    attrCtx,
-    pruneInvisible = true,
-}: {
+export interface ResolvePageOptions {
     id: string;
     identifierType: IdentifierType;
+    /** Required only for `'product' | 'category'`; ignored for `'page'` and `'component'`. */
     aspectType?: string;
     /**
      * Fallback category ID (or a Promise resolving to one) consulted only
@@ -158,13 +102,151 @@ export async function resolvePage({
     /**
      * Per-request resolution surface for attribute envelope rewriting. Built
      * once per request by the storefront-next middleware (or Page Designer
-     * preview). The `componentTypes` map travels on the
-     * {@link PageManifest} itself and is read off the manifest below before
-     * being threaded into {@link processPage}.
+     * preview). For pages, the `componentTypes` map travels on the
+     * {@link PageManifest} itself and is read off the manifest before being
+     * threaded into {@link processPage}.
      */
     attrCtx: AttributeResolutionContext;
     pruneInvisible?: boolean;
-}): Promise<ShopperExperience.schemas['Page'] | null> {
+}
+
+/**
+ * Main entry point for the Page Designer content resolution pipeline. Handles
+ * both the page-rooted flow (`'page' | 'category' | 'product'`) and the
+ * embedded-component-rooted flow (`'component'`) behind a single callable
+ * surface so callers don't fork on identifier type.
+ *
+ * **Page flow** (`'page' | 'category' | 'product'`):
+ * 1. **Resolve dynamic page ID** — for product/category identifiers, look up
+ *    the assigned page ID via content assignments in the site manifest.
+ * 2. **Fetch page manifest** — load all variations for the resolved page.
+ * 3. **Select variation** — evaluate visibility rules to pick the right variation.
+ * 4. **Load qualifier context** — lazily fetch the shopper's context only if needed.
+ * 5. **Process** — filter out components that fail visibility rules.
+ *
+ * **Component flow** (`'component'`):
+ * 1. **Fetch component manifest** — direct DAL lookup by component ID.
+ * 2. **Load qualifier context** — only when `requiresContext === true` (skip
+ *    the ECOM round-trip entirely otherwise — pre-computed during generation).
+ * 3. **Process** — same visibility / locale / data-binding pipeline as pages.
+ *
+ * Returns `null` when the id cannot be resolved, the manifest is missing, or
+ * (page flow only) no variation is available — fail-open so the middleware can
+ * fall through to SCAPI.
+ *
+ * @param options - The resolution options. See {@link ResolvePageOptions}.
+ * @returns The resolved & filtered SCAPI Page (page flow) or Component
+ *          (component flow), or `null` on miss.
+ *
+ * @example
+ * ```ts
+ * // Page flow
+ * const page = await resolvePage({
+ *     id: 'nike-air-max-90',
+ *     identifierType: 'product',
+ *     aspectType: 'pdp',
+ *     locale: 'en-US',
+ *     defaultLocale: 'en-US',
+ *     manifestStorage,
+ *     attrCtx,
+ * });
+ *
+ * // Component flow (embedded `embedded.*` block — header, mini-cart, …)
+ * const header = await resolvePage({
+ *     id: 'header',
+ *     identifierType: 'component',
+ *     locale: 'en-US',
+ *     defaultLocale: 'en-US',
+ *     manifestStorage,
+ *     attrCtx,
+ * });
+ * ```
+ */
+export function resolvePage(
+    options: ResolvePageOptions & { identifierType: 'component' }
+): Promise<ShopperExperience.schemas['Component'] | null>;
+export function resolvePage(
+    options: ResolvePageOptions & { identifierType: 'page' | 'category' | 'product' }
+): Promise<ShopperExperience.schemas['Page'] | null>;
+export function resolvePage(
+    options: ResolvePageOptions
+): Promise<ShopperExperience.schemas['Page'] | ShopperExperience.schemas['Component'] | null>;
+export async function resolvePage(
+    options: ResolvePageOptions
+): Promise<ShopperExperience.schemas['Page'] | ShopperExperience.schemas['Component'] | null> {
+    if (options.identifierType === 'component') {
+        return resolveComponentFlow(options);
+    }
+
+    return resolvePageFlow(options);
+}
+
+/**
+ * Resolves an embedded component (`embedded.*`) directly from a
+ * {@link ComponentManifest}. Skips the assignment lookup and variation
+ * selection that pages need — embedded components are keyed by id and have
+ * no page-level variations. The qualifier context is only resolved when the
+ * manifest's pre-computed `requiresContext` flag is `true`.
+ */
+async function resolveComponentFlow({
+    id,
+    locale,
+    defaultLocale,
+    manifestStorage,
+    contextResolver,
+    attrCtx,
+    pruneInvisible = true,
+}: ResolvePageOptions): Promise<ShopperExperience.schemas['Component'] | null> {
+    const componentManifest = await manifestStorage.getComponentManifest(id);
+
+    if (!componentManifest) {
+        return null;
+    }
+
+    // Lazy context resolution: the manifest builder pre-computes whether any
+    // visibility rule or data binding on this component (or its descendants)
+    // needs shopper qualifiers. When it doesn't, we skip the ECOM round-trip
+    // entirely — the happy path for the static blocks (header, footer) where
+    // `requiresContext` is `false`.
+    let context: QualifierContext | null = null;
+
+    if (componentManifest.requiresContext) {
+        context = (await contextResolver?.(componentManifest.context)) ?? null;
+    }
+
+    return processPage(componentManifest.component, {
+        kind: 'component',
+        qualifiers: context,
+        componentInfo: componentManifest.componentInfo,
+        // No `pageInfo` — embedded components have no page-level region
+        // configuration. (Flow selection is via `kind`, not `pageInfo`.)
+        locale,
+        defaultLocale,
+        attrCtx,
+        pruneInvisible,
+    });
+}
+
+/**
+ * Page-rooted resolution flow shared by `'page' | 'category' | 'product'`
+ * identifier types. Resolves a dynamic page id through site content assignments
+ * where applicable, loads the page manifest, selects the variation matching the
+ * shopper's qualifier context, applies the per-locale metadata overlay, and
+ * returns a SCAPI Page — or `null` when the id can't be resolved, the manifest
+ * is missing, or no variation qualifies.
+ */
+async function resolvePageFlow({
+    id,
+    identifierType,
+    aspectType,
+    categoryId,
+    locale,
+    defaultLocale,
+    manifestStorage,
+    contextResolver,
+    attrCtx,
+    pruneInvisible = true,
+}: ResolvePageOptions): Promise<ShopperExperience.schemas['Page'] | null> {
     let resolvedId: string | null = null;
 
     if (ContentAssignmentResolvers.has(identifierType)) {
@@ -221,6 +303,7 @@ export async function resolvePage({
             : attrCtx;
 
     return processPage(localizedPage, {
+        kind: 'page',
         qualifiers: context,
         componentInfo: pageManifest.componentInfo,
         pageInfo: {

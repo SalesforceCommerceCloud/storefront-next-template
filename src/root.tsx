@@ -75,7 +75,7 @@ import { correlationMiddleware } from '@/middlewares/correlation.server';
 import { requestOriginMiddleware } from '@/middlewares/request-origin';
 import { getAppOrigin } from '@/lib/origin';
 import { loggingMiddleware } from '@/middlewares/logging.server';
-import { pageDesignerResolutionMiddleware } from '@/middlewares/page-designer-page-resolution.server';
+import { pageDesignerResolutionMiddleware } from '@/middlewares/page-designer-content-resolution.server';
 import { siteUrlConfigMiddleware } from '@/middlewares/site-url-config.server';
 import { modeDetectionMiddlewareServer, modeDetectionMiddlewareClient } from '@/middlewares/mode-detection';
 import { maintenanceMiddleware } from '@/middlewares/maintenance.server';
