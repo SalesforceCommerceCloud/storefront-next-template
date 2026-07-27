@@ -117,12 +117,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -382,12 +381,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -436,10 +434,9 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             <a
               aria-current="true"
               aria-label="View Product 2 in Black"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=BLACKWL"
               style="background-color: black;"
-              tabindex="-1"
             />
           </div>
         </div>
@@ -663,12 +660,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -716,9 +712,8 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           >
             <a
               aria-label="View Product 3 in Begonia Pink"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
               href="/product/:productId?color=JJ5QZXX"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -730,9 +725,8 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             <a
               aria-current="true"
               aria-label="View Product 3 in Grey Heather"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=JJ908XX"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -972,12 +966,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -1025,10 +1018,9 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           >
             <a
               aria-label="View Product 4 in Navy"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
               href="/product/:productId?color=NAVYWL"
               style="background-color: navy;"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -1040,9 +1032,8 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             <a
               aria-current="true"
               aria-label="View Product 4 in Charcoal"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=CHARCWL"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -1267,12 +1258,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -1532,12 +1522,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -1797,12 +1786,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -1851,10 +1839,9 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             <a
               aria-current="true"
               aria-label="View Product 7 in Black"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=BLACKWL"
               style="background-color: black;"
-              tabindex="-1"
             />
           </div>
         </div>
@@ -2078,12 +2065,11 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -2131,9 +2117,8 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           >
             <a
               aria-label="View Product 8 in Begonia Pink"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
               href="/product/:productId?color=JJ5QZXX"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -2145,9 +2130,8 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             <a
               aria-current="true"
               aria-label="View Product 8 in Grey Heather"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=JJ908XX"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -2657,12 +2641,11 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -2956,12 +2939,11 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -3010,10 +2992,9 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             <a
               aria-current="true"
               aria-label="View Product 2 in Black"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=BLACKWL"
               style="background-color: black;"
-              tabindex="-1"
             />
           </div>
         </div>
@@ -3271,12 +3252,11 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -3324,9 +3304,8 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           >
             <a
               aria-label="View Product 3 in Begonia Pink"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
               href="/product/:productId?color=JJ5QZXX"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -3338,9 +3317,8 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             <a
               aria-current="true"
               aria-label="View Product 3 in Grey Heather"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=JJ908XX"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -3614,12 +3592,11 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
             >
               <button
                 aria-label="Add to Wishlist"
                 class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-                tabindex="-1"
               >
                 <svg
                   aria-hidden="true"
@@ -3667,10 +3644,9 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           >
             <a
               aria-label="View Product 4 in Navy"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
               href="/product/:productId?color=NAVYWL"
               style="background-color: navy;"
-              tabindex="-1"
             >
               <img
                 alt=""
@@ -3682,9 +3658,8 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             <a
               aria-current="true"
               aria-label="View Product 4 in Charcoal"
-              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+              class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
               href="/product/:productId?color=CHARCWL"
-              tabindex="-1"
             >
               <img
                 alt=""

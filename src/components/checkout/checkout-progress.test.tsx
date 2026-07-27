@@ -73,8 +73,8 @@ describe('CheckoutProgress', () => {
     it('renders mobile and desktop views', () => {
         const { container } = render(<CheckoutProgress currentStep={CHECKOUT_STEPS.CONTACT_INFO} />);
 
-        // Mobile view (block on small screens)
-        const mobileView = container.querySelector('.block.md\\:hidden');
+        // Mobile view (hidden from the md breakpoint up)
+        const mobileView = container.querySelector('.flex.md\\:hidden');
         expect(mobileView).toBeTruthy();
 
         // Desktop view (hidden on small, block on medium+)

@@ -76,6 +76,7 @@ export default function RefineColor({
                     <button
                         key={`${attributeId}:${value.value}`}
                         type="button"
+                        aria-pressed={isSelected}
                         onClick={() => toggleFilter(attributeId, value.value)}
                         className={colorOptionButtonClass}>
                         {/* Swatch only is framed; label sits below with no outer “chip” box */}

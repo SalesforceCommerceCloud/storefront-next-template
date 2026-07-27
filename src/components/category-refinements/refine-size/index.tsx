@@ -32,6 +32,7 @@ export default function RefineSize({
                     <Button
                         key={`${attributeId}:${value.value}`}
                         variant="outline"
+                        aria-pressed={isSelected}
                         onClick={() => toggleFilter(attributeId, value.value)}
                         className={`${isSelected ? 'border-foreground/80' : ''}`}>
                         {value.label || value.value}

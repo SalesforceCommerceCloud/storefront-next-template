@@ -82,7 +82,7 @@ function getStepStatus(
 const STEP_CIRCLE_STYLES = {
     completed: 'bg-primary text-primary-foreground',
     current: 'bg-primary/90 text-primary-foreground animate-pulse',
-    pending: 'bg-muted text-muted-foreground',
+    pending: 'border-2 border-border text-muted-foreground',
 } as const;
 
 const STEP_TITLE_STYLES = {
@@ -125,71 +125,73 @@ function StepCircle({ status, index }: { status: StepStatus; index: number }) {
 
 export function CheckoutProgress({ currentStep, completedSteps = [], className }: CheckoutProgressProps) {
     return (
-        <div className={cn('w-full', className)}>
+        <nav aria-label="Checkout progress" className={cn('w-full', className)}>
             {/* Mobile Timeline - Horizontal */}
-            <div className="block md:hidden">
-                <div className="flex items-center justify-between mb-4">
-                    {TIMELINE_STEPS.map((step, index) => {
-                        const status = getStepStatus(step.id, currentStep, completedSteps);
-                        const isLast = index === TIMELINE_STEPS.length - 1;
+            <ol className="flex items-center justify-between mb-4 md:hidden">
+                {TIMELINE_STEPS.map((step, index) => {
+                    const status = getStepStatus(step.id, currentStep, completedSteps);
+                    const isLast = index === TIMELINE_STEPS.length - 1;
 
-                        return (
-                            <div key={step.id} className="flex items-center flex-1">
-                                {/* Step Circle */}
-                                <div className="flex flex-col items-center">
-                                    <StepCircle status={status} index={index} />
+                    return (
+                        <li
+                            key={step.id}
+                            className="flex items-center flex-1"
+                            aria-current={status === 'current' ? 'step' : undefined}>
+                            {/* Step Circle */}
+                            <div className="flex flex-col items-center">
+                                <StepCircle status={status} index={index} />
 
-                                    {/* Step Title - Mobile */}
-                                    <div className="text-xs text-center mt-1 max-w-16">
-                                        <div className={cn('font-medium truncate', STEP_TITLE_STYLES.mobile[status])}>
-                                            {step.title}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Connector Line */}
-                                {!isLast && (
-                                    <div className="flex-1 mx-2">
-                                        <div className={cn('h-0.5 transition-colors', CONNECTOR_STYLES[status])} />
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Desktop Timeline - Vertical */}
-            <div className="hidden md:block">
-                <div className="space-y-6">
-                    {TIMELINE_STEPS.map((step, index) => {
-                        const status = getStepStatus(step.id, currentStep, completedSteps);
-                        const isLast = index === TIMELINE_STEPS.length - 1;
-
-                        return (
-                            <div key={step.id} className="relative flex items-start">
-                                {/* Connector Line */}
-                                {!isLast && <div className="absolute left-4 top-10 w-0.5 h-6 bg-border" />}
-
-                                {/* Step Circle */}
-                                <div className="mr-4">
-                                    <StepCircle status={status} index={index} />
-                                </div>
-
-                                {/* Step Content */}
-                                <div className="flex-1 min-w-0">
-                                    <div className={cn('text-sm font-medium', STEP_TITLE_STYLES.desktop[status])}>
+                                {/* Step Title - Mobile */}
+                                <div className="text-xs text-center mt-1 max-w-16">
+                                    <div className={cn('font-medium truncate', STEP_TITLE_STYLES.mobile[status])}>
                                         {step.title}
                                     </div>
-                                    <div className={cn('text-xs mt-1', STEP_DESCRIPTION_STYLES[status])}>
-                                        {step.description}
-                                    </div>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            </div>
-        </div>
+
+                            {/* Connector Line */}
+                            {!isLast && (
+                                <div className="flex-1 mx-2">
+                                    <div className={cn('h-0.5 transition-colors', CONNECTOR_STYLES[status])} />
+                                </div>
+                            )}
+                        </li>
+                    );
+                })}
+            </ol>
+
+            {/* Desktop Timeline - Vertical */}
+            <ol className="hidden space-y-6 md:block">
+                {TIMELINE_STEPS.map((step, index) => {
+                    const status = getStepStatus(step.id, currentStep, completedSteps);
+                    const isLast = index === TIMELINE_STEPS.length - 1;
+
+                    return (
+                        <li
+                            key={step.id}
+                            className="relative flex items-start"
+                            aria-current={status === 'current' ? 'step' : undefined}>
+                            {/* Connector Line */}
+                            {!isLast && <div className="absolute left-4 top-10 w-0.5 h-6 bg-border" />}
+
+                            {/* Step Circle */}
+                            <div className="mr-4">
+                                <StepCircle status={status} index={index} />
+                            </div>
+
+                            {/* Step Content */}
+                            <div className="flex-1 min-w-0">
+                                <div className={cn('text-sm font-medium', STEP_TITLE_STYLES.desktop[status])}>
+                                    {step.title}
+                                </div>
+                                <div className={cn('text-xs mt-1', STEP_DESCRIPTION_STYLES[status])}>
+                                    {step.description}
+                                </div>
+                            </div>
+                        </li>
+                    );
+                })}
+            </ol>
+        </nav>
     );
 }

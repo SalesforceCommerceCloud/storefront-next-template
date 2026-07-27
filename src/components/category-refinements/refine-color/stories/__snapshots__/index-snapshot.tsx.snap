@@ -5,6 +5,7 @@ exports[`RefineColor stories snapshot > FullyFeatured story renders and matches 
   class="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-3"
 >
   <button
+    aria-pressed="true"
     class="flex w-full min-w-0 flex-col items-center gap-2 border-0 bg-transparent p-1 text-center whitespace-normal hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     type="button"
   >
@@ -30,6 +31,7 @@ exports[`RefineColor stories snapshot > FullyFeatured story renders and matches 
     </div>
   </button>
   <button
+    aria-pressed="false"
     class="flex w-full min-w-0 flex-col items-center gap-2 border-0 bg-transparent p-1 text-center whitespace-normal hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     type="button"
   >
@@ -55,6 +57,7 @@ exports[`RefineColor stories snapshot > FullyFeatured story renders and matches 
     </div>
   </button>
   <button
+    aria-pressed="false"
     class="flex w-full min-w-0 flex-col items-center gap-2 border-0 bg-transparent p-1 text-center whitespace-normal hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     type="button"
   >
@@ -80,6 +83,7 @@ exports[`RefineColor stories snapshot > FullyFeatured story renders and matches 
     </div>
   </button>
   <button
+    aria-pressed="false"
     class="flex w-full min-w-0 flex-col items-center gap-2 border-0 bg-transparent p-1 text-center whitespace-normal hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     type="button"
   >
@@ -105,6 +109,7 @@ exports[`RefineColor stories snapshot > FullyFeatured story renders and matches 
     </div>
   </button>
   <button
+    aria-pressed="false"
     class="flex w-full min-w-0 flex-col items-center gap-2 border-0 bg-transparent p-1 text-center whitespace-normal hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     type="button"
   >
@@ -130,6 +135,7 @@ exports[`RefineColor stories snapshot > FullyFeatured story renders and matches 
     </div>
   </button>
   <button
+    aria-pressed="false"
     class="flex w-full min-w-0 flex-col items-center gap-2 border-0 bg-transparent p-1 text-center whitespace-normal hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     type="button"
   >

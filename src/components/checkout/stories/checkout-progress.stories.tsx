@@ -37,8 +37,8 @@ async function assertStepStateCounts(
     const completedCircles = root.querySelectorAll('svg.lucide-check');
     // Current circle has the animate-pulse class on the circle itself
     const currentCircles = root.querySelectorAll('.animate-pulse');
-    // Pending circles use the muted class set
-    const pendingCircles = root.querySelectorAll('.bg-muted.text-muted-foreground');
+    // Pending circles use the bordered muted style (completed/current fill with bg-primary)
+    const pendingCircles = root.querySelectorAll('.border-2.border-border.text-muted-foreground');
 
     await expect(completedCircles).toHaveLength(completed * 2);
     await expect(currentCircles).toHaveLength(current * 2);

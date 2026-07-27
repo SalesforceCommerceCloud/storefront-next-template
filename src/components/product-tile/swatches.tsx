@@ -79,9 +79,8 @@ export function ProductTileSwatches({
                         onClick={onSwatchClick}
                         aria-label={t('swatches.viewProductInColor', { productName, colorName: valueName })}
                         aria-current={isSelected ? 'true' : undefined}
-                        tabIndex={-1}
                         className={cn(
-                            'w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0',
+                            'w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring',
                             isSelected
                                 ? 'ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground'
                                 : 'hover:ring-[3px] hover:ring-muted-hover'
@@ -106,8 +105,7 @@ export function ProductTileSwatches({
                 <Link
                     to={productHref}
                     onClick={onSwatchClick}
-                    tabIndex={-1}
-                    className="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:ring-[3px] hover:ring-muted-hover transition-all"
+                    className="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:ring-[3px] hover:ring-muted-hover focus-visible:ring-[3px] focus-visible:ring-ring transition-all"
                     title={t('swatches.moreColorsTitle', {
                         count: Math.min(overflowCount, MAX_VISIBLE_INDICATOR_COUNT),
                     })}

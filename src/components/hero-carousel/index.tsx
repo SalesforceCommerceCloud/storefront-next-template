@@ -302,7 +302,7 @@ export function HeroCarouselPlain({
         // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- labelled carousel region: keydown/hover handlers pause autoplay and drive arrow-key slide nav, not the primary control
         <div
             data-slot="hero-carousel"
-            className="relative w-full overflow-hidden h-[400px] md:h-[500px] lg:h-[600px]"
+            className="relative w-full overflow-hidden h-[400px] md:h-[500px] lg:h-[600px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             role="region"
             aria-label={`Hero carousel with ${slideCount} slides`}
             onFocus={handleFocus}
@@ -324,7 +324,11 @@ export function HeroCarouselPlain({
                 <CarouselContent className="h-full">
                     {usingRegion
                         ? regionComponents.map((comp, index) => (
-                              <CarouselItem key={comp.contentLinkUuid ?? comp.id} className="h-full">
+                              <CarouselItem
+                                  key={comp.contentLinkUuid ?? comp.id}
+                                  className="h-full"
+                                  aria-hidden={index !== currentSlide}
+                                  inert={index !== currentSlide ? true : undefined}>
                                   <RegionComponent
                                       component={withSlideProps(comp, {
                                           overlay,
@@ -338,7 +342,11 @@ export function HeroCarouselPlain({
                               </CarouselItem>
                           ))
                         : slides.map((slide, index) => (
-                              <CarouselItem key={slide.id} className="h-full">
+                              <CarouselItem
+                                  key={slide.id}
+                                  className="h-full"
+                                  aria-hidden={index !== currentSlide}
+                                  inert={index !== currentSlide ? true : undefined}>
                                   <HeroSlideContent
                                       slide={image ? { ...slide, imageUrl: image.url } : slide}
                                       priority={index === 0}
@@ -369,7 +377,7 @@ export function HeroCarouselPlain({
                                 <button
                                     type="button"
                                     onClick={togglePlayPause}
-                                    className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                                    className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label={isManuallyPaused ? t('carousel.play') : t('carousel.pause')}>
                                     {isManuallyPaused ? (
                                         <Play className="w-6 h-6 text-primary-foreground" strokeWidth={2} />
@@ -449,7 +457,7 @@ const DotButton = React.memo(
         <button
             type="button"
             onClick={() => onClick(index)}
-            className={`rounded-ui transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 ${
+            className={`rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 isActive ? 'w-8 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/75'
             }`}
             role="tab"
@@ -484,7 +492,7 @@ const NavigationButton = React.memo(
                 type="button"
                 onClick={onClick}
                 disabled={disabled}
-                className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={`${label} slide (${currentSlide} of ${totalSlides})`}>
                 <Icon className="w-6 h-6 text-primary-foreground" strokeWidth={2} />
             </button>
@@ -542,9 +550,9 @@ const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; pr
             <div className={cn('relative h-full flex z-20 overflow-hidden', overlayRowClass, overlayEdgePaddingClass)}>
                 <div className="section-container w-full">
                     <div className={cn(contentBlockClass, textAlignClass)}>
-                        <h1 className="text-6xl font-bold leading-none [letter-spacing:-1.5px] text-primary-foreground mb-4">
+                        <h2 className="text-6xl font-bold leading-none [letter-spacing:-1.5px] text-primary-foreground mb-4">
                             {slide.title}
-                        </h1>
+                        </h2>
 
                         {slide.subtitle && (
                             <p className="text-lg font-normal leading-[120%] text-primary-foreground mb-8">

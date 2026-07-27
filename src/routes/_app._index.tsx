@@ -190,6 +190,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
     return (
         <>
             <div className="pb-16 -mt-8">
+                <h1 className="sr-only">{t('meta.title', { defaultValue: 'NextGen PWA Kit Store' })}</h1>
                 <SeoMeta
                     rawTitle
                     title={t('meta.title', { defaultValue: 'NextGen PWA Kit Store' })}
