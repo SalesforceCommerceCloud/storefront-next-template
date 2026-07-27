@@ -502,3 +502,41 @@ export const ControlledSwatchMode: Story = {
         });
     },
 };
+
+/**
+ * Focus order: action icons (Wishlist, Share) must appear AFTER the product title
+ * in DOM order so screen readers encounter the product name before the actions.
+ * WCAG 2.4.3 Focus Order.
+ * @a11y W-23325673
+ */
+export const FocusOrderActionIcons: Story = {
+    args: {
+        product: createMockProduct({ brand: 'Salesforce Apparel' }),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Get the product title and action icon buttons
+        const heading = canvas.getByRole('heading', { name: /premium cotton t-shirt/i });
+        const wishlistBtn = canvas.getByRole('button', { name: /add to wishlist|remove from wishlist/i });
+        const shareBtn = canvas.getByRole('button', { name: /share/i });
+
+        // Verify DOM order: heading must precede action icons in the document.
+        // Node.DOCUMENT_POSITION_FOLLOWING means the argument node follows the reference node.
+        const headingBeforeWishlist = heading.compareDocumentPosition(wishlistBtn) & Node.DOCUMENT_POSITION_FOLLOWING;
+        const headingBeforeShare = heading.compareDocumentPosition(shareBtn) & Node.DOCUMENT_POSITION_FOLLOWING;
+
+        await expect(headingBeforeWishlist).toBeTruthy();
+        await expect(headingBeforeShare).toBeTruthy();
+
+        // Verify action icons come before the swatches in tab order (since they're visually
+        // in the same row as the title and above the swatches, this matches visual order).
+        const firstSwatch = canvas.getAllByRole('radio')[0];
+        if (firstSwatch) {
+            const wishlistBeforeSwatch =
+                wishlistBtn.compareDocumentPosition(firstSwatch) & Node.DOCUMENT_POSITION_FOLLOWING;
+            await expect(wishlistBeforeSwatch).toBeTruthy();
+        }
+    },
+};

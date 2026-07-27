@@ -95,6 +95,7 @@ function AccountDetailsContent({
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
+    const profileFormRef = useRef<HTMLDivElement | null>(null);
     // Optimistic profile values shown after save until the server customer prop refreshes.
     const [profileOverride, setProfileOverride] = useState<Partial<Customer> | null>(null);
 
@@ -112,6 +113,17 @@ function AccountDetailsContent({
     useEffect(() => {
         setProfileOverride(null);
     }, [customer]);
+
+    useEffect(() => {
+        if (isEditingProfile) {
+            requestAnimationFrame(() => {
+                const el = profileFormRef.current?.querySelector<HTMLElement>(
+                    'input:not([type="hidden"]), textarea, select'
+                );
+                el?.focus();
+            });
+        }
+    }, [isEditingProfile]);
 
     const { addToast } = useToast();
     const updatePasswordLoginFetcher = useFetcher();
@@ -693,21 +705,23 @@ function AccountDetailsContent({
 
                 <CardContent className="pt-6">
                     {isEditingProfile ? (
-                        <CustomerProfileForm
-                            formId="customer-profile-form"
-                            hideActions
-                            initialData={{
-                                firstName: displayCustomer?.firstName || '',
-                                lastName: displayCustomer?.lastName || '',
-                                phone: displayCustomer?.phoneHome || displayCustomer?.phoneMobile || '',
-                                gender: displayCustomer?.gender !== undefined ? String(displayCustomer.gender) : '',
-                                birthday: displayCustomer?.birthday || '',
-                            }}
-                            updateFetcher={updateProfileFetcher}
-                            onSuccess={handleCustomerProfileSuccess}
-                            onError={handleCustomerProfileError}
-                            onCancel={handleCustomerProfileCancel}
-                        />
+                        <div ref={profileFormRef}>
+                            <CustomerProfileForm
+                                formId="customer-profile-form"
+                                hideActions
+                                initialData={{
+                                    firstName: displayCustomer?.firstName || '',
+                                    lastName: displayCustomer?.lastName || '',
+                                    phone: displayCustomer?.phoneHome || displayCustomer?.phoneMobile || '',
+                                    gender: displayCustomer?.gender !== undefined ? String(displayCustomer.gender) : '',
+                                    birthday: displayCustomer?.birthday || '',
+                                }}
+                                updateFetcher={updateProfileFetcher}
+                                onSuccess={handleCustomerProfileSuccess}
+                                onError={handleCustomerProfileError}
+                                onCancel={handleCustomerProfileCancel}
+                            />
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { Children, useCallback, useRef } from 'react';
+import React, { Children, useCallback, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 const DIRECTIONS = {
@@ -130,11 +130,13 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
                 case 'ArrowUp':
                 case 'ArrowLeft':
                     e.preventDefault();
+                    userInteractedRef.current = true;
                     move(DIRECTIONS.BACKWARD);
                     break;
                 case 'ArrowDown':
                 case 'ArrowRight':
                     e.preventDefault();
+                    userInteractedRef.current = true;
                     move(DIRECTIONS.FORWARD);
                     break;
                 default:
@@ -173,9 +175,36 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
               ? firstEnabledIndex
               : 0;
 
+    const prevValueRef = useRef(value);
+    const userInteractedRef = useRef(false);
+    useEffect(() => {
+        if (value && value !== prevValueRef.current && userInteractedRef.current && wrapperRef.current) {
+            const el = wrapperRef.current.children[focusableIndex] as HTMLElement | undefined;
+            // Arrow-key navigation already focuses the swatch synchronously in move(); only
+            // move focus here when it isn't already on the target (the click/navigation path),
+            // so a keyboard selection doesn't focus twice.
+            if (el && el !== document.activeElement) {
+                requestAnimationFrame(() => el.focus());
+            }
+            userInteractedRef.current = false;
+        }
+        prevValueRef.current = value;
+    }, [value, focusableIndex]);
+
     return (
         // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- radiogroup composite widget: arrow-key roving handled at group level per ARIA APG
-        <div className={containerClasses} onKeyDown={onKeyDown}>
+        <div
+            className={containerClasses}
+            onKeyDown={onKeyDown}
+            onClick={(e) => {
+                // Only arm the post-selection focus restore for keyboard activation. A
+                // keyboard-driven click (Enter/Space) reports detail === 0; a real mouse click
+                // reports detail >= 1. This keeps a stray pointer click from leaving the flag set
+                // so a later external value change can't steal focus.
+                if (e.detail === 0) {
+                    userInteractedRef.current = true;
+                }
+            }}>
             <div
                 className={isSquareSwatchGroup ? 'inline-flex flex-col gap-3' : 'flex flex-col gap-3'}
                 role="radiogroup"

@@ -280,10 +280,10 @@ describe('OrderListHeader Component', () => {
         expect(screen.queryByText('Track your purchases')).not.toBeInTheDocument();
     });
 
-    test('title is focusable for accessibility', () => {
+    test('title is not an extra tab stop', () => {
         render(<OrderListHeader title="My Orders" />);
         const heading = screen.getByRole('heading', { level: 4 });
-        expect(heading).toHaveAttribute('tabindex', '0');
+        expect(heading).not.toHaveAttribute('tabindex');
     });
 });
 

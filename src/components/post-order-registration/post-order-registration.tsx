@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -71,6 +72,19 @@ export function PostOrderRegistration({
     const isSubmitting = fetcher.state !== 'idle' || defaultSubmitting;
     const registrationSuccess = fetcher.data?.success === true || defaultSuccess;
     const error = fetcher.data?.error ?? defaultError;
+    const errorRef = useRef<HTMLDivElement | null>(null);
+
+    // Move focus to the error on each failed submit so it is announced once (the focus move
+    // itself reads the container's text; the box carries no role="alert", which would announce
+    // a second time). Keying on the fetcher response identity, not the error string, means a
+    // repeated submit that returns the same message still re-fires and re-announces.
+    const submissionResult = fetcher.data;
+    useEffect(() => {
+        if (error) {
+            errorRef.current?.focus();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run per response, not per string
+    }, [submissionResult, defaultError]);
 
     // Persistent, initially-empty polite live region. It stays mounted across both the form
     // and success states, so when registration succeeds the message is written into an
@@ -114,7 +128,10 @@ export function PostOrderRegistration({
             </CardHeader>
             <CardContent>
                 {error && (
-                    <div className="mb-4 p-3 rounded-ui bg-destructive/10 border border-destructive/20">
+                    <div
+                        ref={errorRef}
+                        tabIndex={-1}
+                        className="mb-4 p-3 rounded-ui bg-destructive/10 border border-destructive/20">
                         <p className="text-sm text-destructive">{error}</p>
                     </div>
                 )}

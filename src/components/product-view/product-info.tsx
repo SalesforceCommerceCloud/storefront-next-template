@@ -259,28 +259,6 @@ export default function ProductInfo({
 
     return (
         <div className="relative grid gap-4">
-            {/* Action icons — top-right */}
-            {!isCompactStyle && !hideActionIcons && (
-                <div className="absolute top-0 right-0 flex items-center gap-2 z-10">
-                    <WishlistButton
-                        product={{
-                            productId: product.id,
-                            productName: product.name,
-                            price: product.price,
-                            image: product.imageGroups?.[0]?.images?.[0],
-                        }}
-                        surface="pdp"
-                        size="sm"
-                        className="!static border border-border bg-background/90 hover:border-muted-foreground/50 hover:bg-background"
-                    />
-                    <ShareButton
-                        product={product}
-                        size="sm"
-                        className="!static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
-                    />
-                </div>
-            )}
-
             {/* Compact style: brand (uppercase) then product name */}
             {isCompactStyle && (
                 <>
@@ -319,6 +297,28 @@ export default function ProductInfo({
                         )}
                     </div>
                     {headerAction ? <div className="pt-1 shrink-0">{headerAction}</div> : null}
+                </div>
+            )}
+
+            {/* Action icons — top-right, after title in DOM for correct focus order */}
+            {!isCompactStyle && !hideActionIcons && (
+                <div className="absolute top-0 right-0 flex items-center gap-2 z-10">
+                    <WishlistButton
+                        product={{
+                            productId: product.id,
+                            productName: product.name,
+                            price: product.price,
+                            image: product.imageGroups?.[0]?.images?.[0],
+                        }}
+                        surface="pdp"
+                        size="sm"
+                        className="!static border border-border bg-background/90 hover:border-muted-foreground/50 hover:bg-background"
+                    />
+                    <ShareButton
+                        product={product}
+                        size="sm"
+                        className="!static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
+                    />
                 </div>
             )}
             {/* Rating summary - visible on both mobile and desktop */}

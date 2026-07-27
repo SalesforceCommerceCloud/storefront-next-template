@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouteLoaderData } from 'react-router';
 import { useTrackingConsent } from '@/hooks/use-tracking-consent';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
@@ -100,6 +100,11 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    // The banner sits at the very end of the DOM, so a keyboard user would have to tab past
+    // the entire page to reach it. Move focus to the dialog when it appears so its name and
+    // description are announced and its actions are the next thing in the tab order. (W-23325632)
+    const dialogRef = useRef<HTMLDivElement>(null);
+
     // Local dismissal: hide immediately on response without waiting for a reload. The `dw_dnt`
     // cookie (set by the server action) makes the dismissal durable across reloads.
     const [responded, setResponded] = useState(false);
@@ -155,6 +160,14 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
     const shouldShow =
         mounted && isTrackingConsentEnabled && !responded && !hasRespondedCookie && !rootData?.pageDesignerMode;
 
+    // Move keyboard focus into the banner once it appears. Without this the shopper has to tab
+    // through the whole page to reach it, since the banner is the last node in the DOM. (W-23325632)
+    useEffect(() => {
+        if (shouldShow) {
+            dialogRef.current?.focus();
+        }
+    }, [shouldShow]);
+
     if (!shouldShow) {
         return null;
     }
@@ -170,8 +183,10 @@ export function TrackingConsentBanner({ onConsentChange }: TrackingConsentBanner
     return (
         <UITarget targetId="sfcc.global.cookies.banner">
             <div
+                ref={dialogRef}
+                tabIndex={-1}
                 className={cn(
-                    'fixed z-50 w-full md:max-w-md animate-in slide-in-from-bottom-5 duration-300',
+                    'fixed z-50 w-full md:max-w-md animate-in slide-in-from-bottom-5 duration-300 outline-none',
                     positionClasses[position] || positionClasses['bottom-center']
                 )}
                 role="dialog"

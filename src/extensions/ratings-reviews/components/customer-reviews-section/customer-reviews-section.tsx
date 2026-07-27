@@ -145,7 +145,9 @@ export default function CustomerReviewsSection({
             : t('section.subtitleOther', { count: aggregateRating.count, productName });
 
     return (
-        <div id="customer-reviews">
+        // tabIndex={-1} lets the "View customer reviews" jump control move keyboard focus here,
+        // not just scroll the viewport. See product-rating-summary scrollToReviews. (W-23325662)
+        <div id="customer-reviews" tabIndex={-1} className="outline-none">
             <Accordion type="multiple" className="w-full" value={accordionValue} onValueChange={setAccordionValue}>
                 <AccordionItem value={CUSTOMER_REVIEWS_ACCORDION_VALUE}>
                     <AccordionTrigger className="text-left hover:no-underline py-2 cursor-pointer">

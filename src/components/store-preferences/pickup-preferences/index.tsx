@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useState, useCallback } from 'react';
+import { type ReactElement, useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
@@ -43,6 +43,13 @@ export default function PickupPreferences(): ReactElement {
     const [savedPreferences, setSavedPreferences] = useState<PickupPreferencesState>(MOCK_INITIAL_PREFERENCES);
     const [editingPreferences, setEditingPreferences] = useState<PickupPreferencesState>(MOCK_INITIAL_PREFERENCES);
     const [isEditing, setIsEditing] = useState(false);
+    const firstSwitchRef = useRef<HTMLButtonElement | null>(null);
+
+    useEffect(() => {
+        if (isEditing) {
+            requestAnimationFrame(() => firstSwitchRef.current?.focus());
+        }
+    }, [isEditing]);
 
     const handleEdit = useCallback(() => {
         setEditingPreferences(savedPreferences);
@@ -111,6 +118,7 @@ export default function PickupPreferences(): ReactElement {
                         </p>
                     </div>
                     <Switch
+                        ref={firstSwitchRef}
                         id="auto-select-store"
                         checked={preferences.autoSelectStore}
                         disabled={!isEditing}

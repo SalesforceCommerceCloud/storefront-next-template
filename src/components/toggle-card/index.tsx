@@ -20,6 +20,7 @@ import {
     type ReactNode,
     type Ref,
     useContext,
+    useEffect,
     useMemo,
     useRef,
 } from 'react';
@@ -80,6 +81,20 @@ export function ToggleCard({
     ...props
 }: ToggleCardProps) {
     const titleRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
+    const prevEditingRef = useRef(editing);
+
+    useEffect(() => {
+        if (editing && !prevEditingRef.current) {
+            requestAnimationFrame(() => {
+                const el = contentRef.current?.querySelector<HTMLElement>(
+                    'input:not([type="hidden"]), textarea, select, [tabindex]:not([tabindex="-1"])'
+                );
+                el?.focus();
+            });
+        }
+        prevEditingRef.current = editing;
+    }, [editing]);
 
     const contextValue = useMemo<ToggleCardContextValue>(() => ({ editing, disabled }), [editing, disabled]);
 
@@ -151,7 +166,9 @@ export function ToggleCard({
                     </CardAction>
                 </CardHeader>
 
-                <CardContent data-testid={id ? `sf-toggle-card-${id}-content` : undefined}>{children}</CardContent>
+                <CardContent ref={contentRef} data-testid={id ? `sf-toggle-card-${id}-content` : undefined}>
+                    {children}
+                </CardContent>
 
                 {isLoading ? (
                     <div className="absolute inset-0 z-10 bg-background/60">

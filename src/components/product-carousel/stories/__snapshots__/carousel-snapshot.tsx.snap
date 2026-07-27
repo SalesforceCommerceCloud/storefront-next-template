@@ -265,7 +265,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -548,7 +548,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -831,7 +831,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -1114,7 +1114,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -1397,7 +1397,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -1680,7 +1680,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -1963,7 +1963,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -2246,7 +2246,7 @@ exports[`ProductCarousel stories snapshot > Default story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -2637,7 +2637,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -2920,7 +2920,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -3203,7 +3203,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -3486,7 +3486,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -3769,7 +3769,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -4052,7 +4052,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -4335,7 +4335,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -4618,7 +4618,7 @@ exports[`ProductCarousel stories snapshot > NoTitle story renders and matches sn
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -5007,7 +5007,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -5290,7 +5290,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -5573,7 +5573,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -5856,7 +5856,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -6139,7 +6139,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -6422,7 +6422,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -6705,7 +6705,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -6988,7 +6988,7 @@ exports[`ProductCarousel stories snapshot > PageDesignerMode story renders and m
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -7378,7 +7378,7 @@ exports[`ProductCarousel stories snapshot > SingleProduct story renders and matc
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -7776,7 +7776,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -8059,7 +8059,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -8342,7 +8342,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -8625,7 +8625,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -8908,7 +8908,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -9191,7 +9191,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -9474,7 +9474,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -9757,7 +9757,7 @@ exports[`ProductCarousel stories snapshot > WithShopAllLink story renders and ma
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -10153,7 +10153,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -10436,7 +10436,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -10719,7 +10719,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -11002,7 +11002,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -11285,7 +11285,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -11568,7 +11568,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -11851,7 +11851,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -12134,7 +12134,7 @@ exports[`ProductCarousel stories snapshot > WithSubtitle story renders and match
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -12523,7 +12523,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -12806,7 +12806,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -13089,7 +13089,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -13372,7 +13372,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -13655,7 +13655,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -13938,7 +13938,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -14221,7 +14221,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)
@@ -14504,7 +14504,7 @@ exports[`ProductCarousel stories snapshot > WithSuspenseWrapper story renders an
                           </div>
                           <button
                             aria-label="(218)"
-                            class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+                            class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
                             type="button"
                           >
                             (218)

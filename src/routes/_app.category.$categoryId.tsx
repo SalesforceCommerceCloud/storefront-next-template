@@ -51,6 +51,7 @@ import { getPublicOrigin } from '@/utils/schema-url';
 import { buildCanonicalUrl } from '@/utils/canonical-url';
 import {
     getInitialFiltersOpen,
+    getSearchWithoutClientOnlyParams,
     getSearchWithoutFiltersParam,
     useFiltersPanelState,
 } from '@/hooks/use-filters-panel-state';
@@ -330,6 +331,7 @@ export default function CategoryPage({
     loaderData: CategoryPageData;
 }) {
     const config = useConfig();
+    const { t } = useTranslation();
 
     const [filtersOpen, toggleFiltersOpen] = useFiltersPanelState(initialFiltersOpen);
     const limit = config.search.products.hits.limit;
@@ -464,18 +466,36 @@ export default function CategoryPage({
     }, [isLoadMoreMode, isRestoring, loadedCount, initialCount]);
 
     const [, startTransition] = useTransition();
-    const lastSearchParamsRef = useRef<string>(location.search);
+    // Compare on the meaningful search only. Opening/closing the filters panel writes a client-only
+    // `filters` param (see use-filters-panel-state); that toggle must not steal focus up to the
+    // heading — the panel manages its own focus. (W-23325653)
+    const lastSearchParamsRef = useRef<string>(getSearchWithoutClientOnlyParams(location.search));
 
     useEffect(() => {
         // Move focus to results heading after refinement or sort changes
-        if (navigation.state === 'idle' && lastSearchParamsRef.current !== location.search) {
-            lastSearchParamsRef.current = location.search;
+        const meaningfulSearch = getSearchWithoutClientOnlyParams(location.search);
+        if (navigation.state === 'idle' && lastSearchParamsRef.current !== meaningfulSearch) {
+            lastSearchParamsRef.current = meaningfulSearch;
             // Allow the DOM to update before moving focus
             requestAnimationFrame(() => {
                 resultsHeadingRef.current?.focus();
             });
         }
     }, [navigation.state, location.search]);
+
+    // When the shopper opens the filters panel, move focus into it so keyboard users land on the
+    // refinements instead of tabbing forward from a toggle that sits after the panel in the DOM.
+    // Only fire on the closed -> open transition, never on initial render. (W-23325653)
+    const refinementsPanelRef = useRef<HTMLDivElement>(null);
+    const prevFiltersOpenRef = useRef(filtersOpen);
+    useEffect(() => {
+        if (filtersOpen && !prevFiltersOpenRef.current) {
+            requestAnimationFrame(() => {
+                refinementsPanelRef.current?.focus();
+            });
+        }
+        prevFiltersOpenRef.current = filtersOpen;
+    }, [filtersOpen]);
 
     useEffect(() => {
         // Only track if we haven't already tracked this specific data combination
@@ -574,7 +594,12 @@ export default function CategoryPage({
 
                         {/* Category Refinements - toggles visibility on left side */}
                         {filtersOpen && (
-                            <div className="w-full lg:w-64 lg:flex-shrink-0">
+                            <div
+                                ref={refinementsPanelRef}
+                                tabIndex={-1}
+                                role="region"
+                                aria-label={t('categoryRefinements:filtersButtonLabel')}
+                                className="w-full lg:w-64 lg:flex-shrink-0 outline-none">
                                 <CategoryRefinements result={searchResultCritical} refine={refine} />
                             </div>
                         )}

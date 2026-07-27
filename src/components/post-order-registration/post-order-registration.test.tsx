@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createRoutesStub } from 'react-router';
 import { PostOrderRegistration } from './post-order-registration';
@@ -176,5 +176,80 @@ describe('PostOrderRegistration', () => {
 
         const hiddenOrderNo = form?.querySelector('input[name="orderNo"][type="hidden"]');
         expect(hiddenOrderNo).toHaveValue('00012345');
+    });
+
+    // Focus/announcement fixes for the submission-error box (W-23545805, G7 t2 focus/keyboard).
+    describe('submission error announcement', () => {
+        const errorMessage = 'That email is already registered.';
+
+        function renderWithErrorAction() {
+            const Stub = createRoutesStub([
+                {
+                    path: '/',
+                    Component: () => <PostOrderRegistration {...defaultProps} />,
+                },
+                {
+                    path: resourceRoutes.postOrderRegister,
+                    // A fresh object each call: the message stays identical but its
+                    // identity changes, which the re-announce fix keys on.
+                    action: () => ({ success: false, error: errorMessage }),
+                },
+            ]);
+            return render(
+                <AllProvidersWrapper>
+                    <Stub initialEntries={['/']} />
+                </AllProvidersWrapper>
+            );
+        }
+
+        it('shows the error without role="alert" and moves focus to it (announced once)', () => {
+            const Stub = createRoutesStub([
+                {
+                    path: '/',
+                    Component: () => <PostOrderRegistration {...defaultProps} defaultError={errorMessage} />,
+                },
+            ]);
+            render(
+                <AllProvidersWrapper>
+                    <Stub initialEntries={['/']} />
+                </AllProvidersWrapper>
+            );
+
+            const errorText = screen.getByText(errorMessage);
+            const errorBox = errorText.parentElement as HTMLElement;
+
+            // The box must NOT be role="alert": an alert role announces on insert and the focus
+            // move announces again — the double-announce Jie flagged. Focus-only is the single path.
+            expect(errorBox).not.toHaveAttribute('role');
+            // The focus move is what carries the announcement, so focus must land on the box.
+            expect(errorBox).toHaveAttribute('tabindex', '-1');
+            expect(document.activeElement).toBe(errorBox);
+        });
+
+        it('re-announces when a repeated submit returns the same error message', async () => {
+            const user = userEvent.setup();
+            renderWithErrorAction();
+
+            const passwordInput = screen.getByLabelText(/^password/i);
+            const confirmInput = screen.getByLabelText(/confirm/i);
+            await user.type(passwordInput, 'StrongPass1!');
+            await user.type(confirmInput, 'StrongPass1!');
+
+            const submit = screen.getByRole('button', { name: /create account/i });
+
+            // First failed submit: the error appears and focus lands on it.
+            await user.click(submit);
+            const errorBox = (await screen.findByText(errorMessage)).parentElement as HTMLElement;
+            await waitFor(() => expect(document.activeElement).toBe(errorBox));
+
+            // Move focus away, then submit again and get the SAME message back. Keying the effect
+            // on the string alone would not re-fire (identical value); keying on the response
+            // identity does, so focus must return to the error box.
+            passwordInput.focus();
+            expect(document.activeElement).toBe(passwordInput);
+
+            await user.click(submit);
+            await waitFor(() => expect(document.activeElement).toBe(errorBox));
+        });
     });
 });

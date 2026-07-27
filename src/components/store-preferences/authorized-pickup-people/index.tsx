@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useState, useEffect, useCallback, useMemo } from 'react';
+import { type ReactElement, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Plus, Pencil, Trash2, InfoIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useForm, type Resolver } from 'react-hook-form';
@@ -130,6 +130,7 @@ export default function AuthorizedPickupPeople(): ReactElement {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [personToDelete, setPersonToDelete] = useState<AuthorizedPickupPerson | null>(null);
+    const addButtonRef = useRef<HTMLButtonElement | null>(null);
 
     const schema = useMemo(() => createAuthorizedPersonSchema((key: string) => (t as (k: string) => string)(key)), [t]);
     const form = useForm<AuthorizedPersonFormValues>({
@@ -200,6 +201,7 @@ export default function AuthorizedPickupPeople(): ReactElement {
         if (personToDelete) {
             setPeople((prev) => prev.filter((p) => p.id !== personToDelete.id));
             setPersonToDelete(null);
+            requestAnimationFrame(() => addButtonRef.current?.focus());
         }
     }, [personToDelete]);
 
@@ -225,7 +227,7 @@ export default function AuthorizedPickupPeople(): ReactElement {
                         </CardDescription>
                     </div>
                     <CardAction>
-                        <Button type="button" onClick={openAdd}>
+                        <Button ref={addButtonRef} type="button" onClick={openAdd}>
                             <Plus className="size-4" aria-hidden />
                             {t('storePreferences.authorizedPickupPeople.addPerson')}
                         </Button>

@@ -5,7 +5,7 @@ exports[`Header stories snapshot > CheckoutVariant story renders and matches sna
   class="min-h-screen bg-background"
 >
   <header
-    class="bg-header-background text-header-foreground sticky top-0 z-50"
+    class="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static"
     style="--header-height: 0px;"
   >
     <div
@@ -75,7 +75,7 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
   class="min-h-screen bg-background"
 >
   <header
-    class="bg-header-background text-header-foreground sticky top-0 z-50"
+    class="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static"
     style="--header-height: 0px;"
   >
     <div
@@ -455,7 +455,7 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
             
     </style>
     <header
-      class="bg-header-background text-header-foreground sticky top-0 z-50"
+      class="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static"
       style="--header-height: 0px;"
     >
       <div
@@ -829,7 +829,7 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
     </div>
   </div>
   <header
-    class="bg-header-background text-header-foreground sticky top-0 z-50"
+    class="bg-header-background text-header-foreground sticky top-0 z-50 [@media(max-height:400px)]:static"
     style="--header-height: 0px;"
   >
     <div

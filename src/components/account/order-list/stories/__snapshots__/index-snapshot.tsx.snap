@@ -14,7 +14,6 @@ exports[`OrderList stories snapshot > Default story renders and matches snapshot
     >
       <h4
         class="text-2xl font-semibold tracking-tight text-left text-foreground mb-1.5"
-        tabindex="0"
       >
         Order History
       </h4>
@@ -595,7 +594,6 @@ exports[`OrderList stories snapshot > EmptyState story renders and matches snaps
     >
       <h4
         class="text-2xl font-semibold tracking-tight text-left text-foreground mb-1.5"
-        tabindex="0"
       >
         Order History
       </h4>
@@ -661,7 +659,6 @@ exports[`OrderList stories snapshot > WithReturnStatus story renders and matches
     >
       <h4
         class="text-2xl font-semibold tracking-tight text-left text-foreground mb-1.5"
-        tabindex="0"
       >
         Order History
       </h4>

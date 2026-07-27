@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, afterEach } from 'vitest';
+import { useState } from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -473,5 +474,94 @@ describe('SwatchGroup', () => {
         await user.keyboard('{ArrowRight}');
         expect(swatches[2]).toHaveFocus();
         expect(handleChange).toHaveBeenCalledWith('large');
+    });
+
+    // Focus-restore fixes for the post-selection value-change effect (W-23545805, G7 t2).
+    describe('post-selection focus restore', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        // Run rAF synchronously so the effect's focus() lands within the click's await window,
+        // letting us assert focus state deterministically instead of polling.
+        function runRafSynchronously() {
+            vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
+                cb(0);
+                return 0;
+            });
+        }
+
+        test('a stray mouse click on the group does not let a later external value change steal focus', async () => {
+            runRafSynchronously();
+            const user = userEvent.setup();
+
+            function Harness() {
+                const [value, setValue] = useState('red');
+                return (
+                    <>
+                        <button type="button" data-testid="external" onClick={() => setValue('blue')}>
+                            external change
+                        </button>
+                        <SwatchGroup label="Color" value={value}>
+                            <Swatch value="red" href="/red">
+                                Red
+                            </Swatch>
+                            <Swatch value="blue" href="/blue">
+                                Blue
+                            </Swatch>
+                        </SwatchGroup>
+                    </>
+                );
+            }
+            renderInRouter(<Harness />);
+
+            // A stray MOUSE click inside the group (on the label, selecting nothing). It bubbles to
+            // the container onClick with detail >= 1, so it must NOT arm the focus-restore flag.
+            await user.click(screen.getByText('Color:'));
+
+            // Park focus on an unrelated control, then change the value from OUTSIDE the group.
+            const external = screen.getByTestId('external');
+            external.focus();
+            expect(document.activeElement).toBe(external);
+
+            await user.click(external); // sets value to 'blue'
+
+            // The external change must not steal focus into the swatch group: the earlier mouse
+            // click never armed the flag. (Pre-fix, container onClick armed it on ANY click.)
+            const blueSwatch = screen.getByRole('radio', { name: /blue/i });
+            expect(document.activeElement).not.toBe(blueSwatch);
+            expect(document.activeElement).toBe(external);
+        });
+
+        test('arrow-key selection focuses the destination swatch exactly once (no double-focus)', async () => {
+            runRafSynchronously();
+            const user = userEvent.setup();
+
+            function Harness() {
+                const [value, setValue] = useState('red');
+                return (
+                    <SwatchGroup label="Color" value={value} handleChange={setValue}>
+                        <Swatch value="red" href="/red">
+                            Red
+                        </Swatch>
+                        <Swatch value="blue" href="/blue">
+                            Blue
+                        </Swatch>
+                    </SwatchGroup>
+                );
+            }
+            renderInRouter(<Harness />);
+
+            const swatches = screen.getAllByRole('radio');
+            swatches[0].focus();
+
+            // move() focuses the destination synchronously; the value-change effect must then see
+            // focus is already there and skip its own rAF focus, so focus() fires exactly once.
+            const blueFocus = vi.spyOn(swatches[1], 'focus');
+            await user.keyboard('{ArrowRight}');
+
+            expect(swatches[1]).toHaveFocus();
+            expect(blueFocus).toHaveBeenCalledTimes(1);
+        });
     });
 });

@@ -40,6 +40,9 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
     const { reviewsSummary, reviews, expandReviews, registerOnExpanded } = useProductReviews();
     const [popoverOpen, setPopoverOpen] = useState(false);
     const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // True only while the current close was triggered by Escape (a keyboard dismissal), so the
+    // close handler can return focus to the trigger for that path and leave it alone otherwise.
+    const escapeDismissRef = useRef(false);
 
     const clearCloseTimeout = useCallback(() => {
         if (closeTimeoutRef.current != null) {
@@ -105,7 +108,14 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
     const canInteract = interactive && hasReviews;
 
     const scrollToReviews = useCallback(() => {
-        document.getElementById(CUSTOMER_REVIEWS_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const target = document.getElementById(CUSTOMER_REVIEWS_ID);
+        if (!target) return;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Move keyboard focus to the reviews section, not just the viewport. Without this a
+        // keyboard or screen-reader user stays on the rating summary while the page scrolls
+        // away beneath them. `preventScroll` keeps the smooth scroll above from being cut short
+        // by the focus call. The target carries tabIndex={-1} so it can receive focus. (W-23325662)
+        target.focus({ preventScroll: true });
     }, []);
 
     const handleSeeReviewsClick = useCallback(() => {
@@ -169,7 +179,22 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
                     sideOffset={4}
                     className="min-w-[280px] max-w-[304px] p-4 bg-card text-card-foreground"
                     aria-label="Star rating distribution"
-                    onCloseAutoFocus={(e) => e.preventDefault()}
+                    onEscapeKeyDown={() => {
+                        // Mark this close as a keyboard dismissal so onCloseAutoFocus below returns
+                        // focus to the trigger (Radix fires onEscapeKeyDown before onCloseAutoFocus).
+                        escapeDismissRef.current = true;
+                    }}
+                    onCloseAutoFocus={(e) => {
+                        // The popover is hover-opened, so most closes are a mouse-leave: the pointer
+                        // has moved on and returning focus to the trigger would yank the page (and
+                        // scroll) back to the rating summary. Only Escape, a keyboard dismissal, must
+                        // return focus to the trigger for WCAG 2.4.3. Let Radix's default run for
+                        // Escape; suppress it for every other close.
+                        if (!escapeDismissRef.current) {
+                            e.preventDefault();
+                        }
+                        escapeDismissRef.current = false;
+                    }}
                     onMouseEnter={clearCloseTimeout}
                     onMouseLeave={scheduleClose}>
                     <Suspense fallback={null}>

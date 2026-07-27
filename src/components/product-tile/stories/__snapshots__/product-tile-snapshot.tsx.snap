@@ -259,7 +259,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -580,7 +580,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -932,7 +932,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -1215,7 +1215,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
