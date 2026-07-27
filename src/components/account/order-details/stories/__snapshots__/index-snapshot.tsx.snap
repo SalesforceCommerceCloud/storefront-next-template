@@ -99,7 +99,7 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
               d="m6 6 12 12"
             />
           </svg>
-          Cancelled
+          Canceled
         </span>
       </div>
       <div
@@ -3439,7 +3439,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
           class="sr-only"
           id="cancel-order-unavailable-reason"
         >
-          This order can no longer be cancelled.
+          This order can no longer be canceled.
         </span>
         <a
           class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 w-full sm:w-auto"
