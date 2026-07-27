@@ -775,14 +775,17 @@ export const fallback = () => <div>Loading...</div>;`,
 export default class Hero {}`,
                     shouldHaveFallback: false,
                 },
-            ])(
-                '$description',
-                async ({ componentContent, shouldHaveFallback, shouldHaveLoader, shouldHaveClientLoader }) => {
-                    const componentFiles = ['/test/project/src/components/hero/index.tsx'];
+            ])('$description', async ({
+                componentContent,
+                shouldHaveFallback,
+                shouldHaveLoader,
+                shouldHaveClientLoader,
+            }) => {
+                const componentFiles = ['/test/project/src/components/hero/index.tsx'];
 
-                    vol.fromJSON({
-                        '/test/project/src/components/hero/index.tsx': componentContent,
-                        '/test/project/src/lib/static-registry.ts': `import { ComponentRegistry } from '@/lib/component-registry';
+                vol.fromJSON({
+                    '/test/project/src/components/hero/index.tsx': componentContent,
+                    '/test/project/src/lib/static-registry.ts': `import { ComponentRegistry } from '@/lib/component-registry';
 
 export const registry = new ComponentRegistry();
 
@@ -790,32 +793,31 @@ export const registry = new ComponentRegistry();
 // Generated content will be inserted here by the static registry plugin
 // STATIC_REGISTRY_END
 `,
-                    });
+                });
 
-                    mockGlob.mockResolvedValue(componentFiles);
+                mockGlob.mockResolvedValue(componentFiles);
 
-                    const plugin = staticRegistryPlugin();
-                    await callPluginHooks(plugin, mockProjectRoot);
+                const plugin = staticRegistryPlugin();
+                await callPluginHooks(plugin, mockProjectRoot);
 
-                    const writeCall = mockWriteFileSync.mock.calls[0];
-                    const generatedCode = writeCall[1] as string;
+                const writeCall = mockWriteFileSync.mock.calls[0];
+                const generatedCode = writeCall[1] as string;
 
-                    if (shouldHaveFallback) {
-                        expect(generatedCode).toContain("fallback: 'fallback'");
-                    }
-                    if (shouldHaveLoader) {
-                        expect(generatedCode).toContain("loader: 'loader'");
-                    }
-                    if (shouldHaveClientLoader) {
-                        expect(generatedCode).toContain("clientLoader: 'clientLoader'");
-                    }
-                    if (!shouldHaveFallback && !shouldHaveLoader && !shouldHaveClientLoader) {
-                        expect(generatedCode).toContain(
-                            "targetRegistry.registerImporter('storefrontnext_base.hero', () => import('../components/hero/index'));"
-                        );
-                    }
+                if (shouldHaveFallback) {
+                    expect(generatedCode).toContain("fallback: 'fallback'");
                 }
-            );
+                if (shouldHaveLoader) {
+                    expect(generatedCode).toContain("loader: 'loader'");
+                }
+                if (shouldHaveClientLoader) {
+                    expect(generatedCode).toContain("clientLoader: 'clientLoader'");
+                }
+                if (!shouldHaveFallback && !shouldHaveLoader && !shouldHaveClientLoader) {
+                    expect(generatedCode).toContain(
+                        "targetRegistry.registerImporter('storefrontnext_base.hero', () => import('../components/hero/index'));"
+                    );
+                }
+            });
         });
     });
 

@@ -70,11 +70,12 @@ pnpm test --ui               # Vitest UI
 pnpm test --reporter=verbose # Verbose output
 ```
 
-**Lint variants** (extra eslint scans not covered by `pnpm lint`):
+**Lint variants** (extra scans not covered by `pnpm lint`):
 ```bash
-node scripts/check-typescript-only.js                                                  # No .js files in src/
-cross-env NODE_OPTIONS=--max-old-space-size=8192 eslint src --rule 'no-restricted-classnames: error' --cache  # Color rule scan
+node scripts/check-typescript-only.js   # No .js files in src/
 ```
+
+The color rule (`custom/color-linter`) is part of `pnpm lint` — OxLint runs it as an error, so no separate scan is needed.
 
 **Storybook test variants:**
 ```bash
@@ -161,7 +162,7 @@ These rules take priority when designing routes, components, and state. Apply th
 
 ### Copyright Header (required)
 
-All TypeScript/JavaScript files must include this Apache 2.0 header. Enforced by ESLint via `eslint-plugin-header`.
+All TypeScript/JavaScript files must include this Apache 2.0 header. Enforced by the `custom/header-format` OxLint rule.
 
 ```typescript
 /**
@@ -319,7 +320,7 @@ The docs below are where architectural detail lives — consult them for tasks i
 
 **Testing & quality:**
 - [docs/README-TESTS.md](./docs/README-TESTS.md) — Testing strategy and patterns
-- [docs/README-ESLINT.md](./docs/README-ESLINT.md) — ESLint configuration
+- [docs/README-LINTING.md](./docs/README-LINTING.md) — Linting (OxLint) & formatting (Biome)
 - [docs/README-STORY-COVERAGE.md](./docs/README-STORY-COVERAGE.md) — Story coverage enforcement
 - [docs/README-STORYBOOK.md](./docs/README-STORYBOOK.md) — Storybook setup
 

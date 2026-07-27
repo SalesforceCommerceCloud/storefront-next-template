@@ -1,6 +1,7 @@
 import "../logger.js";
 import "../logger2.js";
 import { n as getDefaultBuildDir, r as getDefaultMessage } from "../utils.js";
+import "../format-with-project-biome.js";
 import { a as buildMrtConfig, i as SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR, n as GENERATE_AND_DEPLOY_CARTRIDGE_ON_MRT_PUSH, r as SFNEXT_BASE_CARTRIDGE_NAME, t as CARTRIDGES_BASE_DIR } from "../config.js";
 import { t as createBundle } from "../bundle.js";
 import { t as generateMetadata } from "../generate-cartridge.js";

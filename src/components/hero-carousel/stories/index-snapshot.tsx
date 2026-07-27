@@ -48,6 +48,7 @@ vi.mock('react-router', () => ({
     RouterProvider: ({ router }: { router: { routes: unknown[] } }) => <div>{router.routes[0]?.element || null}</div>,
 }));
 
+
 vi.mock('@/components/link', () => ({
     Link: (props: React.PropsWithChildren<{ to?: string; [key: string]: unknown }>) => {
         const { to, children, ...rest } = props ?? {};

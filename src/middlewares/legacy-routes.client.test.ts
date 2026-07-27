@@ -321,31 +321,32 @@ describe('legacyRoutesMiddleware', () => {
             expect(window.location.href).toBe('https://example.com/');
         });
 
-        test.each(['/action-figures', '/assets-guide', '/resourceful'])(
-            'does NOT skip legacy route %s that merely starts with an infra word',
-            (path) => {
-                // The skip-list boundary is `^/(resource|action|mobify|assets)(/|$)` — a route whose
-                // name only starts with an infra word (no '/' boundary) must still route to legacy.
-                // Locks the boundary against a careless regex edit (e.g. dropping the `(/|$)`).
-                vi.spyOn(mockContext, 'get').mockImplementation((contextKey: any) => {
-                    if (contextKey === appConfigContext) {
-                        return {
-                            hybrid: { enabled: true, legacyRoutes: [path] },
-                        } as unknown as AppConfig;
-                    }
-                    return undefined;
-                });
-                const request = new Request(`https://example.com${path}`);
+        test.each([
+            '/action-figures',
+            '/assets-guide',
+            '/resourceful',
+        ])('does NOT skip legacy route %s that merely starts with an infra word', (path) => {
+            // The skip-list boundary is `^/(resource|action|mobify|assets)(/|$)` — a route whose
+            // name only starts with an infra word (no '/' boundary) must still route to legacy.
+            // Locks the boundary against a careless regex edit (e.g. dropping the `(/|$)`).
+            vi.spyOn(mockContext, 'get').mockImplementation((contextKey: any) => {
+                if (contextKey === appConfigContext) {
+                    return {
+                        hybrid: { enabled: true, legacyRoutes: [path] },
+                    } as unknown as AppConfig;
+                }
+                return undefined;
+            });
+            const request = new Request(`https://example.com${path}`);
 
-                void legacyRoutesMiddleware(
-                    { request, context: mockContext, params: {}, pattern: '', url: new URL(request.url) },
-                    mockNext
-                );
+            void legacyRoutesMiddleware(
+                { request, context: mockContext, params: {}, pattern: '', url: new URL(request.url) },
+                mockNext
+            );
 
-                expect(mockNext).not.toHaveBeenCalled();
-                expect(window.location.href).toBe(`https://example.com${path}`);
-            }
-        );
+            expect(mockNext).not.toHaveBeenCalled();
+            expect(window.location.href).toBe(`https://example.com${path}`);
+        });
     });
 
     describe('edge cases', () => {

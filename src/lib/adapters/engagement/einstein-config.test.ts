@@ -31,34 +31,40 @@ describe('validateEinsteinConfig', () => {
         expect(validateEinsteinConfig(validConfig)).toEqual({ valid: true, errors: [] });
     });
 
-    it.each(['host', 'einsteinId', 'siteId', 'realm'] as const)(
-        'reports a missing field error when %s is empty',
-        (field) => {
-            const result = validateEinsteinConfig({ ...validConfig, [field]: '' });
-            expect(result.valid).toBe(false);
-            expect(result.errors).toContain(`Missing required field: ${field}`);
-        }
-    );
+    it.each([
+        'host',
+        'einsteinId',
+        'siteId',
+        'realm',
+    ] as const)('reports a missing field error when %s is empty', (field) => {
+        const result = validateEinsteinConfig({ ...validConfig, [field]: '' });
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain(`Missing required field: ${field}`);
+    });
 
-    it.each(['host', 'einsteinId', 'siteId', 'realm'] as const)(
-        'reports a missing field error when %s is whitespace-only',
-        (field) => {
-            const result = validateEinsteinConfig({ ...validConfig, [field]: '   \t\n' });
-            expect(result.valid).toBe(false);
-            expect(result.errors).toContain(`Missing required field: ${field}`);
-        }
-    );
+    it.each([
+        'host',
+        'einsteinId',
+        'siteId',
+        'realm',
+    ] as const)('reports a missing field error when %s is whitespace-only', (field) => {
+        const result = validateEinsteinConfig({ ...validConfig, [field]: '   \t\n' });
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain(`Missing required field: ${field}`);
+    });
 
-    it.each(['host', 'einsteinId', 'siteId', 'realm'] as const)(
-        'reports a missing field error when %s is undefined',
-        (field) => {
-            const partial: Partial<EinsteinConfig> = { ...validConfig };
-            delete partial[field];
-            const result = validateEinsteinConfig(partial);
-            expect(result.valid).toBe(false);
-            expect(result.errors).toContain(`Missing required field: ${field}`);
-        }
-    );
+    it.each([
+        'host',
+        'einsteinId',
+        'siteId',
+        'realm',
+    ] as const)('reports a missing field error when %s is undefined', (field) => {
+        const partial: Partial<EinsteinConfig> = { ...validConfig };
+        delete partial[field];
+        const result = validateEinsteinConfig(partial);
+        expect(result.valid).toBe(false);
+        expect(result.errors).toContain(`Missing required field: ${field}`);
+    });
 
     it('accumulates errors for multiple invalid fields', () => {
         const result = validateEinsteinConfig({ ...validConfig, host: '', einsteinId: '   ', siteId: '' });

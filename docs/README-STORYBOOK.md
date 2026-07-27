@@ -325,14 +325,9 @@ export const Basic: Story = {
 - **Promises through `args`.** They don't serialize; the controls panel breaks. Move them to `parameters` (e.g. `parameters.routeLoaderData`).
 - **`vi.mock(...)` of hooks inside a story.** Should be route-level (a mock loader/action) or replaced with a prop.
 
-## ESLint Integration
+## Linting
 
-This project includes `eslint-plugin-storybook` for Storybook-specific linting:
-
-- Enforces Storybook best practices
-- Catches common mistakes in story files
-- Ensures consistent story structure
-- Validates story naming conventions
+Story files (`*.stories.tsx`) are linted by the project's standard OxLint config like any other source file. There is no Storybook-specific lint plugin — OxLint does not ship one, and the previous ESLint setup's `eslint-plugin-storybook` block was inert (it spread a config shape that resolved to no rules under the plugin's v10 API), so nothing is lost.
 
 ## Troubleshooting
 

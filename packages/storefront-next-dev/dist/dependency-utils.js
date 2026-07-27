@@ -1,6 +1,6 @@
 import { t as logger } from "./logger.js";
+import { n as formatWithProjectBiome } from "./format-with-project-biome.js";
 import path from "path";
-import { createRequire } from "module";
 import fs from "fs";
 
 //#region src/extensibility/path-util.ts
@@ -42,7 +42,7 @@ async function trimExtensions(directory, selectedExtensions, extensionConfig) {
 	};
 	processDirectory(directory);
 	if (extensionConfig?.extensions) {
-		await updateExtensionConfig(directory, extensions);
+		updateExtensionConfig(directory, extensions);
 		deleteExtensionFolders(directory, extensions, extensionConfig);
 	}
 	const endTime = Date.now();
@@ -53,64 +53,14 @@ async function trimExtensions(directory, selectedExtensions, extensionConfig) {
 * @param projectDirectory - The project directory
 * @param extensionSelections - The selected extensions
 */
-async function updateExtensionConfig(projectDirectory, extensionSelections) {
+function updateExtensionConfig(projectDirectory, extensionSelections) {
 	const extensionConfigPath = path.join(projectDirectory, "src", "extensions", "config.json");
 	const extensionConfig = JSON.parse(fs.readFileSync(extensionConfigPath, "utf8"));
 	Object.keys(extensionConfig.extensions).forEach((extensionKey) => {
 		if (!extensionSelections[extensionKey]) delete extensionConfig.extensions[extensionKey];
 	});
 	const json = JSON.stringify({ extensions: extensionConfig.extensions }, null, 4);
-	fs.writeFileSync(extensionConfigPath, await formatWithProjectPrettier(json, extensionConfigPath), "utf8");
-}
-/**
-* Format generated JSON/JS so the written file matches what the project's
-* `prettier --write` / `pnpm lint` would produce.
-*
-* `trimExtensions` runs during `create-storefront`, BEFORE the generated project's
-* `pnpm install` — so the project's own Prettier is usually not on disk yet. We therefore
-* prefer the consumer's Prettier when it happens to be present (re-runs, manage-extensions
-* after install), but fall back to the SDK-bundled `prettier` (a hard dependency of this
-* package, pinned to the template's version) so formatting is deterministic and available
-* at generate time. Relying on the consumer's copy alone resolved only by accident in the
-* monorepo harness, where the generated dir is nested under the monorepo and `createRequire`
-* walks up to the monorepo's Prettier; a customer in a clean directory would get unformatted
-* output and fail lint on first run (W-23074938).
-*
-* NOTE: mirror of the helper in
-* packages/template/scripts/generate-eslint-config.js — kept separate because
-* the two live in different packages/module systems. Keep the parser/config-resolution
-* behavior in sync; the fallback chains INTENTIONALLY differ — this copy has a two-level
-* fallback (consumer Prettier → SDK-bundled `import('prettier')` → unformatted) because it
-* runs pre-install, while the generator copy has a single fallback (consumer Prettier →
-* unformatted). Don't "fix" that asymmetry or you reintroduce the pre-install bug (W-23074938).
-*
-* @param content - The serialized file content to format.
-* @param filePath - The file's path (drives parser selection + config resolution).
-* @returns The Prettier-formatted content. Returns the content unchanged only if no Prettier
-*   can be resolved at all; a genuine format/config error throws rather than silently shipping
-*   unformatted output.
-*/
-async function formatWithProjectPrettier(content, filePath) {
-	let prettier;
-	try {
-		prettier = createRequire(filePath)("prettier");
-	} catch {
-		try {
-			prettier = (await import("prettier")).default;
-		} catch {
-			logger.warn("⚠️  Prettier could not be resolved; extension config.json will be written unformatted.");
-			return content;
-		}
-	}
-	try {
-		const config = await prettier.resolveConfig(filePath, { editorconfig: true });
-		return await prettier.format(content, {
-			...config,
-			filepath: filePath
-		});
-	} catch (error) {
-		throw new Error(`Prettier formatting failed for ${path.basename(filePath)}: ${error.message}`);
-	}
+	fs.writeFileSync(extensionConfigPath, formatWithProjectBiome(json, extensionConfigPath), "utf8");
 }
 /**
 * Process a file to trim extension-specific code based on markers.

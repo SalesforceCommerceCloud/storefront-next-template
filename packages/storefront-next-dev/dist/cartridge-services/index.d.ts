@@ -11,7 +11,7 @@ interface GenerateMetadataOptions {
    */
   filePaths?: string[];
   /**
-   * Whether to run ESLint with --fix on generated JSON files to format them according to project settings.
+   * Whether to format generated JSON files with Biome so they match the project's formatting.
    * Defaults to true.
    */
   lintFix?: boolean;

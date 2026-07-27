@@ -13,14 +13,14 @@ const fs = require('fs');
  * Copy from process.env.sample to get started
  */
 function loadEnvironmentVariables() {
-    const envPath = path.join(__dirname, '..', 'envs', 'process.env');
+  const envPath = path.join(__dirname, '..', 'envs', 'process.env');
 
-    // Load environment variables from process.env (gitignored)
-    if (fs.existsSync(envPath)) {
-        require('dotenv').config({ path: envPath });
-    }
+  // Load environment variables from process.env (gitignored)
+  if (fs.existsSync(envPath)) {
+    require('dotenv').config({ path: envPath });
+  }
 }
 
 module.exports = {
-    loadEnvironmentVariables,
+  loadEnvironmentVariables,
 };

@@ -18,6 +18,7 @@ import type { ComponentDecoratorProps } from './component.types';
 import { usePageDesignerMode } from './PageDesignerProvider';
 
 // Lazy load so we don't include all design code when not in design mode
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the lazy const alongside the exported decorator factory; eslint-plugin-react-refresh does not
 const LazyDesignComponent = lazy(() =>
     import('../components/DesignComponent').then((module) => ({ default: module.DesignComponent }))
 );

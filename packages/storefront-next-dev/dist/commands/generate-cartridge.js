@@ -1,5 +1,6 @@
 import "../logger.js";
 import "../logger2.js";
+import "../format-with-project-biome.js";
 import { i as SFNEXT_BASE_CARTRIDGE_OUTPUT_DIR, t as CARTRIDGES_BASE_DIR } from "../config.js";
 import { r as commonFlags } from "../flags.js";
 import { t as generateMetadata } from "../generate-cartridge.js";

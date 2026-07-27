@@ -73,12 +73,14 @@ describe('shouldSkipProxy', () => {
     });
 
     describe('app routes — do not skip (proxy decision deferred to routing rules)', () => {
-        it.each(['/cart', '/checkout', '/s/RefArchGlobal/en_GB/Cart-Show', '/my-account'])(
-            'does not skip %s',
-            (path) => {
-                expect(shouldSkipProxy(path)).toBe(false);
-            }
-        );
+        it.each([
+            '/cart',
+            '/checkout',
+            '/s/RefArchGlobal/en_GB/Cart-Show',
+            '/my-account',
+        ])('does not skip %s', (path) => {
+            expect(shouldSkipProxy(path)).toBe(false);
+        });
     });
 });
 

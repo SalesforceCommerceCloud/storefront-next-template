@@ -3624,8 +3624,8 @@ describe('generateMetadata integration tests', () => {
 
         await generateMetadata(projectDir, metadataDir, { dryRun: true });
 
-        // Verify linting was not performed
-        expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('Running ESLint'));
+        // Verify formatting was not performed
+        expect(consoleLogSpy).not.toHaveBeenCalledWith(expect.stringContaining('Formatting generated JSON files'));
     });
 
     test('should return result object in regular mode', async () => {

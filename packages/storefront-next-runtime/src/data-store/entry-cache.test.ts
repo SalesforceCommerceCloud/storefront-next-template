@@ -321,6 +321,7 @@ describe('data-store entry cache', () => {
             }).toThrow(TypeError);
             // The stored value is unchanged, so the next reader still sees the original.
             expect(
+                // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here; the cache entry is known to exist in this assertion
                 (cache.readDataStoreCache('login')?.value as { data: { emailVerificationEnabled: boolean } }).data
                     .emailVerificationEnabled
             ).toBe(true);

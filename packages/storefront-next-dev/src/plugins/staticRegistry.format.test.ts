@@ -36,14 +36,14 @@ import { updateRegistryFile, generateRegistryCode, type ComponentInfo } from './
 
 const mockWriteFileSync = vi.mocked(writeFileSync);
 
-// A path inside the package (resolved from this test file, not the cwd) so `createRequire(...)`
-// resolves the project's real Prettier and its config. Prettier loaded this way uses the real
-// filesystem (it bypasses the mocked `fs` above), so resolveConfig finds the repo `.prettierrc`.
+// A path inside the package (resolved from this test file, not the cwd). Biome runs as a real
+// subprocess with `cwd` set to this file's directory — a real, existing dir in the repo tree —
+// so it discovers the repo `biome.json` by walking up and actually formats the stdin content.
 const REPO_REGISTRY_PATH = resolve(testDir, 'static-registry.format-fixture.ts');
 
-// A path with no reachable Prettier in any ancestor node_modules, so formatting falls back. Placed
-// under the OS temp root rather than the repo tree, where no `node_modules` resolves `prettier`.
-const NO_PRETTIER_PATH = resolve(tmpdir(), 'sfnext-static-registry-no-prettier', 'static-registry.ts');
+// A path whose directory does NOT exist on disk, so Biome's subprocess fails to spawn (bad cwd)
+// and the formatter falls back to writing the content unformatted. Placed under the OS temp root.
+const NO_FORMAT_PATH = resolve(tmpdir(), 'sfnext-static-registry-no-format-dir', 'static-registry.ts');
 
 const SCAFFOLD = `import { registry } from '@/lib/page-designer/registry';
 
@@ -52,8 +52,8 @@ const SCAFFOLD = `import { registry } from '@/lib/page-designer/registry';
 // STATIC_REGISTRY_END
 `;
 
-// A registration whose single-line form is 163 chars — well past any default printWidth — so a
-// Prettier pass is forced to wrap it. Its presence verbatim in the output means no formatting ran.
+// A registration whose single-line form is 163 chars — past the 120-col Biome lineWidth — so a
+// Biome pass is forced to wrap it. Its presence verbatim in the output means no formatting ran.
 const LONG_COMPONENT: ComponentInfo[] = [
     {
         id: 'Layout.productCarousel',
@@ -74,12 +74,12 @@ describe('updateRegistryFile formatting', () => {
         vol.reset();
     });
 
-    it('formats the written file with the project Prettier so over-width registrations are wrapped', async () => {
+    it('formats the written file with the project Biome so over-width registrations are wrapped', () => {
         vol.fromJSON({ [REPO_REGISTRY_PATH]: SCAFFOLD });
         const generatedCode = generateRegistryCode(LONG_COMPONENT, 'registry');
         expect(generatedCode).toContain(LONG_SINGLE_LINE);
 
-        const changed = await updateRegistryFile(REPO_REGISTRY_PATH, generatedCode);
+        const changed = updateRegistryFile(REPO_REGISTRY_PATH, generatedCode);
 
         expect(changed).toBe(true);
         const written = mockWriteFileSync.mock.calls[0][1] as string;
@@ -88,51 +88,32 @@ describe('updateRegistryFile formatting', () => {
         expect(written).not.toMatch(/ +\n/);
     });
 
-    it('converges on a second run: an already-formatted file is left untouched (no HMR re-cascade)', async () => {
+    it('converges on a second run: an already-formatted file is left untouched (no HMR re-cascade)', () => {
         vol.fromJSON({ [REPO_REGISTRY_PATH]: SCAFFOLD });
         const generatedCode = generateRegistryCode(LONG_COMPONENT, 'registry');
 
-        await updateRegistryFile(REPO_REGISTRY_PATH, generatedCode);
+        updateRegistryFile(REPO_REGISTRY_PATH, generatedCode);
         const formatted = mockWriteFileSync.mock.calls[0][1] as string;
 
         // Simulate the formatted file now on disk (the write above is mocked, so memfs is unchanged).
         vol.fromJSON({ [REPO_REGISTRY_PATH]: formatted });
         mockWriteFileSync.mockClear();
 
-        const changed = await updateRegistryFile(REPO_REGISTRY_PATH, generatedCode);
+        const changed = updateRegistryFile(REPO_REGISTRY_PATH, generatedCode);
 
         expect(changed).toBe(false);
         expect(mockWriteFileSync).not.toHaveBeenCalled();
     });
 
-    it('falls back to unformatted content when the project has no Prettier', async () => {
-        vol.fromJSON({ [NO_PRETTIER_PATH]: SCAFFOLD });
+    it('falls back to unformatted content when Biome cannot run (bad working directory)', () => {
+        vol.fromJSON({ [NO_FORMAT_PATH]: SCAFFOLD });
         const generatedCode = generateRegistryCode(LONG_COMPONENT, 'registry');
 
-        const changed = await updateRegistryFile(NO_PRETTIER_PATH, generatedCode);
+        const changed = updateRegistryFile(NO_FORMAT_PATH, generatedCode);
 
         expect(changed).toBe(true);
         const written = mockWriteFileSync.mock.calls[0][1] as string;
         expect(written).toContain(LONG_SINGLE_LINE);
-    });
-
-    it('does not re-warn about missing Prettier on a subsequent run (no per-save HMR spam)', async () => {
-        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        vol.fromJSON({ [NO_PRETTIER_PATH]: SCAFFOLD });
-        const generatedCode = generateRegistryCode(LONG_COMPONENT, 'registry');
-        const missingWarnCount = () =>
-            warnSpy.mock.calls.filter((args) => String(args[1]).includes('Prettier not found in the project')).length;
-
-        await updateRegistryFile(NO_PRETTIER_PATH, generatedCode);
-        const afterFirst = missingWarnCount();
-        await updateRegistryFile(NO_PRETTIER_PATH, generatedCode);
-        const afterSecond = missingWarnCount();
-
-        // The warning latches per process: whether or not an earlier test already tripped it, a
-        // second identical run must add no further warning. That latch is what prevents the missing-
-        // Prettier case from logging on every HMR save in dev.
-        expect(afterSecond).toBe(afterFirst);
-        warnSpy.mockRestore();
     });
 });
 

@@ -56,6 +56,7 @@ import { type ComponentType, Region } from '@/components/region';
         name: 'Column 6',
     },
 ])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class GridMetadata {
     @AttributeDefinition({
         description: 'Number of columns in the grid (1-6)',

@@ -170,37 +170,34 @@ describe('OrderDetails', () => {
             [['returned', 'ordered'], 'Partial Return Complete', 'muted'],
             [['return_initiated'], 'Return Initiated', 'info'],
             [['return_initiated', 'ordered'], 'Partial Return Initiated', 'info'],
-        ] as const)(
-            'renders %s as the "%s" return badge instead of the raw status',
-            (statuses, expectedLabel, shell) => {
-                const order = {
-                    ...defaultOrder,
-                    status: 'completed',
-                    productItems: statuses.map((status, i) => ({
-                        itemId: `item-${i}`,
-                        productId: `prod-${i}`,
-                        productName: `Product ${i}`,
-                        quantity: 1,
-                        omsData: { status },
-                    })),
-                } as ShopperOrders.schemas['Order'];
+        ] as const)('renders %s as the "%s" return badge instead of the raw status', (statuses, expectedLabel, shell) => {
+            const order = {
+                ...defaultOrder,
+                status: 'completed',
+                productItems: statuses.map((status, i) => ({
+                    itemId: `item-${i}`,
+                    productId: `prod-${i}`,
+                    productName: `Product ${i}`,
+                    quantity: 1,
+                    omsData: { status },
+                })),
+            } as ShopperOrders.schemas['Order'];
 
-                renderOrderDetails(order);
+            renderOrderDetails(order);
 
-                const badge = screen.getByTestId('order-return-status-badge');
-                expect(badge).toHaveTextContent(expectedLabel);
-                if (shell === 'info') {
-                    expect(badge.className).toContain('bg-info');
-                    expect(badge.className).toContain('text-info-foreground');
-                } else {
-                    expect(badge.className).toContain('bg-muted');
-                    expect(badge.className).toContain('text-muted-foreground');
-                }
-                // Return badge takes precedence: the raw status badge is suppressed.
-                expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
-                expect(screen.queryByText(t('account:orders.status.completed'))).not.toBeInTheDocument();
+            const badge = screen.getByTestId('order-return-status-badge');
+            expect(badge).toHaveTextContent(expectedLabel);
+            if (shell === 'info') {
+                expect(badge.className).toContain('bg-info');
+                expect(badge.className).toContain('text-info-foreground');
+            } else {
+                expect(badge.className).toContain('bg-muted');
+                expect(badge.className).toContain('text-muted-foreground');
             }
-        );
+            // Return badge takes precedence: the raw status badge is suppressed.
+            expect(screen.queryByTestId('order-status-badge')).not.toBeInTheDocument();
+            expect(screen.queryByText(t('account:orders.status.completed'))).not.toBeInTheDocument();
+        });
 
         it('renders the raw status badge when no item has a return status', () => {
             renderOrderDetails({ ...defaultOrder, status: 'completed' } as ShopperOrders.schemas['Order']);

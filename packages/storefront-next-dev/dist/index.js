@@ -2,7 +2,7 @@ import path, { resolve } from "node:path";
 import fs from "fs-extra";
 import chalk from "chalk";
 import { createRequire } from "module";
-import path$1, { dirname, join, relative, resolve as resolve$1 } from "path";
+import path$1, { basename, dirname, join, relative, resolve as resolve$1 } from "path";
 import { fileURLToPath } from "url";
 import { parse } from "@babel/parser";
 import { isArrayPattern, isClassDeclaration, isExportSpecifier, isFunctionDeclaration, isIdentifier, isJSXAttribute, isJSXElement, isJSXFragment, isJSXIdentifier, isMemberExpression, isObjectPattern, isObjectProperty, isRestElement, isVariableDeclaration, jsxClosingElement, jsxClosingFragment, jsxElement, jsxFragment, jsxIdentifier, jsxOpeningElement, jsxOpeningFragment, jsxText } from "@babel/types";
@@ -11,6 +11,7 @@ import traverseModule from "@babel/traverse";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { glob } from "glob";
 import { Node, Project, ts } from "ts-morph";
+import { spawnSync } from "child_process";
 import fs$1, { existsSync as existsSync$1, readFileSync as readFileSync$1 } from "node:fs";
 import { deadCodeElimination, findReferencedIdentifiers } from "babel-dead-code-elimination";
 import httpProxy from "http-proxy";
@@ -806,6 +807,72 @@ const watchConfigFilesPlugin = () => {
 };
 
 //#endregion
+//#region src/utils/format-with-project-biome.ts
+/** This module's own path — the resolution root for the SDK-bundled Biome fallback. */
+const HERE = fileURLToPath(import.meta.url);
+/**
+* Format generated file content with the *consuming project's* Biome so the written file
+* matches what the project's own `biome format` / `pnpm lint:fix` would produce.
+*
+* The SDK generates two kinds of files into a customer project — the extension `config.json`
+* (`trim-extensions.ts`) and the static component registry (`staticRegistry.ts`). Both must
+* be emitted in the exact byte shape the project's formatter produces, or the generated file
+* fails `pnpm lint` on a fresh project / churns on every `biome format --write` (W-23074938).
+*
+* Biome is preferred from the target file's own location — i.e. the consuming project's
+* `node_modules` — so it's the project's Biome version whose output is matched. When that
+* isn't installed yet (e.g. `create-storefront` runs `trim-extensions` BEFORE the generated
+* project's first `pnpm install`), we fall back to the SDK-bundled `@biomejs/biome` (a hard
+* dependency of this package, pinned to the template's version). Either way the file's
+* committed `biome.json` governs the output: Biome discovers its config by walking up from
+* the working directory, so we spawn it with `cwd` set to the file's directory and pass the
+* file's basename via `--stdin-file-path` (which drives both parser selection and formatting).
+*
+* Returns the content unchanged when no Biome can be resolved at all or the format fails, so
+* generation never breaks over formatting. A genuine format error is logged but non-fatal —
+* an unformatted-but-valid file is recoverable by the customer running `biome format --write`.
+*
+* @param content - The serialized file content to format.
+* @param filePath - The file's path (drives parser selection + config resolution + cwd).
+* @returns The Biome-formatted content, or the original content if Biome is unavailable.
+*/
+function formatWithProjectBiome(content, filePath) {
+	const biomeBin = resolveBiomeBin(filePath);
+	if (!biomeBin) {
+		logger.warn(`⚠️  Biome could not be resolved; ${basename(filePath)} will be written unformatted.`);
+		return content;
+	}
+	const result = spawnSync(process.execPath, [
+		biomeBin,
+		"format",
+		`--stdin-file-path=${basename(filePath)}`
+	], {
+		cwd: dirname(filePath),
+		input: content,
+		encoding: "utf8"
+	});
+	if (result.status !== 0 || typeof result.stdout !== "string") {
+		const detail = result.stderr?.trim() || `exit code ${result.status}`;
+		logger.warn(`⚠️  Skipping Biome formatting for ${basename(filePath)}: ${detail}`);
+		return content;
+	}
+	return result.stdout;
+}
+/**
+* Resolve a Biome CLI binary path, preferring the consuming project's install and falling back
+* to the SDK-bundled copy (available pre-install). Returns null when neither resolves.
+*/
+function resolveBiomeBin(filePath) {
+	for (const fromPath of [filePath, HERE]) try {
+		const req = createRequire(fromPath);
+		const biomePkgJson = req.resolve("@biomejs/biome/package.json");
+		const { bin } = req(biomePkgJson);
+		return join(dirname(biomePkgJson), bin.biome);
+	} catch {}
+	return null;
+}
+
+//#endregion
 //#region src/plugins/staticRegistry.ts
 const DEFAULT_COMPONENT_GROUP = "storefrontnext_base";
 /**
@@ -958,42 +1025,9 @@ ${registrations}
 `;
 }
 /**
-* Formats registry file content with the project's own Prettier so the written file
-* matches what the project's formatter would produce.
-*
-* Without this, a standalone `prettier --write` (pre-commit hook, format-on-save) rewrites
-* the generated file on every commit: the generator emits one `registerImporter` call per
-* line and cannot anticipate an arbitrary `printWidth`, so Prettier re-wraps long lines and
-* the regenerate -> format -> regenerate loop never settles.
-*
-* Prettier is resolved from the registry file's own location — i.e. the consuming project's
-* `node_modules`, not the SDK bundle (which keeps `node_modules` external). It is the project's
-* Prettier version and config whose output must be matched. Returns the content unchanged when
-* Prettier is absent or fails, so registry generation never breaks a build over formatting.
-*/
-let warnedNoPrettier = false;
-async function formatWithProjectPrettier(content, registryFilePath) {
-	try {
-		const prettier = createRequire(registryFilePath)("prettier");
-		const config = await prettier.resolveConfig(registryFilePath, { editorconfig: true });
-		return await prettier.format(content, {
-			...config,
-			filepath: registryFilePath
-		});
-	} catch (error) {
-		if (error.code === "MODULE_NOT_FOUND") {
-			if (!warnedNoPrettier) {
-				logger.warn("⚠️  Prettier not found in the project; static registry will be written unformatted.");
-				warnedNoPrettier = true;
-			}
-		} else logger.warn(`⚠️  Skipping Prettier formatting for registry file: ${error.message}`);
-		return content;
-	}
-}
-/**
 * Updates the registry.ts file with the generated code
 */
-async function updateRegistryFile(registryFilePath, generatedCode) {
+function updateRegistryFile(registryFilePath, generatedCode) {
 	let existingContent;
 	if (!existsSync(registryFilePath)) {
 		logger.debug("📝 Creating new registry file...");
@@ -1018,7 +1052,7 @@ export const registry = new ComponentRegistry();
 	const startIndex = existingContent.indexOf(startMarker);
 	const endIndex = existingContent.indexOf(endMarker);
 	if (startIndex === -1 || endIndex === -1) throw new Error(`Registry file ${registryFilePath} is missing static registry markers. Please add "${startMarker}" and "${endMarker}" markers to define the generated content area.`);
-	const updatedContent = await formatWithProjectPrettier(`${existingContent.slice(0, startIndex + 24)}\n${generatedCode}\n${existingContent.slice(endIndex)}`, registryFilePath);
+	const updatedContent = formatWithProjectBiome(`${existingContent.slice(0, startIndex + 24)}\n${generatedCode}\n${existingContent.slice(endIndex)}`, registryFilePath);
 	if (updatedContent === existingContent) {
 		logger.debug(`⏭️  Registry unchanged, skipping write: ${registryFilePath}`);
 		return false;
@@ -1070,7 +1104,7 @@ const staticRegistryPlugin = (config = {}) => {
 		logger.debug(`📦 Found ${components.length} components with @Component decorators`);
 		const generatedCode = generateRegistryCode(components, registryIdentifier);
 		const registryFilePath = resolve$1(projectRoot, registryPath);
-		const changed = await updateRegistryFile(registryFilePath, generatedCode);
+		const changed = updateRegistryFile(registryFilePath, generatedCode);
 		logger.debug("✅ Static registry generation complete!");
 		return {
 			registryFilePath,
@@ -1410,9 +1444,9 @@ const PASSTHROUGH_QUERY = "?platform-passthrough";
 * Finds a user-ejected entry file in the app directory.
 * Returns the absolute path if found, undefined otherwise.
 */
-function findUserEntry(appDirectory, basename) {
+function findUserEntry(appDirectory, basename$1) {
 	for (const ext of ENTRY_EXTENSIONS) {
-		const filePath = path.resolve(appDirectory, basename + ext);
+		const filePath = path.resolve(appDirectory, basename$1 + ext);
 		if (fs$1.existsSync(filePath)) return filePath;
 	}
 }
@@ -1513,8 +1547,8 @@ function platformEntryPlugin() {
 			const watcher = server.watcher;
 			const checkEntryChange = (filePath) => {
 				const relative$1 = path.relative(appDir, filePath);
-				const basename = path.basename(relative$1, path.extname(relative$1));
-				if (path.dirname(relative$1) !== "." || basename !== "entry.server" && basename !== "entry.client") return;
+				const basename$1 = path.basename(relative$1, path.extname(relative$1));
+				if (path.dirname(relative$1) !== "." || basename$1 !== "entry.server" && basename$1 !== "entry.client") return;
 				const ext = path.extname(relative$1);
 				if (!ENTRY_EXTENSIONS.includes(ext)) return;
 				const nowHasServer = findUserEntry(appDir, "entry.server") !== void 0;

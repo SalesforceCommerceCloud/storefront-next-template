@@ -17,6 +17,7 @@ import { lazy } from 'react';
 import type { RegionDecoratorProps } from './component.types';
 import { usePageDesignerMode } from './PageDesignerProvider';
 
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the lazy const alongside the exported decorator factory; eslint-plugin-react-refresh does not
 const LazyDesignRegion = lazy(() =>
     import('../components/DesignRegion').then((module) => ({ default: module.DesignRegion }))
 );

@@ -21,8 +21,8 @@ const a11yTestMode: 'off' | 'todo' | 'error' =
     process.env.STORYBOOK_DISABLE_A11Y === 'true'
         ? 'off'
         : process.env.STORYBOOK_A11Y_TEST_MODE === 'error'
-          ? 'error'
-          : 'todo';
+            ? 'error'
+            : 'todo';
 
 const preview: Preview = {
     parameters: {

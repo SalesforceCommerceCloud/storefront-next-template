@@ -38,13 +38,13 @@ class AllureHelper extends Helper {
         }
         const text = `${key}=${value}\n`;
         const path = this.buildPath(NAME);
-
+        
         // Ensure directory exists before writing
         const dir = dirname(path);
         if (!existsSync(dir)) {
             mkdirSync(dir, { recursive: true });
         }
-
+        
         appendFileSync(path, text);
     };
 
@@ -113,7 +113,7 @@ class AllureHelper extends Helper {
         this.printEnvOnAllureReport('CI', process.env.CI);
         this.printEnvOnAllureReport('NODE_VERSION', process.version);
         this.printEnvOnAllureReport('TIMESTAMP', new Date().toISOString());
-
+        
         // Add AI configuration if enabled
         if (process.env.CODECEPT_AI === 'true') {
             this.printEnvOnAllureReport('AI_ENABLED', 'true');

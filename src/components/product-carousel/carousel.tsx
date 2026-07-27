@@ -197,6 +197,7 @@ export default function ProductCarousel({
  * }
  * ```
  */
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export const ProductCarouselWithSuspense = withSuspense(ProductCarouselWithData, {
     fallback: (props) => <ProductCarouselSkeleton {...props} />,
 });

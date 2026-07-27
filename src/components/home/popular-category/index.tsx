@@ -58,6 +58,7 @@ interface PopularCategoryProps extends Omit<ComponentProps<typeof Link>, 'to'> {
     description: 'Displays a single category card with image, title, description, and shop now button',
     group: 'Content',
 })
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class PopularCategoryMetadata {
     @AttributeDefinition({
         name: 'Category',

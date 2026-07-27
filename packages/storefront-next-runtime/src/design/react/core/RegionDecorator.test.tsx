@@ -263,59 +263,62 @@ describe('design/react/RegionDecorator', () => {
                     expectedPreventDefault: false,
                     scenario: 'isComponentTypeAllowedInRegion returns false',
                 },
-            ])(
-                'should handle CSS classes when $scenario',
-                async ({ componentType, inclusions, exclusions, expectedHover, expectedPreventDefault }) => {
-                    const { region, host } = await testBed.render(TestComponent, {
-                        regionMetadata: {
-                            id: 'test-region-1',
-                            contentLinkUuids: [],
-                            componentTypeInclusions: inclusions,
-                            componentTypeExclusions: exclusions,
-                        },
+            ])('should handle CSS classes when $scenario', async ({
+                componentType,
+                inclusions,
+                exclusions,
+                expectedHover,
+                expectedPreventDefault,
+            }) => {
+                const { region, host } = await testBed.render(TestComponent, {
+                    regionMetadata: {
+                        id: 'test-region-1',
+                        contentLinkUuids: [],
+                        componentTypeInclusions: inclusions,
+                        componentTypeExclusions: exclusions,
+                    },
+                });
+
+                setupDragTest(region);
+
+                // Initially, no hover class should be present
+                expect(region.classList.contains('pd-design__region--hovered')).toBe(false);
+
+                // Start dragging the component
+                act(() => {
+                    host.startComponentDrag({
+                        componentType,
                     });
+                });
 
-                    setupDragTest(region);
-
-                    // Initially, no hover class should be present
-                    expect(region.classList.contains('pd-design__region--hovered')).toBe(false);
-
-                    // Start dragging the component
-                    act(() => {
-                        host.startComponentDrag({
-                            componentType,
-                        });
+                // Simulate drag moved to coordinates within the region bounds
+                act(() => {
+                    host.notifyClientWindowDragMoved({
+                        componentType,
+                        x: 100,
+                        y: 75,
                     });
+                });
 
-                    // Simulate drag moved to coordinates within the region bounds
-                    act(() => {
-                        host.notifyClientWindowDragMoved({
-                            componentType,
-                            x: 100,
-                            y: 75,
-                        });
-                    });
+                // Check hover class based on expected behavior
+                await waitFor(() => {
+                    expect(region.classList.contains('pd-design__region--hovered')).toBe(expectedHover);
+                });
 
-                    // Check hover class based on expected behavior
-                    await waitFor(() => {
-                        expect(region.classList.contains('pd-design__region--hovered')).toBe(expectedHover);
-                    });
+                // Test dragover preventDefault behavior
+                const dragOverEvent = new Event('dragover', {
+                    bubbles: true,
+                    cancelable: true,
+                });
+                const preventDefaultSpy = vi.spyOn(dragOverEvent, 'preventDefault');
+                region.dispatchEvent(dragOverEvent);
 
-                    // Test dragover preventDefault behavior
-                    const dragOverEvent = new Event('dragover', {
-                        bubbles: true,
-                        cancelable: true,
-                    });
-                    const preventDefaultSpy = vi.spyOn(dragOverEvent, 'preventDefault');
-                    region.dispatchEvent(dragOverEvent);
-
-                    if (expectedPreventDefault) {
-                        expect(preventDefaultSpy).toHaveBeenCalled();
-                    } else {
-                        expect(preventDefaultSpy).not.toHaveBeenCalled();
-                    }
+                if (expectedPreventDefault) {
+                    expect(preventDefaultSpy).toHaveBeenCalled();
+                } else {
+                    expect(preventDefaultSpy).not.toHaveBeenCalled();
                 }
-            );
+            });
         });
     });
 });

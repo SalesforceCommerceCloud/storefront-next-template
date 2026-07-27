@@ -253,23 +253,25 @@ describe('fetchPage', () => {
             },
         ];
 
-        it.each(errorTestCases)(
-            '$description',
-            async ({ error, inputParameters, expectedErrorMessage, shouldCheckParameters }) => {
-                mockGetPage.mockRejectedValue(error);
+        it.each(errorTestCases)('$description', async ({
+            error,
+            inputParameters,
+            expectedErrorMessage,
+            shouldCheckParameters,
+        }) => {
+            mockGetPage.mockRejectedValue(error);
 
-                await expect(fetchPage(mockContext, inputParameters)).rejects.toThrow(expectedErrorMessage);
+            await expect(fetchPage(mockContext, inputParameters)).rejects.toThrow(expectedErrorMessage);
 
-                if (shouldCheckParameters) {
-                    expect(mockGetPage).toHaveBeenCalledWith({
-                        params: {
-                            path: { pageId: inputParameters.pageId },
-                            query: {},
-                        },
-                    });
-                }
+            if (shouldCheckParameters) {
+                expect(mockGetPage).toHaveBeenCalledWith({
+                    params: {
+                        path: { pageId: inputParameters.pageId },
+                        query: {},
+                    },
+                });
             }
-        );
+        });
     });
 
     describe('return value validation', () => {

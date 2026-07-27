@@ -35,7 +35,6 @@ import type { RecursivePartial } from './types';
 // Preload the dynamic context
 import '../react/context/DesignContext';
 
-// eslint-disable-next-line react/prop-types
 const TestRegion: React.FC<React.PropsWithChildren> = ({ children }) => <div data-testid="test-region">{children}</div>;
 
 type Result = RenderResult & { element: HTMLElement; host: HostApi; root: HTMLElement; region: HTMLElement };

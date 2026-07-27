@@ -317,6 +317,7 @@ describe('DynamicImageProvider', () => {
                 const { result } = renderHook(() => useDynamicImageContext(), { wrapper });
 
                 expect(() => {
+                    // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here (test assertion)
                     (result.current?.widths as number[]).push(400);
                 }).toThrow();
             });
@@ -337,6 +338,7 @@ describe('DynamicImageProvider', () => {
                 const { result } = renderHook(() => useDynamicImageContext(), { wrapper });
 
                 expect(() => {
+                    // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here (test assertion)
                     (result.current?.widths as Record<string, number>).lg = 400;
                 }).toThrow();
             });

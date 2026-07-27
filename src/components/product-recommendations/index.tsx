@@ -43,6 +43,7 @@ export interface RecommenderConfig {
         'Displays product recommendations. Automatically reads product from context when available on product pages.',
     group: 'Content',
 })
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class ProductRecommendationsMetadata {
     @AttributeDefinition({
         name: 'Recommender Name',

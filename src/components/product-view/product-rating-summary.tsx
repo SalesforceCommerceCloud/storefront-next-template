@@ -145,6 +145,7 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
         <div className="relative mt-2 inline-block">
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
+                    {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- hover-only popover trigger (onMouseEnter/Leave); eslint-plugin-jsx-a11y's default handler list excludes mouse-enter/leave, so this is not a keyboard-interaction gap */}
                     <div
                         className={cn('relative inline-block', canInteract && 'cursor-pointer')}
                         onMouseEnter={() => {

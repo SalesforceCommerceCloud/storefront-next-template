@@ -16,18 +16,18 @@ Optional keys: `headerText`, `disclaimerMarkdown`, `commerceClientDisplayMode` (
 
 ```json
 {
-    "enabled": "true",
-    "provider": "commerce-client",
-    "commerceClientScriptSourceUrl": "https://cdn.search.cimulate.ai/copilot-widget/1.9.0/messaging.umd.js",
-    "scrt2Url": "https://your-org.salesforce-scrt.com",
-    "salesforceOrgId": "00Dxx0000000001",
-    "esDeveloperName": "My_Embedded_Service",
-    "headerText": "Commerce Assistant",
-    "disclaimerMarkdown": "This is AI and can make mistakes.",
-    "commerceClientDisplayMode": "panel",
-    "commerceClientPanelWidth": "420px",
-    "commerceClientMode": "messaging",
-    "commerceClientLogoUrl": "https://cimulate.ai/logo.png"
+  "enabled": "true",
+  "provider": "commerce-client",
+  "commerceClientScriptSourceUrl": "https://cdn.search.cimulate.ai/copilot-widget/1.9.0/messaging.umd.js",
+  "scrt2Url": "https://your-org.salesforce-scrt.com",
+  "salesforceOrgId": "00Dxx0000000001",
+  "esDeveloperName": "My_Embedded_Service",
+  "headerText": "Commerce Assistant",
+  "disclaimerMarkdown": "This is AI and can make mistakes.",
+  "commerceClientDisplayMode": "panel",
+  "commerceClientPanelWidth": "420px",
+  "commerceClientMode": "messaging",
+  "commerceClientLogoUrl": "https://cimulate.ai/logo.png"
 }
 ```
 

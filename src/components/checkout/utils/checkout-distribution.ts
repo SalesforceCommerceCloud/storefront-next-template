@@ -114,6 +114,7 @@ export function getSingleShipmentDistribution(basket?: ShopperBasketsV2.schemas[
  * Return type for shipment distribution analysis functions.
  * Structured such that the type varies based on the extensions installed.
  */
+// biome-ignore format: each intersection member stays on its own line so @sfdc-extension-line stripping removes whole members cleanly
 export type ShipmentDistribution = SingleShipmentDistribution &
     // @sfdc-extension-line SFDC_EXT_BOPIS
     PickupShipmentDistribution &

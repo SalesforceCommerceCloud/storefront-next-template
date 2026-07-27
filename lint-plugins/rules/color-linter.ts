@@ -13,113 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Custom no client actions rule
-export const noClientActionsRule = {
-    meta: {
-        type: 'problem',
-        docs: {
-            description:
-                'For security reasons, it is recommended to use server actions instead of client actions in routes.',
-            category: 'Best Practices',
-        },
-        messages: {
-            noClientActions:
-                'For security reasons, it is recommended to use server actions instead of client actions in routes.',
-        },
-        schema: [], // no options
-    },
 
-    create(context) {
-        const name = 'clientAction';
-
-        return {
-            ExportNamedDeclaration(node) {
-                if (node.declaration) {
-                    // Case: export function clientAction() {}
-                    if (node.declaration.type === 'FunctionDeclaration' && node.declaration.id?.name === name) {
-                        context.report({ node: node.declaration.id, messageId: 'noClientActions' });
-                    }
-
-                    // Case: export const clientAction = ...
-                    if (node.declaration.type === 'VariableDeclaration') {
-                        for (const d of node.declaration.declarations) {
-                            if (d.id.name === name) {
-                                context.report({ node: d.id, messageId: 'noClientActions' });
-                            }
-                        }
-                    }
-                }
-
-                // Case: export { clientAction } / export { foo as clientAction }
-                if (node.specifiers) {
-                    for (const s of node.specifiers) {
-                        if (s.exported && s.exported.type === 'Identifier' && s.exported.name === name) {
-                            context.report({ node: s.exported, messageId: 'noClientActions' });
-                        }
-                    }
-                }
-            },
-        };
-    },
-};
-
-// Custom no client loaders rule
-export const noClientLoadersRule = {
-    meta: {
-        type: 'problem',
-        docs: {
-            description:
-                'For better perceived performance and security reasons, it is recommended to use use server loaders instead of client loaders in routes.',
-            category: 'Best Practices',
-        },
-        messages: {
-            noClientLoaders:
-                'For better perceived performance and security reasons, it is recommended to use use server loaders instead of client loaders in routes.',
-        },
-        schema: [], // no options
-    },
-
-    create(context) {
-        const name = 'clientLoader';
-
-        return {
-            ExportNamedDeclaration(node) {
-                if (node.declaration) {
-                    // Case: export function clientLoader() {}
-                    if (node.declaration.type === 'FunctionDeclaration' && node.declaration.id?.name === name) {
-                        context.report({ node: node.declaration.id, messageId: 'noClientLoaders' });
-                    }
-
-                    // Case: export const clientLoader = ...
-                    if (node.declaration.type === 'VariableDeclaration') {
-                        for (const d of node.declaration.declarations) {
-                            if (d.id.name === name) {
-                                context.report({ node: d.id, messageId: 'noClientLoaders' });
-                            }
-                        }
-                    }
-                }
-
-                // Case: export { clientLoader } / export { foo as clientLoader }
-                if (node.specifiers) {
-                    for (const s of node.specifiers) {
-                        if (s.exported && s.exported.type === 'Identifier' && s.exported.name === name) {
-                            context.report({ node: s.exported, messageId: 'noClientLoaders' });
-                        }
-                    }
-                }
-            },
-        };
-    },
-};
-
-// Custom color linting rule
+/**
+ * Disallows hardcoded Tailwind color utilities (e.g. `bg-red-500`, `text-white`)
+ * in `className` attributes and `cn()` calls, steering authors toward themeable
+ * shadcn design-token utilities. Ported verbatim from the ESLint
+ * `custom/color-linter` rule.
+ */
 export const colorLinterRule = {
     meta: {
         type: 'problem',
         docs: {
             description: 'Disallow hardcoded Tailwind color utilities',
-            category: 'Best Practices',
             recommended: true,
         },
         fixable: null,

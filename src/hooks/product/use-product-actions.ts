@@ -988,6 +988,7 @@ export function useProductActions({
         isAddingToOrUpdatingCart,
         canAddToCart,
         itemId,
+        // oxlint-disable-next-line react/exhaustive-deps -- oxlint dependency analysis is stricter than eslint-plugin-react-hooks here
         basketProductItems,
     ]);
 

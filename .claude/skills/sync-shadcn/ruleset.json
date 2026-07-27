@@ -9,15 +9,7 @@
     "families": {
         "radius": {
             "replacement": "rounded-ui",
-            "members": [
-                "rounded",
-                "rounded-sm",
-                "rounded-md",
-                "rounded-lg",
-                "rounded-xl",
-                "rounded-2xl",
-                "rounded-3xl"
-            ]
+            "members": ["rounded", "rounded-sm", "rounded-md", "rounded-lg", "rounded-xl", "rounded-2xl", "rounded-3xl"]
         },
         "shadow": {
             "replacement": "shadow-ui",

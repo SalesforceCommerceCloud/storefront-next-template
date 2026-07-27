@@ -102,6 +102,7 @@ class CheckoutErrorBoundaryClass extends Component<CheckoutErrorBoundaryProps, C
 }
 
 // Export the component wrapped with withTranslation HOC
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export const CheckoutErrorBoundary = withTranslation()(CheckoutErrorBoundaryClass);
 
 /**

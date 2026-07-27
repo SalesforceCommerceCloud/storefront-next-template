@@ -1,29 +1,29 @@
 :root {
     /* core */
-    --background: #ffffff;
-    --foreground: #17171b;
+    --background: #FFFFFF;
+    --foreground: #17171B;
 
-    --card: #ffffff;
-    --card-foreground: #3f3f46;
+    --card: #FFFFFF;
+    --card-foreground: #3F3F46;
 
-    --popover: #ffffff;
-    --popover-foreground: #3f3f46;
+    --popover: #FFFFFF;
+    --popover-foreground: #3F3F46;
 
     --primary: #131315;
-    --primary-foreground: #ffffff;
+    --primary-foreground: #FFFFFF;
 
-    --secondary: #f8f8f8;
-    --secondary-foreground: #33373d;
+    --secondary: #F8F8F8;
+    --secondary-foreground: #33373D;
 
-    --tertiary: #1cb167;
-    --tertiary-foreground: #ffffff;
+    --tertiary: #1CB167;
+    --tertiary-foreground: #FFFFFF;
 
-    --muted: #f9fafb;
-    --muted-foreground: #35353b;
+    --muted: #F9FAFB;
+    --muted-foreground: #35353B;
     /* not in Figma JSON */
     --muted-hover: #ebebeb;
 
-    --accent: #ececec;
+    --accent: #ECECEC;
     --accent-foreground: #373737;
 
     /*
@@ -34,20 +34,20 @@
      * sync these darker values back into Figma.
      */
     /* WCAG AA: 6.47:1 on white; 5.30:1 on --destructive-foreground; 5.45:1 on bg-destructive/10 */
-    --destructive: #b91c1c;
-    --destructive-foreground: #fee2e2;
+    --destructive: #B91C1C;
+    --destructive-foreground: #FEE2E2;
 
     /* WCAG AA: 7.13:1 on white; 5.53:1 on --success-foreground */
     --success: #166534;
-    --success-foreground: #cbead7;
+    --success-foreground: #CBEAD7;
 
     /* WCAG AA: 5.02:1 on white; 4.68:1 on --warning-foreground */
-    --warning: #b45309;
-    --warning-foreground: #fef9c3;
+    --warning: #B45309;
+    --warning-foreground: #FEF9C3;
 
     /* WCAG AA: 5.93:1 on white; 4.86:1 on --info-foreground */
-    --info: #0369a1;
-    --info-foreground: #dbeafe;
+    --info: #0369A1;
+    --info-foreground: #DBEAFE;
 
     /* Both meet WCAG SC 1.4.11 (3:1 for UI component boundaries) on #FFFFFF, and
        --border is kept a step darker than --border-subtle for a visible hierarchy.
@@ -55,17 +55,17 @@
        such as --accent and muted-hover; 1.4.11 exempts purely decorative dividers,
        and --border still clears 3:1 on those surfaces. */
     --border: #767676; /* 4.54:1 on #FFFFFF */
-    --border-subtle: #8a8a8a; /* 3.45:1 on #FFFFFF */
+    --border-subtle: #8A8A8A; /* 3.45:1 on #FFFFFF */
     /* not in Figma JSON for light mode (Figma only defines `input` in dark) */
     /* 3.45:1 on #FFFFFF — meets WCAG SC 1.4.11 (3:1 for control boundaries). */
-    --input: #8a8a8a;
+    --input: #8A8A8A;
     /* 3.66:1 on #FFFFFF — meets WCAG SC 1.4.11 (3:1 for graphics); use for focus rings only,
        not as text color on white. */
-    --ring: #3b82f6;
+    --ring: #3B82F6;
 
     /* not in Figma JSON */
     /* solid 3.45:1 on #FFFFFF — meets WCAG SC 1.4.11 (was rgba(0,0,0,0.08), ~1.2:1). */
-    --separator: #8a8a8a;
+    --separator: #8A8A8A;
     --separator-foreground: #9e9e9e;
 
     /* not in Figma JSON */
@@ -97,7 +97,7 @@
     --ui-shadow: none;
     --ui-border-width: 0;
 
-    [role='radio']:not([data-labeled]) {
+    [role="radio"]:not([data-labeled]) {
         min-width: var(--swatch-pill-size);
         min-height: var(--swatch-pill-size);
     }

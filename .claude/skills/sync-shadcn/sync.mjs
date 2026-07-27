@@ -44,15 +44,7 @@
  * No environment variables. No npm dependencies (Node >=20 global fetch + node:crypto).
  */
 
-import {
-    readFileSync,
-    writeFileSync,
-    existsSync,
-    mkdirSync,
-    readdirSync,
-    statSync,
-    rmSync,
-} from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { join, basename, resolve, dirname, relative, sep } from 'node:path';
@@ -473,7 +465,9 @@ export function relativizeImport(specifier, fromFile, srcRoot, aliases = ['@/'])
     for (const alias of aliases) {
         if (specifier.startsWith(alias)) {
             const targetAbs = resolve(srcRoot, specifier.slice(alias.length));
-            let rel = relative(dirname(resolve(fromFile)), targetAbs).split(sep).join('/');
+            let rel = relative(dirname(resolve(fromFile)), targetAbs)
+                .split(sep)
+                .join('/');
             if (!rel.startsWith('.')) rel = './' + rel;
             return rel;
         }
@@ -483,15 +477,12 @@ export function relativizeImport(specifier, fromFile, srcRoot, aliases = ['@/'])
 
 /** Relativize aliased specifiers in `from '...'`, `import '...'`, `import('...')`. */
 function relativizeImports(content, aliases, fromFile, srcRoot, edits) {
-    return content.replace(
-        /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])([^'"]+)\2/g,
-        (m, pre, q, spec) => {
-            const rel = relativizeImport(spec, fromFile, srcRoot, aliases);
-            if (rel === spec) return m;
-            edits.push({ family: 'import', from: spec, to: rel });
-            return pre + q + rel + q;
-        }
-    );
+    return content.replace(/(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])([^'"]+)\2/g, (m, pre, q, spec) => {
+        const rel = relativizeImport(spec, fromFile, srcRoot, aliases);
+        if (rel === spec) return m;
+        edits.push({ family: 'import', from: spec, to: rel });
+        return pre + q + rel + q;
+    });
 }
 
 /**
@@ -626,10 +617,7 @@ const uniq = (arr) => [...new Set(arr)];
 export function mergeRulesets(ours, customer) {
     if (!customer) return ours;
     const families = {};
-    const names = uniq([
-        ...Object.keys(ours.families || {}),
-        ...Object.keys(customer.families || {}),
-    ]);
+    const names = uniq([...Object.keys(ours.families || {}), ...Object.keys(customer.families || {})]);
     for (const name of names) {
         const a = (ours.families || {})[name] || {};
         const b = (customer.families || {})[name] || {};
@@ -654,10 +642,9 @@ export function mergeRulesets(ours, customer) {
 
     const oursImp = ours.imports || {};
     const custImp = customer.imports || {};
-    const relativizeAliases = uniq([
-        ...(oursImp.relativizeAliases || []),
-        ...(custImp.relativizeAliases || []),
-    ]).filter((al) => !(custImp.removeAliases || []).includes(al));
+    const relativizeAliases = uniq([...(oursImp.relativizeAliases || []), ...(custImp.relativizeAliases || [])]).filter(
+        (al) => !(custImp.removeAliases || []).includes(al)
+    );
 
     return {
         version: ours.version,
@@ -680,9 +667,7 @@ export function mergeRulesets(ours, customer) {
 function loadRuleset() {
     const ours = JSON.parse(readFileSync(join(__dirname, RULESET_NAME), 'utf8'));
     const customerPath = join(__dirname, CUSTOMER_RULESET_NAME);
-    const customer = existsSync(customerPath)
-        ? JSON.parse(readFileSync(customerPath, 'utf8'))
-        : undefined;
+    const customer = existsSync(customerPath) ? JSON.parse(readFileSync(customerPath, 'utf8')) : undefined;
     return mergeRulesets(ours, customer);
 }
 
@@ -748,9 +733,7 @@ function resolveContext({ packageAlias, startDir } = {}) {
 
     const componentsJson = JSON.parse(readFileSync(join(pkgDir, 'components.json'), 'utf8'));
     const tsconfigPath = join(pkgDir, 'tsconfig.json');
-    const tsconfig = existsSync(tsconfigPath)
-        ? JSON.parse(readFileSync(tsconfigPath, 'utf8'))
-        : null;
+    const tsconfig = existsSync(tsconfigPath) ? JSON.parse(readFileSync(tsconfigPath, 'utf8')) : null;
     const { srcRoot, uiDir, libUtilsPath, aliasResolves } = resolveUiDirFromComponents(
         componentsJson,
         tsconfig,
@@ -927,9 +910,7 @@ async function cmdSync(pkg, names, { all, bootstrap }) {
             mkdirSync(pkg.baselineDir, { recursive: true });
             writeFileSync(baselineAbs, theirs);
             manifest.components[name] = manifestEntry(upstream, file, theirsSha);
-            console.log(
-                `  ${name}: SEEDED baseline${hasBaseline ? ' (re-seeded)' : ''} — no merge performed.`
-            );
+            console.log(`  ${name}: SEEDED baseline${hasBaseline ? ' (re-seeded)' : ''} — no merge performed.`);
             report.seeded.push(name);
             continue;
         }
@@ -962,9 +943,7 @@ async function cmdSync(pkg, names, { all, bootstrap }) {
                 });
                 if (edits.length) writeFileSync(fork, normalized);
                 const note = edits.length ? ` (restyled ${edits.length} token(s))` : '';
-                console.log(
-                    `  ${name}: merged clean${note} — review ${forkRel(pkg, name)}, then \`advance ${name}\`.`
-                );
+                console.log(`  ${name}: merged clean${note} — review ${forkRel(pkg, name)}, then \`advance ${name}\`.`);
                 report.merged.push(name);
             }
         } finally {
@@ -1048,9 +1027,7 @@ function cmdRestyle(pkg, names, opts) {
     }
 
     if (opts.check) {
-        console.log(
-            `\n${wouldChange ? `${wouldChange} file(s) would change` : 'all clean'}.`
-        );
+        console.log(`\n${wouldChange ? `${wouldChange} file(s) would change` : 'all clean'}.`);
         if (wouldChange) process.exitCode = 1;
     } else {
         console.log(`\n${changed ? `${changed} file(s) restyled` : 'nothing to restyle'}.`);
@@ -1285,9 +1262,7 @@ function summarize(report) {
     if (report.skipped.length) parts.push(`${report.skipped.length} skipped`);
     console.log(`\n${parts.join(', ') || 'nothing to do'}.`);
     if (report.merged.length || report.conflicts.length) {
-        console.log(
-            'Next: review the merged fork file(s), run `pnpm lint && pnpm typecheck`, then `advance`.'
-        );
+        console.log('Next: review the merged fork file(s), run `pnpm lint && pnpm typecheck`, then `advance`.');
     }
     if (report.conflicts.length) process.exitCode = 1;
 }

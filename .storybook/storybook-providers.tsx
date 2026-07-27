@@ -85,8 +85,7 @@ export const StorybookConfigProvider = ({ children }: PropsWithChildren) => (
  */
 const storybookSite = mockConfig.commerce.sites[0];
 const storybookLocale =
-    storybookSite.supportedLocales.find((l) => l.id === storybookSite.defaultLocale) ??
-    storybookSite.supportedLocales[0];
+    storybookSite.supportedLocales.find((l) => l.id === storybookSite.defaultLocale) ?? storybookSite.supportedLocales[0];
 
 export const StorybookSiteProvider = ({ children }: PropsWithChildren) => (
     <SiteProvider

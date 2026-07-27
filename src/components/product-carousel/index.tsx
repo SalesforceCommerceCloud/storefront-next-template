@@ -56,6 +56,7 @@ export default ProductCarouselWithSuspense;
         componentTypeInclusions: ['Content.productTile'],
     },
 ])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class ProductCarouselWithSuspenseMetadata {
     @AttributeDefinition({
         defaultValue: productCarouselDefaults.title,

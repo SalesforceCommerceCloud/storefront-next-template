@@ -15,12 +15,12 @@
  */
 
 /**
- * Real-filesystem coverage for the Prettier formatting path in `updateExtensionConfig`.
+ * Real-filesystem coverage for the Biome formatting path in `updateExtensionConfig`.
  *
  * The main suite (`trim-extensions.test.ts`) mocks `fs` with memfs, so the generated
- * config.json never lands on a real disk and the *shape* Prettier produces is never
+ * config.json never lands on a real disk and the *shape* Biome produces is never
  * asserted there. This file deliberately uses the REAL `fs` against a throwaway temp
- * directory so the SDK-bundled Prettier actually runs and we can assert the exact bytes
+ * directory so the SDK-bundled Biome actually runs and we can assert the exact bytes
  * a customer receives — the whole point of W-23074938 (lint-clean out of the box).
  *
  * Two properties matter for lint-cleanliness and are NOT what `JSON.stringify(…, null, 4)`
@@ -34,7 +34,7 @@ import os from 'os';
 import path from 'path';
 import trimExtensions from './trim-extensions';
 
-describe('trim-extensions — real Prettier formatting (W-23074938)', () => {
+describe('trim-extensions — real Biome formatting (W-23074938)', () => {
     let tmpDir: string;
 
     beforeEach(() => {
@@ -46,7 +46,7 @@ describe('trim-extensions — real Prettier formatting (W-23074938)', () => {
         fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    it('writes config.json in the shape the project Prettier produces (trailing newline + single-line arrays)', async () => {
+    it('writes config.json in the shape the project Biome produces (trailing newline + single-line arrays)', async () => {
         const extensionConfig = {
             extensions: {
                 SFDC_EXT_STORE_LOCATOR: {
@@ -70,7 +70,7 @@ describe('trim-extensions — real Prettier formatting (W-23074938)', () => {
         } as unknown as Parameters<typeof trimExtensions>[2];
         const configPath = path.join(tmpDir, 'src', 'extensions', 'config.json');
         // Seed with the multilined, newline-less output of raw JSON.stringify — exactly the
-        // shape we must NOT ship — so a passing assertion proves Prettier rewrote it.
+        // shape we must NOT ship — so a passing assertion proves Biome rewrote it.
         fs.writeFileSync(configPath, JSON.stringify(extensionConfig, null, 4), 'utf8');
 
         await trimExtensions(
@@ -87,11 +87,10 @@ describe('trim-extensions — real Prettier formatting (W-23074938)', () => {
         expect(parsed.extensions).toHaveProperty('SFDC_EXT_MAPS');
         expect(parsed.extensions).not.toHaveProperty('SFDC_EXT_WISHLIST');
 
-        // Prettier shape — the bytes that make `pnpm lint` pass on a fresh project.
+        // Biome shape — the bytes that make `pnpm lint` pass on a fresh project.
         expect(raw.endsWith('\n')).toBe(true);
         expect(raw).toContain('"dependencies": ["SFDC_EXT_MAPS"]');
-        // Indentation is 4 spaces (Prettier default for JSON via the template's config),
-        // and the array is NOT expanded one-element-per-line.
+        // The short array is NOT expanded one-element-per-line.
         expect(raw).not.toContain('"SFDC_EXT_MAPS"\n');
     });
 });

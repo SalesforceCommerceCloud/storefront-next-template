@@ -59,7 +59,11 @@ describe('action.verify-passwordless-otp', () => {
         otpCode,
         email,
         isRegistration,
-    }: { otpCode?: string; email?: string; isRegistration?: boolean } = {}): ActionFunctionArgs => {
+    }: {
+        otpCode?: string;
+        email?: string;
+        isRegistration?: boolean;
+    } = {}): ActionFunctionArgs => {
         const formData = new FormData();
         if (otpCode !== undefined) {
             formData.append('otpCode', otpCode);

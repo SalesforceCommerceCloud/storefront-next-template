@@ -83,6 +83,7 @@ vi.mock('@/components/with-suspense', () => ({
 vi.mock('@/components/product-carousel', () => ({
     ProductCarouselWithSuspense: ({ title, resolve }: any) => {
         try {
+            // oxlint-disable-next-line react/rules-of-hooks -- oxlint flags use() in try/catch; eslint-plugin-react-hooks accepts this test pattern
             const data = use(resolve);
             return (
                 <div data-testid="product-carousel">

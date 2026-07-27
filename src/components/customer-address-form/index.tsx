@@ -115,7 +115,6 @@ export { CustomerAddressFields } from './customer-address-fields';
 export { type CustomerAddressFormProps, type CustomerAddressFieldsProps } from './types';
 
 // Export constants and types
-// eslint-disable-next-line react-refresh/only-export-components
 export { COUNTRY_CODES } from './constants';
 // eslint-disable-next-line react-refresh/only-export-components
 export { getStatesForCountry, getCountryName, getStateName } from './utils';

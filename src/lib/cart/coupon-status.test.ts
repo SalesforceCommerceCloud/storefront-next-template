@@ -51,15 +51,16 @@ describe('getCouponStatusError', () => {
     // so the form can't be used to enumerate which codes exist (same 400 + same
     // invalidCode message for all three — the same message the action returns
     // when SCAPI throws a 4xx for a code it rejects outright).
-    test.each(['no_applicable_promotion', 'coupon_code_unknown', 'coupon_disabled'] as const)(
-        'maps %s to an INVALID_INPUT invalidCode error (no enumeration oracle)',
-        (statusCode) => {
-            expect(getCouponStatusError(statusCode)).toEqual({
-                code: ErrorCode.INVALID_INPUT,
-                messageKey: 'cart:promoCode.errors.invalidCode',
-            });
-        }
-    );
+    test.each([
+        'no_applicable_promotion',
+        'coupon_code_unknown',
+        'coupon_disabled',
+    ] as const)('maps %s to an INVALID_INPUT invalidCode error (no enumeration oracle)', (statusCode) => {
+        expect(getCouponStatusError(statusCode)).toEqual({
+            code: ErrorCode.INVALID_INPUT,
+            messageKey: 'cart:promoCode.errors.invalidCode',
+        });
+    });
 
     test('maps no_active_promotion to an EXPIRED error', () => {
         expect(getCouponStatusError('no_active_promotion')).toEqual({
@@ -68,15 +69,15 @@ describe('getCouponStatusError', () => {
         });
     });
 
-    test.each(['coupon_already_in_basket', 'coupon_code_already_in_basket'] as const)(
-        'maps %s to an already-applied CONFLICT error',
-        (statusCode) => {
-            expect(getCouponStatusError(statusCode)).toEqual({
-                code: ErrorCode.CONFLICT,
-                messageKey: 'cart:promoCode.errors.alreadyApplied',
-            });
-        }
-    );
+    test.each([
+        'coupon_already_in_basket',
+        'coupon_code_already_in_basket',
+    ] as const)('maps %s to an already-applied CONFLICT error', (statusCode) => {
+        expect(getCouponStatusError(statusCode)).toEqual({
+            code: ErrorCode.CONFLICT,
+            messageKey: 'cart:promoCode.errors.alreadyApplied',
+        });
+    });
 
     test.each([
         'coupon_code_already_redeemed',

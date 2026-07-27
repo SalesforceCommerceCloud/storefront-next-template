@@ -17,6 +17,7 @@ import { type CSSProperties, type ReactElement, useId } from 'react';
 import { Link } from '@/components/link';
 import { typographyVariants } from '@/components/typography';
 import { DynamicImage } from '@/components/dynamic-image';
+// oxlint-disable-next-line typescript/consistent-type-imports -- oxlint flags this import that typescript-eslint accepts
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
@@ -168,6 +169,7 @@ function getCtaLabel(ctaText: string | undefined, ctaLink: string): string {
     group: 'Content',
 })
 @RegionDefinition([])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class HeroMetadata {
     @AttributeDefinition()
     title?: string;

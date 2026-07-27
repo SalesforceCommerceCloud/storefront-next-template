@@ -105,6 +105,7 @@ export default function PreferredStore(): ReactElement {
                                                 // and is controlled by merchants via Business Manager. The content is
                                                 // sanitized server-side by the Commerce Cloud platform before being
                                                 // served through the API, making it safe to render.
+                                                // oxlint-disable-next-line react/no-danger -- oxlint flags dangerouslySetInnerHTML on custom components; eslint-plugin-react only flags host elements
                                                 dangerouslySetInnerHTML={{
                                                     __html: String(preferredStore.storeHours),
                                                 }}

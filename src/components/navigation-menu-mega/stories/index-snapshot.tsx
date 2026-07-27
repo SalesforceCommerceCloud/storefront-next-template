@@ -25,7 +25,8 @@ vi.mock('react-router', async (importOriginal) => {
     const actual = await importOriginal<typeof import('react-router')>();
     return {
         ...actual,
-        Await: ({ children }: { resolve: Promise<unknown>; children: (data: unknown) => ReactNode }) => children([]),
+        Await: ({ children }: { resolve: Promise<unknown>; children: (data: unknown) => ReactNode }) =>
+            children([]),
     };
 });
 

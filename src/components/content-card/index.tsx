@@ -65,6 +65,7 @@ interface ContentCardProps extends ComponentProps<'div'> {
     description: 'Flexible card component with optional image, title, description, and call-to-action button',
     group: 'Content',
 })
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class ContentCardMetadata {
     @AttributeDefinition()
     title?: string;

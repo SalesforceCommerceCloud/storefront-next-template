@@ -49,12 +49,18 @@ describe('replaceImageFormat()', () => {
             expect(replaceImageFormat(disUrl('webp'))).toBe(disUrl('webp'));
         });
 
-        test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'avif'])(
-            'replaces %s with webp',
-            (ext: string) => {
-                expect(replaceImageFormat(disUrl(ext))).toContain(`/path/image.webp?sfrm=${ext}`);
-            }
-        );
+        test.each([
+            'jpg',
+            'jpeg',
+            'jp2',
+            'png',
+            'gif',
+            'tif',
+            'tiff',
+            'avif',
+        ])('replaces %s with webp', (ext: string) => {
+            expect(replaceImageFormat(disUrl(ext))).toContain(`/path/image.webp?sfrm=${ext}`);
+        });
     });
 
     describe('custom target format', () => {
@@ -62,12 +68,18 @@ describe('replaceImageFormat()', () => {
             expect(replaceImageFormat(disUrl('avif'), 'avif')).toBe(disUrl('avif'));
         });
 
-        test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'webp'])(
-            'replaces %s with avif',
-            (ext: string) => {
-                expect(replaceImageFormat(disUrl(ext), 'avif')).toContain(`/path/image.avif?sfrm=${ext}`);
-            }
-        );
+        test.each([
+            'jpg',
+            'jpeg',
+            'jp2',
+            'png',
+            'gif',
+            'tif',
+            'tiff',
+            'webp',
+        ])('replaces %s with avif', (ext: string) => {
+            expect(replaceImageFormat(disUrl(ext), 'avif')).toContain(`/path/image.avif?sfrm=${ext}`);
+        });
     });
 
     describe('URLs with query parameters', () => {
@@ -76,14 +88,20 @@ describe('replaceImageFormat()', () => {
             expect(replaceImageFormat(url)).toBe(url);
         });
 
-        test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'avif'])(
-            'replaces %s with .webp',
-            (ext: string) => {
-                expect(replaceImageFormat(`${disUrl(ext)}?sw=461&q=60`)).toContain(
-                    `/path/image.webp?sw=461&q=60&sfrm=${ext}`
-                );
-            }
-        );
+        test.each([
+            'jpg',
+            'jpeg',
+            'jp2',
+            'png',
+            'gif',
+            'tif',
+            'tiff',
+            'avif',
+        ])('replaces %s with .webp', (ext: string) => {
+            expect(replaceImageFormat(`${disUrl(ext)}?sw=461&q=60`)).toContain(
+                `/path/image.webp?sw=461&q=60&sfrm=${ext}`
+            );
+        });
     });
 
     describe('case insensitivity', () => {
@@ -185,12 +203,19 @@ describe('replaceImageFormat()', () => {
 });
 
 describe('isDynamicImageSource()', () => {
-    test.each(['avif', 'gif', 'jp2', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'webp'])(
-        'returns true for DIS-supported extension .%s',
-        (ext) => {
-            expect(isDynamicImageSource(`https://example.com/foo.${ext}`)).toBe(true);
-        }
-    );
+    test.each([
+        'avif',
+        'gif',
+        'jp2',
+        'jpg',
+        'jpeg',
+        'png',
+        'tif',
+        'tiff',
+        'webp',
+    ])('returns true for DIS-supported extension .%s', (ext) => {
+        expect(isDynamicImageSource(`https://example.com/foo.${ext}`)).toBe(true);
+    });
 
     test('matches when a query string follows the extension', () => {
         expect(isDynamicImageSource('https://example.com/foo.jpg?sw=200')).toBe(true);

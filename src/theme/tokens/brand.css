@@ -25,22 +25,10 @@
      *   --hero-overlay-dark/-light : Hero's directional two-gradient treatment.
      *   --hero-scrim               : the carousel slide's uniform floor (text can sit anywhere).
      */
-    --hero-overlay-dark:
-        linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%),
-        linear-gradient(
-            to right,
-            color-mix(in oklch, var(--brand-black) 60%, transparent) 0%,
-            color-mix(in oklch, var(--brand-black) 30%, transparent) 50%,
-            transparent 100%
-        );
-    --hero-overlay-light:
-        linear-gradient(to top, color-mix(in oklch, var(--brand-white) 30%, transparent) 0%, transparent 100%),
-        linear-gradient(
-            to right,
-            color-mix(in oklch, var(--brand-white) 60%, transparent) 0%,
-            color-mix(in oklch, var(--brand-white) 30%, transparent) 50%,
-            transparent 100%
-        );
+    --hero-overlay-dark: linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%),
+        linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%);
+    --hero-overlay-light: linear-gradient(to top, color-mix(in oklch, var(--brand-white) 30%, transparent) 0%, transparent 100%),
+        linear-gradient(to right, color-mix(in oklch, var(--brand-white) 60%, transparent) 0%, color-mix(in oklch, var(--brand-white) 30%, transparent) 50%, transparent 100%);
     --hero-scrim: color-mix(in oklch, var(--brand-black) 60%, transparent);
     --brand-gray-50: #fafafa;
     --brand-gray-100: #f5f5f5;

@@ -837,24 +837,25 @@ describe('createDedupedFetch', () => {
         expect(message).not.toContain('12345');
     });
 
-    it.each(['PUT', 'PATCH', 'DELETE'])(
-        'invalidates the registry on %s settle (not just POST)',
-        async (mutationMethod) => {
-            const ctx = makeContext();
-            const baseFetch = makeBaseFetch();
-            const fetch = createDedupedFetch(ctx, baseFetch as unknown as typeof globalThis.fetch);
+    it.each([
+        'PUT',
+        'PATCH',
+        'DELETE',
+    ])('invalidates the registry on %s settle (not just POST)', async (mutationMethod) => {
+        const ctx = makeContext();
+        const baseFetch = makeBaseFetch();
+        const fetch = createDedupedFetch(ctx, baseFetch as unknown as typeof globalThis.fetch);
 
-            await fetch('https://api.example.com/x');
-            await fetch('https://api.example.com/x');
-            expect(baseFetch).toHaveBeenCalledTimes(1);
+        await fetch('https://api.example.com/x');
+        await fetch('https://api.example.com/x');
+        expect(baseFetch).toHaveBeenCalledTimes(1);
 
-            await fetch('https://api.example.com/x', { method: mutationMethod, body: 'a' });
+        await fetch('https://api.example.com/x', { method: mutationMethod, body: 'a' });
 
-            await fetch('https://api.example.com/x');
-            // 1 GET (deduped) + 1 mutation + 1 GET after invalidation = 3.
-            expect(baseFetch).toHaveBeenCalledTimes(3);
-        }
-    );
+        await fetch('https://api.example.com/x');
+        // 1 GET (deduped) + 1 mutation + 1 GET after invalidation = 3.
+        expect(baseFetch).toHaveBeenCalledTimes(3);
+    });
 
     it('serializes concurrent mutations and invalidates the registry once each settles', async () => {
         const ctx = makeContext();
@@ -1185,6 +1186,7 @@ describe('createTimeoutFetch', () => {
             // listener through to the rejected promise.
             expect(signal?.reason).toBe(error);
             expect(signal?.reason).toBeInstanceOf(DOMException);
+            // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here (test assertion)
             expect((signal?.reason as DOMException).name).toBe('TimeoutError');
         });
     });

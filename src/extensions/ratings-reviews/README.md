@@ -29,11 +29,11 @@ survive restarts. Replace with real persistence before relying on it.
 
 ## UITargets
 
-| Target ID                             | Mounted in                | Purpose                                                                                                                   |
-| ------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `sfcc.pdp.reviews.section`            | `_app.product.$productId` | Full reviews accordion (summary + list + write-review modal).                                                             |
-| `sfcc.pdp.reviews.summary`            | `cart-item-modal/view`    | Rating stars + count for compact product views (mounted on click — uses a resource route + `useFetcher`, not the loader). |
-| `sfcc.account.orderDetail.lineReview` | `order-items-list`        | Per-line "Rate & Review" CTA on order detail.                                                                             |
+| Target ID | Mounted in | Purpose |
+| --- | --- | --- |
+| `sfcc.pdp.reviews.section` | `_app.product.$productId` | Full reviews accordion (summary + list + write-review modal). |
+| `sfcc.pdp.reviews.summary` | `cart-item-modal/view` | Rating stars + count for compact product views (mounted on click — uses a resource route + `useFetcher`, not the loader). |
+| `sfcc.account.orderDetail.lineReview` | `order-items-list` | Per-line "Rate & Review" CTA on order detail. |
 
 ## Loader integration
 

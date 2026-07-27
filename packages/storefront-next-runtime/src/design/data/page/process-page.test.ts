@@ -259,6 +259,7 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const child = result.regions?.[0].components?.[0].regions?.[0].components?.[0];
+            // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here; child is known to be defined in this assertion
             expect((child?.data as Record<string, unknown>).heading).toBe('Resolved Title');
         });
 

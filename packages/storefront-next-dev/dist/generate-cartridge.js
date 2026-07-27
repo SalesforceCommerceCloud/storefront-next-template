@@ -1,9 +1,10 @@
 import { t as logger } from "./logger.js";
+import { t as formatDirectoryWithProjectBiome } from "./format-with-project-biome.js";
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
-import { execSync } from "node:child_process";
 import { Node, Project } from "ts-morph";
+import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { npmRunPathEnv } from "npm-run-path";
@@ -601,26 +602,14 @@ async function generateAspectCartridge(aspect, outputDir, dryRun = false) {
 	logger.debug(`${prefix} ${String(aspect.name)}: ${String(aspect.description)} (${String(aspect.attributeDefinitions.length)} attributes) → ${fileName}.json`);
 }
 /**
-* Runs ESLint with --fix on the specified directory to format JSON files.
-* This ensures generated JSON files match the project's Prettier/ESLint configuration.
+* Formats the generated JSON files in place so they match the project's `biome format` output
+* (and therefore pass `pnpm lint` out of the box). Delegates to the shared Biome helper, which
+* prefers the consuming project's Biome and is fail-safe (logs and leaves files valid-but-
+* unformatted rather than throwing) when Biome can't run.
 */
-function lintGeneratedFiles(metadataDir, projectRoot) {
-	try {
-		logger.debug("🔧 Running ESLint --fix on generated JSON files...");
-		execSync(`npx eslint "${metadataDir}/**/*.json" --fix --no-error-on-unmatched-pattern`, {
-			cwd: projectRoot,
-			stdio: "pipe",
-			encoding: "utf-8"
-		});
-		logger.debug("✅ JSON files formatted successfully");
-	} catch (error) {
-		const execError = error;
-		if (execError.status === 2) {
-			const errMsg = execError.stderr || execError.stdout || "Unknown error";
-			logger.warn(`⚠️  Could not run ESLint --fix: ${errMsg}`);
-		} else if (execError.stderr && execError.stderr.includes("error")) logger.warn(`⚠️  Some linting issues could not be auto-fixed. Run ESLint manually to review.`);
-		else logger.debug("✅ JSON files formatted successfully");
-	}
+function lintGeneratedFiles(metadataDir) {
+	logger.debug("🔧 Formatting generated JSON files with Biome...");
+	formatDirectoryWithProjectBiome(metadataDir);
 }
 async function generateMetadata(projectDirectory, metadataDirectory, options) {
 	try {
@@ -735,7 +724,7 @@ async function generateMetadata(projectDirectory, metadataDirectory, options) {
 			else logger.info(`Generated ${allAspects.length} aspect metadata file(s)`);
 		}
 		const shouldLintFix = options?.lintFix !== false;
-		if (!dryRun && shouldLintFix && (allComponents.length > 0 || allPageTypes.length > 0 || allAspects.length > 0)) lintGeneratedFiles(metadataDir, projectRoot);
+		if (!dryRun && shouldLintFix && (allComponents.length > 0 || allPageTypes.length > 0 || allAspects.length > 0)) lintGeneratedFiles(metadataDir);
 		return {
 			componentsGenerated: allComponents.length,
 			pageTypesGenerated: allPageTypes.length,

@@ -59,6 +59,7 @@ const heroCarouselDefaults = {
         componentTypeInclusions: ['Content.hero'],
     },
 ])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class HeroCarouselMetadata {
     @AttributeDefinition({ defaultValue: heroCarouselDefaults.autoPlay })
     autoPlay?: boolean;

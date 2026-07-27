@@ -162,6 +162,7 @@ export default function SearchBar(): ReactElement {
                             {t('searchPlaceholder')}
                         </label>
                         <PopoverTrigger asChild>
+                            {/* oxlint-disable jsx-a11y/role-has-required-aria-props -- combobox exposes aria-expanded/aria-autocomplete/aria-haspopup; eslint-plugin-jsx-a11y (ARIA 1.1 via aria-query) does not require aria-controls, so this is stricter than the ESLint baseline */}
                             <Input
                                 ref={inputRef}
                                 id={searchInputId}
@@ -177,6 +178,7 @@ export default function SearchBar(): ReactElement {
                                 role="combobox"
                                 data-testid="header-search"
                             />
+                            {/* oxlint-enable jsx-a11y/role-has-required-aria-props */}
                         </PopoverTrigger>
                         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2" />
                     </div>

@@ -22,6 +22,7 @@ import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators';
 import { useTranslation } from 'react-i18next';
+// oxlint-disable-next-line typescript/consistent-type-imports -- oxlint flags this import that typescript-eslint accepts
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 // eslint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
@@ -58,6 +59,7 @@ interface PopularCategoriesProps {
         componentTypeInclusions: ['Content.popularCategory'],
     },
 ])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class PopularCategoriesMetadata {
     @AttributeDefinition({
         name: 'Parent Category ID',

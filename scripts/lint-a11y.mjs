@@ -17,53 +17,60 @@
 /**
  * Accessibility-only lint check.
  *
- * Runs the same ESLint config as `pnpm lint` but reports only `jsx-a11y/*`
+ * Runs the same OxLint config as `pnpm lint` but reports only `jsx-a11y/*`
  * findings, so contributors can check accessibility rules locally before the
  * full gate runs in CI. This does not replace `pnpm lint`; the a11y rules ship
  * at `error` in the shared config and are enforced there regardless.
  *
- * Exit code is 1 when any `jsx-a11y/*` error is found, 0 otherwise.
- *
- * Environment variables:
- * - NODE_OPTIONS (optional) — inherited; the wrapper adds
- *   `--max-old-space-size=8192` to match `pnpm lint` on large trees.
+ * Exit code is 1 when any `jsx-a11y/*` finding is present, 0 otherwise, 2 when
+ * OxLint itself fails to run or produce parseable output.
  */
 
 import { spawnSync } from 'node:child_process';
 
-// Reuse the same cache file as `pnpm lint` (already gitignored) so the a11y
-// pass is fast after a full lint and no extra cache artifact is left behind.
-const result = spawnSync('eslint', ['.', '--format', 'json', '--cache'], {
+// Mirror the `lint` script's invocation so the a11y pass sees the exact same
+// rule surface (type-aware, e2e excluded). `-f json` gives us machine-readable
+// diagnostics to filter; a non-zero exit here is expected whenever findings
+// exist, so we key off parsed output rather than the exit code.
+const result = spawnSync('oxlint', ['--type-aware', '--ignore-pattern', 'e2e/**', '-f', 'json', '.'], {
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
-    env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=8192' },
 });
 
 if (result.error) {
-    console.error('Failed to run eslint:', result.error.message);
+    console.error('Failed to run oxlint:', result.error.message);
     process.exit(2);
 }
 
-let files;
+let report;
 try {
-    files = JSON.parse(result.stdout || '[]');
+    report = JSON.parse(result.stdout || '{}');
 } catch {
-    // ESLint could not produce JSON (config load error, crash) — surface its stderr.
-    console.error(result.stderr || 'eslint produced no parseable output');
+    // OxLint could not produce JSON (config load error, crash) — surface its stderr.
+    console.error(result.stderr || 'oxlint produced no parseable output');
     process.exit(2);
 }
 
-const A11Y_PREFIX = 'jsx-a11y/';
+// OxLint codes look like `jsx-a11y(alt-text)`; match the plugin prefix.
+const isA11y = (code) => typeof code === 'string' && code.startsWith('jsx-a11y(');
+const diagnostics = Array.isArray(report.diagnostics) ? report.diagnostics : [];
+
+const byFile = new Map();
+for (const d of diagnostics) {
+    if (!isA11y(d.code)) continue;
+    const list = byFile.get(d.filename) ?? [];
+    list.push(d);
+    byFile.set(d.filename, list);
+}
+
 let count = 0;
-
-for (const file of files) {
-    const a11yMessages = file.messages.filter((m) => m.ruleId && m.ruleId.startsWith(A11Y_PREFIX));
-    if (a11yMessages.length === 0) continue;
-
-    console.log(`\n${file.filePath}`);
-    for (const m of a11yMessages) {
+for (const [filename, messages] of byFile) {
+    console.log(`\n${filename}`);
+    for (const m of messages) {
         count += 1;
-        console.log(`  ${m.line}:${m.column}  ${m.ruleId}  ${m.message}`);
+        const span = m.labels?.[0]?.span;
+        const loc = span ? `${span.line}:${span.column}` : '?:?';
+        console.log(`  ${loc}  ${m.code}  ${m.message}`);
     }
 }
 

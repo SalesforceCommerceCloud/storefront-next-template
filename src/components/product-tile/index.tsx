@@ -65,6 +65,7 @@ const PRODUCT_TILE_MAX_SWATCHES = 3;
     group: 'Content',
 })
 @RegionDefinition([])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class ProductTileMetadata {
     @AttributeDefinition({
         id: 'productId',

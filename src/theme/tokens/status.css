@@ -21,8 +21,8 @@
 
     /* status colors (for inventory, availability indicators, etc.) */
     --status-positive: var(--success);
-    --status-warning: #c2410c;
-    --status-critical: #dc2626;
+    --status-warning: #C2410C;
+    --status-critical: #DC2626;
     --status-critical-strong: #dc2626;
     --status-critical-bg: #fef2f2;
     --status-critical-foreground: #991b1b;

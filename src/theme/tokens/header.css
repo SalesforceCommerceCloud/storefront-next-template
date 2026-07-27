@@ -11,15 +11,15 @@
  */
 :root {
     /* header & navigation */
-    --header-background: #18181b;
-    --header-foreground: #ffffff;
+    --header-background: #18181B;
+    --header-foreground: #FFFFFF;
     --header-border: rgba(255, 255, 255, 0.1);
     --header-divider: var(--header-border);
     /* header menu dropdowns */
     --header-menu-background: var(--header-background);
     --header-menu-foreground: var(--header-foreground);
     --header-menu-border: var(--header-border);
-    --header-menu-hover-background: #ffffff;
+    --header-menu-hover-background: #FFFFFF;
     --header-menu-hover-foreground: #000000;
     --header-menu-active-background: rgba(255, 255, 255, 0.05);
     --header-menu-icon: rgba(255, 255, 255, 0.7);

@@ -15,25 +15,25 @@
  */
 
 module.exports = {
-    name: 'anthropic',
-    requiredVars: ['ANTHROPIC_API_KEY'],
-    async request(messages) {
-        const axios = require('axios');
-        const response = await axios.post(
-            'https://api.anthropic.com/v1/messages',
-            {
-                model: process.env.AI_PROVIDER_LLM_MODEL || 'claude-sonnet-4-6',
-                max_tokens: 1024,
-                messages,
-            },
-            {
-                headers: {
-                    'x-api-key': process.env.ANTHROPIC_API_KEY,
-                    'anthropic-version': '2023-06-01',
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        return response.data.content[0].text;
-    },
+  name: 'anthropic',
+  requiredVars: ['ANTHROPIC_API_KEY'],
+  async request(messages) {
+    const axios = require('axios');
+    const response = await axios.post(
+      'https://api.anthropic.com/v1/messages',
+      {
+        model: process.env.AI_PROVIDER_LLM_MODEL || 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        messages,
+      },
+      {
+        headers: {
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data.content[0].text;
+  },
 };

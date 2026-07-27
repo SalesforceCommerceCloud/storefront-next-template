@@ -4,8 +4,10 @@
     "private": true,
     "scripts": {
         "typecheck": "pnpm def && tsc --noEmit",
-        "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-        "lint:fix": "eslint . --fix",
+        "lint": "oxlint --report-unused-disable-directives --max-warnings 0 && pnpm format:check",
+        "lint:fix": "oxlint --fix && pnpm format",
+        "format": "biome format --write .",
+        "format:check": "biome format .",
         "e2e": "tsx src/scripts/cli/test-runner.ts",
         "e2e:headless": "cross-env HEADLESS=true tsx src/scripts/cli/test-runner.ts",
         "e2e:verbose": "tsx src/scripts/cli/test-runner.ts --verbose",

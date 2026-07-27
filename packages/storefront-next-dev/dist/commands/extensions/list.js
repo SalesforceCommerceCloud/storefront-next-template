@@ -1,6 +1,7 @@
 import "../../logger.js";
 import "../../logger2.js";
 import "../../dependency-utils.js";
+import "../../format-with-project-biome.js";
 import { r as commonFlags } from "../../flags.js";
 import { n as listExtensions } from "../../manage-extensions.js";
 import { Command } from "@oclif/core";

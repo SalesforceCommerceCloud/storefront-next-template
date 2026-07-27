@@ -16,10 +16,10 @@
  */
 import { readdir, readFile, writeFile, mkdir, access, rm } from 'node:fs/promises';
 import { join, extname, resolve, basename } from 'node:path';
-import { execSync } from 'node:child_process';
 import { Project, Node, type SourceFile, type PropertyDeclaration, type Decorator, type Expression } from 'ts-morph';
 import { filePathToRoute } from './react-router-config.js';
 import { logger } from '../logger';
+import { formatDirectoryWithProjectBiome } from '../utils/format-with-project-biome';
 
 // Re-export `filePathToRoute`
 export { filePathToRoute };
@@ -926,7 +926,7 @@ export interface GenerateMetadataOptions {
     filePaths?: string[];
 
     /**
-     * Whether to run ESLint with --fix on generated JSON files to format them according to project settings.
+     * Whether to format generated JSON files with Biome so they match the project's formatting.
      * Defaults to true.
      */
     lintFix?: boolean;
@@ -949,41 +949,14 @@ export interface GenerateMetadataResult {
 }
 
 /**
- * Runs ESLint with --fix on the specified directory to format JSON files.
- * This ensures generated JSON files match the project's Prettier/ESLint configuration.
+ * Formats the generated JSON files in place so they match the project's `biome format` output
+ * (and therefore pass `pnpm lint` out of the box). Delegates to the shared Biome helper, which
+ * prefers the consuming project's Biome and is fail-safe (logs and leaves files valid-but-
+ * unformatted rather than throwing) when Biome can't run.
  */
-function lintGeneratedFiles(metadataDir: string, projectRoot: string): void {
-    try {
-        logger.debug('🔧 Running ESLint --fix on generated JSON files...');
-
-        // Run ESLint from the project root directory so it picks up the correct config
-        // Use --no-error-on-unmatched-pattern to handle cases where no JSON files exist yet
-        const command = `npx eslint "${metadataDir}/**/*.json" --fix --no-error-on-unmatched-pattern`;
-
-        execSync(command, {
-            cwd: projectRoot,
-            stdio: 'pipe', // Suppress output unless there's an error
-            encoding: 'utf-8',
-        });
-
-        logger.debug('✅ JSON files formatted successfully');
-    } catch (error) {
-        // ESLint returns non-zero exit code even when --fix resolves all issues
-        // We only warn if there are actual unfixable issues
-        const execError = error as { status?: number; stderr?: string; stdout?: string };
-
-        // Exit code 1 usually means there were linting issues (some may have been fixed)
-        // Exit code 2 means configuration error or other fatal error
-        if (execError.status === 2) {
-            const errMsg = execError.stderr || execError.stdout || 'Unknown error';
-            logger.warn(`⚠️  Could not run ESLint --fix: ${errMsg}`);
-        } else if (execError.stderr && execError.stderr.includes('error')) {
-            logger.warn(`⚠️  Some linting issues could not be auto-fixed. Run ESLint manually to review.`);
-        } else {
-            // Exit code 1 with no errors in stderr usually means all issues were fixed
-            logger.debug('✅ JSON files formatted successfully');
-        }
-    }
+function lintGeneratedFiles(metadataDir: string): void {
+    logger.debug('🔧 Formatting generated JSON files with Biome...');
+    formatDirectoryWithProjectBiome(metadataDir);
 }
 
 // Main function
@@ -1161,14 +1134,14 @@ export async function generateMetadata(
             }
         }
 
-        // Run ESLint --fix to format generated JSON files according to project settings
+        // Format generated JSON files with Biome so they match the project's formatting.
         const shouldLintFix = options?.lintFix !== false; // Default to true
         if (
             !dryRun &&
             shouldLintFix &&
             (allComponents.length > 0 || allPageTypes.length > 0 || allAspects.length > 0)
         ) {
-            lintGeneratedFiles(metadataDir, projectRoot);
+            lintGeneratedFiles(metadataDir);
         }
 
         // Return statistics

@@ -122,7 +122,6 @@ vi.mock('@/components/region', async () => {
                 const [resolvedPage, setResolvedPage] = React.useState<any>(null);
 
                 React.useEffect(() => {
-                    // eslint-disable-next-line react/prop-types
                     page.then((p: any) => setResolvedPage(p));
                 }, []);
 

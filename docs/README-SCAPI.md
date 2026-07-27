@@ -145,7 +145,7 @@ src/scapi/
     └── loyalty-v1.meta.json
 ```
 
-> **Do not edit generated files manually.** They are regenerated on every `sfnext scapi` invocation. `.prettierignore` and `.eslintignore` skip the `generated/` tree.
+> **Do not edit generated files manually.** They are regenerated on every `sfnext scapi` invocation. The `generated/` tree is excluded from OxLint (`ignorePatterns` in `.oxlintrc.json`) and Biome (`files.includes` negations in `biome.json`).
 
 ### The Barrel (`src/scapi/index.ts`)
 

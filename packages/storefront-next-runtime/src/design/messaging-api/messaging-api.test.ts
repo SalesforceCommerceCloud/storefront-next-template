@@ -57,7 +57,10 @@ describe('Messaging API', () => {
     function makeClientConnectionPromise({
         shouldReconnect = false,
         params = {},
-    }: { shouldReconnect?: boolean; params?: Partial<Parameters<typeof client.connect>[0]> } = {}): Promise<void> {
+    }: {
+        shouldReconnect?: boolean;
+        params?: Partial<Parameters<typeof client.connect>[0]>;
+    } = {}): Promise<void> {
         return new Promise<void>((resolve) =>
             client.connect({
                 ...params,

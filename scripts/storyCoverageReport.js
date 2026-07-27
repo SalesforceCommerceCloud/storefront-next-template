@@ -425,32 +425,33 @@ ${missing.map((m) => `- \`${m.name}\``).join('\n')}
 
 ${
     jsonSummary.codeCoverage
-        ? (() => {
-              const lines = jsonSummary.codeCoverage.lines?.pct || 0;
-              const statements = jsonSummary.codeCoverage.statements?.pct || 0;
-              const functions = jsonSummary.codeCoverage.functions?.pct || 0;
-              const branches = jsonSummary.codeCoverage.branches?.pct || 0;
-              const avgCoverage = (lines + statements + functions + branches) / 4;
+        ? (
+              () => {
+                  const lines = jsonSummary.codeCoverage.lines?.pct || 0;
+                  const statements = jsonSummary.codeCoverage.statements?.pct || 0;
+                  const functions = jsonSummary.codeCoverage.functions?.pct || 0;
+                  const branches = jsonSummary.codeCoverage.branches?.pct || 0;
+                  const avgCoverage = (lines + statements + functions + branches) / 4;
 
-              let codeCoverageBadgeColor = 'red';
-              if (avgCoverage >= 90) {
-                  codeCoverageBadgeColor = 'brightgreen';
-              } else if (avgCoverage >= 80) {
-                  codeCoverageBadgeColor = 'green';
-              } else if (avgCoverage >= 70) {
-                  codeCoverageBadgeColor = 'yellowgreen';
-              } else if (avgCoverage >= 50) {
-                  codeCoverageBadgeColor = 'yellow';
-              }
+                  let codeCoverageBadgeColor = 'red';
+                  if (avgCoverage >= 90) {
+                      codeCoverageBadgeColor = 'brightgreen';
+                  } else if (avgCoverage >= 80) {
+                      codeCoverageBadgeColor = 'green';
+                  } else if (avgCoverage >= 70) {
+                      codeCoverageBadgeColor = 'yellowgreen';
+                  } else if (avgCoverage >= 50) {
+                      codeCoverageBadgeColor = 'yellow';
+                  }
 
-              const getStatusEmoji = (pct) => {
-                  if (pct >= 90) return '🟢';
-                  if (pct >= 80) return '🟡';
-                  if (pct >= 70) return '🟠';
-                  return '🔴';
-              };
+                  const getStatusEmoji = (pct) => {
+                      if (pct >= 90) return '🟢';
+                      if (pct >= 80) return '🟡';
+                      if (pct >= 70) return '🟠';
+                      return '🔴';
+                  };
 
-              return `
+                  return `
 ---
 ## 💻 Code Coverage (Story Interaction Tests)
 
@@ -468,7 +469,8 @@ ${
 | **🌿 Branches** | \`${branches.toFixed(2)}%\` | ${getStatusEmoji(branches)} | \`${CODE_COVERAGE_THRESHOLD}%\` ${branches >= CODE_COVERAGE_THRESHOLD ? '✅' : '❌'} |
 | **📊 Average** | **\`${avgCoverage.toFixed(2)}%\`** | ${getStatusEmoji(avgCoverage)} | \`${CODE_COVERAGE_THRESHOLD}%\` ${avgCoverage >= CODE_COVERAGE_THRESHOLD ? '✅' : '❌'} |
 `;
-          })()
+              }
+          )()
         : ''
 }
 

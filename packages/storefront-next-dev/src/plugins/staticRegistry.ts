@@ -17,7 +17,6 @@
 import type { Plugin } from 'vite';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, relative, dirname } from 'path';
-import { createRequire } from 'module';
 import { glob } from 'glob';
 import {
     Project,
@@ -29,6 +28,7 @@ import {
     type VariableStatement,
 } from 'ts-morph';
 import { logger } from '../logger';
+import { formatWithProjectBiome } from '../utils/format-with-project-biome';
 
 // Default component group when none is specified in the decorator
 const DEFAULT_COMPONENT_GROUP = 'storefrontnext_base';
@@ -354,53 +354,9 @@ ${registrations}
 }
 
 /**
- * Formats registry file content with the project's own Prettier so the written file
- * matches what the project's formatter would produce.
- *
- * Without this, a standalone `prettier --write` (pre-commit hook, format-on-save) rewrites
- * the generated file on every commit: the generator emits one `registerImporter` call per
- * line and cannot anticipate an arbitrary `printWidth`, so Prettier re-wraps long lines and
- * the regenerate -> format -> regenerate loop never settles.
- *
- * Prettier is resolved from the registry file's own location — i.e. the consuming project's
- * `node_modules`, not the SDK bundle (which keeps `node_modules` external). It is the project's
- * Prettier version and config whose output must be matched. Returns the content unchanged when
- * Prettier is absent or fails, so registry generation never breaks a build over formatting.
- */
-// Latches once the project has no Prettier, so the missing-Prettier warning fires once per process
-// instead of on every HMR save in dev. Real format failures (below) still warn each time.
-let warnedNoPrettier = false;
-
-async function formatWithProjectPrettier(content: string, registryFilePath: string): Promise<string> {
-    try {
-        const projectRequire = createRequire(registryFilePath);
-        const prettier = projectRequire('prettier');
-        // editorconfig: true matches the Prettier CLI default. Without it, a consumer who sets
-        // printWidth/tabWidth via `.editorconfig` (not `.prettierrc`) gets different output from
-        // this plugin than from their pre-commit `prettier --write` — reviving the churn.
-        const config = await prettier.resolveConfig(registryFilePath, { editorconfig: true });
-        return await prettier.format(content, { ...config, filepath: registryFilePath });
-    } catch (error) {
-        // A silent skip writes the registry unformatted, so a standalone `prettier --write` churns
-        // it on every commit — the exact symptom this prevents. Surface it so a customer can
-        // diagnose. Missing Prettier is a stable, once-per-process condition (warn once to avoid
-        // spamming every HMR save); a format/config failure is per-invocation, so warn each time.
-        if ((error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
-            if (!warnedNoPrettier) {
-                logger.warn('⚠️  Prettier not found in the project; static registry will be written unformatted.');
-                warnedNoPrettier = true;
-            }
-        } else {
-            logger.warn(`⚠️  Skipping Prettier formatting for registry file: ${(error as Error).message}`);
-        }
-        return content;
-    }
-}
-
-/**
  * Updates the registry.ts file with the generated code
  */
-export async function updateRegistryFile(registryFilePath: string, generatedCode: string): Promise<boolean> {
+export function updateRegistryFile(registryFilePath: string, generatedCode: string): boolean {
     let existingContent: string;
 
     // Check if file exists, if not create a basic one
@@ -447,7 +403,7 @@ export const registry = new ComponentRegistry();
     // Format before the unchanged-check so the guard compares formatted-to-formatted. If the
     // raw content were compared instead, an already-formatted file on disk would never match,
     // every run would write, and the HMR cascade the guard below prevents would return.
-    const updatedContent = await formatWithProjectPrettier(`${before}\n${generatedCode}\n${after}`, registryFilePath);
+    const updatedContent = formatWithProjectBiome(`${before}\n${generatedCode}\n${after}`, registryFilePath);
 
     // Skip write if content is unchanged to avoid triggering unnecessary HMR cascades.
     // Without this check, every component file save writes static-registry.ts even when
@@ -526,7 +482,7 @@ export const staticRegistryPlugin = (config: StaticRegistryPluginConfig = {}): P
 
         const generatedCode = generateRegistryCode(components, registryIdentifier);
         const registryFilePath = resolve(projectRoot, registryPath);
-        const changed = await updateRegistryFile(registryFilePath, generatedCode);
+        const changed = updateRegistryFile(registryFilePath, generatedCode);
 
         logger.debug('✅ Static registry generation complete!');
 

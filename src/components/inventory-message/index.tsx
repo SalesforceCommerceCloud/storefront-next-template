@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export const InventoryStatus = {
     IN_STOCK: 'in-stock',
     LOW_STOCK: 'low-stock',

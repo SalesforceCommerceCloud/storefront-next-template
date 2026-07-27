@@ -2,6 +2,7 @@ import { t as logger } from "../logger.js";
 import "../logger2.js";
 import { t as generateEnvFile } from "../utils.js";
 import { a as trimExtensions, i as validateNoCycles, n as resolveDependenciesForMultiple } from "../dependency-utils.js";
+import "../format-with-project-biome.js";
 import { t as prepareForLocalDev } from "../local-dev-setup.js";
 import { Command, Flags } from "@oclif/core";
 import { execFileSync, execSync } from "child_process";

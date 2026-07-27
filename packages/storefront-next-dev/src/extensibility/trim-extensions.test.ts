@@ -661,28 +661,30 @@ describe('trim-extensions', () => {
             consoleSpy.mockRestore();
         });
 
-        it('aborts before deleting any folder when the config rewrite (Prettier) throws', async () => {
-            // Regression (W-23074938): updateExtensionConfig formats config.json with the
-            // consumer's Prettier and throws on a bad Prettier setup. The config rewrite must
-            // run BEFORE folder deletion so a format failure leaves the project untouched
-            // rather than half-trimmed (folders gone, config.json still listing them).
+        it('aborts before deleting any folder when the config rewrite throws', async () => {
+            // Regression (W-23074938): updateExtensionConfig reads and rewrites config.json, then
+            // Biome-formats the result. The config rewrite must run BEFORE folder deletion so a
+            // write failure leaves the project untouched rather than half-trimmed (folders gone,
+            // config.json still listing them). Biome formatting itself is fail-safe (it logs and
+            // returns the content unformatted rather than throwing), so we force the throw at the
+            // config.json write — the step that would corrupt state if it ran after deletion.
             const consoleSpy = mockConsole('warn');
-
-            // Force the format step to throw — simulates a broken .prettierrc / plugin on a
-            // customer project. createRequire can't resolve prettier from /mock, so the SDK
-            // falls back to import('prettier'), which this mock intercepts.
-            vi.doMock('prettier', () => ({
-                default: {
-                    resolveConfig: () => Promise.resolve({}),
-                    format: () => Promise.reject(new Error('Bad Prettier config')),
-                },
-            }));
 
             vol.mkdirSync('/mock/dir/src/extensions/feature-a/components', { recursive: true });
             vol.writeFileSync(
                 '/mock/dir/src/extensions/feature-a/components/component.tsx',
                 `export const Component = 'Component';`
             );
+
+            // Force the config.json rewrite to throw — simulates an unwritable file on the
+            // customer's disk. Any other write (e.g. trimmed component files) passes through.
+            const originalWriteFileSync = vol.writeFileSync.bind(vol);
+            vi.spyOn(vol, 'writeFileSync').mockImplementation((file: any, ...rest: any[]) => {
+                if (typeof file === 'string' && file.endsWith('config.json')) {
+                    throw new Error('EACCES: permission denied, open config.json');
+                }
+                return originalWriteFileSync(file, ...rest);
+            });
 
             const mod = await reloadModule();
             const trimExt = mod.default || mod;
@@ -695,13 +697,12 @@ describe('trim-extensions', () => {
                         mockedExtensionConfig,
                         true
                     )
-                ).rejects.toThrow('Prettier formatting failed');
+                ).rejects.toThrow('EACCES');
 
                 // The disabled extension's folder must still be on disk — deletion never ran.
                 expect(fileExists('/mock/dir/src/extensions/feature-a')).toBe(true);
                 expect(fileExists('/mock/dir/src/extensions/feature-a/components/component.tsx')).toBe(true);
             } finally {
-                vi.doUnmock('prettier');
                 consoleSpy.mockRestore();
             }
         });

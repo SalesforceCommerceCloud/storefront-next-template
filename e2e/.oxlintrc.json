@@ -1,0 +1,48 @@
+{
+    "$schema": "../node_modules/oxlint/configuration_schema.json",
+    "extends": ["../.oxlintrc.json"],
+    "ignorePatterns": [
+        "**/src/scapi-client/generated/**",
+        "**/src/scapi/generated/**",
+        "**/src/scapi/custom-clients.ts",
+        "**/src/components/ui/**",
+        "**/src/dashboard/components/ui/**",
+        "**/.shadcn-baseline/**",
+        "**/src/lib/page-designer/static-registry.ts",
+        ".claude/**",
+        "**/lighthouserc.cjs",
+        "**/generate-config.cjs",
+        "**/dist/**",
+        "**/output/**",
+        "**/steps.d.ts",
+        "**/*.cjs",
+        "**/*.mjs",
+        "**/node_modules/**",
+        "a11y-report/**",
+        "a11y-baseline.json"
+    ],
+    "overrides": [
+        {
+            "files": ["**/*.{ts,tsx,js,jsx}"],
+            "rules": {
+                "react/rules-of-hooks": "off",
+                "react/exhaustive-deps": "off",
+                "react/only-export-components": "off",
+                "react/display-name": "off"
+            }
+        },
+        {
+            "files": ["**/*.spec.ts"],
+            "rules": {
+                "no-unused-expressions": "off"
+            }
+        },
+        {
+            "files": ["src/pages/**/*.ts", "src/specs/**/*.ts", "src/flows/**/*.ts", "src/utils/**/*.ts"],
+            "rules": {
+                "typescript/await-thenable": "off",
+                "typescript/require-await": "off"
+            }
+        }
+    ]
+}

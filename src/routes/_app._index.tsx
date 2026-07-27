@@ -40,6 +40,7 @@ import { ProductCarouselWithData } from '@/components/product-carousel/carousel'
 import { SeoMeta } from '@/components/seo-meta';
 import { buildCanonicalUrl } from '@/utils/canonical-url';
 import { useTranslation } from 'react-i18next';
+// oxlint-disable-next-line typescript/consistent-type-imports -- oxlint flags this import that typescript-eslint accepts
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 
 export { shouldRevalidate } from '@/lib/revalidation/routes/home';
