@@ -1,5 +1,5 @@
 import { n as Site } from "./types.js";
-import * as react_router1 from "react-router";
+import * as react_router4 from "react-router";
 import { MiddlewareFunction, RouterContextProvider, createContext } from "react-router";
 import { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError } from "@salesforce/mrt-utilities/data-store";
 
@@ -158,7 +158,7 @@ interface DataStoreLogger {
  * Defaults to `null` (not `undefined`) because React Router's
  * `context.get()` throws when `defaultValue === undefined`.
  */
-declare const dataStoreLoggerContext: react_router1.RouterContext<DataStoreLogger | null>;
+declare const dataStoreLoggerContext: react_router4.RouterContext<DataStoreLogger | null>;
 /**
  * Read the data-store logger from router context, falling back to a
  * console-based default when nothing has been injected.
@@ -345,13 +345,13 @@ declare function getSitesFromDataStoreLazy(context: Readonly<RouterContextProvid
  * routes that never read the values. The lazy bundle defers the site/global/login reads until a
  * consumer actually reads them.
  */
-declare const dataStoreMiddleware: react_router1.MiddlewareFunction<Response>[];
+declare const dataStoreMiddleware: react_router4.MiddlewareFunction<Response>[];
 /**
  * Preferred data-store middleware bundle. All four preferences are registered lazily — each
  * DynamoDB read fires only when a loader reads the value via the matching `get*Lazy` accessor,
  * so no request pays for an entry it never reads.
  */
-declare const dataStoreMiddlewareLazy: react_router1.MiddlewareFunction<Response>[];
+declare const dataStoreMiddlewareLazy: react_router4.MiddlewareFunction<Response>[];
 //#endregion
 export { type CustomGlobalPreferences, type DalSite, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry };
 //# sourceMappingURL=data-store.d.ts.map

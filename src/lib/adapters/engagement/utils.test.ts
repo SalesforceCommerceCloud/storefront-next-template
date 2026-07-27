@@ -77,10 +77,11 @@ describe('buildConsentPreferences', () => {
             expect(result).toBeUndefined();
         });
 
-        it('should warn and return empty array when categories are empty and consent is accepted', () => {
+        it("should warn and fall back to ['necessary'] when categories are empty and consent is accepted", () => {
             const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
             const result = buildConsentPreferences(TrackingConsent.Accepted, [], true);
-            expect(result).toEqual([]);
+            expect(result).toEqual(['necessary']);
+            expect(warnSpy).toHaveBeenCalledOnce();
             warnSpy.mockRestore();
         });
 
@@ -97,9 +98,12 @@ describe('buildConsentPreferences', () => {
             expect(result).toEqual(['necessary', 'analytics', 'marketing', 'personalization']);
         });
 
-        it('should fall back to necessary when categories are empty', () => {
+        it('should warn and fall back to necessary when categories are empty', () => {
+            const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
             const result = buildConsentPreferences(undefined, [], false);
             expect(result).toEqual(['necessary']);
+            expect(warnSpy).toHaveBeenCalledOnce();
+            warnSpy.mockRestore();
         });
 
         it('should ignore trackingConsent value when consent system is not enabled', () => {

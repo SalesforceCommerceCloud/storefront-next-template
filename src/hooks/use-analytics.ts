@@ -86,6 +86,7 @@ async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
             userType: auth.userType ?? 'guest',
             encUserId: auth.encUserId ?? undefined,
             usid: auth.usid,
+            customerId: auth.customerId,
         },
     } as Parameters<typeof createEvent<TEventType>>[1]);
     return void mediator.track(event, siteInfo, consentPreferences);

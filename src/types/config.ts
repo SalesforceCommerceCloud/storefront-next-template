@@ -128,6 +128,7 @@ export type AppConfig = {
                 appSourceId: string;
                 tenantId: string;
                 siteId: string;
+                webStoreId: string;
             };
             activeData: EngagementAdapterConfig & {
                 enabled: boolean;

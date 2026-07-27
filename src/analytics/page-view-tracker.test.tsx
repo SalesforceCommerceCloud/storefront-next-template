@@ -261,7 +261,11 @@ describe('PageViewTracker', () => {
     };
 
     // Helper to verify a page view event was tracked
-    const expectPageViewTracked = (path: string, payload: { userType: string; usid?: string }, callNumber?: number) => {
+    const expectPageViewTracked = (
+        path: string,
+        payload: { userType: string; usid?: string; customerId?: string },
+        callNumber?: number
+    ) => {
         if (callNumber) {
             expect(createEvent).toHaveBeenNthCalledWith(callNumber, 'view_page', { path, payload });
         } else {
@@ -316,7 +320,11 @@ describe('PageViewTracker', () => {
             renderPageViewTracker('/test-page');
 
             await waitFor(() => {
-                expectPageViewTracked('/test-page', { userType: 'registered', usid: 'test-usid' });
+                expectPageViewTracked('/test-page', {
+                    userType: 'registered',
+                    usid: 'test-usid',
+                    customerId: 'test-customer',
+                });
             });
 
             await waitFor(() => {
@@ -497,7 +505,11 @@ describe('PageViewTracker', () => {
             renderPageViewTracker('/test-page');
 
             await waitFor(() => {
-                expectPageViewTracked('/test-page', { userType: 'registered', usid: undefined });
+                expectPageViewTracked('/test-page', {
+                    userType: 'registered',
+                    usid: undefined,
+                    customerId: 'test-customer',
+                });
             });
 
             await waitFor(() => {

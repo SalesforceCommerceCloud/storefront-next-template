@@ -71,18 +71,24 @@ export function buildConsentPreferences(
     consentCategories: ConsentCategory[],
     isTrackingConsentEnabled: boolean
 ): ConsentPreferences | undefined {
-    // Consent system not active — allow all tracking unrestricted
+    // Empty categories is a misconfiguration — no adapter requiring a specific
+    // category (e.g. the analytics adapters default to 'analytics') could ever
+    // fire. Fall back to a 'necessary' floor so necessary-only / unconditional
+    // adapters still work, and warn so the drop is diagnosable, not silent.
+    if (consentCategories.length === 0) {
+        logger.warn(
+            'config.engagement.analytics.trackingConsent.consentCategories is empty; ' +
+                "falling back to ['necessary']. Adapters requiring a specific consent category " +
+                "(e.g. 'analytics') will send nothing — add the categories your adapters need."
+        );
+        consentCategories = ['necessary'];
+    }
+
+    // Consent system not active — allow the configured categories unrestricted
     if (!isTrackingConsentEnabled) {
-        return consentCategories.length > 0 ? [...consentCategories] : ['necessary'];
+        return [...consentCategories];
     }
     if (trackingConsent === TrackingConsent.Accepted) {
-        if (consentCategories.length === 0) {
-            logger.warn(
-                'Tracking consent is enabled but consentCategories is empty. ' +
-                    'Analytics events will be blocked. Add categories to ' +
-                    'config.engagement.analytics.trackingConsent.consentCategories.'
-            );
-        }
         return [...consentCategories];
     }
     if (trackingConsent === TrackingConsent.Declined) {
