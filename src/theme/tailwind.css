@@ -112,6 +112,10 @@
     --color-footer-background: var(--footer-background);
     --color-footer-foreground: var(--footer-foreground);
 
+    /* -- newsletter band -- */
+    --color-newsletter-background: var(--newsletter-background);
+    --color-newsletter-foreground: var(--newsletter-foreground);
+
     /* -- agentic palette -- */
     --color-agentic: var(--agentic);
     --color-agentic-foreground: var(--agentic-foreground);

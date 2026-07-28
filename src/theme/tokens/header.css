@@ -29,4 +29,9 @@
     /* footer */
     --footer-background: #ffffff;
     --footer-foreground: #000000;
+
+    /* newsletter band — homepage "Join Our Community" CTA block. Defaults to the
+     * primary CTA color, matching the shared component's prior hardcoded values. */
+    --newsletter-background: var(--primary);
+    --newsletter-foreground: var(--primary-foreground);
 }

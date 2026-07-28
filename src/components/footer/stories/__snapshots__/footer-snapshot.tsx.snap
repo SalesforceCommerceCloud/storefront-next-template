@@ -45,18 +45,18 @@ exports[`Footer stories snapshot > Default story renders and matches snapshot 1`
     class="section-container"
   >
     <div
-      class="bg-primary text-primary-foreground px-6 sm:px-8 py-12 md:py-16 rounded-ui"
+      class="bg-newsletter-background text-newsletter-foreground px-6 sm:px-8 py-12 md:py-16 rounded-ui"
     >
       <div
         class="max-w-2xl mx-auto text-center"
       >
         <h2
-          class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-primary-foreground mb-3"
+          class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-newsletter-foreground mb-3"
         >
           Join Our Community
         </h2>
         <p
-          class="text-sm font-normal leading-5 text-primary-foreground mb-6"
+          class="text-sm font-normal leading-5 text-newsletter-foreground mb-6"
         >
           Be the first to discover new arrivals, exclusive offers, and style inspiration.
         </p>
@@ -330,18 +330,18 @@ exports[`Footer stories snapshot > MobileView story renders and matches snapshot
     class="section-container"
   >
     <div
-      class="bg-primary text-primary-foreground px-6 sm:px-8 py-12 md:py-16 rounded-ui"
+      class="bg-newsletter-background text-newsletter-foreground px-6 sm:px-8 py-12 md:py-16 rounded-ui"
     >
       <div
         class="max-w-2xl mx-auto text-center"
       >
         <h2
-          class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-primary-foreground mb-3"
+          class="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-newsletter-foreground mb-3"
         >
           Join Our Community
         </h2>
         <p
-          class="text-sm font-normal leading-5 text-primary-foreground mb-6"
+          class="text-sm font-normal leading-5 text-newsletter-foreground mb-6"
         >
           Be the first to discover new arrivals, exclusive offers, and style inspiration.
         </p>
