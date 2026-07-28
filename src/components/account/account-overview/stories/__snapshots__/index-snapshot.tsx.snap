@@ -35,7 +35,7 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
         data-slot="card"
       >
         <div
-          class="px-5"
+          class="px-6"
           data-slot="card-content"
         >
           <div
@@ -915,7 +915,7 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
         data-slot="card"
       >
         <div
-          class="px-5"
+          class="px-6"
           data-slot="card-content"
         >
           <div
@@ -1721,7 +1721,7 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
         data-slot="card"
       >
         <div
-          class="px-5"
+          class="px-6"
           data-slot="card-content"
         >
           <div

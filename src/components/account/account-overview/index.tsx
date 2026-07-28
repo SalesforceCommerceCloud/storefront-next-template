@@ -179,7 +179,7 @@ function RecentOrdersListBlock({ result, onViewDetails }: RecentOrdersListBlockP
     return (
         <div className="space-y-0">
             <Card className="bg-card border-border rounded-b-none border-b-0">
-                <CardContent className="px-5">
+                <CardContent className="px-6">
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col items-start gap-1.5 flex-1">
                             <h2 className="text-lg font-bold leading-[120%] text-card-foreground">

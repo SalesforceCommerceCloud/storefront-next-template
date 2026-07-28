@@ -1,6 +1,6 @@
 import { n as Site$1, r as Url, t as Locale$1 } from "./types.js";
 import { PropsWithChildren } from "react";
-import * as react_jsx_runtime2 from "react/jsx-runtime";
+import * as react_jsx_runtime1 from "react/jsx-runtime";
 import * as react_router18 from "react-router";
 import { Cookie, CookieOptions, MiddlewareFunction, RouterContextProvider } from "react-router";
 import { RouteConfigEntry } from "@react-router/dev/routes";
@@ -100,7 +100,7 @@ declare function SiteProvider({
   language,
   currency,
   children
-}: PropsWithChildren<SiteContextValue>): react_jsx_runtime2.JSX.Element;
+}: PropsWithChildren<SiteContextValue>): react_jsx_runtime1.JSX.Element;
 /**
  * React hook to get the current site context.
  * Returns `{ site, locale, language, currency }`.
