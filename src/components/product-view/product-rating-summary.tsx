@@ -170,7 +170,11 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
                             <StarRating
                                 rating={aggregateRating.average}
                                 reviewCount={aggregateRating.count}
-                                showRatingLabel={showRatingAverage}
+                                // Gate the numeric average on hasReviews, mirroring the review-count
+                                // suffix below — without reviews the average is 0, and a lone "0" next
+                                // to empty stars is neither the with-reviews label ("4.8 (124 reviews)")
+                                // nor the count-only baseline. Only the average+count pair should show.
+                                showRatingLabel={showRatingAverage && hasReviews}
                                 ratingLabelPosition="right"
                                 ratingLabelFormat="short"
                                 ratingLabelClassName="text-sm font-medium text-card-foreground"
