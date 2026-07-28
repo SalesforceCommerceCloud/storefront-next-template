@@ -30171,6 +30171,13 @@ interface components$2 {
       variants?: components$2["schemas"]["Variant"][];
       /** @description The array of actual variation groups. Only for master, variation group, and variant types. This array can be empty. */
       variationGroups?: components$2["schemas"]["VariationGroup"][];
+      /**
+       * @description SEO-friendly URL slug for the product, derived from the site's configured product URL rule.
+       *     Returned only when `expand=slug` is requested. Use the slug to construct user-friendly
+       *     product detail page URLs (for example, /products/{slug}/{productId}).
+       * @example modern-dress-shirt
+       */
+      slug?: string;
     } & {
       [key: string]: unknown;
     };
@@ -30518,8 +30525,9 @@ interface components$2 {
      *     The refinements can be a collection of custom defined attributes IDs and the system defined attributes IDs but the search can only accept a total of 9 refinements at a time.<br>
      *
      *     The following system refinement attribute ids are supported:<br>
-     *     `cgid`: Allows refinement per single category ID. Multiple category ids are not supported.
-     *     `price`: Allows refinement per single price range. Multiple price ranges are not supported.
+     *     `cgid`: Allows refinement per single category ID. Multiple category IDs are not supported.<br>
+     *     `cgslug`: Allows refinement by a category URL slug (for example, `mens/clothing`). The server resolves the slug to a category ID using the site's storefront URL mapping. If the slug can't be resolved to a category, the API returns a 400 error. This parameter is mutually exclusive with `cgid`. If both are provided, `cgid` takes priority and `cgslug` is ignored.<br>
+     *     `price`: Allows refinement per single price range. Multiple price ranges are not supported.<br>
      *     `htype`: Allow refinement by including only the provided hit types. Accepted types are 'product', 'master', 'set', 'bundle', 'slicing_group' (deprecated), 'variation_group'.<br>
      *     `orderable_only`: Unavailable products are excluded from the search results if true is set. Multiple refinement values are not supported.<br>
      *     `ilids`: Allows refining by inventory list IDs. Supports up to 10 inventory list IDs per request.<br>
@@ -30540,11 +30548,11 @@ interface components$2 {
     /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
     locale: components$2["schemas"]["LocaleCode"];
     /**
-     * @description A comma-separated list with allowed values - `availability`, `images`, `prices`, `represented_products`, `variations`, `promotions`, `custom_properties`.
+     * @description A comma-separated list with allowed values - `availability`, `images`, `prices`, `represented_products`, `variations`, `promotions`, `custom_properties`, `slug`.
      *     By default, the expand parameter includes `availability, images, prices, represented_products, variations`.
      *     Use none to disable all expand options.
      */
-    expandProductSearch: ("none" | "availability" | "images" | "prices" | "represented_products" | "variations" | "promotions" | "custom_properties" | "page_meta_tags")[];
+    expandProductSearch: ("none" | "availability" | "images" | "prices" | "represented_products" | "variations" | "promotions" | "custom_properties" | "page_meta_tags" | "slug")[];
     /**
      * @description When the `images` expand parameter is used with this flag, the response includes the `imageGroups` property, which contains an image model.
      *     If this flag is true, the full image model is returned and you can combine with `imgTypes` to filter image types and counts. If false, only matching images are included.
@@ -30566,6 +30574,12 @@ interface components$2 {
     allVariationProperties: boolean;
     /** @description A comma-separated list of custom property ids to be returned for variant products. The `variants` expand parameter and `allVariationProperties` query parameter are required for these properties to be returned. */
     includedCustomVariationProperties: string[];
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     */
+    personalized: "none";
     /** @description The search phrase (q) for which suggestions are evaluated. Search suggestions are determined when the search phrase input is at least three (default) characters long. The value is configurable in the Business Manager. */
     qSearchSuggestion: string;
     /** @description The maximum number of suggestions made per request. If no value is defined, by default five suggestions per suggestion type are evaluated. This affects all types of suggestions (category, product, brand, and custom suggestions). */
@@ -30605,8 +30619,9 @@ interface operations$20 {
          *     The refinements can be a collection of custom defined attributes IDs and the system defined attributes IDs but the search can only accept a total of 9 refinements at a time.<br>
          *
          *     The following system refinement attribute ids are supported:<br>
-         *     `cgid`: Allows refinement per single category ID. Multiple category ids are not supported.
-         *     `price`: Allows refinement per single price range. Multiple price ranges are not supported.
+         *     `cgid`: Allows refinement per single category ID. Multiple category IDs are not supported.<br>
+         *     `cgslug`: Allows refinement by a category URL slug (for example, `mens/clothing`). The server resolves the slug to a category ID using the site's storefront URL mapping. If the slug can't be resolved to a category, the API returns a 400 error. This parameter is mutually exclusive with `cgid`. If both are provided, `cgid` takes priority and `cgslug` is ignored.<br>
+         *     `price`: Allows refinement per single price range. Multiple price ranges are not supported.<br>
          *     `htype`: Allow refinement by including only the provided hit types. Accepted types are 'product', 'master', 'set', 'bundle', 'slicing_group' (deprecated), 'variation_group'.<br>
          *     `orderable_only`: Unavailable products are excluded from the search results if true is set. Multiple refinement values are not supported.<br>
          *     `ilids`: Allows refining by inventory list IDs. Supports up to 10 inventory list IDs per request.<br>
@@ -30627,7 +30642,7 @@ interface operations$20 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$2["parameters"]["locale"];
         /**
-         * @description A comma-separated list with allowed values - `availability`, `images`, `prices`, `represented_products`, `variations`, `promotions`, `custom_properties`.
+         * @description A comma-separated list with allowed values - `availability`, `images`, `prices`, `represented_products`, `variations`, `promotions`, `custom_properties`, `slug`.
          *     By default, the expand parameter includes `availability, images, prices, represented_products, variations`.
          *     Use none to disable all expand options.
          */
@@ -30653,6 +30668,12 @@ interface operations$20 {
         allVariationProperties?: components$2["parameters"]["allVariationProperties"];
         /** @description A comma-separated list of custom property ids to be returned for variant products. The `variants` expand parameter and `allVariationProperties` query parameter are required for these properties to be returned. */
         includedCustomVariationProperties?: components$2["parameters"]["includedCustomVariationProperties"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         */
+        personalized?: components$2["parameters"]["personalized"];
         /** @description Number of records to retrieve per request. Must be between 1 (minimum) and 200 (maximum). Defaults to 25. */
         limit?: number;
         /** @description Used to retrieve the results based on a particular resource offset. */
@@ -30712,6 +30733,12 @@ interface operations$20 {
         includedCustomProductProperties?: components$2["parameters"]["includedCustomProductProperties"];
         /** @description The flag that determines whether or not to show recent and popular suggested phrases from Einstein. */
         includeEinsteinSuggestedPhrases?: components$2["parameters"]["includeEinsteinSuggestedPhrases"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         */
+        personalized?: components$2["parameters"]["personalized"];
       };
       header?: never;
       path: {

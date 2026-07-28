@@ -60,7 +60,7 @@ apis:
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-promotions-v1.ts
   shopper-search-v1:
-    root: ./shopper-search-oas-1.10.0/shopper-search-oas-v1-public.yaml
+    root: ./shopper-search-oas-1.12.0/shopper-search-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-search-v1.ts
   shopper-seo-v1:
