@@ -111,8 +111,7 @@ pnpm storybook:test --type=a11y --static
 
 | Command | Description |
 |---------|-------------|
-| `pnpm storybook` | Start Storybook development server on port 6006 (default vertical: `fashion`) |
-| `VERTICAL=cosmetic pnpm storybook` | Start Storybook rendering a specific vertical's overlays (`fashion` \| `cosmetic`) |
+| `pnpm storybook` | Start Storybook development server on port 6006 |
 | `pnpm storybook:build` | Build static Storybook for production deployment |
 | `pnpm storybook:test --type=snapshot` | Run snapshot tests |
 | `pnpm storybook:test --type=snapshot --update` | Update snapshot files locally and run tests |
@@ -122,11 +121,10 @@ pnpm storybook:test --type=a11y --static
 | `pnpm storybook:test --type=a11y --static` | Run a11y tests against static Storybook build |
 | `pnpm storybook:test --type=snapshot --coverage` | Run snapshot tests with code coverage (auto-generates story tests first) |
 | `pnpm storybook:test --type=snapshot --stories=<name>` | Snapshot only — narrow the run to story files whose path contains `<name>` (e.g. `account/order-details`) |
-| `pnpm storybook:test:mirror <vertical>` | Run a vertical's suite against the flattened mirror exactly as CI does (default `cosmetic`; forwards extra args, e.g. `--type=interaction`) |
 
 ## CI execution
 
-All three suites run on every PR in a single CI job (in this repo, the `storybook-tests` job) inside the `mcr.microsoft.com/playwright` container (browsers pre-installed), executing the same commands you'd run locally: `snapshot --coverage`, `interaction --static`, `a11y --static`, then the coverage report.
+All three suites run on every PR in a single CI job inside the `mcr.microsoft.com/playwright` container (browsers pre-installed), executing the same commands you'd run locally: `snapshot --coverage`, `interaction --static`, `a11y --static`, then the coverage report.
 
 ## Features & Addons
 
