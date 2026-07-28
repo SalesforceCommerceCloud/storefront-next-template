@@ -15,7 +15,7 @@
  */
 
 // React
-import { type ReactElement } from 'react';
+import { type ReactElement, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Hooks
@@ -72,6 +72,8 @@ export default function CartQuantityPicker({
     const { t: tQuantity } = useTranslation('quantitySelector');
     const { t: tRemove } = useTranslation('removeItem');
     const { t: tCart } = useTranslation('cart');
+    const quantityId = `cart-qty-${useId()}`;
+    const errorId = `${quantityId}-error`;
     const effectiveDebounceDelay = debounceDelay || config.pages.cart.quantityUpdateDebounce;
 
     // Create a unique fetcher for this component instance
@@ -101,20 +103,22 @@ export default function CartQuantityPicker({
     return (
         <div className={cn('relative flex w-fit max-w-full flex-col items-start gap-2', className)}>
             <Label
-                htmlFor="quantity"
+                htmlFor={quantityId}
                 className="block text-left font-sans text-base font-semibold leading-6 text-card-foreground">
                 {tQuantity('quantity')}
             </Label>
             <QuantityPicker
+                id={quantityId}
                 value={quantity.toString()}
                 onBlur={handleQuantityBlur}
                 onChange={handleQuantityChange}
                 disabled={isLoading || disabled}
                 max={max ?? stockMax}
+                aria-describedby={!disabled && stockValidationError ? errorId : undefined}
             />
-            {/* Stock validation message */}
             {!disabled && stockValidationError && (
                 <Typography
+                    id={errorId}
                     variant="small"
                     className="absolute top-full left-0 mt-1 w-max max-w-[min(100%,18rem)] text-destructive"
                     role="alert"

@@ -12,7 +12,9 @@ exports[`ProductQuantityPicker stories snapshot > Default story renders and matc
     Quantity
   </label>
   <div
+    aria-label="Quantity for Classic T-Shirt"
     class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    role="group"
   >
     <button
       aria-label="Decrement Quantity for Classic T-Shirt"
@@ -53,7 +55,9 @@ exports[`ProductQuantityPicker stories snapshot > IncrementPastStock story rende
     Quantity
   </label>
   <div
+    aria-label="Quantity for Limited Run Tee"
     class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    role="group"
   >
     <button
       aria-label="Decrement Quantity for Limited Run Tee"
@@ -94,7 +98,9 @@ exports[`ProductQuantityPicker stories snapshot > LowStockWarning story renders 
     Quantity
   </label>
   <div
+    aria-label="Quantity for Limited Edition Jacket"
     class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    role="group"
   >
     <button
       aria-label="Decrement Quantity for Limited Edition Jacket"
@@ -104,6 +110,7 @@ exports[`ProductQuantityPicker stories snapshot > LowStockWarning story renders 
       −
     </button>
     <input
+      aria-describedby="quantity-_r_3_-inventory-msg"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       id="quantity-_r_3_"
       min="1"
@@ -122,6 +129,7 @@ exports[`ProductQuantityPicker stories snapshot > LowStockWarning story renders 
   <p
     aria-live="polite"
     class="text-sm leading-none text-left text-destructive font-medium"
+    id="quantity-_r_3_-inventory-msg"
     role="alert"
   >
     Only 3 left!
@@ -141,7 +149,9 @@ exports[`ProductQuantityPicker stories snapshot > OutOfStock story renders and m
     Quantity
   </label>
   <div
+    aria-label="Quantity for Sold Out Product"
     class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    role="group"
   >
     <button
       aria-label="Decrement Quantity for Sold Out Product"
@@ -152,6 +162,7 @@ exports[`ProductQuantityPicker stories snapshot > OutOfStock story renders and m
       −
     </button>
     <input
+      aria-describedby="quantity-_r_2_-inventory-msg"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       disabled=""
       id="quantity-_r_2_"
@@ -172,6 +183,7 @@ exports[`ProductQuantityPicker stories snapshot > OutOfStock story renders and m
   <p
     aria-live="polite"
     class="text-sm leading-none text-left text-destructive font-medium"
+    id="quantity-_r_2_-inventory-msg"
     role="alert"
   >
     Out of stock for Sold Out Product

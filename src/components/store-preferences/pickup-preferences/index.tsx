@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useState, useCallback, useEffect, useRef } from 'react';
+import { type ReactElement, useId, useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
@@ -40,6 +40,13 @@ const MOCK_INITIAL_PREFERENCES: PickupPreferencesState = {
 export default function PickupPreferences(): ReactElement {
     const { t } = useTranslation('account');
     const { addToast } = useToast();
+    const baseId = useId();
+    const autoSelectStoreId = `${baseId}-auto-select-store`;
+    const autoSelectStoreDescId = `${autoSelectStoreId}-desc`;
+    const pickupNotificationsId = `${baseId}-pickup-notifications`;
+    const pickupNotificationsDescId = `${pickupNotificationsId}-desc`;
+    const storeEventsPromotionsId = `${baseId}-store-events-promotions`;
+    const storeEventsPromotionsDescId = `${storeEventsPromotionsId}-desc`;
     const [savedPreferences, setSavedPreferences] = useState<PickupPreferencesState>(MOCK_INITIAL_PREFERENCES);
     const [editingPreferences, setEditingPreferences] = useState<PickupPreferencesState>(MOCK_INITIAL_PREFERENCES);
     const [isEditing, setIsEditing] = useState(false);
@@ -110,52 +117,55 @@ export default function PickupPreferences(): ReactElement {
             <CardContent className="space-y-6 border-t border-border pt-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between gap-y-1">
                     <div className="min-w-0">
-                        <Label htmlFor="auto-select-store" className="text-sm font-medium text-foreground">
+                        <Label htmlFor={autoSelectStoreId} className="text-sm font-medium text-foreground">
                             {t('storePreferences.pickupPreferences.autoSelectStore')}
                         </Label>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p id={autoSelectStoreDescId} className="text-xs text-muted-foreground mt-1">
                             {t('storePreferences.pickupPreferences.autoSelectStoreDescription')}
                         </p>
                     </div>
                     <Switch
                         ref={firstSwitchRef}
-                        id="auto-select-store"
+                        id={autoSelectStoreId}
                         checked={preferences.autoSelectStore}
                         disabled={!isEditing}
                         onCheckedChange={setAutoSelectStore}
+                        aria-describedby={autoSelectStoreDescId}
                         className="shrink-0"
                     />
                 </div>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between gap-y-1">
                     <div className="min-w-0">
-                        <Label htmlFor="pickup-notifications" className="text-sm font-medium text-foreground">
+                        <Label htmlFor={pickupNotificationsId} className="text-sm font-medium text-foreground">
                             {t('storePreferences.pickupPreferences.pickupNotifications')}
                         </Label>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p id={pickupNotificationsDescId} className="text-xs text-muted-foreground mt-1">
                             {t('storePreferences.pickupPreferences.pickupNotificationsDescription')}
                         </p>
                     </div>
                     <Switch
-                        id="pickup-notifications"
+                        id={pickupNotificationsId}
                         checked={preferences.pickupNotifications}
                         disabled={!isEditing}
                         onCheckedChange={setPickupNotifications}
+                        aria-describedby={pickupNotificationsDescId}
                         className="shrink-0"
                     />
                 </div>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between gap-y-1">
                     <div className="min-w-0">
-                        <Label htmlFor="store-events-promotions" className="text-sm font-medium text-foreground">
+                        <Label htmlFor={storeEventsPromotionsId} className="text-sm font-medium text-foreground">
                             {t('storePreferences.pickupPreferences.storeEventsPromotions')}
                         </Label>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p id={storeEventsPromotionsDescId} className="text-xs text-muted-foreground mt-1">
                             {t('storePreferences.pickupPreferences.storeEventsPromotionsDescription')}
                         </p>
                     </div>
                     <Switch
-                        id="store-events-promotions"
+                        id={storeEventsPromotionsId}
                         checked={preferences.storeEventsPromotions}
                         disabled={!isEditing}
+                        aria-describedby={storeEventsPromotionsDescId}
                         onCheckedChange={setStoreEventsPromotions}
                         className="shrink-0"
                     />

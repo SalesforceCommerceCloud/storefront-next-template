@@ -428,12 +428,14 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_a_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -444,8 +446,8 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_a_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -599,14 +601,14 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                         data-state="open"
                       >
                         <button
-                          aria-controls="radix-_r_e_"
+                          aria-controls="radix-_r_f_"
                           aria-expanded="true"
                           class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                           data-orientation="vertical"
                           data-radix-collection-item=""
                           data-slot="accordion-trigger"
                           data-state="open"
-                          id="radix-_r_d_"
+                          id="radix-_r_e_"
                           type="button"
                         >
                           <span
@@ -634,12 +636,12 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                         </button>
                       </h3>
                       <div
-                        aria-labelledby="radix-_r_d_"
+                        aria-labelledby="radix-_r_e_"
                         class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
                         data-orientation="vertical"
                         data-slot="accordion-content"
                         data-state="open"
-                        id="radix-_r_e_"
+                        id="radix-_r_f_"
                         role="region"
                         style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
                       >
@@ -660,7 +662,7 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                                   class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
                                   data-error="false"
                                   data-slot="form-label"
-                                  for="_r_f_-form-item"
+                                  for="_r_g_-form-item"
                                 >
                                   Promo code
                                 </label>
@@ -671,7 +673,7 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                                     aria-invalid="false"
                                     class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                                     data-slot="input"
-                                    id="_r_f_-form-item"
+                                    id="_r_g_-form-item"
                                     name="code"
                                     placeholder="Promo code..."
                                     value=""
@@ -1093,7 +1095,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_4s_"
+                                id="radix-_r_58_"
                                 type="button"
                               >
                                 <span
@@ -1222,7 +1224,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_54_"
+                                id="radix-_r_5g_"
                                 type="button"
                               >
                                 <span
@@ -1323,12 +1325,14 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_5i_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -1339,8 +1343,8 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_5i_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -1506,7 +1510,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_59_"
+                                id="radix-_r_5m_"
                                 type="button"
                               >
                                 <span
@@ -1646,7 +1650,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_5h_"
+                                id="radix-_r_5u_"
                                 type="button"
                               >
                                 <span
@@ -1758,12 +1762,14 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_60_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -1774,8 +1780,8 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_60_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -1886,7 +1892,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_5m_"
+                                id="radix-_r_64_"
                                 type="button"
                               >
                                 <span
@@ -2026,7 +2032,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_5u_"
+                                id="radix-_r_6c_"
                                 type="button"
                               >
                                 <span
@@ -2145,12 +2151,14 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_6e_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -2160,8 +2168,8 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_6e_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -2317,14 +2325,14 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                         data-state="open"
                       >
                         <button
-                          aria-controls="radix-_r_64_"
+                          aria-controls="radix-_r_6j_"
                           aria-expanded="true"
                           class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                           data-orientation="vertical"
                           data-radix-collection-item=""
                           data-slot="accordion-trigger"
                           data-state="open"
-                          id="radix-_r_63_"
+                          id="radix-_r_6i_"
                           type="button"
                         >
                           <span
@@ -2352,12 +2360,12 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                         </button>
                       </h3>
                       <div
-                        aria-labelledby="radix-_r_63_"
+                        aria-labelledby="radix-_r_6i_"
                         class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
                         data-orientation="vertical"
                         data-slot="accordion-content"
                         data-state="open"
-                        id="radix-_r_64_"
+                        id="radix-_r_6j_"
                         role="region"
                         style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
                       >
@@ -2378,7 +2386,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                   class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
                                   data-error="false"
                                   data-slot="form-label"
-                                  for="_r_65_-form-item"
+                                  for="_r_6k_-form-item"
                                 >
                                   Promo code
                                 </label>
@@ -2389,7 +2397,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                                     aria-invalid="false"
                                     class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                                     data-slot="input"
-                                    id="_r_65_-form-item"
+                                    id="_r_6k_-form-item"
                                     name="code"
                                     placeholder="Promo code..."
                                     value=""
@@ -2794,7 +2802,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_g_"
+                                id="radix-_r_h_"
                                 type="button"
                               >
                                 <span
@@ -2934,7 +2942,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_o_"
+                                id="radix-_r_p_"
                                 type="button"
                               >
                                 <span
@@ -3046,12 +3054,14 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_r_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -3062,8 +3072,8 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_r_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -3174,7 +3184,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_t_"
+                                id="radix-_r_v_"
                                 type="button"
                               >
                                 <span
@@ -3314,7 +3324,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_15_"
+                                id="radix-_r_17_"
                                 type="button"
                               >
                                 <span
@@ -3426,12 +3436,14 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_19_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -3442,8 +3454,8 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_19_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -3621,14 +3633,14 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                         data-state="open"
                       >
                         <button
-                          aria-controls="radix-_r_1b_"
+                          aria-controls="radix-_r_1e_"
                           aria-expanded="true"
                           class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                           data-orientation="vertical"
                           data-radix-collection-item=""
                           data-slot="accordion-trigger"
                           data-state="open"
-                          id="radix-_r_1a_"
+                          id="radix-_r_1d_"
                           type="button"
                         >
                           <span
@@ -3656,12 +3668,12 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                         </button>
                       </h3>
                       <div
-                        aria-labelledby="radix-_r_1a_"
+                        aria-labelledby="radix-_r_1d_"
                         class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
                         data-orientation="vertical"
                         data-slot="accordion-content"
                         data-state="open"
-                        id="radix-_r_1b_"
+                        id="radix-_r_1e_"
                         role="region"
                         style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
                       >
@@ -3682,7 +3694,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                   class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
                                   data-error="false"
                                   data-slot="form-label"
-                                  for="_r_1c_-form-item"
+                                  for="_r_1f_-form-item"
                                 >
                                   Promo code
                                 </label>
@@ -3693,7 +3705,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                                     aria-invalid="false"
                                     class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                                     data-slot="input"
-                                    id="_r_1c_-form-item"
+                                    id="_r_1f_-form-item"
                                     name="code"
                                     placeholder="Promo code..."
                                     value=""
@@ -4081,14 +4093,14 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                       data-state="open"
                     >
                       <button
-                        aria-controls="radix-_r_1e_"
+                        aria-controls="radix-_r_1h_"
                         aria-expanded="true"
                         class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                         data-orientation="vertical"
                         data-radix-collection-item=""
                         data-slot="accordion-trigger"
                         data-state="open"
-                        id="radix-_r_1d_"
+                        id="radix-_r_1g_"
                         type="button"
                       >
                         <span
@@ -4116,12 +4128,12 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                       </button>
                     </h3>
                     <div
-                      aria-labelledby="radix-_r_1d_"
+                      aria-labelledby="radix-_r_1g_"
                       class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
                       data-orientation="vertical"
                       data-slot="accordion-content"
                       data-state="open"
-                      id="radix-_r_1e_"
+                      id="radix-_r_1h_"
                       role="region"
                       style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
                     >
@@ -4142,7 +4154,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                 class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
                                 data-error="false"
                                 data-slot="form-label"
-                                for="_r_1f_-form-item"
+                                for="_r_1i_-form-item"
                               >
                                 Promo code
                               </label>
@@ -4153,7 +4165,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                   aria-invalid="false"
                                   class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                                   data-slot="input"
-                                  id="_r_1f_-form-item"
+                                  id="_r_1i_-form-item"
                                   name="code"
                                   placeholder="Promo code..."
                                   value=""
@@ -4492,7 +4504,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_1g_"
+                              id="radix-_r_1j_"
                               type="button"
                             >
                               <span
@@ -4621,7 +4633,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_1o_"
+                              id="radix-_r_1r_"
                               type="button"
                             >
                               <span
@@ -4722,12 +4734,14 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               <label
                                 class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                 data-slot="label"
-                                for="quantity"
+                                for="cart-qty-_r_1t_"
                               >
                                 Quantity
                               </label>
                               <div
+                                aria-label="Quantity for the product"
                                 class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                role="group"
                               >
                                 <button
                                   aria-label="Decrement Quantity for the product"
@@ -4738,8 +4752,8 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                   −
                                 </button>
                                 <input
-                                  aria-label="Quantity"
                                   class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  id="cart-qty-_r_1t_"
                                   max="98"
                                   min="0"
                                   step="1"
@@ -4905,7 +4919,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_1t_"
+                              id="radix-_r_21_"
                               type="button"
                             >
                               <span
@@ -5045,7 +5059,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_25_"
+                              id="radix-_r_29_"
                               type="button"
                             >
                               <span
@@ -5157,12 +5171,14 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               <label
                                 class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                 data-slot="label"
-                                for="quantity"
+                                for="cart-qty-_r_2b_"
                               >
                                 Quantity
                               </label>
                               <div
+                                aria-label="Quantity for the product"
                                 class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                role="group"
                               >
                                 <button
                                   aria-label="Decrement Quantity for the product"
@@ -5173,8 +5189,8 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                   −
                                 </button>
                                 <input
-                                  aria-label="Quantity"
                                   class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  id="cart-qty-_r_2b_"
                                   max="98"
                                   min="0"
                                   step="1"
@@ -5285,7 +5301,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_2a_"
+                              id="radix-_r_2f_"
                               type="button"
                             >
                               <span
@@ -5425,7 +5441,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_2i_"
+                              id="radix-_r_2n_"
                               type="button"
                             >
                               <span
@@ -5544,12 +5560,14 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               <label
                                 class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                 data-slot="label"
-                                for="quantity"
+                                for="cart-qty-_r_2p_"
                               >
                                 Quantity
                               </label>
                               <div
+                                aria-label="Quantity for the product"
                                 class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                role="group"
                               >
                                 <button
                                   aria-label="Decrement Quantity for the product"
@@ -5559,8 +5577,8 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                   −
                                 </button>
                                 <input
-                                  aria-label="Quantity"
                                   class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  id="cart-qty-_r_2p_"
                                   max="98"
                                   min="0"
                                   step="1"
@@ -5696,7 +5714,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_2n_"
+                              id="radix-_r_2t_"
                               type="button"
                             >
                               <span
@@ -5788,7 +5806,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               class="cursor-pointer"
                               data-slot="dropdown-menu-trigger"
                               data-state="closed"
-                              id="radix-_r_2p_"
+                              id="radix-_r_2v_"
                               type="button"
                             >
                               <span
@@ -5859,12 +5877,14 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                               <label
                                 class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                 data-slot="label"
-                                for="quantity"
+                                for="cart-qty-_r_31_"
                               >
                                 Quantity
                               </label>
                               <div
+                                aria-label="Quantity for the product"
                                 class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                role="group"
                               >
                                 <button
                                   aria-label="Decrement Quantity for the product"
@@ -5875,9 +5895,9 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                                   −
                                 </button>
                                 <input
-                                  aria-label="Quantity"
                                   class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                   disabled=""
+                                  id="cart-qty-_r_31_"
                                   max="98"
                                   min="0"
                                   step="1"
@@ -6086,7 +6106,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_2u_"
+                                id="radix-_r_35_"
                                 type="button"
                               >
                                 <span
@@ -6226,7 +6246,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_36_"
+                                id="radix-_r_3d_"
                                 type="button"
                               >
                                 <span
@@ -6338,12 +6358,14 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_3f_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -6354,8 +6376,8 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_3f_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -6466,7 +6488,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_3b_"
+                                id="radix-_r_3j_"
                                 type="button"
                               >
                                 <span
@@ -6558,7 +6580,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_3d_"
+                                id="radix-_r_3l_"
                                 type="button"
                               >
                                 <span
@@ -6629,12 +6651,14 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_3n_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -6645,9 +6669,9 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     disabled=""
+                                    id="cart-qty-_r_3n_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -6721,7 +6745,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_3i_"
+                                id="radix-_r_3r_"
                                 type="button"
                               >
                                 <span
@@ -6813,7 +6837,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_3k_"
+                                id="radix-_r_3t_"
                                 type="button"
                               >
                                 <span
@@ -6884,12 +6908,14 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_3v_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -6900,9 +6926,9 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     disabled=""
+                                    id="cart-qty-_r_3v_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -7040,14 +7066,14 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                         data-state="open"
                       >
                         <button
-                          aria-controls="radix-_r_3q_"
+                          aria-controls="radix-_r_44_"
                           aria-expanded="true"
                           class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                           data-orientation="vertical"
                           data-radix-collection-item=""
                           data-slot="accordion-trigger"
                           data-state="open"
-                          id="radix-_r_3p_"
+                          id="radix-_r_43_"
                           type="button"
                         >
                           <span
@@ -7075,12 +7101,12 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                         </button>
                       </h3>
                       <div
-                        aria-labelledby="radix-_r_3p_"
+                        aria-labelledby="radix-_r_43_"
                         class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
                         data-orientation="vertical"
                         data-slot="accordion-content"
                         data-state="open"
-                        id="radix-_r_3q_"
+                        id="radix-_r_44_"
                         role="region"
                         style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
                       >
@@ -7101,7 +7127,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                   class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
                                   data-error="false"
                                   data-slot="form-label"
-                                  for="_r_3r_-form-item"
+                                  for="_r_45_-form-item"
                                 >
                                   Promo code
                                 </label>
@@ -7112,7 +7138,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                                     aria-invalid="false"
                                     class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                                     data-slot="input"
-                                    id="_r_3r_-form-item"
+                                    id="_r_45_-form-item"
                                     name="code"
                                     placeholder="Promo code..."
                                     value=""
@@ -7566,7 +7592,7 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_4c_"
+                                id="radix-_r_4n_"
                                 type="button"
                               >
                                 <span
@@ -7706,7 +7732,7 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_4k_"
+                                id="radix-_r_4v_"
                                 type="button"
                               >
                                 <span
@@ -7825,12 +7851,14 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_51_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -7840,8 +7868,8 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_51_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -8008,14 +8036,14 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                         data-state="open"
                       >
                         <button
-                          aria-controls="radix-_r_4q_"
+                          aria-controls="radix-_r_56_"
                           aria-expanded="true"
                           class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                           data-orientation="vertical"
                           data-radix-collection-item=""
                           data-slot="accordion-trigger"
                           data-state="open"
-                          id="radix-_r_4p_"
+                          id="radix-_r_55_"
                           type="button"
                         >
                           <span
@@ -8043,12 +8071,12 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                         </button>
                       </h3>
                       <div
-                        aria-labelledby="radix-_r_4p_"
+                        aria-labelledby="radix-_r_55_"
                         class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
                         data-orientation="vertical"
                         data-slot="accordion-content"
                         data-state="open"
-                        id="radix-_r_4q_"
+                        id="radix-_r_56_"
                         role="region"
                         style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
                       >
@@ -8069,7 +8097,7 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                   class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
                                   data-error="false"
                                   data-slot="form-label"
-                                  for="_r_4r_-form-item"
+                                  for="_r_57_-form-item"
                                 >
                                   Promo code
                                 </label>
@@ -8080,7 +8108,7 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                                     aria-invalid="false"
                                     class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                                     data-slot="input"
-                                    id="_r_4r_-form-item"
+                                    id="_r_57_-form-item"
                                     name="code"
                                     placeholder="Promo code..."
                                     value=""
@@ -8555,7 +8583,7 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_3s_"
+                                id="radix-_r_46_"
                                 type="button"
                               >
                                 <span
@@ -8695,7 +8723,7 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                 class="cursor-pointer"
                                 data-slot="dropdown-menu-trigger"
                                 data-state="closed"
-                                id="radix-_r_44_"
+                                id="radix-_r_4e_"
                                 type="button"
                               >
                                 <span
@@ -8814,12 +8842,14 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                 <label
                                   class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                                   data-slot="label"
-                                  for="quantity"
+                                  for="cart-qty-_r_4g_"
                                 >
                                   Quantity
                                 </label>
                                 <div
+                                  aria-label="Quantity for the product"
                                   class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                                  role="group"
                                 >
                                   <button
                                     aria-label="Decrement Quantity for the product"
@@ -8829,8 +8859,8 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                     −
                                   </button>
                                   <input
-                                    aria-label="Quantity"
                                     class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    id="cart-qty-_r_4g_"
                                     max="98"
                                     min="0"
                                     step="1"
@@ -9011,14 +9041,14 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                         data-state="open"
                       >
                         <button
-                          aria-controls="radix-_r_4a_"
+                          aria-controls="radix-_r_4l_"
                           aria-expanded="true"
                           class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                           data-orientation="vertical"
                           data-radix-collection-item=""
                           data-slot="accordion-trigger"
                           data-state="open"
-                          id="radix-_r_49_"
+                          id="radix-_r_4k_"
                           type="button"
                         >
                           <span
@@ -9046,12 +9076,12 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                         </button>
                       </h3>
                       <div
-                        aria-labelledby="radix-_r_49_"
+                        aria-labelledby="radix-_r_4k_"
                         class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
                         data-orientation="vertical"
                         data-slot="accordion-content"
                         data-state="open"
-                        id="radix-_r_4a_"
+                        id="radix-_r_4l_"
                         role="region"
                         style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width); transition-duration: 0s; animation-name: none;"
                       >
@@ -9072,7 +9102,7 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                   class="flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 data-[error=true]:text-destructive sr-only"
                                   data-error="false"
                                   data-slot="form-label"
-                                  for="_r_4b_-form-item"
+                                  for="_r_4m_-form-item"
                                 >
                                   Promo code
                                 </label>
@@ -9083,7 +9113,7 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                                     aria-invalid="false"
                                     class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                                     data-slot="input"
-                                    id="_r_4b_-form-item"
+                                    id="_r_4m_-form-item"
                                     name="code"
                                     placeholder="Promo code..."
                                     value=""

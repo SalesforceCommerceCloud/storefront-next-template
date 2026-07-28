@@ -7,12 +7,14 @@ exports[`CartQuantityPicker stories snapshot > AtStockLimit story renders and ma
   <label
     class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
     data-slot="label"
-    for="quantity"
+    for="cart-qty-_r_4_"
   >
     Quantity
   </label>
   <div
+    aria-label="Quantity for the product"
     class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    role="group"
   >
     <button
       aria-label="Decrement Quantity for the product"
@@ -22,8 +24,9 @@ exports[`CartQuantityPicker stories snapshot > AtStockLimit story renders and ma
       −
     </button>
     <input
-      aria-label="Quantity"
+      aria-describedby="cart-qty-_r_4_-error"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      id="cart-qty-_r_4_"
       max="10"
       min="0"
       step="1"
@@ -42,6 +45,7 @@ exports[`CartQuantityPicker stories snapshot > AtStockLimit story renders and ma
   <p
     aria-live="polite"
     class="text-sm font-medium leading-none text-left absolute top-full left-0 mt-1 w-max max-w-[min(100%,18rem)] text-destructive"
+    id="cart-qty-_r_4_-error"
     role="alert"
   >
     Maximum stock reached
@@ -56,12 +60,14 @@ exports[`CartQuantityPicker stories snapshot > Default story renders and matches
   <label
     class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
     data-slot="label"
-    for="quantity"
+    for="cart-qty-_r_0_"
   >
     Quantity
   </label>
   <div
+    aria-label="Quantity for the product"
     class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    role="group"
   >
     <button
       aria-label="Decrement Quantity for the product"
@@ -72,8 +78,8 @@ exports[`CartQuantityPicker stories snapshot > Default story renders and matches
       −
     </button>
     <input
-      aria-label="Quantity"
       class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      id="cart-qty-_r_0_"
       min="0"
       step="1"
       type="number"

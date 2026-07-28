@@ -225,7 +225,9 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                     Quantity
                   </label>
                   <div
+                    aria-label="Quantity for Product Name"
                     class="inline-flex border border-input rounded-ui overflow-hidden h-9 w-fit max-w-full items-center gap-2 px-2 py-2"
+                    role="group"
                   >
                     <button
                       aria-label="Decrement Quantity for Product Name"
@@ -521,7 +523,9 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                     Quantity
                   </label>
                   <div
+                    aria-label="Quantity for Product Name"
                     class="inline-flex border border-input rounded-ui overflow-hidden h-9 w-fit max-w-full items-center gap-2 px-2 py-2"
+                    role="group"
                   >
                     <button
                       aria-label="Decrement Quantity for Product Name"

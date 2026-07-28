@@ -581,7 +581,9 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
       Quantity
     </label>
     <div
+      aria-label="Quantity for Premium Cotton T-Shirt"
       class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+      role="group"
     >
       <button
         aria-label="Decrement Quantity for Premium Cotton T-Shirt"
@@ -1198,7 +1200,9 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
       Quantity
     </label>
     <div
+      aria-label="Quantity for Premium Cotton T-Shirt"
       class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+      role="group"
     >
       <button
         aria-label="Decrement Quantity for Premium Cotton T-Shirt"
@@ -1812,7 +1816,9 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
       Quantity
     </label>
     <div
+      aria-label="Quantity for Premium Cotton T-Shirt"
       class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+      role="group"
     >
       <button
         aria-label="Decrement Quantity for Premium Cotton T-Shirt"
@@ -2429,7 +2435,9 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
       Quantity
     </label>
     <div
+      aria-label="Quantity for Premium Cotton T-Shirt"
       class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+      role="group"
     >
       <button
         aria-label="Decrement Quantity for Premium Cotton T-Shirt"
@@ -2981,7 +2989,9 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
       Quantity
     </label>
     <div
+      aria-label="Quantity for Premium Cotton T-Shirt"
       class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+      role="group"
     >
       <button
         aria-label="Decrement Quantity for Premium Cotton T-Shirt"

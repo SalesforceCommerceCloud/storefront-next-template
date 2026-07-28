@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useCallback, useMemo, useState } from 'react';
+import { type ReactElement, useCallback, useId, useMemo, useState } from 'react';
 import { useLocation, useNavigation } from 'react-router';
 import { useNavigate } from '@/hooks/use-navigate';
 
@@ -208,19 +208,24 @@ function FilterSection({
     children: ReactElement;
 }): ReactElement {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const labelId = useId();
 
     return (
         <section>
             <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border mb-4 rounded-ui">
                 <Typography variant="small" as="h3" className="leading-normal p-4 transition-colors hover:bg-muted/60">
                     <CollapsibleTrigger className="flex items-center justify-between w-full text-left px-1 py-1 -mx-1 cursor-pointer">
-                        <Typography variant="small" as="span" className="font-medium">
+                        <Typography variant="small" as="span" id={labelId} className="font-medium">
                             {label}
                         </Typography>
                         {isOpen ? <Minus className="size-4" /> : <Plus className="size-4" />}
                     </CollapsibleTrigger>
                 </Typography>
-                <CollapsibleContent className="px-4 pb-4">{children}</CollapsibleContent>
+                <CollapsibleContent className="px-4 pb-4">
+                    <div role="group" aria-labelledby={labelId}>
+                        {children}
+                    </div>
+                </CollapsibleContent>
             </Collapsible>
         </section>
     );

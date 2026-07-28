@@ -108,6 +108,7 @@ export default function ProductQuantityPicker({
     };
 
     const inventoryMessage = getInventoryMessage();
+    const inventoryMessageId = `${quantityId}-inventory-msg`;
 
     return (
         <div className={cn('space-y-2', className)}>
@@ -122,10 +123,15 @@ export default function ProductQuantityPicker({
                 onChange={handleQuantityChange}
                 productName={productName}
                 disabled={disabled}
+                aria-describedby={inventoryMessage ? inventoryMessageId : undefined}
             />
-            {/* Inventory message */}
             {inventoryMessage && (
-                <Typography variant="small" className="text-destructive font-medium" role="alert" aria-live="polite">
+                <Typography
+                    id={inventoryMessageId}
+                    variant="small"
+                    className="text-destructive font-medium"
+                    role="alert"
+                    aria-live="polite">
                     {inventoryMessage}
                 </Typography>
             )}

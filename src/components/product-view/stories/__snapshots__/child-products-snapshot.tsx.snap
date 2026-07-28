@@ -439,7 +439,9 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           Quantity
         </label>
         <div
+          aria-label="Quantity for Turquoise Jewelry Bundle"
           class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+          role="group"
         >
           <button
             aria-label="Decrement Quantity for Turquoise Jewelry Bundle"

@@ -523,7 +523,9 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
               Quantity
             </label>
             <div
+              aria-label="Quantity for Men's Classic Deer Gloves"
               class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+              role="group"
             >
               <button
                 aria-label="Decrement Quantity for Men's Classic Deer Gloves"
@@ -1023,7 +1025,9 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
               Quantity
             </label>
             <div
+              aria-label="Quantity for Men's Classic Deer Gloves"
               class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+              role="group"
             >
               <button
                 aria-label="Decrement Quantity for Men's Classic Deer Gloves"
@@ -1034,6 +1038,7 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
                 −
               </button>
               <input
+                aria-describedby="quantity-_r_11_-inventory-msg"
                 class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 id="quantity-_r_11_"
                 min="1"
@@ -1052,6 +1057,7 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
             <p
               aria-live="polite"
               class="text-sm leading-none text-left text-destructive font-medium"
+              id="quantity-_r_11_-inventory-msg"
               role="alert"
             >
               Out of stock for Men's Classic Deer Gloves
@@ -1650,7 +1656,9 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
               Quantity
             </label>
             <div
+              aria-label="Quantity for Men's Classic Deer Gloves"
               class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+              role="group"
             >
               <button
                 aria-label="Decrement Quantity for Men's Classic Deer Gloves"

@@ -316,6 +316,7 @@
         "quantityInput": "Quantity",
         "quantityUpdated": "Quantity updated",
         "quantityUpdateFailed": "Failed to update quantity",
+        "quantityForProduct": "Quantity for {{productName}}",
         "onlyLeft": "Only {{stockLevel}} left!",
         "onlyLeftForProduct": "Only {{stockLevel}} left for {{productName}}!",
         "maxStockReached": "Maximum stock reached",

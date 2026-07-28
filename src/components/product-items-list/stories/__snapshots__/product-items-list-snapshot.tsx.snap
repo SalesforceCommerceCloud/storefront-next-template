@@ -142,12 +142,14 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                           <label
                             class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                             data-slot="label"
-                            for="quantity"
+                            for="cart-qty-_r_0_"
                           >
                             Quantity
                           </label>
                           <div
+                            aria-label="Quantity for the product"
                             class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                            role="group"
                           >
                             <button
                               aria-label="Decrement Quantity for the product"
@@ -158,8 +160,8 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               −
                             </button>
                             <input
-                              aria-label="Quantity"
                               class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              id="cart-qty-_r_0_"
                               max="98"
                               min="0"
                               step="1"
@@ -336,12 +338,14 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                           <label
                             class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                             data-slot="label"
-                            for="quantity"
+                            for="cart-qty-_r_4_"
                           >
                             Quantity
                           </label>
                           <div
+                            aria-label="Quantity for the product"
                             class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                            role="group"
                           >
                             <button
                               aria-label="Decrement Quantity for the product"
@@ -351,8 +355,8 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               −
                             </button>
                             <input
-                              aria-label="Quantity"
                               class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              id="cart-qty-_r_4_"
                               max="98"
                               min="0"
                               step="1"

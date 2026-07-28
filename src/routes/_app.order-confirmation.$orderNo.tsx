@@ -23,6 +23,7 @@ import { Link } from '@/components/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/typography';
 import ProductImage from '@/components/product-image/product-image';
 import { formatCurrency } from '@/lib/currency';
@@ -607,18 +608,23 @@ function OrderConfirmationContent({
                             <p className="text-sm text-muted-foreground">{t('confirmation.newsletter.subtitle')}</p>
                         </div>
                         {/* This is a static placeholder form. Integrators should handle submit events here
-                           (e.g., call their marketing/newsletter API or hook into an existing newsletter service). */}
-                        <form className="flex flex-col gap-3 sm:flex-row">
-                            <label htmlFor={newsletterEmailId} className="sr-only">
-                                {t('confirmation.newsletter.label')}
-                            </label>
-                            <Input
-                                id={newsletterEmailId}
-                                type="email"
-                                placeholder={t('confirmation.newsletter.placeholder')}
-                                className="h-12 flex-1"
-                            />
-                            <Button type="button" className="h-12 sm:w-auto">
+                           (e.g., call their marketing/newsletter API or hook into an existing newsletter service).
+                           preventDefault keeps the placeholder inert: the submit button still triggers native
+                           required-field validation on an empty email, but a filled submit does not reload the page. */}
+                        <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(e) => e.preventDefault()}>
+                            <div className="flex-1 space-y-1">
+                                <Label htmlFor={newsletterEmailId} className="text-sm font-medium">
+                                    {t('confirmation.newsletter.label')}
+                                </Label>
+                                <Input
+                                    id={newsletterEmailId}
+                                    type="email"
+                                    required
+                                    placeholder={t('confirmation.newsletter.placeholder')}
+                                    className="h-12"
+                                />
+                            </div>
+                            <Button type="submit" className="h-12 sm:w-auto sm:self-end">
                                 {t('confirmation.newsletter.cta')}
                             </Button>
                         </form>
