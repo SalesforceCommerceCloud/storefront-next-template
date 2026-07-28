@@ -36,6 +36,7 @@ const DEFAULT_STOREFRONT = 'sfcc-storefront';
 const STOREFRONT_FASHION_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-template';
 const STOREFRONT_COSMETIC_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-beauty';
 const STOREFRONT_FOUNDATIONS_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-foundations';
+const STOREFRONT_FOOTWEAR_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-footwear';
 
 /**
  * Available storefront verticals, keyed by the value accepted by the `--vertical` flag.
@@ -49,6 +50,10 @@ const VERTICALS: Record<string, { label: string; url: string }> = {
     foundations: {
         label: 'Salesforce B2C Commerce Foundations Storefront (Foundations)',
         url: STOREFRONT_FOUNDATIONS_URL,
+    },
+    footwear: {
+        label: 'Salesforce B2C Commerce Footwear Storefront (Footwear)',
+        url: STOREFRONT_FOOTWEAR_URL,
     },
 };
 
