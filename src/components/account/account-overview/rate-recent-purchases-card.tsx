@@ -21,6 +21,7 @@ import type { Order } from '@/components/account/order-list';
 import { useTranslation } from 'react-i18next';
 import { formatStatusFallbackLabel, getOrderReturnStatusConfig, getOrderStatusConfig } from '@/lib/order/status';
 import { routes, routeHref } from '@/route-paths';
+import { accountPrimaryButtonClasses } from '@/lib/account-action-styles';
 
 const MAX_THUMBNAILS = 2;
 
@@ -113,7 +114,7 @@ export function RateRecentPurchasesCard({ order }: RateRecentPurchasesCardProps)
                                     asChild
                                     variant="default"
                                     size="default"
-                                    className="min-w-[10.5rem] bg-foreground text-background hover:bg-foreground/90">
+                                    className={`min-w-[10.5rem] ${accountPrimaryButtonClasses}`}>
                                     <Link to={orderDetailsUrl}>{t('overview.rateRecentPurchases.cta')}</Link>
                                 </Button>
                             </div>

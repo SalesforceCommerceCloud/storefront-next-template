@@ -114,6 +114,8 @@ const COLOR_GROUPS: ColorGroup[] = [
             { className: 'bg-active-foreground', token: '--active-foreground' },
             { className: 'bg-account-action-destructive', token: '--account-action-destructive' },
             { className: 'bg-account-action-destructive-foreground', token: '--account-action-destructive-foreground' },
+            { className: 'bg-account-action-primary', token: '--account-action-primary' },
+            { className: 'bg-account-action-primary-foreground', token: '--account-action-primary-foreground' },
             { className: 'bg-status-positive', token: '--status-positive' },
             { className: 'bg-status-warning', token: '--status-warning' },
             { className: 'bg-status-critical', token: '--status-critical' },

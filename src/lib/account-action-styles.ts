@@ -31,3 +31,11 @@ export const accountDestructiveAlertClasses =
 /** Icon or link that is muted by default and red on hover (e.g. trash in Authorized Pickup list). */
 export const accountDestructiveIconHoverClasses =
     'cursor-pointer text-muted-foreground hover:bg-account-action-destructive/10 hover:text-account-action-destructive';
+
+/**
+ * Primary filled CTA in account surfaces (e.g. "Buy Again" on order details, "Rate & review" on the
+ * account overview). Uses the --account-action-primary theme token so each vertical decides the fill
+ * (neutral foreground by default; brand blue in Foundations) without hardcoding a color at the call site.
+ */
+export const accountPrimaryButtonClasses =
+    'bg-account-action-primary text-account-action-primary-foreground hover:bg-account-action-primary/90';

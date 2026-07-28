@@ -66,6 +66,8 @@
     --color-active-foreground: var(--active-foreground);
     --color-account-action-destructive: var(--account-action-destructive);
     --color-account-action-destructive-foreground: var(--account-action-destructive-foreground);
+    --color-account-action-primary: var(--account-action-primary);
+    --color-account-action-primary-foreground: var(--account-action-primary-foreground);
     --color-status-positive: var(--status-positive);
     --color-status-warning: var(--status-warning);
     --color-status-critical: var(--status-critical);
