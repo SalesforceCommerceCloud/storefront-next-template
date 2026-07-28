@@ -1537,7 +1537,8 @@
             "viewAllReviews": "Vedi tutte le recensioni",
             "distributionAriaLabel": "{{rating}} stelle: {{count, number}} di {{totalReviews, number}} recensioni",
             "distributionsAriaLabel": "Distribuzione valutazioni a stelle, {{total, number}} recensioni totali",
-            "seeCustomerReviews": "Vedi le recensioni dei clienti >"
+            "seeCustomerReviews": "Vedi le recensioni dei clienti >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "da",
         "outOfStock": "Esaurito per {{productName}}",

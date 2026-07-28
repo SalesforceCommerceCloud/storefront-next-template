@@ -1380,7 +1380,8 @@
             "viewAllReviews": "Se alle omtaler",
             "distributionAriaLabel": "{{rating}} stjerner: {{count, number}} av {{totalReviews, number}} omtaler",
             "distributionsAriaLabel": "Fordeling av stjerner, {{total, number}} totalt antall omtaler",
-            "seeCustomerReviews": "Se kundenes omtaler >"
+            "seeCustomerReviews": "Se kundenes omtaler >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "fra",
         "outOfStock": "{{productName}} er ikke på lager",

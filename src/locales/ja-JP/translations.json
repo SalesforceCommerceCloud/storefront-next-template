@@ -1444,7 +1444,8 @@
             "viewAllReviews": "すべてのレビューを表示",
             "distributionAriaLabel": "{{rating}} 星: {{totalReviews, number}} 件中 {{count, number}} 件のレビュー",
             "distributionsAriaLabel": "星評価の内訳、レビュー総数 {{total, number}} 件",
-            "seeCustomerReviews": "カスタマーレビューを見る >"
+            "seeCustomerReviews": "カスタマーレビューを見る >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "から",
         "outOfStock": "{{productName}} は在庫切れです",

@@ -1445,7 +1445,8 @@
             "viewAllReviews": "檢視所有評價",
             "distributionAriaLabel": "{{rating}} 星： {{count, number}}/{{totalReviews, number}}",
             "distributionsAriaLabel": "星級分布，總計 {{total, number}} 則評價",
-            "seeCustomerReviews": "請參閱客戶評價 >"
+            "seeCustomerReviews": "請參閱客戶評價 >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "從",
         "outOfStock": "缺貨 {{productName}}",

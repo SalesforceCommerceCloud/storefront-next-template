@@ -1380,7 +1380,8 @@
             "viewAllReviews": "Alle Bewertungen ansehen",
             "distributionAriaLabel": "{{rating}} Sterne: {{count, number}} von {{totalReviews, number}} Bewertungen",
             "distributionsAriaLabel": "Sterneverteilung, {{total, number}} Bewertungen gesamt",
-            "seeCustomerReviews": "Kundenbewertungen anzeigen >"
+            "seeCustomerReviews": "Kundenbewertungen anzeigen >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "von",
         "outOfStock": "{{productName}} nicht vorrätig",

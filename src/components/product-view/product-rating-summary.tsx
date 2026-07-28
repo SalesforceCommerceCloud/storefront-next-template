@@ -15,9 +15,11 @@
  */
 /** @sfdc-extension-file SFDC_EXT_RATINGS_REVIEWS */
 import { type ReactElement, useMemo, useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StarRating } from '@/components/product-ratings/star-rating';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useProductReviews } from '@/extensions/ratings-reviews/providers/product-reviews-context';
+import { uiConfig } from '@/lib/config.ui';
 import { cn } from '@/lib/utils';
 
 const StarRatingDistributionModalContent = lazy(() =>
@@ -37,7 +39,11 @@ const POPOVER_CLOSE_DELAY_MS = 150;
  * link scrolls to the customer reviews accordion.
  */
 export function ProductRatingSummary({ interactive = true }: { interactive?: boolean }): ReactElement | null {
+    const { t } = useTranslation('product');
     const { reviewsSummary, reviews, expandReviews, registerOnExpanded } = useProductReviews();
+    // @/lib/config.ui seam — a vertical (e.g. foundations) overlays this to show the
+    // numeric average and a "{count} reviews" label; the baseline shows count-only.
+    const { showRatingAverage } = uiConfig.pages.product;
     const [popoverOpen, setPopoverOpen] = useState(false);
     const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     // True only while the current close was triggered by Escape (a keyboard dismissal), so the
@@ -164,13 +170,21 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
                             <StarRating
                                 rating={aggregateRating.average}
                                 reviewCount={aggregateRating.count}
-                                showRatingLabel={false}
+                                showRatingLabel={showRatingAverage}
+                                ratingLabelPosition="right"
+                                ratingLabelFormat="short"
+                                ratingLabelClassName="text-sm font-medium text-card-foreground"
                                 showRatingLink={false}
                                 starSize="default"
                             />
-                            {aggregateRating.count > 0 && (
-                                <span className="text-sm text-muted-foreground">({aggregateRating.count})</span>
-                            )}
+                            {aggregateRating.count > 0 &&
+                                (showRatingAverage ? (
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('rating.reviewCount', { count: aggregateRating.count })}
+                                    </span>
+                                ) : (
+                                    <span className="text-sm text-muted-foreground">({aggregateRating.count})</span>
+                                ))}
                         </div>
                     </div>
                 </PopoverTrigger>

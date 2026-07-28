@@ -1381,7 +1381,8 @@
             "viewAllReviews": "Alle beoordelingen weergeven",
             "distributionAriaLabel": "{{rating}} sterren: {{count, number}} van {{totalReviews, number}} beoordelingen",
             "distributionsAriaLabel": "Verdeling van sterren, {{total, number}} beoordelingen in totaal",
-            "seeCustomerReviews": "Klantbeoordelingen bekijken >"
+            "seeCustomerReviews": "Klantbeoordelingen bekijken >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "van",
         "outOfStock": "Niet op voorraad voor {{productName}}",

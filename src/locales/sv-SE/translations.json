@@ -1382,7 +1382,8 @@
             "viewAllReviews": "Se alla recensioner",
             "distributionAriaLabel": "{{rating}} stjärnor: {{count, number}} av {{totalReviews, number}} recensioner",
             "distributionsAriaLabel": "Fördelning av stjärnbetyg, {{total, number}} totalt antal recensioner",
-            "seeCustomerReviews": "Se kundrecensioner >"
+            "seeCustomerReviews": "Se kundrecensioner >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "från",
         "outOfStock": "{{productName}} finns inte i lager",

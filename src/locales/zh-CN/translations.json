@@ -1447,7 +1447,8 @@
             "viewAllReviews": "查看所有评论",
             "distributionAriaLabel": "{{rating}} 星：{{count, number}} 个评论，共 {{totalReviews, number}} 个",
             "distributionsAriaLabel": "星级分布，共 {{total, number}} 个评论",
-            "seeCustomerReviews": "查看客户评论 >"
+            "seeCustomerReviews": "查看客户评论 >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "从",
         "outOfStock": "{{productName}} 无库存",

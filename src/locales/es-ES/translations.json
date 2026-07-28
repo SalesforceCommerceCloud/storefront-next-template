@@ -1394,7 +1394,8 @@
             "viewAllReviews": "Ver todas las reseñas",
             "distributionAriaLabel": "{{rating}} estrellas: {{count, number}} de {{totalReviews, number}} reseñas",
             "distributionsAriaLabel": "Distribución de la clasificación por estrellas, {{total, number}} reseñas totales",
-            "seeCustomerReviews": "Ver las opiniones de los clientes >"
+            "seeCustomerReviews": "Ver las opiniones de los clientes >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "de",
         "outOfStock": "Agotado para {{productName}}",

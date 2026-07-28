@@ -1440,7 +1440,8 @@
             "viewAllReviews": "모든 리뷰 보기",
             "distributionAriaLabel": "별점 {{rating}}: {{count, number}}/{{totalReviews, number}}개 리뷰",
             "distributionsAriaLabel": "별점 분포, 총 {{total, number}}개 리뷰",
-            "seeCustomerReviews": "고객 리뷰 보기 >"
+            "seeCustomerReviews": "고객 리뷰 보기 >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "시작",
         "outOfStock": "{{productName}}이(가) 품절입니다.",

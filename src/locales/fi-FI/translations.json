@@ -1389,7 +1389,8 @@
             "viewAllReviews": "Näytä kaikki arvostelut",
             "distributionAriaLabel": "{{rating}} tähteä: {{count, number}} /{{totalReviews, number}} arvostelusta",
             "distributionsAriaLabel": "Tähtiluokitusten jakautuminen, {{total, number}} arvostelua yhteensä",
-            "seeCustomerReviews": "Katso asiakkaiden arvostelut >"
+            "seeCustomerReviews": "Katso asiakkaiden arvostelut >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "kohteesta",
         "outOfStock": "{{productName}} ei varastossa",

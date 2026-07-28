@@ -97,6 +97,19 @@ export interface UIConfig {
              */
             pagination: PaginationConfig;
         };
+        product: {
+            /**
+             * When true, the PDP rating summary (below the product description)
+             * shows the numeric average and a "{count} reviews" label beside the
+             * stars (e.g. "★★★★☆ 4.8 (124 reviews)"). When false, only the review
+             * count in parentheses renders (e.g. "★★★★☆ (124)"). The average and
+             * distribution are always available to the component; this only gates
+             * the extra label, so the count-only baseline stays unchanged.
+             *
+             * @default false
+             */
+            showRatingAverage: boolean;
+        };
     };
 }
 
@@ -136,6 +149,9 @@ export const uiConfig: UIConfig = {
                 mobileBatchSize: 12,
                 maxProducts: 200,
             },
+        },
+        product: {
+            showRatingAverage: false,
         },
     },
 };

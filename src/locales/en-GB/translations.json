@@ -1732,7 +1732,8 @@
             "viewAllReviews": "View all reviews",
             "distributionAriaLabel": "{{rating}} stars: {{count, number}} out of {{totalReviews, number}} reviews",
             "distributionsAriaLabel": "Star rating distribution, {{total, number}} total reviews",
-            "seeCustomerReviews": "See customer reviews >"
+            "seeCustomerReviews": "See customer reviews >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "from",
         "outOfStock": "Out of stock for {{productName}}",
