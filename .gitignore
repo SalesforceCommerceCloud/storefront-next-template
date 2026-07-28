@@ -65,6 +65,7 @@ dw.json
 /tsconfig.cosmetic.json
 /tsconfig.foundations.json
 /tsconfig.footwear.json
+/tsconfig.furniture.json
 # The generator test writes a throwaway tsconfig.fashion.json for the route-less
 # case and deletes it in afterAll; ignore it so an interrupted run can't stage it.
 /tsconfig.fashion.json

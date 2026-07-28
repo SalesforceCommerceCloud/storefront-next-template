@@ -37,6 +37,7 @@ const STOREFRONT_FASHION_URL = 'https://github.com/SalesforceCommerceCloud/store
 const STOREFRONT_COSMETIC_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-beauty';
 const STOREFRONT_FOUNDATIONS_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-foundations';
 const STOREFRONT_FOOTWEAR_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-footwear';
+const STOREFRONT_FURNITURE_URL = 'https://github.com/SalesforceCommerceCloud/storefront-next-furniture';
 
 /**
  * Available storefront verticals, keyed by the value accepted by the `--vertical` flag.
@@ -54,6 +55,10 @@ const VERTICALS: Record<string, { label: string; url: string }> = {
     footwear: {
         label: 'Salesforce B2C Commerce Footwear Storefront (Footwear)',
         url: STOREFRONT_FOOTWEAR_URL,
+    },
+    furniture: {
+        label: 'Salesforce B2C Commerce Furniture Storefront (Furniture)',
+        url: STOREFRONT_FURNITURE_URL,
     },
 };
 
