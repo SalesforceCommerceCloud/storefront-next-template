@@ -17,7 +17,8 @@ import { useMemo, type ReactElement } from 'react';
 import { Outlet, redirect, type ShouldRevalidateFunctionArgs } from 'react-router';
 import type { Route } from './+types/_app.account';
 import { useTranslation } from 'react-i18next';
-import { House, User, Heart, ShoppingBag, MapPin, CreditCard, Building, LogOut } from 'lucide-react';
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
+import { House, User, Heart, ShoppingBag, MapPin, CreditCard, Building, KeyRound, LogOut } from 'lucide-react';
 
 // Runtime SDK
 import type { ShopperCustomers, ShopperConsents } from '@/scapi';
@@ -104,6 +105,13 @@ export function shouldRevalidate({ defaultShouldRevalidate, formAction }: Should
         return false;
     }
 
+    // Deleting a passkey can't change customer details or consent subscriptions, so skip
+    // this layout's loaders. The passkeys child route has no shouldRevalidate of its own,
+    // so its credential list still refreshes on the fetcher's default action revalidation.
+    if (formAction?.includes(resourceRoutes.passkeyDeleteCredential)) {
+        return false;
+    }
+
     return defaultShouldRevalidate;
 }
 
@@ -117,6 +125,8 @@ export function shouldRevalidate({ defaultShouldRevalidate, formAction }: Should
 export default function AccountPage({ loaderData }: { loaderData: AccountPageData }): ReactElement {
     const { t } = useTranslation('account');
     const { customer, subscriptions } = loaderData;
+    const config = useConfig();
+    const passkeyEnabled = Boolean(config.features?.passkey?.enabled);
 
     // Stable context reference so child Await does not get new promise refs on every layout re-render.
     const outletContext = useMemo(() => ({ customer, subscriptions }), [customer, subscriptions]);
@@ -154,13 +164,22 @@ export default function AccountPage({ loaderData }: { loaderData: AccountPageDat
                 icon: CreditCard,
                 label: t('navigation.paymentMethods'),
             },
+            ...(passkeyEnabled
+                ? [
+                      {
+                          path: routes.accountPasskeys,
+                          icon: KeyRound,
+                          label: t('navigation.passkeys'),
+                      },
+                  ]
+                : []),
             {
                 path: '/account/store-preferences',
                 icon: Building,
                 label: t('navigation.storePreferences'),
             },
         ],
-        [t]
+        [t, passkeyEnabled]
     );
 
     const logoutItem: AccountNavItemData = useMemo(

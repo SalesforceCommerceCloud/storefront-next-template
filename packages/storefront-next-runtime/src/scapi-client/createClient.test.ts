@@ -510,6 +510,64 @@ describe('createClient', () => {
             }
         });
 
+        it('should throw ApiError on 401 for WebAuthn passkey endpoints', async () => {
+            const errorBody = { message: 'Invalid OTP' };
+            const webAuthnPath = '/organizations/f_ecom_zzrf_001/oauth2/webauthn/register/authorize';
+            const errorResponse = {
+                status: 401,
+                statusText: 'Unauthorized',
+                headers: new Headers(),
+                url: `https://api.example.com${webAuthnPath}`,
+                ok: false,
+                clone: () => ({
+                    text: vi.fn().mockResolvedValue(JSON.stringify(errorBody)),
+                }),
+            };
+
+            mockClient.GET = vi.fn().mockResolvedValue({
+                data: undefined,
+                error: errorBody,
+                response: errorResponse,
+            });
+
+            const proxyClient = createClient(mockClient, mockOperations) as any;
+
+            try {
+                await proxyClient.getTest({ params: { path: { id: '123' } } });
+                expect.fail('Should have thrown ApiError');
+            } catch (error) {
+                expect(error).toBeInstanceOf(ApiError);
+                expect(error).not.toBeInstanceOf(AuthTokenInvalidError);
+            }
+        });
+
+        it('should throw AuthTokenInvalidError on 401 for WebAuthn passkey/user endpoints', async () => {
+            const errorBody = { message: 'Unauthorized' };
+            const passkeyPath = '/organizations/f_ecom_zzrf_001/oauth2/webauthn/passkey/user/shopper%40example.com';
+            const errorResponse = {
+                status: 401,
+                statusText: 'Unauthorized',
+                headers: new Headers(),
+                url: `https://api.example.com${passkeyPath}`,
+                ok: false,
+                clone: () => ({
+                    text: vi.fn().mockResolvedValue(JSON.stringify(errorBody)),
+                }),
+            };
+
+            mockClient.GET = vi.fn().mockResolvedValue({
+                data: undefined,
+                error: errorBody,
+                response: errorResponse,
+            });
+
+            const proxyClient = createClient(mockClient, mockOperations) as any;
+
+            await expect(async () => {
+                await proxyClient.getTest({ params: { path: { id: '123' } } });
+            }).rejects.toThrow(AuthTokenInvalidError);
+        });
+
         it('should throw error when HTTP method does not exist on client', async () => {
             // Create a mock operation with an unsupported HTTP method
             const BASE = '/api' as const;

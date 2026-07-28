@@ -173,6 +173,11 @@ export type AppConfig = {
      */
     serverExtension?: DeepWritable<typeof GeneratedServerExtensionConfig>;
     features: {
+        passkey: {
+            enabled?: boolean;
+            callbackUri?: string;
+            mode: 'callback' | 'email' | 'sms';
+        };
         passwordlessLogin: {
             enabled?: boolean;
             callbackUri?: string;

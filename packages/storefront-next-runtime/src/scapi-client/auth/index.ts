@@ -647,26 +647,29 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
 
         /**
          * WebAuthn / passkey namespace.
-         * Only available when clientSecret is configured (private SLAS client).
+         * Registration works with either a public or private SLAS client. Authentication
+         * (start/finish) requires a clientSecret (private SLAS client) in this client;
+         * management (get/delete passkey) authenticates with the shopper's access token.
          * Requires the `sfcc.pwdless_login` scope on the SLAS client.
          */
         webAuthn: {
             authorizeRegistration: async (options: WebAuthnAuthorizeRegistrationOptions) => {
                 const { userId, mode, callbackUri, locale } = options;
 
-                if (!clientSecret) {
-                    throw new Error('Client secret is required for WebAuthn operations');
-                }
-
                 if (mode === 'callback' && !callbackUri) {
                     throw new Error('callbackUri is required when mode is "callback"');
                 }
 
+                // SLAS passkey registration works with either a public or private client. Only a
+                // private client (clientSecret present) sends the Basic auth header; a public
+                // client authenticates by client_id in the body alone.
                 return shopperLoginClient.authorizeWebauthnRegistration({
                     params: {
-                        header: {
-                            Authorization: createBasicAuthHeader(clientId, clientSecret),
-                        },
+                        ...(clientSecret && {
+                            header: {
+                                Authorization: createBasicAuthHeader(clientId, clientSecret),
+                            },
+                        }),
                     },
                     headers: FORM_URLENCODED_HEADER,
                     body: {
@@ -683,15 +686,14 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
             startRegistration: async (options: WebAuthnRegistrationStartOptions) => {
                 const { pwdActionToken, userId, displayName, nickName } = options;
 
-                if (!clientSecret) {
-                    throw new Error('Client secret is required for WebAuthn operations');
-                }
-
+                // Public or private client — only a private client sends the Basic auth header.
                 return shopperLoginClient.startWebauthnUserRegistration({
                     params: {
-                        header: {
-                            Authorization: createBasicAuthHeader(clientId, clientSecret),
-                        },
+                        ...(clientSecret && {
+                            header: {
+                                Authorization: createBasicAuthHeader(clientId, clientSecret),
+                            },
+                        }),
                     },
                     headers: FORM_URLENCODED_HEADER,
                     body: {
@@ -708,15 +710,14 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
             finishRegistration: async (options: WebAuthnRegistrationFinishOptions) => {
                 const { userId, pwdActionToken, credential } = options;
 
-                if (!clientSecret) {
-                    throw new Error('Client secret is required for WebAuthn operations');
-                }
-
+                // Public or private client — only a private client sends the Basic auth header.
                 return shopperLoginClient.finishWebauthnUserRegistration({
                     params: {
-                        header: {
-                            Authorization: createBasicAuthHeader(clientId, clientSecret),
-                        },
+                        ...(clientSecret && {
+                            header: {
+                                Authorization: createBasicAuthHeader(clientId, clientSecret),
+                            },
+                        }),
                     },
                     body: {
                         client_id: clientId,

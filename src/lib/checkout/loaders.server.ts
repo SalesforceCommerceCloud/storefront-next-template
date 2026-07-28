@@ -684,6 +684,7 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
                 return '';
             }),
         ]);
+
         logger.debug('Checkout: loader starting', { userIsRegistered, hasBasket: Boolean(session.customerId) });
 
         const basket = (await getBasket(context)).current ?? null;

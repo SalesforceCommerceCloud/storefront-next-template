@@ -266,6 +266,28 @@ describe('LoginModal', () => {
 
             // OtpModal should receive custom otpLength
         });
+
+        // Regression: the modal detects login success by watching its fetcher return to idle
+        // (see login-modal.tsx). With passkeys enabled the login action would otherwise reply
+        // with `redirectDocument`, a full-page navigation that unmounts the modal before
+        // `onSuccess` fires — so the checkout step would never advance and the page would hard
+        // reload to /checkout. The modal must always submit `skipDocumentRedirect=true` to force
+        // the client-side redirect (the modal opens no passkey picker, so nothing needs the
+        // document reload to dismiss it).
+        test('submits skipDocumentRedirect in password mode so success stays client-side', () => {
+            // The dialog renders in a portal on document.body, so query the whole document.
+            renderWithRouter(<LoginModal {...defaultProps} mode="password" />);
+
+            const hidden = document.querySelector('input[name="skipDocumentRedirect"]');
+            expect(hidden).toHaveValue('true');
+        });
+
+        test('submits skipDocumentRedirect in passwordless mode so success stays client-side', () => {
+            renderWithRouter(<LoginModal {...defaultProps} mode="passwordless" />);
+
+            const hidden = document.querySelector('input[name="skipDocumentRedirect"]');
+            expect(hidden).toHaveValue('true');
+        });
     });
 
     describe('mode switching', () => {

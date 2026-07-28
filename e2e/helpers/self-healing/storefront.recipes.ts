@@ -75,6 +75,23 @@ export const userIconRecipe: HealingRecipe = {
 };
 
 /**
+ * User Menu Logout Button - "Log out" button inside the account popover menu
+ * Primary: [data-testid="user-menu-logout"]
+ */
+export const userMenuLogoutButtonRecipe: HealingRecipe = {
+    name: 'userMenuLogoutButton',
+    description: '"Log out" button inside the header account popover menu',
+    selectors: [
+        '[data-testid="user-menu-logout"]', // Primary selector from page object
+        'form[action*="/logout"] button[type="submit"]', // Form action fallback
+        'button:has-text("Log out")', // Text fallback
+        'button:has-text("Log Out")', // Capitalized variant
+    ],
+    context: 'Inside the account popover opened via the header user icon; submits a client-side <Form> POST to /logout',
+    fallbackStrategy: 'Look for a submit button with logout-related text inside the account popover',
+};
+
+/**
  * Navigation Menu - Main site navigation
  * Primary: nav
  */

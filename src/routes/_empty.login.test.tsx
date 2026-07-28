@@ -32,6 +32,7 @@ import { updateBasketResource } from '@/middlewares/basket.server';
 import { isAbsoluteURL, extractResponseError } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
 import { buildUrlFromContext } from '@/lib/url.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 
 vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(),
@@ -101,6 +102,15 @@ vi.mock('@/lib/origin', () => ({
     getAppOrigin: vi.fn(),
 }));
 
+const mockAbortPasskeyLogin = vi.fn();
+vi.mock('@/hooks/use-passkey-login', () => ({
+    usePasskeyLogin: () => ({
+        loginWithPasskey: vi.fn(),
+        abortPasskeyLogin: mockAbortPasskeyLogin,
+        isAuthenticating: false,
+    }),
+}));
+
 // Mock passwordless form since we're focusing on standard login full-flow tests
 vi.mock('@/components/login/passwordless-login-form', () => ({
     __esModule: true,
@@ -128,6 +138,9 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
                     enabled: true,
                     callbackUri: '/social-callback',
                     providers: ['Apple', 'Google'],
+                },
+                passkey: {
+                    enabled: true,
                 },
             },
             commerce: {
@@ -174,10 +187,12 @@ const mockIsAbsoluteURL = vi.mocked(isAbsoluteURL);
 const mockExtractResponseError = vi.mocked(extractResponseError);
 const mockBuildUrlFromContext = vi.mocked(buildUrlFromContext);
 const mockGetLoginPreferences = vi.mocked(getLoginPreferencesLazy);
+const mockGetConfig = vi.mocked(getConfig);
 
 describe('Login Route', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockAbortPasskeyLogin.mockClear();
         mockGetAppOrigin.mockReturnValue('http://localhost:5173');
         mockIsAbsoluteURL.mockImplementation((url: string) => /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url));
         mockExtractResponseError.mockResolvedValue({ responseMessage: 'error' } as any);
@@ -737,6 +752,109 @@ describe('Login Route', () => {
             );
             expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
             expect(mockUpdateBasketResource).toHaveBeenCalledWith(mockContext, mergedBasket);
+        });
+
+        it('marks the successful-login redirect as a full document reload', async () => {
+            // The login page's conditional-mediation passkey listener (usePasskeyLogin) can
+            // escalate to the browser's native credential picker. That picker is browser-chrome
+            // UI, not app state, so only an actual page unload reliably dismisses it — a
+            // client-side transition leaves it open over the next page. redirectDocument signals
+            // react-router to perform a full navigation instead for this specific redirect.
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'test-customer-123',
+                accessToken: 'test-token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({ basketId: 'basket-1' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'test@example.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect((result as Response).headers.get('X-Remix-Reload-Document')).toBe('true');
+        });
+
+        it('uses a plain client-side redirect when passkeys are disabled (no picker to dismiss)', async () => {
+            mockGetConfig.mockReturnValue({
+                auth: { otpLength: 6 },
+                features: {
+                    passwordlessLogin: {
+                        landingUri: '/passwordless-login-landing',
+                        callbackUri: '/passwordless-login-callback',
+                    },
+                    socialLogin: { enabled: true, callbackUri: '/social-callback', providers: ['Apple', 'Google'] },
+                    passkey: { enabled: false },
+                },
+                commerce: { api: { privateKeyEnabled: false } },
+            } as any);
+
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'test-customer-123',
+                accessToken: 'test-token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({ basketId: 'basket-1' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'test@example.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect((result as Response).headers.get('X-Remix-Reload-Document')).not.toBe('true');
+        });
+
+        it('uses a plain client-side redirect for background re-auth (skipDocumentRedirect) even with passkeys enabled', async () => {
+            // The account page re-authenticates via a background fetcher after a password/email
+            // change. It never opened a passkey picker, so it opts out of the document reload —
+            // a full navigation would unmount the page before its queued success toast renders.
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'test-customer-123',
+                accessToken: 'test-token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({ basketId: 'basket-1' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'test@example.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+            formData.append('skipDocumentRedirect', 'true');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect((result as Response).headers.get('X-Remix-Reload-Document')).not.toBe('true');
         });
 
         it('should redirect to returnUrl on successful login', async () => {

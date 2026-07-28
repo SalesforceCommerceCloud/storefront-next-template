@@ -19,7 +19,7 @@ import {
     type RouterContextProvider,
     type ActionFunctionArgs,
 } from 'react-router';
-import { type AuthResponse, AuthTokenInvalidError } from '@/scapi';
+import { ApiError, type AuthResponse, AuthTokenInvalidError, type ShopperLogin } from '@/scapi';
 import type { SessionData as AuthData } from '@/lib/api/types';
 import { clearStorage, type StorageErrorData, unpackStorage } from '@/lib/storage-map';
 import {
@@ -30,6 +30,7 @@ import {
     updateAuthStorageData,
     updateStorageAndCache,
     getSLASAccessTokenClaims,
+    getLoginEmailFromToken,
     getCustomerIdFromClaims,
     deriveUserTypeFromClaims,
     isTrackingConsentEnabled,
@@ -486,6 +487,243 @@ export async function verifyOtp(
         throw error;
     } finally {
         performanceTimer?.mark(PERFORMANCE_MARKS.authVerifyOtp, 'end');
+    }
+}
+
+/**
+ * Authorize a user for WebAuthn passkey registration.
+ * Sends an OTP to the user's email (or, in callback mode, to the configured
+ * callback endpoint) to verify identity before the registration flow.
+ */
+export async function authorizePasskeyRegistration(context: ActionFunctionArgs['context']) {
+    const clients = createApiClients(context);
+    const logger = getLogger(context);
+
+    const appConfig = getConfig(context);
+    const passkeyCallback = appConfig.features.passkey.callbackUri;
+    const mode = appConfig.features.passkey.mode;
+
+    let callbackUri: string | undefined;
+    if (passkeyCallback) {
+        callbackUri = isAbsoluteURL(passkeyCallback) ? passkeyCallback : `${getAppOrigin(context)}${passkeyCallback}`;
+    }
+
+    logger.debug('Auth: authorizePasskeyRegistration starting', { mode });
+
+    // The client only has encUserId (an opaque token), not the email SLAS requires.
+    // Extract the login email from the access token's isb claim instead.
+    const authForAuthorize = getAuth(context);
+    const loginEmailForAuthorize = getLoginEmailFromToken(authForAuthorize.accessToken);
+    if (!loginEmailForAuthorize) {
+        throw new Error('Could not resolve login email from access token for passkey authorization');
+    }
+
+    try {
+        await clients.auth.webAuthn.authorizeRegistration({
+            userId: loginEmailForAuthorize,
+            mode,
+            callbackUri,
+        });
+        logger.debug('Auth: authorizePasskeyRegistration succeeded');
+    } catch (error) {
+        logger.error('Auth: authorizePasskeyRegistration failed', { error });
+        throw error;
+    }
+}
+
+/**
+ * Start WebAuthn passkey registration.
+ * Returns the publicKey options to pass to navigator.credentials.create() on the client.
+ */
+export async function startPasskeyRegistration(
+    context: ActionFunctionArgs['context'],
+    parameters: {
+        pwdActionToken: string;
+        nickName?: string;
+    }
+): Promise<{ publicKey: Record<string, unknown> }> {
+    const clients = createApiClients(context);
+    const logger = getLogger(context);
+    logger.debug('Auth: startPasskeyRegistration starting');
+
+    const loginEmailForStart = getLoginEmailFromToken(getAuth(context).accessToken);
+    if (!loginEmailForStart) {
+        throw new Error('Could not resolve login email from access token for passkey start registration');
+    }
+
+    try {
+        const result = await clients.auth.webAuthn.startRegistration({
+            userId: loginEmailForStart,
+            pwdActionToken: parameters.pwdActionToken,
+            nickName: parameters.nickName,
+        });
+        logger.debug('Auth: startPasskeyRegistration succeeded');
+        // SLAS returns the registration options directly; the client expects `{ publicKey }`
+        // to pass to navigator.credentials.create().
+        return { publicKey: result.data as Record<string, unknown> };
+    } catch (error) {
+        logger.error('Auth: startPasskeyRegistration failed', { error });
+        throw error;
+    }
+}
+
+/**
+ * Finish WebAuthn passkey registration.
+ * Sends the credential from navigator.credentials.create() to SLAS.
+ */
+export async function finishPasskeyRegistration(
+    context: ActionFunctionArgs['context'],
+    parameters: {
+        credential: Record<string, unknown>;
+        pwdActionToken: string;
+    }
+) {
+    const clients = createApiClients(context);
+    const logger = getLogger(context);
+    logger.debug('Auth: finishPasskeyRegistration starting');
+
+    const loginEmailForFinish = getLoginEmailFromToken(getAuth(context).accessToken);
+    if (!loginEmailForFinish) {
+        throw new Error('Could not resolve login email from access token for passkey finish registration');
+    }
+
+    try {
+        await clients.auth.webAuthn.finishRegistration({
+            credential: parameters.credential as unknown as ShopperLogin.schemas['PublicKeyCredentialJson'],
+            pwdActionToken: parameters.pwdActionToken,
+            userId: loginEmailForFinish,
+        });
+        logger.debug('Auth: finishPasskeyRegistration succeeded');
+    } catch (error) {
+        logger.error('Auth: finishPasskeyRegistration failed', { error });
+        throw error;
+    }
+}
+
+/**
+ * Start WebAuthn passkey authentication (login).
+ * Unlike registration, the caller is anonymous/guest — there's no access token to resolve
+ * an identity from. Omitting `userId` requests a discoverable-credential challenge (the
+ * browser/autofill lets the shopper pick which passkey to use); passing `userId` requests
+ * a non-discoverable challenge scoped to that login.
+ * Returns the publicKey options to pass to navigator.credentials.get() on the client.
+ */
+export async function startPasskeyAuthentication(
+    context: ActionFunctionArgs['context'],
+    parameters?: { userId?: string }
+): Promise<{ publicKey: Record<string, unknown> }> {
+    const clients = createApiClients(context);
+    const logger = getLogger(context);
+    logger.debug('Auth: startPasskeyAuthentication starting');
+
+    try {
+        const result = await clients.auth.webAuthn.startAuthentication({ userId: parameters?.userId });
+        logger.debug('Auth: startPasskeyAuthentication succeeded');
+        // SLAS's response body is already shaped `{ publicKey: {...} }` — don't re-wrap it.
+        return result.data as { publicKey: Record<string, unknown> };
+    } catch (error) {
+        logger.error('Auth: startPasskeyAuthentication failed', { error });
+        throw error;
+    }
+}
+
+/**
+ * Finish WebAuthn passkey authentication (login).
+ * Sends the assertion from navigator.credentials.get() to SLAS and returns the resulting
+ * token response. Passes the current guest `usid` so SLAS can link the guest session
+ * (and its basket) to the newly authenticated user — callers are responsible for calling
+ * `updateAuth` with the result, matching the pattern used by passwordless OTP verification.
+ */
+export async function finishPasskeyAuthentication(
+    context: ActionFunctionArgs['context'],
+    parameters: { credential: Record<string, unknown> }
+): Promise<AuthResponse> {
+    const clients = createApiClients(context);
+    const logger = getLogger(context);
+    logger.debug('Auth: finishPasskeyAuthentication starting');
+
+    const { usid } = getAuth(context);
+
+    try {
+        const result = await clients.auth.webAuthn.finishAuthentication({
+            credential: parameters.credential as unknown as ShopperLogin.schemas['PublicKeyCredentialJson'],
+            usid: usid ? String(usid) : undefined,
+        });
+        logger.debug('Auth: finishPasskeyAuthentication succeeded');
+        return result;
+    } catch (error) {
+        logger.error('Auth: finishPasskeyAuthentication failed', { error });
+        throw error;
+    }
+}
+
+/**
+ * Resolve the current registered shopper's access token + login email, both required
+ * by the webAuthn passkey management endpoints (Bearer-authenticated, unlike the
+ * Basic-authenticated registration endpoints above).
+ */
+function getPasskeyManagementAuth(context: ActionFunctionArgs['context']): { accessToken: string; loginId: string } {
+    const { accessToken } = getAuth(context);
+    const loginId = getLoginEmailFromToken(accessToken);
+    if (!accessToken || !loginId) {
+        throw new Error('Could not resolve access token/login email for passkey management');
+    }
+    return { accessToken, loginId };
+}
+
+/**
+ * List the registered shopper's WebAuthn passkey credentials.
+ */
+export async function getPasskeyList(
+    context: ActionFunctionArgs['context']
+): Promise<ShopperLogin.schemas['PasskeyCredential'][]> {
+    const clients = createApiClients(context);
+    const logger = getLogger(context);
+    logger.debug('Auth: getPasskeyList starting');
+
+    const { accessToken, loginId } = getPasskeyManagementAuth(context);
+
+    try {
+        const result = await clients.auth.webAuthn.getPasskeyUser({ accessToken, loginId });
+        logger.debug('Auth: getPasskeyList succeeded');
+        return result.data?.credentials ?? [];
+    } catch (error) {
+        // SCAPI returns 404 when the shopper has never registered a passkey - treat as empty, not an error.
+        if (error instanceof ApiError && error.status === 404) {
+            logger.debug('Auth: getPasskeyList found no passkey user, returning empty list');
+            return [];
+        }
+        logger.error('Auth: getPasskeyList failed', { error });
+        throw error;
+    }
+}
+
+/**
+ * Delete a single WebAuthn passkey credential for the registered shopper.
+ */
+export async function deletePasskeyCredential(
+    context: ActionFunctionArgs['context'],
+    credentialId: string
+): Promise<void> {
+    const clients = createApiClients(context);
+    const logger = getLogger(context);
+    logger.debug('Auth: deletePasskeyCredential starting');
+
+    const { accessToken, loginId } = getPasskeyManagementAuth(context);
+
+    try {
+        await clients.auth.webAuthn.deletePasskeyCredential({ accessToken, loginId, credentialId });
+        logger.debug('Auth: deletePasskeyCredential succeeded');
+    } catch (error) {
+        // SCAPI returns 404 when the credential is already gone (stale list, or a second tab
+        // deleted it first). The shopper's desired end state — that credential removed — already
+        // holds, so treat it as a no-op success instead of surfacing a misleading error toast.
+        if (error instanceof ApiError && error.status === 404) {
+            logger.debug('Auth: deletePasskeyCredential credential already absent, treating as success');
+            return;
+        }
+        logger.error('Auth: deletePasskeyCredential failed', { error });
+        throw error;
     }
 }
 

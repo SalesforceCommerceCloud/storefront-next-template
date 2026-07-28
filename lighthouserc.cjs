@@ -106,13 +106,23 @@ module.exports = {
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
-                        // Product-page script bundle measures ~442183 on main (deterministic across
-                        // 5-run medians). The prior 442000 ceiling sat just under main's real size,
-                        // so any branch tripped it. 445000 gives ~2.8KB headroom above the observed
-                        // size without materially loosening the intent.
+                        // main baseline: product-page script bundle measures ~442183 on main
+                        // (deterministic across 5-run medians); main set the ceiling to 445000
+                        // (~2.8KB headroom) after the prior 442000 sat just under its real size.
+                        // feature/passkeys raises it further to absorb this feature's growth:
+                        //   445000 → 446000: the account.passkeys i18n keys nudged the shared chunk
+                        //   to 445551 on the cosmetic mirror.
+                        //   446000 → 447000: the round-2 review fix extracted bufferToBase64Url into
+                        //   a shared @/lib/auth/webauthn module imported by both the login hook and
+                        //   the registration modal, so the bundler hoists it into the shared route
+                        //   chunk the product page loads (cosmetic mirror measured 446288).
+                        //   447000 → 449000: merging main (Data Cloud analytics adapter, ECB content
+                        //   blocks, et al.) grew the shared route chunk by ~1.4KB independently of
+                        //   this feature (cosmetic mirror measured 447721). ~1.3KB headroom above
+                        //   that absorbs main's drift plus run-to-run variance.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 445000, aggregationMethod: 'median' },
+                            { maxNumericValue: 449000, aggregationMethod: 'median' },
                         ],
                         'resource-summary:document:size': [
                             'error',
@@ -134,10 +144,14 @@ module.exports = {
                         // ~2KB overhead from cart-route imports going through `@salesforce/storefront-ui`
                         // instead of inlined `@/components/ui/*`. Mirror output flattens those back to
                         // local imports so customer artifacts re-tighten under the baseline budget.
+                        // Raised 490000 → 495000: the feature/passkeys baseline grew the cart route
+                        // chunk (cosmetic mirror measured 492663). Raised further 495000 → 500000
+                        // on main; keep the higher ceiling to absorb both baselines.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: 500000, aggregationMethod: 'median' },
                         ],
+                        // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.
                         // The 31000 ceiling was too tight - multiple unrelated PRs hit
                         // 25-40 byte overshoots even on retry. 32000 gives ~1kB headroom

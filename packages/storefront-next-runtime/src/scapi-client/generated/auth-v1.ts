@@ -1785,6 +1785,29 @@ export interface components {
              * @example 42
              */
             signatureCount?: string;
+            /**
+             * @description The Authenticator Attestation GUID identifying the authenticator model
+             * @example 08987058-cadc-4b81-b6e1-30de50dcbe96
+             */
+            aaguid?: string;
+            /**
+             * Format: date-time
+             * @description The date and time the credential was created
+             * @example 2026-06-01T10:15:30Z
+             */
+            createdTime?: string;
+            /**
+             * Format: date-time
+             * @description The date and time the credential was last used to authenticate. May undercount slightly under concurrent requests.
+             * @example 2026-06-14T08:42:10Z
+             */
+            lastUsed?: string;
+            /**
+             * Format: int32
+             * @description The number of times this credential has been used to authenticate. May undercount slightly under concurrent requests.
+             * @example 12
+             */
+            uses?: number;
         };
         /** @description Represents a passkey user with their associated credentials */
         PasskeyUser: {

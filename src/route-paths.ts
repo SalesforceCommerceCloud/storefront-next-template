@@ -112,6 +112,7 @@ export const routes = {
     accountPaymentMethods: '/account/payment-methods',
     accountStorePreferences: '/account/store-preferences',
     accountWishlist: '/account/wishlist',
+    accountPasskeys: '/account/passkeys',
     wishlist: '/wishlist',
     orderConfirmation: '/order-confirmation/:orderNo',
     search: '/search',
@@ -170,6 +171,10 @@ export const resourceRoutes = {
     stores: '/resource/stores',
     analyticsProxy: '/resource/analytics-proxy',
     apiClient: '/resource/api/client/:resource',
+    passkeyStatus: '/resource/passkey-status',
+    passkeyDeleteCredential: '/action/passkey-delete-credential',
+    passkeyStartAuthentication: '/action/passkey-start-authentication',
+    passkeyFinishAuthentication: '/action/passkey-finish-authentication',
 } as const;
 
 /**

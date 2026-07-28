@@ -41,6 +41,7 @@ import {
 } from '@/lib/address/phone-utils';
 import type { OtpFlowActiveRef } from '@/hooks/use-checkout-actions';
 import { Spinner } from '@/components/spinner';
+import { usePasskeyLogin } from '@/hooks/use-passkey-login';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { TurnstileWidget } from '@/components/security/turnstile-widget';
 import { getTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
@@ -118,6 +119,7 @@ export default function ContactInfo({
     const [isOtpOpen, setIsOtpOpen] = useState(false);
     const [otpModalEmail, setOtpModalEmail] = useState('');
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const passkeyEnabled = Boolean(appConfig.features.passkey.enabled);
 
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileBypassed, setTurnstileBypassed] = useState(false);
@@ -246,6 +248,40 @@ export default function ContactInfo({
         }
     }, [turnstileEnabled, showTurnstile, verificationError]);
 
+    const lastPasskeyEmailRef = useRef<string | null>(null);
+
+    const handlePasskeyLoginSuccess = useCallback(
+        () => {
+            // A passkey login supersedes any passwordless-email OTP or the sign-in modal
+            // already in flight for this blur — the conditional mediation suggestion can
+            // resolve while LoginModal is open (its email input also carries
+            // autoComplete="username webauthn"), so both must be dismissed here or they'd
+            // stay open after the shopper has already signed in via the autofill suggestion.
+            setIsOtpOpen(false);
+            setIsLoginModalOpen(false);
+            onPasswordlessOtpVerified?.();
+            otpSuccessRevalidatingRef.current = true;
+            void revalidator.revalidate();
+            if (otpFlowActiveRef) otpFlowActiveRef.current = false;
+        },
+        // Ref is stable; .current is mutated intentionally — omit from deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        [onPasswordlessOtpVerified, revalidator]
+    );
+
+    const handlePasskeyLoginError = useCallback(() => {
+        // The shopper picked a passkey suggestion but the server couldn't complete the login.
+        // Surface the generic verification-error message so they aren't left silently stuck;
+        // it clears when they focus the email field again (see the effect that resets it).
+        setVerificationError(t('contactInfo.passkeyLoginFailed'));
+    }, [t]);
+
+    const {
+        loginWithPasskey,
+        abortPasskeyLogin,
+        isAuthenticating: isPasskeyLoginPending,
+    } = usePasskeyLogin(handlePasskeyLoginSuccess, handlePasskeyLoginError);
+
     const handleEmailBlur = useCallback(
         (e: React.FocusEvent<HTMLInputElement>, fieldOnBlur: (e: React.FocusEvent<HTMLInputElement>) => void) => {
             fieldOnBlur(e);
@@ -253,6 +289,15 @@ export default function ContactInfo({
             if (!raw) return;
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) return;
             const normalized = raw.toLowerCase();
+
+            // Runs in parallel with (not blocking) the passwordless-email authorization below —
+            // conditional mediation is a passive browser suggestion, not a server round trip, so
+            // it doesn't need to wait on Turnstile or dedupe against the same guards.
+            if (passkeyEnabled && lastPasskeyEmailRef.current !== normalized) {
+                lastPasskeyEmailRef.current = normalized;
+                abortPasskeyLogin();
+                void loginWithPasskey();
+            }
 
             if (turnstileEnabled && !showTurnstile) {
                 setShowTurnstile(true);
@@ -297,6 +342,9 @@ export default function ContactInfo({
             turnstileEnabled,
             showTurnstile,
             resetTurnstile,
+            passkeyEnabled,
+            abortPasskeyLogin,
+            loginWithPasskey,
         ]
     );
 
@@ -491,13 +539,17 @@ export default function ContactInfo({
     useEffect(
         () => {
             if (otpFlowActiveRef) {
-                otpFlowActiveRef.current = isSendingOtp || isOtpOpen || isLoginModalOpen;
+                otpFlowActiveRef.current = isSendingOtp || isOtpOpen || isLoginModalOpen || isPasskeyLoginPending;
             }
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
         // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
-        [isSendingOtp, isOtpOpen, isLoginModalOpen]
+        [isSendingOtp, isOtpOpen, isLoginModalOpen, isPasskeyLoginPending]
     );
+
+    // Abort any in-flight conditional mediation ceremony on unmount (step exit) so it
+    // doesn't resolve — and potentially call onSuccess — after this component is gone.
+    useEffect(() => abortPasskeyLogin, [abortPasskeyLogin]);
 
     const otpLength = (appConfig?.auth as { otpLength?: number } | undefined)?.otpLength ?? 6;
 
@@ -533,7 +585,9 @@ export default function ContactInfo({
                                                 <FormInput
                                                     type="email"
                                                     placeholder={t('contactInfo.emailPlaceholder')}
-                                                    autoComplete="email"
+                                                    // Opt the email field into WebAuthn conditional mediation
+                                                    // so a saved passkey can autofill during checkout sign-in.
+                                                    autoComplete="username webauthn"
                                                     // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first field on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                                     autoFocus={isEditing}
                                                     disabled={isSendingOtp}

@@ -42,4 +42,8 @@ export const SLAS_AUTH_ENDPOINTS = [
     '/oauth2/trusted-system',
     '/oauth2/revoke',
     '/oauth2/introspect',
+    // WebAuthn/passkey endpoints use Basic auth (clientId:clientSecret), not Bearer.
+    // Bearer injection must be skipped so the endpoint-level Basic auth header is not overwritten.
+    // A 401 from these endpoints means invalid OTP/credential, not a revoked access token.
+    '/oauth2/webauthn',
 ] as const;

@@ -29,6 +29,7 @@ export interface ToastOptions {
     action?: ToastAction;
     cancel?: ToastAction;
     description?: ReactNode;
+    className?: string;
 }
 
 /**
@@ -57,6 +58,9 @@ export function useToast() {
             }),
             ...(toastOptions.description && {
                 description: toastOptions.description,
+            }),
+            ...(toastOptions.className && {
+                className: toastOptions.className,
             }),
         };
 

@@ -42,7 +42,7 @@ export default function UserActions(): ReactElement {
             variant="ghost"
             className="cursor-pointer lg:px-4 px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
             asChild>
-            <Link to={accountLink} aria-label={ariaLabel}>
+            <Link to={accountLink} aria-label={ariaLabel} data-testid="user-account-trigger">
                 {icon}
             </Link>
         </Button>

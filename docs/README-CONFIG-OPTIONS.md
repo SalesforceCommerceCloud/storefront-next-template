@@ -745,6 +745,39 @@ The URI path where users land to create a new password after requesting a reset.
 
 ---
 
+### features.passkey.enabled
+
+Type: `boolean` Optional | Default: `true`
+
+Enables WebAuthn passkey registration and login.
+
+---
+
+### features.passkey.mode
+
+Type: `'email' | 'callback' | 'sms'` | Default: `'email'`
+
+Determines how the OTP that authorizes passkey registration is delivered.
+
+- **`'email'`** (default): SLAS sends the OTP directly to the shopper's email.
+- **`'callback'`**: SLAS POSTs the OTP to your `callbackUri` instead of emailing the shopper. This mode requires the `callbackUri` to be configured and registered for your SLAS client, and is useful when using an external email or SMS provider.
+- **`'sms'`**: SLAS sends the OTP directly to the shopper's phone via SMS.
+
+Example:
+```bash
+PUBLIC__app__features__passkey__mode="email"
+```
+
+---
+
+### features.passkey.callbackUri
+
+Type: `string` Optional | Default: `undefined`
+
+The callback URI sent to SLAS when authorizing passkey registration. Required when mode is `callback`. Must be an absolute URL pointing to an external service (e.g., `https://example.com/passkey-callback`).
+
+---
+
 ### features.socialLogin.enabled
 
 Type: `boolean` | Default: `false`

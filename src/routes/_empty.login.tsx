@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useState, useCallback, useMemo, useRef } from 'react';
+import { type ReactElement, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from '@/hooks/use-navigate';
-import { redirect, useActionData } from 'react-router';
+import { redirect, redirectDocument, useActionData } from 'react-router';
+import { usePasskeyLogin } from '@/hooks/use-passkey-login';
 import type { Route } from './+types/_empty.login';
 import { Link } from '@/components/link';
 import { Card } from '@/components/ui/card';
@@ -59,6 +60,7 @@ import {
 import { getPasswordlessErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
 import { getLogger } from '@/lib/logger.server';
 import { enforceTurnstile } from '@/lib/turnstile/enforce.server';
+import { ApiError } from '@/scapi';
 
 type LoginActionResponse = {
     success: boolean;
@@ -119,6 +121,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     const { emailVerificationEnabled } = await getLoginPreferences(context);
     const isPasswordlessLoginEnabled = Boolean(emailVerificationEnabled);
     const isSocialLoginEnabled = Boolean(config.features.socialLogin?.enabled);
+
     // Ignore `?mode` when passwordless is disabled - force standard password login so the
     // passwordless form (and its Turnstile widget) cannot render for a flow that's turned off.
     const mode = isPasswordlessLoginEnabled ? url.searchParams.get('mode') || 'passwordless' : 'password';
@@ -319,6 +322,13 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Lo
                 const errorMessage = extractErrorMessage(error);
                 const errorKey = getPasswordlessErrorMessageKey(errorMessage);
 
+                logger.error('Login: passwordless authorize failed', {
+                    status: error instanceof ApiError ? error.status : undefined,
+                    errorMessage,
+                    errorKey,
+                    rawBody: error instanceof ApiError ? error.rawBody : undefined,
+                });
+
                 return { success: false, error: t(errorKey) };
             }
         } else {
@@ -380,13 +390,27 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Lo
                 }
             }
 
-            // Helper to prepare redirect with wishlist merge cookie
+            // Helper to prepare redirect with wishlist merge cookie. Uses redirectDocument (full
+            // page navigation) rather than redirect only when passkeys are enabled — a
+            // client-side transition never unloads the document, so a native passkey picker
+            // left open by the login page's conditional mediation (usePasskeyLogin, below)
+            // would otherwise persist visibly over the next page. An actual document unload is
+            // the only reliable way to dismiss it. When passkeys are disabled, conditional
+            // mediation never starts, so there's no picker to dismiss and a plain redirect
+            // avoids the unnecessary full-page reload.
+            //
+            // Background re-authentication (account page password/email change) submits here via
+            // a fetcher and opts out with `skipDocumentRedirect`: it never opened a picker, and a
+            // document reload would tear down the page — including the just-queued success toast —
+            // before it can render.
+            const skipDocumentRedirect = formData.get('skipDocumentRedirect') === 'true';
+            const doRedirect = config.features.passkey.enabled && !skipDocumentRedirect ? redirectDocument : redirect;
             const prepareRedirect = (target: string) => {
                 if (wishlistMergeResult) {
                     const { url, setCookie } = appendWishlistMergeFlag(context, target, wishlistMergeResult);
-                    return redirect(url, { headers: { 'Set-Cookie': setCookie } });
+                    return doRedirect(url, { headers: { 'Set-Cookie': setCookie } });
                 }
-                return redirect(target);
+                return doRedirect(target);
             };
 
             // Login successful - redirect to returnUrl if provided, otherwise home
@@ -455,6 +479,32 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
 
     const [resendTurnstileToken, setResendTurnstileToken] = useState<string | null>(null);
     const resendTurnstileResetRef = useRef<(() => void) | null>(null);
+    const [passkeyLoginError, setPasskeyLoginError] = useState<string | null>(null);
+
+    const { loginWithPasskey, abortPasskeyLogin } = usePasskeyLogin(
+        (result) => {
+            const target = returnUrl || routes.home;
+            if (result.wishlistMerge) {
+                const separator = target.includes('?') ? '&' : '?';
+                void navigate(`${target}${separator}wishlistMerge=${result.wishlistMerge}`);
+            } else {
+                void navigate(target);
+            }
+        },
+        // The shopper picked a passkey but the server couldn't complete the login — surface it
+        // instead of leaving the sign-in form silently unchanged.
+        () => setPasskeyLoginError(t('passkeyError'))
+    );
+
+    // Conditional mediation on mount — the browser surfaces matching passkeys as autofill
+    // suggestions on the email input (autoComplete="username webauthn" in StandardLoginForm).
+    // Abort on unmount so a pending ceremony doesn't resolve after the shopper navigates away.
+    useEffect(() => {
+        if (!config?.features.passkey.enabled) return;
+        void loginWithPasskey();
+        return () => abortPasskeyLogin();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+    }, [config?.features.passkey.enabled]);
 
     const turnstileEnabled = config ? isTurnstileEnabled(config) : false;
     const turnstileMode = config ? getTurnstileMode(config) : 'managed';
@@ -476,8 +526,9 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
     const handleResendTurnstileExpire = useCallback(() => {
         setResendTurnstileToken(null);
     }, []);
-    // Prefer actionData error (from form submission) over loaderData error (from URL params)
-    const error = actionData?.error || loaderError || undefined;
+    // Prefer actionData error (from form submission) over loaderData error (from URL params);
+    // a post-gesture passkey failure takes precedence since it reflects the shopper's latest action.
+    const error = passkeyLoginError || actionData?.error || loaderError || undefined;
 
     // Check if we should show OTP form from actionData (after email submission) or loaderData (from URL)
     const shouldShowOTPForm = actionData?.showOTPForm || showOTPForm;

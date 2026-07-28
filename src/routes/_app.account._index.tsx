@@ -454,6 +454,10 @@ function AccountDetailsContent({
                     // Email is used as loginId in SFCC; after an email update the current session
                     // USID is tied to the old identity. Skip it so SLAS issues a fresh session.
                     skipUsid: 'true',
+                    // Background re-auth: keep this a client-side redirect. A document reload
+                    // (used on the login page to dismiss the passkey picker) would unmount the
+                    // page before the success toast queued above can render.
+                    skipDocumentRedirect: 'true',
                 },
                 {
                     method: 'POST',
@@ -606,6 +610,10 @@ function AccountDetailsContent({
                     password: formData.password,
                     loginMode: 'password',
                     returnUrl: accountUrl,
+                    // Background re-auth: keep this a client-side redirect. A document reload
+                    // (used on the login page to dismiss the passkey picker) would unmount the
+                    // page before the success toast queued above can render.
+                    skipDocumentRedirect: 'true',
                 },
                 {
                     method: 'POST',

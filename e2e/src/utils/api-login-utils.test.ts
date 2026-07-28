@@ -110,6 +110,7 @@ describe('getSfccCookieNames', () => {
             guestRefresh: 'cc-nx-g_RefArchGlobal',
             usid: 'usid_RefArchGlobal',
             customerId: 'customer_id_RefArchGlobal',
+            encUserId: 'enc_user_id_RefArchGlobal',
             basket: '__sfdc_basket',
         });
     });

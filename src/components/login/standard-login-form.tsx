@@ -40,6 +40,16 @@ interface StandardLoginFormProps {
      * the parent's fetcher (used to close the modal on success).
      */
     Form?: ComponentType<React.ComponentProps<typeof RouterForm>>;
+    /**
+     * When true, submits `skipDocumentRedirect` so the login action uses a client-side
+     * `redirect` instead of `redirectDocument` even with passkeys enabled. Required when
+     * rendered inside the LoginModal: the modal detects success by observing its fetcher
+     * return to idle (login-modal.tsx), which a full-page `redirectDocument` navigation
+     * would prevent — the modal unmounts and `onSuccess` never fires (e.g. the checkout
+     * step never advances). The modal opens no passkey picker itself, so there is nothing
+     * for the document reload to dismiss.
+     */
+    skipDocumentRedirect?: boolean;
 }
 
 export default function StandardLoginForm({
@@ -51,6 +61,7 @@ export default function StandardLoginForm({
     onCheckoutAsGuest,
     initialEmail,
     Form = RouterForm,
+    skipDocumentRedirect = false,
 }: StandardLoginFormProps): ReactElement {
     const formRef = useRef<HTMLFormElement>(null);
     const location = useLocation();
@@ -84,7 +95,7 @@ export default function StandardLoginForm({
                     id="email"
                     name="email"
                     type="email"
-                    autoComplete="email"
+                    autoComplete="username webauthn"
                     required
                     className="mt-1"
                     placeholder={t('emailPlaceholder')}
@@ -108,6 +119,7 @@ export default function StandardLoginForm({
             </div>
 
             <input type="hidden" name="loginMode" value="password" />
+            {skipDocumentRedirect ? <input type="hidden" name="skipDocumentRedirect" value="true" /> : null}
             {returnUrl ? <input type="hidden" name="returnUrl" value={returnUrl} /> : null}
             {action ? <input type="hidden" name="action" value={action} /> : null}
             {actionParams ? <input type="hidden" name="actionParams" value={actionParams} /> : null}

@@ -182,7 +182,7 @@ describe('PasswordlessLoginForm', () => {
             renderWithRouter(<PasswordlessLoginForm {...defaultProps} />);
 
             const emailInput = screen.getByLabelText(t('login:emailLabel'));
-            expect(emailInput).toHaveAttribute('autocomplete', 'email');
+            expect(emailInput).toHaveAttribute('autocomplete', 'username webauthn');
             expect(emailInput).toHaveAttribute('id', 'email');
 
             const emailLabel = screen.getByText(t('login:emailLabel'));

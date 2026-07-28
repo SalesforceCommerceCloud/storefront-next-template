@@ -74,7 +74,10 @@ vi.mock('@salesforce/storefront-next-runtime/config', async () => {
     const actual = await vi.importActual<typeof import('@salesforce/storefront-next-runtime/config')>(
         '@salesforce/storefront-next-runtime/config'
     );
-    return { ...actual, useConfig: () => ({ auth: { otpLength: 6 } }) };
+    return {
+        ...actual,
+        useConfig: () => ({ auth: { otpLength: 6 }, features: { passkey: { enabled: false, mode: 'email' } } }),
+    };
 });
 
 import ContactInfo from './contact-info';

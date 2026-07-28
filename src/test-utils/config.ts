@@ -110,6 +110,11 @@ export const mockBuildConfig: Config = {
         },
         defaultSiteId: 'RefArchGlobal',
         features: {
+            passkey: {
+                enabled: false,
+                mode: 'email',
+                callbackUri: '',
+            },
             guestCheckout: true,
             googleCloudAPI: {
                 apiKey: '',

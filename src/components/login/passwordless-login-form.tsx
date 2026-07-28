@@ -36,6 +36,12 @@ interface PasswordlessLoginFormProps {
      * from the LoginModal so submit state is observable via the parent's fetcher.
      */
     Form?: ComponentType<React.ComponentProps<typeof RouterForm>>;
+    /**
+     * When true, submits `skipDocumentRedirect` so the login action uses a client-side
+     * `redirect` instead of `redirectDocument` even with passkeys enabled. Required when
+     * rendered inside the LoginModal — see StandardLoginForm for the full rationale.
+     */
+    skipDocumentRedirect?: boolean;
 }
 
 export default function PasswordlessLoginForm({
@@ -43,6 +49,7 @@ export default function PasswordlessLoginForm({
     isPasswordlessEnabled,
     redirectPath,
     Form = RouterForm,
+    skipDocumentRedirect = false,
 }: PasswordlessLoginFormProps): ReactElement {
     const location = useLocation();
     const { t } = useTranslation('login');
@@ -103,7 +110,7 @@ export default function PasswordlessLoginForm({
                     id="email"
                     name="email"
                     type="email"
-                    autoComplete="email"
+                    autoComplete="username webauthn"
                     required
                     className="mt-1"
                     placeholder={t('emailPlaceholder')}
@@ -123,6 +130,8 @@ export default function PasswordlessLoginForm({
 
             {/* Hidden input to track login mode */}
             <input type="hidden" name="loginMode" value="passwordless" />
+
+            {skipDocumentRedirect && <input type="hidden" name="skipDocumentRedirect" value="true" />}
 
             {/* Hidden input to pass redirect URL */}
             {redirectPath && <input type="hidden" name="redirectPath" value={redirectPath} />}

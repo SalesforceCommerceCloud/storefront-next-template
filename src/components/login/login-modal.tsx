@@ -149,6 +149,10 @@ export default function LoginModal({
                     isPasswordlessEnabled={isPasswordlessEnabled}
                     redirectPath={returnUrl}
                     Form={fetcher.Form}
+                    // The modal detects success by watching this fetcher return to idle; a
+                    // passkey-enabled `redirectDocument` would unmount it first and swallow
+                    // `onSuccess`. Force the client-side redirect. See StandardLoginForm.
+                    skipDocumentRedirect
                 />
             );
         }
@@ -162,6 +166,7 @@ export default function LoginModal({
                 onCheckoutAsGuest={onCheckoutAsGuest}
                 initialEmail={initialEmail}
                 Form={fetcher.Form}
+                skipDocumentRedirect
             />
         );
     };

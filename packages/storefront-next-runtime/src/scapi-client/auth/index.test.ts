@@ -1503,12 +1503,25 @@ describe('createAuthHelpers', () => {
                 );
             });
 
-            it('should throw error when clientSecret is not provided', async () => {
+            it('should omit the Authorization header with a public client (no clientSecret)', async () => {
                 const auth = createAuthHelpers(baseConfig);
 
-                await expect(
-                    auth.webAuthn.authorizeRegistration({ userId: 'user@example.com', mode: 'email' })
-                ).rejects.toThrow('Client secret is required for WebAuthn operations');
+                mockShopperLoginClient.authorizeWebauthnRegistration.mockResolvedValue({
+                    data: undefined,
+                    response: new Response(null, { status: 204 }),
+                });
+
+                await auth.webAuthn.authorizeRegistration({ userId: 'user@example.com', mode: 'email' });
+
+                expect(mockShopperLoginClient.authorizeWebauthnRegistration).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        params: {},
+                        body: expect.objectContaining({
+                            user_id: 'user@example.com',
+                            client_id: 'test-client-id',
+                        }),
+                    })
+                );
             });
 
             it('should throw error when mode is callback but callbackUri is not provided', async () => {
@@ -1554,12 +1567,26 @@ describe('createAuthHelpers', () => {
                 });
             });
 
-            it('should throw error when clientSecret is not provided', async () => {
+            it('should omit the Authorization header with a public client (no clientSecret)', async () => {
                 const auth = createAuthHelpers(baseConfig);
 
-                await expect(
-                    auth.webAuthn.startRegistration({ pwdActionToken: '12345678', userId: 'user@example.com' })
-                ).rejects.toThrow('Client secret is required for WebAuthn operations');
+                mockShopperLoginClient.startWebauthnUserRegistration.mockResolvedValue({
+                    data: { challenge: 'mock-challenge' },
+                    response: new Response(),
+                });
+
+                await auth.webAuthn.startRegistration({ pwdActionToken: '12345678', userId: 'user@example.com' });
+
+                expect(mockShopperLoginClient.startWebauthnUserRegistration).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        params: {},
+                        body: expect.objectContaining({
+                            client_id: 'test-client-id',
+                            pwd_action_token: '12345678',
+                            user_id: 'user@example.com',
+                        }),
+                    })
+                );
             });
         });
 
@@ -1593,16 +1620,31 @@ describe('createAuthHelpers', () => {
                 });
             });
 
-            it('should throw error when clientSecret is not provided', async () => {
+            it('should omit the Authorization header with a public client (no clientSecret)', async () => {
                 const auth = createAuthHelpers(baseConfig);
 
-                await expect(
-                    auth.webAuthn.finishRegistration({
-                        userId: 'user@example.com',
-                        pwdActionToken: '12345678',
-                        credential: mockCredential,
+                mockShopperLoginClient.finishWebauthnUserRegistration.mockResolvedValue({
+                    data: undefined,
+                    response: new Response(null, { status: 204 }),
+                });
+
+                await auth.webAuthn.finishRegistration({
+                    userId: 'user@example.com',
+                    pwdActionToken: '12345678',
+                    credential: mockCredential,
+                });
+
+                expect(mockShopperLoginClient.finishWebauthnUserRegistration).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        params: {},
+                        body: expect.objectContaining({
+                            client_id: 'test-client-id',
+                            username: 'user@example.com',
+                            pwd_action_token: '12345678',
+                            credential: mockCredential,
+                        }),
                     })
-                ).rejects.toThrow('Client secret is required for WebAuthn operations');
+                );
             });
         });
 

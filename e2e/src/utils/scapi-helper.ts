@@ -389,6 +389,8 @@ export interface RegisteredTokens {
     usid: string;
     customerId: string;
     expiresIn: number;
+    /** SLAS-issued encoded user ID, present for registered logins. Mirrors the storefront's `enc_user_id` cookie. */
+    encUserId?: string;
 }
 
 export interface CustomerAddress {
@@ -555,6 +557,7 @@ export async function loginRegistered(
         usid: data.usid,
         customerId: data.customer_id,
         expiresIn: data.expires_in,
+        encUserId: data.enc_user_id,
     };
 }
 

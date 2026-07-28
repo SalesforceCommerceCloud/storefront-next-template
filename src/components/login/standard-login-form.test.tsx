@@ -65,7 +65,7 @@ describe('StandardLoginForm', () => {
             expect(emailInput).toHaveAttribute('name', 'email');
             expect(emailInput).toHaveAttribute('id', 'email');
             expect(emailInput).toHaveAttribute('placeholder', t('login:emailPlaceholder'));
-            expect(emailInput).toHaveAttribute('autocomplete', 'email');
+            expect(emailInput).toHaveAttribute('autocomplete', 'username webauthn');
             expect(emailInput).toBeRequired();
 
             // Password field

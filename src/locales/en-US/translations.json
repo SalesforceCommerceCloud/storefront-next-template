@@ -142,7 +142,8 @@
         "checkoutAsGuest": "Checkout as Guest",
         "resendCode": "Resend Code",
         "resendCodeTimer": "Resend in {{timer}}s",
-        "resendCodeError": "Failed to resend code. Please try again."
+        "resendCodeError": "Failed to resend code. Please try again.",
+        "passkeyError": "We couldn't sign you in with that passkey. Please try again or use another sign-in method."
     },
     "resetPassword": {
         "title": "Reset Password",
@@ -288,7 +289,8 @@
             "registrationFailed": "Registration failed. Try again.",
             "autoLoginFailed": "Auto-login failed. Log in manually.",
             "autoLoginAfterRegistrationFailed": "Account was created but auto-login failed. Log in manually.",
-            "notAuthenticated": "Customer ID not found."
+            "notAuthenticated": "Customer ID not found.",
+            "loginAlreadyInUse": "Email address is already registered. Please use a different email or try logging in."
         },
         "passwordless": {
             "missingToken": "Missing token.",
@@ -468,7 +470,8 @@
             "lookupFallbackMessage": "Customer lookup failed. Continuing as guest.",
             "saveError": "Failed to save contact information",
             "sessionExpired": "Session expired. Sign in again.",
-            "verificationFailed": "We couldn't verify your information. Please try again."
+            "verificationFailed": "We couldn't verify your information. Please try again.",
+            "passkeyLoginFailed": "We couldn't sign you in with that passkey. Please try again or use another sign-in method."
         },
         "addressModal": {
             "title": "Add New Address",
@@ -781,6 +784,7 @@
             "addresses": "Addresses",
             "manageAddresses": "Manage Addresses",
             "paymentMethods": "Payment Methods",
+            "passkeys": "Passkeys",
             "storePreferences": "Store Preferences",
             "logOut": "Log Out"
         },
@@ -1287,6 +1291,50 @@
             "disclaimer": "By enabling these communication preferences, you agree to receive marketing communications from us, including exclusive offers, latest product information, and news about upcoming collections. See our Terms & Conditions and Privacy Policy for more details.",
             "updateError": "Failed to update marketing preference. Try again.",
             "partialSuccess": "Some preferences saved. Refresh to see current settings."
+        },
+        "passkeys": {
+            "pageTitle": "Passkeys",
+            "pageSubtitle": "Sign in faster and more securely using your face, fingerprint, or device PIN.",
+            "sectionTitle": "Your passkeys",
+            "sectionSubtitle": "Manage the passkeys registered to your account.",
+            "addPasskey": "Add Passkey",
+            "addDialogTitle": "Name your passkey",
+            "addDialogDescription": "Choose a name that helps you identify this passkey later, like the device or browser you're using.",
+            "passkeyNameLabel": "Passkey name",
+            "passkeyNamePlaceholder": "For example, Chrome on MacBook Pro",
+            "passkeyNameHint": "To rename this passkey after saving, you need to remove it and add it again.",
+            "nameRequired": "Please enter a name for this passkey.",
+            "nameTooLong": "Passkey name must be 128 characters or fewer.",
+            "addContinue": "Continue",
+            "otpStepTitle": "Verify your email",
+            "otpStepDescription": "Check your email for a {{otpLength}}-digit code. Enter it to verify your identity before creating the passkey.",
+            "otpCodeLabel": "Verification code",
+            "addSuccess": "Passkey was added.",
+            "addSuccessDescription": "Manage passkeys in My Account.",
+            "viewPasskeys": "View Passkeys",
+            "addedOn": "Added {{date}}",
+            "lastUsed": "Last used {{date}}",
+            "notUsedYet": "Not used yet",
+            "uses_one": "{{count}} use",
+            "uses_other": "{{count}} uses",
+            "newBadge": "New",
+            "unnamedPasskey": "Unnamed passkey",
+            "deletePasskeyAriaLabel": "Delete passkey {{name}}",
+            "deleteDialogTitle": "Remove passkey?",
+            "deleteDialogDescription": "After you remove \"{{name}}\", you can't use it to sign in.",
+            "deleteConfirm": "Remove",
+            "deleting": "Removing…",
+            "deleteSuccess": "Passkey removed.",
+            "deleteError": "Failed to remove passkey. Please try again.",
+            "empty": "No Saved Passkeys",
+            "emptyHint": "Add a passkey to sign in faster with your face, fingerprint, or device PIN.",
+            "loadError": "We couldn't load your passkeys. Please refresh the page to try again.",
+            "addError": "Passkey creation failed. Please try again.",
+            "notSupportedError": "Passkeys aren't supported in this app or device. Please try again in a different way.",
+            "unsupportedBrowser": "This browser doesn't support passkeys. Try updating it or use a different browser.",
+            "registerToastTitle": "Set up faster sign-in",
+            "registerToastDescription": "Create a passkey to sign in with your face, fingerprint, or device PIN — no password needed.",
+            "registerToastAction": "Create Passkey"
         }
     },
     "home": {

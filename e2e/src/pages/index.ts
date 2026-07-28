@@ -36,6 +36,7 @@ export const pageObjects = {
     accountDetailsPage: './src/pages/account-details.page.ts',
     accountAddressesPage: './src/pages/account-addresses.page.ts',
     accountPaymentMethodsPage: './src/pages/account-payment-methods.page.ts',
+    accountPasskeysPage: './src/pages/account-passkeys.page.ts',
     orderListPage: './src/pages/order-list.page.ts',
     orderDetailsPage: './src/pages/order-details.page.ts',
     accountWishlistPage: './src/pages/account-wishlist.page.ts',
@@ -43,4 +44,5 @@ export const pageObjects = {
     passwordlessLoginPage: './src/pages/passwordless-login.page.ts',
     securityHeadersPage: './src/pages/security-headers.page.ts',
     previewComponentPage: './src/pages/preview-component.page.ts',
+    passkeyRegistrationPage: './src/pages/passkey-registration.page.ts',
 };

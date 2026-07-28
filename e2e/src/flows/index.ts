@@ -33,4 +33,6 @@ export const flows = {
     apiLoginFlow: './src/flows/api-login.flow.ts',
     registeredShopperSetupFlow: './src/flows/registered-shopper-setup.flow.ts',
     beaconCaptureFlow: './src/flows/beacon-capture.flow.ts',
+    passkeyRegistrationFlow: './src/flows/passkey-registration.flow.ts',
+    passkeyLoginFlow: './src/flows/passkey-login.flow.ts',
 };

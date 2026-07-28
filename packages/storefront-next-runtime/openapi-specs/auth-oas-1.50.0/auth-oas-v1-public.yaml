@@ -4857,6 +4857,25 @@ components:
           maxLength: 8
           description: The signature counter for replay attack prevention
           example: '42'
+        aaguid:
+          type: string
+          description: The Authenticator Attestation GUID identifying the authenticator model
+          example: 08987058-cadc-4b81-b6e1-30de50dcbe96
+        createdTime:
+          type: string
+          format: date-time
+          description: The date and time the credential was created
+          example: '2026-06-01T10:15:30Z'
+        lastUsed:
+          type: string
+          format: date-time
+          description: The date and time the credential was last used to authenticate. May undercount slightly under concurrent requests.
+          example: '2026-06-14T08:42:10Z'
+        uses:
+          type: integer
+          format: int32
+          description: The number of times this credential has been used to authenticate. May undercount slightly under concurrent requests.
+          example: 12
     PasskeyUser:
       type: object
       description: Represents a passkey user with their associated credentials

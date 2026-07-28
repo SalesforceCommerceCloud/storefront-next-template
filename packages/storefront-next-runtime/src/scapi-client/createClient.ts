@@ -94,12 +94,18 @@ function buildRequestOptions(
     };
 }
 
-const isSlasAuthResponse = (url: string): boolean => {
+// `/oauth2/webauthn/passkey/*` is Bearer-authenticated (unlike register/authenticate, which use
+// Basic auth), so a 401 there is a real expired/invalid token that must go through the normal
+// refresh flow. It's excluded here even though it matches the broader SLAS_AUTH_ENDPOINTS entry
+// used elsewhere to skip Bearer auto-injection.
+const isSlasAuthResponse = (pathname: string): boolean =>
+    !pathname.includes('/oauth2/webauthn/passkey') && SLAS_AUTH_ENDPOINTS.some((path) => pathname.includes(path));
+
+const isTokenInvalidExemptResponse = (url: string): boolean => {
     try {
-        const parsedUrl = new URL(url);
-        return SLAS_AUTH_ENDPOINTS.some((path) => parsedUrl.pathname.includes(path));
+        return isSlasAuthResponse(new URL(url).pathname);
     } catch {
-        return SLAS_AUTH_ENDPOINTS.some((path) => url.includes(path));
+        return isSlasAuthResponse(url);
     }
 };
 
@@ -227,11 +233,12 @@ export function createClient<TClient extends Client<any, any>, TOperations exten
                     if (result.error !== undefined) {
                         const response = result.response;
 
-                        // OTP endpoints return 401 for invalid OTP codes, not invalid tokens
-                        // Don't treat OTP 401s as auth token invalidation
+                        // OTP and WebAuthn register/authenticate endpoints return 401 for invalid
+                        // OTP/credential, not invalid tokens. Don't treat those 401s as auth token
+                        // invalidation.
                         if (
                             response.status === 401 &&
-                            !isSlasAuthResponse(response.url) &&
+                            !isTokenInvalidExemptResponse(response.url) &&
                             !isOtpEndpoint(response.url)
                         ) {
                             options?.onAuthTokenInvalid?.(response);

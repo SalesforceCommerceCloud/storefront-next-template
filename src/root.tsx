@@ -90,6 +90,7 @@ import AuthProvider from '@/providers/auth';
 import BasketProvider from '@/providers/basket';
 import { ComposeProviders } from '@/providers/compose-providers';
 import { CorrelationProvider } from '@/providers/correlation';
+import { PasskeyRegistrationProvider } from '@/providers/passkey-registration';
 import { correlationContext } from '@/lib/correlation';
 
 // Components
@@ -99,6 +100,7 @@ import CimulateAgent, { isCimulateEnabled } from '@/components/cimulate';
 
 // Hooks
 import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
+import { usePasskeyRegistration } from '@/hooks/use-passkey-registration';
 
 // Lib/Utils
 import type { PublicSessionData } from '@/lib/api/types';
@@ -726,22 +728,29 @@ export default function App({
 
     const hybridEnabled = Boolean(appConfig?.hybrid?.enabled);
 
+    const passkeyEnabled = Boolean(appConfig?.features?.passkey?.enabled);
+
+    const innerTree = (
+        <UITargetProviders>
+            <AuthActionExecutor />
+            {passkeyEnabled && <PasskeyRegistrationTrigger />}
+            {hybridEnabled && <BackNavigationRevalidator />}
+            <PageDesignerProvider
+                clientId="storefront-next"
+                targetOrigin="*"
+                usid={clientAuth?.usid}
+                mode={pageDesignerMode}>
+                <PageDesignerInit />
+                <Outlet />
+            </PageDesignerProvider>
+            <TrackingConsentBanner />
+            {typeof window !== 'undefined' && <PageViewTracker />}
+        </UITargetProviders>
+    );
+
     return (
         <ComposeProviders providers={providers}>
-            <UITargetProviders>
-                <AuthActionExecutor />
-                {hybridEnabled && <BackNavigationRevalidator />}
-                <PageDesignerProvider
-                    clientId="storefront-next"
-                    targetOrigin="*"
-                    usid={clientAuth?.usid}
-                    mode={pageDesignerMode}>
-                    <PageDesignerInit />
-                    <Outlet />
-                </PageDesignerProvider>
-                <TrackingConsentBanner />
-                {typeof window !== 'undefined' && <PageViewTracker />}
-            </UITargetProviders>
+            {passkeyEnabled ? <PasskeyRegistrationProvider>{innerTree}</PasskeyRegistrationProvider> : innerTree}
             {isCimulateEnabled(appConfig.cimulateAgent?.enabled) && (
                 <CimulateAgent cimulateConfiguration={appConfig.cimulateAgent} />
             )}
@@ -755,6 +764,11 @@ export default function App({
  */
 function AuthActionExecutor() {
     useExecutePendingAction();
+    return null;
+}
+
+function PasskeyRegistrationTrigger() {
+    usePasskeyRegistration();
     return null;
 }
 

@@ -255,6 +255,11 @@ export default defineConfig<Config>(
             // Feature flags for enabling/disabling functionality
             // See CONFIG-OPTIONS.md#features for detailed documentation
             features: {
+                passkey: {
+                    enabled: false,
+                    mode: 'email',
+                    callbackUri: '',
+                },
                 passwordlessLogin: {
                     enabled: false,
                     mode: 'email',

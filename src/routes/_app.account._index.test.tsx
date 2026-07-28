@@ -619,6 +619,7 @@ describe('AccountDetails', () => {
                     loginMode: 'password',
                     returnUrl: '/global/en-GB/account',
                     skipUsid: 'true',
+                    skipDocumentRedirect: 'true',
                 },
                 { method: 'POST', action: '/global/en-GB/login' }
             );
@@ -792,6 +793,7 @@ describe('AccountDetails', () => {
                             loginMode: 'password',
                             returnUrl: '/global/en-GB/account',
                             skipUsid: 'true',
+                            skipDocumentRedirect: 'true',
                         },
                         { method: 'POST', action: '/global/en-GB/login' }
                     );

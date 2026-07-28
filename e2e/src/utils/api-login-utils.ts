@@ -32,6 +32,8 @@ export interface SfccCookieNames {
     usid: string;
     /** Customer ID (set on registered sessions). */
     customerId: string;
+    /** SLAS-issued encoded user ID (set on registered sessions). */
+    encUserId: string;
     /** Storefront-set basket snapshot (NOT site-scoped). */
     basket: string;
 }
@@ -43,6 +45,7 @@ export function getSfccCookieNames(siteId: string): SfccCookieNames {
         guestRefresh: `cc-nx-g_${siteId}`,
         usid: `usid_${siteId}`,
         customerId: `customer_id_${siteId}`,
+        encUserId: `enc_user_id_${siteId}`,
         basket: '__sfdc_basket',
     };
 }
@@ -137,13 +140,21 @@ export function buildRegisteredSessionCookieOps(
     const cookieDefaults = buildCookieDefaults(origin);
     const names = getSfccCookieNames(siteId);
 
+    const add: PlaywrightCookie[] = [
+        { ...cookieDefaults, name: names.accessToken, value: tokens.accessToken, httpOnly: true },
+        { ...cookieDefaults, name: names.registeredRefresh, value: tokens.refreshToken, httpOnly: true },
+        { ...cookieDefaults, name: names.usid, value: tokens.usid, httpOnly: true },
+        { ...cookieDefaults, name: names.customerId, value: tokens.customerId, httpOnly: true },
+    ];
+    // Only set when SLAS returns it (matches the storefront's own conditional write —
+    // see `auth.utils.ts`'s `if (tokenResponse?.enc_user_id)` guard). Needed for any
+    // client-side feature keyed off `auth.encUserId` (e.g. the passkey upsell toast).
+    if (tokens.encUserId) {
+        add.push({ ...cookieDefaults, name: names.encUserId, value: tokens.encUserId, httpOnly: true });
+    }
+
     return {
         clear: [names.guestRefresh],
-        add: [
-            { ...cookieDefaults, name: names.accessToken, value: tokens.accessToken, httpOnly: true },
-            { ...cookieDefaults, name: names.registeredRefresh, value: tokens.refreshToken, httpOnly: true },
-            { ...cookieDefaults, name: names.usid, value: tokens.usid, httpOnly: true },
-            { ...cookieDefaults, name: names.customerId, value: tokens.customerId, httpOnly: true },
-        ],
+        add,
     };
 }

@@ -99,7 +99,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', async () => {
     );
     return {
         ...actual,
-        useConfig: () => ({ auth: { otpLength: 6 } }),
+        useConfig: () => ({ auth: { otpLength: 6 }, features: { passkey: { enabled: false, mode: 'email' } } }),
     };
 });
 
