@@ -69,6 +69,7 @@ export default function CategoryPagination({
     return (
         <div className="flex justify-center">
             <nav
+                data-slot="pagination"
                 className={`flex items-center gap-1${isPending ? ' pointer-events-none opacity-50 transition-opacity' : ''}`}
                 aria-label={t('pagination.label')}>
                 <Button
