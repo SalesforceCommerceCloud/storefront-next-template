@@ -35,7 +35,7 @@ const FILE_MARKER = '@sfdc-extension-file';
 // The body is synchronous now that config rewriting uses Biome via spawnSync, but the
 // `Promise<void>` signature is a stable public contract awaited by create-storefront and
 // manage-extensions — keep it async so callers don't have to change.
-// eslint-disable-next-line typescript/require-await -- intentional async public API (see above)
+// oxlint-disable-next-line typescript/require-await -- intentional async public API (see above)
 export default async function trimExtensions(
     directory: string,
     selectedExtensions?: Partial<ExtensionsSelection>,

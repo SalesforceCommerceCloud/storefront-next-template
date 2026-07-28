@@ -193,7 +193,7 @@ function ReturnItemsButton({
     const reasonCodesSignature = useMemo(() => returnReasonCodes.map((r) => r.reason).join('|'), [returnReasonCodes]);
     useEffect(() => {
         onReasonsResolved(returnReasonCodes);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- onReasonsResolved is a stable state setter; resync only when the resolved reason codes actually change (signature-gated, not reference-gated)
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- onReasonsResolved is a stable state setter; resync only when the resolved reason codes actually change (signature-gated, not reference-gated)
     }, [reasonCodesSignature]);
 
     if (!metaData.omsActive) {
@@ -339,7 +339,7 @@ function CancelOrderButton({
     const reasonCodesSignature = useMemo(() => cancelReasonCodes.map((r) => r.reason).join('|'), [cancelReasonCodes]);
     useEffect(() => {
         onReasonsResolved(cancelReasonCodes);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- onReasonsResolved is a stable state setter; resync only when the resolved reason codes actually change
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- onReasonsResolved is a stable state setter; resync only when the resolved reason codes actually change
     }, [reasonCodesSignature]);
 
     if (!metaData.omsActive) {

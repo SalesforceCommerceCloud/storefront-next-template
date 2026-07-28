@@ -47,7 +47,7 @@ const InternalServerScripts = ({ nonce }: { nonce?: string }) => {
         <script
             id="sf-next-bundle-config"
             nonce={nonce}
-            // eslint-disable-next-line react/no-danger
+            // oxlint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
                 __html: `
         window._BUNDLE_ID = ${JSON.stringify(bundleId)};

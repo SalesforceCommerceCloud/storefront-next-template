@@ -786,7 +786,7 @@ function BackNavigationRevalidator() {
             didRevalidateRef.current = true;
             void revalidator.revalidate();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return null;
 }

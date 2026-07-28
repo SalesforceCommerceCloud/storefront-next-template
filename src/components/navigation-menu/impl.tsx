@@ -55,7 +55,7 @@ export type CategoryNavigationMenuListItemCtx = {
 };
 
 type SlotType<T> = ReactNode | ((ctx: T) => ReactNode);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 type PropsSlot<T, P extends Record<string, any> = Record<string, any>> = P | ((ctx: T) => P | undefined);
 
 type CategoryNavigationMenuProps = ComponentPropsWithoutRef<typeof NavigationMenu> & {
@@ -80,7 +80,7 @@ type CategoryNavigationMenuProps = ComponentPropsWithoutRef<typeof NavigationMen
     renderSlotListItemAfter?: SlotType<CategoryNavigationMenuListItemCtx>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 function propsFor<T, P extends Record<string, any> = Record<string, any>>(
     input: PropsSlot<T, P> | undefined,
     ctx: T

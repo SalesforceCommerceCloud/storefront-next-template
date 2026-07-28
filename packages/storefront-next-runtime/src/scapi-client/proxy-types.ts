@@ -289,7 +289,7 @@ export type ReconstructPath<Base extends string, Suffix extends string> = `${Bas
  * // Given: Client<paths, MediaType>
  * // Result: paths
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractPaths<TClient extends Client<any, any>> = TClient extends Client<infer P, any> ? P : never;
 
 /**
@@ -300,7 +300,7 @@ type ExtractPaths<TClient extends Client<any, any>> = TClient extends Client<inf
  * // Given: Client<paths, MediaType>
  * // Result: MediaType
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractMedia<TClient extends Client<any, any>> = TClient extends Client<any, infer M> ? M : never;
 
 /**
@@ -367,7 +367,7 @@ type ExtractSuccessData<OpDef, Media extends `${string}/${string}`> =
  * // Where options, data, and thrown errors are fully typed based on the OpenAPI spec
  */
 type OperationMethod<
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     TClient extends Client<any, any>,
     TOperation extends OperationInfo,
 > =
@@ -376,7 +376,7 @@ type OperationMethod<
             ? LowercaseMethod<TOperation['m']> extends infer Method
                 ? Method extends keyof ExtractPaths<TClient>[Path]
                     ? ExtractPaths<TClient>[Path][Method] extends infer OpDef
-                        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        ? // oxlint-disable-next-line @typescript-eslint/no-explicit-any
                           OpDef extends Record<string | number, any>
                             ? // With global params, organizationId and siteId are auto-provided.
                               // Options are optional if there are no OTHER required fields.
@@ -430,7 +430,7 @@ type OperationMethod<
  * // - client.use(middleware) => void
  * // With full type inference for options and Response!
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type ProxyClient<TClient extends Client<any, any>, TOperations extends OperationMap> = {
     [K in keyof TOperations]: OperationMethod<TClient, TOperations[K]>;
 } & Pick<TClient, 'use' | 'eject'>;
@@ -452,7 +452,7 @@ export type ProxyClient<TClient extends Client<any, any>, TOperations extends Op
  * type OperationsOnly = OperationMethodsOnly<MyClient>;
  * // OperationsOnly has getCategories, createBasket, etc., but NOT use or eject
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type OperationMethodsOnly<T> = T extends ProxyClient<any, any> ? Omit<T, 'use' | 'eject'> : never;
 
 /**
@@ -461,7 +461,7 @@ export type OperationMethodsOnly<T> = T extends ProxyClient<any, any> ? Omit<T, 
  * @example
  * type MyPaths = ClientPaths<Client<paths>>; // paths
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type ClientPaths<TClient extends Client<any, any>> = TClient extends Client<infer P, any> ? P : never;
 
 /**

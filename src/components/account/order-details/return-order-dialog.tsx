@@ -367,7 +367,7 @@ export function ReturnOrderDialog({
                 setSelections((prev) => prev.map((s) => (s.checked ? { ...s, reason: undefined } : s)));
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- handleOpenChange/open/t/addToast intentionally excluded to avoid re-firing on every state reset
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- handleOpenChange/open/t/addToast intentionally excluded to avoid re-firing on every state reset
     }, [fetcher.data]);
 
     // Reconcile local selections to a freshly-revalidated order. After a successful or recoverable
@@ -401,7 +401,7 @@ export function ReturnOrderDialog({
                 };
             });
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on returnableSignature; returnableItems/defaultReasonCode derive from it
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- keyed on returnableSignature; returnableItems/defaultReasonCode derive from it
     }, [returnableSignature]);
 
     // Pick the presentation shell by viewport: a centered Dialog at `md`+ and a bottom-sheet Drawer

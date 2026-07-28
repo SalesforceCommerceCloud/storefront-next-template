@@ -69,11 +69,11 @@ function replacerForErrors(_key: string, value: unknown): unknown {
  */
 const consoleLogger: DataStoreLogger = Object.freeze({
     error(message: string, metadata?: Record<string, unknown>): void {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.error(formatMessage(message, metadata));
     },
     warn(message: string, metadata?: Record<string, unknown>): void {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(formatMessage(message, metadata));
     },
     info(): void {

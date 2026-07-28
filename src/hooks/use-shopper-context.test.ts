@@ -19,7 +19,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useShopperContext } from './use-shopper-context';
 import { resourceRoutes } from '@/route-paths';
 import type { UpdateShopperContextResponse } from '@/routes/action.update-shopper-context';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 
 // Mock React Router's useFetcher

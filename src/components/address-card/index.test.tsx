@@ -240,7 +240,7 @@ describe('AddressCard', () => {
         });
 
         test('handles address with missing name fields', () => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // oxlint-disable-next-line @typescript-eslint/no-unused-vars
             const { firstName, lastName, ...addressWithNoName } = mockAddress;
 
             const { container } = render(

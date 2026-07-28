@@ -29,7 +29,7 @@ import heroImage from '/images/hero-01.webp';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { routes, routeHref } from '@/route-paths';
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
 
 /**

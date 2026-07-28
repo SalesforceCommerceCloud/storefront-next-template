@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* oxlint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 /*
  * Copyright (c) 2023, Salesforce, Inc.

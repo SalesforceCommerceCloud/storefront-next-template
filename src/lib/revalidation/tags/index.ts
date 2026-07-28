@@ -253,7 +253,7 @@ export function shouldRevalidateForTags(
     return (
         ctx: ShouldRevalidateFunctionArgs & {
             /** Narrowed from RR's `any` to surface the tags an action reports. */
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
             actionResult?: { revalidateTags?: string[]; [key: string]: any };
         }
     ): boolean => {
@@ -296,7 +296,7 @@ export function shouldRevalidateForTags(
  * @example
  * return withRevalidateTags({ line }, ['cart.lineItems:li-7']);
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export function withRevalidateTags<T extends Record<string, any>>(
     data: T,
     tags: string[]

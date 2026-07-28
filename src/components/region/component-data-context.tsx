@@ -60,7 +60,7 @@ export function ComponentDataProvider({ children, value }: { children: ReactNode
  * }
  * ```
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useComponentData(): ComponentDataMap | undefined {
     return useContext(ComponentDataContext);
 }
@@ -85,7 +85,7 @@ export function useComponentData(): ComponentDataMap | undefined {
  * );
  * ```
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useComponentDataById(componentId: string): Promise<unknown> | undefined {
     const componentData = useContext(ComponentDataContext);
     return componentData?.[componentId];

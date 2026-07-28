@@ -621,9 +621,9 @@ const ProductTile = memo(
 
 ProductTile.displayName = 'ProductTile';
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const loader = loaders.server;
 export { ProductTile };
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { ProductTileProvider, useProductTileContext } from './context';
 export default ProductTile;

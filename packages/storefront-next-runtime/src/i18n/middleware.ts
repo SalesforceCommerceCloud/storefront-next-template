@@ -41,7 +41,7 @@ export function createI18nMiddleware(config: I18nMiddlewareConfig): MiddlewareFu
             cached = createI18nextMiddleware({
                 detection: {
                     order: ['custom'],
-                    // eslint-disable-next-line @typescript-eslint/require-await
+                    // oxlint-disable-next-line @typescript-eslint/require-await
                     findLocale: async (request: Request) => {
                         const localeId = requestToLocaleMap.get(request);
                         return localeId ?? null;

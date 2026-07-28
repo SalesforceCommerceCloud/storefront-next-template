@@ -52,7 +52,7 @@ export interface CarouselSectionProps {
 const defaultLeftTitleClassName = 'text-4xl font-medium leading-none tracking-[-0.9px] text-foreground';
 const defaultCenterTitleClassName = 'text-4xl font-medium leading-none tracking-[-0.9px] text-foreground mb-4';
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { carouselItemImageWidths, productCarouselItemAspectRatio } from './constants';
 
 /**

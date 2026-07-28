@@ -164,7 +164,7 @@ export const generateEnvFile = (projectDir: string, configOverrides: Record<stri
     const envDefaultPath = path.join(projectDir, '.env.default');
     const envPath = path.join(projectDir, '.env');
     if (!fs.existsSync(envDefaultPath)) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(`${envDefaultPath} not found`);
         return;
     }

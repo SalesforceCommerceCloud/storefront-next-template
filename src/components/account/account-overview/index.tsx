@@ -211,7 +211,7 @@ export function AccountOverviewOrdersAwait({
     const navigate = useNavigate();
 
     const handleViewDetails = (orderNo: string) => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises -- navigate() result intentionally not awaited
+        // oxlint-disable-next-line @typescript-eslint/no-floating-promises -- navigate() result intentionally not awaited
         navigate(routeHref(routes.accountOrderDetail, { orderNo }));
     };
 

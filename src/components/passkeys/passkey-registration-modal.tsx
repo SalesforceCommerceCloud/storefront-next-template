@@ -202,7 +202,7 @@ export function PasskeyRegistrationModal({
                         // None of the configured RP IDs match this hostname — the browser's WebAuthn
                         // API would reject the raw comma-separated id as an invalid registrable domain.
                         // Bail out now instead of surfacing a misleading "try again" prompt.
-                        // eslint-disable-next-line no-console
+                        // oxlint-disable-next-line no-console
                         console.error('PasskeyRegistration: no rp.id entry matches current hostname', {
                             rpId: rp.id,
                             currentHost,
@@ -324,7 +324,7 @@ export function PasskeyRegistrationModal({
         ) {
             void handleVerify(enteredOtp);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [step, enteredOtp, visibleCount, hasGap, isVerifying]);
 
     return (
@@ -357,7 +357,7 @@ export function PasskeyRegistrationModal({
                                 placeholder={t('passkeys.passkeyNamePlaceholder')}
                                 aria-invalid={nameError ? true : undefined}
                                 aria-describedby={nameError ? 'passkey-name-error' : 'passkey-name-hint'}
-                                // eslint-disable-next-line jsx-a11y/no-autofocus -- focus name field on modal open (WCAG 2.4.3 focus order); dialog is the exception the rule warns about
+                                // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus name field on modal open (WCAG 2.4.3 focus order); dialog is the exception the rule warns about
                                 autoFocus
                             />
                             {nameError ? (
@@ -402,7 +402,7 @@ export function PasskeyRegistrationModal({
                                             onKeyDown={(e) => otpInputs.handleKeyDown(index, e)}
                                             onPaste={otpInputs.handlePaste}
                                             disabled={isVerifying}
-                                            // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first digit on modal open (WCAG 2.4.3 focus order); dialog is the exception the rule warns about
+                                            // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first digit on modal open (WCAG 2.4.3 focus order); dialog is the exception the rule warns about
                                             autoFocus={index === 0}
                                             className="w-full min-w-0 h-14 text-center text-sm font-bold border-2"
                                             aria-label={`${t('passkeys.otpCodeLabel')} ${index + 1} of ${visibleCount}`}

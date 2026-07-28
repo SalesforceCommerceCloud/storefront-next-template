@@ -35,7 +35,7 @@ export default function Signup(): ReactElement {
                     setError(t('newsletter.invalidEmail'));
                     return;
                 }
-                // eslint-disable-next-line no-alert
+                // oxlint-disable-next-line no-alert
                 alert(`Signup email address: ${email}`);
             } else {
                 setError(t('newsletter.emailRequired'));

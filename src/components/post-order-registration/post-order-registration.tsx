@@ -83,7 +83,7 @@ export function PostOrderRegistration({
         if (error) {
             errorRef.current?.focus();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run per response, not per string
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- re-run per response, not per string
     }, [submissionResult, defaultError]);
 
     // Persistent, initially-empty polite live region. It stays mounted across both the form

@@ -70,7 +70,7 @@ export function SiteProvider({ site, locale, language, currency, children }: Pro
  * Returns `{ site, locale, language, currency }`.
  * @throws If called outside of a SiteProvider
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useSite(): SiteContextValue {
     const value = useContext(SiteContext);
     if (!value) {

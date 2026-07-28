@@ -27,7 +27,7 @@ interface PasskeyRegistrationContextValue {
 
 const PasskeyRegistrationContext = createContext<PasskeyRegistrationContextValue | null>(null);
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function usePasskeyRegistrationContext(): PasskeyRegistrationContextValue {
     const ctx = useContext(PasskeyRegistrationContext);
     if (!ctx) throw new Error('usePasskeyRegistrationContext must be used within PasskeyRegistrationProvider');

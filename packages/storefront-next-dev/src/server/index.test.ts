@@ -376,7 +376,7 @@ describe('server/index', () => {
                 ) as [(...args: unknown[]) => void] | undefined;
                 expect(redirectMiddleware).toBeDefined();
 
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const handler = redirectMiddleware![0];
 
                 // Test the middleware behavior: non-prefixed path should redirect
@@ -614,7 +614,7 @@ describe('server/index', () => {
                 // Get the SSR handler that was registered
                 const ssrHandlerCall = mockExpressApp.all.mock.calls.find((call) => call[0] === '*splat');
                 expect(ssrHandlerCall).toBeDefined();
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const ssrHandler = ssrHandlerCall![1];
 
                 // Create mock request, response, next
@@ -657,7 +657,7 @@ describe('server/index', () => {
 
                 // Get the SSR handler
                 const ssrHandlerCall = mockExpressApp.all.mock.calls.find((call) => call[0] === '*splat');
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const ssrHandler = ssrHandlerCall![1];
 
                 const mockReq = {} as Request;
@@ -701,7 +701,7 @@ describe('server/index', () => {
                 await createServer(options);
 
                 const ssrHandlerCall = mockExpressApp.all.mock.calls.find((call) => call[0] === '*splat');
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const ssrHandler = ssrHandlerCall![1];
 
                 const mockReq = {} as Request;
@@ -710,7 +710,7 @@ describe('server/index', () => {
 
                 await ssrHandler(mockReq, mockRes, mockNext);
 
-                // eslint-disable-next-line @typescript-eslint/unbound-method
+                // oxlint-disable-next-line @typescript-eslint/unbound-method
                 expect(mockVite.ssrFixStacktrace).toHaveBeenCalledWith(mockError);
                 expect(mockNext).toHaveBeenCalledWith(mockError);
             });
@@ -735,7 +735,7 @@ describe('server/index', () => {
                 });
 
                 const ssrHandlerCall = mockExpressApp.all.mock.calls.find((call) => call[0] === '*splat');
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 expect(ssrHandlerCall![1]).toBe(mockHandler);
             });
 
@@ -757,7 +757,7 @@ describe('server/index', () => {
                 });
 
                 const ssrHandlerCall = mockExpressApp.all.mock.calls.find((call) => call[0] === '*splat');
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 expect(ssrHandlerCall![1]).toBe(mockHandler);
             });
 

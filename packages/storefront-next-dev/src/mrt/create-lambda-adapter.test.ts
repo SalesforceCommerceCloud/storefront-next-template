@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/unbound-method */
+/* oxlint-disable @typescript-eslint/unbound-method */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { PassThrough, type Writable } from 'stream';
@@ -26,7 +26,7 @@ import { createStreamingLambdaAdapter, createExpressRequest, createExpressRespon
 // Mock awslambda global
 const mockHttpResponseStream = {
     from: vi.fn(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // oxlint-disable-next-line @typescript-eslint/no-unused-vars
         (stream: Writable, metadata: { statusCode: number; headers: Record<string, any>; cookies?: string[] }) => {
             return stream;
         }

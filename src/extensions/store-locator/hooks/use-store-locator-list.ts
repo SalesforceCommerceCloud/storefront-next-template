@@ -88,7 +88,7 @@ export function useStoreLocatorList() {
             setShouldSearch(false);
         }
         setPage(1);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         shouldSearch,
         mode,

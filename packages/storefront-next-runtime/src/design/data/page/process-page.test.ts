@@ -259,8 +259,8 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const child = result.regions?.[0].components?.[0].regions?.[0].components?.[0];
-            // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here; child is known to be defined in this assertion
-            expect((child?.data as Record<string, unknown>).heading).toBe('Resolved Title');
+            const childData = child?.data as Record<string, unknown>;
+            expect(childData.heading).toBe('Resolved Title');
         });
 
         test('traverses children when component is not in componentInfo', () => {

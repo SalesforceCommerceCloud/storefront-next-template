@@ -62,7 +62,7 @@ vi.mock('@salesforce/b2c-tooling-sdk/operations/code', () => ({
 }));
 
 vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const { Command } = require('@oclif/core');
     class CartridgeCommand extends Command {
         static baseFlags = {};
@@ -79,7 +79,7 @@ vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
         hasOAuthCredentials() {
             return true;
         }
-        // eslint-disable-next-line @typescript-eslint/require-await
+        // oxlint-disable-next-line @typescript-eslint/require-await
         async findCartridgesWithProviders() {
             return mockFindCartridges();
         }

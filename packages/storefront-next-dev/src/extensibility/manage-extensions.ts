@@ -292,7 +292,7 @@ const handleInstall = async (
     if (hasInstructionsInChain) {
         try {
             execSync('cursor-agent -v', { stdio: 'ignore' });
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // oxlint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
             consoleLog(
                 'This extension contains LLM instructions, please install cursor cli and try again. (https://cursor.com/docs/cli/overview)',

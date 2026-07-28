@@ -36,6 +36,10 @@ OxLint's type-aware rules run via `oxlint-tsgolint` (the `--type-aware` flag). T
 
 > **Node version:** OxLint's JS-plugin loader needs Node ≥22.6 for native `.ts` type-stripping. The repo pins Node 24 via Volta, so this is satisfied in CI and for anyone using the pinned toolchain.
 
+### `no-unnecessary-type-assertion` is off (deliberately)
+
+`typescript/no-unnecessary-type-assertion` is set to `"off"` in `.oxlintrc.json`. Under `oxlint-tsgolint` it produces a false-positive storm — ~760 flags across the template, overwhelmingly on `as` casts that *are* load-bearing (test fixtures narrowing `unknown`/`never` mocks, SCAPI generated-type coercions, resource-route body casts). tsgolint's type resolution doesn't yet match `tsc`'s here, so the rule can't distinguish a genuinely redundant assertion from a necessary one. Keeping it on would either bury real findings under noise or force ~760 inline suppressions. Revisit if a future tsgolint release narrows the false positives.
+
 ## Custom lint rules
 
 Custom rules live in [`lint-plugins/`](../../../lint-plugins/) at the repo root and load via `jsPlugins` in `.oxlintrc.json` under the `custom` namespace:

@@ -133,7 +133,7 @@ export function createHostApi({ emitter, id, logger }: HostConfiguration): HostA
         on: <TEvent extends keyof HostEventNameMapping>(
             event: TEvent,
             handler: (handlerEvent: Readonly<WithMeta & HostEventNameMapping[TEvent]>) => void
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
         ) => messenger.on(event as any, handler as any),
         disconnect,
         getRemoteId: () => messenger.getRemoteId(),

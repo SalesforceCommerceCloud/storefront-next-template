@@ -161,7 +161,7 @@ describe('transformTargetPlaceholderPlugin', () => {
         vitePlugin.buildStart();
         const error = 'test error';
         transformTargetsMock.mockImplementation(() => {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
+            // oxlint-disable-next-line @typescript-eslint/only-throw-error
             throw error;
         });
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

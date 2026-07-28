@@ -121,7 +121,7 @@ export default function CheckoutPickup({
         ) {
             void changeStore(selectedStoreInfo);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedStoreInfo?.id, selectedStoreInfo?.inventoryId, isStoreLocatorOpen, store?.id]);
 
     // Filter pickup items for the specific store and enrich with product catalog data

@@ -17,10 +17,10 @@ import { vi, expect, test, describe, afterEach, beforeEach } from 'vitest';
 import type React from 'react';
 
 // Suppress Radix UI Dialog accessibility warnings (intentional for snapshot testing)
-// eslint-disable-next-line no-console
+// oxlint-disable-next-line no-console
 const originalWarn = console.warn;
 beforeEach(() => {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn = vi.fn((...args: unknown[]) => {
         const message = args.map((arg) => (typeof arg === 'string' ? arg : String(arg))).join(' ');
         // Suppress Dialog Description warnings
@@ -32,7 +32,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn = originalWarn;
 });
 

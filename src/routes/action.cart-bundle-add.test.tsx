@@ -24,9 +24,9 @@ import type { ShopperProducts } from '@/scapi';
 vi.mock('@/middlewares/basket.server');
 // Hoist dependencies for use in vi.mock (avoids async imports which fail on Windows)
 const { createContext: reactCreateContext, actualReactRouter } = vi.hoisted(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const React = require('react');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const reactRouter = require('react-router');
     return { createContext: React.createContext, actualReactRouter: reactRouter };
 });

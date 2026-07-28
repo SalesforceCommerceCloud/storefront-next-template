@@ -77,7 +77,7 @@ export default function CancelOrderDialog({
             onOpenChange(false);
             onSettled?.(fetcher.data);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to settled fetcher data
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only react to settled fetcher data
     }, [fetcher.data, fetcher.state]);
 
     const handleConfirm = () => {

@@ -503,7 +503,7 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
         if (!config?.features.passkey.enabled) return;
         void loginWithPasskey();
         return () => abortPasskeyLogin();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
     }, [config?.features.passkey.enabled]);
 
     const turnstileEnabled = config ? isTurnstileEnabled(config) : false;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 import { AxeBuilder } from '@axe-core/playwright';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';

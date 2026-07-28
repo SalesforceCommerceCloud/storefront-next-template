@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable react-refresh/only-export-components */
+/* oxlint-disable react-refresh/only-export-components */
 import { render as tlRender, act, waitFor, type RenderResult, cleanup as tlCleanup } from '@testing-library/react';
 import type { HostToClientConfiguration } from '../messaging-api/domain-types';
 import type { HostApi } from '../messaging-api/api-types';
@@ -216,7 +216,7 @@ export function createComponentTestBed<TState extends Record<string, unknown>>(s
                 }),
             setupHost: () => {
                 const emitter: Parameters<typeof createHostApi>[0]['emitter'] = {
-                    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+                    /* oxlint-disable-next-line @typescript-eslint/no-explicit-any */
                     postMessage: (message: any) => window.postMessage(message, '*'),
                     addEventListener: (handler) => {
                         const listener = (event: MessageEvent) => handler(event.data);

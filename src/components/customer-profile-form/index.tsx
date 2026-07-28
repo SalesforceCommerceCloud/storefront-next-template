@@ -23,7 +23,7 @@ import { z } from 'zod';
  *
  * @example const schema = createCustomerProfileFormSchema(t);
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const createCustomerProfileFormSchema = (t: TFunction) => {
     return z.object({
         firstName: z.string().min(1, {

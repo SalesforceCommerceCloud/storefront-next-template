@@ -33,7 +33,7 @@ import { parseBasketCookie } from '@/lib/basket/cookie';
 // Cookie changes are not observable via an event; the store returns a noop unsubscribe and relies on existing
 // re-render triggers (updater callbacks on mutations) to refresh. useSyncExternalStore guarantees SSR (null) and
 // client (cookie) snapshots can diverge without a hydration-mismatch warning.
-// eslint-disable-next-line @typescript-eslint/no-empty-function
+// oxlint-disable-next-line @typescript-eslint/no-empty-function
 const subscribeBasketCookie = () => () => {};
 const getServerBasketCookieSnapshot = (): BasketSnapshot | null => null;
 
@@ -360,7 +360,7 @@ const BasketProvider = (
  * fetcher (or no-ops if a fetch already happened or is in flight). The result is written to context by the provider —
  * observe it via {@link useBasket}.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useBasketLoader = (): (() => void) => {
     const updater = useContext(BasketUpdaterContext);
     return useCallback(() => {
@@ -381,7 +381,7 @@ export const useBasketLoader = (): (() => void) => {
  * This default keeps consumers from issuing redundant GETs — and keeps the SSR HTML cache-safe, because nothing fans
  * out an opportunistic basket fetch on hydration unless the consumer asks for it.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useBasket = (options?: { autoLoad?: boolean }): ShopperBasketsV2.schemas['Basket'] | undefined => {
     const autoLoad = options?.autoLoad ?? false;
     const { current, snapshot } = useContext(BasketContext);
@@ -402,7 +402,7 @@ export const useBasket = (options?: { autoLoad?: boolean }): ShopperBasketsV2.sc
 /**
  * Returns the current basket snapshot, if available.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useBasketSnapshot = (): BasketSnapshot | null | undefined => {
     return useContext(BasketContext).snapshot;
 };
@@ -410,7 +410,7 @@ export const useBasketSnapshot = (): BasketSnapshot | null | undefined => {
 /**
  * Whether the full basket has been fetched at least once.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useBasketHydrated = (): boolean => {
     return useContext(BasketContext).hydrated ?? false;
 };
@@ -418,7 +418,7 @@ export const useBasketHydrated = (): boolean => {
 /**
  * Returns a setter for updating the basket in context.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useBasketUpdater = (): ((basket?: ShopperBasketsV2.schemas['Basket']) => void) => {
     const updater = useContext(BasketUpdaterContext);
     return useCallback(
@@ -468,7 +468,7 @@ export const useBasketUpdater = (): ((basket?: ShopperBasketsV2.schemas['Basket'
 /**
  * Returns a callback that clears the basket context when invoked.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useBasketReset = (): (() => void) => {
     const updater = useContext(BasketUpdaterContext);
     return useCallback(() => {

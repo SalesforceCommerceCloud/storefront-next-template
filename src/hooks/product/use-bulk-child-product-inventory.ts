@@ -112,7 +112,7 @@ export function useBulkChildProductInventory({
         if (productIds) {
             void fetcher.load();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         productIds,
         // @sfdc-extension-line SFDC_EXT_BOPIS

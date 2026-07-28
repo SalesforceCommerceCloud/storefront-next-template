@@ -42,7 +42,7 @@ export const maintenanceMiddleware: MiddlewareFunction<Response> = async ({ cont
             const url = new URL(request.url);
             url.searchParams.delete('_routes');
             const returnPath = `${url.pathname}${url.search}`;
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
+            // oxlint-disable-next-line @typescript-eslint/only-throw-error
             throw redirect(`${routes.maintenance}?returnTo=${encodeURIComponent(returnPath)}`);
         }
     }
@@ -55,7 +55,7 @@ export const maintenanceMiddleware: MiddlewareFunction<Response> = async ({ cont
         const returnTo = url.searchParams.get('returnTo');
         if (returnTo) {
             logger.info('Maintenance: redirecting back from maintenance page', { returnTo });
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
+            // oxlint-disable-next-line @typescript-eslint/only-throw-error
             throw redirect(returnTo);
         }
     }

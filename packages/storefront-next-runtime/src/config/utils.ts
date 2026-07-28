@@ -153,7 +153,7 @@ export const parseEnvValue = (varValue: string, varName?: string): unknown => {
                 if (process.env.NODE_ENV === 'development') {
                     const preview = varValue.length > 50 ? `${varValue.substring(0, 50)}...` : varValue;
                     const varInfo = varName ? ` in "${varName}"` : '';
-                    // eslint-disable-next-line no-console
+                    // oxlint-disable-next-line no-console
                     console.warn(
                         `[Config Warning] Value${varInfo} looks like JSON but failed to parse: "${preview}". ` +
                             `Using as string instead. Check for syntax errors if this was meant to be JSON.`
@@ -316,7 +316,7 @@ export const mergeEnvConfig = (
 
         if (baseConfig && validPaths.length > 0) {
             if (!validPaths.includes(normalizedPath)) {
-                // eslint-disable-next-line no-console
+                // oxlint-disable-next-line no-console
                 console.warn(
                     `[Config Warning] Ignoring environment variable "${varName}": Config path "${path}" does not exist in config.server.ts.`
                 );
@@ -360,7 +360,7 @@ export const mergeEnvConfig = (
     }
 
     if (conflicts.length > 0 && process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(
             `[Config Warning] Conflicting environment variables detected. More specific paths will override parent paths:\n${conflicts
                 .map((c) => `  ${c.parent} ← overridden by → ${c.child}`)

@@ -137,7 +137,7 @@ export const useAnalytics = () => {
 
     // On the server, return empty functions
     if (typeof window === 'undefined') {
-        /* eslint-disable @typescript-eslint/no-empty-function */
+        /* oxlint-disable @typescript-eslint/no-empty-function */
         return {
             trackViewPage: () => {},
             trackViewProduct: () => {},
@@ -156,7 +156,7 @@ export const useAnalytics = () => {
             trackWishlistItemMerged: () => {},
             trackWishlistMerged: () => {},
         };
-        /* eslint-enable @typescript-eslint/no-empty-function */
+        /* oxlint-enable @typescript-eslint/no-empty-function */
     }
 
     /**

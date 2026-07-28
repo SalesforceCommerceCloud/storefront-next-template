@@ -267,7 +267,7 @@ export function createDedupedFetch(context: ContextLike, baseFetch: typeof fetch
             // pre-mutation snapshot they were already awaiting. The trailing `.catch` is a no-op handler on the
             // .finally chain so a rejected mutation doesn't surface as an unhandled rejection — the caller's
             // own `await` is what observes and propagates the rejection.
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            // oxlint-disable-next-line @typescript-eslint/no-empty-function
             result.finally(() => REGISTRIES.get(context)?.clear()).catch(() => {});
             return abortable(result, callerSignal);
         }
@@ -645,9 +645,9 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     const requestMap = new Map<Request, [(...args: unknown[]) => void, (reason?: unknown) => void]>();
     const maintenanceMiddleware: Middleware = {
         onRequest({ request }) {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            // oxlint-disable-next-line @typescript-eslint/no-empty-function
             let requestResolver: (...args: unknown[]) => void = () => {};
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            // oxlint-disable-next-line @typescript-eslint/no-empty-function
             let requestRejecter: (reason?: unknown) => void = () => {};
             const promise = new Promise((resolve, reject) => {
                 requestResolver = resolve;
@@ -789,7 +789,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     // helper namespaces talk to the override schema rather than the original SDK client.
     if (shopperLoginOverridden) {
         clients.auth = createAuthHelpers({
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
             shopperLoginClient: clients.shopperLogin as any,
             clientId,
             clientSecret: getSlasClientSecret(),
@@ -801,7 +801,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
         });
     }
     if (shopperBasketsV2Overridden) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
         clients.basket = createBasketHelpers({ shopperBasketsClient: clients.shopperBasketsV2 as any });
     }
 

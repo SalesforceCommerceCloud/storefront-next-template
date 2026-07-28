@@ -30,7 +30,7 @@ type ProviderTuple<TProps extends object = Record<string, unknown>> = readonly [
  * `unknown` or `Record<string, unknown>` would reject literal tuples whose props don't
  * extend that exact shape.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 type ProviderList = readonly ProviderTuple<any>[];
 
 /**

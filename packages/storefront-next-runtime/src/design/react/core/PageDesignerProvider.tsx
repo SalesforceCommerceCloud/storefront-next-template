@@ -39,14 +39,14 @@ type PageDesignerContextType = {
     isPreviewMode: boolean;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const PageDesignerContext = createContext<PageDesignerContextType>({
     isDesignMode: false,
     isPreviewMode: false,
 });
 
 // Hook to access PageDesigner mode information
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const usePageDesignerMode = (): PageDesignerContextType => useContext(PageDesignerContext);
 
 type PageDesignerProviderProps = {

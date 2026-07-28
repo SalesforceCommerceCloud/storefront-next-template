@@ -609,7 +609,7 @@ export default defineConfig<Config>(
                         try {
                             return JSON.parse(process.env.PUBLIC__app__security__turnstile__sites);
                         } catch {
-                            // eslint-disable-next-line no-console
+                            // oxlint-disable-next-line no-console
                             console.error(
                                 '[Turnstile] Failed to parse PUBLIC__app__security__turnstile__sites - no sites configured (fail-closed)'
                             );

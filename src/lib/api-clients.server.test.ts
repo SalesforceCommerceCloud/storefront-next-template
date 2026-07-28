@@ -1186,8 +1186,8 @@ describe('createTimeoutFetch', () => {
             // listener through to the rejected promise.
             expect(signal?.reason).toBe(error);
             expect(signal?.reason).toBeInstanceOf(DOMException);
-            // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here (test assertion)
-            expect((signal?.reason as DOMException).name).toBe('TimeoutError');
+            const reason = signal?.reason as DOMException;
+            expect(reason.name).toBe('TimeoutError');
         });
     });
 

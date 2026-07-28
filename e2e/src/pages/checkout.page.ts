@@ -1986,7 +1986,7 @@ class CheckoutPage {
      */
     async mockRegistrationUnavailable(): Promise<void> {
         await (I.usePlaywrightTo('mock registration API with unavailable', async ({ browserContext }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
             await browserContext.route('**/action/initiate-checkout-registration.data**', async (route: any) => {
                 const body = JSON.stringify([
                     { _1: 2 },

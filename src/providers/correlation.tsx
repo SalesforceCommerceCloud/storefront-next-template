@@ -102,7 +102,7 @@ export function CorrelationProvider({ value, children }: PropsWithChildren<{ val
  * React hook to get correlation ID from context (for use in components).
  * @returns The current correlation ID or undefined
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useCorrelationId(): string | undefined {
     return useContext(CorrelationReactContext);
 }

@@ -24,7 +24,7 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 const extractCustomParameters = (parameters: {
     [key: string]: string | number | boolean | string[] | number[];
 }): CustomQueryParameters => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
     const { customer, password, ...customParams } = parameters;
     return customParams;
 };

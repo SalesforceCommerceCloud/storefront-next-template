@@ -51,7 +51,7 @@ export function composeServerEntry(appModule: ServerEntryModule): ServerEntryMod
         'unstable_instrumentations' in appModule &&
         !('instrumentations' in appModule)
     ) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(
             '[storefront-next] entry.server exports `unstable_instrumentations`, which React Router 7.18 ' +
                 'no longer reads. Rename the export to `instrumentations` or it will not register.'

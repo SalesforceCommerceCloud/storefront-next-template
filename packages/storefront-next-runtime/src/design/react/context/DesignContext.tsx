@@ -50,7 +50,7 @@ export interface DesignContextType {
     setClientPage: (page: ShopperExperience.schemas['Page']) => void;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const DesignContext = React.createContext<DesignContextType>({
     isDesignMode: false,
     isConnected: false,
@@ -176,5 +176,5 @@ DesignProvider.defaultProps = {
  *
  * @returns The current design context
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useDesignContext = (): DesignContextType => React.useContext(DesignContext);

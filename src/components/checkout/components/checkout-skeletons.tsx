@@ -229,7 +229,7 @@ export function MyCartSkeleton({ itemCount = 2 }: { itemCount?: number }): React
         <div className="w-full" data-testid="my-cart-skeleton">
             <div className="divide-y divide-border -mx-[var(--cart-divider-extend,0px)] [&>*]:px-[var(--cart-divider-extend,0px)]">
                 {Array.from({ length: itemCount }).map((_, i) => (
-                    // eslint-disable-next-line react/no-array-index-key
+                    // oxlint-disable-next-line react/no-array-index-key
                     <div key={`cart-item-skeleton-${i}`} className="py-4" data-testid={`my-cart-item-skeleton-${i}`}>
                         <div className="flex gap-3 md:gap-4">
                             <Skeleton className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0" />

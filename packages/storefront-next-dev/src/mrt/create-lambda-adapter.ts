@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 import { ServerResponse } from 'http';
 import { pipeline } from 'node:stream/promises';
 import zlib, {
@@ -259,7 +259,7 @@ const getPathFromEvent = (event: APIGatewayProxyEvent): string => {
  * Converts API Gateway event to Express-compatible request object
  * Creates a proper IncomingMessage-like object with stream properties
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// oxlint-disable-next-line @typescript-eslint/no-unused-vars
 export function createExpressRequest(event: APIGatewayProxyEvent, context: Context): ExpressRequest {
     const { httpMethod, headers, multiValueHeaders, body, isBase64Encoded, requestContext } = event;
 
@@ -965,7 +965,7 @@ export function createExpressResponse(
 
     // Add pipe method for streaming responses (commonly used in Express)
     // @ts-expect-error - Type signature doesn't match ExpressResponse.pipe exactly, but our implementation is compatible
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
     res.pipe = function (destination: Writable, options?: { end?: boolean }) {
         if (!isStreamOpen()) {
             console.error('[res.pipe] Cannot pipe - stream is closed');

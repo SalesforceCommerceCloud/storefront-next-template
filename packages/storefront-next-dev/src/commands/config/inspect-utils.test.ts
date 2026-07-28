@@ -81,7 +81,7 @@ describe('commands/config/inspect-utils', () => {
     });
 
     describe('formatInspectOutput', () => {
-        // eslint-disable-next-line no-control-regex
+        // oxlint-disable-next-line no-control-regex
         const strip = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, '');
 
         describe('Config Summary section', () => {

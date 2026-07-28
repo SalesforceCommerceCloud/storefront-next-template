@@ -309,11 +309,11 @@ export const ensureExternalUrl = (input: string | null | undefined): string | un
     // collapse into "//host" once stripped. Trimming just the leading whitespace here keeps
     // the still-single leading slash visible so "/\x00/evil.com" is rejected as relative
     // instead of surviving to be re-prepended into "https://evil.com".
-    const leadingTrimmed = input.replace(/^[\s\x00-\x1f\x7f]+/, ''); // eslint-disable-line no-control-regex -- only leading whitespace/control chars, so "/\x00/…" keeps its lone leading slash
+    const leadingTrimmed = input.replace(/^[\s\x00-\x1f\x7f]+/, ''); // oxlint-disable-line no-control-regex -- only leading whitespace/control chars, so "/\x00/…" keeps its lone leading slash
     if (leadingTrimmed.startsWith('/') && !leadingTrimmed.startsWith('//')) return undefined;
     if (leadingTrimmed.startsWith('.')) return undefined;
 
-    // eslint-disable-next-line no-control-regex -- strip control chars so they can't smuggle past the checks
+    // oxlint-disable-next-line no-control-regex -- strip control chars so they can't smuggle past the checks
     const sanitized = input.replace(/[\x00-\x1f\x7f]/g, '').trim();
     if (!sanitized) return undefined;
 

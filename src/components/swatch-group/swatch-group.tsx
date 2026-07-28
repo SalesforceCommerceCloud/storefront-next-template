@@ -144,7 +144,7 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
             }
         },
         // do not need handleChange as dep
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
         [children]
     );
 
@@ -192,7 +192,7 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
     }, [value, focusableIndex]);
 
     return (
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- radiogroup composite widget: arrow-key roving handled at group level per ARIA APG
+        // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- radiogroup composite widget: arrow-key roving handled at group level per ARIA APG
         <div
             className={containerClasses}
             onKeyDown={onKeyDown}

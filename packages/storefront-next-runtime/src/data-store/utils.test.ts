@@ -374,7 +374,7 @@ describe('createDataStoreMiddleware', () => {
             next as MiddlewareNext
         );
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(injected.debug).toHaveBeenCalledWith(
             `Data store entry 'site-preferences' not found.`,
             expect.objectContaining({ entryKey: 'site-preferences' })

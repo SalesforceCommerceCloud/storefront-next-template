@@ -22,9 +22,8 @@ import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators';
 import { useTranslation } from 'react-i18next';
-// oxlint-disable-next-line typescript/consistent-type-imports -- oxlint flags this import that typescript-eslint accepts
-import { NormalizedApiError } from '@/lib/api/normalized-api-error';
-// eslint-disable-next-line react-refresh/only-export-components
+import type { NormalizedApiError } from '@/lib/api/normalized-api-error';
+// oxlint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
 import PopularCategory from '@/components/home/popular-category';
 import { type ComponentType } from '@/components/region';

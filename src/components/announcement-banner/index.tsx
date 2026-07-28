@@ -185,5 +185,5 @@ export function AnnouncementBannerFallback() {
     );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { AnnouncementBannerFallback as fallback };

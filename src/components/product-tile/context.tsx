@@ -45,7 +45,7 @@ const DESKTOP_QUERY = `(min-width: ${defaultTheme.screens.lg})`;
  * different value on the client, so reading it while rendering causes a hydration mismatch and a post-hydration
  * re-render. On the server (no `matchMedia`) it returns `false`.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function isDesktopViewport(): boolean {
     return globalThis.matchMedia?.(DESKTOP_QUERY)?.matches ?? false;
 }
@@ -79,22 +79,22 @@ export function ProductTileProvider({ children }: PropsWithChildren) {
  * Hook that returns context if available, otherwise falls back to direct hook calls.
  * This allows ProductTile to work both inside and outside ProductTileProvider.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useProductTileContext(): ProductTileContextValue {
     const context = useContext(ProductTileContext);
     if (context) {
         return context;
     }
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // oxlint-disable-next-line react-hooks/rules-of-hooks
     const config = useConfig();
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // oxlint-disable-next-line react-hooks/rules-of-hooks
     const navigate = useNavigate();
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // oxlint-disable-next-line react-hooks/rules-of-hooks
     const { t } = useTranslation('product');
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // oxlint-disable-next-line react-hooks/rules-of-hooks
     const { currency } = useSite();
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // oxlint-disable-next-line react-hooks/rules-of-hooks
     const getBadges = useCallback(
         (product: ShopperSearch.schemas['ProductSearchHit']) =>
             getProductBadges({ product, badgeDetails: config.global.badges, maxBadges: 2 }),
@@ -103,6 +103,6 @@ export function useProductTileContext(): ProductTileContextValue {
 
     // Memoize the fallback value too, so consumers outside a provider get the same referential stability as those
     // inside one.
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // oxlint-disable-next-line react-hooks/rules-of-hooks
     return useMemo(() => ({ navigate, config, t, currency, getBadges }), [navigate, config, t, currency, getBadges]);
 }

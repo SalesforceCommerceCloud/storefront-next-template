@@ -291,7 +291,7 @@ describe('createSecurityHeadersMiddleware', () => {
         const thrown = new Response('not found', { status: 404 });
         let caught: unknown;
         try {
-            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+            // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
             await mw(args, (() => Promise.reject(thrown)) as unknown as Next);
         } catch (err) {
             caught = err;

@@ -300,7 +300,7 @@ export function HeroCarouselPlain({
     }
 
     return (
-        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- labelled carousel region: keydown/hover handlers pause autoplay and drive arrow-key slide nav, not the primary control
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- labelled carousel region: keydown/hover handlers pause autoplay and drive arrow-key slide nav, not the primary control
         <div
             data-slot="hero-carousel"
             className="relative w-full overflow-hidden h-[400px] md:h-[500px] lg:h-[600px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
@@ -311,7 +311,7 @@ export function HeroCarouselPlain({
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onKeyDown={handleKeyDown}
-            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- intentional tab stop so keyboard users can reach the carousel's arrow-key slide navigation
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- intentional tab stop so keyboard users can reach the carousel's arrow-key slide navigation
             tabIndex={0}>
             <Carousel
                 setApi={setApi}
@@ -618,5 +618,5 @@ const HeroCarousel = withSuspense(HeroCarouselPlain, {
 
 export default HeroCarousel;
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { HeroCarouselSkeleton, HeroCarouselSkeleton as fallback };

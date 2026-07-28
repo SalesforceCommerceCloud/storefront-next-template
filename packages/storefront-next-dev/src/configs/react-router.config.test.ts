@@ -353,7 +353,7 @@ describe('react-router.config', () => {
             it('should warn (not throw) when routeDiscovery object is missing', () => {
                 const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
                 const preset = storefrontNextPreset();
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                // oxlint-disable-next-line @typescript-eslint/no-unused-vars
                 const { routeDiscovery, ...configWithoutRouteDiscovery } = createMockResolvedConfig();
 
                 // A missing routeDiscovery is treated like any other override of the default 'initial' mode:
@@ -367,7 +367,7 @@ describe('react-router.config', () => {
 
             it('should handle missing future object', () => {
                 const preset = storefrontNextPreset();
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                // oxlint-disable-next-line @typescript-eslint/no-unused-vars
                 const { future, ...configWithoutFuture } = createMockResolvedConfig();
 
                 expect(() => {

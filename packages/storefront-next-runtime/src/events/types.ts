@@ -55,7 +55,7 @@ export interface AnalyticsUser {
  * Placeholder type for future payload types.
  * This allows the payload union to be extended in the future.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// oxlint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface PayloadTbd {
     // Placeholder for future payload types
 }
@@ -206,7 +206,7 @@ export interface WishlistMergedEvent extends BaseEvent {
  * }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// oxlint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface AnalyticsEventExtensions {
     // This interface can be extended by external code
 }

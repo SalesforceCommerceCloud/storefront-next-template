@@ -264,7 +264,7 @@ export default function SearchPage({
                     });
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [analytics, searchTerm, analyticsKey, nonCriticalPromise]);
 
     return (

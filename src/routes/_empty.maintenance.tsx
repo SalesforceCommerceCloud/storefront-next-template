@@ -81,7 +81,7 @@ export default function MaintenancePage() {
                     }
                 `}</style>
                 <div className="parent-container ">
-                    {/* eslint-disable-next-line react/no-danger */}
+                    {/* oxlint-disable-next-line react/no-danger */}
                     <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
                     <Link
                         to={returnTo}

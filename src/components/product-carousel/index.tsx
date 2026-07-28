@@ -22,7 +22,7 @@
  * @fileoverview Exports for product carousel functionality including loading states and Suspense boundaries
  */
 import { AttributeDefinition, Component, RegionDefinition } from '@/lib/decorators';
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
 
 const productCarouselDefaults = {
@@ -80,5 +80,5 @@ export class ProductCarouselWithSuspenseMetadata {
     limit?: number;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { default as fallback } from './skeleton';

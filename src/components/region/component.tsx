@@ -54,7 +54,7 @@ export const Component = memo(function Component({ component, className, regionI
     const FallbackComponent = registry.getFallback(component.typeId);
     const DynamicComponent = registry.getComponent(component.typeId);
     if (!DynamicComponent) {
-        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        // oxlint-disable-next-line @typescript-eslint/only-throw-error
         throw registry.preload(component.typeId);
     }
 

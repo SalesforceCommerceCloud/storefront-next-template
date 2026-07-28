@@ -409,7 +409,7 @@ describe('CheckoutFormPage', () => {
     ): Promise<ReturnType<typeof render>> => {
         let view: ReturnType<typeof render> | undefined;
         await act(
-            // eslint-disable-next-line @typescript-eslint/require-await
+            // oxlint-disable-next-line @typescript-eslint/require-await
             async () => {
                 view = render(<CheckoutFormPage {...defaultProps} {...props} />);
             }
@@ -2073,8 +2073,8 @@ describe('CheckoutFormPage', () => {
             expect(fetchMock).toHaveBeenCalledTimes(2);
             expect(fetchMock.mock.calls[0]?.[0]).toBe('/action/place-order-prepare');
             expect(fetchMock.mock.calls[1]?.[0]).toBe('/action/place-order-finalize');
-            // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here (test assertion)
-            const finalizeFormData = (fetchMock.mock.calls[1]?.[1] as { body: FormData }).body;
+            const finalizeCall = fetchMock.mock.calls[1]?.[1] as { body: FormData };
+            const finalizeFormData = finalizeCall.body;
             expect(finalizeFormData.get('orderNo')).toBe('ORD-9001');
         });
 
@@ -2386,11 +2386,8 @@ describe('CheckoutFormPage', () => {
 
             expect(fetchMock).toHaveBeenCalledTimes(3);
             expect(fetchMock.mock.calls[0]?.[0]).toBe('/resource/update-basket-billing-address');
-            // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here (test assertion)
-            const billingBody = JSON.parse((fetchMock.mock.calls[0]?.[1] as { body: string }).body) as Record<
-                string,
-                unknown
-            >;
+            const billingCall = fetchMock.mock.calls[0]?.[1] as { body: string };
+            const billingBody = JSON.parse(billingCall.body) as Record<string, unknown>;
             expect(billingBody.firstName).toBe('Jane');
             expect(fetchMock.mock.calls[1]?.[0]).toBe('/action/place-order-prepare');
             expect(fetchMock.mock.calls[2]?.[0]).toBe('/action/place-order-finalize');

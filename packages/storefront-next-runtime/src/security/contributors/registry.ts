@@ -127,6 +127,6 @@ export function validateContributors(
     }
 
     // Observability: one line listing each contributor + directives touched.
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.info(`[security] CSP contributors registered: ${summaries.join(' ') || '(none)'}`);
 }

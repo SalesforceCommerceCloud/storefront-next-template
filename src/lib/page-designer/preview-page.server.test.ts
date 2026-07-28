@@ -127,7 +127,7 @@ describe('injectIntoPreviewRegion', () => {
         // descendant entry still present and untouched
         expect(page.componentData?.['child-1']).toBe(childPromise);
         // callLoader invoked with the stripped component (no componentData field)
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.callLoader).toHaveBeenCalledWith(
             'hero',
             { componentData: { id: 'c-1', typeId: 'hero' }, context: args.context, request: args.request },
@@ -145,7 +145,7 @@ describe('injectIntoPreviewRegion', () => {
 
         expect(page.componentData?.['c-1']).toBeUndefined();
         expect(Object.keys(page.componentData ?? {})).toEqual(['child-1']);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.callLoader).not.toHaveBeenCalled();
     });
 

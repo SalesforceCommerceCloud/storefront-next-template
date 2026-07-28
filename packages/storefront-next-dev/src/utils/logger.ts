@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 import os from 'os';
 import chalk from 'chalk';
 import { createRequire } from 'module';

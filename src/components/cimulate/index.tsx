@@ -103,7 +103,7 @@ function CimulateAgent({ cimulateConfiguration }: CimulateAgentProps) {
 
 export default CimulateAgent;
 
-/* eslint-disable react-refresh/only-export-components -- barrel re-exports */
+/* oxlint-disable react-refresh/only-export-components -- barrel re-exports */
 export {
     openCimulateWidget,
     openAgentWidget,
@@ -112,4 +112,4 @@ export {
     CIMULATE_LOAD_EVENT,
 } from './cimulate.utils';
 export type { CimulateConfig } from './cimulate.utils';
-/* eslint-enable react-refresh/only-export-components */
+/* oxlint-enable react-refresh/only-export-components */

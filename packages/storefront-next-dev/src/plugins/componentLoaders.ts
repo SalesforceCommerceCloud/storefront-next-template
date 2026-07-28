@@ -397,7 +397,7 @@ export function componentLoadersPlugin(config: ComponentLoadersPluginConfig = {}
             }
 
             // Access the Vite environment name (available in Vite 6+)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
             const environmentName: string | undefined = (this as any).environment?.name;
             if (!environmentName) {
                 return null;

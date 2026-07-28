@@ -25,7 +25,7 @@ import {
 import type { PublicSessionData } from '@/lib/api/types';
 import { parseUserTypeCookie, type UserType } from '@/lib/auth/user-type-hint';
 
-/* eslint-disable react-refresh/only-export-components */
+/* oxlint-disable react-refresh/only-export-components */
 
 export const AuthContext = createContext<PublicSessionData | undefined>(undefined);
 
@@ -33,7 +33,7 @@ export const AuthContext = createContext<PublicSessionData | undefined>(undefine
 // existing re-render triggers to refresh. useSyncExternalStore guarantees the SSR/first-hydration
 // snapshot (null) and the post-hydration client snapshot (cookie) can diverge without a
 // hydration-mismatch warning — the same mechanism the basket provider uses (`providers/basket.tsx`).
-// eslint-disable-next-line @typescript-eslint/no-empty-function
+// oxlint-disable-next-line @typescript-eslint/no-empty-function
 const subscribeUserTypeCookie = () => () => {};
 const getServerUserTypeSnapshot = (): UserType | null => null;
 

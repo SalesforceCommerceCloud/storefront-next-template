@@ -70,10 +70,10 @@ export interface GlobalRequestParameters {
  * @returns Options with global values applied as defaults
  */
 function buildRequestOptions(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     options: any,
     globalParams?: GlobalRequestParameters
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
     if (!globalParams) return options;
 
@@ -170,7 +170,7 @@ const isOtpEndpoint = (url: string): boolean => {
  * });
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export function createClient<TClient extends Client<any, any>, TOperations extends OperationMap>(
     client: TClient,
     operations: TOperations,
@@ -204,11 +204,11 @@ export function createClient<TClient extends Client<any, any>, TOperations exten
                 const path = base + suffix;
 
                 // Return an async function that calls the HTTP method and handles errors
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // oxlint-disable-next-line @typescript-eslint/no-explicit-any
                 return async function (this: any, callOptions?: any) {
                     // Get the HTTP method function (GET, POST, etc.)
                     const httpMethod = method.toUpperCase();
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
                     const clientMethod = (target as any)[httpMethod];
 
                     if (typeof clientMethod !== 'function') {
@@ -301,7 +301,7 @@ export function createClient<TClient extends Client<any, any>, TOperations exten
             // Only pass through middleware methods (use, eject)
             // All other properties (GET, POST, etc.) are intentionally hidden
             if (prop === 'use' || prop === 'eject') {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // oxlint-disable-next-line @typescript-eslint/no-explicit-any
                 const value = (target as any)[prop];
                 if (typeof value === 'function') {
                     return value.bind(target);

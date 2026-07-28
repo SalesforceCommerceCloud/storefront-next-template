@@ -100,7 +100,7 @@ vi.mock('@/middlewares/i18next', async () => {
     const actual = await vi.importActual('@/middlewares/i18next');
     // Create a simple mock i18next that has the t function with proper namespaces
     const mockI18next = {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
         t: (key: string, options?: any) => {
             // Handle namespace:key format
             if (key.includes(':')) {
@@ -109,7 +109,7 @@ vi.mock('@/middlewares/i18next', async () => {
 
                 // Navigate nested object using dot notation
                 const keys = keyPath.split('.');
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // oxlint-disable-next-line @typescript-eslint/no-explicit-any
                 let value: any = resources['en-GB'][ns as keyof (typeof resources)['en-GB']];
                 for (const k of keys) {
                     if (value && typeof value === 'object') {

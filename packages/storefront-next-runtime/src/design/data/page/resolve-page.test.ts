@@ -92,7 +92,7 @@ describe('resolvePage', () => {
 
         expect(result).not.toBeNull();
         expect(result?.id).toBe('resolved-page');
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(storage.getSiteManifest).not.toHaveBeenCalled();
     });
 
@@ -121,9 +121,9 @@ describe('resolvePage', () => {
         });
 
         expect(result).not.toBeNull();
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(storage.getSiteManifest).toHaveBeenCalled();
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(storage.getPageManifest).toHaveBeenCalledWith('page-prod-1');
     });
 
@@ -546,12 +546,12 @@ describe('resolvePage', () => {
             expect(result).not.toBeNull();
             expect(result?.id).toBe('header');
             expect(result?.typeId).toBe('embedded.header');
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(storage.getComponentManifest).toHaveBeenCalledWith('header');
             // Component flow must skip the site manifest and the page-manifest path.
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(storage.getSiteManifest).not.toHaveBeenCalled();
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(storage.getPageManifest).not.toHaveBeenCalled();
         });
 

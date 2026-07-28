@@ -21,7 +21,7 @@ import chalk from 'chalk';
  * Shared across CLI test runner and CI orchestration scripts.
  * All user-facing output should go through this module for consistent formatting.
  */
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 export const log = {
     /** Informational message (blue prefix) */
     info: (msg: string): void => {
@@ -68,4 +68,4 @@ export const log = {
         console.log(msg);
     },
 };
-/* eslint-enable no-console */
+/* oxlint-enable no-console */

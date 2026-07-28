@@ -80,7 +80,7 @@ export function Component(typeId: string, metadata: ComponentTypeMetadata) {
     // Class decorators must accept any constructor signature — `unknown[]` would reject
     // classes whose constructors take typed args. This matches TypeScript's class
     // decorator type pattern.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     return function <T extends new (...args: any[]) => any>(constructor: T) {
         return defineComponentMetadata(typeId, metadata, constructor);
     };
@@ -93,7 +93,7 @@ export function Component(typeId: string, metadata: ComponentTypeMetadata) {
 export function RegisterComponent(typeId: string, metadata: ComponentTypeMetadata) {
     // Function decorators must accept any callable signature — see the comment on
     // `Component` for why `any[]` is required here.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     return function <T extends (...args: any[]) => any>(target: T): T {
         return defineComponentMetadata(typeId, metadata, target);
     };
@@ -103,7 +103,7 @@ export function RegisterComponent(typeId: string, metadata: ComponentTypeMetadat
  * Higher-order component decorator that works with any constructor
  * This creates a wrapper that can be decorated
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export function withComponentMetadata<T extends new (...args: any[]) => any>(
     typeId: string,
     metadata: ComponentTypeMetadata

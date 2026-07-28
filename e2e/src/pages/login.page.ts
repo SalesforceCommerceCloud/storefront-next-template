@@ -16,7 +16,7 @@
 
 import { buildSitePath } from '../utils/url-utils';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- codeceptjs/steps has no ESM export
+// oxlint-disable-next-line @typescript-eslint/no-require-imports -- codeceptjs/steps has no ESM export
 const step = require('codeceptjs/steps');
 const { I } = inject();
 

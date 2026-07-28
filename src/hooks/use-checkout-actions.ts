@@ -288,7 +288,7 @@ export function useCheckoutActions(options?: {
         // mutation handlers. Dedups by `lastModified`. Shape-safe: no basket read or mutation sets
         // `expand`, so every response carries the SCAPI default and can't down-shape provider consumers.
         updateBasket(fetcher.data.basket);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [contactFetcher.data, shippingAddressFetcher.data, shippingOptionsFetcher.data, paymentFetcher.data]);
 
     // Exit edit mode after basket has been updated
@@ -370,7 +370,7 @@ export function useCheckoutActions(options?: {
         // would not re-run the effect in that case). exitEditMode, fetcherMap,
         // and options refs are intentionally omitted: they are stable refs or
         // callbacks whose identity changes don't require re-running this effect.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         editingStep,
         basket,

@@ -117,7 +117,6 @@ export interface ReturnsAndWarrantyModalData extends InfoModalDataBase {
  * Structured data for the info modal. Add new modal types by defining a new variant
  * (e.g. SizeGuideModalData) and extending this union.
  */
-// prettier-ignore
 export type InfoModalData =
     // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
     | EstimatedDeliveryModalData

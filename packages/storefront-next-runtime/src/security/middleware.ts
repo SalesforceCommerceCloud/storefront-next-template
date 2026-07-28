@@ -69,15 +69,15 @@ function resolve(input: SecurityConfig): ResolvedSecurityConfig {
  */
 function warnIfUnsafe(resolved: ResolvedSecurityConfig): void {
     if (!resolved.enabled) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('[security] All security headers disabled via config. This is not recommended for production.');
         return;
     }
     if (resolved.csp === false) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('[security] CSP disabled via config. Other headers still applied.');
     } else if (resolved.csp.reportOnly) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(
             '[security] CSP is in report-only mode. This is intended for migration only. Set csp.reportOnly to false before going to production.'
         );
@@ -85,7 +85,7 @@ function warnIfUnsafe(resolved: ResolvedSecurityConfig): void {
     if (resolved.csp !== false) {
         const scriptSrc = resolved.csp.directives['script-src'];
         if (Array.isArray(scriptSrc) && !scriptSrc.includes("'self'")) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn(
                 "[security] CSP script-src does not include 'self'. The inline window.__APP_CONFIG__ script may fail to execute."
             );
@@ -270,7 +270,7 @@ export function createSecurityHeadersMiddleware(
             // continues to handle it (e.g. render the error boundary).
             if (err instanceof Response) {
                 // RR's contract: loaders/actions throw `Response` for 404/redirect.
-                // eslint-disable-next-line @typescript-eslint/only-throw-error
+                // oxlint-disable-next-line @typescript-eslint/only-throw-error
                 throw applyHeaders(err, nonce, cspBody, isEmbeddable);
             }
             // For non-Response errors (unexpected exceptions), RR synthesizes a

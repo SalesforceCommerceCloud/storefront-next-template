@@ -107,7 +107,7 @@ const ProductViewProvider = ({
     );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useProductView = () => {
     const context = useContext(ProductViewContext);
     if (!context) {
@@ -116,7 +116,7 @@ export const useProductView = () => {
     return context;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useOptionalProductView = () => useContext(ProductViewContext);
 
 export default ProductViewProvider;

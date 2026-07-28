@@ -367,7 +367,7 @@ export const createAuthPromise = (
             const promiseRef = context.get(authContext);
             if (promiseRef === undefined) {
                 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
-                    // eslint-disable-next-line no-console
+                    // oxlint-disable-next-line no-console
                     console.warn(
                         'createAuthPromise: authContext is not set on the provider. ' +
                             'This is expected in test harnesses; in production code it indicates createAuthPromise ' +

@@ -282,7 +282,7 @@ export default function ProductItemsList({
         });
         // Intentionally exclude primaryAction and secondaryActions from dependencies
         // to prevent re-computation when parent components re-render with new function references
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         productItems,
         productsByItemId,

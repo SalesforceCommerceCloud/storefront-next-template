@@ -265,7 +265,7 @@ export default function ContactInfo({
             if (otpFlowActiveRef) otpFlowActiveRef.current = false;
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [onPasswordlessOtpVerified, revalidator]
     );
 
@@ -332,7 +332,7 @@ export default function ContactInfo({
             if (otpFlowActiveRef) otpFlowActiveRef.current = true;
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [
             form,
             passwordlessEmailFetcher,
@@ -370,7 +370,7 @@ export default function ContactInfo({
             action: authorizePasswordlessEmailPath,
         });
         if (otpFlowActiveRef) otpFlowActiveRef.current = true;
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
     }, [turnstileBypassed, passwordlessEmailFetcher, authorizePasswordlessEmailPath]);
 
     useEffect(() => {
@@ -391,7 +391,7 @@ export default function ContactInfo({
             action: authorizePasswordlessEmailPath,
         });
         if (otpFlowActiveRef) otpFlowActiveRef.current = true;
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
     }, [turnstileToken, passwordlessEmailFetcher, authorizePasswordlessEmailPath]);
 
     // When authorize (blur) succeeds, open OTP modal so user can enter the code
@@ -401,7 +401,7 @@ export default function ContactInfo({
             setOtpModalEmail(data.email);
             setIsOtpOpen(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only open modal when state/data from last submit
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only open modal when state/data from last submit
     }, [passwordlessEmailFetcher.state, passwordlessEmailFetcher.data?.success, passwordlessEmailFetcher.data?.email]);
 
     useEffect(() => {
@@ -409,7 +409,7 @@ export default function ContactInfo({
         if (state === 'idle' && data?.requiresLogin === true) {
             setIsLoginModalOpen(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to requiresLogin flag
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only react to requiresLogin flag
     }, [passwordlessEmailFetcher.state, passwordlessEmailFetcher.data?.requiresLogin]);
 
     // Server-side Turnstile rejection (403 NOT_AUTHORIZED) handling.
@@ -432,7 +432,7 @@ export default function ContactInfo({
             tokenConsumedRef.current = false;
             resetTurnstile();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to verification rejection
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only react to verification rejection
     }, [
         passwordlessEmailFetcher.state,
         passwordlessEmailFetcher.data?.success,
@@ -449,7 +449,7 @@ export default function ContactInfo({
             setIsOtpOpen(false);
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [onPasswordlessOtpVerified, revalidator]
     );
 
@@ -461,7 +461,7 @@ export default function ContactInfo({
             if (otpFlowActiveRef) otpFlowActiveRef.current = false;
             setIsLoginModalOpen(false);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [onPasswordlessOtpVerified, revalidator]
     );
 
@@ -510,7 +510,7 @@ export default function ContactInfo({
         lastEmailSentRef.current = null;
         onRegisteredUserChoseGuest?.(true);
         // form and cart are stable across renders; handleFormSubmit is defined above in the same scope
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [form, cart, onRegisteredUserChoseGuest]);
 
     let nextStepButtonLabel = isLoading ? t('contactInfo.saving') : t('contactInfo.continue');
@@ -543,7 +543,7 @@ export default function ContactInfo({
             }
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [isSendingOtp, isOtpOpen, isLoginModalOpen, isPasskeyLoginPending]
     );
 
@@ -588,7 +588,7 @@ export default function ContactInfo({
                                                     // Opt the email field into WebAuthn conditional mediation
                                                     // so a saved passkey can autofill during checkout sign-in.
                                                     autoComplete="username webauthn"
-                                                    // eslint-disable-next-line jsx-a11y/no-autofocus -- focus first field on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
+                                                    // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first field on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                                     autoFocus={isEditing}
                                                     disabled={isSendingOtp}
                                                     className="pr-12"

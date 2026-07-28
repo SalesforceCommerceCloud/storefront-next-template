@@ -200,7 +200,7 @@ describe('pageLoader', () => {
             expect(result).toHaveProperty('id', 'mock-page');
             expect(result).toHaveProperty('componentData', {});
             expect(fetchPage).toHaveBeenCalledWith(TEST_CONTEXT, { pageId: MOCK_PAGE_ID });
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(mockedRegistry.callLoader).toHaveBeenCalledTimes(0);
         });
 
@@ -250,7 +250,7 @@ describe('pageLoader', () => {
             if (!result) throw new Error('Expected non-null result');
             const componentData = await result.componentData?.['hero-1'];
 
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(mockedRegistry.callLoader).toHaveBeenCalledWith(
                 'hero',
                 {
@@ -292,7 +292,7 @@ describe('pageLoader', () => {
             if (!result) throw new Error('Expected non-null result');
 
             expect(result.componentData).toEqual({});
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(mockedRegistry.callLoader).toHaveBeenCalledTimes(0);
         });
 

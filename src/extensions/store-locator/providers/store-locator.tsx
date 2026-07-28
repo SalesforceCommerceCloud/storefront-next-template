@@ -62,7 +62,7 @@ const StoreLocatorProvider = ({
  * const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
  * const selectedStoreId = selectedStoreInfo?.id;
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useStoreLocator = <T,>(selector: (store: StoreLocatorStore) => T): T => {
     const store = useContext(StoreLocatorContext);
     if (!store) {

@@ -49,7 +49,7 @@ export default function PromoCallout({ product, className }: { product: Product;
             {/* BM content is trusted, safe to render HTML. Works for both plain text and HTML strings */}
             <span
                 className="line-clamp-2 text-[inherit] font-medium"
-                // eslint-disable-next-line react/no-danger
+                // oxlint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: calloutMsg }}
             />
         </div>

@@ -47,9 +47,9 @@ export const RestoresFromCookie: Story = {
             document.cookie = 'currency=IkdCUCI%3D; path=/';
 
             const warnings: string[] = [];
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             const original = console.error;
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.error = (...args: unknown[]) => {
                 warnings.push(String(args[0]));
                 original(...args);
@@ -69,7 +69,7 @@ export const RestoresFromCookie: Story = {
             // The load-bearing property: no hydration-mismatch warning.
             expect(warnings.some((w) => /hydrat/i.test(w))).toBe(false);
         } finally {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.error = original;
             // Cleanup
             document.cookie = 'currency=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';

@@ -30,7 +30,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* oxlint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from 'vitest';
 import type { ShopperBasketsV2 } from '@/scapi';
 import {

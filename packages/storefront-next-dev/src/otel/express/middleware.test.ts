@@ -120,7 +120,7 @@ describe('createOtelExpressMiddleware', () => {
 
             // No inbound extraction and no outbound/response header when disabled.
             expect(trace.setSpanContext).not.toHaveBeenCalled();
-            // eslint-disable-next-line @typescript-eslint/unbound-method -- vi.fn() mock, no real `this` binding
+            // oxlint-disable-next-line @typescript-eslint/unbound-method -- vi.fn() mock, no real `this` binding
             expect(res.setHeader).not.toHaveBeenCalled();
         });
     });
@@ -191,7 +191,7 @@ describe('createOtelExpressMiddleware', () => {
             const res = mockResponse();
             middleware(mockRequest(), res as never, vi.fn());
 
-            // eslint-disable-next-line @typescript-eslint/unbound-method -- vi.fn() mock, no real `this` binding
+            // oxlint-disable-next-line @typescript-eslint/unbound-method -- vi.fn() mock, no real `this` binding
             expect(res.setHeader).toHaveBeenCalledWith(
                 'traceparent',
                 '00-abc123def456abc123def456abc123de-1234567890abcdef-01'

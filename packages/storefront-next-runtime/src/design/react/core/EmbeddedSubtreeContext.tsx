@@ -46,7 +46,7 @@ export function EmbeddedSubtreeProvider({
  * was told the subtree is embedded. `false` when no provider is present, so
  * page content — which the template never wraps — is never treated as embedded.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useIsWithinEmbeddedSubtree(): boolean {
     return React.useContext(EmbeddedSubtreeContext);
 }

@@ -66,9 +66,9 @@ describe('health-check handler', () => {
         const res = createResponse();
         handler({} as Request, res, vi.fn());
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(res.status).toHaveBeenCalledWith(200);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(res.type).toHaveBeenCalledWith('application/health+json');
         expect(res.json).toHaveBeenCalledWith({
             status: 'pass',

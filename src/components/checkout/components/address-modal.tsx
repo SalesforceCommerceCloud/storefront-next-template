@@ -196,7 +196,7 @@ export function AddressModal({
             });
         }
         // Reset only when dialog opens; defaultValues is captured from the closure
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [open, form, countryCode]);
 
     const handleCancel = () => {
@@ -210,7 +210,7 @@ export function AddressModal({
             data.phone && data.phoneCountryCode ? `${data.phoneCountryCode} ${data.phone}`.trim() : data.phone || '';
 
         // Remove phoneCountryCode from the result as it's not part of SCAPI schema
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // oxlint-disable-next-line @typescript-eslint/no-unused-vars
         const { phoneCountryCode, ...addressData } = data;
 
         const result: ShopperCustomers.schemas['CustomerAddress'] = {

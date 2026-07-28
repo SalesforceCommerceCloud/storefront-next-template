@@ -17,7 +17,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
 import { mockAltSiteObject } from '@/test-utils/config';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import type {
@@ -28,7 +28,7 @@ import type {
 } from '@/scapi';
 import { useProductActions } from './use-product-actions';
 import { resourceRoutes } from '@/route-paths';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as BasketModule from '@/providers/basket';
 const BasketProvider = BasketModule.default;
 // @sfdc-extension-block-start SFDC_EXT_BOPIS

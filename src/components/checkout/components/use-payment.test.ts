@@ -570,7 +570,7 @@ describe('usePayment hook', () => {
             expect(submissionRef.current.formDataGetter).toBeInstanceOf(Function);
             expect(submissionRef.current.setFormErrors).toBeInstanceOf(Function);
 
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
             const data = submissionRef.current.formDataGetter!() as Record<string, unknown>;
             expect(data.useSavedPaymentMethod).toBe(false);
             expect(data.selectedSavedPaymentMethod).toBeUndefined();
@@ -590,7 +590,7 @@ describe('usePayment hook', () => {
             );
 
             act(() => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 submissionRef.current.setFormErrors!({
                     cardNumber: { type: 'server', message: 'Card declined' },
                 });
@@ -613,7 +613,7 @@ describe('usePayment hook', () => {
             const setFocusSpy = vi.spyOn(result.current.form, 'setFocus');
 
             act(() => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 submissionRef.current.setFormErrors!({
                     cardNumber: { type: 'validation', message: 'Enter a valid card number.' },
                     cvv: { type: 'validation', message: 'CVV is required' },
@@ -662,7 +662,7 @@ describe('usePayment hook', () => {
             const { getByTestId } = render(createElement(Harness));
 
             act(() => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 submissionRef.current.setFormErrors!({
                     cvv: { type: 'validation', message: 'CVV is required' },
                     cardNumber: { type: 'validation', message: 'Enter a valid card number.' },
@@ -704,7 +704,7 @@ describe('usePayment hook', () => {
             // Default form state has useDifferentBilling: false
             expect(result.current.form.getValues('useDifferentBilling')).toBe(false);
             expect(submissionRef.current.billingAddressGetter).toBeInstanceOf(Function);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(submissionRef.current.billingAddressGetter!()).toBeNull();
         });
 
@@ -737,7 +737,7 @@ describe('usePayment hook', () => {
             );
 
             expect(submissionRef.current.billingAddressGetter).toBeInstanceOf(Function);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
             const address = submissionRef.current.billingAddressGetter!() as Record<string, unknown>;
             expect(address).toEqual(
                 expect.objectContaining({

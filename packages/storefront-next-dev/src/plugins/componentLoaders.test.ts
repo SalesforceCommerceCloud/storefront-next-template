@@ -464,7 +464,7 @@ describe('componentLoaders', () => {
          * Simulates the Vite lifecycle by calling `configResolved` with the given mode before invoking `transform`.
          */
         function initPlugin(plugin: ReturnType<typeof componentLoadersPlugin>, mode = 'development') {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-function-type
             (plugin.configResolved as Function)({ mode } as any);
         }
 
@@ -496,7 +496,7 @@ describe('componentLoaders', () => {
                 const context = {
                     environment: environmentName ? { name: environmentName } : undefined,
                 };
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+                // oxlint-disable-next-line @typescript-eslint/no-unsafe-function-type
                 return (plugin.transform as Function).call(context, code, id);
             }
 
@@ -566,7 +566,7 @@ describe('componentLoaders', () => {
                 ].join('\n');
 
                 const context = { environment: { name: 'client' } };
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+                // oxlint-disable-next-line @typescript-eslint/no-unsafe-function-type
                 const result = (plugin.transform as Function).call(
                     context,
                     code,
@@ -615,7 +615,7 @@ describe('componentLoaders', () => {
                 const context = {
                     environment: { name: environmentName },
                 };
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+                // oxlint-disable-next-line @typescript-eslint/no-unsafe-function-type
                 return (plugin.transform as Function).call(context, code, id);
             }
 

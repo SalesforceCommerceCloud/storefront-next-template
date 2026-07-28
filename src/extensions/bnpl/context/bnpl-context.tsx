@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_BNPL */
-/* eslint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
+/* oxlint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
 import { createContext, useContext, type PropsWithChildren, type ReactElement } from 'react';
 import type { BuyNowPayLaterMessageData, BuyNowPayLaterLearnMoreData } from '@/extensions/bnpl/lib/api/bnpl.server';
 

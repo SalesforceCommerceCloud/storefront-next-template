@@ -716,7 +716,7 @@ describe('SCAPI Client Type Safety', () => {
      * The 'if (false as boolean)' guard ensures code is never executed while still being type-checked.
      * This is critical for CI - we verify TypeScript catches errors without making HTTP requests.
      */
-    /* eslint-disable @typescript-eslint/no-floating-promises */
+    /* oxlint-disable @typescript-eslint/no-floating-promises */
     describe('type error detection', () => {
         it('should catch missing required params object', () => {
             if (false as boolean) {

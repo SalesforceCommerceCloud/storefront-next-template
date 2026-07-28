@@ -43,7 +43,7 @@ describe('getDataStoreLogger', () => {
         const logger = getDataStoreLogger(context);
         logger.warn('test message', { foo: 'bar' });
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(injected.warn).toHaveBeenCalledWith('test message', { foo: 'bar' });
     });
 

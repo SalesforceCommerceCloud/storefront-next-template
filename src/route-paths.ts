@@ -198,7 +198,7 @@ const allPatterns: ReadonlySet<string> = new Set([...Object.values(routes), ...O
 
 export function routeHref(pattern: RoutePattern, params?: Record<string, string>): string {
     if (import.meta.env.DEV && !allPatterns.has(pattern)) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(
             `[routeHref] Pattern "${pattern}" is not declared in route-paths.ts. ` +
                 `Add it to routes or resourceRoutes to keep paths centralized.`
@@ -207,6 +207,6 @@ export function routeHref(pattern: RoutePattern, params?: Record<string, string>
     // Delegate to React Router's href() for param interpolation.
     // The cast is needed because RR's generated Pages type only includes prefixed patterns
     // (/:siteId/:localeId/...), but our constants use the short form without the prefix.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     return href(pattern as any, params);
 }

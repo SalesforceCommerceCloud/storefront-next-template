@@ -388,7 +388,7 @@ export function useProductActions({
             setIsAddingToOrUpdatingCart(false);
         }
         //As addToast, setIsAddingToOrUpdatingCart are unlikely to change, we don't need to include them in the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [isAddingToOrUpdatingCart, cartFetcher.data, product.name, itemId]);
 
     useEffect(() => {
@@ -409,7 +409,7 @@ export function useProductActions({
             setIsAddingToOrUpdatingCart(false);
         }
         //As addToast, setIsAddingToOrUpdatingCart are unlikely to change, we don't need to include them in the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [isAddingToOrUpdatingCart, multipleItemsFetcher.data]);
 
     useEffect(() => {
@@ -430,7 +430,7 @@ export function useProductActions({
             setIsAddingToOrUpdatingCart(false);
         }
         //As addToast, setIsAddingToOrUpdatingCart are unlikely to change, we don't need to include them in the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [isAddingToOrUpdatingCart, bundleFetcher.data]);
 
     // Handle wishlist fetcher response (for both direct clicks and component-executed pending actions)
@@ -494,7 +494,7 @@ export function useProductActions({
             addToast(t('product:failedToAddProductToWishlist'), 'error');
         }
         //As addToast, navigate are unlikely to change, we don't need to include them in the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [wishlistFetcher.data, wishlistFetcher.state, product.name, location.pathname, location.search]);
 
     // Handle adding to cart
@@ -878,7 +878,7 @@ export function useProductActions({
             }
         },
         // eslint complains about bundleFetcher and addToast missing from deps, these instances are not likely to change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
         [product, isAddingToOrUpdatingCart, itemId, basketProductItems]
     );
 
@@ -979,7 +979,7 @@ export function useProductActions({
             addToast(errorMessage, 'error');
         }
         // eslint complains about cartFetcher and addToast missing from deps, these instances are not likely to change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         product,
         quantity,

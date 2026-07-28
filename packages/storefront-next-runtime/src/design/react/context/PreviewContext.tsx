@@ -20,7 +20,7 @@ type PreviewContextType = {
     isPreviewMode: boolean;
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const PreviewContext = createContext<PreviewContextType>({
     isPreviewMode: false,
 });

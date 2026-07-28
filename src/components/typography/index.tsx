@@ -104,6 +104,6 @@ function getDefaultElement(variant: TypographyProps['variant']): string {
     }
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { Typography, typographyVariants };
 export type { TypographyProps };

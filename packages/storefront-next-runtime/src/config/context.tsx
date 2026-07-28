@@ -62,7 +62,7 @@ export interface AppConfigShape {
  * template's `AppConfig` (`src/types/config.ts`) demonstrates the
  * index-signature-free shape.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// oxlint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ClientFacingAppConfigShape {}
 
 /**
@@ -70,7 +70,7 @@ export interface ClientFacingAppConfigShape {}
  * app-config middleware; read via `context.get(appConfigContext)` in loaders,
  * actions, and other middleware. Returns the augmented `AppConfigShape`.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const appConfigContext = createRouterContext<AppConfigShape>();
 
 /**
@@ -88,7 +88,7 @@ export const appConfigContext = createRouterContext<AppConfigShape>();
  * full shape. For a stronger narrow at the read site, augment `ClientFacingAppConfigShape`
  * (the same slot that narrows `useConfig()`) and cast through `ClientFacingAppConfig`.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const clientAppConfigContext = createRouterContext<Partial<AppConfigShape>>();
 
 /**
@@ -97,7 +97,7 @@ export const clientAppConfigContext = createRouterContext<Partial<AppConfigShape
  * Not exported from the public barrel — components must read config via
  * `useConfig()` so the React tree has a single source of truth.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const ConfigContext = createContext<AppConfigShape | null>(null);
 
 interface ConfigProviderProps {

@@ -56,7 +56,7 @@ export function CartItemModalEditContainer({
         if (open) {
             setVariationValues(product.variationValues ?? {});
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [open]);
 
     const isProductASet = isProductSet(product);
@@ -98,7 +98,7 @@ export function CartItemModalEditContainer({
         ) {
             void variantFetcher.load();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         open,
         needsVariantFetch,

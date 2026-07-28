@@ -64,7 +64,7 @@ describe('initTelemetry', () => {
         // wraps our custom MRT exporter via the class name.
         const { MrtConsoleSpanExporter } = await import('./mrt-console-span-exporter');
         const processor = addSpanProcessorSpy.mock.calls[0][0] as unknown as Record<string, unknown>;
-        // eslint-disable-next-line @typescript-eslint/dot-notation
+        // oxlint-disable-next-line @typescript-eslint/dot-notation
         expect(processor['_exporter']).toBeInstanceOf(MrtConsoleSpanExporter);
     });
 

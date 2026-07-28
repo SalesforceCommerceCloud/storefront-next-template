@@ -130,7 +130,7 @@ const PickupProvider = ({ children, basket, initialPickupStores }: PropsWithChil
         // This avoids unnecessary recalculations when unrelated basket properties change
         // (e.g., currency, customerInfo, totals). The hash-based cache inside handles
         // reference equality checks, so this optimization is safe and performant.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [basket?.basketId, basket?.productItems, basket?.shipments]);
 
     const [pickupBasketItems, setPickupBasketItems] = useState<Map<string, PickupItemInfo>>(() => {
@@ -207,7 +207,7 @@ const PickupProvider = ({ children, basket, initialPickupStores }: PropsWithChil
  * }
  * ```
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const usePickup = (): PickupContextType | null => {
     return useContext(PickupContext);
 };

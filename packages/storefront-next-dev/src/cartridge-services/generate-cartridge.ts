@@ -264,7 +264,7 @@ class UnresolvedConstantReferenceError extends Error {
 }
 
 // Helper function to parse any TypeScript expression into a JavaScript value
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 function parseExpression(expression: any): unknown {
     if (Node.isStringLiteral(expression)) {
         return expression.getLiteralValue();
@@ -305,7 +305,7 @@ function parseExpression(expression: any): unknown {
 }
 
 // Helper function to parse deeply nested object literals
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 function parseNestedObject(objectLiteral: any): Record<string, unknown> {
     const result: Record<string, unknown> = {};
 
@@ -331,7 +331,7 @@ function parseNestedObject(objectLiteral: any): Record<string, unknown> {
 }
 
 // Helper function to parse array literals
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 function parseArrayLiteral(arrayLiteral: any): unknown[] {
     const result: unknown[] = [];
 

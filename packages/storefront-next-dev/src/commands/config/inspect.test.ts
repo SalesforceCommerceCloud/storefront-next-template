@@ -25,7 +25,7 @@ const { mockListEnvVars, mockGetMrtAuth, mockRequireMrtCredentials } = vi.hoiste
 }));
 
 vi.mock('@salesforce/b2c-tooling-sdk/cli', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const { Command } = require('@oclif/core');
     class MrtCommand extends Command {
         static baseFlags = {};

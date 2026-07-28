@@ -36,7 +36,7 @@ function createEventMediator(getAdapters: () => EventAdapter[]): EventMediator {
     return {
         track: (event: AnalyticsEvent, siteInfo?: EventSiteInfo, consentPreferences?: ConsentPreferences) => {
             processEventWithAdapters(event, getAdapters, siteInfo, consentPreferences).catch((error) => {
-                // eslint-disable-next-line no-console
+                // oxlint-disable-next-line no-console
                 console.error('Analytics tracking failed:', error);
             });
         },
@@ -91,7 +91,7 @@ async function processEventWithAdapters(
     // Get the current array of event adapters
     const eventAdapters = getAdapters();
     if (eventAdapters.length === 0) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(`There are no active adapters to send the event to`);
         return;
     }
@@ -102,11 +102,11 @@ async function processEventWithAdapters(
             if (typeof adapter.sendEvent === 'function') {
                 await adapter.sendEvent(event, siteInfo, consentPreferences);
             } else {
-                // eslint-disable-next-line no-console
+                // oxlint-disable-next-line no-console
                 console.warn(`Adapter ${adapter.name} does not implement sendEvent`);
             }
         } catch (error) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.error(`Failed to send event to ${adapter.name}:`, error);
         }
     });

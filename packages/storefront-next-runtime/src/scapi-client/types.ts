@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/no-namespace, import/no-namespace */
+/* oxlint-disable @typescript-eslint/no-namespace, import/no-namespace */
 // Shopper Availability
 import type * as ShopperAvailabilityTypes from './generated/shopper-availability-v1';
 export namespace ShopperAvailability {

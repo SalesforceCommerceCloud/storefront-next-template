@@ -50,7 +50,7 @@ export class MrtConsoleSpanExporter extends ConsoleSpanExporter {
                     end_time: span.endTime,
                     forwardTrace: process.env.SFNEXT_OTEL_ENABLED === 'true',
                 };
-                // eslint-disable-next-line no-console -- intentional: MRT collects stdout as the telemetry transport
+                // oxlint-disable-next-line no-console -- intentional: MRT collects stdout as the telemetry transport
                 console.info(JSON.stringify(spanData));
             } catch {
                 // Skip malformed spans — never let a serialization failure propagate

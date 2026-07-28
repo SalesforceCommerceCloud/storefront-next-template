@@ -41,7 +41,7 @@ export interface InteractionConfig<TState, TActions> {
  */
 export function useInteraction<
     TState,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     TActions extends Record<string, (...args: any[]) => any>,
 >(config: InteractionConfig<TState, TActions>): { state: TState } & TActions {
     const [state, setState] = useState<TState>(config.initialState);
@@ -56,7 +56,7 @@ export function useInteraction<
 
         const unsubscribeFunctions = Object.entries(config.eventHandlers ?? {}).map(([eventName, entry]) =>
             clientApi.on(eventName as keyof ClientEventNameMapping, (event) =>
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // oxlint-disable-next-line @typescript-eslint/no-explicit-any
                 entry.handler(event as any, setState)
             )
         );

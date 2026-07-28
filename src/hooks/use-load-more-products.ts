@@ -239,7 +239,7 @@ export function useLoadMoreProducts({
             params.append(PRODUCT_SEARCH_QUERY_PARAMS.REFINE, r);
         }
         void fetcher.load(`${resourceRoutes.categoryProducts}?${params.toString()}`);
-    }, [isLoading, hasMore, effectiveBatchSize, maxProducts, sort, currency, refine]); // eslint-disable-line react-hooks/exhaustive-deps -- fetcher.load is stable per React Router
+    }, [isLoading, hasMore, effectiveBatchSize, maxProducts, sort, currency, refine]); // oxlint-disable-line react-hooks/exhaustive-deps -- fetcher.load is stable per React Router
 
     // Back-nav catch-up: fetch missing products in a single request to restore the prior depth.
     // The gap is capped at 100 to respect the resource route's per-request limit and avoid multiple

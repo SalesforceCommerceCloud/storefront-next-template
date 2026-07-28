@@ -834,7 +834,7 @@ function ModeDecorator({ Story, mode }: { Story: React.ComponentType; mode: Desi
 
     const clientLogger = (message: unknown, source: 'host' | 'client') => {
         if (source === 'host') {
-            /* eslint-disable-next-line no-console */
+            /* oxlint-disable-next-line no-console */
             console.log(`PageDesignerClient event: `, message);
         }
     };

@@ -26,7 +26,7 @@ import { z } from 'zod';
  * @example const schema = createPasswordUpdateFormSchema(t);
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
 export const createPasswordUpdateFormSchema = (t: TFunction<any, any>) => {
     return z
         .object({

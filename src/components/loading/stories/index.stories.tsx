@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 // `@/hooks/use-navigate` requires SiteProvider/ConfigProvider that the
 // Storybook harness doesn't set up for this isolated story.
 
-// eslint-disable-next-line no-restricted-imports -- storybook harness lacks SiteProvider/ConfigProvider; see comment above
+// oxlint-disable-next-line no-restricted-imports -- storybook harness lacks SiteProvider/ConfigProvider; see comment above
 import { useNavigate } from 'react-router';
 import { useEffect, type ReactElement } from 'react';
 import Loading from '..';

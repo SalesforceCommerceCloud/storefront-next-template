@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* oxlint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, test, expect, vi, beforeEach, type Mock, type MockInstance } from 'vitest';
 import { Project as TsMorphProject, Project } from 'ts-morph';
 import { filePathToRoute, generateMetadata } from '../generate-cartridge';

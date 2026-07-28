@@ -437,8 +437,8 @@ export type Config = BaseConfig<AppConfig>;
  * interfaces in their own template's types file.
  */
 declare module '@salesforce/storefront-next-runtime/config' {
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
     interface AppConfigShape extends AppConfig {}
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
     interface ClientFacingAppConfigShape extends ClientAppConfig {}
 }

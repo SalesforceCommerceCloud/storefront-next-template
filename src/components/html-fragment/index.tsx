@@ -49,7 +49,7 @@ export default function HtmlFragment({
         <div
             data-testid="html-fragment"
             className={className ?? HTML_CONTENT_STYLES[contentType]}
-            // eslint-disable-next-line react/no-danger
+            // oxlint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: transformedContent }}
         />
     );

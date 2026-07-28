@@ -184,7 +184,7 @@ describe('data-store entry cache', () => {
         it('emits a stats log line via the injected logger every N lookups', async () => {
             const cache = await loadCache({ enabled: 'true', ttl: '60000' });
             const logger = makeLogger();
-            // eslint-disable-next-line @typescript-eslint/unbound-method -- reading the mock to assert on it, not calling it
+            // oxlint-disable-next-line @typescript-eslint/unbound-method -- reading the mock to assert on it, not calling it
             const info = logger.info as ReturnType<typeof vi.fn>;
             cache.writeDataStoreCache('gcp', { value: { 'api-key': 'k' } });
 
@@ -320,11 +320,8 @@ describe('data-store entry cache', () => {
                 value.data.emailVerificationEnabled = false;
             }).toThrow(TypeError);
             // The stored value is unchanged, so the next reader still sees the original.
-            expect(
-                // oxlint-disable-next-line no-unsafe-optional-chaining -- oxlint is stricter than core eslint here; the cache entry is known to exist in this assertion
-                (cache.readDataStoreCache('login')?.value as { data: { emailVerificationEnabled: boolean } }).data
-                    .emailVerificationEnabled
-            ).toBe(true);
+            const reread = cache.readDataStoreCache('login')?.value as { data: { emailVerificationEnabled: boolean } };
+            expect(reread.data.emailVerificationEnabled).toBe(true);
         });
 
         it('counts UTF-8 bytes, not UTF-16 code units, for multibyte values', async () => {

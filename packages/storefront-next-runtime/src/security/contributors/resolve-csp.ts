@@ -101,7 +101,7 @@ export function resolveCsp(input: ResolveCspInput): ResolvedCsp {
     const p = perRequest.length;
     const combos = p >= 31 ? Number.POSITIVE_INFINITY : 2 ** p;
     if (combos > ceiling) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(
             `[security] CSP per-request contributors P=${p} → 2^${p} possible bodies exceeds cache ceiling ${ceiling}; LRU eviction may cause rebuilds. Review whether this many per-request contributors is intended.`
         );

@@ -44,7 +44,7 @@ interface MobileMenuContextType {
 
 const MobileMenuContext = createContext<MobileMenuContextType | null>(null);
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useMobileMenu() {
     return useContext(MobileMenuContext);
 }
@@ -82,7 +82,7 @@ function CategoryBanner({
                         alt={category.name}
                     />
                 ) : (
-                    // eslint-disable-next-line react/no-danger
+                    // oxlint-disable-next-line react/no-danger
                     <div className="ml-auto" dangerouslySetInnerHTML={{ __html: transformedBannerHtml }} />
                 )}
             </NavLink>

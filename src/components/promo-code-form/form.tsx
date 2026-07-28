@@ -135,7 +135,7 @@ export const PromoCodeForm = ({ basket }: PromoCodeFormProps) => {
             }
         }
         // addToast is stable and does not need to be in the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [applyFetcher.data, form, t, updateBasket]);
 
     /**
@@ -263,7 +263,7 @@ export const AppliedCouponRow = ({ item, basketId, currency, priceAdjustments }:
             }
         }
         // addToast is stable and does not need to be in the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [removeFetcher.data, t, updateBasket]);
 
     // Sum every price adjustment (order-level AND line-item-level) tied to this coupon.

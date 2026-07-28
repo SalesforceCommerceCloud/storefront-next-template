@@ -187,7 +187,7 @@ describe('createClient', () => {
 
             proxyClient.use(middleware);
 
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(mockClient.use).toHaveBeenCalledWith(middleware);
         });
 
@@ -197,7 +197,7 @@ describe('createClient', () => {
 
             proxyClient.eject(middleware);
 
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(mockClient.eject).toHaveBeenCalledWith(middleware);
         });
 
@@ -211,7 +211,7 @@ describe('createClient', () => {
             const middleware = { onRequest: vi.fn() };
             useMethod(middleware);
 
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(mockClient.use).toHaveBeenCalledWith(middleware);
         });
     });
@@ -598,7 +598,7 @@ describe('createClient', () => {
             const clientWithContext = {
                 ...mockClient,
                 GET: vi.fn(function (this: unknown) {
-                    // eslint-disable-next-line @typescript-eslint/no-this-alias
+                    // oxlint-disable-next-line @typescript-eslint/no-this-alias
                     capturedThis = this;
                     return Promise.resolve({ data: { success: true }, error: undefined, response: mockResponse });
                 }),

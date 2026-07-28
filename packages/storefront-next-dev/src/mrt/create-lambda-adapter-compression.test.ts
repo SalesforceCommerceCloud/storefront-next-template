@@ -76,7 +76,7 @@ function createCollectingStream(): PassThrough & {
 }
 
 // Helper to decompress data based on encoding
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// oxlint-disable-next-line @typescript-eslint/no-unused-vars
 async function decompress(data: Buffer, encoding: string): Promise<Buffer> {
     if (!encoding || encoding === 'identity' || !data.length) {
         return data;

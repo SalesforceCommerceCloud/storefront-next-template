@@ -17,8 +17,7 @@ import { type CSSProperties, type ReactElement, useId } from 'react';
 import { Link } from '@/components/link';
 import { typographyVariants } from '@/components/typography';
 import { DynamicImage } from '@/components/dynamic-image';
-// oxlint-disable-next-line typescript/consistent-type-imports -- oxlint flags this import that typescript-eslint accepts
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button, type buttonVariants } from '@/components/ui/button';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators';
@@ -444,7 +443,7 @@ export default function Hero({
     return (
         <>
             {scopedCss && (
-                // eslint-disable-next-line react/no-danger
+                // oxlint-disable-next-line react/no-danger
                 <style dangerouslySetInnerHTML={{ __html: scopedCss }} />
             )}
             <div data-hero-id={uid} className={cn('relative w-full overflow-hidden', heightClass)}>

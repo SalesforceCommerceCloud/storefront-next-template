@@ -41,7 +41,7 @@ export function PaymentSubmissionRefProvider({
  *
  * Throws when used outside the provider so misuses fail loudly during dev.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function usePaymentSubmissionRef(): PaymentSubmissionRef {
     const ref = useContext(PaymentSubmissionRefContext);
     if (!ref) {

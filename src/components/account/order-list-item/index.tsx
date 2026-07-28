@@ -365,7 +365,7 @@ export function OrderListItem({
                     {productItems.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                             {visibleProducts.map((item, idx) => (
-                                // eslint-disable-next-line react/no-array-index-key -- same productId can appear in multiple line items
+                                // oxlint-disable-next-line react/no-array-index-key -- same productId can appear in multiple line items
                                 <ProductThumbnail key={`${item.productId}-${idx}`} item={item} />
                             ))}
                             {overflowCount > 0 && <OverflowIndicator count={overflowCount} />}

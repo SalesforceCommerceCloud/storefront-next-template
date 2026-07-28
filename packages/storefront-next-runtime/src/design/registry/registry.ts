@@ -219,7 +219,7 @@ export class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
         this.registry.set(id, placeholder);
 
         // Kick off discovery in background; callers that need it awaited should call ensureDiscovered.
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        // oxlint-disable-next-line @typescript-eslint/no-floating-promises
         this.ensureDiscovered(id);
 
         return placeholder;

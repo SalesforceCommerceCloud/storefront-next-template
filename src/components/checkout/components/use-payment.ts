@@ -347,7 +347,7 @@ export function usePayment({
                 form.setValue('billingCountryCode', shippingAddress.countryCode ?? 'US');
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- billingAddressOptions excluded: derived from savedAddresses (unstable ref) and shippingAddress (already covered by shippingAddressSyncKey). Including it causes infinite re-renders. The value is read synchronously when the toggle fires.
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- billingAddressOptions excluded: derived from savedAddresses (unstable ref) and shippingAddress (already covered by shippingAddressSyncKey). Including it causes infinite re-renders. The value is read synchronously when the toggle fires.
     }, [showUseDifferentBilling, shippingAddress, shippingAddressSyncKey, useDifferentBillingWatched, form]);
 
     useEffect(() => {
@@ -381,7 +381,7 @@ export function usePayment({
                 form.clearErrors(field as keyof PaymentData);
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         watchedFields.cardNumber,
         watchedFields.cardholderName,

@@ -22,7 +22,7 @@ import { useProduct } from '@/providers/product-context';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
-// eslint-disable-next-line react-refresh/only-export-components -- loader re-export is required for the static-registry AST plugin
+// oxlint-disable-next-line react-refresh/only-export-components -- loader re-export is required for the static-registry AST plugin
 export { loader } from './loader';
 
 /**
@@ -266,7 +266,7 @@ function ProductRecommendationsClientData({
         } else {
             void getRecommendations(recommenderName, products, args);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [recommenderName, recommenderType, productsKey, argsKey, currency, getRecommendations, getZoneRecommendations]);
 
     if (error) {

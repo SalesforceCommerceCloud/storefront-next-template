@@ -521,7 +521,7 @@ export default function CheckoutFormPage({
                         if (!billingResp.ok) {
                             // Fail-closed: if we cannot persist billing, do not delegate
                             // to the extension with stale billing on the basket.
-                            // eslint-disable-next-line no-console
+                            // oxlint-disable-next-line no-console
                             console.error('[Checkout] failed to persist billing before onPlaceOrder', {
                                 correlationId,
                                 status: billingResp.status,
@@ -540,7 +540,7 @@ export default function CheckoutFormPage({
                     });
                     if (!prepareResponse.ok) {
                         const prepareBody = await prepareResponse.json().catch(() => ({}));
-                        // eslint-disable-next-line no-console
+                        // oxlint-disable-next-line no-console
                         console.error('[Checkout] place-order-prepare rejected the basket', {
                             correlationId,
                             status: prepareResponse.status,
@@ -564,7 +564,7 @@ export default function CheckoutFormPage({
                     if (typeof onPlaceOrderResult !== 'string' || !onPlaceOrderResult.trim()) {
                         // Extension contract is `Promise<string | null>`, matching SCAPI's
                         // OrderNo type.
-                        // eslint-disable-next-line no-console
+                        // oxlint-disable-next-line no-console
                         console.error(
                             '[Checkout] onPlaceOrder returned a non-string value; extension contract expects Promise<string | null>',
                             { correlationId, returned: onPlaceOrderResult }
@@ -602,7 +602,7 @@ export default function CheckoutFormPage({
                         // Intentionally leave placeOrderInFlightRef set: navigation is in
                         // progress; clearing it would re-enable the button mid-redirect.
                         if (!finalizeResponse.ok || !body.success) {
-                            // eslint-disable-next-line no-console
+                            // oxlint-disable-next-line no-console
                             console.error(
                                 '[Checkout] place-order-finalize failed with order created; navigating to confirmation for reconciliation',
                                 { correlationId, orderNo, status: finalizeResponse.status, rawBody, parseError }
@@ -611,7 +611,7 @@ export default function CheckoutFormPage({
                         clearCheckoutCorrelationId();
                         window.location.href = body.redirectUrl;
                     } else {
-                        // eslint-disable-next-line no-console
+                        // oxlint-disable-next-line no-console
                         console.error(
                             '[Checkout] place-order-finalize returned non-success; order may need manual reconciliation',
                             { correlationId, orderNo, status: finalizeResponse.status, rawBody, parseError }
@@ -621,7 +621,7 @@ export default function CheckoutFormPage({
                         showToast?.(tErrors('checkout.placeOrderFailed'), 'error');
                     }
                 } catch (error) {
-                    // eslint-disable-next-line no-console
+                    // oxlint-disable-next-line no-console
                     console.error('[Checkout] place-order delegation failed', { correlationId, orderNo, error });
                     if (orderNo) {
                         // Network drop / browser timeout on the finalize fetch, but

@@ -521,7 +521,7 @@ export default function CategoryPage({
                     });
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [analytics, category, analyticsKey, nonCriticalPromise]);
 
     const handleProductClick = useCallback(

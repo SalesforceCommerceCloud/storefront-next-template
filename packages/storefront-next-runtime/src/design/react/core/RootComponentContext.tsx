@@ -44,7 +44,7 @@ export function RootComponentResetProvider({ children }: PropsWithChildren): JSX
  * {@link RootComponentProvider} is present, so full-page content — which the
  * template never wraps — is never treated as root.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useIsRootComponent(): boolean {
     return useContext(RootComponentContext);
 }

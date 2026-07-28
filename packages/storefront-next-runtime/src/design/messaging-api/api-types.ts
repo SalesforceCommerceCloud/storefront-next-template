@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable import/no-namespace */
+/* oxlint-disable import/no-namespace */
 import type * as Domain from './domain-types';
 
 export type Source = 'host' | 'client';

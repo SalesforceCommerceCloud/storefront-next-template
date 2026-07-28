@@ -34,7 +34,7 @@ export function useDebouncedCallback<TArgs extends unknown[], TReturn>(
                 timeoutRef.current = null;
             }, interval) as unknown as number;
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
         [callback, interval, ...deps]
     );
 }

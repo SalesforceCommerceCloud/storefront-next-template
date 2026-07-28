@@ -124,7 +124,7 @@ export function RegionDefinition(configs: RegionDefinitionConfig[]) {
     // Class decorators must accept any constructor signature — `unknown[]` here would
     // reject classes whose constructors take typed args. This is the standard signature
     // used by TypeScript's class decorator types.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     return function <T extends new (...args: any[]) => any>(constructor: T) {
         Reflect.defineMetadata(REGION_DEFINITIONS_KEY, configs, constructor);
         return constructor;

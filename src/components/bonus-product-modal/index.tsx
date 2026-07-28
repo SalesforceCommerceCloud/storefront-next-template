@@ -93,7 +93,7 @@ export function BonusProductModal({
         if (open && fetcher.state === 'idle' && !fetcher.success && !fetcher.errors) {
             void fetcher.load();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [open, fetcher.state, fetcher.success, fetcher.errors]);
 
     // Derive the current product from fetcher.data. useScapiFetcher keys the fetcher on the
@@ -112,7 +112,7 @@ export function BonusProductModal({
         } else {
             setVariationValues({});
         }
-    }, [currentProduct?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [currentProduct?.id]); // oxlint-disable-line react-hooks/exhaustive-deps
 
     // Close on success; show error toast on failure. Success toast is intentionally suppressed —
     // the cart updates in the background and the modal closing is the user-visible confirmation.
@@ -137,7 +137,7 @@ export function BonusProductModal({
                 addToast(errorMessage, 'error');
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [isAddingToCart, addToCartFetcher.state, addToCartFetcher.data, updateBasket]);
 
     const matchingVariant = useMemo(() => {
@@ -203,7 +203,7 @@ export function BonusProductModal({
                 action: resourceRoutes.bonusProductAdd,
             });
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
         [
             currentProduct?.id,
             currentProduct?.type,

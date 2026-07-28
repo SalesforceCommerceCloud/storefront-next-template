@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/unbound-method */
+/* oxlint-disable @typescript-eslint/unbound-method */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Express } from 'express';
 import type { ServerBuild } from 'react-router';
@@ -442,7 +442,7 @@ describe('preview command', () => {
 
             mockExistsSync.mockReturnValue(false);
             mockExecSync.mockImplementation(() => {
-                // eslint-disable-next-line @typescript-eslint/only-throw-error
+                // oxlint-disable-next-line @typescript-eslint/only-throw-error
                 throw 'String error';
             });
 

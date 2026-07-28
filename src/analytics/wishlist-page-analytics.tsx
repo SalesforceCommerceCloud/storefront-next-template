@@ -38,7 +38,7 @@ export function WishlistPageAnalytics() {
 
         void trackWishlistViewed();
         // Intentionally omit trackWishlistViewed from deps to prevent re-tracking on function reference changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;
