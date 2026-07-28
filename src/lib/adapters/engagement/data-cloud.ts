@@ -249,7 +249,7 @@ function buildDomainEvents(event: AnalyticsEvent, base: DataCloudEvent, webStore
                 webStoreId,
                 interactionName: 'catalog-object-impression',
                 personalizationId: event.recommenderName,
-                personalizationContextId: event.recommenderId,
+                personalizationContentId: event.recommenderId,
             }));
 
         default:

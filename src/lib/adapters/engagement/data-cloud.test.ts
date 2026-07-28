@@ -538,7 +538,7 @@ describe('Data Cloud Adapter', () => {
             const domain = (await getInteraction()).events[2] as Record<string, any>;
             expect(domain.interactionName).toBe('catalog-object-impression');
             expect(domain.personalizationId).toBe('Recently Viewed');
-            expect(domain.personalizationContextId).toBe('reco-1');
+            expect(domain.personalizationContentId).toBe('reco-1');
         });
     });
 

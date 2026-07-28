@@ -1464,7 +1464,7 @@ Enables Salesforce Data Cloud integration for unified customer data.
 
 ### engagement.adapters.dataCloud.appSourceId
 
-Type: `string` | Default: `'7ae070a6-f4ec-4def-a383-d9cacc3f20a1'`
+Type: `string` | Default: `''`
 
 Your Data Cloud application source identifier.
 
@@ -1472,7 +1472,7 @@ Your Data Cloud application source identifier.
 
 ### engagement.adapters.dataCloud.tenantId
 
-Type: `string` | Default: `'g82wgnrvm-ywk9dggrrw8mtggy.pc-rnd'`
+Type: `string` | Default: `''`
 
 Your Data Cloud tenant identifier.
 
