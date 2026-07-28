@@ -150,7 +150,7 @@ describe('sitesConfigMiddleware', () => {
         expect(context.get(clientAppConfigContext)).toBe(clientConfig);
     });
 
-    it('carries the DAL routing alias but never maps a display name into alias', async () => {
+    it('does not carry DAL alias or name into the config (routing identity stays config-owned)', async () => {
         vi.mocked(getConfig).mockReturnValue(configWith(true));
         vi.mocked(getSitesFromDataStoreLazy).mockResolvedValue([
             { ...DAL_SITE, alias: 'us', name: 'United States' } as DalSite,
@@ -159,14 +159,15 @@ describe('sitesConfigMiddleware', () => {
 
         await run(context);
 
-        // alias is a routing identifier site-detection resolves URL segments against;
-        // dropping it would make alias-addressed sites unreachable. name is display-only
-        // and must never leak into the routing alias.
+        // siteContextMiddleware rebuilds each resolved site's `alias` from siteAliasMap and its
+        // `name` from `id`, so a per-site alias/name on the DAL payload would be overwritten before
+        // routing reads it. Carrying them here would be dead — the DAL owns which sites exist plus
+        // their locale/currency data; config owns URL aliasing.
         const nextApp = context.get(appConfigContext) as {
             commerce: { sites: Array<{ alias?: string; name?: string }> };
         };
-        expect(nextApp.commerce.sites[0].alias).toBe('us');
-        expect(nextApp.commerce.sites[0].name).toBe('United States');
+        expect(nextApp.commerce.sites[0].alias).toBeUndefined();
+        expect(nextApp.commerce.sites[0].name).toBeUndefined();
     });
 
     it('drops a DAL site whose defaultCurrency is null; empties to a static fallback', async () => {

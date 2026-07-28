@@ -579,6 +579,16 @@ Single-site is the default. To enable multiple sites, define them as a JSON arra
 
 See [README-MULTI-SITE.md](./README-MULTI-SITE.md) for site-context routing details.
 
+### Live Sites from the Data Access Layer (`commerce.sitesFromDal`)
+
+On by default. When on, live site data synced through the Data Access Layer (DAL) replaces the static `commerce.sites` above for site, locale, and currency resolution, per request. The DAL keeps the storefront in sync with the sites, locales, and currencies a merchant configures in Business Manager, so adding a site or enabling a currency goes live without editing `config.server.ts` and redeploying. It does not change routing: `defaultSiteId` and the `siteAliasMap` and `localeAliasMap` stay static. Set the flag to `false` to keep the static `commerce.sites` authoritative regardless of the DAL.
+
+```bash
+# PUBLIC__app__commerce__sitesFromDal=false
+```
+
+The DAL set should include the site named by `defaultSiteId`. If it doesn't, or the DAL entry is unavailable or yields no usable sites, the storefront keeps serving the static `commerce.sites` and logs a warning naming the drift, rather than failing the request. See the DAL-sourced sites section in [README-MULTI-SITE.md](./README-MULTI-SITE.md#dal-sourced-sites-commercesitesfromdal) for the fallback rules and why the alias maps stay static.
+
 ### Hybrid Proxy (local development only)
 
 Silent HTTP proxying with cookie rewriting for a unified storefront experience. Local-dev only — production routing should use Cloudflare eCDN. Requires `SFCC_ORIGIN` and `PUBLIC__app__defaultSiteId`.

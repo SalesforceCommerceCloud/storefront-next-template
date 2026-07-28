@@ -35,9 +35,12 @@ import { getLogger } from '@/lib/logger.server';
  *
  * Each field is copied by name rather than spread so only deliberately mapped
  * fields reach routing config — a field DAL adds later stays out until it's
- * mapped here. `alias` is carried because it's a routing identifier
- * (`site-detection.ts` resolves a URL segment against `alias` then `id`); `name`
- * is a separate display field, copied as `name` and never as `alias`.
+ * mapped here. Routing identity stays config-owned: `siteContextMiddleware`
+ * rebuilds each resolved site's `alias` from `siteAliasMap` (keyed by `id`) and
+ * its `name` from `id`, so a per-site `alias`/`name` on the DAL payload would be
+ * overwritten before routing ever reads it — they're intentionally not mapped.
+ * `cookies.domain` is carried because the SDK reads it directly off the site at
+ * cookie-serialize time, bypassing that rebuild.
  */
 function toStaticSites(dalSites: DalSite[]): Site[] {
     const sites: Site[] = [];
@@ -56,9 +59,6 @@ function toStaticSites(dalSites: DalSite[]): Site[] {
             defaultCurrency: dalSite.defaultCurrency,
             supportedLocales: dalSite.supportedLocales,
             supportedCurrencies: dalSite.supportedCurrencies,
-            ...(dalSite.alias != null ? { alias: dalSite.alias } : {}),
-            ...(dalSite.domain != null ? { domain: dalSite.domain } : {}),
-            ...(dalSite.name != null ? { name: dalSite.name } : {}),
             ...(dalSite.cookies?.domain != null ? { cookies: { domain: dalSite.cookies.domain } } : {}),
         });
     }

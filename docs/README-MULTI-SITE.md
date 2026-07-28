@@ -332,6 +332,19 @@ commerce: {
 }
 ```
 
+### DAL-Sourced Sites (`commerce.sitesFromDal`)
+
+On by default. When `commerce.sitesFromDal` is on, live site data synced through the Data Access Layer (DAL) replaces the static `commerce.sites` for site, locale, and currency resolution, resolved per request. `defaultSiteId`, `siteAliasMap`, and `localeAliasMap` stay static and derived from config, never from the DAL. Set the flag to `false` to keep the static `commerce.sites` authoritative regardless of the DAL.
+
+**Fallback rules.** The middleware keeps the static `commerce.sites`, and does not fail the request, whenever any of these hold: the flag is off, the DAL entry is unavailable, the DAL payload yields no usable sites, or the usable sites omit the site named by `defaultSiteId`. The last case logs a warning naming the missing default and the DAL site IDs actually present, so the drift is visible in monitoring while the storefront keeps serving. This is deliberate: the app-config middleware validates `defaultSiteId` against the static sites before the DAL rewrite runs, so falling back is provably safe, whereas failing the request would take every site down over one missing default.
+
+**URL aliasing stays config-owned.** When the flag is on, the DAL supplies which sites exist and their locale and currency data, but not how their URLs are aliased. `siteContextMiddleware`, which runs after the DAL rewrite, derives each resolved site's routing `alias` from the config `siteAliasMap`, keyed by site `id`, which is the same for DAL-sourced and static sites. So `siteAliasMap` and `localeAliasMap` remain the config-owned source for the `:siteId` and `:localeId` URL refs; a per-site `alias` value on the DAL payload does not change routing. Because a DAL `alias` or `name` would be overwritten before routing reads it, the DAL rewrite drops both at the source rather than carrying dead fields. Site detection matches a URL segment against a site's resolved `alias` before its `id` (see [Detection Config](#detection-config)), and that resolved `alias` comes from `siteAliasMap`, so keeping the maps in config is what keeps multi-site URLs stable when sites go live from the DAL.
+
+```bash
+# Opt out via env (see README-CONFIG.md) to keep static commerce.sites authoritative
+# PUBLIC__app__commerce__sitesFromDal=false
+```
+
 ## Client-Side Navigation
 
 ### `useCurrentSiteAndLocaleRef` Hook
