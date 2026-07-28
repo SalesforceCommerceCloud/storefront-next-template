@@ -140,7 +140,7 @@ export default function ProductGrid({
     critical?: ProductSearchHit[];
     nonCritical?: ProductSearchHit[];
     /**
-     * Products appended after the initial page via the "Load more" / infinite-scroll control. Rendered
+     * Products appended after the initial page via the "Load more" control. Rendered
      * inside the same grid container as critical/non-critical tiles so the whole listing flows as one grid.
      */
     appended?: ProductSearchHit[];

@@ -165,7 +165,6 @@ vi.mock('@/hooks/use-load-more-products', () => ({
         hasError: false,
         firstNewIndex: null,
         loadMore: vi.fn(),
-        sentinelRef: vi.fn(),
     }),
 }));
 

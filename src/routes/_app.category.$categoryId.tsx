@@ -407,7 +407,6 @@ export default function CategoryPage({
         hasError: loadMoreError,
         firstNewIndex,
         loadMore,
-        sentinelRef,
     } = useLoadMoreProducts({
         refine,
         sort: searchResultCritical.selectedSortingOption,
@@ -653,6 +652,7 @@ export default function CategoryPage({
                             </UITarget>
 
                             {!isProductGridLoading &&
+                                (!isRestoring || loadMoreError) &&
                                 (isLoadMoreMode ? (
                                     <div className="mt-10">
                                         <LoadMore
@@ -663,7 +663,6 @@ export default function CategoryPage({
                                             isLoading={isLoadingMore}
                                             hasError={loadMoreError}
                                             onLoadMore={loadMore}
-                                            sentinelRef={sentinelRef}
                                         />
                                     </div>
                                 ) : (

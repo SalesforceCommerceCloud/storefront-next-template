@@ -30,8 +30,6 @@ import { cn } from '@/lib/utils';
  * @property isLoading - Whether a "load more" request is in flight.
  * @property hasError - Whether the last "load more" request failed.
  * @property onLoadMore - Called when the shopper clicks the button (or retries after an error).
- * @property sentinelRef - Ref for the infinite-scroll sentinel; when it scrolls into view the next
- *   batch auto-loads. Rendered only while more products remain.
  * @property className - Optional extra classes for the wrapper.
  */
 export interface LoadMoreProps {
@@ -42,18 +40,14 @@ export interface LoadMoreProps {
     isLoading: boolean;
     hasError?: boolean;
     onLoadMore: () => void;
-    sentinelRef?: (node: Element | null) => void;
     className?: string;
 }
 
 /**
- * "Load more" control for the product listing page — the infinite-scroll and manual-append
- * counterpart to numbered pagination.
+ * "Load more" control for the product listing page.
  *
  * Shows a progress line ("Showing X of Y"), an optional error/retry message, and a button that
- * requests the next batch. An invisible sentinel below the button auto-loads the next batch as the
- * shopper scrolls near it; the button remains as an explicit, keyboard-accessible trigger and as the
- * fallback when JavaScript-driven scroll observation is unavailable.
+ * requests the next batch.
  *
  * Terminal states, in priority order:
  * - **Cap reached** (`capReached`): the DOM cap was hit with products still remaining — the button is
@@ -69,7 +63,6 @@ export default function LoadMore({
     isLoading,
     hasError = false,
     onLoadMore,
-    sentinelRef,
     className,
 }: LoadMoreProps): JSX.Element | null {
     const { t } = useTranslation('category');
@@ -129,9 +122,6 @@ export default function LoadMore({
                           : t('loadMore.button', { defaultValue: 'Load more' })}
                 </Button>
             )}
-
-            {/* Infinite-scroll sentinel: auto-loads the next batch when it nears the viewport. */}
-            {hasMore && sentinelRef && <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />}
         </div>
     );
 }

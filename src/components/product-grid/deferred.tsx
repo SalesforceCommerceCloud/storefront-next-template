@@ -60,7 +60,7 @@ export default function DeferredProductGrid({
     critical?: ProductSearchHit[];
     nonCritical: Promise<ProductSearchHit[]>;
     /**
-     * Products appended after the initial page via the "Load more" / infinite-scroll control. Rendered
+     * Products appended after the initial page via the "Load more" control. Rendered
      * inside the same grid container so critical, non-critical, and appended tiles flow as one grid.
      */
     appended?: ProductSearchHit[];

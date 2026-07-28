@@ -80,7 +80,6 @@ export interface UseLoadMoreProductsOptions {
  * @property firstNewIndex - Index within `appended` at which the most recent batch begins, or `null`.
  *   Consumers use it to move focus to the first newly appended tile after a load (accessibility).
  * @property loadMore - Request the next batch. No-op while loading, at the cap, or when nothing remains.
- * @property sentinelRef - Attach to an element below the grid to auto-load on scroll into view.
  */
 export interface UseLoadMoreProductsResult {
     appended: ProductSearchHit[];
@@ -94,11 +93,10 @@ export interface UseLoadMoreProductsResult {
     hasError: boolean;
     firstNewIndex: number | null;
     loadMore: () => void;
-    sentinelRef: (node: Element | null) => void;
 }
 
 /**
- * Client-side accumulation for the product listing "Load more" / infinite-scroll control.
+ * Client-side accumulation for the product listing "Load more" control.
  *
  * The first batch of products is server-rendered by the route loader (critical + non-critical). This
  * hook appends further batches by calling the `/resource/category-products` endpoint with `useFetcher`
@@ -243,83 +241,48 @@ export function useLoadMoreProducts({
         void fetcher.load(`${resourceRoutes.categoryProducts}?${params.toString()}`);
     }, [isLoading, hasMore, effectiveBatchSize, maxProducts, sort, currency, refine]); // eslint-disable-line react-hooks/exhaustive-deps -- fetcher.load is stable per React Router
 
-    // Back-nav catch-up: keep fetching until we've restored the prior depth.
+    // Back-nav catch-up: fetch missing products in a single request to restore the prior depth.
+    // The gap is capped at 100 to respect the resource route's per-request limit and avoid multiple
+    // sequential fetches. If the user had loaded more than 124 products (initialCount + 100), they
+    // will need to click "Load More" to reach the rest.
+    const RESTORATION_LIMIT = 100;
+    const restorationFiredRef = useRef(false);
     useEffect(() => {
-        if (restorationTargetRef.current > 0 && loadedCount < restorationTargetRef.current && !isLoading && hasMore) {
-            loadMore();
+        if (restorationFiredRef.current || restorationTargetRef.current === 0 || isLoading) {
+            return;
         }
-        if (loadedCount >= restorationTargetRef.current || (!hasMore && !isLoading)) {
+        restorationFiredRef.current = true;
+        const gap = Math.min(restorationTargetRef.current - initialCount, RESTORATION_LIMIT);
+        if (gap <= 0) {
             restorationTargetRef.current = 0;
-        }
-    }, [loadedCount, isLoading, hasMore, loadMore]);
-
-    // Infinite scroll: auto-trigger loadMore when a sentinel below the grid scrolls into view.
-    // Guard against spurious triggers: the observer stays dormant until the user actively scrolls
-    // after the grid is ready. This prevents auto-loading on back-nav when the sentinel is in the
-    // viewport because the user was near the bottom before navigating away.
-    const observerRef = useRef<IntersectionObserver | null>(null);
-    const loadMoreRef = useRef(loadMore);
-    loadMoreRef.current = loadMore;
-    const observerReadyRef = useRef(false);
-    const wasRestoredRef = useRef(restorationTargetInitial > 0);
-
-    const sentinelRef = useCallback((node: Element | null) => {
-        observerRef.current?.disconnect();
-        observerReadyRef.current = false;
-
-        if (!node || typeof IntersectionObserver === 'undefined') {
             return;
         }
-
-        observerRef.current = new IntersectionObserver(
-            (entries) => {
-                if (!observerReadyRef.current) {
-                    return;
-                }
-                if (entries.some((entry) => entry.isIntersecting)) {
-                    loadMoreRef.current();
-                }
-            },
-            // 200px balances early prefetch (user doesn't see a loading gap) vs not over-fetching
-            // when the user stops scrolling. Lower than 600px (original) to avoid firing while the
-            // previous batch is still rendering on slower devices.
-            { rootMargin: '200px 0px' }
-        );
-        observerRef.current.observe(node);
-    }, []);
-
-    // Activate the observer only after the user scrolls — prevents immediate trigger when the
-    // sentinel is already in the viewport after back-nav restoration or initial hydration.
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        // If this was a restored session, wait for restoration to complete before arming.
-        if (wasRestoredRef.current && restorationTargetRef.current > 0) {
-            return;
+        restorationTargetRef.current = initialCount + gap;
+        const params = new URLSearchParams();
+        params.set(PRODUCT_SEARCH_QUERY_PARAMS.OFFSET, String(offset + initialCount));
+        params.set(PRODUCT_SEARCH_QUERY_PARAMS.LIMIT, String(gap));
+        if (sort) {
+            params.set(PRODUCT_SEARCH_QUERY_PARAMS.SORT, sort);
         }
-
-        const arm = () => {
-            observerReadyRef.current = true;
-            window.removeEventListener('scroll', arm);
-        };
-        window.addEventListener('scroll', arm, { passive: true, once: true });
-        return () => window.removeEventListener('scroll', arm);
-    }, [restorationTargetInitial]);
-
-    // Once restoration finishes, re-arm: wait for the next scroll event before enabling observer.
-    useEffect(() => {
-        if (wasRestoredRef.current && restorationTargetRef.current === 0) {
-            wasRestoredRef.current = false;
-            observerReadyRef.current = false;
-            const arm = () => {
-                observerReadyRef.current = true;
-            };
-            window.addEventListener('scroll', arm, { passive: true, once: true });
-            return () => window.removeEventListener('scroll', arm);
+        if (currency) {
+            params.set(PRODUCT_SEARCH_QUERY_PARAMS.CURRENCY, currency);
         }
-    }, [loadedCount]); // fires when catch-up finishes and restorationTargetRef resets to 0
+        for (const r of refine) {
+            params.append(PRODUCT_SEARCH_QUERY_PARAMS.REFINE, r);
+        }
+        void fetcher.load(`${resourceRoutes.categoryProducts}?${params.toString()}`);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps -- fire once on mount only
 
-    useEffect(() => () => observerRef.current?.disconnect(), []);
+    // Clear restoration target when: enough products loaded, fetch errored, or nothing more to fetch
+    // (catalog shrunk since the target was saved). Without the hasMore/isLoading escape hatch, a
+    // short fetch (fewer hits than gap) would leave isRestoring true permanently.
+    useEffect(() => {
+        if (restorationTargetRef.current > 0) {
+            if (loadedCount >= restorationTargetRef.current || hasError || (!hasMore && !isLoading)) {
+                restorationTargetRef.current = 0;
+            }
+        }
+    }, [loadedCount, hasError, hasMore, isLoading]);
 
     const isRestoring = restorationTargetRef.current > 0 && loadedCount < restorationTargetRef.current;
 
@@ -335,6 +298,5 @@ export function useLoadMoreProducts({
         hasError,
         firstNewIndex,
         loadMore,
-        sentinelRef,
     };
 }

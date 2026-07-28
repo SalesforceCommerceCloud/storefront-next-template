@@ -77,13 +77,4 @@ describe('LoadMore', () => {
         render(<LoadMore {...baseProps} hasMore={false} isLoading onLoadMore={vi.fn()} />);
         expect(screen.getByRole('button')).toBeInTheDocument();
     });
-
-    test('renders the infinite-scroll sentinel only when more remain', () => {
-        const { container, rerender } = render(<LoadMore {...baseProps} sentinelRef={vi.fn()} onLoadMore={vi.fn()} />);
-        // The sentinel is the aria-hidden element inside the control.
-        expect(container.querySelector('[data-slot="load-more"] [aria-hidden="true"].h-px')).toBeInTheDocument();
-
-        rerender(<LoadMore {...baseProps} hasMore={false} isLoading sentinelRef={vi.fn()} onLoadMore={vi.fn()} />);
-        expect(container.querySelector('.h-px')).not.toBeInTheDocument();
-    });
 });

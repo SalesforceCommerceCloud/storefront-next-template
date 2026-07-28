@@ -89,7 +89,7 @@ export interface UIConfig {
              * How the product listing paginates its results.
              *
              * - `'load-more'`: a "Load more" button appends the next batch below the grid
-             *   without a page reload; the grid also auto-loads on scroll (infinite scroll).
+             *   without a page reload.
              * - `'traditional'`: numbered previous/next pagination that navigates the URL
              *   `offset` and reloads the page.
              *

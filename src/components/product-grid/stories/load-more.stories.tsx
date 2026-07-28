@@ -27,11 +27,9 @@ const meta: Meta<typeof LoadMore> = {
         docs: {
             description: {
                 component: `
-"Load more" control for the product listing page — the infinite-scroll and
-manual-append counterpart to numbered pagination. Shows a "Showing X of Y"
-progress line and a button that requests the next batch of products; an
-invisible sentinel below the button auto-loads the next batch as the shopper
-scrolls near it. Renders nothing once every product has been loaded
+"Load more" control for the product listing page. Shows a "Showing X of Y"
+progress line and a button that requests the next batch of products.
+Renders nothing once every product has been loaded
 (\`hasMore\` is false and no request is in flight) or when the result set is empty.
                 `,
             },

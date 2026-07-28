@@ -75,7 +75,7 @@ function isSameOrigin(request: Request): boolean {
 /**
  * Resource endpoint that returns a single offset window of product search results.
  *
- * Consumed by the product listing page "Load more" / infinite-scroll control via `useFetcher`,
+ * Consumed by the product listing page "Load more" control via `useFetcher`,
  * so the shopper can append additional products without a full route navigation. Accepts the same
  * `offset` / `sort` / `refine` query parameters the category loader uses, plus a `limit`.
  *
