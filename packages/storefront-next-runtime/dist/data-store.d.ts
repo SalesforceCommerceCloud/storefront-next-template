@@ -1,5 +1,5 @@
 import { n as Site } from "./types.js";
-import * as react_router4 from "react-router";
+import * as react_router12 from "react-router";
 import { MiddlewareFunction, RouterContextProvider, createContext } from "react-router";
 import { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError } from "@salesforce/mrt-utilities/data-store";
 
@@ -116,8 +116,12 @@ declare function createLazyDataStoreMiddleware<T>(options: DataStoreMiddlewareOp
  * the underlying data-store fetch on first call and reuses the cached
  * promise on subsequent calls within the same request.
  *
- * Returns `null` when the lazy middleware did not run (no loader in
- * context) or when the entry is missing/invalid.
+ * Returns `null` when the entry is missing/invalid, or when no loader is in
+ * context — which only happens if the matching lazy middleware was never wired
+ * into the chain (or runs after this read). That is a wiring bug, not a data
+ * state: the missing loader is indistinguishable from a genuine miss to the
+ * caller, so it's logged at `warn` to keep the misconfiguration debuggable
+ * rather than silently degrading the feature to a permanent no-op.
  */
 declare function readLazyDataStoreEntry<T>(context: Readonly<RouterContextProvider>, contextKey: DataStoreContextKey<T>): Promise<T | null>;
 /**
@@ -158,7 +162,7 @@ interface DataStoreLogger {
  * Defaults to `null` (not `undefined`) because React Router's
  * `context.get()` throws when `defaultValue === undefined`.
  */
-declare const dataStoreLoggerContext: react_router4.RouterContext<DataStoreLogger | null>;
+declare const dataStoreLoggerContext: react_router12.RouterContext<DataStoreLogger | null>;
 /**
  * Read the data-store logger from router context, falling back to a
  * console-based default when nothing has been injected.
@@ -330,13 +334,30 @@ type DalSite = Omit<Site, 'defaultCurrency' | 'cookies'> & {
 /**
  * Read the DAL sites populated by {@link sitesMiddlewareLazy}. Triggers the
  * data-store fetch on first call within a request and reuses the cached promise
- * on subsequent calls. Returns `null` when the middleware did not run, the entry
- * is missing/invalid, or the producer synced zero sites.
+ * on subsequent calls. Returns `null` when the entry is missing/invalid or the
+ * producer synced zero sites. Also returns `null` — with a `warn` — when
+ * {@link sitesMiddlewareLazy} did not run before this read; that pairing is
+ * required wiring, so a missing loader is a misconfiguration rather than a data
+ * state.
  *
  * @param context - Router context provider
  * @returns Typed `DalSite[]`, or `null` when unavailable/empty
  */
 declare function getSitesFromDataStoreLazy(context: Readonly<RouterContextProvider>): Promise<DalSite[] | null>;
+/**
+ * Lazy middleware that registers a memoized loader for the global `ecomSitesData`
+ * entry. The DAL wraps the array in a `{ data: [...] }` envelope; the transform
+ * unwraps it, coalescing a non-array `data` to `[]` so a malformed payload reads
+ * as "no sites" rather than flowing a non-array value out typed as `DalSite[]`.
+ * Only consumers that read via {@link getSitesFromDataStoreLazy} pay for the
+ * data-store round trip.
+ *
+ * Defaults to graceful degradation: if the data store is unavailable or returns
+ * a service error, the read resolves to `null`. Set
+ * `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw` to opt into fail-fast. The env var
+ * is read once at module load.
+ */
+declare const sitesMiddlewareLazy: react_router12.MiddlewareFunction<Response>;
 //#endregion
 //#region src/data-store/index.d.ts
 /**
@@ -345,13 +366,13 @@ declare function getSitesFromDataStoreLazy(context: Readonly<RouterContextProvid
  * routes that never read the values. The lazy bundle defers the site/global/login reads until a
  * consumer actually reads them.
  */
-declare const dataStoreMiddleware: react_router4.MiddlewareFunction<Response>[];
+declare const dataStoreMiddleware: react_router12.MiddlewareFunction<Response>[];
 /**
  * Preferred data-store middleware bundle. All four preferences are registered lazily — each
  * DynamoDB read fires only when a loader reads the value via the matching `get*Lazy` accessor,
  * so no request pays for an entry it never reads.
  */
-declare const dataStoreMiddlewareLazy: react_router4.MiddlewareFunction<Response>[];
+declare const dataStoreMiddlewareLazy: react_router12.MiddlewareFunction<Response>[];
 //#endregion
-export { type CustomGlobalPreferences, type DalSite, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry };
+export { type CustomGlobalPreferences, type DalSite, DataStore, type DataStoreContextKey, type DataStoreEntry, type DataStoreEntryKey, type DataStoreLogger, type DataStoreMiddlewareOptions, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, type GcpPreferences, type LoginPreferences, type SitePreferences, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, sitesMiddlewareLazy };
 //# sourceMappingURL=data-store.d.ts.map

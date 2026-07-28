@@ -578,9 +578,16 @@ describe('createLazyDataStoreMiddleware', () => {
         warnSpy.mockRestore();
     });
 
-    it('returns null when no loader has been registered in context', async () => {
+    it('returns null and warns when no loader has been registered in context', async () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
         const value = await readLazyDataStoreEntry(context, sitePreferencesContext);
+
+        // A missing loader is a wiring bug (the lazy middleware never ran), not a data
+        // state — it must surface loudly rather than silently degrade to a no-op.
         expect(value).toBeNull();
+        expect(warnSpy).toHaveBeenCalledOnce();
+        warnSpy.mockRestore();
     });
 });
 

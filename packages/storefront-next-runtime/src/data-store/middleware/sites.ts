@@ -56,8 +56,11 @@ function nullIfEmpty(sites: DalSite[] | null): DalSite[] | null {
 /**
  * Read the DAL sites populated by {@link sitesMiddlewareLazy}. Triggers the
  * data-store fetch on first call within a request and reuses the cached promise
- * on subsequent calls. Returns `null` when the middleware did not run, the entry
- * is missing/invalid, or the producer synced zero sites.
+ * on subsequent calls. Returns `null` when the entry is missing/invalid or the
+ * producer synced zero sites. Also returns `null` — with a `warn` — when
+ * {@link sitesMiddlewareLazy} did not run before this read; that pairing is
+ * required wiring, so a missing loader is a misconfiguration rather than a data
+ * state.
  *
  * @param context - Router context provider
  * @returns Typed `DalSite[]`, or `null` when unavailable/empty

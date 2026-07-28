@@ -376,12 +376,19 @@ function createLazyDataStoreMiddleware(options) {
 * the underlying data-store fetch on first call and reuses the cached
 * promise on subsequent calls within the same request.
 *
-* Returns `null` when the lazy middleware did not run (no loader in
-* context) or when the entry is missing/invalid.
+* Returns `null` when the entry is missing/invalid, or when no loader is in
+* context — which only happens if the matching lazy middleware was never wired
+* into the chain (or runs after this read). That is a wiring bug, not a data
+* state: the missing loader is indistinguishable from a genuine miss to the
+* caller, so it's logged at `warn` to keep the misconfiguration debuggable
+* rather than silently degrading the feature to a permanent no-op.
 */
 async function readLazyDataStoreEntry(context, contextKey) {
 	const loader = context.get(contextKey);
-	if (typeof loader !== "function") return null;
+	if (typeof loader !== "function") {
+		getDataStoreLogger(context).warn("Lazy data-store read found no registered loader. The matching lazy middleware must run before this read.");
+		return null;
+	}
 	return loader();
 }
 /**
@@ -850,8 +857,11 @@ function nullIfEmpty(sites) {
 /**
 * Read the DAL sites populated by {@link sitesMiddlewareLazy}. Triggers the
 * data-store fetch on first call within a request and reuses the cached promise
-* on subsequent calls. Returns `null` when the middleware did not run, the entry
-* is missing/invalid, or the producer synced zero sites.
+* on subsequent calls. Returns `null` when the entry is missing/invalid or the
+* producer synced zero sites. Also returns `null` — with a `warn` — when
+* {@link sitesMiddlewareLazy} did not run before this read; that pairing is
+* required wiring, so a missing loader is a misconfiguration rather than a data
+* state.
 *
 * @param context - Router context provider
 * @returns Typed `DalSite[]`, or `null` when unavailable/empty
@@ -906,5 +916,5 @@ const dataStoreMiddlewareLazy = [
 ];
 
 //#endregion
-export { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry };
+export { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, sitesMiddlewareLazy };
 //# sourceMappingURL=data-store.js.map

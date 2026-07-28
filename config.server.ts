@@ -219,6 +219,11 @@ export default defineConfig<Config>(
                         supportedCurrencies: ['USD'],
                     },
                 ],
+                // Source `sites` from the DAL when the matching Business Manager sync is
+                // enabled. On by default; the sites above stay the source of truth whenever
+                // the DAL entry is missing, unavailable, or yields no usable sites.
+                // Override via PUBLIC__app__commerce__sitesFromDal=false.
+                sitesFromDal: true,
             },
             // Global default cookie attributes applied to ALL storefront cookies
             // (auth/session + site-context: site_id, locale, currency). A per-site

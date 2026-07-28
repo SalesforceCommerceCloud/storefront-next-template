@@ -31,7 +31,7 @@ export type { CustomGlobalPreferences } from './middleware/custom-global-prefere
 export { getLoginPreferences, getLoginPreferencesLazy } from './middleware/login-preferences';
 export type { LoginPreferences } from './middleware/login-preferences';
 export type { GcpPreferences } from './middleware/gcp-preferences';
-export { getSitesFromDataStoreLazy } from './middleware/sites';
+export { getSitesFromDataStoreLazy, sitesMiddlewareLazy } from './middleware/sites';
 export type { DalSite } from './middleware/sites';
 export { DataStore } from '@salesforce/mrt-utilities/data-store';
 export {

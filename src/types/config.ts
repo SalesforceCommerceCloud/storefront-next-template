@@ -73,6 +73,13 @@ export type AppConfig = {
             guestRefreshTokenExpirySeconds?: number;
         };
         sites: Array<Site>;
+        /**
+         * When on, live sites synced through the DAL replace the static `sites`
+         * above for site/locale/currency resolution. Off (or a missing/empty DAL
+         * entry) keeps the static `sites` as the source of truth. The shipped
+         * template enables this by default in `config.server.ts`.
+         */
+        sitesFromDal?: boolean;
     };
     /**
      * Global default cookie attributes applied to ALL storefront cookies (auth/session and

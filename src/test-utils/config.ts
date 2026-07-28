@@ -106,6 +106,7 @@ export const mockBuildConfig: Config = {
                     supportedCurrencies: ['USD'],
                 },
             ],
+            sitesFromDal: false,
         },
         defaultSiteId: 'RefArchGlobal',
         features: {

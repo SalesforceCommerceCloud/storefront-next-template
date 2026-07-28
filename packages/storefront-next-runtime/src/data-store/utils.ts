@@ -194,15 +194,24 @@ export function createLazyDataStoreMiddleware<T>(options: DataStoreMiddlewareOpt
  * the underlying data-store fetch on first call and reuses the cached
  * promise on subsequent calls within the same request.
  *
- * Returns `null` when the lazy middleware did not run (no loader in
- * context) or when the entry is missing/invalid.
+ * Returns `null` when the entry is missing/invalid, or when no loader is in
+ * context — which only happens if the matching lazy middleware was never wired
+ * into the chain (or runs after this read). That is a wiring bug, not a data
+ * state: the missing loader is indistinguishable from a genuine miss to the
+ * caller, so it's logged at `warn` to keep the misconfiguration debuggable
+ * rather than silently degrading the feature to a permanent no-op.
  */
 export async function readLazyDataStoreEntry<T>(
     context: Readonly<RouterContextProvider>,
     contextKey: DataStoreContextKey<T>
 ): Promise<T | null> {
     const loader = context.get(contextKey as unknown as DataStoreContextKey<LazyDataStoreLoader<T>>);
-    if (typeof loader !== 'function') return null;
+    if (typeof loader !== 'function') {
+        getDataStoreLogger(context).warn(
+            'Lazy data-store read found no registered loader. The matching lazy middleware must run before this read.'
+        );
+        return null;
+    }
     return loader();
 }
 
