@@ -297,8 +297,8 @@ importers:
         specifier: 27.4.0
         version: 27.4.0
       morgan:
-        specifier: 1.10.1
-        version: 1.10.1
+        specifier: 1.11.0
+        version: 1.11.0
       msw:
         specifier: 2.11.3
         version: 2.11.3(@types/node@24.3.0)(typescript@5.9.2)
@@ -550,8 +550,8 @@ importers:
         specifier: 10.2.5
         version: 10.2.5
       morgan:
-        specifier: ^1.10.0
-        version: 1.10.1
+        specifier: 1.11.0
+        version: 1.11.0
       negotiator:
         specifier: 1.0.0
         version: 1.0.0
@@ -7520,8 +7520,8 @@ packages:
   monocart-locator@1.0.3:
     resolution: {integrity: sha512-pe29W2XAoA1WQmZZqxXoP7s06ZEXUhcb81086v68cqjk1HnVL7Q/iU/WJnnetxjPcLqwb4qG8vaSGUOMQU602g==}
 
-  morgan@1.10.1:
-    resolution: {integrity: sha512-223dMRJtI/l25dJKWpgij2cMtywuG/WiUKXdvwfbhGKBhy1puASqXwFzmWZ7+K73vUPoR7SS2Qz2cI/g9MKw0A==}
+  morgan@1.11.0:
+    resolution: {integrity: sha512-zSkVu3t18r39pw4ixfBKvfZi3y2UOqr7d4WYwcj3m8nXpEQK4rPO6GLzs/CExoRgmX3y9EjmmcXqv6jq0SK46g==}
     engines: {node: '>= 0.8.0'}
 
   mrmime@2.0.1:
@@ -17935,12 +17935,12 @@ snapshots:
 
   monocart-locator@1.0.3: {}
 
-  morgan@1.10.1:
+  morgan@1.11.0:
     dependencies:
       basic-auth: 2.0.1
       debug: 2.6.9
       depd: 2.0.0
-      on-finished: 2.3.0
+      on-finished: 2.4.1
       on-headers: 1.1.0
     transitivePeerDependencies:
       - supports-color
@@ -18166,6 +18166,7 @@ snapshots:
   on-finished@2.3.0:
     dependencies:
       ee-first: 1.1.1
+    optional: true
 
   on-finished@2.4.1:
     dependencies:

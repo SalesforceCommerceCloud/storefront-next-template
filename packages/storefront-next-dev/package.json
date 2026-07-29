@@ -204,7 +204,7 @@
     "http-proxy-middleware": "^3.0.0",
     "jiti": "^2.6.1",
     "minimatch": "10.2.5",
-    "morgan": "^1.10.0",
+    "morgan": "1.11.0",
     "negotiator": "1.0.0",
     "npm-run-path": "6.0.0",
     "openapi-typescript": "7.10.1",
