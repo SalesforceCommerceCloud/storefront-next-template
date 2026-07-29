@@ -259,7 +259,7 @@ const CartSheetPanel = function CartSheetPanel({ onClose }: { onClose: () => voi
                         {/* Top Divider */}
                         <Separator className="bg-muted-foreground/10" />
 
-                        <div className="px-6 [&:not(:empty)]:pt-4 [&:not(:empty)]:border-b [&:not(:empty)]:border-muted-foreground/10">
+                        <div className="px-6 [&:has([data-testid='approaching-discounts-banner'])]:pt-4 [&:has([data-testid='approaching-discounts-banner'])]:border-b [&:has([data-testid='approaching-discounts-banner'])]:border-muted-foreground/10">
                             <UITarget targetId="sfcc.miniCart.promotions.approachingDiscounts" />
                         </div>
 
