@@ -274,7 +274,7 @@ export default function ProductInfo({
             {/* Product Title, SKU, Description */}
             {!isCompactStyle && (
                 <div className="flex items-start justify-between gap-4">
-                    <div className={`${hideActionIcons ? '' : 'pr-20'} min-w-0`}>
+                    <div className={`${hideActionIcons ? '' : 'sm:pr-20'} min-w-0`}>
                         {product.brand && (
                             <p className="mb-1 text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground">
                                 {product.brand}
@@ -282,7 +282,7 @@ export default function ProductInfo({
                         )}
                         <h1
                             data-testid="product-title"
-                            className="text-3xl font-bold text-card-foreground tracking-tight">
+                            className="text-3xl font-bold text-card-foreground tracking-tight break-words">
                             {product.name}
                         </h1>
                         {product.id && (
@@ -302,7 +302,7 @@ export default function ProductInfo({
 
             {/* Action icons — top-right, after title in DOM for correct focus order */}
             {!isCompactStyle && !hideActionIcons && (
-                <div className="absolute top-0 right-0 flex items-center gap-2 z-10">
+                <div className="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10">
                     <WishlistButton
                         product={{
                             productId: product.id,

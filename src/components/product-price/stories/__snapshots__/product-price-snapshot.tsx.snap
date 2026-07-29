@@ -6,8 +6,7 @@ exports[`ProductPrice stories snapshot > Default story renders and matches snaps
     class="items-center gap-2"
   >
     <span
-      aria-label="Current price: $99.99"
-      aria-live="polite"
+      aria-hidden="true"
       class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
     >
       $99.99
@@ -31,8 +30,7 @@ exports[`ProductPrice stories snapshot > OnSale story renders and matches snapsh
     class="items-center gap-2"
   >
     <span
-      aria-label="Current price: $79.99"
-      aria-live="polite"
+      aria-hidden="true"
       class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
     >
       $79.99
@@ -47,7 +45,7 @@ exports[`ProductPrice stories snapshot > OnSale story renders and matches snapsh
     </span>
      
     <span
-      aria-label="List price: $99.99"
+      aria-hidden="true"
       class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
     >
       $99.99
@@ -70,8 +68,7 @@ exports[`ProductPrice stories snapshot > PriceRange story renders and matches sn
     class="items-center gap-2"
   >
     <span
-      aria-label="Current price: £191.99"
-      aria-live="polite"
+      aria-hidden="true"
       class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
     >
       £191.99
@@ -86,7 +83,7 @@ exports[`ProductPrice stories snapshot > PriceRange story renders and matches sn
     </span>
      
     <span
-      aria-label="List price: £320.00"
+      aria-hidden="true"
       class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
     >
       £320.00
@@ -109,8 +106,13 @@ exports[`ProductPrice stories snapshot > PriceUnavailable story renders and matc
     class="items-center gap-2"
   >
     <span
-      aria-label="Price unavailable"
+      aria-hidden="true"
       class="font-semibold text-muted-foreground"
+    >
+      Price unavailable
+    </span>
+    <span
+      class="sr-only"
     >
       Price unavailable
     </span>
@@ -124,8 +126,7 @@ exports[`ProductPrice stories snapshot > WithPromoCallout story renders and matc
     class="items-center gap-2"
   >
     <span
-      aria-label="Current price: $79.99"
-      aria-live="polite"
+      aria-hidden="true"
       class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
     >
       $79.99
@@ -140,7 +141,7 @@ exports[`ProductPrice stories snapshot > WithPromoCallout story renders and matc
     </span>
      
     <span
-      aria-label="List price: $99.99"
+      aria-hidden="true"
       class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
     >
       $99.99
@@ -172,8 +173,7 @@ exports[`ProductPrice stories snapshot > WithQuantity story renders and matches 
     class="items-center gap-2"
   >
     <span
-      aria-label="Current price: $299.97"
-      aria-live="polite"
+      aria-hidden="true"
       class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
     >
       $299.97

@@ -74,12 +74,15 @@ const ProductImageContainer = ({
                 imgAspectRatio === 1 ? 'aspect-square' : ''
             } ${className || ''}`}
             style={heightStyle}>
-            {/* Product Image */}
+            {/* Product Image — mouse convenience only, hidden from AT so the tile
+                exposes a single PDP link (the product name) to screen readers and
+                the keyboard tab order. */}
             <Link
                 to={createProductUrl(product.productId, selectedColorValue)}
                 onClick={handleClick}
                 className="block w-full h-full flex-1"
-                aria-label={t('viewProductAriaLabel', { productName: imageAltFallback }) || imageAltFallback}>
+                aria-hidden="true"
+                tabIndex={-1}>
                 <ProductImage
                     src={currentImageUrl || ''}
                     alt={currentImage?.alt || imageAltFallback}

@@ -89,10 +89,10 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
             class="flex items-start justify-between gap-4"
           >
             <div
-              class="pr-20 min-w-0"
+              class="sm:pr-20 min-w-0"
             >
               <h1
-                class="text-3xl font-bold text-card-foreground tracking-tight"
+                class="text-3xl font-bold text-card-foreground tracking-tight break-words"
                 data-testid="product-title"
               >
                 Men's Classic Deer Gloves
@@ -112,7 +112,7 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
             </div>
           </div>
           <div
-            class="absolute top-0 right-0 flex items-center gap-2 z-10"
+            class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
           >
             <button
               aria-label="Add to Wishlist"
@@ -261,8 +261,7 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
               class="items-center gap-2"
             >
               <span
-                aria-label="Current price: £99.99"
-                aria-live="polite"
+                aria-hidden="true"
                 class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
               >
                 £99.99
@@ -536,7 +535,7 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
                 −
               </button>
               <input
-                class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 id="quantity-_r_n_"
                 min="1"
                 step="1"
@@ -710,10 +709,10 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
             class="flex items-start justify-between gap-4"
           >
             <div
-              class="pr-20 min-w-0"
+              class="sm:pr-20 min-w-0"
             >
               <h1
-                class="text-3xl font-bold text-card-foreground tracking-tight"
+                class="text-3xl font-bold text-card-foreground tracking-tight break-words"
                 data-testid="product-title"
               >
                 Men's Classic Deer Gloves
@@ -733,7 +732,7 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
             </div>
           </div>
           <div
-            class="absolute top-0 right-0 flex items-center gap-2 z-10"
+            class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
           >
             <button
               aria-label="Add to Wishlist"
@@ -882,8 +881,7 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
               class="items-center gap-2"
             >
               <span
-                aria-label="Current price: £99.99"
-                aria-live="polite"
+                aria-hidden="true"
                 class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
               >
                 £99.99
@@ -1039,7 +1037,7 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
               </button>
               <input
                 aria-describedby="quantity-_r_11_-inventory-msg"
-                class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 id="quantity-_r_11_"
                 min="1"
                 step="1"
@@ -1222,10 +1220,10 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
             class="flex items-start justify-between gap-4"
           >
             <div
-              class="pr-20 min-w-0"
+              class="sm:pr-20 min-w-0"
             >
               <h1
-                class="text-3xl font-bold text-card-foreground tracking-tight"
+                class="text-3xl font-bold text-card-foreground tracking-tight break-words"
                 data-testid="product-title"
               >
                 Men's Classic Deer Gloves
@@ -1245,7 +1243,7 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
             </div>
           </div>
           <div
-            class="absolute top-0 right-0 flex items-center gap-2 z-10"
+            class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
           >
             <button
               aria-label="Add to Wishlist"
@@ -1394,8 +1392,7 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
               class="items-center gap-2"
             >
               <span
-                aria-label="Current price: £99.99"
-                aria-live="polite"
+                aria-hidden="true"
                 class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
               >
                 £99.99
@@ -1669,7 +1666,7 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
                 −
               </button>
               <input
-                class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 id="quantity-_r_b_"
                 min="1"
                 step="1"

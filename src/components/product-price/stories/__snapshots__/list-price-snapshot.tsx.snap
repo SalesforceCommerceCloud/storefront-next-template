@@ -3,7 +3,7 @@
 exports[`ListPrice Snapshots > Default snapshot 1`] = `
 <div>
   <span
-    aria-label="List price: $129.99"
+    aria-hidden="true"
     class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
   >
     $129.99

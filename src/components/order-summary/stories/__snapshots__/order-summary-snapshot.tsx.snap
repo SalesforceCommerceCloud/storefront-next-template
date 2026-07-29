@@ -1421,8 +1421,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £20.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £20.00
@@ -1438,7 +1437,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99
@@ -1526,8 +1525,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £0.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £0.00
@@ -1543,7 +1541,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99
@@ -1631,8 +1629,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £0.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £0.00
@@ -1648,7 +1645,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99
@@ -2204,8 +2201,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £19.19"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £19.19
@@ -2221,7 +2217,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99

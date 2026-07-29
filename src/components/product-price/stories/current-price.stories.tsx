@@ -90,7 +90,10 @@ export const CustomElement: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const priceElement = canvas.getByRole('heading', { level: 3 });
+        // The visible price is hidden from assistive tech (aria-hidden) so it is not
+        // read twice; the accessible name lives in the sr-only span. Query the visible
+        // heading with hidden:true to assert its rendered element and styling.
+        const priceElement = canvas.getByRole('heading', { level: 3, hidden: true });
         await expect(priceElement).toBeInTheDocument();
         await expect(priceElement).toHaveClass('text-2xl');
     },

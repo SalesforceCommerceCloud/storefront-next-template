@@ -91,8 +91,7 @@ exports[`WishlistListItem stories snapshot > Default renders and matches snapsho
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £299.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £299.99
@@ -107,7 +106,7 @@ exports[`WishlistListItem stories snapshot > Default renders and matches snapsho
           </span>
            
           <span
-            aria-label="List price from £500.00"
+            aria-hidden="true"
             class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
           >
             £500.00
@@ -118,7 +117,7 @@ exports[`WishlistListItem stories snapshot > Default renders and matches snapsho
             class="sr-only"
           >
              
-            List price: £500.00
+            List price from £500.00
           </span>
         </div>
         <div
@@ -241,8 +240,7 @@ exports[`WishlistListItem stories snapshot > MasterProduct renders and matches s
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £299.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £299.99
@@ -257,7 +255,7 @@ exports[`WishlistListItem stories snapshot > MasterProduct renders and matches s
           </span>
            
           <span
-            aria-label="List price from £500.00"
+            aria-hidden="true"
             class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
           >
             £500.00
@@ -268,7 +266,7 @@ exports[`WishlistListItem stories snapshot > MasterProduct renders and matches s
             class="sr-only"
           >
              
-            List price: £500.00
+            List price from £500.00
           </span>
         </div>
         <div
@@ -365,8 +363,7 @@ exports[`WishlistListItem stories snapshot > MinimalData renders and matches sna
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £19.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £19.99
@@ -467,8 +464,7 @@ exports[`WishlistListItem stories snapshot > OnSale renders and matches snapshot
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £49.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £49.99
@@ -483,7 +479,7 @@ exports[`WishlistListItem stories snapshot > OnSale renders and matches snapshot
           </span>
            
           <span
-            aria-label="List price: £99.99"
+            aria-hidden="true"
             class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
           >
             £99.99
@@ -592,8 +588,7 @@ exports[`WishlistListItem stories snapshot > OutOfStock renders and matches snap
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £49.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £49.99
@@ -608,7 +603,7 @@ exports[`WishlistListItem stories snapshot > OutOfStock renders and matches snap
           </span>
            
           <span
-            aria-label="List price: £99.99"
+            aria-hidden="true"
             class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
           >
             £99.99
@@ -736,8 +731,7 @@ exports[`WishlistListItem stories snapshot > OutOfStockVariant renders and match
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £299.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £299.99
@@ -752,7 +746,7 @@ exports[`WishlistListItem stories snapshot > OutOfStockVariant renders and match
           </span>
            
           <span
-            aria-label="List price from £500.00"
+            aria-hidden="true"
             class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
           >
             £500.00
@@ -763,7 +757,7 @@ exports[`WishlistListItem stories snapshot > OutOfStockVariant renders and match
             class="sr-only"
           >
              
-            List price: £500.00
+            List price from £500.00
           </span>
         </div>
         <div

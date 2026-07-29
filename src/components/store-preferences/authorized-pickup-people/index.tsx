@@ -219,7 +219,7 @@ export default function AuthorizedPickupPeople(): ReactElement {
             <Card>
                 <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                        <CardTitle className="text-lg">
+                        <CardTitle as="h2" className="text-lg">
                             {t('storePreferences.authorizedPickupPeople.heading')}
                         </CardTitle>
                         <CardDescription className="mt-1">
@@ -339,7 +339,7 @@ export default function AuthorizedPickupPeople(): ReactElement {
 
                     <Form {...form}>
                         <form onSubmit={(e) => void form.handleSubmit(handleSave)(e)} className="grid gap-4 py-4">
-                            <div className="grid grid-cols-2 gap-4 items-start">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                                 <FormField
                                     control={form.control}
                                     name="firstName"

@@ -26,8 +26,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £38.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-bold text-card-foreground tracking-tight"
           >
             £38.00
@@ -164,8 +163,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £45.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-bold text-card-foreground tracking-tight"
           >
             £45.00
@@ -302,8 +300,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £30.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-bold text-card-foreground tracking-tight"
           >
             £30.00
@@ -452,7 +449,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
             −
           </button>
           <input
-            class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             id="quantity-_r_3_"
             min="1"
             step="1"

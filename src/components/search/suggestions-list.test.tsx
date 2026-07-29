@@ -81,12 +81,12 @@ describe('Suggestions Component', () => {
             wrapper,
         });
 
-        fireEvent.mouseDown(screen.getByText('Electronics'));
+        fireEvent.click(screen.getByText('Electronics'));
         expect(mockCallback).toHaveBeenCalledWith('/category/electronics');
 
         // Should not crash without callback
         rerender(<Suggestions suggestions={mockSuggestions} closeAndNavigate={undefined} />);
-        expect(() => fireEvent.mouseDown(screen.getByText('Clothing'))).not.toThrow();
+        expect(() => fireEvent.click(screen.getByText('Clothing'))).not.toThrow();
     });
 
     it('should apply custom className', () => {

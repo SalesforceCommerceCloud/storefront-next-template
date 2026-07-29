@@ -459,11 +459,11 @@ const ProductTile = memo(
                             />
                             <UITarget targetId="sfcc.plp.shipping.deliveryEstimate" />
 
-                            {/* Clickable product link overlay */}
+                            {/* Clickable product link overlay — mouse convenience only, hidden from AT */}
                             <Link
                                 to={productUrl}
                                 className="absolute inset-0 z-[1] cursor-pointer"
-                                aria-label={`View ${productName}`}
+                                aria-hidden="true"
                                 onClick={handleClick}
                                 tabIndex={-1}
                             />
@@ -485,15 +485,17 @@ const ProductTile = memo(
                             {/* Action icons — top-right */}
                             <div className="absolute top-2 right-2 flex flex-col items-end gap-2 z-20">
                                 {showPickupAvailable && (
-                                    <div>
-                                        <div className="group/pickup relative" data-testid="pickup-available-indicator">
-                                            <div className="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center">
-                                                <PickupIcon className="w-4 h-4" />
-                                            </div>
-                                            <div className="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none">
-                                                <div className="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg">
-                                                    {t('pickupAvailable')}
-                                                </div>
+                                    <div
+                                        className="group/pickup relative"
+                                        role="img"
+                                        aria-label={t('pickupAvailable')}
+                                        data-testid="pickup-available-indicator">
+                                        <div className="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center">
+                                            <PickupIcon className="w-4 h-4" aria-hidden="true" />
+                                        </div>
+                                        <div className="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                            <div className="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg">
+                                                {t('pickupAvailable')}
                                             </div>
                                         </div>
                                     </div>
@@ -513,7 +515,7 @@ const ProductTile = memo(
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none" />
 
                             {/* Quick Add button */}
-                            <div className="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20">
+                            <div className="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20">
                                 <QuickAddButton
                                     productId={product.productId ?? ''}
                                     productName={productName}
@@ -546,13 +548,13 @@ const ProductTile = memo(
                         )}
 
                         {/* Store name */}
-                        <p className="text-sm font-normal leading-none text-muted-foreground mb-1">
+                        <p className="text-sm font-normal leading-normal text-muted-foreground mb-1">
                             {config.global.branding.name}
                         </p>
 
                         {/* Top category */}
                         {topCategoryName && (
-                            <p className="text-sm font-normal leading-none text-muted-foreground mb-1">
+                            <p className="text-sm font-normal leading-normal text-muted-foreground mb-1">
                                 {topCategoryName}
                             </p>
                         )}
@@ -570,7 +572,7 @@ const ProductTile = memo(
                         {/* SKU */}
                         {product.productId && (
                             <p
-                                className="text-sm font-normal leading-none text-muted-foreground mb-1"
+                                className="text-sm font-normal leading-normal text-muted-foreground mb-1"
                                 data-testid="product-tile-sku">
                                 {t('sku')} {product.productId}
                             </p>

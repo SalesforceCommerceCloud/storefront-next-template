@@ -791,11 +791,11 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                                                 data-shipment-id={sid}
                                                 className={idx > 0 ? 'border-t border-muted-foreground/20' : ''}>
                                                 <div className="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2">
-                                                    <p className="text-sm min-w-0 font-medium">
+                                                    <h3 className="text-sm min-w-0 font-medium">
                                                         {t('orders.shipmentNumber', {
                                                             n: String(idx + 1),
                                                         })}
-                                                    </p>
+                                                    </h3>
                                                     <ShipmentShippingStatusBadge
                                                         shippingStatus={shipment.shippingStatus}
                                                         t={t}
@@ -854,7 +854,7 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                         </div>
                         {/* Order Summary – OrderSummary accepts both Basket and Order for totals */}
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">{t('orders.orderSummary')}</h3>
+                            <h2 className="text-lg font-semibold">{t('orders.orderSummary')}</h2>
                             <UITarget targetId="sfcc.myAccount.orderDetails.tax">
                                 <OrderSummary basket={order} showCartItems={false} showHeading={false} />
                             </UITarget>

@@ -70,7 +70,9 @@ export function AppDownloadSection(): ReactElement {
                                 className="w-16 h-16 text-muted-foreground"
                                 fill="none"
                                 stroke="currentColor"
-                                viewBox="0 0 24 24">
+                                viewBox="0 0 24 24"
+                                role="img"
+                                aria-label={t('overview.appDownload.qrCode')}>
                                 <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"

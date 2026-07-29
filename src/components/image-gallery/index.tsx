@@ -260,7 +260,11 @@ export default function ImageGallery({
 
                 {/* Thumbnail Navigation */}
                 {images.length > 1 && !horizontalThumbnails && (
-                    <div className="grid grid-cols-4 gap-2 sm:gap-3" data-gallery-thumbs>
+                    <div
+                        className="grid grid-cols-4 gap-2 sm:gap-3"
+                        data-gallery-thumbs
+                        role="group"
+                        aria-label={imageAltFallback}>
                         {images.map((image, index) => (
                             <button
                                 key={image.src + (image.thumbSrc || '')}
@@ -268,6 +272,14 @@ export default function ImageGallery({
                                 onPointerEnter={handleThumbnailIntent}
                                 onFocus={handleThumbnailIntent}
                                 data-index={index}
+                                aria-label={tCommon('thumbnailImage', { current: index + 1, total: images.length })}
+                                // The selected thumbnail is the current item within a single-select set, not an
+                                // independently toggleable control, so aria-current ("current" in a set) fits better
+                                // than aria-pressed ("toggle button, pressed"). Mirrors the swatch / pagination
+                                // selection pattern used elsewhere. A full role="tab" widget was considered and
+                                // rejected: its roving-tabindex + arrow-key contract would be a large, regression-prone
+                                // change on a gallery reused across PDP and several modals for a semantic refinement.
+                                aria-current={selectedImageIndex === index ? 'true' : undefined}
                                 className={`
                                 aspect-square overflow-hidden bg-muted
                                 border-2 transition-colors cursor-pointer
@@ -279,7 +291,7 @@ export default function ImageGallery({
                             `}>
                                 <DynamicImage
                                     src={image.thumbSrc || image.src}
-                                    alt={image.alt || imageAltFallback}
+                                    alt=""
                                     widths={thumbnailWidths}
                                     className="w-full h-full"
                                     imageProps={{ className: 'w-full h-full object-cover object-center' }}
@@ -309,6 +321,8 @@ export default function ImageGallery({
                         <div
                             ref={thumbStripRef}
                             data-gallery-strip
+                            role="group"
+                            aria-label={imageAltFallback}
                             className="flex flex-1 gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {images.map((image, index) => (
                                 <button
@@ -317,6 +331,9 @@ export default function ImageGallery({
                                     onPointerEnter={handleThumbnailIntent}
                                     onFocus={handleThumbnailIntent}
                                     data-index={index}
+                                    aria-label={tCommon('thumbnailImage', { current: index + 1, total: images.length })}
+                                    // See the grid layout above: aria-current, not aria-pressed, for the selected slide.
+                                    aria-current={selectedImageIndex === index ? 'true' : undefined}
                                     className={cn(
                                         'flex-shrink-0 h-16 w-16 sm:h-20 sm:w-20 overflow-hidden bg-muted',
                                         'border-2 transition-colors cursor-pointer',
@@ -326,7 +343,7 @@ export default function ImageGallery({
                                     )}>
                                     <DynamicImage
                                         src={image.thumbSrc || image.src}
-                                        alt={image.alt || imageAltFallback}
+                                        alt=""
                                         widths={DEFAULT_WIDTHS_THUMBNAIL_STRIP}
                                         className="w-full h-full"
                                         imageProps={{ className: 'w-full h-full object-cover object-center' }}

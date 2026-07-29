@@ -23,8 +23,7 @@ exports[`ChildProductCard stories snapshot > Playground story renders and matche
         class="items-center gap-2"
       >
         <span
-          aria-label="Current price: £38.00"
-          aria-live="polite"
+          aria-hidden="true"
           class="[&:not(:first-child)]:mt-6 text-left text-lg font-bold text-card-foreground tracking-tight"
         >
           £38.00

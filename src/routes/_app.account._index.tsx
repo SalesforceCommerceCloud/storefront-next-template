@@ -670,15 +670,15 @@ function AccountDetailsContent({
 
             {/* Personal Information – same layout as Interests & Preferences (header actions top right) */}
             <Card data-testid="profile-card" className="bg-card border-border">
-                <CardHeader className="flex flex-row items-start justify-between border-b border-border pb-4">
-                    <div className="space-y-1.5">
+                <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-4">
+                    <div className="space-y-1.5 min-w-0">
                         <CardTitle as="h2" className="text-base font-semibold">
                             {t('profile.title')}
                         </CardTitle>
                         <CardDescription className="text-muted-foreground">{t('profile.description')}</CardDescription>
                     </div>
                     {isEditingProfile ? (
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <Button
                                 type="submit"
                                 form="customer-profile-form"
@@ -802,10 +802,10 @@ function AccountDetailsContent({
                     <div
                         className="flex flex-wrap items-center justify-between gap-3"
                         data-testid="sf-toggle-card-email-content">
-                        <div className="space-y-2">
+                        <div className="space-y-2 min-w-0">
                             <h2 className="text-sm font-medium text-foreground">{t('email.title')}</h2>
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm text-foreground" data-testid="email-value">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm text-foreground break-all" data-testid="email-value">
                                     {userInfo.email || t('profile.notProvided')}
                                 </p>
                                 {isEmailVerificationEnabled && (
@@ -819,7 +819,7 @@ function AccountDetailsContent({
                                 )}
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             {isEmailVerificationEnabled && !isEmailVerified && (
                                 <Button
                                     variant="outline"

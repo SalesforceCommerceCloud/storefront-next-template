@@ -92,7 +92,9 @@ export default function PickupPreferences(): ReactElement {
         <Card className="">
             <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <CardTitle className="text-lg">{t('storePreferences.pickupPreferences.heading')}</CardTitle>
+                    <CardTitle as="h2" className="text-lg">
+                        {t('storePreferences.pickupPreferences.heading')}
+                    </CardTitle>
                     <CardDescription className="mt-1">
                         {t('storePreferences.pickupPreferences.description')}
                     </CardDescription>

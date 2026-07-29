@@ -81,12 +81,14 @@ describe('ProductInfo', () => {
             expect(screen.getAllByText((content) => content.includes('$299.99')).length).toBeGreaterThanOrEqual(1);
         });
 
-        test('should render price from aria-label', () => {
+        test('exposes the price to screen readers as accessible text', () => {
             renderProductInfo({ product: mockProduct });
 
-            // Price has aria-label (single price or range depending on context)
-            const priceElement = screen.getByLabelText(/\$299\.99/);
-            expect(priceElement).toBeInTheDocument();
+            // The visible price is hidden from AT to avoid it being read twice; the
+            // accessible name is carried by an sr-only "Current price: $299.99" span.
+            expect(
+                screen.getByText((content) => content.includes('Current price:') && content.includes('$299.99'))
+            ).toBeInTheDocument();
         });
     });
 

@@ -162,6 +162,11 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least 8 characters
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -189,6 +194,11 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               </svg>
               <span>
                 At least one uppercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
             <li
@@ -218,6 +228,11 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one lowercase letter
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -246,6 +261,11 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one number
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -273,6 +293,11 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               </svg>
               <span>
                 At least one special character
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
           </ul>
@@ -483,6 +508,11 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least 8 characters
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -510,6 +540,11 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               </svg>
               <span>
                 At least one uppercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
             <li
@@ -539,6 +574,11 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one lowercase letter
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -567,6 +607,11 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one number
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -594,6 +639,11 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               </svg>
               <span>
                 At least one special character
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
           </ul>
@@ -961,6 +1011,11 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least 8 characters
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -988,6 +1043,11 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               </svg>
               <span>
                 At least one uppercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
             <li
@@ -1017,6 +1077,11 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one lowercase letter
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -1045,6 +1110,11 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one number
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -1072,6 +1142,11 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               </svg>
               <span>
                 At least one special character
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
           </ul>

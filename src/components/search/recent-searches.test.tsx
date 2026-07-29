@@ -89,7 +89,7 @@ describe('RecentSearches Component', () => {
         );
 
         const searchButton = screen.getByText('shoes');
-        fireEvent.mouseDown(searchButton);
+        fireEvent.click(searchButton);
 
         expect(mockCloseAndNavigate).toHaveBeenCalledWith('/search?q=shoes');
     });
@@ -106,7 +106,7 @@ describe('RecentSearches Component', () => {
         );
 
         const clearButton = screen.getByText(t('search:suggestions.clearRecentSearches'));
-        fireEvent.mouseDown(clearButton);
+        fireEvent.click(clearButton);
 
         expect(mockClearRecentSearches).toHaveBeenCalled();
     });

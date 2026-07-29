@@ -104,7 +104,7 @@ export function PostOrderRegistration({
     const successView = (
         <Card className="border border-border/70">
             <CardHeader>
-                <CardTitle>{t('confirmation.postOrderRegistration.title')}</CardTitle>
+                <CardTitle as="h2">{t('confirmation.postOrderRegistration.title')}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center py-10 space-y-3">
                 <div className="flex items-center justify-center size-12 rounded-full bg-primary/10">
@@ -123,7 +123,7 @@ export function PostOrderRegistration({
     const formView = (
         <Card className="border border-border/70">
             <CardHeader>
-                <CardTitle>{t('confirmation.postOrderRegistration.title')}</CardTitle>
+                <CardTitle as="h2">{t('confirmation.postOrderRegistration.title')}</CardTitle>
                 <p className="text-sm text-muted-foreground">{t('confirmation.postOrderRegistration.subtitle')}</p>
             </CardHeader>
             <CardContent>
@@ -176,6 +176,7 @@ export function PostOrderRegistration({
                                 password={password}
                                 className="mt-2"
                                 id="post-order-password-requirements"
+                                headingLevel={3}
                             />
                         </div>
 

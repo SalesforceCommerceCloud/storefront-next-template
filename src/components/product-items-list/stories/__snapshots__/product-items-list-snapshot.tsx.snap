@@ -113,8 +113,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                             >
                               <span
-                                aria-label="Current price: £99.99"
-                                aria-live="polite"
+                                aria-hidden="true"
                                 class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                               >
                                 £99.99
@@ -160,7 +159,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               −
                             </button>
                             <input
-                              class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               id="cart-qty-_r_0_"
                               max="98"
                               min="0"
@@ -277,8 +276,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                             >
                               <span
-                                aria-label="Current price: £99.99"
-                                aria-live="polite"
+                                aria-hidden="true"
                                 class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                               >
                                 £99.99
@@ -294,7 +292,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               </span>
                                
                               <span
-                                aria-label="List price: £199.98"
+                                aria-hidden="true"
                                 class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
                               >
                                 £199.98
@@ -355,7 +353,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               −
                             </button>
                             <input
-                              class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               id="cart-qty-_r_4_"
                               max="98"
                               min="0"

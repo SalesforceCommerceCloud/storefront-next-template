@@ -167,8 +167,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                       class="flex flex-col-reverse items-end gap-0 text-right"
                     >
                       <h5
-                        aria-label="Current price: £15.00"
-                        aria-live="polite"
+                        aria-hidden="true"
                         class="text-left text-xl font-semibold leading-none tracking-[-0.6px] text-card-foreground [&:not(:first-child)]:mt-0"
                       >
                         £15.00
@@ -184,7 +183,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                       </span>
                        
                       <h5
-                        aria-label="List price: £80.00"
+                        aria-hidden="true"
                         class="text-left text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground line-through [&:not(:first-child)]:mt-0"
                       >
                         £80.00
@@ -238,7 +237,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                     </button>
                     <input
                       aria-label="Quantity"
-                      class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       max="4"
                       min="1"
                       step="1"
@@ -472,8 +471,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                       class="flex flex-col-reverse items-end gap-0 text-right"
                     >
                       <h5
-                        aria-label="Current price: £15.00"
-                        aria-live="polite"
+                        aria-hidden="true"
                         class="text-left text-xl font-semibold leading-none tracking-[-0.6px] text-card-foreground [&:not(:first-child)]:mt-0"
                       >
                         £15.00
@@ -489,7 +487,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                       </span>
                        
                       <h5
-                        aria-label="List price: £20.00"
+                        aria-hidden="true"
                         class="text-left text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground line-through [&:not(:first-child)]:mt-0"
                       >
                         £20.00
@@ -537,7 +535,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                     </button>
                     <input
                       aria-label="Quantity"
-                      class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       min="1"
                       step="1"
                       type="number"

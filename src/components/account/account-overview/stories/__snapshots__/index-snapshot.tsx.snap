@@ -290,7 +290,7 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   class="pt-2"
                 >
                   <span
-                    class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                    class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
                   >
                     View Order Details
                     <svg
@@ -441,7 +441,7 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   class="pt-2"
                 >
                   <span
-                    class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                    class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
                   >
                     View Order Details
                     <svg
@@ -665,8 +665,10 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
             class="w-32 h-32 bg-muted flex items-center justify-center border-2 border-dashed border-border"
           >
             <svg
+              aria-label="QR Code"
               class="w-16 h-16 text-muted-foreground"
               fill="none"
+              role="img"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
@@ -1077,8 +1079,10 @@ exports[`AccountOverview stories snapshot > EmptyOrders story renders and matche
             class="w-32 h-32 bg-muted flex items-center justify-center border-2 border-dashed border-border"
           >
             <svg
+              aria-label="QR Code"
               class="w-16 h-16 text-muted-foreground"
               fill="none"
+              role="img"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
@@ -1883,8 +1887,10 @@ exports[`AccountOverview stories snapshot > NoFirstNameFallback story renders an
             class="w-32 h-32 bg-muted flex items-center justify-center border-2 border-dashed border-border"
           >
             <svg
+              aria-label="QR Code"
               class="w-16 h-16 text-muted-foreground"
               fill="none"
+              role="img"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >

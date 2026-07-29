@@ -719,7 +719,12 @@ class CheckoutPage {
             const first = items[0];
             const hasImg = first.querySelector('img') !== null;
             const hasLink = first.querySelector('a') !== null;
-            const hasPrice = first.querySelector('[aria-label*="price"]') !== null;
+            // The price's accessible name moved to an adjacent sr-only aria-live span, so the
+            // visible price is now aria-hidden (matching cart.page.ts's sibling migration). Scope
+            // to `span` so the aria-hidden decorative icons (e.g. the delivery-truck svg) don't
+            // false-match, and require numeric content so this still asserts a real price is shown.
+            const priceSpan = first.querySelector('span[aria-hidden="true"]');
+            const hasPrice = priceSpan !== null && /\d/.test(priceSpan.textContent ?? '');
             const text = first.textContent ?? '';
             const hasPromotionOrSaved = /Promotions|Saved\s/i.test(text);
             return {

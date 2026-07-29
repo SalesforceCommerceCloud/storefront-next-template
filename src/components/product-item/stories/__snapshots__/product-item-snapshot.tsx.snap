@@ -131,7 +131,7 @@ exports[`ProductItem stories snapshot > AutoBonusProduct story renders and match
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         disabled=""
                         id="cart-qty-_r_8_"
                         max="98"
@@ -301,7 +301,7 @@ exports[`ProductItem stories snapshot > ChoiceBasedBonusProduct story renders an
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_c_"
                         max="3"
                         min="0"
@@ -434,8 +434,7 @@ exports[`ProductItem stories snapshot > Default story renders and matches snapsh
                         class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                       >
                         <span
-                          aria-label="Current price: £99.99"
-                          aria-live="polite"
+                          aria-hidden="true"
                           class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                         >
                           £99.99
@@ -481,7 +480,7 @@ exports[`ProductItem stories snapshot > Default story renders and matches snapsh
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_0_"
                         max="98"
                         min="0"
@@ -601,8 +600,7 @@ exports[`ProductItem stories snapshot > DiscountedPrice story renders and matche
                         class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                       >
                         <span
-                          aria-label="Current price: £79.99"
-                          aria-live="polite"
+                          aria-hidden="true"
                           class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                         >
                           £79.99
@@ -618,7 +616,7 @@ exports[`ProductItem stories snapshot > DiscountedPrice story renders and matche
                         </span>
                          
                         <span
-                          aria-label="List price: £99.99"
+                          aria-hidden="true"
                           class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
                         >
                           £99.99
@@ -673,7 +671,7 @@ exports[`ProductItem stories snapshot > DiscountedPrice story renders and matche
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_o_"
                         max="98"
                         min="0"
@@ -793,8 +791,7 @@ exports[`ProductItem stories snapshot > LongProductName story renders and matche
                         class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                       >
                         <span
-                          aria-label="Current price: £99.99"
-                          aria-live="polite"
+                          aria-hidden="true"
                           class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                         >
                           £99.99
@@ -840,7 +837,7 @@ exports[`ProductItem stories snapshot > LongProductName story renders and matche
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_g_"
                         max="98"
                         min="0"
@@ -958,8 +955,7 @@ exports[`ProductItem stories snapshot > MissingImages story renders and matches 
                         class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                       >
                         <span
-                          aria-label="Current price: £99.99"
-                          aria-live="polite"
+                          aria-hidden="true"
                           class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                         >
                           £99.99
@@ -1005,7 +1001,7 @@ exports[`ProductItem stories snapshot > MissingImages story renders and matches 
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_k_"
                         max="98"
                         min="0"
@@ -1125,8 +1121,7 @@ exports[`ProductItem stories snapshot > MultipleQuantity story renders and match
                         class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                       >
                         <span
-                          aria-label="Current price: £299.97"
-                          aria-live="polite"
+                          aria-hidden="true"
                           class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                         >
                           £299.97
@@ -1178,7 +1173,7 @@ exports[`ProductItem stories snapshot > MultipleQuantity story renders and match
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_s_"
                         max="98"
                         min="0"
@@ -1282,8 +1277,7 @@ exports[`ProductItem stories snapshot > SummaryVariant story renders and matches
         class="items-center gap-2 text-sm"
       >
         <span
-          aria-label="Current price: £99.99"
-          aria-live="polite"
+          aria-hidden="true"
           class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
         >
           £99.99
@@ -1405,8 +1399,7 @@ exports[`ProductItem stories snapshot > WithActions story renders and matches sn
                         class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                       >
                         <span
-                          aria-label="Current price: £99.99"
-                          aria-live="polite"
+                          aria-hidden="true"
                           class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                         >
                           £99.99
@@ -1452,7 +1445,7 @@ exports[`ProductItem stories snapshot > WithActions story renders and matches sn
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_4_"
                         max="98"
                         min="0"
@@ -1585,8 +1578,7 @@ exports[`ProductItem stories snapshot > WithInventoryMessage story renders and m
                         class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                       >
                         <span
-                          aria-label="Current price: £99.99"
-                          aria-live="polite"
+                          aria-hidden="true"
                           class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                         >
                           £99.99
@@ -1632,7 +1624,7 @@ exports[`ProductItem stories snapshot > WithInventoryMessage story renders and m
                         −
                       </button>
                       <input
-                        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         id="cart-qty-_r_10_"
                         max="98"
                         min="0"

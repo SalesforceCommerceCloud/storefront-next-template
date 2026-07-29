@@ -99,14 +99,13 @@ export default function ProductPrice({
     if (!hasPrice && !allowMissingPrice) {
         return (
             <div className={cn('items-center gap-2', className)}>
-                <span className="font-semibold text-muted-foreground" aria-label={t('price.unavailable')}>
+                <span className="font-semibold text-muted-foreground" aria-hidden="true">
                     {t('price.unavailable')}
                 </span>
-                {labelForA11y ? (
-                    <span className="sr-only">
-                        {labelForA11y} {t('price.unavailable')}
-                    </span>
-                ) : null}
+                <span className="sr-only">
+                    {labelForA11y ? `${labelForA11y} ` : ''}
+                    {t('price.unavailable')}
+                </span>
             </div>
         );
     }

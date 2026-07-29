@@ -147,11 +147,11 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -218,8 +218,7 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -338,11 +337,11 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -561,11 +560,11 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -632,8 +631,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -752,11 +750,11 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -957,11 +955,11 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -1028,8 +1026,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -1148,11 +1145,11 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -1342,11 +1339,11 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -1411,8 +1408,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £10.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £10.00
@@ -1488,11 +1484,11 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 2
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -1557,8 +1553,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £20.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £20.00
@@ -1633,11 +1628,11 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -1856,11 +1851,11 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -1927,8 +1922,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -2047,11 +2041,11 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -2273,11 +2267,11 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -2344,8 +2338,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -2495,11 +2488,11 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -2689,11 +2682,11 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -2760,8 +2753,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -2847,11 +2839,11 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -3052,11 +3044,11 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -3123,8 +3115,7 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -3243,11 +3234,11 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -3482,11 +3473,11 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -3553,8 +3544,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -3673,11 +3663,11 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -3878,11 +3868,11 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -3949,8 +3939,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -4069,11 +4058,11 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -4301,11 +4290,11 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                 </div>
                 <div
                   class="p-3"
@@ -4372,8 +4361,7 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -4492,11 +4480,11 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"
@@ -4697,11 +4685,11 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                 <div
                   class="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2"
                 >
-                  <p
+                  <h3
                     class="text-sm min-w-0 font-medium"
                   >
                     Shipment 1
-                  </p>
+                  </h3>
                   <span
                     class="inline-flex items-center justify-center rounded-full px-2 text-xs whitespace-nowrap [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden [a&]:hover:bg-primary/90 shrink-0 font-semibold border-0 py-1 w-fit border-transparent bg-status-positive text-success-foreground"
                     data-slot="badge"
@@ -4775,8 +4763,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                             class="items-center gap-2"
                           >
                             <span
-                              aria-label="Current price: £61.99"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
                             >
                               £61.99
@@ -4895,11 +4882,11 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
         <div
           class="space-y-4"
         >
-          <h3
+          <h2
             class="text-lg font-semibold"
           >
             Order Summary
-          </h3>
+          </h2>
           <div
             class="bg-card text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui !py-4"
             data-slot="card"

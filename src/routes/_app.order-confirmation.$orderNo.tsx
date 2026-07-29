@@ -370,7 +370,7 @@ function OrderConfirmationContent({
                 {store && (
                     <Card className="mb-8">
                         <CardHeader>
-                            <CardTitle>{tBopis('storePickup.title')}</CardTitle>
+                            <CardTitle as="h2">{tBopis('storePickup.title')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <StoreDetails
@@ -457,7 +457,9 @@ function OrderConfirmationContent({
                 {/* Product Items Summary section */}
                 <Card className="border border-border/70">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-2xl font-medium">{t('confirmation.summaryTitle')}</CardTitle>
+                        <CardTitle as="h2" className="text-2xl font-medium">
+                            {t('confirmation.summaryTitle')}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {productItems.length === 0 ? (

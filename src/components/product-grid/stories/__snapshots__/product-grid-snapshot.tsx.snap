@@ -43,9 +43,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 1"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -92,7 +93,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 1"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId"
             tabindex="-1"
@@ -144,7 +145,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 1"
@@ -162,7 +163,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         class="relative p-4"
       >
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -177,7 +178,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -274,8 +275,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £63.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £63.99
@@ -291,7 +291,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </span>
              
             <span
-              aria-label="List price: £67.99"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £67.99
@@ -323,9 +323,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 2"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=BLACKWL"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -372,7 +373,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 2"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=750518703077M"
             tabindex="-1"
@@ -408,7 +409,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 2"
@@ -441,7 +442,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -456,7 +457,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -553,8 +554,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £191.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £191.99
@@ -570,7 +570,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </span>
              
             <span
-              aria-label="List price: £320.00"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £320.00
@@ -602,9 +602,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 3"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=JJ908XX"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -651,7 +652,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 3"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=701642823919M"
             tabindex="-1"
@@ -687,7 +688,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 3"
@@ -738,7 +739,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -753,7 +754,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -850,8 +851,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £18.55"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £18.55
@@ -867,7 +867,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </span>
              
             <span
-              aria-label="List price from £31.36"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £31.36
@@ -879,7 +879,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             >
               Product 3
                
-              List price: £31.36
+              List price from £31.36
             </span>
           </div>
           <div
@@ -908,9 +908,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 4"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=CHARCWL"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -957,7 +958,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 4"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=750518894461M"
             tabindex="-1"
@@ -993,7 +994,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 4"
@@ -1045,7 +1046,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -1060,7 +1061,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -1157,8 +1158,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Price range from £143.99 to £191.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £143.99 – £191.99
@@ -1200,9 +1200,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 5"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -1249,7 +1250,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 5"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId"
             tabindex="-1"
@@ -1285,7 +1286,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 5"
@@ -1303,7 +1304,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         class="relative p-4"
       >
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -1318,7 +1319,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -1415,8 +1416,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Price range from £52.16 to £71.03"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £52.16 – £71.03
@@ -1448,9 +1448,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 6"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -1497,7 +1498,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 6"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId"
             tabindex="-1"
@@ -1549,7 +1550,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 6"
@@ -1567,7 +1568,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
         class="relative p-4"
       >
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -1582,7 +1583,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -1679,8 +1680,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £63.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £63.99
@@ -1696,7 +1696,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </span>
              
             <span
-              aria-label="List price: £67.99"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £67.99
@@ -1728,9 +1728,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 7"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=BLACKWL"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -1777,7 +1778,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 7"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=750518703077M"
             tabindex="-1"
@@ -1813,7 +1814,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 7"
@@ -1846,7 +1847,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -1861,7 +1862,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -1958,8 +1959,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £191.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £191.99
@@ -1975,7 +1975,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </span>
              
             <span
-              aria-label="List price: £320.00"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £320.00
@@ -2007,9 +2007,10 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 8"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=JJ908XX"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -2056,7 +2057,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-label="View Product 8"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=701642823919M"
             tabindex="-1"
@@ -2092,7 +2093,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 8"
@@ -2143,7 +2144,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -2158,7 +2159,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -2255,8 +2256,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £18.55"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £18.55
@@ -2272,7 +2272,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </span>
              
             <span
-              aria-label="List price from £31.36"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £31.36
@@ -2284,7 +2284,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             >
               Product 8
                
-              List price: £31.36
+              List price from £31.36
             </span>
           </div>
           <div
@@ -2533,9 +2533,10 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 1"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -2582,7 +2583,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-label="View Product 1"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId"
             tabindex="-1"
@@ -2606,37 +2607,37 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
-            <div>
+            <div
+              aria-label="Pickup Available"
+              class="group/pickup relative"
+              data-testid="pickup-available-indicator"
+              role="img"
+            >
               <div
-                class="group/pickup relative"
-                data-testid="pickup-available-indicator"
+                class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </div>
+              <div
+                class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
               >
                 <div
-                  class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+                  class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
-                    />
-                  </svg>
-                </div>
-                <div
-                  class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
-                >
-                  <div
-                    class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
-                  >
-                    Pickup Available
-                  </div>
+                  Pickup Available
                 </div>
               </div>
             </div>
@@ -2668,7 +2669,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 1"
@@ -2686,7 +2687,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
         class="relative p-4"
       >
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -2701,7 +2702,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -2798,8 +2799,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £63.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £63.99
@@ -2815,7 +2815,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </span>
              
             <span
-              aria-label="List price: £67.99"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £67.99
@@ -2847,9 +2847,10 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 2"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=BLACKWL"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -2896,7 +2897,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-label="View Product 2"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=750518703077M"
             tabindex="-1"
@@ -2904,37 +2905,37 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
-            <div>
+            <div
+              aria-label="Pickup Available"
+              class="group/pickup relative"
+              data-testid="pickup-available-indicator"
+              role="img"
+            >
               <div
-                class="group/pickup relative"
-                data-testid="pickup-available-indicator"
+                class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </div>
+              <div
+                class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
               >
                 <div
-                  class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+                  class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
-                    />
-                  </svg>
-                </div>
-                <div
-                  class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
-                >
-                  <div
-                    class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
-                  >
-                    Pickup Available
-                  </div>
+                  Pickup Available
                 </div>
               </div>
             </div>
@@ -2966,7 +2967,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 2"
@@ -2999,7 +3000,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -3014,7 +3015,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -3111,8 +3112,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £191.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £191.99
@@ -3128,7 +3128,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </span>
              
             <span
-              aria-label="List price: £320.00"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £320.00
@@ -3160,9 +3160,10 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 3"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=JJ908XX"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -3209,7 +3210,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-label="View Product 3"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=701642823919M"
             tabindex="-1"
@@ -3217,37 +3218,37 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
-            <div>
+            <div
+              aria-label="Pickup Available"
+              class="group/pickup relative"
+              data-testid="pickup-available-indicator"
+              role="img"
+            >
               <div
-                class="group/pickup relative"
-                data-testid="pickup-available-indicator"
+                class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </div>
+              <div
+                class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
               >
                 <div
-                  class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+                  class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
-                    />
-                  </svg>
-                </div>
-                <div
-                  class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
-                >
-                  <div
-                    class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
-                  >
-                    Pickup Available
-                  </div>
+                  Pickup Available
                 </div>
               </div>
             </div>
@@ -3279,7 +3280,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 3"
@@ -3330,7 +3331,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -3345,7 +3346,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -3442,8 +3443,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Current price: £18.55"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £18.55
@@ -3459,7 +3459,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </span>
              
             <span
-              aria-label="List price from £31.36"
+              aria-hidden="true"
               class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
             >
               £31.36
@@ -3471,7 +3471,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             >
               Product 3
                
-              List price: £31.36
+              List price from £31.36
             </span>
           </div>
           <div
@@ -3500,9 +3500,10 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
           >
             <a
-              aria-label="View Product 4"
+              aria-hidden="true"
               class="block w-full h-full flex-1"
               href="/product/:productId?color=CHARCWL"
+              tabindex="-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -3549,7 +3550,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-label="View Product 4"
+            aria-hidden="true"
             class="absolute inset-0 z-[1] cursor-pointer"
             href="/product/:productId?pid=750518894461M"
             tabindex="-1"
@@ -3557,37 +3558,37 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
-            <div>
+            <div
+              aria-label="Pickup Available"
+              class="group/pickup relative"
+              data-testid="pickup-available-indicator"
+              role="img"
+            >
               <div
-                class="group/pickup relative"
-                data-testid="pickup-available-indicator"
+                class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </div>
+              <div
+                class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
               >
                 <div
-                  class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+                  class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
                 >
-                  <svg
-                    aria-hidden="true"
-                    class="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
-                    />
-                  </svg>
-                </div>
-                <div
-                  class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
-                >
-                  <div
-                    class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
-                  >
-                    Pickup Available
-                  </div>
+                  Pickup Available
                 </div>
               </div>
             </div>
@@ -3619,7 +3620,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
           >
             <button
               aria-label="Quick Add Product 4"
@@ -3671,7 +3672,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           </div>
         </div>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         >
           Test Store
         </p>
@@ -3686,7 +3687,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           </a>
         </h3>
         <p
-          class="text-sm font-normal leading-none text-muted-foreground mb-1"
+          class="text-sm font-normal leading-normal text-muted-foreground mb-1"
           data-testid="product-tile-sku"
         >
           SKU:
@@ -3783,8 +3784,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="items-center gap-2 text-sm"
           >
             <span
-              aria-label="Price range from £143.99 to £191.99"
-              aria-live="polite"
+              aria-hidden="true"
               class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
             >
               £143.99 – £191.99

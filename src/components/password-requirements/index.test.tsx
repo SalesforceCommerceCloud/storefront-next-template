@@ -224,4 +224,20 @@ describe('PasswordRequirement', () => {
             expect(listItems).toHaveLength(5);
         });
     });
+
+    describe('heading level', () => {
+        it('defaults the title heading to level 4', () => {
+            render(<PasswordRequirement password="" />);
+
+            const heading = screen.getByRole('heading');
+            expect(heading).toHaveAttribute('aria-level', '4');
+        });
+
+        it('honours a custom headingLevel so it fits the surrounding outline', () => {
+            render(<PasswordRequirement password="" headingLevel={3} />);
+
+            const heading = screen.getByRole('heading');
+            expect(heading).toHaveAttribute('aria-level', '3');
+        });
+    });
 });

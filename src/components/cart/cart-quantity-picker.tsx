@@ -72,6 +72,9 @@ export default function CartQuantityPicker({
     const { t: tQuantity } = useTranslation('quantitySelector');
     const { t: tRemove } = useTranslation('removeItem');
     const { t: tCart } = useTranslation('cart');
+    // Unique id per cart line so the visible "Quantity" label associates with this line's input.
+    // A hardcoded id would break linkage across multiple cart lines; useId keeps each pairing
+    // unique and SSR-stable.
     const quantityId = `cart-qty-${useId()}`;
     const errorId = `${quantityId}-error`;
     const effectiveDebounceDelay = debounceDelay || config.pages.cart.quantityUpdateDebounce;

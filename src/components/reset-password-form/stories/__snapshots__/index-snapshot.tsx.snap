@@ -97,6 +97,11 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least 8 characters
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -124,6 +129,11 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               </svg>
               <span>
                 At least one uppercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
             <li
@@ -153,6 +163,11 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least one lowercase letter
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -181,6 +196,11 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               <span>
                 At least one number
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -208,6 +228,11 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
               </svg>
               <span>
                 At least one special character
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
           </ul>
@@ -346,6 +371,11 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least 8 characters
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -373,6 +403,11 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               </svg>
               <span>
                 At least one uppercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
             <li
@@ -402,6 +437,11 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least one lowercase letter
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -430,6 +470,11 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               <span>
                 At least one number
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -457,6 +502,11 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
               </svg>
               <span>
                 At least one special character
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
           </ul>
@@ -604,6 +654,11 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least 8 characters
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -631,6 +686,11 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               </svg>
               <span>
                 At least one uppercase letter
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
             <li
@@ -660,6 +720,11 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least one lowercase letter
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -688,6 +753,11 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               <span>
                 At least one number
               </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
             </li>
             <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
@@ -715,6 +785,11 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
               </svg>
               <span>
                 At least one special character
+              </span>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
               </span>
             </li>
           </ul>

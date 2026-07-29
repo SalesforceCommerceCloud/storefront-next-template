@@ -31,6 +31,7 @@
         },
         "previousImage": "Previous image",
         "nextImage": "Next image",
+        "thumbnailImage": "Product image {{current}} of {{total}}",
         "quickCategoryFilters": "Quick category filters",
         "carousel": {
             "play": "Play carousel",
@@ -398,7 +399,8 @@
         "checkout": {
             "continueToCheckout": "Continue to Checkout",
             "secure": "Secure",
-            "proceedToCheckout": "Proceed to Checkout"
+            "proceedToCheckout": "Proceed to Checkout",
+            "acceptedPaymentMethods": "Accepted payment methods: Visa, Mastercard, American Express, Discover"
         },
         "attributes": {
             "quantity": "Qty:",
@@ -1268,7 +1270,9 @@
                 "hasUppercase": "At least one uppercase letter",
                 "hasLowercase": "At least one lowercase letter",
                 "hasNumber": "At least one number",
-                "hasSpecial": "At least one special character"
+                "hasSpecial": "At least one special character",
+                "statusMet": "Requirement met",
+                "statusNotMet": "Requirement not met"
             }
         },
         "common": {
@@ -1384,12 +1388,14 @@
                 "title": "Women",
                 "description": "Discover our curated collection of sophisticated footwear designed for the modern woman.",
                 "ctaText": "EXPLORE COLLECTION",
+                "ctaAriaLabel": "Explore collection: women's",
                 "imageAlt": "Women's Collection"
             },
             "men": {
                 "title": "Men",
                 "description": "Timeless craftsmanship meets contemporary style in our men's footwear collection.",
                 "ctaText": "EXPLORE COLLECTION",
+                "ctaAriaLabel": "Explore collection: men's",
                 "imageAlt": "Men's Collection"
             },
             "styleForRealLife": {

@@ -27,6 +27,13 @@ export interface PasswordRequirementProps {
     className?: string;
     /** Optional ID for the container, used for aria-describedby linking */
     id?: string;
+    /**
+     * Heading level for the "Password Requirements" title, so the checklist slots into the
+     * surrounding page outline without skipping a level (WCAG 1.3.1). Defaults to 4; pass the
+     * level that sits one below the section heading this component is nested under. Constrained
+     * to the six valid ARIA heading levels so an out-of-range aria-level (0, 7+) can't be set.
+     */
+    headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 /**
@@ -76,7 +83,7 @@ interface Requirement {
  * }
  * ```
  */
-export function PasswordRequirement({ password, className, id }: PasswordRequirementProps) {
+export function PasswordRequirement({ password, className, id, headingLevel = 4 }: PasswordRequirementProps) {
     const { t } = useTranslation('account');
 
     /**
@@ -112,7 +119,7 @@ export function PasswordRequirement({ password, className, id }: PasswordRequire
 
     return (
         <div id={id} className={cn('space-y-2', className)}>
-            <p role="heading" aria-level={4} className="text-sm font-medium text-foreground">
+            <p role="heading" aria-level={headingLevel} className="text-sm font-medium text-foreground">
                 {t('password.requirements.title')}
             </p>
             <ul role="list" className="space-y-1.5">
@@ -131,6 +138,17 @@ export function PasswordRequirement({ password, className, id }: PasswordRequire
                                 <X className="h-4 w-4 text-muted-foreground" data-testid="x-icon" />
                             )}
                             <span>{t(requirement.textKey as never)}</span>
+                            {/*
+                             * The check / cross icon is decorative (aria-hidden) and the met/unmet state
+                             * is otherwise carried only by icon shape and text colour, so a screen reader
+                             * hears the requirement with no pass/fail state. Announce the state as
+                             * visually-hidden text so it is available without colour (WCAG 1.1.1 / 1.4.1).
+                             */}
+                            <span className="sr-only">
+                                {isValid
+                                    ? t('password.requirements.statusMet')
+                                    : t('password.requirements.statusNotMet')}
+                            </span>
                         </li>
                     );
                 })}

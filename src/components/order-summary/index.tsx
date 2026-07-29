@@ -435,7 +435,12 @@ export default function OrderSummary({
                     </Button>
                     <UITarget targetId="sfcc.cart.payments.expressCheckout" />
 
-                    <div className="flex justify-center">
+                    {/*
+                     * The four brand logos are the sole content of this row, so without a name a
+                     * screen reader announces nothing. role="img" + a single aria-label collapses the
+                     * SVG subtree into one named image ("accepted payment methods"). WCAG 1.1.1.
+                     */}
+                    <div className="flex justify-center" role="img" aria-label={t('checkout.acceptedPaymentMethods')}>
                         <VisaIcon width={40} height={32} className="mr-2" />
                         <MastercardIcon width={40} height={32} className="mr-2" />
                         <AmexIcon width={40} height={32} className="mr-2" />

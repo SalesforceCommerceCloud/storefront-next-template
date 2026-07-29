@@ -146,7 +146,7 @@ export default function QuantityPicker({
                 onKeyDown={handleKeyDown}
                 disabled={disabled}
                 className={cn(
-                    'w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed',
+                    'w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed',
                     '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                 )}
                 aria-label={id ? undefined : tQuantity('quantity')}

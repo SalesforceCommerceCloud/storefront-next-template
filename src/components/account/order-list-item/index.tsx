@@ -380,7 +380,7 @@ export function OrderListItem({
                         <Typography
                             variant="small"
                             as="span"
-                            className="inline-flex items-center gap-1 text-foreground hover:underline">
+                            className="inline-flex items-center gap-1 text-foreground underline">
                             {t('orders.viewOrderDetails', 'View Order Details')}
                             <ChevronRight className="size-4" />
                         </Typography>

@@ -225,27 +225,42 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
         <button
           aria-label="Go to slide 1 of 3"
           aria-selected="true"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-8 h-2 bg-white"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="0"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-8 h-2 bg-white"
+          />
+        </button>
         <button
           aria-label="Go to slide 2 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
         <button
           aria-label="Go to slide 3 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
       </div>
       <div
         class="absolute right-0 flex gap-2"
@@ -585,27 +600,42 @@ exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snap
         <button
           aria-label="Go to slide 1 of 3"
           aria-selected="true"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-8 h-2 bg-white"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="0"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-8 h-2 bg-white"
+          />
+        </button>
         <button
           aria-label="Go to slide 2 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
         <button
           aria-label="Go to slide 3 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
       </div>
       <div
         class="absolute right-0 flex gap-2"
@@ -899,27 +929,42 @@ exports[`HeroCarousel stories snapshot > PageDesignerMode story renders and matc
         <button
           aria-label="Go to slide 1 of 3"
           aria-selected="true"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-8 h-2 bg-white"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="0"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-8 h-2 bg-white"
+          />
+        </button>
         <button
           aria-label="Go to slide 2 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
         <button
           aria-label="Go to slide 3 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
       </div>
       <div
         class="absolute right-0 flex gap-2"
@@ -1247,27 +1292,42 @@ exports[`HeroCarousel stories snapshot > Playground story renders and matches sn
         <button
           aria-label="Go to slide 1 of 3"
           aria-selected="true"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-8 h-2 bg-white"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="0"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-8 h-2 bg-white"
+          />
+        </button>
         <button
           aria-label="Go to slide 2 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
         <button
           aria-label="Go to slide 3 of 3"
           aria-selected="false"
-          class="rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring w-2 h-2 bg-white/50 hover:bg-white/75"
+          class="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           role="tab"
           tabindex="-1"
           type="button"
-        />
+        >
+          <span
+            aria-hidden="true"
+            class="block rounded-ui transition-all duration-300 w-2 h-2 bg-white/50 group-hover:bg-white/75"
+          />
+        </button>
       </div>
       <div
         class="absolute right-0 flex gap-2"

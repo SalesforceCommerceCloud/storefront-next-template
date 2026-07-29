@@ -40,7 +40,12 @@ export default function UserActions(): ReactElement {
     const trigger = (
         <Button
             variant="ghost"
-            className="cursor-pointer lg:px-4 px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
+            // Icon-only trigger. The Button size default sets `has-[>svg]:px-3` (12px) for icon
+            // children, which sits in the same tailwind-merge group as the compact padding below,
+            // so a bare `px-1` here is dead code. Use the `has-[>svg]:` modifier so the compact
+            // mobile padding actually wins; without it the header row overflows a 320px viewport
+            // and the mobile menu button is pushed off-screen (WCAG 1.4.10 Reflow).
+            className="cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
             asChild>
             <Link to={accountLink} aria-label={ariaLabel} data-testid="user-account-trigger">
                 {icon}

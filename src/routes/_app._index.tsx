@@ -263,6 +263,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
                                             imageUrl={hero03}
                                             imageAlt={t('featuredContent.women.imageAlt')}
                                             buttonText={t('featuredContent.women.ctaText')}
+                                            buttonAriaLabel={t('featuredContent.women.ctaAriaLabel')}
                                             buttonLink="/category/womens"
                                             showBackground={false}
                                             showBorder={false}
@@ -274,6 +275,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
                                             imageUrl={hero04}
                                             imageAlt={t('featuredContent.men.imageAlt')}
                                             buttonText={t('featuredContent.men.ctaText')}
+                                            buttonAriaLabel={t('featuredContent.men.ctaAriaLabel')}
                                             buttonLink="/category/mens"
                                             showBackground={false}
                                             showBorder={false}

@@ -163,10 +163,14 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
       </svg>
     </button>
     <div
+      aria-label="Product Image"
       class="flex flex-1 gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       data-gallery-strip="true"
+      role="group"
     >
       <button
+        aria-current="true"
+        aria-label="Product image 1 of 6"
         class="flex-shrink-0 h-16 w-16 sm:h-20 sm:w-20 overflow-hidden bg-muted border-2 transition-colors cursor-pointer border-primary"
         data-index="0"
       >
@@ -186,7 +190,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
               type="image/webp"
             />
             <img
-              alt="Laptop Briefcase with wheels (37L), , large"
+              alt=""
               class="w-full h-full object-cover object-center"
               fetchpriority="auto"
               loading="lazy"
@@ -196,6 +200,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
         </div>
       </button>
       <button
+        aria-label="Product image 2 of 6"
         class="flex-shrink-0 h-16 w-16 sm:h-20 sm:w-20 overflow-hidden bg-muted border-2 transition-colors cursor-pointer border-transparent hover:border-border"
         data-index="1"
       >
@@ -215,7 +220,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
               type="image/webp"
             />
             <img
-              alt="Laptop Briefcase with wheels (37L), , large (2)"
+              alt=""
               class="w-full h-full object-cover object-center"
               fetchpriority="auto"
               loading="lazy"
@@ -225,6 +230,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
         </div>
       </button>
       <button
+        aria-label="Product image 3 of 6"
         class="flex-shrink-0 h-16 w-16 sm:h-20 sm:w-20 overflow-hidden bg-muted border-2 transition-colors cursor-pointer border-transparent hover:border-border"
         data-index="2"
       >
@@ -244,7 +250,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
               type="image/webp"
             />
             <img
-              alt="Laptop Briefcase with wheels (37L), , large (3)"
+              alt=""
               class="w-full h-full object-cover object-center"
               fetchpriority="auto"
               loading="lazy"
@@ -254,6 +260,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
         </div>
       </button>
       <button
+        aria-label="Product image 4 of 6"
         class="flex-shrink-0 h-16 w-16 sm:h-20 sm:w-20 overflow-hidden bg-muted border-2 transition-colors cursor-pointer border-transparent hover:border-border"
         data-index="3"
       >
@@ -273,7 +280,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
               type="image/webp"
             />
             <img
-              alt="Laptop Briefcase with wheels (37L), , large (4)"
+              alt=""
               class="w-full h-full object-cover object-center"
               fetchpriority="auto"
               loading="lazy"
@@ -283,6 +290,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
         </div>
       </button>
       <button
+        aria-label="Product image 5 of 6"
         class="flex-shrink-0 h-16 w-16 sm:h-20 sm:w-20 overflow-hidden bg-muted border-2 transition-colors cursor-pointer border-transparent hover:border-border"
         data-index="4"
       >
@@ -302,7 +310,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
               type="image/webp"
             />
             <img
-              alt="Laptop Briefcase with wheels (37L), , large (5)"
+              alt=""
               class="w-full h-full object-cover object-center"
               fetchpriority="auto"
               loading="lazy"
@@ -312,6 +320,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
         </div>
       </button>
       <button
+        aria-label="Product image 6 of 6"
         class="flex-shrink-0 h-16 w-16 sm:h-20 sm:w-20 overflow-hidden bg-muted border-2 transition-colors cursor-pointer border-transparent hover:border-border"
         data-index="5"
       >
@@ -331,7 +340,7 @@ exports[`ImageGallery stories snapshot > HorizontalStrip story renders and match
               type="image/webp"
             />
             <img
-              alt="Laptop Briefcase with wheels (37L), , large (6)"
+              alt=""
               class="w-full h-full object-cover object-center"
               fetchpriority="auto"
               loading="lazy"

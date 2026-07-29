@@ -56,8 +56,7 @@ exports[`MyCart stories snapshot > Default story renders and matches snapshot 1`
                 class="items-center gap-2"
               >
                 <span
-                  aria-label="Current price: £39.67"
-                  aria-live="polite"
+                  aria-hidden="true"
                   class="[&:not(:first-child)]:mt-6 text-left text-sm font-semibold text-foreground"
                 >
                   £39.67
@@ -173,8 +172,7 @@ exports[`MyCart stories snapshot > Default story renders and matches snapshot 1`
                 class="items-center gap-2"
               >
                 <span
-                  aria-label="Current price: £374.40"
-                  aria-live="polite"
+                  aria-hidden="true"
                   class="[&:not(:first-child)]:mt-6 text-left text-sm font-semibold text-foreground"
                 >
                   £374.40
@@ -324,8 +322,7 @@ exports[`MyCart stories snapshot > SingleItem story renders and matches snapshot
                 class="items-center gap-2"
               >
                 <span
-                  aria-label="Current price: £39.67"
-                  aria-live="polite"
+                  aria-hidden="true"
                   class="[&:not(:first-child)]:mt-6 text-left text-sm font-semibold text-foreground"
                 >
                   £39.67
@@ -455,8 +452,7 @@ exports[`MyCart stories snapshot > WithPromotion story renders and matches snaps
                 class="items-center gap-2"
               >
                 <span
-                  aria-label="Current price: £34.99"
-                  aria-live="polite"
+                  aria-hidden="true"
                   class="[&:not(:first-child)]:mt-6 text-left text-sm font-semibold text-foreground"
                 >
                   £34.99
@@ -472,7 +468,7 @@ exports[`MyCart stories snapshot > WithPromotion story renders and matches snaps
                 </span>
                  
                 <span
-                  aria-label="List price: £49.99"
+                  aria-hidden="true"
                   class="font-medium text-left text-sm text-muted-foreground line-through"
                 >
                   £49.99

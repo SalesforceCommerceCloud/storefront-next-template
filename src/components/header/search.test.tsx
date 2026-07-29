@@ -120,7 +120,7 @@ describe('SearchBar Component', () => {
             expect(input.getAttribute('id')).toMatch(/^header-search-input-/);
             expect(input).toHaveAttribute('aria-autocomplete', 'list');
             expect(input).toHaveAttribute('aria-expanded', 'false');
-            expect(input).toHaveAttribute('aria-haspopup', 'listbox');
+            expect(input).toHaveAttribute('aria-haspopup', 'dialog');
         });
 
         it('should render search icon', () => {

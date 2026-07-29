@@ -8,10 +8,10 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
     class="flex items-start justify-between gap-4"
   >
     <div
-      class="pr-20 min-w-0"
+      class="sm:pr-20 min-w-0"
     >
       <h1
-        class="text-3xl font-bold text-card-foreground tracking-tight"
+        class="text-3xl font-bold text-card-foreground tracking-tight break-words"
         data-testid="product-title"
       >
         Premium Cotton T-Shirt
@@ -31,7 +31,7 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
     </div>
   </div>
   <div
-    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+    class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
   >
     <button
       aria-label="Add to Wishlist"
@@ -180,8 +180,7 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
       class="items-center gap-2"
     >
       <span
-        aria-label="Current price: £29.99"
-        aria-live="polite"
+        aria-hidden="true"
         class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
       >
         £29.99
@@ -594,7 +593,7 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
         −
       </button>
       <input
-        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         id="quantity-_r_1j_"
         min="1"
         step="1"
@@ -621,7 +620,7 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
     class="flex items-start justify-between gap-4"
   >
     <div
-      class="pr-20 min-w-0"
+      class="sm:pr-20 min-w-0"
     >
       <p
         class="mb-1 text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground"
@@ -629,7 +628,7 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
         Salesforce Apparel
       </p>
       <h1
-        class="text-3xl font-bold text-card-foreground tracking-tight"
+        class="text-3xl font-bold text-card-foreground tracking-tight break-words"
         data-testid="product-title"
       >
         Premium Cotton T-Shirt
@@ -649,7 +648,7 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
     </div>
   </div>
   <div
-    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+    class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
   >
     <button
       aria-label="Add to Wishlist"
@@ -798,8 +797,7 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
       class="items-center gap-2"
     >
       <span
-        aria-label="Current price: £29.99"
-        aria-live="polite"
+        aria-hidden="true"
         class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
       >
         £29.99
@@ -1213,7 +1211,7 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
         −
       </button>
       <input
-        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         id="quantity-_r_20_"
         min="1"
         step="1"
@@ -1240,10 +1238,10 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
     class="flex items-start justify-between gap-4"
   >
     <div
-      class="pr-20 min-w-0"
+      class="sm:pr-20 min-w-0"
     >
       <h1
-        class="text-3xl font-bold text-card-foreground tracking-tight"
+        class="text-3xl font-bold text-card-foreground tracking-tight break-words"
         data-testid="product-title"
       >
         Premium Cotton T-Shirt
@@ -1263,7 +1261,7 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
     </div>
   </div>
   <div
-    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+    class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
   >
     <button
       aria-label="Add to Wishlist"
@@ -1412,8 +1410,7 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
       class="items-center gap-2"
     >
       <span
-        aria-label="Current price: £29.99"
-        aria-live="polite"
+        aria-hidden="true"
         class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
       >
         £29.99
@@ -1829,7 +1826,7 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
         −
       </button>
       <input
-        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         id="quantity-_r_p_"
         min="1"
         step="1"
@@ -1856,7 +1853,7 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
     class="flex items-start justify-between gap-4"
   >
     <div
-      class="pr-20 min-w-0"
+      class="sm:pr-20 min-w-0"
     >
       <p
         class="mb-1 text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground"
@@ -1864,7 +1861,7 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
         Salesforce Apparel
       </p>
       <h1
-        class="text-3xl font-bold text-card-foreground tracking-tight"
+        class="text-3xl font-bold text-card-foreground tracking-tight break-words"
         data-testid="product-title"
       >
         Premium Cotton T-Shirt
@@ -1884,7 +1881,7 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
     </div>
   </div>
   <div
-    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+    class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
   >
     <button
       aria-label="Add to Wishlist"
@@ -2033,8 +2030,7 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
       class="items-center gap-2"
     >
       <span
-        aria-label="Current price: £29.99"
-        aria-live="polite"
+        aria-hidden="true"
         class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
       >
         £29.99
@@ -2448,7 +2444,7 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
         −
       </button>
       <input
-        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         id="quantity-_r_c_"
         min="1"
         step="1"
@@ -2475,10 +2471,10 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
     class="flex items-start justify-between gap-4"
   >
     <div
-      class="pr-20 min-w-0"
+      class="sm:pr-20 min-w-0"
     >
       <h1
-        class="text-3xl font-bold text-card-foreground tracking-tight"
+        class="text-3xl font-bold text-card-foreground tracking-tight break-words"
         data-testid="product-title"
       >
         Premium Cotton T-Shirt
@@ -2498,7 +2494,7 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
     </div>
   </div>
   <div
-    class="absolute top-0 right-0 flex items-center gap-2 z-10"
+    class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
   >
     <button
       aria-label="Add to Wishlist"
@@ -2647,8 +2643,7 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
       class="items-center gap-2"
     >
       <span
-        aria-label="Current price: £29.99"
-        aria-live="polite"
+        aria-hidden="true"
         class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
       >
         £29.99
@@ -3002,7 +2997,7 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
         −
       </button>
       <input
-        class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         id="quantity-_r_16_"
         min="1"
         step="1"

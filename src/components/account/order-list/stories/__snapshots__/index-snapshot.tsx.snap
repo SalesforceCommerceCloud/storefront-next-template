@@ -223,7 +223,7 @@ exports[`OrderList stories snapshot > Default story renders and matches snapshot
               class="pt-2"
             >
               <span
-                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
               >
                 View Order Details
                 <svg
@@ -361,7 +361,7 @@ exports[`OrderList stories snapshot > Default story renders and matches snapshot
               class="pt-2"
             >
               <span
-                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
               >
                 View Order Details
                 <svg
@@ -540,7 +540,7 @@ exports[`OrderList stories snapshot > Default story renders and matches snapshot
               class="pt-2"
             >
               <span
-                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
               >
                 View Order Details
                 <svg
@@ -868,7 +868,7 @@ exports[`OrderList stories snapshot > WithReturnStatus story renders and matches
               class="pt-2"
             >
               <span
-                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
               >
                 View Order Details
                 <svg
@@ -1006,7 +1006,7 @@ exports[`OrderList stories snapshot > WithReturnStatus story renders and matches
               class="pt-2"
             >
               <span
-                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+                class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
               >
                 View Order Details
                 <svg

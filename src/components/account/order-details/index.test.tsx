@@ -251,7 +251,7 @@ describe('OrderDetails', () => {
 
     test('renders Order Summary heading', () => {
         renderOrderDetails();
-        expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent(t('account:orders.orderSummary'));
+        expect(screen.getByRole('heading', { level: 2, name: t('account:orders.orderSummary') })).toBeInTheDocument();
     });
 
     test('renders OrderSummary with subtotal and order total from order', () => {

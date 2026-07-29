@@ -126,7 +126,7 @@ exports[`OrderListItem stories snapshot > Default story renders and matches snap
         class="pt-2"
       >
         <span
-          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
         >
           View Order Details
           <svg
@@ -348,7 +348,7 @@ exports[`OrderListItem stories snapshot > WithPickupLocation story renders and m
         class="pt-2"
       >
         <span
-          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
         >
           View Order Details
           <svg
@@ -501,7 +501,7 @@ exports[`OrderListItem stories snapshot > WithReturnStatus story renders and mat
         class="pt-2"
       >
         <span
-          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
         >
           View Order Details
           <svg
@@ -822,7 +822,7 @@ exports[`OrderListItem stories snapshot > WithThumbnailOverflow story renders an
         class="pt-2"
       >
         <span
-          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground hover:underline"
+          class="text-sm font-medium leading-none text-left inline-flex items-center gap-1 text-foreground underline"
         >
           View Order Details
           <svg

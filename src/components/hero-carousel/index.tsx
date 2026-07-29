@@ -458,14 +458,22 @@ const DotButton = React.memo(
         <button
             type="button"
             onClick={() => onClick(index)}
-            className={`rounded-ui transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                isActive ? 'w-8 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/75'
-            }`}
+            // The visible pip is only 8px tall, well under the 24px WCAG 2.5.8 minimum tap target.
+            // Keep the pip's look but give the button a >=24x24 hit area (min-w-6 min-h-6) with the
+            // pip centered inside as a decorative span, so the target the shopper can tap/click meets
+            // the minimum without enlarging the indicator visually.
+            className="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             role="tab"
             aria-selected={isActive}
             aria-label={`Go to slide ${index + 1} of ${totalSlides}`}
-            tabIndex={isActive ? 0 : -1}
-        />
+            tabIndex={isActive ? 0 : -1}>
+            <span
+                aria-hidden="true"
+                className={`block rounded-ui transition-all duration-300 ${
+                    isActive ? 'w-8 h-2 bg-white' : 'w-2 h-2 bg-white/50 group-hover:bg-white/75'
+                }`}
+            />
+        </button>
     )
 );
 

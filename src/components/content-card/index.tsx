@@ -44,6 +44,12 @@ interface ContentCardProps extends ComponentProps<'div'> {
     imageAlt?: string;
     buttonText?: string;
     buttonLink?: string;
+    /**
+     * Accessible name for the CTA link. Use when the visible buttonText (e.g. "Explore
+     * collection") is repeated across cards and so does not describe its own destination.
+     * WCAG 2.4.4.
+     */
+    buttonAriaLabel?: string;
     showBackground?: boolean;
     showBorder?: boolean;
     loading?: 'lazy' | 'eager';
@@ -133,6 +139,7 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
             imageAlt,
             buttonText,
             buttonLink,
+            buttonAriaLabel,
             showBackground = contentCardDefaults.showBackground,
             showBorder = contentCardDefaults.showBorder,
             loading = 'lazy',
@@ -210,7 +217,9 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                 'w-fit text-sm font-medium leading-5 text-primary-foreground',
                                 buttonClassName
                             )}>
-                            <Link to={buttonLink}>{buttonText}</Link>
+                            <Link to={buttonLink} aria-label={buttonAriaLabel}>
+                                {buttonText}
+                            </Link>
                         </Button>
                     )}
                 </div>
