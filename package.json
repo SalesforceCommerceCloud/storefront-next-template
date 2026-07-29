@@ -1,13 +1,13 @@
 {
   "name": "template-retail-rsc-app",
-  "version": "2026.8.0-dev",
+  "version": "2026.9.0-dev",
   "description": "Standalone Salesforce Commerce Cloud storefront (fashion).",
   "private": true,
   "type": "module",
   "storefrontNext": {
-    "templateRelease": "August 2026 (dev)",
-    "templateVersion": "2026.8.0-dev",
-    "minSdkVersion": "1.2.0-dev"
+    "templateRelease": "September 2026 (dev)",
+    "templateVersion": "2026.9.0-dev",
+    "minSdkVersion": "1.3.0-dev"
   },
   "scripts": {
     "dev": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && cross-env NODE_OPTIONS=--conditions=dev-data-store sfnext dev",
