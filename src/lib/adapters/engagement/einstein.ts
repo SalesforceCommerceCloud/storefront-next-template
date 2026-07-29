@@ -210,9 +210,10 @@ function convertEventToEinsteinActivity(event: AnalyticsEvent, realm: string, is
             return {
                 ...baseActivity,
                 recoId: event.recommenderId,
-                recoType: event.recommenderName,
-                // For view_recommender, we only need product IDs (not full product objects)
-                products: event.products.map((p: ShopperSearch.schemas['ProductSearchHit']) => p.productId),
+                // The Einstein `viewReco` endpoint validates `recommenderName` (not `recoType`) and
+                // requires each product as an `{ id, sku }` object, not a bare id string.
+                recommenderName: event.recommenderName,
+                products: event.products.map(mapProductSearchHitToEinstein),
             };
 
         case 'click_product_in_category':
@@ -233,7 +234,8 @@ function convertEventToEinsteinActivity(event: AnalyticsEvent, realm: string, is
             return {
                 ...baseActivity,
                 recoId: event.recommenderId,
-                recoType: event.recommenderName,
+                // Einstein `clickReco` validates `recommenderName` (not `recoType`).
+                recommenderName: event.recommenderName,
                 product: mapProductSearchHitToEinstein(event.product),
             };
 

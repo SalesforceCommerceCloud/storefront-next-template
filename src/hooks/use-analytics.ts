@@ -54,6 +54,14 @@ async function getInitializedMediator(appConfig: AppConfig): Promise<EventMediat
  * @param eventData - The event data (without user payload, as payload is added automatically)
  * @returns Promise that resolves when tracking is complete or undefined if auth/mediator is unavailable
  */
+// ⚠️ Build-time instrumentation check depends on this argument order.
+// The `eventInstrumentationValidatorPlugin` in `storefront-next-dev` finds instrumented
+// events with a regex that matches the FIRST string literal after the leading positional
+// args (`trackEvent(...≥3 non-string args..., 'event_type', ...)`). If you add or remove a
+// leading positional arg here (or move `eventType` off its position / pass it as a
+// non-literal), update that regex in
+// `packages/storefront-next-dev/src/plugins/eventInstrumentationValidator.ts` — otherwise the
+// check silently stops finding events and reports false "never instrumented" warnings.
 async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
     authPromise: Promise<SessionData | undefined>,
     appConfig: AppConfig,
@@ -148,6 +156,8 @@ export const useAnalytics = () => {
             trackViewCategory: () => {},
             trackClickProductInCategory: () => {},
             trackClickProductInSearch: () => {},
+            trackViewRecommender: () => {},
+            trackClickProductInRecommender: () => {},
             trackViewSearchSuggestions: () => {},
             trackClickSearchSuggestion: () => {},
             trackWishlistItemAdded: () => {},
@@ -221,12 +231,18 @@ export const useAnalytics = () => {
         searchResults: ShopperSearch.schemas['ProductSearchHit'][];
         sort: string;
         refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
+        offset?: number;
+        limit?: number;
+        total?: number;
     }) => {
         return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_search', {
             searchInputText: data.searchInputText,
             searchResults: data.searchResults,
             sort: data.sort || '',
             refinements: data.refinements || {},
+            offset: data.offset,
+            limit: data.limit,
+            total: data.total,
         });
     };
 
@@ -238,12 +254,18 @@ export const useAnalytics = () => {
         searchResults: ShopperSearch.schemas['ProductSearchHit'][];
         sort: string;
         refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
+        offset?: number;
+        limit?: number;
+        total?: number;
     }) => {
         return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_category', {
             category: data.category,
             searchResults: data.searchResults,
             sort: data.sort || '',
             refinements: data.refinements || {},
+            offset: data.offset,
+            limit: data.limit,
+            total: data.total,
         });
     };
 
@@ -278,6 +300,43 @@ export const useAnalytics = () => {
             searchInputText: data.searchInputText,
             product: data.product,
         });
+    };
+
+    /**
+     * Track a recommender impression (carousel scrolled into view with resolved recs)
+     */
+    const trackViewRecommender = async (data: {
+        recommenderId: string;
+        recommenderName: string;
+        products: ShopperSearch.schemas['ProductSearchHit'][];
+    }) => {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_recommender', {
+            recommenderId: data.recommenderId,
+            recommenderName: data.recommenderName,
+            products: data.products,
+        });
+    };
+
+    /**
+     * Track click on a product in a recommender carousel
+     */
+    const trackClickProductInRecommender = async (data: {
+        recommenderId: string;
+        recommenderName: string;
+        product: ShopperSearch.schemas['ProductSearchHit'];
+    }) => {
+        return trackEvent(
+            authPromiseRef.current,
+            appConfig,
+            consentPreferences,
+            siteInfo,
+            'click_product_in_recommender',
+            {
+                recommenderId: data.recommenderId,
+                recommenderName: data.recommenderName,
+                product: data.product,
+            }
+        );
     };
 
     /**
@@ -366,6 +425,8 @@ export const useAnalytics = () => {
         trackViewCategory,
         trackClickProductInCategory,
         trackClickProductInSearch,
+        trackViewRecommender,
+        trackClickProductInRecommender,
         trackViewSearchSuggestions,
         trackClickSearchSuggestion,
         trackWishlistItemAdded,

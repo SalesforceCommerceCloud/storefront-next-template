@@ -257,6 +257,9 @@ export default function SearchPage({
                                 searchResultCritical.sortingOptions?.[0]?.label ||
                                 '',
                             refinements: searchResultCritical.selectedRefinements ?? {},
+                            offset: searchResultCritical.offset,
+                            limit,
+                            total: searchResultCritical.total,
                         });
                     })
                     .catch(() => {

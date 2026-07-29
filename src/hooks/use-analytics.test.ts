@@ -432,6 +432,122 @@ describe('useAnalytics', () => {
         });
     });
 
+    describe('paging fields (FU4)', () => {
+        it('forwards offset/limit/total on trackViewSearch', async () => {
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+
+            const { result } = renderHook(() => useAnalytics());
+
+            await result.current.trackViewSearch({
+                searchInputText: 'test search',
+                searchResults: [mockSearchResult],
+                sort: 'price-asc',
+                refinements: {},
+                offset: 24,
+                limit: 12,
+                total: 100,
+            });
+
+            expect(mockAnalytics.track).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventType: 'view_search',
+                    offset: 24,
+                    limit: 12,
+                    total: 100,
+                }),
+                { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
+                mockConsentPreferences
+            );
+        });
+
+        it('forwards offset/limit/total on trackViewCategory', async () => {
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+
+            const { result } = renderHook(() => useAnalytics());
+
+            await result.current.trackViewCategory({
+                category: mockCategory,
+                searchResults: [mockSearchResult],
+                sort: 'price-asc',
+                refinements: {},
+                offset: 24,
+                limit: 12,
+                total: 100,
+            });
+
+            expect(mockAnalytics.track).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventType: 'view_category',
+                    offset: 24,
+                    limit: 12,
+                    total: 100,
+                }),
+                { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
+                mockConsentPreferences
+            );
+        });
+    });
+
+    describe('trackViewRecommender', () => {
+        it('tracks a recommender impression with recommender ids and products', async () => {
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+
+            const { result } = renderHook(() => useAnalytics());
+
+            await result.current.trackViewRecommender({
+                recommenderId: 'reco-uuid-1',
+                recommenderName: 'pdp-similar-items',
+                products: [mockSearchResult],
+            });
+
+            expect(mockAnalytics.track).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventType: 'view_recommender',
+                    recommenderId: 'reco-uuid-1',
+                    recommenderName: 'pdp-similar-items',
+                    products: [mockSearchResult],
+                    payload: {
+                        userType: 'registered',
+                        usid: 'test-usid',
+                        customerId: 'test-customer-id',
+                    },
+                }),
+                { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
+                mockConsentPreferences
+            );
+        });
+    });
+
+    describe('trackClickProductInRecommender', () => {
+        it('tracks a recommender product click with recommender ids and product', async () => {
+            vi.mocked(useAuth).mockReturnValue(mockAuth);
+
+            const { result } = renderHook(() => useAnalytics());
+
+            await result.current.trackClickProductInRecommender({
+                recommenderId: 'reco-uuid-1',
+                recommenderName: 'pdp-similar-items',
+                product: mockSearchResult,
+            });
+
+            expect(mockAnalytics.track).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventType: 'click_product_in_recommender',
+                    recommenderId: 'reco-uuid-1',
+                    recommenderName: 'pdp-similar-items',
+                    product: mockSearchResult,
+                    payload: {
+                        userType: 'registered',
+                        usid: 'test-usid',
+                        customerId: 'test-customer-id',
+                    },
+                }),
+                { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
+                mockConsentPreferences
+            );
+        });
+    });
+
     describe('trackClickProductInSearch', () => {
         it('should track product click in search with search text and product', async () => {
             vi.mocked(useAuth).mockReturnValue(mockAuth);

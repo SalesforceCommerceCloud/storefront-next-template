@@ -170,18 +170,17 @@ function buildStandardEvents(
  * per-hit product name, so this DLO field means the same thing across both sources.
  * Category browse has no query, so callers pass '' (matching PWA Kit's empty `q`).
  *
- * ponytail: `searchResultPosition` is the 0-based index within the current page's
- * hit array and `searchResultPageNumber` is hardcoded 1 — the analytics
- * `view_search`/`view_category` events carry only the current page's `searchResults`,
- * not the `offset`/`limit`/`total` PWA Kit used for global position + page number.
- * Emitting page-local values beats emitting nothing; wire the paging fields through
- * the mediator event if global pagination signal is needed in the DLO.
+ * `searchResultPosition` is the global 0-based position (`offset + index`) and
+ * `searchResultPageNumber` is `floor(offset/limit) + 1` — computed from the
+ * `offset`/`limit` threaded through the mediator event (matching the pager's own
+ * page-number formula). When paging is absent (undefined `offset`/`limit`) it
+ * falls back to page-local values (position = per-page index, page = 1).
  */
-function buildSearchResult(index: number, searchTitle: string): DataCloudEvent {
+function buildSearchResult(index: number, searchTitle: string, offset = 0, limit = 0): DataCloudEvent {
     return {
         searchResultTitle: searchTitle,
-        searchResultPosition: index,
-        searchResultPageNumber: 1,
+        searchResultPosition: offset + index,
+        searchResultPageNumber: limit > 0 ? Math.floor(offset / limit) + 1 : 1,
     };
 }
 
@@ -220,7 +219,7 @@ function buildDomainEvents(event: AnalyticsEvent, base: DataCloudEvent, webStore
             return event.searchResults.map((hit, index) => ({
                 ...base,
                 ...buildEventDetails('catalog', 'Engagement'),
-                ...buildSearchResult(index, ''),
+                ...buildSearchResult(index, '', event.offset, event.limit),
                 id: resolveProductId(hit),
                 type: 'Product',
                 webStoreId,
@@ -232,7 +231,7 @@ function buildDomainEvents(event: AnalyticsEvent, base: DataCloudEvent, webStore
             return event.searchResults.map((hit, index) => ({
                 ...base,
                 ...buildEventDetails('catalog', 'Engagement'),
-                ...buildSearchResult(index, event.searchInputText),
+                ...buildSearchResult(index, event.searchInputText, event.offset, event.limit),
                 searchResultId: crypto.randomUUID(),
                 id: resolveProductId(hit),
                 type: 'Product',

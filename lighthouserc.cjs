@@ -120,9 +120,14 @@ module.exports = {
                         //   blocks, et al.) grew the shared route chunk by ~1.4KB independently of
                         //   this feature (cosmetic mirror measured 447721). ~1.3KB headroom above
                         //   that absorbs main's drift plus run-to-run variance.
+                        //   449000 → 451000: stabilizing the recommender click handler (reading
+                        //   analytics through a ref so useCallback no longer re-creates every render,
+                        //   preserving ProductTile's memo()) added ~0.4KB to the PDP shared chunk the
+                        //   product-recommendations carousel loads (cosmetic mirror measured 449364).
+                        //   ~1.6KB headroom absorbs main's drift plus run-to-run variance.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 449000, aggregationMethod: 'median' },
+                            { maxNumericValue: 451000, aggregationMethod: 'median' },
                         ],
                         'resource-summary:document:size': [
                             'error',

@@ -459,6 +459,50 @@ describe('Data Cloud Adapter', () => {
             expect(domains[0].searchResultTitle).toBe('');
         });
 
+        it('emits global searchResultPosition/PageNumber from offset/limit (FU4)', async () => {
+            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_category',
+                    payload: registeredUser,
+                    category: { id: 'cat-123' },
+                    searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
+                    sort: '',
+                    refinements: {},
+                    offset: 24,
+                    limit: 12,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
+            // position = offset + index (global), page = floor(offset/limit)+1
+            expect(domains[0].searchResultPosition).toBe(24);
+            expect(domains[1].searchResultPosition).toBe(25);
+            expect(domains[0].searchResultPageNumber).toBe(3);
+            expect(domains[1].searchResultPageNumber).toBe(3);
+        });
+
+        it('falls back to page-local position/page when paging is absent (no regression)', async () => {
+            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_category',
+                    payload: registeredUser,
+                    category: { id: 'cat-123' },
+                    searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
+                    sort: '',
+                    refinements: {},
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
+            expect(domains[0].searchResultPosition).toBe(0);
+            expect(domains[1].searchResultPosition).toBe(1);
+            expect(domains[0].searchResultPageNumber).toBe(1);
+        });
+
         it('sends nothing when the search result list is empty (no identity-only beacon)', async () => {
             const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
             await adapter.sendEvent(
@@ -499,6 +543,28 @@ describe('Data Cloud Adapter', () => {
             expect(domain.id).toBe('hit-product-id');
             // searchResultTitle carries the query, not the product name (PWA Kit parity).
             expect(domain.searchResultTitle).toBe('shoes');
+        });
+
+        it('emits global searchResultPosition/PageNumber from offset/limit (FU4)', async () => {
+            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    payload: registeredUser,
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
+                    sort: '',
+                    refinements: {},
+                    offset: 24,
+                    limit: 12,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
+            expect(domains[0].searchResultPosition).toBe(24);
+            expect(domains[1].searchResultPosition).toBe(25);
+            expect(domains[0].searchResultPageNumber).toBe(3);
         });
 
         it('encodes a non-Latin1 search query without throwing (UTF-8 safe base64)', async () => {
