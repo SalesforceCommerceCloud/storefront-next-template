@@ -4,7 +4,8 @@
         "Declarative house-style ruleset for `restyle`. Each family maps a set of EXACT Tailwind class tokens to a single token-driven replacement. Members are literal classes, never prefix globs — so directional/arbitrary variants (rounded-t-lg, rounded-tl-sm, rounded-[2px]) and semantic shapes (rounded-full) are NEVER matched and therefore preserved.",
         "radius/shadow: rounded-full, rounded-none, shadow-none, shadow-inner are intentionally NOT members.",
         "border: the bare `border` width utility maps to `border-ui` ONLY on the files in families.border.scope.only. border-ui is Card-only per docs/README-SHAPE-TOKENS.md (--ui-border-width defaults to 0); every other primitive keeps literal border / border-2 / border-transparent / border-b. border-2, border-input, border-transparent, border-b/-t are NOT members.",
-        "imports.relativizeAliases is the storefront-ui canonical convention (ESLint there forbids @/ imports under src/components/ui). Customers who keep the shadcn @/ convention set relativizeAliases: [] in ruleset.customer.json — relative imports still resolve correctly either way."
+        "imports.relativizeAliases is the storefront-ui canonical convention (ESLint there forbids @/ imports under src/components/ui). Customers who keep the shadcn @/ convention set relativizeAliases: [] in ruleset.customer.json — relative imports still resolve correctly either way.",
+        "imports.unbundle rewrites upstream's unified `radix-ui` import to the individual `@radix-ui/react-*` packages our forks use. `toIndividual` templates the package from the EXPORT name via {kebab} (Dialog -> @radix-ui/react-dialog), so `Dialog as SheetPrimitive` resolves to react-dialog with the alias preserved. `exceptions` overrides that per export: Slot ships as a named import from @radix-ui/react-slot and its `Slot.Root` usage collapses to bare `Slot`. Idempotent — matches only the exact bare `radix-ui` specifier, never `@radix-ui/react-*`."
     ],
     "families": {
         "radius": {
@@ -34,6 +35,17 @@
     },
     "imports": {
         "relativizeAliases": ["@/"],
-        "utilsAlias": "@/lib/utils"
+        "utilsAlias": "@/lib/utils",
+        "unbundle": {
+            "package": "radix-ui",
+            "toIndividual": "@radix-ui/react-{kebab}",
+            "exceptions": {
+                "Slot": {
+                    "import": "named",
+                    "package": "@radix-ui/react-slot",
+                    "usageRewrite": { "from": "Slot.Root", "to": "Slot" }
+                }
+            }
+        }
     }
 }

@@ -184,7 +184,7 @@ export function detectAnomalies(payload, ctx) {
     if (!ctx.forkExists) {
         anomalies.push({
             type: 'missing-fork',
-            message: `no fork file for "${ctx.name}" — exists upstream but not in our set. Use \`npx shadcn add\` to introduce it (a separate customization task).`,
+            message: `no fork file for "${ctx.name}" — exists upstream but not in our set. Use \`add ${ctx.name}\` to onboard it (fork + baseline + house style in one step).`,
         });
     }
 
@@ -475,6 +475,100 @@ export function relativizeImport(specifier, fromFile, srcRoot, aliases = ['@/'])
     return specifier;
 }
 
+/**
+ * kebab-case a Radix export name for the individual-package path:
+ * `DropdownMenu` -> `dropdown-menu`, `AlertDialog` -> `alert-dialog`. The first
+ * pass splits ACRONYM|Word boundaries (defensive — no such Radix export exists
+ * today), the second splits the usual lower|Upper boundary.
+ *
+ * @param {string} name a PascalCase Radix export (e.g. `AspectRatio`)
+ * @returns {string} kebab-case (e.g. `aspect-ratio`)
+ */
+export function kebabExport(name) {
+    return name
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .toLowerCase();
+}
+
+/**
+ * Rewrite upstream's unified `radix-ui` imports to the individual
+ * `@radix-ui/react-*` packages our forks use. Two shapes:
+ *   - namespace (default): `import { Dialog as DialogPrimitive } from "radix-ui"`
+ *     -> `import * as DialogPrimitive from "@radix-ui/react-dialog"`
+ *     (member usage like `DialogPrimitive.Root` is unchanged). The package is
+ *     derived from the EXPORT name (`Dialog`), so `Dialog as SheetPrimitive`
+ *     resolves to `@radix-ui/react-dialog` with the alias preserved.
+ *   - exception (e.g. Slot): a named import from a fixed package
+ *     (`import { Slot } from "@radix-ui/react-slot"`) plus an optional
+ *     `usageRewrite` that collapses `Slot.Root` member access to bare `Slot`.
+ *
+ * NO-OP unless a bare `from "radix-ui"` import is present: the specifier is
+ * matched EXACTLY, so `@radix-ui/react-*` can never match and a second pass (or
+ * an already-individual fork) reports no edits. The `usageRewrite` body pass is
+ * gated on an exception import actually matching this pass, so bare-`Slot` forks
+ * and namespace forks are provably untouched.
+ *
+ * @param {string} content TSX source
+ * @param {{package:string, toIndividual:string, exceptions?:object}} cfg imports.unbundle
+ * @param {Array<{family:string,from:string,to:string}>} edits accumulator
+ * @returns {string}
+ */
+export function unbundleRadixImports(content, cfg, edits) {
+    const exceptions = cfg.exceptions || {};
+    const pending = new Map(); // export name -> usageRewrite (applied after imports)
+
+    // One import statement per line; `\4` forces the matching close-quote so both
+    // quote styles work, and `;?` tolerates the semicolon variance across forks.
+    // `cfg.package` is escaped — the default `radix-ui` has no metachars, but a
+    // customer override (e.g. `radix.ui`) must match literally, not as a pattern.
+    const re = new RegExp(
+        `^([ \\t]*)import(\\s+type)?\\s*\\{\\s*([^}]+?)\\s*\\}\\s*from\\s*(['"])${escapeRegExp(cfg.package)}\\4\\s*(;?)[ \\t]*$`,
+        'gm'
+    );
+
+    const out = content.replace(re, (line, indent, typeKw, clause, quote, semi) => {
+        const isType = Boolean(typeKw);
+        const emitted = [];
+        for (const raw of clause.split(',')) {
+            const m = raw.trim().match(/^([A-Za-z0-9_$]+)(?:\s+as\s+([A-Za-z0-9_$]+))?$/);
+            if (!m) return line; // unparseable clause — leave the whole line untouched
+            const exportName = m[1];
+            const alias = m[2] || exportName;
+            const exc = exceptions[exportName];
+            const typePart = isType ? 'type ' : '';
+            if (exc) {
+                emitted.push(`${indent}import ${typePart}{ ${exportName} } from ${quote}${exc.package}${quote}${semi}`);
+                if (exc.usageRewrite) pending.set(exportName, exc.usageRewrite);
+            } else {
+                const pkg = cfg.toIndividual.replace('{kebab}', kebabExport(exportName));
+                emitted.push(`${indent}import ${typePart}* as ${alias} from ${quote}${pkg}${quote}${semi}`);
+            }
+        }
+        const rewritten = emitted.join('\n');
+        if (rewritten !== line) edits.push({ family: 'unbundle', from: line, to: rewritten });
+        return rewritten;
+    });
+
+    // Body usage rewrites — only for exceptions whose import actually matched this
+    // pass. `\b...\b` keeps `MySlot.Root` / `SlotProvider` / `Slot.Rooted` safe.
+    let result = out;
+    for (const [, usage] of pending) {
+        const bodyRe = new RegExp(`\\b${escapeRegExp(usage.from)}\\b`, 'g');
+        const hits = result.match(bodyRe)?.length ?? 0;
+        if (hits > 0) {
+            result = result.replace(bodyRe, usage.to);
+            for (let h = 0; h < hits; h++) edits.push({ family: 'unbundle', from: usage.from, to: usage.to });
+        }
+    }
+    return result;
+}
+
+/** Escape a string for literal use inside a RegExp. */
+function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /** Relativize aliased specifiers in `from '...'`, `import '...'`, `import('...')`. */
 function relativizeImports(content, aliases, fromFile, srcRoot, edits) {
     return content.replace(/(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])([^'"]+)\2/g, (m, pre, q, spec) => {
@@ -486,10 +580,12 @@ function relativizeImports(content, aliases, fromFile, srcRoot, edits) {
 }
 
 /**
- * Apply the ruleset to TSX source. Rewrites className member tokens and (when
- * srcRoot/fromFile are given and the ruleset relativizes aliases) import
- * specifiers. Idempotent: replacements are never family members, so a second
- * pass reports `changed: false`.
+ * Apply the ruleset to TSX source. Rewrites className member tokens, unbundles
+ * unified `radix-ui` imports to individual `@radix-ui/react-*` packages, and
+ * (when srcRoot/fromFile are given and the ruleset relativizes aliases) import
+ * specifiers. Idempotent: replacements are never family members and the unbundle
+ * pass matches only the bare `radix-ui` specifier, so a second pass reports
+ * `changed: false`.
  *
  * @param {string} content TSX source
  * @param {object} ruleset resolved ruleset (families + imports)
@@ -511,7 +607,16 @@ export function restyleContent(content, ruleset, opts = {}) {
         if (rewritten !== original) out = out.slice(0, start) + rewritten + out.slice(end);
     }
 
-    // 2. import relativization (new-component support).
+    // 2. radix unbundle — unified `radix-ui` -> individual `@radix-ui/react-*`.
+    // Runs UNCONDITIONALLY (needs no paths): the sync clean-merge path calls this
+    // with only `{ fileBase }`, and that is exactly where a merge can reintroduce
+    // upstream's unified import — gating it behind srcRoot would silently skip it.
+    const unbundleCfg = ruleset.imports?.unbundle;
+    if (unbundleCfg?.package) {
+        out = unbundleRadixImports(out, unbundleCfg, edits);
+    }
+
+    // 3. import relativization (new-component support).
     const aliases = ruleset.imports?.relativizeAliases || [];
     if (aliases.length && opts.srcRoot && opts.fromFile) {
         out = relativizeImports(out, aliases, opts.fromFile, opts.srcRoot, edits);
@@ -609,6 +714,8 @@ const uniq = (arr) => [...new Set(arr)];
  *   - families the customer adds wholesale are included
  *   - imports.relativizeAliases UNION (then minus removeAliases)
  *   - imports.utilsAlias        customer overrides if present
+ *   - imports.unbundle          package/toIndividual override if present;
+ *                               exceptions UNION (customer wins on key collision)
  *
  * @param {object} ours shipped ruleset.json
  * @param {object} [customer] ruleset.customer.json (may be undefined/empty)
@@ -646,12 +753,26 @@ export function mergeRulesets(ours, customer) {
         (al) => !(custImp.removeAliases || []).includes(al)
     );
 
+    // Forward imports.unbundle: the customer may retarget package/toIndividual and
+    // add/override exceptions (their keys win). Without this, a customer overlay
+    // would silently DROP unbundle — breaking it for every customer/mirror repo.
+    const oursUnb = oursImp.unbundle;
+    const custUnb = custImp.unbundle;
+    const unbundle = custUnb
+        ? {
+              package: custUnb.package ?? oursUnb?.package,
+              toIndividual: custUnb.toIndividual ?? oursUnb?.toIndividual,
+              exceptions: { ...oursUnb?.exceptions, ...custUnb.exceptions },
+          }
+        : oursUnb;
+
     return {
         version: ours.version,
         families,
         imports: {
             relativizeAliases,
             utilsAlias: custImp.utilsAlias ?? oursImp.utilsAlias,
+            ...(unbundle ? { unbundle } : {}),
         },
     };
 }
@@ -762,6 +883,8 @@ function resolveContext({ packageAlias, startDir } = {}) {
         style: componentsJson.style,
         resolvedStyle: resolveStyle(componentsJson.style),
         pkgDeps: Object.keys(pkgJson.dependencies || {}),
+        // name -> version, so the manifest can pin a fork's resolved deps.
+        pkgDepVersions: pkgJson.dependencies || {},
     };
 }
 
@@ -909,14 +1032,25 @@ async function cmdSync(pkg, names, { all, bootstrap }) {
         if (bootstrap || !hasBaseline) {
             mkdirSync(pkg.baselineDir, { recursive: true });
             writeFileSync(baselineAbs, theirs);
-            manifest.components[name] = manifestEntry(upstream, file, theirsSha);
+            // resolvedDependencies come from the FORK's actual imports (the fork
+            // exists here — we `continue` above when it doesn't), not the raw
+            // baseline (which still carries the unified `radix-ui` import).
+            const { resolved, warnings } = computeResolvedDependencies(
+                pkg,
+                upstream.json.dependencies || [],
+                readFileSync(fork, 'utf8')
+            );
+            for (const w of warnings) console.log(`  ${name}: [dep-missing] ${w}`);
+            manifest.components[name] = manifestEntry(upstream, file, theirsSha, resolved);
             console.log(`  ${name}: SEEDED baseline${hasBaseline ? ' (re-seeded)' : ''} — no merge performed.`);
             report.seeded.push(name);
             continue;
         }
 
-        // Up-to-date: upstream sha matches what we last synced.
+        // Up-to-date: upstream sha matches what we last synced. Stamp the
+        // drift-check date without disturbing syncedAt (last promotion).
         if (manifest.components[name]?.contentSha256 === theirsSha) {
+            manifest.components[name].checkedAt = new Date().toISOString().slice(0, 10);
             console.log(`  ${name}: up-to-date.`);
             report.upToDate.push(name);
             continue;
@@ -953,6 +1087,86 @@ async function cmdSync(pkg, names, { all, bootstrap }) {
 
     saveManifest(pkg, manifest);
     summarize(report);
+    return report;
+}
+
+/**
+ * `add` — onboard a NEW shadcn primitive in one step: fetch from the correct
+ * `new-york-v4` path (via `pkg.resolvedStyle`, NOT the stale `new-york` that
+ * `npx shadcn add` uses), write a house-styled fork (shape tokens + radix
+ * unbundle + relativized imports), and seed the baseline from the SAME raw
+ * upstream source. Seeding fork and baseline from one fetch is what eliminates
+ * the phantom-drift seam: `status`/`diff` show only our customizations.
+ *
+ * The FORK is restyled; the BASELINE is the pristine raw upstream (unified
+ * `radix-ui`, `@/` imports) — it is the 3-way merge anchor, so `contentSha256`
+ * is the raw-upstream sha, exactly like a bootstrapped component.
+ */
+async function cmdAdd(pkg, names, { force }) {
+    if (names.length === 0) {
+        throw new Error('add requires at least one component name. e.g. `add slider`.');
+    }
+    const manifest = loadManifest(pkg);
+    const ruleset = loadRuleset();
+    const report = { added: [], skipped: [] };
+
+    for (const name of names) {
+        const fork = forkPath(pkg, name);
+        if (existsSync(fork) && !force) {
+            console.log(
+                `  ${name}: fork already exists at ${forkRel(pkg, name)} — use \`sync ${name}\` to update it, or \`add ${name} --force\` to overwrite. Skipped.`
+            );
+            report.skipped.push(name);
+            continue;
+        }
+
+        const upstream = await fetchUpstream(pkg, name);
+        if (!upstream) {
+            console.log(`  ${name}: NOT FOUND upstream (404) — not a published shadcn primitive. Skipped.`);
+            report.skipped.push(name);
+            continue;
+        }
+
+        const file = extractPrimaryFile(upstream.json, name);
+        const theirs = normalizeContent(file.content);
+        const theirsSha = sha256(theirs);
+        // Report (don't block on) multi-file / renamed / new-dependency anomalies.
+        for (const a of detectAnomalies(upstream.json, { name, forkExists: true, pkgDeps: pkg.pkgDeps })) {
+            console.log(`  ${name}: [${a.type}] ${a.message}`);
+        }
+
+        // FORK: apply house style. Relativize only where the `@/` alias does not
+        // resolve (the storefront-ui convention); keep `@/` in customer/mirror repos.
+        const { content: forked, edits } = restyleContent(theirs, ruleset, {
+            fileBase: name,
+            ...(pkg.relativizeImports ? { srcRoot: pkg.srcRoot, fromFile: fork } : {}),
+        });
+        mkdirSync(pkg.uiDir, { recursive: true });
+        writeFileSync(fork, forked);
+
+        // BASELINE: the raw upstream, untouched (the pristine merge anchor).
+        mkdirSync(pkg.baselineDir, { recursive: true });
+        writeFileSync(baselinePath(pkg, name), theirs);
+
+        const { resolved, warnings } = computeResolvedDependencies(pkg, upstream.json.dependencies || [], forked);
+        for (const w of warnings) console.log(`  ${name}: [dep-missing] ${w}`);
+        manifest.components[name] = manifestEntry(upstream, file, theirsSha, resolved);
+
+        const note = edits.length ? ` (restyled ${edits.length} token(s))` : '';
+        console.log(
+            `  ${name}: ADDED fork + baseline${note} — review ${forkRel(pkg, name)}, run \`pnpm lint && pnpm typecheck\`.`
+        );
+        report.added.push(name);
+    }
+
+    saveManifest(pkg, manifest);
+    const parts = [];
+    if (report.added.length) parts.push(`${report.added.length} added`);
+    if (report.skipped.length) parts.push(`${report.skipped.length} skipped`);
+    console.log(`\n${parts.join(', ') || 'nothing to do'}.`);
+    if (report.added.length) {
+        console.log('Next: verify with `pnpm lint && pnpm typecheck`, then commit the fork + baseline together.');
+    }
     return report;
 }
 
@@ -1181,7 +1395,14 @@ async function cmdAdvance(pkg, names, { all }) {
         const theirs = normalizeContent(file.content);
         mkdirSync(pkg.baselineDir, { recursive: true });
         writeFileSync(baselinePath(pkg, name), theirs);
-        manifest.components[name] = manifestEntry(upstream, file, sha256(theirs));
+        // Re-derive resolvedDependencies from the (post-restyle) fork's imports.
+        const { resolved, warnings } = computeResolvedDependencies(
+            pkg,
+            upstream.json.dependencies || [],
+            edits.length ? normalized : forkContent
+        );
+        for (const w of warnings) console.log(`  ${name}: [dep-missing] ${w}`);
+        manifest.components[name] = manifestEntry(upstream, file, sha256(theirs), resolved);
         console.log(`  ${name}: baseline advanced to current upstream.`);
         advanced++;
     }
@@ -1238,14 +1459,60 @@ async function cmdStatus(pkg) {
 // Small formatting helpers
 // ---------------------------------------------------------------------------
 
-function manifestEntry(upstream, file, contentSha256) {
+/**
+ * Build a per-component manifest record.
+ * - `dependencies`         raw upstream dep names (e.g. `["radix-ui"]`) — the
+ *                          upstream-declared signal, unchanged.
+ * - `resolvedDependencies` the fork's actual packages -> installed versions
+ *                          (e.g. `{ "@radix-ui/react-slot": "1.2.3" }`), so the
+ *                          manifest pins what our fork ships, not just names.
+ * - `syncedAt`             last promotion (seed / advance / add).
+ * - `checkedAt`            last drift-check (also stamped by sync's up-to-date path).
+ */
+function manifestEntry(upstream, file, contentSha256, resolvedDependencies = {}) {
+    const today = new Date().toISOString().slice(0, 10);
     return {
         url: upstream.url,
         contentSha256,
-        syncedAt: new Date().toISOString().slice(0, 10),
+        syncedAt: today,
+        checkedAt: today,
         files: (upstream.json.files || []).map((f) => f.path),
         dependencies: upstream.json.dependencies || [],
+        resolvedDependencies,
     };
+}
+
+/**
+ * Map a component's raw upstream deps to the fork's actual packages + installed
+ * versions. Raw `radix-ui` expands to the concrete `@radix-ui/react-*` packages
+ * the (post-unbundle) fork imports — authoritative, so it handles sheet
+ * (`@radix-ui/react-dialog`) and form (two packages) correctly. Every other raw
+ * dep keeps its name. A package with no version in package.json is reported as a
+ * warning (the dependency-consistency check).
+ *
+ * @param {object} pkg resolved context (uses `pkgDepVersions`)
+ * @param {string[]} upstreamDeps raw upstream dependency names
+ * @param {string} forkContent the restyled fork source
+ * @returns {{resolved: Record<string,string>, warnings: string[]}}
+ */
+export function computeResolvedDependencies(pkg, upstreamDeps, forkContent) {
+    const versions = pkg.pkgDepVersions || {};
+    const resolved = {};
+    const warnings = [];
+    const radixPkgs = [...forkContent.matchAll(/from\s*['"](@radix-ui\/[^'"]+)['"]/g)].map((m) => m[1]);
+    for (const dep of upstreamDeps) {
+        if (dep === 'radix-ui') {
+            for (const p of uniq(radixPkgs)) {
+                if (versions[p]) resolved[p] = versions[p];
+                else warnings.push(`fork imports ${p} but it is not in package.json`);
+            }
+        } else if (versions[dep]) {
+            resolved[dep] = versions[dep];
+        } else {
+            warnings.push(`upstream dep ${dep} is not in package.json`);
+        }
+    }
+    return { resolved, warnings };
 }
 
 function forkRel(pkg, name) {
@@ -1279,6 +1546,7 @@ export function parseArgs(argv) {
         bootstrap: false,
         check: false,
         emit: false,
+        force: false,
         path: undefined,
         package: DEFAULT_PACKAGE,
     };
@@ -1288,6 +1556,7 @@ export function parseArgs(argv) {
         else if (arg === '--bootstrap') opts.bootstrap = true;
         else if (arg === '--check') opts.check = true;
         else if (arg === '--emit') opts.emit = true;
+        else if (arg === '--force') opts.force = true;
         else if (arg === '--path') opts.path = rest[++i];
         else if (arg.startsWith('--path=')) opts.path = arg.slice('--path='.length);
         else if (arg === '--package') opts.package = rest[++i];
@@ -1302,8 +1571,8 @@ async function main() {
     const { command, names, opts } = parseArgs(process.argv.slice(2));
     if (!command || command === 'help' || command === '--help') {
         console.log(
-            'Usage: sync.mjs <sync|restyle|infer|diff|advance|status> [names...|--all] ' +
-                '[--path <file|dir>] [--package <pkg>] [--bootstrap] [--check] [--emit]'
+            'Usage: sync.mjs <add|sync|restyle|infer|diff|advance|status> [names...|--all] ' +
+                '[--path <file|dir>] [--package <pkg>] [--bootstrap] [--check] [--emit] [--force]'
         );
         return;
     }
@@ -1319,6 +1588,9 @@ async function main() {
     });
 
     switch (command) {
+        case 'add':
+            await cmdAdd(pkg, names, opts);
+            break;
         case 'sync':
             await cmdSync(pkg, names, opts);
             break;
