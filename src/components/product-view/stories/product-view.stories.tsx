@@ -179,6 +179,9 @@ export const Playground: StoryWithSynthetic = {
  * not just stylistic.
  */
 export const MissingImages: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         product: {
             ...mockStandardProductOrderable.product,
@@ -193,6 +196,9 @@ export const MissingImages: Story = {
  * rather than a Controls toggle.
  */
 export const OutOfStock: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         product: {
             ...mockStandardProductOrderable.product,

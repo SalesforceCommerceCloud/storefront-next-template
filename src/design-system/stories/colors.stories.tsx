@@ -278,7 +278,7 @@ const meta: Meta = {
             },
         },
     },
-    tags: ['autodocs', 'chromatic-core'],
+    tags: ['autodocs'],
 };
 
 export default meta;

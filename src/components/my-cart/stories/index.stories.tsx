@@ -216,6 +216,9 @@ export const SingleItem: Story = {
  * simply renders empty.
  */
 export const EmptyBasket: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     render: () => (
         <MyCart
             basket={{ ...checkoutWithMultipleItems.cart, productItems: [] } as never}

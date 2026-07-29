@@ -15,7 +15,13 @@
  */
 
 /**
- * Runs Chromatic on stories tagged with 'chromatic-core'.
+ * Runs Chromatic on a Storybook build that contains ONLY the stories tagged
+ * `chromatic-core`.
+ *
+ * Sets CHROMATIC_CORE_ONLY=true so .storybook/main.ts narrows its `stories` glob to
+ * the tagged files. Untagged stories never enter the build, so there is nothing to
+ * snapshot as TurboSnap noise — keeping snapshot counts within the Chromatic free
+ * tier. (To simply view every story locally, use `pnpm storybook` instead.)
  *
  * Usage:
  *   node scripts/chromatic-core.js [chromatic-args]
@@ -25,49 +31,18 @@
  */
 
 import { execSync } from 'child_process';
-import { readdirSync, readFileSync, statSync } from 'fs';
 import path, { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { findCoreStoryFiles } from './core-story-files.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
-// Recursively find all story files
-function findStoryFiles(dir, fileList = []) {
-    const files = readdirSync(dir);
+// Find every story file tagged `chromatic-core` (shared with .storybook/main.ts).
+const coreStoryFiles = findCoreStoryFiles(rootDir);
 
-    for (const file of files) {
-        const filePath = join(dir, file);
-        const stat = statSync(filePath);
-
-        if (stat.isDirectory()) {
-            if (file !== 'node_modules' && file !== '.git' && file !== 'dist') {
-                findStoryFiles(filePath, fileList);
-            }
-        } else if (file.endsWith('.stories.ts') || file.endsWith('.stories.tsx')) {
-            fileList.push(filePath);
-        }
-    }
-
-    return fileList;
-}
-
-// Find all story files
-const storyFiles = findStoryFiles(join(rootDir, 'src'));
-
-// Match 'chromatic-core' / "chromatic-core" inside a `tags: [...]` array on the meta
-// object — avoids false positives from comments or unrelated string literals.
-const CORE_TAG_REGEX = /tags:\s*\[[^\]]*['"]chromatic-core['"][^\]]*\]/;
-
-const coreStoryFiles = [];
-
-for (const file of storyFiles) {
-    const content = readFileSync(file, 'utf-8');
-
-    if (CORE_TAG_REGEX.test(content)) {
-        coreStoryFiles.push(file);
-        console.log(`✓ Found core story: ${path.relative(rootDir, file)}`);
-    }
+for (const file of coreStoryFiles) {
+    console.log(`✓ Found core story: ${path.relative(rootDir, file)}`);
 }
 
 if (coreStoryFiles.length === 0) {
@@ -75,21 +50,37 @@ if (coreStoryFiles.length === 0) {
     process.exit(1);
 }
 
-console.log(`\n📊 Found ${coreStoryFiles.length} core stories\n`);
+console.log(`\n📊 Building Storybook with ONLY these ${coreStoryFiles.length} core stories (no TurboSnap)\n`);
 
-// Build Chromatic command using --only-story-files since we have actual file paths
-const storyFileArgs = coreStoryFiles.map((file) => `--only-story-files="${path.relative(rootDir, file)}"`).join(' ');
-
-// Get any additional args passed to this script
+// Get any additional args passed to this script.
 const additionalArgs = process.argv.slice(2).join(' ');
 
-const command = `chromatic --build-script-name=storybook:build ${storyFileArgs} --exit-zero-on-changes ${additionalArgs}`;
+// `--exit-zero-on-changes` keeps this script non-blocking: a visual diff is
+// reported but the process still exits 0. This is deliberate so LOCAL runs stay
+// developer-friendly — iterating on a component shouldn't fail your shell just
+// because a snapshot moved.
+//
+// Do NOT remove this flag to create a CI "hard gate" (a merge-blocking check).
+// Deleting it here would also break local iteration, since local and CI share
+// this one command. Enforce a hard gate strictly at the workflow level instead —
+// e.g. drop the flag only in the CI `run:` step, or (preferred) mark the native
+// Chromatic "UI Tests" status as required via branch-protection rules. That keeps
+// the local/CI postures independent.
+//
+// The build is already scoped by CHROMATIC_CORE_ONLY, so no --only-story-files needed.
+const command = `chromatic --build-script-name=storybook:build --exit-zero-on-changes ${additionalArgs}`;
 
-console.log('Running Chromatic with core story files...\n');
+console.log('Running Chromatic against the scoped build...\n');
 console.log(`Command: ${command}\n`);
 
 try {
-    execSync(command, { stdio: 'inherit', cwd: rootDir });
+    // CHROMATIC_CORE_ONLY is read by .storybook/main.ts to narrow its `stories` glob.
+    // Inherited by the storybook:build child process spawned by the chromatic CLI.
+    execSync(command, {
+        stdio: 'inherit',
+        cwd: rootDir,
+        env: { ...process.env, CHROMATIC_CORE_ONLY: 'true' },
+    });
 } catch (error) {
     process.exit(error.status || 1);
 }

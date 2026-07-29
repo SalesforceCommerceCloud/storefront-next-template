@@ -196,6 +196,9 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
  * (no tiles, just one centered message).
  */
 export const EmptyState: StoryObj<typeof ProductGrid> = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         critical: [],
         nonCritical: [],
@@ -243,6 +246,9 @@ export const WithPickupAvailable: StoryObj<typeof ProductGrid> = {
  * rely on.
  */
 export const Loading: StoryObj<typeof ProductGrid> = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         critical: ALL_PRODUCTS.slice(0, 2),
         nonCritical: ALL_PRODUCTS.slice(2, 8),
