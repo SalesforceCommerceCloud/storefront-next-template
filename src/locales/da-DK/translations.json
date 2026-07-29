@@ -596,6 +596,7 @@
             "hero": {
                 "thankYou": "Tak, {{name}}!",
                 "orderConfirmed": "Din ordre er bekræftet.",
+                "statusAnnouncement": "Din ordre er bekræftet. Ordrenummer {{orderNo}}.",
                 "emailConfirmation": "Vi har sendt en bekræftelsesmail til {{email}}.",
                 "needHelp": "Har du brug for hjælp?",
                 "defaultName": "Kunde",

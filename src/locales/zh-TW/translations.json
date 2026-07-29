@@ -598,6 +598,7 @@
             "hero": {
                 "thankYou": "謝謝，{{name}}！",
                 "orderConfirmed": "已確認您的訂單。",
+                "statusAnnouncement": "已確認您的訂單。訂單編號為 {{orderNo}}。",
                 "emailConfirmation": "我們已傳送確認電子郵件至 {{email}}。",
                 "needHelp": "是否需要協助？",
                 "defaultName": "客戶",

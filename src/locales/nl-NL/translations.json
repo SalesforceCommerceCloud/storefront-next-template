@@ -595,6 +595,7 @@
             "hero": {
                 "thankYou": "Bedankt, {{name}}!",
                 "orderConfirmed": "Je order is bevestigd.",
+                "statusAnnouncement": "Je order is bevestigd. Ordernummer {{orderNo}}.",
                 "emailConfirmation": "We hebben een e-mail met de bevestiging gestuurd naar {{email}}",
                 "needHelp": "Hulp nodig?",
                 "defaultName": "Klant",

@@ -602,6 +602,7 @@
             "hero": {
                 "thankYou": "Merci, {{name}} !",
                 "orderConfirmed": "Votre commande est confirmée.",
+                "statusAnnouncement": "Votre commande est confirmée. Numéro de commande {{orderNo}}.",
                 "emailConfirmation": "Nous avons envoyé un e-mail de confirmation à {{email}}.",
                 "needHelp": "Besoin d’aide ?",
                 "defaultName": "Client",

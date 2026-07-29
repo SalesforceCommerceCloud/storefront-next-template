@@ -645,6 +645,7 @@
             "hero": {
                 "thankYou": "Grazie, {{name}}!",
                 "orderConfirmed": "L'ordine è confermato.",
+                "statusAnnouncement": "L'ordine è confermato. Numero ordine {{orderNo}}.",
                 "emailConfirmation": "Abbiamo inviato un'e-mail di conferma a {{email}}.",
                 "needHelp": "Serve aiuto?",
                 "defaultName": "Cliente",

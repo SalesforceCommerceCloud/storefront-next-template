@@ -601,6 +601,7 @@
             "hero": {
                 "thankYou": "{{name}}，谢谢！ ",
                 "orderConfirmed": "您的订单已确认。",
+                "statusAnnouncement": "您的订单已确认。订单编号为 {{orderNo}}。",
                 "emailConfirmation": "我们已将确认电子邮件发送至 {{email}}。",
                 "needHelp": "需要帮助吗？",
                 "defaultName": "顾客",

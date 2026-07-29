@@ -464,6 +464,12 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
             +
           </button>
         </div>
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          id="quantity-_r_3_-inventory-msg"
+          role="status"
+        />
       </div>
     </div>
   </div>

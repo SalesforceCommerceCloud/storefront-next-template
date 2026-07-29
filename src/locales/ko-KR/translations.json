@@ -596,6 +596,7 @@
             "hero": {
                 "thankYou": "{{name}} 님, 감사합니다!",
                 "orderConfirmed": "주문이 확인되었습니다.",
+                "statusAnnouncement": "주문이 확인되었습니다. 주문 번호는 {{orderNo}}입니다.",
                 "emailConfirmation": "{{email}}(으)로 확인 이메일을 보냈습니다.",
                 "needHelp": "도움이 필요하신가요?",
                 "defaultName": "고객",

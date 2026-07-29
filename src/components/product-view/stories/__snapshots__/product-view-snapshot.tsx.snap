@@ -550,6 +550,12 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
                 +
               </button>
             </div>
+            <div
+              aria-atomic="true"
+              aria-live="polite"
+              id="quantity-_r_n_-inventory-msg"
+              role="status"
+            />
           </div>
         </div>
         <div
@@ -1052,14 +1058,18 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
                 +
               </button>
             </div>
-            <p
+            <div
+              aria-atomic="true"
               aria-live="polite"
-              class="text-sm leading-none text-left text-destructive font-medium"
               id="quantity-_r_11_-inventory-msg"
-              role="alert"
+              role="status"
             >
-              Out of stock for Men's Classic Deer Gloves
-            </p>
+              <p
+                class="text-sm leading-none text-left text-destructive font-medium"
+              >
+                Out of stock for Men's Classic Deer Gloves
+              </p>
+            </div>
           </div>
         </div>
         <div
@@ -1681,6 +1691,12 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
                 +
               </button>
             </div>
+            <div
+              aria-atomic="true"
+              aria-live="polite"
+              id="quantity-_r_b_-inventory-msg"
+              role="status"
+            />
           </div>
         </div>
         <div

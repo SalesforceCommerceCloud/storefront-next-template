@@ -598,6 +598,7 @@
             "hero": {
                 "thankYou": "Gracias, {{name}}!",
                 "orderConfirmed": "Tu pedido está confirmado.",
+                "statusAnnouncement": "Tu pedido está confirmado. Número de pedido {{orderNo}}.",
                 "emailConfirmation": "Hemos enviado un correo electrónico de confirmación a {{email}}.",
                 "needHelp": "¿Necesita ayuda?",
                 "defaultName": "Cliente",

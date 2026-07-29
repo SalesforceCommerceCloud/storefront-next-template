@@ -203,7 +203,12 @@ describe('WishlistPageContent', () => {
             const selects = screen.getAllByRole('combobox');
             fireEvent.change(selects[1], { target: { value: 'on-sale' } });
 
-            expect(screen.getByText(t('account:wishlist.noFilterResults'))).toBeInTheDocument();
+            // The message renders in two places by design: the sr-only status region
+            // (announced to screen readers) and the aria-hidden centered placeholder
+            // (shown to sighted users). This test covers the visible placeholder; the
+            // status-region announcement is covered in the accessibility block below.
+            const matches = screen.getAllByText(t('account:wishlist.noFilterResults'));
+            expect(matches.some((el) => el.closest('[aria-hidden="true"]'))).toBe(true);
         });
     });
 
@@ -245,6 +250,49 @@ describe('WishlistPageContent', () => {
             expect(itemElements[0]).toHaveAttribute('data-testid', 'wishlist-item-item-2');
             expect(itemElements[1]).toHaveAttribute('data-testid', 'wishlist-item-item-1');
             expect(itemElements[2]).toHaveAttribute('data-testid', 'wishlist-item-item-3');
+        });
+    });
+
+    describe('accessibility - result status announcement', () => {
+        // A screen reader only announces text written into a live region that was
+        // ALREADY present (empty or with prior text) when the region was observed.
+        // The wishlist result summary (item count / no-results) changes in response
+        // to shopper actions (remove, filter), so it must live in a persistent
+        // aria-live region rather than mounting freshly with its text already set.
+        // Regression guard for W-23325748.
+
+        test('keeps a persistent polite status region carrying the item-count summary', () => {
+            render(<WishlistPageContent items={allItems} productsByProductId={allProducts} />);
+
+            const region = screen.getByRole('status');
+            expect(region).toHaveAttribute('aria-live', 'polite');
+            expect(region).toHaveAttribute('aria-atomic', 'true');
+            expect(region).toHaveTextContent(t('account:wishlist.itemCount', { count: 3 }));
+        });
+
+        test('updates the status region text when an item is removed', () => {
+            render(<WishlistPageContent items={allItems} productsByProductId={allProducts} />);
+
+            const region = screen.getByRole('status');
+            expect(region).toHaveTextContent(t('account:wishlist.itemCount', { count: 3 }));
+
+            fireEvent.click(screen.getByTestId('remove-btn-item-1'));
+
+            // Same region node now carries the new count (empty-first transition preserved).
+            expect(screen.getByRole('status')).toHaveTextContent(t('account:wishlist.itemCount', { count: 2 }));
+        });
+
+        test('announces the no-results state through the status region when a filter empties the list', () => {
+            mockGetPriceData.mockReturnValue({ isOnSale: false });
+
+            render(
+                <WishlistPageContent items={[allItems[0]]} productsByProductId={{ 'prod-in-stock': inStockProduct }} />
+            );
+
+            const selects = screen.getAllByRole('combobox');
+            fireEvent.change(selects[1], { target: { value: 'on-sale' } });
+
+            expect(screen.getByRole('status')).toHaveTextContent(t('account:wishlist.noFilterResults'));
         });
     });
 

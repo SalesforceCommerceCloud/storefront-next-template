@@ -66,6 +66,29 @@ describe('AuthorizedPickupPeople', () => {
         });
     });
 
+    describe('accessibility - informational note is not announced assertively', () => {
+        // The ID note is static, non-urgent guidance. It must not sit in an assertive
+        // live region (role="alert"), which a screen reader would announce on load,
+        // interrupting the user. It should be a passive note instead. Guard for W-23325763.
+
+        test('presents the ID note as a passive note, not an alert', () => {
+            renderComponent();
+
+            const note = screen.getByText(
+                /Authorised pickup people will need to show a valid ID matching the name on file when picking up orders/i
+            );
+            const container = note.closest('[data-slot="alert"]');
+
+            expect(container).not.toBeNull();
+            expect(container).toHaveAttribute('role', 'note');
+        });
+
+        test('renders no assertive alert region on the page', () => {
+            renderComponent();
+            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        });
+    });
+
     describe('Add Authorized Person modal', () => {
         test('opens modal when Add Person is clicked', async () => {
             const user = userEvent.setup();

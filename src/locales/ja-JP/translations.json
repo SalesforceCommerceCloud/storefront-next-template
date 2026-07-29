@@ -600,6 +600,7 @@
             "hero": {
                 "thankYou": "ありがとうございます、{{name}} さん!",
                 "orderConfirmed": "ご注文が確定しました。",
+                "statusAnnouncement": "ご注文が確定しました。注文番号は {{orderNo}} です。",
                 "emailConfirmation": "{{email}} に確認メールを送信しました。",
                 "needHelp": "お困りですか? ",
                 "defaultName": "顧客",

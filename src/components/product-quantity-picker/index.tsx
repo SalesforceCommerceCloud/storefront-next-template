@@ -125,16 +125,19 @@ export default function ProductQuantityPicker({
                 disabled={disabled}
                 aria-describedby={inventoryMessage ? inventoryMessageId : undefined}
             />
-            {inventoryMessage && (
-                <Typography
-                    id={inventoryMessageId}
-                    variant="small"
-                    className="text-destructive font-medium"
-                    role="alert"
-                    aria-live="polite">
-                    {inventoryMessage}
-                </Typography>
-            )}
+            {/* Inventory message.
+                The live region stays mounted and empty when there is no message, so a screen
+                reader observes the empty→filled transition and announces the warning when the
+                requested quantity crosses the stock threshold. A region that only mounts once
+                it already holds text is silent. Matches the InventoryMessage pattern.
+                The id is the aria-describedby target for the picker input above. */}
+            <div id={inventoryMessageId} role="status" aria-live="polite" aria-atomic="true">
+                {inventoryMessage && (
+                    <Typography variant="small" className="text-destructive font-medium">
+                        {inventoryMessage}
+                    </Typography>
+                )}
+            </div>
         </div>
     );
 }

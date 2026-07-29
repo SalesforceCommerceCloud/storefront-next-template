@@ -670,6 +670,61 @@ describe('Order Confirmation Route', () => {
         });
     });
 
+    describe('accessibility - status announcement', () => {
+        // A screen reader only announces content written into a live region that was already
+        // present (empty) when the region was observed. The confirmation content mounts inside
+        // an <Await> boundary already holding the "order confirmed" copy, so on its own it is
+        // never announced. A persistent region must exist from first paint (through the Suspense
+        // fallback) and be filled once the order resolves — the empty→filled transition an SR
+        // needs. Regression guard for W-23325712.
+        test('keeps a polite status region mounted and empty while the order is still loading', async () => {
+            // Hold orderData pending so the page sits in its Suspense fallback, then assert the
+            // live region is already in the DOM and empty. The region must exist ahead of the
+            // content (it must not mount together with its text) or a screen reader stays silent.
+            let resolveOrder: (data: unknown) => void = () => {};
+            const pendingOrder = new Promise<unknown>((resolve) => {
+                resolveOrder = resolve;
+            });
+
+            const Stub = createRoutesStub([
+                {
+                    path: '/order-confirmation/:orderNo',
+                    Component: OrderConfirmationPage,
+                    HydrateFallback: () => null,
+                    loader: () => ({
+                        orderData: pendingOrder,
+                        showPostOrderRegistration: false,
+                    }),
+                },
+            ]);
+
+            render(
+                <AllProvidersWrapper>
+                    <Stub initialEntries={['/order-confirmation/PENDING']} />
+                </AllProvidersWrapper>
+            );
+
+            // While the order is still loading (skeleton showing), the region exists and is empty.
+            const region = await screen.findByRole('status');
+            expect(region).toHaveAttribute('aria-live', 'polite');
+            expect(region).toHaveAttribute('aria-atomic', 'true');
+            expect(region).toHaveTextContent('');
+
+            // Let the deferred promise settle so the test doesn't leak a pending microtask.
+            resolveOrder({ order: baseOrder, productsById: {}, storesByStoreId: new Map() });
+        });
+
+        test('announces the order-confirmed status once the order resolves', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent(
+                    t('checkout:confirmation.hero.statusAnnouncement', { orderNo: baseOrder.orderNo })
+                );
+            });
+        });
+    });
+
     describe('accessibility - list markup', () => {
         test('renders product items as semantic list with role="list"', async () => {
             const order: ShopperOrders.schemas['Order'] = {

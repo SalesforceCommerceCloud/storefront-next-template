@@ -293,7 +293,9 @@ export default function AuthorizedPickupPeople(): ReactElement {
                         </ul>
                     )}
 
-                    <Alert className="border-border bg-muted/60 [&>svg]:text-primary" variant="default">
+                    {/* Static guidance, not live feedback: use a passive note role so a
+                        screen reader does not announce it assertively on page load. */}
+                    <Alert role="note" className="border-border bg-muted/60 [&>svg]:text-primary" variant="default">
                         <InfoIcon className="size-4" aria-hidden />
                         <AlertDescription className="text-xs">
                             {t('storePreferences.authorizedPickupPeople.idNote')}
@@ -440,7 +442,12 @@ export default function AuthorizedPickupPeople(): ReactElement {
                                 )}
                             />
 
-                            <Alert className="border-border bg-muted/60 [&>svg]:text-primary" variant="default">
+                            {/* Static guidance, not live feedback: use a passive note role so a
+                                screen reader does not announce it assertively when the dialog opens. */}
+                            <Alert
+                                role="note"
+                                className="border-border bg-muted/60 [&>svg]:text-primary"
+                                variant="default">
                                 <InfoIcon className="size-4" aria-hidden />
                                 <AlertDescription className="text-xs">
                                     {t('storePreferences.authorizedPickupPeople.modal.modalNote')}

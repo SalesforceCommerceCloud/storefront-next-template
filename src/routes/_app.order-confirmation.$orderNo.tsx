@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Fragment, type ReactElement, Suspense, useEffect, useId } from 'react';
+import { Fragment, type ReactElement, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { UITarget } from '@/targets/ui-target';
 import AddressDisplay from '@/components/address-display';
 import { Await, useFetcher, useParams, useRouteError } from 'react-router';
@@ -647,6 +647,44 @@ function OrderConfirmationContent({
 }
 
 /**
+ * Fires once the order has resolved to fill the confirmation live region. Renders nothing.
+ * The region itself lives on the page (mounted before this resolves), so writing the text here
+ * gives a screen reader the empty→filled transition it needs to announce the confirmation.
+ * @param orderNo - The confirmed order number, spoken as part of the announcement
+ * @param onAnnounce - Writes the announcement into the page-level live region, keyed by orderNo
+ *                     so a revalidation of the same order stays silent
+ */
+function OrderConfirmedAnnouncer({
+    orderNo,
+    onAnnounce,
+}: {
+    orderNo?: string;
+    onAnnounce: (orderNo: string, message: string) => void;
+}): null {
+    const { t } = useTranslation('checkout');
+
+    useEffect(() => {
+        const key = orderNo ?? '';
+        const message = t('confirmation.hero.statusAnnouncement', { orderNo: key });
+        // Write the text on the frame after the region has painted empty, so a screen reader
+        // observes the empty→filled transition. Filling it synchronously with the region's
+        // first paint is silent. Two frames are used because the region mounts a frame ahead
+        // of this announcer (it lives outside the Suspense boundary), and rAF sidesteps the
+        // arbitrary timer the old fixed delay relied on.
+        let inner = 0;
+        const outer = requestAnimationFrame(() => {
+            inner = requestAnimationFrame(() => onAnnounce(key, message));
+        });
+        return () => {
+            cancelAnimationFrame(outer);
+            cancelAnimationFrame(inner);
+        };
+    }, [orderNo, onAnnounce, t]);
+
+    return null;
+}
+
+/**
  * Order confirmation page component that wraps the content with Suspense and Await.
  * This component follows the React Router v7 pattern for handling deferred data with Suspense.
  * @param loaderData - The loader data containing the combined order data promise
@@ -659,16 +697,40 @@ export default function OrderConfirmationPage({
 }): ReactElement {
     const { t } = useTranslation('checkout');
 
+    // The confirmation content mounts inside <Await> already holding the "order confirmed" copy,
+    // so on its own it is never announced. This region is mounted from first paint (through the
+    // Suspense fallback) and stays empty until the order resolves, at which point the announcer
+    // below fills it — the empty→filled transition a screen reader needs to speak the status.
+    const [announcement, setAnnouncement] = useState('');
+    // Track the order already announced. A revalidation re-resolves the same order and must
+    // stay silent, but navigating to a different order (new orderNo, no remount) must announce
+    // again — keying on orderNo rather than a one-shot boolean gives both.
+    const announcedOrderRef = useRef<string | null>(null);
+
+    const announce = useCallback((orderNo: string, message: string) => {
+        if (announcedOrderRef.current === orderNo) {
+            return;
+        }
+        announcedOrderRef.current = orderNo;
+        setAnnouncement(message);
+    }, []);
+
     return (
         <>
             <SeoMeta title={t('meta.confirmationTitle', { defaultValue: 'Order Confirmation' })} noIndex />
+            <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                {announcement}
+            </div>
             <Suspense fallback={<OrderSkeleton />}>
                 <Await resolve={loaderData.orderData}>
                     {(data) => (
-                        <OrderConfirmationContent
-                            {...data}
-                            showPostOrderRegistration={loaderData.showPostOrderRegistration}
-                        />
+                        <>
+                            <OrderConfirmedAnnouncer orderNo={data.order.orderNo} onAnnounce={announce} />
+                            <OrderConfirmationContent
+                                {...data}
+                                showPostOrderRegistration={loaderData.showPostOrderRegistration}
+                            />
+                        </>
                     )}
                 </Await>
             </Suspense>
