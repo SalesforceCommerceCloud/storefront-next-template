@@ -119,7 +119,7 @@ export default function LoadMore({
                         ? t('loadMore.loading', { defaultValue: 'Loading…' })
                         : hasError
                           ? t('loadMore.retry', { defaultValue: 'Try again' })
-                          : t('loadMore.button', { defaultValue: 'Load more' })}
+                          : t('loadMore.button', { defaultValue: 'Load More' })}
                 </Button>
             )}
         </div>

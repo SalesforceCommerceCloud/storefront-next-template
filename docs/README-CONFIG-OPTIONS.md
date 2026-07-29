@@ -1275,6 +1275,29 @@ PUBLIC__app__search__products__hits__critical=4
 
 ---
 
+### uiConfig.pages.category.pagination
+
+Controls how the product listing page (PLP) paginates its results. Configured in `src/lib/config.ui.ts`.
+
+- **`mode`** — `'load-more'` | `'traditional'` (default: `'load-more'`). `'load-more'` shows a "Load More" button that appends products below the grid without a page reload. `'traditional'` uses numbered prev/next pagination that navigates the URL and reloads the page.
+- **`batchSize`** — `number` (default: `24`). Products fetched per "Load More" click on desktop/tablet viewports.
+- **`mobileBatchSize`** — `number` (default: `12`). Products fetched per "Load More" click on mobile viewports.
+- **`maxProducts`** — `number` (default: `200`). Maximum products kept in the DOM before the button is replaced with a "refine your filters" prompt.
+
+Example:
+
+```typescript
+// src/lib/config.ui.ts
+pagination: {
+    mode: 'load-more',
+    batchSize: 24,
+    mobileBatchSize: 12,
+    maxProducts: 200,
+},
+```
+
+---
+
 ### search.products.images.tile
 
 Type: `string` Optional | Default: `'medium'`

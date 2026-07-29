@@ -1726,7 +1726,7 @@
             "page": "Page {{number}}"
         },
         "loadMore": {
-            "button": "Load more",
+            "button": "Load More",
             "loading": "Loading…",
             "retry": "Try again",
             "status": "Showing {{loaded}} of {{total}}",
