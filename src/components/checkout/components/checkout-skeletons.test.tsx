@@ -21,6 +21,7 @@ import {
     ShippingAddressSkeleton,
     ShippingOptionsSkeleton,
     PaymentSkeleton,
+    PaymentPlaceholder,
     PickupSkeleton,
     OrderSummarySkeleton,
     MyCartSkeleton,
@@ -101,6 +102,24 @@ describe('Checkout Skeleton Components', () => {
             // Card number, expiry, CVV, checkbox
             const formFields = container.querySelectorAll('.h-12');
             expect(formFields.length).toBeGreaterThanOrEqual(3);
+        });
+    });
+
+    describe('PaymentPlaceholder', () => {
+        it('exposes the Payment heading without pulsing skeletons', () => {
+            const { container } = render(<PaymentPlaceholder />);
+
+            expect(screen.getByRole('heading', { name: 'Payment', level: 2 })).toBeInTheDocument();
+            expect(screen.getByTestId('payment-placeholder')).toBeInTheDocument();
+            expect(container.querySelector('[data-slot="skeleton"]')).not.toBeInTheDocument();
+            expect(container.querySelector('.animate-pulse')).not.toBeInTheDocument();
+        });
+
+        it('reserves min-height for layout stability', () => {
+            const { container } = render(<PaymentPlaceholder />);
+            const card = container.querySelector('[data-slot="card"]');
+            if (!card) throw new Error('expected Card element to render');
+            expect(card.className).toContain('min-h-[280px]');
         });
     });
 

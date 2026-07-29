@@ -106,6 +106,11 @@ vi.mock('./components/checkout-skeletons', () => ({
     ShippingAddressSkeleton: () => <div data-testid="shipping-address-skeleton">Loading...</div>,
     ShippingOptionsSkeleton: () => <div data-testid="shipping-options-skeleton">Loading...</div>,
     PaymentSkeleton: () => <div data-testid="payment-skeleton">Loading...</div>,
+    PaymentPlaceholder: () => (
+        <div data-testid="payment-placeholder">
+            <h2 id="payment">Payment</h2>
+        </div>
+    ),
     ExpressPaymentsSkeleton: () => <div data-testid="express-payments-skeleton">Loading...</div>,
     MyCartSkeleton: () => <div data-testid="my-cart-skeleton">Loading...</div>,
     OrderSummarySkeleton: () => <div data-testid="order-summary-skeleton">Loading...</div>,
@@ -122,7 +127,12 @@ const mockAnalytics = {
     trackCheckoutStart: vi.fn(),
     trackCheckoutStep: vi.fn(),
 };
-const mockUseAnalytics = vi.fn(() => mockAnalytics);
+// Mirror production useAnalytics(): return a fresh object every call so effect deps that
+// incorrectly include `analytics` will cancel/reschedule idle ticks on re-render.
+const mockUseAnalytics = vi.fn(() => ({
+    trackCheckoutStart: mockAnalytics.trackCheckoutStart,
+    trackCheckoutStep: mockAnalytics.trackCheckoutStep,
+}));
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: () => mockUseAnalytics(),
 }));
@@ -424,7 +434,10 @@ describe('CheckoutFormPage', () => {
         vi.clearAllMocks();
         mockAnalytics.trackCheckoutStart.mockReset();
         mockAnalytics.trackCheckoutStep.mockReset();
-        mockUseAnalytics.mockReturnValue(mockAnalytics);
+        mockUseAnalytics.mockImplementation(() => ({
+            trackCheckoutStart: mockAnalytics.trackCheckoutStart,
+            trackCheckoutStep: mockAnalytics.trackCheckoutStep,
+        }));
 
         Object.defineProperty(window, 'scrollTo', {
             writable: true,
@@ -489,6 +502,7 @@ describe('CheckoutFormPage', () => {
         });
 
         test('displays all checkout forms', async () => {
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
             mockUseBasket.mockReturnValueOnce({
                 basketId: 'test-basket',
                 productItems: [{ itemId: 'item1', productId: 'product1', quantity: 1, shipmentId: 'me' }],
@@ -941,15 +955,67 @@ describe('CheckoutFormPage', () => {
             // Clear mock to verify subsequent calls
             mockAnalytics.trackCheckoutStep.mockClear();
 
-            // Re-render with same step - should not track again
-            act(() => {
-                rerender(<CheckoutFormPage {...defaultProps} />);
-            });
+            // Install fake timers before the same-step re-render so any newly scheduled idle
+            // fallback (setTimeout(0) in JSDOM) is intercepted — installing after schedule misses it.
+            vi.useFakeTimers();
+            try {
+                act(() => {
+                    rerender(<CheckoutFormPage {...defaultProps} />);
+                });
 
-            // Should not be called again when step hasn't changed
-            // Note: In a real scenario, the ref guard prevents this, but in tests
-            // re-rendering creates a new component instance, so we verify the initial call
-            expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
+                // The ref guard (previousStepRef.current === step) prevents scheduling entirely when
+                // the step has not changed. Flush any timers that might have been scheduled.
+                act(() => {
+                    vi.runAllTimers();
+                });
+                expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+        test('trackCheckoutStart and step still fire once after idle despite unrelated re-renders', async () => {
+            // Simulate useAnalytics() returning a fresh object every render (its real behavior)
+            // and cart identity churning with a stable item count. Previously analytics/cart in
+            // effect deps cancelled/rescheduled the idle tick on each re-render and could starve
+            // the event before the macrotask ran.
+            // Fake timers before render: Suspense resolution inside act can otherwise let the
+            // setTimeout(0) idle fallback fire mid-await, racing the "not yet called" assertions.
+            vi.useFakeTimers();
+            try {
+                mockUseAnalytics.mockImplementation(() => ({
+                    trackCheckoutStart: mockAnalytics.trackCheckoutStart,
+                    trackCheckoutStep: mockAnalytics.trackCheckoutStep,
+                }));
+                mockUseBasket.mockImplementation(() => ({
+                    basketId: 'test-basket',
+                    productItems: [{ itemId: 'item1', productId: 'product1', quantity: 1 }],
+                }));
+
+                const { rerender } = await renderCheckoutPage();
+
+                expect(mockAnalytics.trackCheckoutStart).not.toHaveBeenCalled();
+                expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
+
+                act(() => {
+                    rerender(<CheckoutFormPage {...defaultProps} />);
+                    rerender(<CheckoutFormPage {...defaultProps} />);
+                    rerender(<CheckoutFormPage {...defaultProps} />);
+                });
+
+                // Still deferred after re-renders — in-flight tick was not cancelled/rescheduled.
+                expect(mockAnalytics.trackCheckoutStart).not.toHaveBeenCalled();
+                expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
+
+                act(() => {
+                    vi.runAllTimers();
+                });
+
+                expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalledTimes(1);
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(1);
+            } finally {
+                vi.useRealTimers();
+            }
         });
 
         test('does not track step when cart is empty', async () => {
@@ -963,6 +1029,90 @@ describe('CheckoutFormPage', () => {
             await waitFor(() => {
                 expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
             });
+        });
+
+        test('trackCheckoutStart is deferred to idle, not called synchronously on mount', async () => {
+            // Fake timers before render so the setTimeout(0) idle fallback cannot fire while
+            // act() awaits Suspense/lazy resolution. act() alone is not a reliable barrier.
+            vi.useFakeTimers();
+            try {
+                await renderCheckoutPage();
+                expect(mockAnalytics.trackCheckoutStart).not.toHaveBeenCalled();
+
+                act(() => {
+                    vi.runAllTimers();
+                });
+                expect(mockAnalytics.trackCheckoutStart).toHaveBeenCalled();
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+        test('trackCheckoutStep is deferred to idle, not called synchronously on step change', async () => {
+            const { rerender } = await renderCheckoutPage();
+
+            // Drain the initial step tracking so previousStepRef is set to CONTACT_INFO.
+            await waitFor(() => expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(1));
+            mockAnalytics.trackCheckoutStep.mockClear();
+
+            // Fake timers before the step-change re-render so the newly scheduled idle tick
+            // cannot fire until we advance timers.
+            vi.useFakeTimers();
+            try {
+                mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.SHIPPING_ADDRESS }));
+                act(() => {
+                    rerender(<CheckoutFormPage {...defaultProps} />);
+                });
+
+                // The effect has run synchronously and the idle callback is scheduled, but the
+                // callback itself has not fired yet, so previousStepRef and trackCheckoutStep are
+                // both untouched at this point.
+                expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
+
+                act(() => {
+                    vi.runAllTimers();
+                });
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalled();
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+        test('queues first step when step changes before idle tick fires', async () => {
+            // Regression: CheckoutProvider advances CONTACT_INFO → computedStep in the same flush
+            // after mount. Cancelling the in-flight idle tick on that step change used to drop the
+            // first trackCheckoutStep. Queued observations must survive until idle drains them.
+            vi.useFakeTimers();
+            try {
+                const { rerender } = await renderCheckoutPage();
+
+                expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
+
+                mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.SHIPPING_ADDRESS }));
+                act(() => {
+                    rerender(<CheckoutFormPage {...defaultProps} />);
+                });
+
+                expect(mockAnalytics.trackCheckoutStep).not.toHaveBeenCalled();
+
+                act(() => {
+                    vi.runAllTimers();
+                });
+
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenCalledTimes(2);
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenNthCalledWith(1, {
+                    stepName: 'CONTACT_INFO',
+                    stepNumber: defaultSteps.CONTACT_INFO,
+                    basket: expect.objectContaining({ basketId: 'test-basket' }),
+                });
+                expect(mockAnalytics.trackCheckoutStep).toHaveBeenNthCalledWith(2, {
+                    stepName: 'SHIPPING_ADDRESS',
+                    stepNumber: defaultSteps.SHIPPING_ADDRESS,
+                    basket: expect.objectContaining({ basketId: 'test-basket' }),
+                });
+            } finally {
+                vi.useRealTimers();
+            }
         });
     });
 
@@ -1232,6 +1382,7 @@ describe('CheckoutFormPage', () => {
 
     describe('Form submission handlers', () => {
         test('handlers are properly assigned to form components', async () => {
+            mockUseCheckoutContext.mockReturnValue(buildCheckoutContext({ step: defaultSteps.PLACE_ORDER }));
             await renderCheckoutPage();
 
             // Verify that forms render, which means handlers are assigned
@@ -1239,6 +1390,103 @@ describe('CheckoutFormPage', () => {
             expect(screen.getByText('Shipping Address Form')).toBeInTheDocument();
             expect(screen.getByText('Shipping Options Form')).toBeInTheDocument();
             expect(screen.getByText('Payment Form')).toBeInTheDocument();
+        });
+    });
+
+    describe('Payment step-guarded mount', () => {
+        test('renders PaymentPlaceholder with Payment heading and NOT Payment when step < STEPS.PAYMENT', async () => {
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({
+                    step: defaultSteps.SHIPPING_ADDRESS,
+                    editingStep: null,
+                })
+            );
+
+            await renderCheckoutPage();
+
+            expect(screen.queryByText('Payment Form')).not.toBeInTheDocument();
+            expect(screen.getByTestId('payment-placeholder')).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'Payment' })).toBeInTheDocument();
+            expect(screen.queryByTestId('payment-skeleton')).not.toBeInTheDocument();
+        });
+
+        test('renders Payment when step >= STEPS.PAYMENT', async () => {
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({
+                    step: defaultSteps.PAYMENT,
+                })
+            );
+
+            await renderCheckoutPage();
+
+            expect(screen.getByText('Payment Form')).toBeInTheDocument();
+        });
+
+        test('renders Payment when editingStep === STEPS.PAYMENT even if step < STEPS.PAYMENT', async () => {
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({
+                    step: defaultSteps.SHIPPING_OPTIONS,
+                    editingStep: defaultSteps.PAYMENT,
+                })
+            );
+
+            await renderCheckoutPage();
+
+            expect(screen.getByText('Payment Form')).toBeInTheDocument();
+        });
+
+        test('keeps Payment mounted after step moves below PAYMENT via pinToStep latch', async () => {
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({
+                    step: defaultSteps.PAYMENT,
+                    editingStep: null,
+                })
+            );
+
+            const { rerender } = await renderCheckoutPage();
+            expect(screen.getByText('Payment Form')).toBeInTheDocument();
+
+            // pinToStep sets both currentStep and editingStep (unlike goToStep).
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({
+                    step: defaultSteps.SHIPPING_ADDRESS,
+                    editingStep: defaultSteps.SHIPPING_ADDRESS,
+                })
+            );
+
+            await act(
+                // eslint-disable-next-line @typescript-eslint/require-await
+                async () => {
+                    rerender(<CheckoutFormPage {...defaultProps} />);
+                }
+            );
+
+            expect(screen.getByText('Payment Form')).toBeInTheDocument();
+            expect(screen.queryByTestId('payment-placeholder')).not.toBeInTheDocument();
+        });
+
+        test('mounts Payment for registered user when step < STEPS.PAYMENT', async () => {
+            mockUseCustomerProfile.mockReturnValue({
+                customer: {
+                    customerId: 'registered-customer-123',
+                    email: 'test@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                },
+                addresses: [],
+                paymentInstruments: [],
+            });
+            mockUseCheckoutContext.mockReturnValue(
+                buildCheckoutContext({
+                    step: defaultSteps.SHIPPING_ADDRESS,
+                    editingStep: null,
+                })
+            );
+
+            await renderCheckoutPage();
+
+            expect(screen.getByText('Payment Form')).toBeInTheDocument();
+            expect(screen.queryByTestId('payment-placeholder')).not.toBeInTheDocument();
         });
     });
 
