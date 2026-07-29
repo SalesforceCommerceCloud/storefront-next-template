@@ -24,36 +24,82 @@
  * automatically attaches it to every log line via context, so no per-route
  * plumbing is needed - just send the same id on every fetch in the journey.
  *
- * Today the place-order routes (prepare / finalize) are the consumers via
- * the standard middleware. A follow-on work item will extend the same id
- * to the other checkout actions (`submit-contact-info`,
- * `submit-shipping-address`, etc.) by having them send the header too.
+ * Two propagation paths:
+ * 1. `x-correlation-id` HTTP header on native `fetch()` calls
+ *    (place-order-prepare, place-order-finalize).
+ * 2. `x-correlation-id` FormData field on `fetcher.submit()` calls
+ *    (submit-contact-info, submit-shipping-address, submit-shipping-options,
+ *    submit-payment, submit-place-order). React Router's `fetcher.submit`
+ *    does not accept a headers option; `correlationMiddleware` falls back
+ *    to reading the field from the form body when the header is absent.
  *
  * Stored in `sessionStorage` so it survives page reloads within the same
- * tab. Cleared on order-confirmation navigation (next checkout starts fresh).
+ * tab. Callers clear it via `clearCheckoutCorrelationId()` before navigating
+ * to order confirmation so the next checkout starts fresh.
  */
 
 const STORAGE_KEY = 'checkoutCorrelationId';
 
 /**
+ * Session-scoped memo for the browser path when `sessionStorage` throws
+ * (e.g. SecurityError). Mid-flow submits in the same page session share one
+ * id; `clearCheckoutCorrelationId` resets it so the next checkout is fresh.
+ * Not used on the SSR / `sessionStorage === undefined` path.
+ */
+let transientFallbackId: string | undefined;
+
+/**
+ * Mint a correlation id that always matches the middleware validator
+ * `/^[A-Za-z0-9._-]{1,128}$/`. Falls back when `crypto.randomUUID` throws
+ * (missing/unsupported in some environments).
+ */
+function safeUuid(): string {
+    try {
+        return crypto.randomUUID();
+    } catch {
+        return `cid-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+}
+
+function getTransientFallbackId(): string {
+    if (!transientFallbackId) {
+        transientFallbackId = safeUuid();
+    }
+    return transientFallbackId;
+}
+
+/**
  * Returns the existing checkout correlation id, or mints a new one and
  * stores it. Safe to call on the cart page (mints early) and again on the
  * place-order click handler (reads existing).
+ *
+ * If `sessionStorage` throws (e.g. SecurityError when storage is blocked),
+ * returns a transient UUID without propagating the error to callers.
  */
 export function getOrCreateCheckoutCorrelationId(): string {
     if (typeof sessionStorage === 'undefined') {
-        // SSR / non-browser fallback: mint a transient id; not stored.
-        return crypto.randomUUID();
+        // SSR / non-browser: fresh id per call — do not memoize across requests.
+        return safeUuid();
     }
-    const existing = sessionStorage.getItem(STORAGE_KEY);
-    if (existing) return existing;
-    const fresh = crypto.randomUUID();
-    sessionStorage.setItem(STORAGE_KEY, fresh);
-    return fresh;
+    try {
+        const existing = sessionStorage.getItem(STORAGE_KEY);
+        if (existing) return existing;
+        const fresh = safeUuid();
+        sessionStorage.setItem(STORAGE_KEY, fresh);
+        return fresh;
+    } catch {
+        // SecurityError or any other throw: memoize for this page session.
+        return getTransientFallbackId();
+    }
 }
 
-/** Clear the correlation id. Call after order-confirmation navigation succeeds. */
+/** Clear the correlation id. Call before navigating to order confirmation. */
 export function clearCheckoutCorrelationId(): void {
+    transientFallbackId = undefined;
     if (typeof sessionStorage === 'undefined') return;
-    sessionStorage.removeItem(STORAGE_KEY);
+    try {
+        sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+        // SecurityError or any other throw: ignore; next checkout mints fresh.
+    }
 }

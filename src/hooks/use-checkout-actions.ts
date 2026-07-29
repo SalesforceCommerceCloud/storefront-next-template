@@ -26,6 +26,7 @@ import {
     CHECKOUT_ACTION_INTENTS,
     type CheckoutStep,
 } from '@/components/checkout/utils/checkout-context-types';
+import { getOrCreateCheckoutCorrelationId } from '@/lib/checkout/correlation';
 import { resourceRoutes } from '@/route-paths';
 
 /** Persists create-account intent across reloads (mirrors handleCreateAccountPreferenceChange). */
@@ -410,6 +411,10 @@ export function useCheckoutActions(options?: {
         formData.append('email', data.email);
         if (data.phone) formData.append('phone', data.phone);
         if (data.countryCode) formData.append('countryCode', data.countryCode);
+        // Propagate the checkout-scoped correlation ID. fetcher.submit does not accept
+        // a headers option, so we ride the form field; correlationMiddleware falls
+        // back to reading it from FormData when the header is absent.
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void contactFetcher.submit(formData, {
             method: 'post',
@@ -430,8 +435,10 @@ export function useCheckoutActions(options?: {
         // Transition: IDLE -> SUBMITTED
         actionRef.current = { step: CHECKOUT_STEPS.SHIPPING_ADDRESS, state: ActionState.SUBMITTED };
 
-        // Add intent field
+        // Add intent field and propagate the checkout-scoped correlation ID
+        // (see submitContactInfo for the propagation rationale).
         formData.append('intent', CHECKOUT_ACTION_INTENTS.SHIPPING_ADDRESS);
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void shippingAddressFetcher.submit(formData, {
             method: 'post',
@@ -452,8 +459,8 @@ export function useCheckoutActions(options?: {
         // Transition: IDLE -> SUBMITTED
         actionRef.current = { step: CHECKOUT_STEPS.SHIPPING_OPTIONS, state: ActionState.SUBMITTED };
 
-        // Add intent field
         formData.append('intent', CHECKOUT_ACTION_INTENTS.SHIPPING_OPTIONS);
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void shippingOptionsFetcher.submit(formData, {
             method: 'post',
@@ -483,6 +490,7 @@ export function useCheckoutActions(options?: {
         };
 
         formData.append('intent', CHECKOUT_ACTION_INTENTS.SHIPPING_OPTIONS);
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void shippingOptionsFetcher.submit(formData, {
             method: 'post',
@@ -529,6 +537,10 @@ export function useCheckoutActions(options?: {
             formData.append('billingPhone', data.billingPhone || '');
             formData.append('billingCountryCode', data.billingCountryCode || 'US');
         }
+
+        // Propagate the checkout-scoped correlation ID
+        // (see submitContactInfo for the propagation rationale).
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         // Submit payment form data
         void paymentFetcher.submit(formData, {
@@ -620,6 +632,9 @@ export function useCheckoutActions(options?: {
             return;
         }
         const formData = buildPlaceOrderFinalizeFormData();
+        // Propagate the checkout-scoped correlation ID
+        // (see submitContactInfo for the propagation rationale).
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
         void placeOrderFetcher.submit(formData, {
             method: 'post',
             action: resourceRoutes.placeOrder,
