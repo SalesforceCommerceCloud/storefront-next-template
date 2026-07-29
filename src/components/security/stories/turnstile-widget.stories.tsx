@@ -74,7 +74,7 @@ function WithTurnstileMock({ Story }: { Story: ComponentType }): ReactElement {
 }
 
 const meta: Meta<typeof TurnstileWidget> = {
-    title: 'SECURITY/TurnstileWidget',
+    title: 'Core/Security/Turnstile Widget',
     component: TurnstileWidget,
     decorators: [(Story) => <WithTurnstileMock Story={Story} />],
     parameters: {

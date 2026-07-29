@@ -75,6 +75,7 @@ interface DynamicImageProps {
     group: 'Content',
 })
 @RegionDefinition([])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class DynamicImageMetadata {
     @AttributeDefinition({
         id: 'src',
@@ -413,7 +414,7 @@ const DynamicImage = ({
                 {sources.length > 0 ? (
                     <picture>
                         {sources.map(({ type, srcSet, sizes, media }, idx) => (
-                            // eslint-disable-next-line react/no-array-index-key
+                            // oxlint-disable-next-line react/no-array-index-key
                             <source key={idx} type={type} {...(media && { media })} sizes={sizes} srcSet={srcSet} />
                         ))}
                         <ImageComponent {...effectiveImageProps} />

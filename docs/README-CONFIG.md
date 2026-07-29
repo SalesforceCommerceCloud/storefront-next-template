@@ -93,7 +93,7 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | `PUBLIC__app__features__googleCloudAPI__apiKey` | — | Google Address Autocomplete |
 | `PUBLIC__security__turnstile__enabled` | `false` | Turnstile bot protection |
 | `PUBLIC__security__turnstile__sites` | — | Turnstile per-site configuration |
-| `PUBLIC__app__commerceAgent__*` | disabled | Embedded Agentforce config (see appendix) |
+| `PUBLIC__app__cimulateAgent` | disabled | Commerce Client (Cimulate) messaging widget config (JSON string) |
 
 ### Optional non-`PUBLIC__` runtime/deploy variables
 
@@ -579,6 +579,16 @@ Single-site is the default. To enable multiple sites, define them as a JSON arra
 
 See [README-MULTI-SITE.md](./README-MULTI-SITE.md) for site-context routing details.
 
+### Live Sites from the Data Access Layer (`commerce.sitesFromDal`)
+
+On by default. When on, live site data synced through the Data Access Layer (DAL) replaces the static `commerce.sites` above for site, locale, and currency resolution, per request. The DAL keeps the storefront in sync with the sites, locales, and currencies a merchant configures in Business Manager, so adding a site or enabling a currency goes live without editing `config.server.ts` and redeploying. It does not change routing: `defaultSiteId` and the `siteAliasMap` and `localeAliasMap` stay static. Set the flag to `false` to keep the static `commerce.sites` authoritative regardless of the DAL.
+
+```bash
+# PUBLIC__app__commerce__sitesFromDal=false
+```
+
+The DAL set should include the site named by `defaultSiteId`. If it doesn't, or the DAL entry is unavailable or yields no usable sites, the storefront keeps serving the static `commerce.sites` and logs a warning naming the drift, rather than failing the request. See the DAL-sourced sites section in [README-MULTI-SITE.md](./README-MULTI-SITE.md#dal-sourced-sites-commercesitesfromdal) for the fallback rules and why the alias maps stay static.
+
 ### Hybrid Proxy (local development only)
 
 Silent HTTP proxying with cookie rewriting for a unified storefront experience. Local-dev only — production routing should use Cloudflare eCDN. Requires `SFCC_ORIGIN` and `PUBLIC__app__defaultSiteId`.
@@ -618,21 +628,13 @@ Cloudflare Turnstile is disabled by default. The test site key below always pass
 
 See [README-TURNSTILE.md](./README-TURNSTILE.md) and `e2e/feature-specs/checkout/turnstile-protection.spec.md`.
 
-### Commerce Agent (Embedded Messaging / Agentforce)
+### Commerce Client (Cimulate)
 
 ```bash
-# PUBLIC__app__commerceAgent__enabled=true
-# PUBLIC__app__commerceAgent__embeddedServiceName=
-# PUBLIC__app__commerceAgent__embeddedServiceEndpoint=
-# PUBLIC__app__commerceAgent__scriptSourceUrl=
-# PUBLIC__app__commerceAgent__scrt2Url=
-# PUBLIC__app__commerceAgent__salesforceOrgId=
-# PUBLIC__app__commerceAgent__siteId=
-# PUBLIC__app__commerceAgent__enableConversationContext=false
-# PUBLIC__app__commerceAgent__conversationContext=[]
+# PUBLIC__app__cimulateAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
 ```
 
-See `src/components/shopper-agent/README.md` for environment-specific setup.
+Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. See `src/components/cimulate/README.md` for setup.
 
 ### Cookie domain
 

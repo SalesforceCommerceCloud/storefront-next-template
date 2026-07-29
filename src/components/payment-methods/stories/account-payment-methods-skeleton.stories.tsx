@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AccountPaymentMethodsSkeleton } from '../account-payment-methods-skeleton';
 
 const meta: Meta<typeof AccountPaymentMethodsSkeleton> = {
-    title: 'Components/Payment Methods/Account Payment Methods Skeleton',
+    title: 'Account/Payment Methods/Account Payment Methods Skeleton',
     component: AccountPaymentMethodsSkeleton,
     parameters: {
         layout: 'padded',

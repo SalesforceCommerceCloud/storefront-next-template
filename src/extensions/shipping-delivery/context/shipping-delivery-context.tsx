@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
-/* eslint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
+/* oxlint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
 import { createContext, useContext, type PropsWithChildren, type ReactElement } from 'react';
 import type { EstimatedDeliveryData } from '@/extensions/shipping-delivery/lib/api/shipping-delivery.server';
 

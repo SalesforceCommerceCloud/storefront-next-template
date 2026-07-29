@@ -23,9 +23,9 @@ import { createApiClients } from '@/lib/api-clients.server';
 vi.mock('@/middlewares/basket.server');
 
 const { createContext: reactCreateContext, actualReactRouter } = vi.hoisted(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const React = require('react');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const reactRouter = require('react-router');
     return { createContext: React.createContext, actualReactRouter: reactRouter };
 });

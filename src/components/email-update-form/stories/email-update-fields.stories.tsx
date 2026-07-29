@@ -146,7 +146,7 @@ function createMockFetcher<TData = unknown>(
  * EmailUpdateFields component that renders the form fields for updating email address.
  */
 const meta: Meta<typeof EmailUpdateFields> = {
-    title: 'ACCOUNT/Email Update Form/Email Update Fields',
+    title: 'Account/Profile/Email Update Fields',
     component: EmailUpdateFields,
     tags: ['autodocs', 'interaction'],
     parameters: {

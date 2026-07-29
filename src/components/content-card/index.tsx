@@ -15,6 +15,12 @@
  */
 import { forwardRef, type ComponentProps } from 'react';
 import { Link } from '@/components/link';
+import {
+    CONTENT_CARD_TYPOGRAPHY_VALUES,
+    TITLE_TYPOGRAPHY_CLASS,
+    DESCRIPTION_TYPOGRAPHY_CLASS,
+    normalizeTypography,
+} from './typography';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { cn, resolveAssetUrl } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,11 +37,19 @@ const contentCardDefaults = {
 
 interface ContentCardProps extends ComponentProps<'div'> {
     title?: string;
+    titleTypography?: string;
     description?: string;
+    descriptionTypography?: string;
     imageUrl?: Image | string;
     imageAlt?: string;
     buttonText?: string;
     buttonLink?: string;
+    /**
+     * Accessible name for the CTA link. Use when the visible buttonText (e.g. "Explore
+     * collection") is repeated across cards and so does not describe its own destination.
+     * WCAG 2.4.4.
+     */
+    buttonAriaLabel?: string;
     showBackground?: boolean;
     showBorder?: boolean;
     loading?: 'lazy' | 'eager';
@@ -57,12 +71,33 @@ interface ContentCardProps extends ComponentProps<'div'> {
     description: 'Flexible card component with optional image, title, description, and call-to-action button',
     group: 'Content',
 })
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class ContentCardMetadata {
     @AttributeDefinition()
     title?: string;
 
+    @AttributeDefinition({
+        id: 'titleTypography',
+        name: 'Title Typography',
+        description: 'Visual typography for the title',
+        type: 'enum',
+        values: [...CONTENT_CARD_TYPOGRAPHY_VALUES],
+        defaultValue: 'Default',
+    })
+    titleTypography?: string;
+
     @AttributeDefinition()
     description?: string;
+
+    @AttributeDefinition({
+        id: 'descriptionTypography',
+        name: 'Description Typography',
+        description: 'Visual typography for the description',
+        type: 'enum',
+        values: [...CONTENT_CARD_TYPOGRAPHY_VALUES],
+        defaultValue: 'Default',
+    })
+    descriptionTypography?: string;
 
     @AttributeDefinition({ type: 'image' })
     imageUrl?: Image;
@@ -97,11 +132,14 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
             cardDescriptionClassName,
             buttonClassName,
             title,
+            titleTypography,
             description,
+            descriptionTypography,
             imageUrl,
             imageAlt,
             buttonText,
             buttonLink,
+            buttonAriaLabel,
             showBackground = contentCardDefaults.showBackground,
             showBorder = contentCardDefaults.showBorder,
             loading = 'lazy',
@@ -123,6 +161,70 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
         const focalY = focalPoint?.y != null ? `${focalPoint.y}%` : '50%';
         const objectPosition = `${focalX} ${focalY}`;
 
+        const hasCta = !!(buttonText && buttonLink);
+        const hasText = !!(title || description);
+        const hasContent = hasText || hasCta;
+
+        // Resolve the typography presets once. `Default` reproduces the
+        // original hardcoded look verbatim, so untouched cards are unchanged.
+        const titleTypographyClass = TITLE_TYPOGRAPHY_CLASS[normalizeTypography(titleTypography)];
+        const descriptionTypographyClass = DESCRIPTION_TYPOGRAPHY_CLASS[normalizeTypography(descriptionTypography)];
+
+        // Title/description/CTA. Shared by the image branch (rendered as a
+        // gradient overlay) and the text-only branch (rendered on the card
+        // surface) so authored copy is never silently dropped when an image is
+        // absent. `onImage` swaps the overlay-only affordances (light-on-dark
+        // text colors) for surface-appropriate ones.
+        const renderContent = (onImage: boolean) =>
+            hasContent && (
+                <div className="relative z-10">
+                    {hasText && (
+                        <div className={cn('flex-1 flex flex-col justify-end', cardDescriptionClassName)}>
+                            {/*
+                             * Source order is heading-first (<h3> before <p>) for assistive tech,
+                             * while `order-*` preserves the visual layout (description above title,
+                             * both bottom-aligned via justify-end).
+                             */}
+                            {title && (
+                                <h3
+                                    className={cn(
+                                        'order-2',
+                                        titleTypographyClass,
+                                        'mb-4',
+                                        onImage ? 'text-card' : 'text-foreground'
+                                    )}>
+                                    {title}
+                                </h3>
+                            )}
+                            {description && (
+                                <p
+                                    className={cn(
+                                        'order-1',
+                                        descriptionTypographyClass,
+                                        'mb-2 whitespace-pre-line',
+                                        onImage ? 'text-muted' : 'text-muted-foreground'
+                                    )}>
+                                    {description}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                    {hasCta && (
+                        <Button
+                            asChild
+                            variant="default"
+                            className={cn(
+                                'w-fit text-sm font-medium leading-5 text-primary-foreground',
+                                buttonClassName
+                            )}>
+                            <Link to={buttonLink} aria-label={buttonAriaLabel}>
+                                {buttonText}
+                            </Link>
+                        </Button>
+                    )}
+                </div>
+            );
+
         return (
             <Card
                 ref={ref}
@@ -133,7 +235,7 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                     className
                 )}
                 {...props}>
-                {imageSrc && (
+                {imageSrc ? (
                     <CardContent className="p-0">
                         <div className="relative aspect-[4/3] overflow-hidden bg-secondary/20">
                             <img
@@ -143,48 +245,26 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                 style={{ objectPosition }}
                                 loading={loading}
                             />
-                            {(title || description || (buttonText && buttonLink)) && (
+                            {hasContent && (
                                 <div
                                     className={cn(
                                         'absolute inset-0 flex flex-col justify-end p-6 md:p-8',
                                         cardFooterClassName
                                     )}>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10" />
-                                    <div className="relative z-10">
-                                        {(title || description) && (
-                                            <div
-                                                className={cn(
-                                                    'flex-1 flex flex-col justify-end',
-                                                    cardDescriptionClassName
-                                                )}>
-                                                {description && (
-                                                    <p className="text-sm font-normal leading-5 text-muted mb-2 whitespace-pre-line">
-                                                        {description}
-                                                    </p>
-                                                )}
-                                                {title && (
-                                                    <h3 className="text-2xl font-semibold leading-[120%] tracking-[-0.6px] text-card mb-4">
-                                                        {title}
-                                                    </h3>
-                                                )}
-                                            </div>
-                                        )}
-                                        {buttonText && buttonLink && (
-                                            <Button
-                                                asChild
-                                                variant="default"
-                                                className={cn(
-                                                    'w-fit text-sm font-medium leading-5 text-primary-foreground',
-                                                    buttonClassName
-                                                )}>
-                                                <Link to={buttonLink}>{buttonText}</Link>
-                                            </Button>
-                                        )}
-                                    </div>
+                                    {renderContent(true)}
                                 </div>
                             )}
                         </div>
                     </CardContent>
+                ) : (
+                    hasContent && (
+                        <CardContent className="p-0">
+                            <div className={cn('flex flex-col justify-end p-6 md:p-8', cardFooterClassName)}>
+                                {renderContent(false)}
+                            </div>
+                        </CardContent>
+                    )
                 )}
             </Card>
         );

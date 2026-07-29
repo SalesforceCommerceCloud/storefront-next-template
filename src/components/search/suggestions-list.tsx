@@ -60,8 +60,9 @@ const Suggestions: React.FC<SuggestionsProps> = ({ suggestions, searchPhrase, cl
                 {suggestions.map((suggestion) => (
                     <button
                         key={suggestion.link}
+                        type="button"
                         data-slot="suggestion"
-                        onMouseDown={() => handleClick(suggestion)}
+                        onClick={() => handleClick(suggestion)}
                         className="w-full flex justify-start items-center pl-4 py-0 hover:bg-accent hover:text-foreground transition-colors text-sm mt-0">
                         <div className="flex items-center">
                             {suggestion.image && (

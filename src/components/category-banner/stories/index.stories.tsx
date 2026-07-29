@@ -66,7 +66,7 @@ const plpLoaderData = (category: object, total: number) => ({
 // ---------------------------------------------------------------------------
 
 const meta: Meta<typeof CategoryBanner> = {
-    title: 'PLP/Category Banner',
+    title: 'Category/Category Banner',
     component: CategoryBanner,
     tags: ['autodocs', 'interaction'],
     parameters: {

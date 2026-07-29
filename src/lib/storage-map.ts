@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 export type StorageMetaData = { isUpdated?: boolean; isDestroyed?: boolean };
 export type StorageErrorData = { error?: string };
 
@@ -40,7 +40,7 @@ export const unpackStorage = <T extends Record<string, any>>(
         };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // oxlint-disable-next-line @typescript-eslint/no-unused-vars
     const { isUpdated, ...rest } = Object.fromEntries(storage) satisfies T;
     return rest;
 };

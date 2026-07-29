@@ -17,7 +17,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 // React Router
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider, type useFetchers } from 'react-router';
 
@@ -342,6 +342,15 @@ describe('ProductItem', () => {
 
             const imageContainer = screen.getByRole('img').parentElement;
             expect(imageContainer).toHaveClass('w-16');
+        });
+
+        test('variant attributes ul carries explicit role="list"', () => {
+            // Tailwind preflight strips list-style on <ul>, and Safari VoiceOver drops the implicit
+            // list role when list-style is removed. The explicit role="list" restores it.
+            const { container } = renderWithRouter(<ProductItem productItem={mockProduct} displayVariant="summary" />);
+
+            const attributesList = container.querySelector('ul[role="list"]');
+            expect(attributesList).not.toBeNull();
         });
     });
 

@@ -35,8 +35,12 @@ class CartPage {
         // Title: <h2><a title="Product Name">...</a></h2>
         itemTitle: locate('h2 a').as('Item Title'),
 
-        // Price: <span aria-label="Current price: $...">$...</span>
-        itemPrice: locate('[aria-label*="Current price"]').as('Item Price'),
+        // Price: the visible price text of a cart line item. The accessible name ("Current
+        // price: $...") now lives in an adjacent sr-only span, so grab the aria-hidden visible
+        // span to get clean price text. Scoped to the price column because the product-image
+        // link in the item is also aria-hidden. On-sale items add a second aria-hidden span
+        // (list price) after the current price, so getItemPrice takes .first().
+        itemPrice: locate('[data-testid="desktop-product-price"] [aria-hidden="true"]').as('Item Price'),
 
         // Quantity: number input (aria-label may be "Quantity:" or "Qty:"; fallback to any number input in item)
         itemQuantity: locate('input[type="number"]').as('Item Quantity'),
@@ -116,7 +120,7 @@ class CartPage {
      */
     async getItemPrice(index: number = 0): Promise<string> {
         const cartItem = this.locators.cartItems.at(index + 1);
-        const price = await I.grabTextFrom(cartItem.find(this.locators.itemPrice));
+        const price = await I.grabTextFrom(cartItem.find(this.locators.itemPrice).first());
         return price.trim();
     }
 

@@ -13,29 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type React from 'react';
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { useEffect, type ComponentProps } from 'react';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider, useLocation, useParams } from 'react-router';
 import { QuickAddButton } from './quick-add-button';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
+// Tracks how many times the mocked modal has mounted/unmounted, so tests can assert the
+// subtree is actually torn down on close rather than just visually hidden. A stuck-mounted
+// modal keeps its SCAPI fetchers registered for revalidation.
+const modalLifecycle = { mounts: 0, unmounts: 0 };
+
 // Thin harness for CartItemModal — the real modal's behaviour (fetching, swatches,
 // variant resolution) is covered end-to-end through ProductTile in index.test.tsx.
-// Here we only need to drive the onBuyNow callback via a user interaction.
+// Here we only need to drive the onBuyNow callback via a user interaction, and observe
+// the mount/unmount lifecycle via `data-testid="modal-mounted"`.
 vi.mock('@/components/cart-item-modal', () => ({
-    CartItemModal: ({ open, onBuyNow }: { open: boolean; onBuyNow?: () => void }) =>
-        open ? (
-            <div role="dialog" aria-label="Quick add">
-                <button type="button" onClick={onBuyNow}>
-                    Buy it Now
-                </button>
+    CartItemModal: ({
+        open,
+        onBuyNow,
+        onOpenChange,
+    }: {
+        open: boolean;
+        onBuyNow?: () => void;
+        onOpenChange?: (open: boolean) => void;
+    }) => {
+        useEffect(() => {
+            modalLifecycle.mounts += 1;
+            return () => {
+                modalLifecycle.unmounts += 1;
+            };
+        }, []);
+        return (
+            <div data-testid="modal-mounted">
+                {open ? (
+                    <div role="dialog" aria-label="Quick add">
+                        <button type="button" onClick={onBuyNow}>
+                            Buy It Now
+                        </button>
+                        <button type="button" onClick={() => onOpenChange?.(false)}>
+                            Close
+                        </button>
+                    </div>
+                ) : null}
             </div>
-        ) : null,
+        );
+    },
 }));
 
-const renderButton = (props: Partial<React.ComponentProps<typeof QuickAddButton>> = {}) => {
+const renderButton = (props: Partial<ComponentProps<typeof QuickAddButton>> = {}) => {
     const router = createMemoryRouter(
         [
             {
@@ -73,6 +101,12 @@ function PdpSink() {
 describe('QuickAddButton', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        modalLifecycle.mounts = 0;
+        modalLifecycle.unmounts = 0;
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     test('renders the button with the default label', () => {
@@ -96,25 +130,54 @@ describe('QuickAddButton', () => {
         expect(await screen.findByRole('dialog')).toBeInTheDocument();
     });
 
-    test('clicking Buy it Now navigates to the PDP with the selected color', async () => {
+    test('clicking Buy It Now navigates to the PDP with the selected color', async () => {
         const user = userEvent.setup();
         renderButton({ selectedColorValue: 'navy' });
 
         await user.click(screen.getByRole('button', { name: /quick add/i }));
-        await user.click(await screen.findByRole('button', { name: /buy it now/i }));
+        await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
         expect(
             await screen.findByText('PDP loaded: /global/en-GB/product/test-product?color=navy')
         ).toBeInTheDocument();
     });
 
-    test('clicking Buy it Now navigates to the PDP without query when no color is selected', async () => {
+    test('clicking Buy It Now navigates to the PDP without query when no color is selected', async () => {
         const user = userEvent.setup();
         renderButton();
 
         await user.click(screen.getByRole('button', { name: /quick add/i }));
-        await user.click(await screen.findByRole('button', { name: /buy it now/i }));
+        await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
         expect(await screen.findByText('PDP loaded: /global/en-GB/product/test-product')).toBeInTheDocument();
+    });
+
+    // Uses fireEvent (not userEvent) so fake timers stay in control — userEvent's internal
+    // real-timer waits would deadlock against vi.useFakeTimers().
+    test('unmounts the modal subtree after close so its fetchers deregister', () => {
+        vi.useFakeTimers();
+        renderButton();
+
+        fireEvent.click(screen.getByRole('button', { name: /quick add/i }));
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(modalLifecycle.mounts).toBe(1);
+        expect(modalLifecycle.unmounts).toBe(0);
+
+        // Closing via the dialog's own control (backdrop/Esc/X) must eventually tear the
+        // subtree down — not merely hide it — so useScapiFetcher's unmount cleanup fires.
+        fireEvent.click(screen.getByRole('button', { name: /Close/i }));
+
+        // Still mounted through the 200ms exit animation so it can finish playing.
+        act(() => {
+            vi.advanceTimersByTime(200);
+        });
+        expect(modalLifecycle.unmounts).toBe(0);
+
+        // Unmounts once the keep-alive delay (which outlasts the animation) elapses.
+        act(() => {
+            vi.advanceTimersByTime(50);
+        });
+        expect(modalLifecycle.unmounts).toBe(1);
+        expect(screen.queryByTestId('modal-mounted')).not.toBeInTheDocument();
     });
 });

@@ -25,9 +25,6 @@ import { useTranslation } from 'react-i18next';
 import type { ShopperCustomers } from '@/scapi';
 import { fetchCustomerOrders, type CustomerOrdersResult } from '@/lib/api/order.server';
 import { getAuth } from '@/middlewares/auth.server';
-import { fetchWishlistInitialState } from '@/lib/wishlist/fetch-initial-state.server';
-import type { WishlistInitialState } from '@/lib/wishlist/state';
-import { WishlistProvider } from '@/providers/wishlist';
 import { fetchProductRecommendations } from '@/lib/product/recommendations.server';
 import { EINSTEIN_RECOMMENDERS } from '@/lib/product/einstein-recommenders';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
@@ -41,7 +38,6 @@ type AccountLayoutContext = {
 
 type OverviewLoaderData = {
     ordersPromise: Promise<CustomerOrdersResult>;
-    wishlistInitialState: Promise<WishlistInitialState>;
     curatedRecommendationsPromise: Promise<Recommendation>;
 };
 
@@ -75,7 +71,7 @@ export function loader({ context, request }: Route.LoaderArgs): OverviewLoaderDa
         }
     );
 
-    return { ordersPromise, wishlistInitialState: fetchWishlistInitialState(context), curatedRecommendationsPromise };
+    return { ordersPromise, curatedRecommendationsPromise };
 }
 
 /**
@@ -90,7 +86,7 @@ export function loader({ context, request }: Route.LoaderArgs): OverviewLoaderDa
 export default function AccountOverviewRoute(): ReactElement {
     const { t } = useTranslation('account');
     const { customer: customerPromise } = useOutletContext<AccountLayoutContext>();
-    const { ordersPromise, wishlistInitialState, curatedRecommendationsPromise } = useLoaderData<typeof loader>();
+    const { ordersPromise, curatedRecommendationsPromise } = useLoaderData<typeof loader>();
 
     // Pin the recommendations promise so account-mutating revalidations don't re-suspend the recommendation boundary
     const [pinnedCuratedPromise] = useState(() => curatedRecommendationsPromise);
@@ -122,7 +118,7 @@ export default function AccountOverviewRoute(): ReactElement {
     );
 
     return (
-        <WishlistProvider initialState={wishlistInitialState}>
+        <>
             <SeoMeta title={t('meta.overviewTitle', { defaultValue: 'Account Overview' })} noIndex />
             <Suspense fallback={<AccountOverviewSkeleton recommendationsSlot={recommendationsSkeleton} />}>
                 <Await resolve={customerPromise}>
@@ -135,6 +131,6 @@ export default function AccountOverviewRoute(): ReactElement {
                     )}
                 </Await>
             </Suspense>
-        </WishlistProvider>
+        </>
     );
 }

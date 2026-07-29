@@ -65,7 +65,7 @@ function Wrapper({ deliveryData, currency }: { deliveryData: EstimatedDeliveryDa
 }
 
 const meta: Meta<typeof Wrapper> = {
-    title: 'COMMON/Info Modal/Estimated Delivery Modal Content',
+    title: 'Core/Overlays/Info Modal/Estimated Delivery Modal Content',
     component: Wrapper,
     tags: ['autodocs'],
     parameters: {

@@ -16,7 +16,8 @@
 import { type MiddlewareFunction } from 'react-router';
 import { createSecurityHeadersMiddleware } from '@salesforce/storefront-next-runtime/security';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import { createShopperAgentCspContributor } from './csp-contributors/shopper-agent.js';
+import { createCimulateCspContributor } from './csp-contributors/cimulate.js';
+import { createDataCloudCspContributor } from './csp-contributors/data-cloud.js';
 
 let middleware: MiddlewareFunction<Response> | null = null;
 
@@ -30,7 +31,10 @@ let middleware: MiddlewareFunction<Response> | null = null;
 export const securityHeadersMiddleware: MiddlewareFunction<Response> = async (args, next) => {
     if (!middleware) {
         const config = getConfig(args.context);
-        const contributors = [createShopperAgentCspContributor(config.commerceAgent)];
+        const contributors = [
+            createCimulateCspContributor(config.cimulateAgent),
+            createDataCloudCspContributor(config.engagement?.adapters?.dataCloud),
+        ];
         middleware = createSecurityHeadersMiddleware(config.security?.headers ?? {}, contributors);
     }
     return middleware(args, next);

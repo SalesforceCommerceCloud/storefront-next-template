@@ -42,7 +42,7 @@ function DemoSlides({ count = 4 }: { count?: number }): ReactElement {
 }
 
 const meta: Meta<CarouselSectionArgs> = {
-    title: 'COMMON/Carousel Section',
+    title: 'Content/Marketing/Carousel Section',
     component: CarouselSection,
     tags: ['autodocs', 'skip-a11y'],
     parameters: {

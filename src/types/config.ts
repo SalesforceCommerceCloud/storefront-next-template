@@ -73,6 +73,13 @@ export type AppConfig = {
             guestRefreshTokenExpirySeconds?: number;
         };
         sites: Array<Site>;
+        /**
+         * When on, live sites synced through the DAL replace the static `sites`
+         * above for site/locale/currency resolution. Off (or a missing/empty DAL
+         * entry) keeps the static `sites` as the source of truth. The shipped
+         * template enables this by default in `config.server.ts`.
+         */
+        sitesFromDal?: boolean;
     };
     /**
      * Global default cookie attributes applied to ALL storefront cookies (auth/session and
@@ -84,16 +91,28 @@ export type AppConfig = {
         /** Cookie domain, e.g. `.example.com` to share across subdomains. */
         domain?: string;
     };
-    commerceAgent?: {
+    cimulateAgent?: {
         enabled: string | boolean;
-        embeddedServiceName: string;
-        embeddedServiceEndpoint: string;
-        scriptSourceUrl: string;
+        commerceClientScriptSourceUrl: string;
         scrt2Url: string;
         salesforceOrgId: string;
-        siteId: string;
-        enableConversationContext?: string;
-        conversationContext?: string[];
+        esDeveloperName: string;
+        commerceClientDisplayMode?: 'panel' | 'dialog' | 'modal';
+        commerceClientElementId?: string;
+        commerceClientLogoUrl?: string;
+        commerceClientPanelWidth?: string;
+        commerceClientMode?: string;
+        headerText?: string;
+        disclaimerMarkdown?: string;
+        commerceClientSearchConfig?: {
+            placeholder?: string;
+            buttonLabel?: string;
+            buttonType?: string;
+            buttonIconUrl?: string;
+        };
+        commerceClientTheme?: Record<string, string>;
+        routingAttributes?: Record<string, unknown>;
+        isDevelopment?: string;
     };
     defaultSiteId: string;
     development: {
@@ -116,6 +135,7 @@ export type AppConfig = {
                 appSourceId: string;
                 tenantId: string;
                 siteId: string;
+                webStoreId: string;
             };
             activeData: EngagementAdapterConfig & {
                 enabled: boolean;
@@ -153,16 +173,16 @@ export type AppConfig = {
      */
     serverExtension?: DeepWritable<typeof GeneratedServerExtensionConfig>;
     features: {
+        passkey: {
+            enabled?: boolean;
+            callbackUri?: string;
+            mode: 'callback' | 'email' | 'sms';
+        };
         passwordlessLogin: {
             enabled?: boolean;
             callbackUri?: string;
             landingUri?: string;
             mode: 'callback' | 'email' | 'sms';
-            /**
-             * When true (default), checkout skips the passwordless authorize call when the
-             * email-verification site pref is disabled. Set to false to always call SLAS.
-             */
-            skipWhenEmailVerificationDisabled?: boolean;
         };
         otpRequest: {
             callbackUri?: string;
@@ -417,8 +437,8 @@ export type Config = BaseConfig<AppConfig>;
  * interfaces in their own template's types file.
  */
 declare module '@salesforce/storefront-next-runtime/config' {
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
     interface AppConfigShape extends AppConfig {}
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
     interface ClientFacingAppConfigShape extends ClientAppConfig {}
 }

@@ -319,7 +319,8 @@ export default function ChildProductCard({
                                 disabled={!orderable}
                                 value={swatchValue}
                                 name={valueName}
-                                shape={id === 'color' ? 'color' : 'label'}>
+                                shape={id === 'color' ? 'color' : 'label'}
+                                outOfStockSuffix={t('outOfStockSuffix')}>
                                 {content}
                             </Swatch>
                         );

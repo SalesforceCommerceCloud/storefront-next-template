@@ -69,6 +69,14 @@ describe('HeroMetadata - PD default alignment', () => {
         expect(metadata.fields.buttonStyle?.defaultValue).toBe('Primary');
     });
 
+    test('overlay defaults to None', () => {
+        expect(metadata.fields.overlay?.defaultValue).toBe('None');
+    });
+
+    test('overlay exposes None/Light/Dark values', () => {
+        expect(metadata.fields.overlay?.values).toEqual(['None', 'Light', 'Dark']);
+    });
+
     test('styleOverride has no defaultValue (matches empty JSON metadata)', () => {
         expect(metadata.fields.styleOverride?.defaultValue).toBeUndefined();
     });

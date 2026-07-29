@@ -91,6 +91,47 @@ describe('getOrderTrackingEntries', () => {
         expect(getOrderTrackingEntries(order)[0].id).toBe('oms-0');
     });
 
+    it('normalizes whitespace-only string fields to undefined so a blank OMS value does not fake a tracking card', () => {
+        // OMS can return "" or a padded string for a field it means as "unset". Left raw,
+        // a whitespace-only value is truthy and slips past hasTrackingData / the render gate,
+        // producing an empty tracking card or a "Track shipment" action that links nowhere.
+        const order = orderWithOms([
+            {
+                id: 'blank',
+                status: '  ',
+                provider: '',
+                trackingNumber: ' \t ',
+                trackingUrl: '   ',
+            },
+        ]);
+
+        // every tracking field was blank → the entry has no real data → it is dropped entirely
+        expect(getOrderTrackingEntries(order)).toEqual([]);
+    });
+
+    it('trims surrounding whitespace on kept OMS fields', () => {
+        const order = orderWithOms([
+            {
+                id: 'k',
+                status: '  shipped  ',
+                provider: ' UPS ',
+                trackingNumber: ' 1Z999 ',
+                trackingUrl: ' https://ups.com/t ',
+            },
+        ]);
+        const [entry] = getOrderTrackingEntries(order);
+        expect(entry.status).toBe('shipped');
+        expect(entry.provider).toBe('UPS');
+        expect(entry.trackingNumber).toBe('1Z999');
+        expect(entry.trackingUrl).toBe('https://ups.com/t');
+    });
+
+    it('normalizes blank ECOM fields too (a padded shippingStatus/trackingNumber becomes undefined)', () => {
+        const order = orderWithEcom([{ shipmentId: 'e', shippingStatus: '  ', trackingNumber: '  ' }]);
+        // both fields blank → entry dropped
+        expect(getOrderTrackingEntries(order)).toEqual([]);
+    });
+
     it('keeps a date-only OMS entry (delivery date is tracking-relevant — consistent with the render gate)', () => {
         // A carrier delivery date can be known before a tracking number is generated.
         // The mapper must NOT drop such an entry (it did before the predicates were aligned).
@@ -155,7 +196,7 @@ describe('getOrderTrackingEntries', () => {
     });
 });
 
-describe('parseTrackingDate (two-layer guard)', () => {
+describe('parseTrackingDate (three-layer guard)', () => {
     it('returns null for null — THE load-bearing guard-1 regression line', () => {
         // `null` is the ONLY input that requires guard 1 (`if (!value) return null`).
         // `new Date(null)` is the 1970 epoch (getTime() === 0), NOT an Invalid Date,
@@ -178,7 +219,18 @@ describe('parseTrackingDate (two-layer guard)', () => {
         expect(parseTrackingDate('not-a-date')).toBeNull();
     });
 
-    it('parses a valid ISO date string', () => {
+    it('returns null for a truthy epoch-era sentinel string (guard 3 — no "Jan 1, 1970")', () => {
+        // A truthy string like "1970-01-01T00:00:00Z" parses to a *valid* Date (unlike
+        // null/"" which the falsy guard handles), so without the epoch-year guard it
+        // would render "Jan 1, 1970" to the shopper. OMS does not currently send such a
+        // sentinel, but the guard is cheap insurance if it ever does.
+        expect(parseTrackingDate('1970-01-01T00:00:00Z')).toBeNull();
+        expect(parseTrackingDate('1969-12-31T00:00:00Z')).toBeNull();
+        // sanity: confirm the trap — this string IS a valid Date, not NaN
+        expect(isNaN(new Date('1970-01-01T00:00:00Z').getTime())).toBe(false);
+    });
+
+    it('parses a valid ISO date string (guard 3 does not over-suppress recent dates)', () => {
         const d = parseTrackingDate('2026-06-20T10:00:00.000Z');
         expect(d).toBeInstanceOf(Date);
         expect(d?.toISOString()).toBe('2026-06-20T10:00:00.000Z');

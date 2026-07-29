@@ -19,7 +19,7 @@ import userEvent from '@testing-library/user-event';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
@@ -586,6 +586,23 @@ describe('OrderSummary', () => {
         const heading = screen.getByRole('heading', { name: t('cart:summary.orderSummary') });
         expect(heading).toBeInTheDocument();
         expect(heading).toHaveAttribute('id', 'order-summary-heading-desktop');
+    });
+
+    test('renders totals as a description list with dt/dd as direct dl children', () => {
+        // Assistive tech announces <dl> as a description list only when <dt>/<dd> are direct children —
+        // wrapping each pair in a <div> silently drops the term/definition semantics in VoiceOver/JAWS.
+        const { container } = renderWithProviders(<OrderSummary basket={mockBasket} />);
+
+        const dl = container.querySelector('dl');
+        expect(dl).not.toBeNull();
+
+        // Direct-child selector: catches regression where dt/dd get wrapped in a grid <div>.
+        expect(container.querySelectorAll('dl > dt').length).toBeGreaterThan(0);
+        expect(container.querySelectorAll('dl > dd').length).toBeGreaterThan(0);
+
+        // Cross-check via WAI-ARIA implicit roles.
+        expect(screen.getAllByRole('term').length).toBeGreaterThan(0);
+        expect(screen.getAllByRole('definition').length).toBeGreaterThan(0);
     });
 
     test('handles cart items accordion interaction', async () => {

@@ -18,6 +18,7 @@ import { describe, it, expect } from 'vitest';
 import {
     getViolationCountsByRule,
     groupViolationsByImpact,
+    filterViolationsByTags,
     formatViolationReport,
     compareWithBaseline,
     formatBaselineFailure,
@@ -25,6 +26,8 @@ import {
     formatScanBanner,
     WCAG_STANDARD,
     WCAG_TAGS,
+    REPORTING_STANDARD,
+    REPORTING_TAGS,
     type AxeViolation,
     type A11yScanResults,
     type Baseline,
@@ -39,13 +42,14 @@ function makeViolation(
     id: string,
     impact: AxeViolation['impact'],
     nodeCount: number,
-    opts: { helpUrl?: string; html?: string } = {}
+    opts: { helpUrl?: string; html?: string; tags?: string[] } = {}
 ): AxeViolation {
     return {
         id,
         impact,
         description: `Description for ${id}`,
         helpUrl: opts.helpUrl,
+        tags: opts.tags,
         nodes: Array.from({ length: nodeCount }, (_, i) => ({
             target: [`#${id}-${i}`],
             html: opts.html ? `<div id="${id}-${i}">${opts.html}</div>` : undefined,
@@ -53,11 +57,11 @@ function makeViolation(
     };
 }
 
-function makeScanResults(violations: AxeViolation[]): A11yScanResults {
+function makeScanResults(violations: AxeViolation[], incomplete: AxeViolation[] = []): A11yScanResults {
     return {
         violations,
         passes: [],
-        incomplete: [],
+        incomplete,
         inapplicable: [],
         violationCounts: getViolationCountsByRule(violations),
         violationsByImpact: groupViolationsByImpact(violations),
@@ -460,5 +464,145 @@ describe('formatMarkdownReport', () => {
         const results = makeScanResults([]);
         const md = formatMarkdownReport({ 'my-page/desktop': results });
         expect(md).toContain('| my-page | desktop |');
+    });
+});
+
+// =============================================================================
+// formatMarkdownReport — widened report header + needs-review (incomplete) bucket
+// =============================================================================
+
+describe('formatMarkdownReport widened reporting', () => {
+    it('states the widened reporting standard and every reporting tag in the header', () => {
+        const md = formatMarkdownReport({});
+        expect(md).toContain(REPORTING_STANDARD);
+        for (const tag of REPORTING_TAGS) {
+            expect(md).toContain(tag);
+        }
+    });
+
+    it('records the narrower CI gate standard so the report is not mistaken for the gate', () => {
+        const md = formatMarkdownReport({});
+        expect(md).toContain('**CI gate:**');
+        expect(md).toContain(WCAG_STANDARD);
+        // The gate line must list the narrow blocking tags, not the widened set.
+        for (const tag of WCAG_TAGS) {
+            expect(md).toContain(tag);
+        }
+    });
+
+    it('adds a Needs review column and counts incomplete nodes per summary row', () => {
+        const results = makeScanResults(
+            [makeViolation('color-contrast', 'serious', 1)],
+            [makeViolation('color-contrast-enhanced', null, 2)]
+        );
+        const md = formatMarkdownReport({ 'homepage/desktop': results });
+        expect(md).toContain('| Needs review |');
+        // critical 0, serious 1, moderate 0, minor 0, total 1, needs review 2
+        expect(md).toContain('| homepage | desktop | 0 | 1 | 0 | 0 | 1 | 2 |');
+    });
+
+    it('reports zero needs-review when there are no incomplete items', () => {
+        const results = makeScanResults([makeViolation('image-alt', 'critical', 1)]);
+        const md = formatMarkdownReport({ 'plp/mobile': results });
+        expect(md).toContain('| plp | mobile | 1 | 0 | 0 | 0 | 1 | 0 |');
+    });
+
+    it('renders a NEEDS MANUAL REVIEW section for a page that only has incomplete items', () => {
+        const results = makeScanResults([], [makeViolation('link-in-text-block', null, 3)]);
+        const md = formatMarkdownReport({ 'homepage/desktop': results });
+        // Detail section appears even though there are zero blocking violations.
+        expect(md).toContain('## homepage/desktop');
+        expect(md).toContain('NEEDS MANUAL REVIEW');
+        expect(md).toContain('link-in-text-block');
+        expect(md).toContain('do not block CI');
+    });
+
+    it('omits the detail section entirely when a page is fully clean', () => {
+        const results = makeScanResults([], []);
+        const md = formatMarkdownReport({ 'cart/desktop': results });
+        expect(md).not.toContain('## cart/desktop');
+        expect(md).not.toContain('NEEDS MANUAL REVIEW');
+    });
+
+    it('truncates the needs-review element list to 10 and shows the remaining count', () => {
+        const results = makeScanResults([], [makeViolation('aria-allowed-attr', null, 13)]);
+        const md = formatMarkdownReport({ 'pdp/desktop': results });
+        expect(md).toContain('... and 3 more');
+    });
+});
+
+// =============================================================================
+// filterViolationsByTags
+// =============================================================================
+
+describe('filterViolationsByTags', () => {
+    it('keeps only violations whose tags intersect the requested set', () => {
+        const wide = makeScanResults([
+            makeViolation('color-contrast', 'serious', 2, { tags: ['wcag2aa', 'wcag143'] }),
+            makeViolation('target-size', 'serious', 1, { tags: ['wcag22aa'] }),
+            makeViolation('region', 'moderate', 3, { tags: ['best-practice'] }),
+        ]);
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(narrow.violations.map((v) => v.id)).toEqual(['color-contrast']);
+    });
+
+    it('recomputes counts and impact grouping to match the filtered set', () => {
+        const wide = makeScanResults([
+            makeViolation('color-contrast', 'serious', 2, { tags: ['wcag2aa'] }),
+            makeViolation('link-name', 'critical', 1, { tags: ['wcag2a'] }),
+            makeViolation('target-size', 'serious', 4, { tags: ['wcag22aa'] }),
+        ]);
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        // target-size (wcag22aa only) is dropped; counts/impact reflect only the kept rules.
+        expect(narrow.violationCounts).toEqual({ 'color-contrast': 2, 'link-name': 1 });
+        expect(narrow.violationsByImpact.serious.map((v) => v.id)).toEqual(['color-contrast']);
+        expect(narrow.violationsByImpact.critical.map((v) => v.id)).toEqual(['link-name']);
+    });
+
+    it('is exactly equivalent to a standalone narrow scan of the same DOM', () => {
+        // Axe runs each rule independently: a narrow scan produces exactly the WCAG-tagged
+        // subset of a wide scan. So filtering the wide result must equal scanning narrow.
+        const wcagOnly = [
+            makeViolation('color-contrast', 'serious', 2, { tags: ['wcag2aa'] }),
+            makeViolation('link-name', 'critical', 1, { tags: ['wcag2a'] }),
+        ];
+        const standaloneNarrow = makeScanResults(wcagOnly);
+        const wide = makeScanResults([
+            ...wcagOnly,
+            makeViolation('target-size', 'serious', 4, { tags: ['wcag22aa'] }),
+            makeViolation('region', 'moderate', 3, { tags: ['best-practice'] }),
+        ]);
+
+        const derivedNarrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(derivedNarrow.violations).toEqual(standaloneNarrow.violations);
+        expect(derivedNarrow.violationCounts).toEqual(standaloneNarrow.violationCounts);
+        expect(derivedNarrow.violationsByImpact).toEqual(standaloneNarrow.violationsByImpact);
+    });
+
+    it('excludes a violation with no tags so it never leaks into the narrow gate view', () => {
+        const wide = makeScanResults([
+            makeViolation('color-contrast', 'serious', 1, { tags: ['wcag2aa'] }),
+            makeViolation('mystery-rule', 'critical', 5), // no tags
+        ]);
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(narrow.violations.map((v) => v.id)).toEqual(['color-contrast']);
+    });
+
+    it('preserves the incomplete needs-review bucket untouched', () => {
+        const wide = makeScanResults(
+            [makeViolation('color-contrast', 'serious', 1, { tags: ['wcag2aa'] })],
+            [makeViolation('link-in-text-block', null, 2, { tags: ['best-practice'] })]
+        );
+
+        const narrow = filterViolationsByTags(wide, WCAG_TAGS);
+
+        expect(narrow.incomplete).toEqual(wide.incomplete);
     });
 });

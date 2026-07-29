@@ -104,6 +104,28 @@ describe('RateRecentPurchasesCard', () => {
         expect(screen.getByRole('img', { name: 'Blazer' })).toHaveAttribute('src', 'https://example.com/b.jpg');
     });
 
+    test('caption shows the return label (over raw status) when returnStatus is set', () => {
+        renderRateCard({ ...baseOrder, returnStatus: 'RETURN_COMPLETE' });
+
+        expect(
+            screen.getByText(
+                t('account:overview.rateRecentPurchases.orderCaption', {
+                    orderNo: '#INV005',
+                    status: t('account:orders.returnStatus.complete'),
+                })
+            )
+        ).toBeInTheDocument();
+        // Raw "Completed" status is not shown once a return status wins.
+        expect(
+            screen.queryByText(
+                t('account:overview.rateRecentPurchases.orderCaption', {
+                    orderNo: '#INV005',
+                    status: t('account:orders.status.completed'),
+                })
+            )
+        ).not.toBeInTheDocument();
+    });
+
     test('omits product title line when no product names are available', () => {
         const order: Order = {
             ...baseOrder,

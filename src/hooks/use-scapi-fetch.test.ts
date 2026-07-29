@@ -54,7 +54,8 @@ describe('useScapiFetchClient', () => {
         expect(url).toMatch(/^\/resource\/api\/client\//);
         expect(init?.method).toBe('POST');
         expect(init?.credentials).toBe('same-origin');
-        expect((init?.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+        const headers = init?.headers as Record<string, string>;
+        expect(headers['Content-Type']).toBe('application/json');
         expect(JSON.parse(init?.body as string)).toEqual({ productId: 'sku-1', type: 'product' });
     });
 

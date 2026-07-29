@@ -77,8 +77,9 @@ describe('Contact', () => {
         expect(screen.getByText(t('aboutUs:contact.intro'))).toBeInTheDocument();
 
         const phoneLink = screen.getByRole('link', { name: t('aboutUs:contact.phoneDisplay') });
-        // The tel: URL gets prefixed by the site context Link component
-        expect(phoneLink).toHaveAttribute('href', `/global/en-US${t('aboutUs:contact.phoneHref')}`);
+        // The tel: URL is an explicit scheme, so the site-context Link passes it through untouched
+        // (no site/locale prefix) — see buildUrl's classifyExternal.
+        expect(phoneLink).toHaveAttribute('href', t('aboutUs:contact.phoneHref'));
 
         expect(screen.getByPlaceholderText(t('aboutUs:contact.form.placeholders.fullName'))).toBeInTheDocument();
         expect(screen.getByPlaceholderText(t('aboutUs:contact.form.placeholders.email'))).toBeInTheDocument();

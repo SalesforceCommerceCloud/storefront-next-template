@@ -46,6 +46,14 @@ export interface AxeViolation {
     description: string;
     /** axe-core documentation URL for this rule. */
     helpUrl?: string;
+    /**
+     * Tags of the rule that flagged this violation (e.g. `wcag2aa`, `wcag22aa`,
+     * `best-practice`). axe-core always populates this on a rule result. Optional
+     * here only so hand-built test fixtures need not supply it; real scan output
+     * always carries it. Used by {@link filterViolationsByTags} to derive the narrow
+     * WCAG view from a single widened scan.
+     */
+    tags?: string[];
     nodes: Array<{ target: string[]; html?: string }>;
 }
 
@@ -90,6 +98,23 @@ export const WCAG_STANDARD = 'WCAG 2.1 AA';
 export const WCAG_TAGS: string[] = ['wcag2a', 'wcag2aa', 'wcag21aa'];
 
 /**
+ * Widened tag set for the offline REPORT and for local exploratory scans — never
+ * for the blocking gate. Adds WCAG 2.2 AA (`wcag22aa`: target-size, focus-appearance)
+ * and axe `best-practice` rules (heading-order, landmark-one-main, region, list markup)
+ * on top of the WCAG 2.1 AA blocking set.
+ *
+ * IMPORTANT: this is deliberately NOT the default in {@link scanAndAssert}. The CI
+ * gate asserts on {@link WCAG_TAGS} only, so widening this constant can never fail a
+ * PR — it only enriches the report (`pnpm a11y:report`) and the surfaces the a11y suite
+ * skills drive locally. Promoting any of these tags to the gate is a separate, explicit
+ * decision (fix or baseline the findings first, then move the tag into WCAG_TAGS).
+ */
+export const REPORTING_TAGS: string[] = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa', 'best-practice'];
+
+/** Human-readable label for the widened report scan. */
+export const REPORTING_STANDARD = 'WCAG 2.2 AA + axe best-practice (report only, non-blocking)';
+
+/**
  * Severity levels that block the CI build when they exceed baseline.
  * Moderate and minor violations are tracked and reported but do not fail the job.
  */
@@ -126,6 +151,37 @@ export function groupViolationsByImpact(violations: AxeViolation[]): A11yScanRes
         serious: violations.filter((v) => v.impact === 'serious'),
         moderate: violations.filter((v) => v.impact === 'moderate'),
         minor: violations.filter((v) => v.impact === 'minor'),
+    };
+}
+
+/**
+ * Narrow a widened scan's results down to the violations a scan restricted to
+ * `tags` would have produced, recomputing the derived count/impact views so the
+ * result is indistinguishable from a standalone narrow scan.
+ *
+ * This is exact, not an approximation: axe runs each rule independently, and
+ * `AxeBuilder.withTags(tags)` runs precisely the rules carrying one of those tags.
+ * So the set of violations from a narrow scan equals the widened scan's violations
+ * whose own `tags` intersect the narrow set. Running one widened scan and filtering
+ * therefore yields the same blocking input as running a separate narrow scan — one
+ * axe pass instead of two on the same page.
+ *
+ * A violation with no `tags` (only hand-built fixtures; real axe output always has
+ * them) is treated as NOT matching, so it never leaks into the narrow gate view.
+ *
+ * @param results - Results from a widened scan (e.g. {@link REPORTING_TAGS}).
+ * @param tags - The narrow tag set to keep, e.g. {@link WCAG_TAGS}.
+ * @returns A results object carrying only the matching violations, with
+ *   `violationCounts` and `violationsByImpact` recomputed to match.
+ */
+export function filterViolationsByTags(results: A11yScanResults, tags: string[]): A11yScanResults {
+    const wanted = new Set(tags);
+    const violations = results.violations.filter((v) => (v.tags ?? []).some((t) => wanted.has(t)));
+    return {
+        ...results,
+        violations,
+        violationCounts: getViolationCountsByRule(violations),
+        violationsByImpact: groupViolationsByImpact(violations),
     };
 }
 
@@ -363,7 +419,8 @@ export function formatMarkdownReport(allResults: Record<string, A11yScanResults>
         '# Accessibility Scan Report',
         '',
         `**Generated:** ${date} ${time}`,
-        `**Standard:** ${WCAG_STANDARD} (${WCAG_TAGS.join(', ')})`,
+        `**Standard:** ${REPORTING_STANDARD} (${REPORTING_TAGS.join(', ')})`,
+        `**CI gate:** ${WCAG_STANDARD} critical/serious only (${WCAG_TAGS.join(', ')}). This report is wider than what blocks merges.`,
         '',
         '## Severity Legend',
         '',
@@ -376,8 +433,8 @@ export function formatMarkdownReport(allResults: Record<string, A11yScanResults>
         '',
         '## Summary',
         '',
-        '| Page | Viewport | Critical | Serious | Moderate | Minor | Total |',
-        '|------|----------|----------|---------|----------|-------|-------|',
+        '| Page | Viewport | Critical | Serious | Moderate | Minor | Total | Needs review |',
+        '|------|----------|----------|---------|----------|-------|-------|--------------|',
     ];
 
     const impactOrder: Array<keyof A11yScanResults['violationsByImpact']> = [
@@ -394,16 +451,20 @@ export function formatMarkdownReport(allResults: Record<string, A11yScanResults>
         const { critical, serious, moderate, minor } = results.violationsByImpact;
         const countNodes = (vs: AxeViolation[]) => vs.reduce((sum, v) => sum + v.nodes.length, 0);
         const total = countNodes(results.violations);
+        // `incomplete` = axe could not decide automatically; a human must review.
+        // These never block, but they are the highest-value pointers for a manual tester.
+        const needsReview = countNodes(results.incomplete ?? []);
         lines.push(
-            `| ${page} | ${viewport} | ${countNodes(critical)} | ${countNodes(serious)} | ${countNodes(moderate)} | ${countNodes(minor)} | ${total} |`
+            `| ${page} | ${viewport} | ${countNodes(critical)} | ${countNodes(serious)} | ${countNodes(moderate)} | ${countNodes(minor)} | ${total} | ${needsReview} |`
         );
     }
 
     lines.push('');
 
-    // Per-page detail sections (only for pages with violations)
+    // Per-page detail sections (pages with violations OR items needing manual review)
     for (const [key, results] of Object.entries(allResults)) {
-        if (results.violations.length === 0) continue;
+        const incomplete = results.incomplete ?? [];
+        if (results.violations.length === 0 && incomplete.length === 0) continue;
 
         lines.push(`## ${key}`);
         lines.push('');
@@ -433,6 +494,41 @@ export function formatMarkdownReport(allResults: Record<string, A11yScanResults>
                         lines.push(`  ${node.html}`);
                         lines.push('  ```');
                     }
+                }
+                lines.push('');
+            }
+        }
+
+        // Needs-review section: axe returned these as `incomplete` — it could not
+        // decide automatically, so a human must verify. Non-blocking, but this is
+        // exactly where the manual/AT audit findings tend to live (e.g. contrast on
+        // gradients, ambiguous aria). Surfaced here so a tester has a worklist.
+        if (incomplete.length > 0) {
+            const totalIncompleteNodes = incomplete.reduce((sum, v) => sum + v.nodes.length, 0);
+            lines.push(
+                `### NEEDS MANUAL REVIEW (${totalIncompleteNodes} element${totalIncompleteNodes !== 1 ? 's' : ''})`
+            );
+            lines.push('');
+            lines.push(
+                '_axe could not determine pass/fail automatically. Verify these by hand. They do not block CI._'
+            );
+            lines.push('');
+            for (const item of incomplete) {
+                lines.push(`#### \`${item.id}\` [${item.impact ?? 'needs review'}]`);
+                lines.push('');
+                lines.push(`**Description:** ${item.description}`);
+                if (item.helpUrl) {
+                    lines.push(`**Help:** ${item.helpUrl}`);
+                }
+                lines.push('');
+                lines.push(`**Elements to check (${item.nodes.length}):**`);
+                lines.push('');
+                const preview = item.nodes.slice(0, 10);
+                for (const node of preview) {
+                    lines.push(`- Selector: \`${node.target.join(', ')}\``);
+                }
+                if (item.nodes.length > 10) {
+                    lines.push(`- ... and ${item.nodes.length - 10} more`);
                 }
                 lines.push('');
             }

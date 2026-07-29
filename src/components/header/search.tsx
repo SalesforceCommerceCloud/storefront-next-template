@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type FormEvent, type ReactElement, useCallback, useRef, useState, useEffect, useMemo } from 'react';
+import { type FormEvent, type ReactElement, useCallback, useRef, useState, useEffect, useMemo, useId } from 'react';
 import { useNavigate } from '@/hooks/use-navigate';
 import debounce from 'lodash.debounce';
 import { Input } from '@/components/ui/input';
@@ -25,8 +25,7 @@ import { useSearchSuggestions } from '@/hooks/use-search-suggestions';
 import { useTransformSearchSuggestions } from '@/hooks/use-transform-search-suggestions';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
-import { openShopperAgentAndSendMessage } from '@/components/shopper-agent';
-import { validateShopperAgentConfig } from '@/components/shopper-agent/shopper-agent.utils';
+
 import { UITarget } from '@/targets/ui-target';
 
 const RECENT_SEARCH_LIMIT = 5;
@@ -38,10 +37,15 @@ export default function SearchBar(): ReactElement {
     const navigate = useNavigate();
     const config = useConfig();
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const [query, setQuery] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const queryRef = useRef(query);
     const refetchRef = useRef<() => Promise<void>>(() => Promise.resolve());
+    // Set when Escape closes the panel so the focus we return to the input does not immediately
+    // reopen it via the input's onFocus handler. Cleared on the next real focus.
+    const suppressReopenRef = useRef(false);
+    const searchInputId = `header-search-input-${useId()}`;
 
     const { data: suggestions, refetch } = useSearchSuggestions({
         q: query,
@@ -88,6 +92,10 @@ export default function SearchBar(): ReactElement {
     }, [query, debouncedRefetch]);
 
     const shouldOpenPopover = useCallback(() => {
+        if (suppressReopenRef.current) {
+            suppressReopenRef.current = false;
+            return;
+        }
         const recentSearches = getSessionJSONItem<string[]>(RECENT_SEARCH_KEY) || [];
         const searchSuggestionsAvailable =
             transformedSuggestions &&
@@ -149,71 +157,98 @@ export default function SearchBar(): ReactElement {
         setShowSuggestions(false);
     }, []);
 
-    const showShopperAgent =
-        (config.commerceAgent?.enabled === 'true' || config.commerceAgent?.enabled === true) &&
-        validateShopperAgentConfig(config.commerceAgent);
-
-    const onShopperAgentClick = useCallback(() => {
-        const searchText = inputRef.current?.value?.trim() ?? query.trim();
-        setShowSuggestions(false);
-        setQuery('');
-        if (inputRef.current) {
-            inputRef.current.value = '';
-        }
-        openShopperAgentAndSendMessage(searchText);
-    }, [query]);
-
     useEffect(() => {
         shouldOpenPopover();
     }, [query, suggestions, shouldOpenPopover]);
 
+    const handleContainerBlur = useCallback((e: React.FocusEvent<HTMLDivElement>) => {
+        // Close the panel only when focus leaves the whole search widget. Closing on the input's
+        // own blur (the previous behaviour) unmounted the suggestions before a keyboard user could
+        // Tab into them, making every suggestion unreachable by keyboard (WCAG 2.1.1).
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            setShowSuggestions(false);
+        }
+    }, []);
+
+    // Escape closes the panel and returns focus to the input. Attached as a native keydown
+    // listener rather than a JSX handler because the wrapper is a display:contents element with
+    // no interactive role; a role="search" landmark here would instead be a non-interactive
+    // element carrying an interaction handler. A DOM listener keeps the wrapper role-free while
+    // still catching Escape from any descendant (display:contents does not stop event bubbling).
+    useEffect(() => {
+        const node = containerRef.current;
+        if (!node) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                // Only arm the reopen-suppress flag when focus is actually moving into the input
+                // from elsewhere (e.g. from a suggestion). If the input already holds focus,
+                // .focus() is a no-op, its onFocus never fires, and shouldOpenPopover never runs
+                // to clear the flag, which would then swallow the next genuine focus. Guarding the
+                // set keeps the flag from getting permanently stuck in that case.
+                if (document.activeElement !== inputRef.current) {
+                    suppressReopenRef.current = true;
+                }
+                setShowSuggestions(false);
+                inputRef.current?.focus();
+            }
+        };
+        node.addEventListener('keydown', onKeyDown);
+        return () => node.removeEventListener('keydown', onKeyDown);
+    }, []);
+
     return (
         <UITarget targetId="sfcc.header.search.input">
-            <Popover open={showSuggestions}>
-                <form onSubmit={handleSubmit} className="relative z-10">
-                    <div className="relative">
-                        <PopoverTrigger asChild>
-                            <Input
-                                ref={inputRef}
-                                type="text"
-                                placeholder={t('searchPlaceholder')}
-                                className="w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground"
-                                onChange={handleInputChange}
-                                onFocus={shouldOpenPopover}
-                                onBlur={() => setShowSuggestions(false)}
-                                aria-label={t('searchPlaceholder')}
-                                aria-autocomplete="list"
-                                aria-expanded={showSuggestions}
-                                aria-haspopup="listbox"
-                                role="combobox"
-                                data-testid="header-search"
+            {/* display:contents keeps this focus-scope wrapper layout-neutral while letting the
+                input and the suggestions dialog share one blur boundary. */}
+            <div ref={containerRef} className="contents" onBlur={handleContainerBlur}>
+                <Popover open={showSuggestions}>
+                    <form onSubmit={handleSubmit} className="relative z-10">
+                        <div className="relative">
+                            <label htmlFor={searchInputId} className="sr-only">
+                                {t('searchPlaceholder')}
+                            </label>
+                            <PopoverTrigger asChild>
+                                {/* oxlint-disable jsx-a11y/role-has-required-aria-props -- combobox exposes aria-expanded/aria-autocomplete/aria-haspopup; eslint-plugin-jsx-a11y (ARIA 1.1 via aria-query) does not require aria-controls, so this is stricter than the ESLint baseline */}
+                                <Input
+                                    ref={inputRef}
+                                    id={searchInputId}
+                                    type="text"
+                                    placeholder={t('searchPlaceholder')}
+                                    className="w-full pl-10 focus-visible:border-header-foreground focus-visible:ring-1 focus-visible:ring-header-foreground"
+                                    onChange={handleInputChange}
+                                    onFocus={shouldOpenPopover}
+                                    aria-autocomplete="list"
+                                    aria-expanded={showSuggestions}
+                                    aria-haspopup="dialog"
+                                    role="combobox"
+                                    data-testid="header-search"
+                                />
+                                {/* oxlint-enable jsx-a11y/role-has-required-aria-props */}
+                            </PopoverTrigger>
+                            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2" />
+                        </div>
+                    </form>
+                    {/* Note: Using a fixed div instead of PopoverContent because the search
+                        suggestions panel is designed to span the full page width while the trigger is input with limited width in the header.
+                        Using w-screen on Radix PopoverContent will include the scrollbar width, while the rest of page does not aware of scrollbar width
+                        this causing the content in Popover to completely miss aligned with the rest of the layout despite using the same section gutter class.
+                        Therefore, we go with traditional div to get control over styling for search result area*/}
+                    {showSuggestions && (
+                        <div
+                            className="fixed left-0 right-0 z-50 border-b shadow-[0px_1px_12px_rgba(0,0,0,0.25)] max-h-[min(70vh,32rem)] overflow-y-auto bg-popover text-popover-foreground"
+                            style={{ top: 'var(--header-height)' }}
+                            role="dialog"
+                            aria-label={t('searchSuggestions')}>
+                            <Suggestions
+                                searchSuggestions={transformedSuggestions}
+                                recentSearches={getSessionJSONItem<string[]>(RECENT_SEARCH_KEY) || []}
+                                closeAndNavigate={closeAndNavigate}
+                                clearRecentSearches={clearRecentSearches}
                             />
-                        </PopoverTrigger>
-                        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2" />
-                    </div>
-                </form>
-                {/* Note: Using a fixed div instead of PopoverContent because the search
-                    suggestions panel is designed to span the full page width while the trigger is input with limited width in the header.
-                    Using w-screen on Radix PopoverContent will include the scrollbar width, while the rest of page does not aware of scrollbar width
-                    this causing the content in Popover to completely miss aligned with the rest of the layout despite using the same section gutter class.
-                    Therefore, we go with traditional div to get control over styling for search result area*/}
-                {showSuggestions && (
-                    <div
-                        className="fixed left-0 right-0 z-50 border-b shadow-[0px_1px_12px_rgba(0,0,0,0.25)] max-h-[min(70vh,32rem)] overflow-y-auto bg-popover text-popover-foreground"
-                        style={{ top: 'var(--header-height)' }}
-                        role="listbox"
-                        aria-label={t('searchSuggestions')}>
-                        <Suggestions
-                            searchSuggestions={transformedSuggestions}
-                            recentSearches={getSessionJSONItem<string[]>(RECENT_SEARCH_KEY) || []}
-                            closeAndNavigate={closeAndNavigate}
-                            clearRecentSearches={clearRecentSearches}
-                            showShopperAgent={showShopperAgent}
-                            onShopperAgentClick={onShopperAgentClick}
-                        />
-                    </div>
-                )}
-            </Popover>
+                        </div>
+                    )}
+                </Popover>
+            </div>
         </UITarget>
     );
 }

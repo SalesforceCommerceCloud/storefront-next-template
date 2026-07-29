@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import type React from 'react';
-import { vi, test, describe, expect, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { vi, test, describe, expect, beforeEach, afterEach } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
@@ -36,6 +36,14 @@ vi.mock('@/hooks/use-scapi-fetcher', () => ({
         success: true,
     }),
 }));
+
+// Spy on the lazy-load trigger while keeping the real provider/store behavior, so we can
+// assert tile-level intent (not just heart-icon intent) kicks the load.
+const loadSpy = vi.fn();
+vi.mock('@/providers/wishlist', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/providers/wishlist')>();
+    return { ...actual, useWishlistLoader: () => loadSpy };
+});
 
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 vi.mock('@/extensions/ratings-reviews/providers/product-reviews-context', () => ({
@@ -186,6 +194,37 @@ describe('ProductTile — rendering', () => {
     });
 });
 
+describe('ProductTile — lazy wishlist load on tile intent', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    // The heart is opacity-0 until tile hover, so the trigger must live on the tile itself.
+    const getTile = (): HTMLElement => {
+        const card = screen.getByText('Simple Test Product').closest('.product-card');
+        expect(card).not.toBeNull();
+        return card as HTMLElement;
+    };
+
+    test('triggers the load on pointerEnter of the tile (not just the heart)', () => {
+        renderTile();
+        fireEvent.pointerEnter(getTile());
+        expect(loadSpy).toHaveBeenCalled();
+    });
+
+    test('triggers the load on focus within the tile (keyboard)', () => {
+        renderTile();
+        fireEvent.focus(getTile());
+        expect(loadSpy).toHaveBeenCalled();
+    });
+
+    test('triggers the load on touchStart of the tile (mobile)', () => {
+        renderTile();
+        fireEvent.touchStart(getTile());
+        expect(loadSpy).toHaveBeenCalled();
+    });
+});
+
 describe('ProductTile — PDP URL', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -303,6 +342,61 @@ describe('ProductTile — color swatches', () => {
         expect(swatchLinks).toHaveLength(2);
         expect(swatchLinks[0]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=RED');
         expect(swatchLinks[1]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=BLU');
+    });
+});
+
+describe('ProductTile — swatch hover preview', () => {
+    let originalMatchMedia: typeof globalThis.matchMedia;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        originalMatchMedia = globalThis.matchMedia;
+    });
+
+    afterEach(() => {
+        globalThis.matchMedia = originalMatchMedia;
+    });
+
+    const mockDesktop = (matches: boolean) => {
+        globalThis.matchMedia = vi.fn().mockImplementation((query: string) => ({
+            matches,
+            media: query,
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+        }));
+    };
+
+    test('previews the hovered colour on desktop viewports', async () => {
+        mockDesktop(true);
+        const user = userEvent.setup();
+        renderTile();
+
+        const swatchRegion = await screen.findByRole('group', { name: /available colou?rs/i });
+        const navy = within(swatchRegion).getByRole('link', { name: /Navy/ });
+        expect(navy).not.toHaveAttribute('aria-current');
+
+        await user.hover(navy);
+
+        // Hover selects the colour on desktop, marking the swatch as current.
+        expect(within(swatchRegion).getByRole('link', { name: /Navy/ })).toHaveAttribute('aria-current', 'true');
+    });
+
+    test('does not preview on hover on mobile viewports', async () => {
+        mockDesktop(false);
+        const user = userEvent.setup();
+        renderTile();
+
+        const swatchRegion = await screen.findByRole('group', { name: /available colou?rs/i });
+        const navy = within(swatchRegion).getByRole('link', { name: /Navy/ });
+
+        await user.hover(navy);
+
+        // Below the desktop breakpoint, hover is inert — the preview only changes on click/navigation.
+        expect(within(swatchRegion).getByRole('link', { name: /Navy/ })).not.toHaveAttribute('aria-current');
     });
 });
 

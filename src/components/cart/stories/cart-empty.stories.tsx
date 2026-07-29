@@ -21,7 +21,7 @@ import EmptyCart from '../cart-empty';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const meta: Meta<typeof EmptyCart> = {
-    title: 'CART/Empty Cart',
+    title: 'Cart/Empty Cart',
     component: EmptyCart,
     tags: ['autodocs', 'interaction'],
     parameters: {

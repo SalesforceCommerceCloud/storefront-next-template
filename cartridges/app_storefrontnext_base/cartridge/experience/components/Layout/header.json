@@ -8,7 +8,8 @@
     "region_definitions": [
         {
             "id": "announcement",
-            "name": "Announcement"
+            "name": "Announcement",
+            "description": "Displayed above the header"
         }
     ],
     "attribute_definition_groups": [

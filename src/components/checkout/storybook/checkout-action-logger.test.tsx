@@ -42,7 +42,7 @@ const TRUSTED_MARKER = '__trusted' as const;
 type Trustable = Event & { [TRUSTED_MARKER]?: boolean };
 
 beforeAll(() => {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // oxlint-disable-next-line @typescript-eslint/unbound-method
     const origAdd = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function patched(
         type: string,
@@ -137,7 +137,7 @@ describe('CheckoutActionLogger', () => {
             </CheckoutActionLogger>
         );
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
         const form = getByRole('button').closest('form')!;
         const submit = new Event('submit', { bubbles: true, cancelable: true });
         Object.defineProperty(submit, 'submitter', { value: getByRole('button') });

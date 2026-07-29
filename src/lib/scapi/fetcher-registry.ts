@@ -16,7 +16,7 @@
 import { decodeResource, type DecodedResource } from './resource-encoding';
 import type { FetcherWithComponents } from 'react-router';
 
-// eslint-disable-next-line
+// oxlint-disable-next-line
 type FetcherLoad = FetcherWithComponents<any>['load'];
 
 type RegistryEntry = {

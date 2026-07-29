@@ -134,7 +134,7 @@ export default function OtpModal({
                 }
             });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     // Update error when initialError changes (for external fetcher/manual error handling)
@@ -187,7 +187,7 @@ export default function OtpModal({
             // Clear OTP inputs so user can retry
             otpInputsRef.current.clear();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [fetcher.state, fetcher.data, onSuccess, onVerifyCode]);
 
     const handleResend = async () => {
@@ -242,7 +242,7 @@ export default function OtpModal({
         ) {
             handleVerify(enteredOtp);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [enteredOtp, visibleCount, hasGap, isVerifying, isLoading]);
 
     return (
@@ -272,6 +272,7 @@ export default function OtpModal({
                                     onKeyDown={(e) => otpInputs.handleKeyDown(index, e)}
                                     onPaste={otpInputs.handlePaste}
                                     disabled={isVerifying || isLoading}
+                                    // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first digit on modal open (WCAG 2.4.3 focus order); dialog is the exception the rule warns about
                                     autoFocus={index === 0}
                                     className="w-full min-w-0 h-14 text-center text-sm font-bold border-2"
                                     aria-label={`${t('otpCodeLabel')} ${index + 1} of ${visibleCount}`}

@@ -28,7 +28,7 @@ The monorepo has detailed contribution guidelines:
 
 1. Fork the **monorepo** (not this mirror repo)
 2. Create a branch for your changes
-3. Make your changes in `packages/template-retail-rsc-app/`
+3. Make your changes in `packages/template/`
 4. Submit PR to the **monorepo**
 5. Your changes will automatically sync to this mirror repo
 
@@ -64,7 +64,7 @@ Follow the steps above to submit a PR to the monorepo.
 This mirror repository contains **only** the storefront template.
 
 The monorepo contains:
-- 📦 `packages/template-retail-rsc-app/` (this template)
+- 📦 `packages/template/` (this template)
 - 📦 `packages/storefront-next-dev/` (dev tooling)
 - 📦 Other packages and tools
 - 📋 Comprehensive documentation

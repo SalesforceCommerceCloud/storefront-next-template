@@ -579,10 +579,32 @@ describe('ShippingOptions Component', () => {
         expect(labels[0].tagName).toBe('SPAN');
         expect(labels[0].className).toContain('font-medium');
 
-        const secondaryLabels = screen.getAllByText(/Shipping$/);
+        const secondaryLabels = screen.getAllByText(/Shipping$/, { selector: '[aria-hidden="true"]' });
         for (const label of secondaryLabels) {
             expect(label.className).toContain('pl-6');
         }
+
+        // Each radio's accessible name contains the method name so assistive
+        // technologies announce the method when navigating the radio group.
+        expect(screen.getByRole('radio', { name: /Standard Shipping/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /Express Shipping/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /Overnight Shipping/i })).toBeInTheDocument();
+    });
+
+    test('selects the radio when clicking the card padding', async () => {
+        const user = userEvent.setup();
+        const { container } = render(<ShippingOptions {...createDefaultProps()} />);
+
+        // Click the outer <label> card for Express Shipping — not the radio itself.
+        // The sr-only span holds the method name and is a direct child of the label,
+        // so closest('label') from it reaches the card wrapper, not the radio's label.
+        const srOnlySpans = Array.from(container.querySelectorAll('span.sr-only'));
+        const expressNameSpan = srOnlySpans.find((el) => el.textContent === 'Express Shipping');
+        const outerLabel = expressNameSpan?.closest('label');
+        if (!outerLabel) throw new Error('Expected outer label wrapper for Express Shipping card');
+        await user.click(outerLabel);
+
+        expect(screen.getByRole('radio', { name: /Express Shipping/i })).toBeChecked();
     });
 
     test('falls back to name as primary label when description is absent', () => {
@@ -709,5 +731,94 @@ describe('ShippingOptions Component', () => {
         const strikeThroughPrice = screen.getByText('$5.99');
         expect(strikeThroughPrice.className).toContain('line-through');
         expect(screen.getByText('FREE')).toBeInTheDocument();
+    });
+
+    test('shows delivery window in edit view when present on a method', () => {
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [
+                {
+                    id: 'standard',
+                    name: 'Standard Shipping',
+                    description: '5-7 days',
+                    price: 5.99,
+                    deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                },
+            ],
+        };
+        render(<ShippingOptions {...createDefaultProps({ shippingMethods: methods })} />);
+
+        expect(screen.getByText(/Arrives/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
+    });
+
+    test('does not show delivery window in edit view when absent', () => {
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [
+                { id: 'standard', name: 'Standard Shipping', description: '5-7 days', price: 5.99 },
+            ],
+        };
+        render(<ShippingOptions {...createDefaultProps({ shippingMethods: methods })} />);
+
+        expect(screen.queryByText(/Arrives/)).not.toBeInTheDocument();
+    });
+
+    test('shows delivery window in summary view when present on selected method', () => {
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [
+                    {
+                        shipmentId: 's1',
+                        shippingMethod: {
+                            id: 'standard',
+                            name: 'Standard Shipping',
+                            description: '5-7 days',
+                            price: 5.99,
+                        },
+                    },
+                ],
+            })
+        );
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [
+                {
+                    id: 'standard',
+                    name: 'Standard Shipping',
+                    description: '5-7 days',
+                    price: 5.99,
+                    deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                },
+            ],
+        };
+        render(
+            <ShippingOptions
+                {...createDefaultProps({ shippingMethods: methods, isEditing: false, isCompleted: true })}
+            />
+        );
+
+        expect(screen.getByText(/Arrives/)).toBeInTheDocument();
+        expect(screen.getByText(/30.*Apr|Apr 30/)).toBeInTheDocument();
+    });
+
+    test('does not show delivery window in summary view when absent on selected method', () => {
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [
+                    {
+                        shipmentId: 's1',
+                        shippingMethod: { id: 'standard', name: 'Standard Shipping', price: 5.99 },
+                    },
+                ],
+            })
+        );
+        const methods: ShopperBasketsV2.schemas['ShippingMethodResult'] = {
+            applicableShippingMethods: [{ id: 'standard', name: 'Standard Shipping', price: 5.99 }],
+        };
+        render(
+            <ShippingOptions
+                {...createDefaultProps({ shippingMethods: methods, isEditing: false, isCompleted: true })}
+            />
+        );
+
+        expect(screen.queryByText(/Arrives/)).not.toBeInTheDocument();
     });
 });

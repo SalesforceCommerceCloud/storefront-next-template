@@ -72,7 +72,7 @@ function WriteReviewModalContentWrapper({
 }
 
 const meta: Meta<typeof WriteReviewModalContentWrapper> = {
-    title: 'COMMON/Info Modal/Write Review Modal Content',
+    title: 'Core/Overlays/Info Modal/Write Review Modal Content',
     component: WriteReviewModalContentWrapper,
     tags: ['autodocs'],
     parameters: {

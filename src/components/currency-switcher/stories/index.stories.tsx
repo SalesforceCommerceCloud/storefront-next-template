@@ -21,7 +21,7 @@ import { mockLocale, mockSiteObject } from '@/test-utils/config';
 import CurrencySwitcher from '../index';
 
 const meta: Meta<typeof CurrencySwitcher> = {
-    title: 'LAYOUT/Currency Switcher',
+    title: 'Layout/Switchers/Currency Switcher',
     component: CurrencySwitcher,
     tags: ['autodocs', 'interaction'],
     parameters: {

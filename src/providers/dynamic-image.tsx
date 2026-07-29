@@ -68,7 +68,7 @@ const DynamicImageProvider = ({
  * Hook to access DynamicImage context. Returns null if no provider is present,
  * making the context optional.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useDynamicImageContext = (): DynamicImageContextValue | null => {
     return useContext(DynamicImageContext);
 };

@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import type { EnrichedProductItem } from '@/lib/product/product-utils';
 import type { ShopperOrders, ShopperProducts } from '@/scapi';
 import { routes, routeHref } from '@/route-paths';
+import { accountPrimaryButtonClasses } from '@/lib/account-action-styles';
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 import { getOrderLineReviewKey } from '@/components/account/order-details/order-line-review-key';
 import { UITarget } from '@/targets/ui-target';
@@ -130,7 +131,7 @@ export function OrderItemsList({
                                         asChild
                                         variant="default"
                                         size="sm"
-                                        className="bg-foreground text-background hover:bg-foreground/90 text-xs">
+                                        className={`${accountPrimaryButtonClasses} text-xs`}>
                                         <Link to={routeHref(routes.product, { productId: item.productId })}>
                                             {t('orders.buyAgain')}
                                         </Link>

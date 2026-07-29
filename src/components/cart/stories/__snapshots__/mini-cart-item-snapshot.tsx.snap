@@ -167,8 +167,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                       class="flex flex-col-reverse items-end gap-0 text-right"
                     >
                       <h5
-                        aria-label="Current price: £15.00"
-                        aria-live="polite"
+                        aria-hidden="true"
                         class="text-left text-xl font-semibold leading-none tracking-[-0.6px] text-card-foreground [&:not(:first-child)]:mt-0"
                       >
                         £15.00
@@ -184,7 +183,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                       </span>
                        
                       <h5
-                        aria-label="List price: £80.00"
+                        aria-hidden="true"
                         class="text-left text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground line-through [&:not(:first-child)]:mt-0"
                       >
                         £80.00
@@ -207,7 +206,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                       each
                     </div>
                     <span
-                      class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground mt-1 max-w-full whitespace-normal break-words text-right leading-normal"
+                      class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground mt-1 max-w-full whitespace-normal break-words text-right leading-normal"
                       data-slot="badge"
                     >
                       Saved £65.00
@@ -225,18 +224,20 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                     Quantity
                   </label>
                   <div
+                    aria-label="Quantity for Product Name"
                     class="inline-flex border border-input rounded-ui overflow-hidden h-9 w-fit max-w-full items-center gap-2 px-2 py-2"
+                    role="group"
                   >
                     <button
                       aria-label="Decrement Quantity for Product Name"
-                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                       data-testid="quantity-decrement"
                     >
                       −
                     </button>
                     <input
                       aria-label="Quantity"
-                      class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       max="4"
                       min="1"
                       step="1"
@@ -245,7 +246,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
                     />
                     <button
                       aria-label="Increment Quantity for Product Name"
-                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                       data-testid="quantity-increment"
                       disabled=""
                     >
@@ -277,7 +278,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
       class="flex-shrink-0 border-t border-border p-4 md:p-6 space-y-3"
     >
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
         data-size="default"
         data-slot="button"
         data-variant="default"
@@ -285,7 +286,7 @@ exports[`MiniCartItem stories snapshot > AtStockLimit story renders and matches 
         Checkout $59.00
       </button>
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
         data-size="default"
         data-slot="button"
         data-variant="outline"
@@ -470,8 +471,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                       class="flex flex-col-reverse items-end gap-0 text-right"
                     >
                       <h5
-                        aria-label="Current price: £15.00"
-                        aria-live="polite"
+                        aria-hidden="true"
                         class="text-left text-xl font-semibold leading-none tracking-[-0.6px] text-card-foreground [&:not(:first-child)]:mt-0"
                       >
                         £15.00
@@ -487,7 +487,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                       </span>
                        
                       <h5
-                        aria-label="List price: £20.00"
+                        aria-hidden="true"
                         class="text-left text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground line-through [&:not(:first-child)]:mt-0"
                       >
                         £20.00
@@ -503,7 +503,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                       </span>
                     </div>
                     <span
-                      class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground mt-1 max-w-full whitespace-normal break-words text-right leading-normal"
+                      class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold text-secondary-foreground mt-1 max-w-full whitespace-normal break-words text-right leading-normal"
                       data-slot="badge"
                     >
                       Saved £5.00
@@ -521,11 +521,13 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                     Quantity
                   </label>
                   <div
+                    aria-label="Quantity for Product Name"
                     class="inline-flex border border-input rounded-ui overflow-hidden h-9 w-fit max-w-full items-center gap-2 px-2 py-2"
+                    role="group"
                   >
                     <button
                       aria-label="Decrement Quantity for Product Name"
-                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                       data-testid="quantity-decrement"
                       disabled=""
                     >
@@ -533,7 +535,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                     </button>
                     <input
                       aria-label="Quantity"
-                      class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       min="1"
                       step="1"
                       type="number"
@@ -541,7 +543,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
                     />
                     <button
                       aria-label="Increment Quantity for Product Name"
-                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                       data-testid="quantity-increment"
                     >
                       +
@@ -565,7 +567,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
       class="flex-shrink-0 border-t border-border p-4 md:p-6 space-y-3"
     >
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
         data-size="default"
         data-slot="button"
         data-variant="default"
@@ -573,7 +575,7 @@ exports[`MiniCartItem stories snapshot > Default story renders and matches snaps
         Checkout $59.00
       </button>
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
         data-size="default"
         data-slot="button"
         data-variant="outline"
@@ -719,7 +721,7 @@ exports[`MiniCartItem stories snapshot > EmptyCart story renders and matches sna
                 Looks like you haven't added anything to your cart yet. Start shopping to fill it up with amazing products!
               </p>
               <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 py-2 has-[>svg]:px-3 px-8"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 py-2 has-[>svg]:px-3 px-8"
                 data-size="default"
                 data-slot="button"
                 data-variant="default"

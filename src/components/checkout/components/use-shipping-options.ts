@@ -38,6 +38,7 @@ export interface ShippingMethod {
     description?: string;
     price: number;
     shippingPromotions?: ShippingPromotion[];
+    deliveryWindow?: ShopperBasketsV2.schemas['DeliveryWindow'];
 }
 
 interface UseShippingOptionsParams {
@@ -99,6 +100,7 @@ export function useShippingOptions({
                     description: method.description,
                     price: method.price,
                     shippingPromotions: method.shippingPromotions,
+                    deliveryWindow: method.deliveryWindow,
                 })) || [],
         [shippingMethods?.applicableShippingMethods]
     );

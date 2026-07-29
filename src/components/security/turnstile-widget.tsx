@@ -147,7 +147,7 @@ export function TurnstileWidget({
                     'error-callback': (errorCode: string) => {
                         const family = classifyTurnstileErrorCode(errorCode);
                         if (!hasLoggedErrorRef.current) {
-                            // eslint-disable-next-line no-console
+                            // oxlint-disable-next-line no-console
                             console.warn('[Turnstile] Challenge error', { errorCode, family });
                             hasLoggedErrorRef.current = true;
                         }
@@ -197,7 +197,7 @@ export function TurnstileWidget({
                 });
             } catch (error) {
                 if (!hasLoggedErrorRef.current) {
-                    // eslint-disable-next-line no-console
+                    // oxlint-disable-next-line no-console
                     console.warn('[Turnstile] Failed to initialize:', error);
                     hasLoggedErrorRef.current = true;
                 }
@@ -228,7 +228,7 @@ export function TurnstileWidget({
                     scriptLoadTimeoutId = null;
                     if (!widgetIdRef.current) {
                         if (!hasLoggedErrorRef.current) {
-                            // eslint-disable-next-line no-console
+                            // oxlint-disable-next-line no-console
                             console.warn('[Turnstile] Script load timeout');
                             hasLoggedErrorRef.current = true;
                         }
@@ -253,7 +253,7 @@ export function TurnstileWidget({
                         scriptLoadTimeoutId = null;
                     }
                     if (!hasLoggedErrorRef.current) {
-                        // eslint-disable-next-line no-console
+                        // oxlint-disable-next-line no-console
                         console.warn('[Turnstile] Failed to load script');
                         hasLoggedErrorRef.current = true;
                     }
@@ -285,7 +285,7 @@ export function TurnstileWidget({
                     }
                     if (!widgetIdRef.current) {
                         if (!hasLoggedErrorRef.current) {
-                            // eslint-disable-next-line no-console
+                            // oxlint-disable-next-line no-console
                             console.warn('[Turnstile] Script load timeout');
                             hasLoggedErrorRef.current = true;
                         }

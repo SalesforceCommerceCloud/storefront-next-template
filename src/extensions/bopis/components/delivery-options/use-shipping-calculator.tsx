@@ -18,6 +18,7 @@ import { type ComponentType, type ReactNode, useState, useEffect, useCallback, u
 import type { ShopperProducts } from '@/scapi';
 
 const shippingCalculatorImport = () => import('./shipping-calculator');
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 const ShippingCalculator = lazy(shippingCalculatorImport) as ComponentType<{
     onCalculate: (zipCode: string, days: number) => void;
     productId: string;

@@ -51,7 +51,7 @@ export const ProductProvider = ({ children, product }: PropsWithChildren<Product
  *
  * @returns The product from context, or null if not available
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export const useProduct = () => {
     const context = useContext(ProductContext);
     return context?.product ?? null;

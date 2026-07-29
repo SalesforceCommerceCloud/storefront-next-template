@@ -17,7 +17,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import AccountAddressesSkeleton from '../index';
 
 const meta: Meta<typeof AccountAddressesSkeleton> = {
-    title: 'SKELETON/AccountAddressesSkeleton',
+    title: 'Account/Addresses/Account Addresses Skeleton',
     component: AccountAddressesSkeleton,
     parameters: {
         layout: 'padded',

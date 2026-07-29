@@ -1,5 +1,5 @@
 /* Store locator uses square, high-contrast radio styling (market-street template specific). */
-.store-locator-square-radio-group [data-slot='radio-group-item'].store-locator-square-radio {
+.store-locator-square-radio-group [data-slot="radio-group-item"].store-locator-square-radio {
     position: relative;
     border-radius: 0;
     background-color: var(--background);
@@ -7,18 +7,17 @@
     border-color: var(--muted-foreground);
 }
 
-.store-locator-square-radio-group [data-slot='radio-group-item'].store-locator-square-radio[data-state='checked'] {
+.store-locator-square-radio-group [data-slot="radio-group-item"].store-locator-square-radio[data-state='checked'] {
     border-color: var(--foreground);
 }
 
 .store-locator-square-radio-group
-    [data-slot='radio-group-item'].store-locator-square-radio
+    [data-slot="radio-group-item"].store-locator-square-radio
     [data-slot='radio-group-indicator'] {
     display: none;
 }
 
-.store-locator-square-radio-group
-    [data-slot='radio-group-item'].store-locator-square-radio[data-state='checked']::after {
+.store-locator-square-radio-group [data-slot="radio-group-item"].store-locator-square-radio[data-state='checked']::after {
     content: '';
     position: absolute;
     top: 50%;

@@ -19,7 +19,7 @@ import { expect, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady, SITE_PREFIX } from '@storybook/test-utils';
 
 const meta: Meta<typeof Swatch> = {
-    title: 'SWATCH/Swatch',
+    title: 'Products/Swatches/Swatch',
     component: Swatch,
     parameters: {
         layout: 'centered',
@@ -160,8 +160,8 @@ export const Disabled: Story = {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
-        const swatch = canvas.getByRole('radio', { name: /green/i });
-        await expect(swatch).toBeDisabled();
+        const swatch = canvas.getByRole('radio', { name: /green.*out of stock/i });
+        await expect(swatch).toHaveAttribute('aria-disabled', 'true');
     },
 };
 

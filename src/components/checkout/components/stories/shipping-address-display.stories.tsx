@@ -21,7 +21,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof ShippingAddressDisplay> = {
-    title: 'CHECKOUT/ShippingAddressDisplay',
+    title: 'Checkout/Shipping/Shipping Address Display',
     component: ShippingAddressDisplay,
     parameters: {
         ...checkoutStrictA11yParameters,

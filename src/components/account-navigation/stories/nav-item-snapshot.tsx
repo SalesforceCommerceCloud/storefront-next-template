@@ -58,8 +58,7 @@ import * as NavItemStories from './nav-item.stories';
 
 const composed = composeStories(NavItemStories);
 const mockLocale =
-    mockSiteObject.supportedLocales.find((l) => l.id === mockSiteObject.defaultLocale) ??
-    mockSiteObject.supportedLocales[0];
+    mockSiteObject.supportedLocales.find((l) => l.id === mockSiteObject.defaultLocale) ?? mockSiteObject.supportedLocales[0];
 
 afterEach(() => {
     cleanup();

@@ -68,7 +68,7 @@ function FieldsHarness({ initialValue = '', fetcherState = 'idle', triggerValida
 
 const meta: Meta<typeof FieldsHarness> = {
     component: FieldsHarness,
-    title: 'CART/Promo Code Fields',
+    title: 'Cart/Promo Codes/Promo Code Fields',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',

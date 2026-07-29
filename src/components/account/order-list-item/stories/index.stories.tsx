@@ -36,7 +36,7 @@ const baseOrder: OrderListItemData = {
 };
 
 const meta: Meta<typeof OrderListItem> = {
-    title: 'ACCOUNT/Order List Item',
+    title: 'Account/Orders/Order List Item',
     component: OrderListItem,
     parameters: {
         layout: 'padded',
@@ -84,6 +84,18 @@ export const WithPickupLocation: Story = {
                 state: 'CA',
                 postalCode: '94105',
             },
+        },
+    },
+};
+
+// Derived return status overrides the raw status badge with an informational label.
+export const WithReturnStatus: Story = {
+    args: {
+        order: {
+            ...baseOrder,
+            status: 'completed',
+            statusLabel: 'Completed',
+            returnStatus: 'PARTIAL_RETURN_COMPLETE',
         },
     },
 };

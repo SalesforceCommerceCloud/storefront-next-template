@@ -76,7 +76,7 @@ exports[`StoreDetails stories snapshot > CompactAddress story renders and matche
             <button
               aria-controls="radix-_r_5_"
               aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
+              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
               data-orientation="vertical"
               data-radix-collection-item=""
               data-slot="accordion-trigger"
@@ -203,7 +203,7 @@ exports[`StoreDetails stories snapshot > Default story renders and matches snaps
             <button
               aria-controls="radix-_r_1_"
               aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
+              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
               data-orientation="vertical"
               data-radix-collection-item=""
               data-slot="accordion-trigger"
@@ -330,7 +330,7 @@ exports[`StoreDetails stories snapshot > DesktopLayout story renders and matches
             <button
               aria-controls="radix-_r_9_"
               aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
+              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
               data-orientation="vertical"
               data-radix-collection-item=""
               data-slot="accordion-trigger"
@@ -457,7 +457,7 @@ exports[`StoreDetails stories snapshot > MobileLayout story renders and matches 
             <button
               aria-controls="radix-_r_7_"
               aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
+              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
               data-orientation="vertical"
               data-radix-collection-item=""
               data-slot="accordion-trigger"
@@ -521,7 +521,7 @@ exports[`StoreDetails stories snapshot > WithPrimaryAction story renders and mat
       class="col-span-1 col-start-2 justify-self-end self-start md:col-start-3 md:col-span-1"
     >
       <button
-        class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5"
         data-size="sm"
         data-slot="button"
         data-variant="default"
@@ -596,7 +596,7 @@ exports[`StoreDetails stories snapshot > WithPrimaryAction story renders and mat
             <button
               aria-controls="radix-_r_3_"
               aria-expanded="false"
-              class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
+              class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
               data-orientation="vertical"
               data-radix-collection-item=""
               data-slot="accordion-trigger"

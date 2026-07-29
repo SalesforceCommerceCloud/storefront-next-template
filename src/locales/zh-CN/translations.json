@@ -31,10 +31,6 @@
     },
     "search": {
         "results": "搜索以下方面的结果：",
-        "shopperAgent": {
-            "title": "与您的购物者代理一起购物",
-            "description": "我可以帮助您找到适合您空间的完美产品。和我一起购物。"
-        },
         "suggestions": {
             "didYouMean": "您是否要找",
             "categories": "类别",
@@ -302,7 +298,8 @@
         "quantityUpdateFailed": "无法更新数量",
         "onlyLeft": "仅剩 {{stockLevel}} 件！",
         "onlyLeftForProduct": "{{productName}} 只剩下 {{stockLevel}}！",
-        "maxStockReached": "已达到最大库存"
+        "maxStockReached": "已达到最大库存",
+        "insufficientStock": "库存不足"
     },
     "cart": {
         "title": "购物车",
@@ -411,6 +408,7 @@
             "emailInvalid": "请输入有效电子邮件地址。",
             "countryCodeLabel": "代码",
             "phoneLabel": "电话号码",
+            "phoneFormatDescription": "10位电话号码",
             "phoneRequired": "请输入您的电话号码。",
             "phoneInvalid": "请输入有效电话号码。",
             "notProvided": "尚未提供",
@@ -491,7 +489,8 @@
             "arrives": "送达时间：{{estimatedArrivalTime}}",
             "free": "免费",
             "noMethodsAvailable": "无可用的运货方式",
-            "noMethodsAvailableHelp": "请确保您的送货地址完整并重试。"
+            "noMethodsAvailableHelp": "请确保您的送货地址完整并重试。",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "付款",
@@ -619,7 +618,8 @@
                 "noAddress": "无可用地址",
                 "estimatedDatePlaceholder": "立即处理",
                 "quantity": "数量： {{count}}",
-                "freeShipping": "免费"
+                "freeShipping": "免费",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "小计",
@@ -679,6 +679,7 @@
             "addresses": "地址",
             "manageAddresses": "管理地址",
             "paymentMethods": "付款方式",
+            "passkeys": "Passkeys",
             "storePreferences": "实体店首选项",
             "logOut": "登出"
         },
@@ -865,16 +866,6 @@
             "productPlaceholderInitial": "商品",
             "quantityLabel": "数量： {{count}}",
             "trackingNumber": "跟踪编号",
-            "tracking": {
-                "provider": "Carrier",
-                "expectedDelivery": "Expected delivery",
-                "delivered": "Delivered",
-                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
-            },
-            "actions": {
-                "trackShipment": "Track shipment",
-                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
-            },
             "shippingAddress": "送货地址",
             "paymentMethod": "付款方式",
             "paymentMethodEndingIn": "{{cardType}} 尾号为 {{lastDigits}}"
@@ -1061,6 +1052,50 @@
             "disclaimer": "启用这些通讯偏好，即表示您同意接收我们发送的营销通讯，包括独家优惠、最新产品信息和即将推出的系列产品的新闻。有关更多详细信息，请参阅我们的《条款与条件》和《隐私政策》。",
             "updateError": "无法更新营销偏好。重试",
             "partialSuccess": "已保存一些偏好设置。刷新以查看当前设置。"
+        },
+        "passkeys": {
+            "pageTitle": "Passkeys",
+            "pageSubtitle": "Sign in faster and more securely using your face, fingerprint, or device PIN.",
+            "sectionTitle": "Your passkeys",
+            "sectionSubtitle": "Manage the passkeys registered to your account.",
+            "addPasskey": "Add Passkey",
+            "addDialogTitle": "Name your passkey",
+            "addDialogDescription": "Choose a name that helps you identify this passkey later, like the device or browser you're using.",
+            "passkeyNameLabel": "Passkey name",
+            "passkeyNamePlaceholder": "For example, Chrome on MacBook Pro",
+            "passkeyNameHint": "To rename this passkey after saving, you need to remove it and add it again.",
+            "nameRequired": "Please enter a name for this passkey.",
+            "nameTooLong": "Passkey name must be 128 characters or fewer.",
+            "addContinue": "Continue",
+            "otpStepTitle": "Verify your email",
+            "otpStepDescription": "Check your email for a {{otpLength}}-digit code. Enter it to verify your identity before creating the passkey.",
+            "otpCodeLabel": "Verification code",
+            "addSuccess": "Passkey was added.",
+            "addSuccessDescription": "Manage passkeys in My Account.",
+            "viewPasskeys": "View Passkeys",
+            "addedOn": "Added {{date}}",
+            "lastUsed": "Last used {{date}}",
+            "notUsedYet": "Not used yet",
+            "uses_one": "{{count}} use",
+            "uses_other": "{{count}} uses",
+            "newBadge": "New",
+            "unnamedPasskey": "Unnamed passkey",
+            "deletePasskeyAriaLabel": "Delete passkey {{name}}",
+            "deleteDialogTitle": "Remove passkey?",
+            "deleteDialogDescription": "After you remove \"{{name}}\", you can't use it to sign in.",
+            "deleteConfirm": "Remove",
+            "deleting": "Removing…",
+            "deleteSuccess": "Passkey removed.",
+            "deleteError": "Failed to remove passkey. Please try again.",
+            "empty": "No Saved Passkeys",
+            "emptyHint": "Add a passkey to sign in faster with your face, fingerprint, or device PIN.",
+            "loadError": "We couldn't load your passkeys. Please refresh the page to try again.",
+            "addError": "Passkey creation failed. Please try again.",
+            "notSupportedError": "Passkeys aren't supported in this app or device. Please try again in a different way.",
+            "unsupportedBrowser": "This browser doesn't support passkeys. Try updating it or use a different browser.",
+            "registerToastTitle": "Set up faster sign-in",
+            "registerToastDescription": "Create a passkey to sign in with your face, fingerprint, or device PIN — no password needed.",
+            "registerToastAction": "Create Passkey"
         }
     },
     "home": {
@@ -1457,7 +1492,8 @@
             "viewAllReviews": "查看所有评论",
             "distributionAriaLabel": "{{rating}} 星：{{count, number}} 个评论，共 {{totalReviews, number}} 个",
             "distributionsAriaLabel": "星级分布，共 {{total, number}} 个评论",
-            "seeCustomerReviews": "查看客户评论 >"
+            "seeCustomerReviews": "查看客户评论 >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "从",
         "outOfStock": "{{productName}} 无库存",

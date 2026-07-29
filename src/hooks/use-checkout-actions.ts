@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 
 import { useCheckoutContext } from '@/hooks/use-checkout';
 import { useBasket, useBasketUpdater } from '@/providers/basket';
 import type { ContactInfoData, PaymentData } from '@/lib/checkout/schemas';
+import type { ActionError } from '@/lib/error-codes';
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { CheckoutActionData } from '@/components/checkout/types';
 import {
@@ -29,10 +30,36 @@ import { resourceRoutes } from '@/route-paths';
 
 /** Persists create-account intent across reloads (mirrors handleCreateAccountPreferenceChange). */
 const SESSION_SHOULD_CREATE_ACCOUNT = 'shouldCreateAccount';
+
+/**
+ * Maps a checkout step to the `id` prop each section passes to `ToggleCard`.
+ * Used to focus the just-saved section's title after `exitEditMode`, so
+ * keyboard / screen-reader users don't lose focus (WCAG 2.4.3).
+ */
+const TOGGLE_CARD_ID_BY_STEP: Partial<Record<CheckoutStep, string>> = {
+    [CHECKOUT_STEPS.CONTACT_INFO]: 'contact-info',
+    [CHECKOUT_STEPS.SHIPPING_ADDRESS]: 'shipping-address',
+    [CHECKOUT_STEPS.SHIPPING_OPTIONS]: 'shipping-options',
+    [CHECKOUT_STEPS.PAYMENT]: 'payment',
+};
 /** Persists formatted contact phone when basket merge (e.g. OTP) drops it from the basket. */
 const SESSION_CHECKOUT_CONTACT_PHONE = 'checkoutContactPhone';
 /** Set by register-customer-selection while checkout registration OTP flow is active. */
 const SESSION_REGISTERED_VIA_CHECKOUT = 'registeredViaCheckout';
+
+const isBasketRevisionCurrent = (currentLastModified: string | undefined, responseLastModified: string) => {
+    if (!currentLastModified) {
+        return false;
+    }
+
+    const currentTimestamp = Date.parse(currentLastModified);
+    const responseTimestamp = Date.parse(responseLastModified);
+    if (Number.isNaN(currentTimestamp) || Number.isNaN(responseTimestamp)) {
+        return currentLastModified === responseLastModified;
+    }
+
+    return currentTimestamp >= responseTimestamp;
+};
 
 /**
  * Action lifecycle states for tracking form submission progress.
@@ -164,7 +191,7 @@ export function useCheckoutActions(options?: {
     /** When .current is true, do not advance from shipping address step (no valid methods available). */
     noShippingMethodsRef?: NoShippingMethodsRef;
 }) {
-    const { exitEditMode, editingStep, goToStep } = useCheckoutContext();
+    const { exitEditMode, editingStep, goToStep, step: currentStep } = useCheckoutContext();
     const updateBasket = useBasketUpdater();
     const basket = useBasket();
 
@@ -172,7 +199,9 @@ export function useCheckoutActions(options?: {
     const shippingAddressFetcher = useFetcher<CheckoutActionData>({ key: 'shipping-address-form' });
     const shippingOptionsFetcher = useFetcher<CheckoutActionData>({ key: 'shipping-options-form' });
     const paymentFetcher = useFetcher<CheckoutActionData>({ key: 'payment-form' });
-    const placeOrderFetcher = useFetcher<{ success?: boolean; error?: string; step?: string }>({ key: 'place-order' });
+    const placeOrderFetcher = useFetcher<{ success?: boolean; error?: string | ActionError; step?: string }>({
+        key: 'place-order',
+    });
 
     // Track action submission lifecycle.
     // We track step here because editingStep from context can change before processing completes.
@@ -259,7 +288,7 @@ export function useCheckoutActions(options?: {
         // mutation handlers. Dedups by `lastModified`. Shape-safe: no basket read or mutation sets
         // `expand`, so every response carries the SCAPI default and can't down-shape provider consumers.
         updateBasket(fetcher.data.basket);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [contactFetcher.data, shippingAddressFetcher.data, shippingOptionsFetcher.data, paymentFetcher.data]);
 
     // Exit edit mode after basket has been updated
@@ -267,13 +296,32 @@ export function useCheckoutActions(options?: {
     useEffect(() => {
         const { step, state } = actionRef.current;
 
-        // Only process if we're in BASKET_UPDATED state and in edit mode
-        if (editingStep === null || step === null || state !== ActionState.BASKET_UPDATED) {
+        const isActiveShippingStepWithoutEditing =
+            editingStep === null &&
+            (step === CHECKOUT_STEPS.SHIPPING_ADDRESS || step === CHECKOUT_STEPS.SHIPPING_OPTIONS) &&
+            currentStep === step;
+        if (editingStep === null && !isActiveShippingStepWithoutEditing) {
+            return;
+        }
+
+        // Only process if we're in BASKET_UPDATED state on an active checkout step
+        if (step === null || state !== ActionState.BASKET_UPDATED) {
             return;
         }
 
         const fetcher = fetcherMap[step];
         if (!fetcher?.data?.success) {
+            return;
+        }
+
+        const responseLastModified = fetcher.data.basket?.lastModified;
+        const basketRevisionCurrent =
+            !responseLastModified || isBasketRevisionCurrent(basket?.lastModified, responseLastModified);
+        if (
+            (step === CHECKOUT_STEPS.SHIPPING_ADDRESS || step === CHECKOUT_STEPS.SHIPPING_OPTIONS) &&
+            responseLastModified &&
+            !basketRevisionCurrent
+        ) {
             return;
         }
 
@@ -298,12 +346,31 @@ export function useCheckoutActions(options?: {
         actionRef.current = { step, state: ActionState.COMPLETED };
         exitEditMode();
 
+        // Move keyboard focus to the just-saved section's title. Without this,
+        // keyboard/screen-reader users lose focus when a completed section
+        // collapses back to summary view (WCAG 2.4.3). We rely on the
+        // ToggleCard's data-testid convention. Deferred to the next frame so
+        // React has committed the exit-edit transition before we read the DOM.
+        // Cancel on cleanup so an unmount between here and the next frame does
+        // not leave the callback running against a detached DOM.
+        if (typeof requestAnimationFrame !== 'undefined') {
+            const rafId = requestAnimationFrame(() => {
+                const testId = TOGGLE_CARD_ID_BY_STEP[step];
+                if (!testId) return;
+                const heading = document.querySelector<HTMLElement>(
+                    `[data-testid="sf-toggle-card-${testId}"] [data-slot="card-title"]`
+                );
+                heading?.focus();
+            });
+            return () => cancelAnimationFrame(rafId);
+        }
+
         // Fetcher .data deps keep this in sync when the server's dedup sends a
         // cached response (same basket, same fetcher.data — basket dep alone
         // would not re-run the effect in that case). exitEditMode, fetcherMap,
         // and options refs are intentionally omitted: they are stable refs or
         // callbacks whose identity changes don't require re-running this effect.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         editingStep,
         basket,
@@ -311,6 +378,7 @@ export function useCheckoutActions(options?: {
         shippingAddressFetcher.data,
         shippingOptionsFetcher.data,
         paymentFetcher.data,
+        currentStep,
     ]);
 
     /**

@@ -176,13 +176,17 @@ describe('UserActions', () => {
     });
 
     describe('Edge cases', () => {
-        test('renders Sign In for undefined or incomplete sessions', () => {
-            const { rerender } = render(createTestWrapper(<UserActions />));
+        test('renders Sign In for an undefined session', () => {
+            render(createTestWrapper(<UserActions />));
             expect(screen.getByRole('link', { name: t('header:signIn') })).toBeInTheDocument();
+        });
 
-            rerender(createTestWrapper(<UserActions />, { userType: 'registered' }));
-            expect(screen.getByRole('link', { name: t('header:signIn') })).toBeInTheDocument();
-            expect(screen.queryByRole('link', { name: /my account/i })).not.toBeInTheDocument();
+        test('registered session without customerId still renders the account link', () => {
+            // Gating is userType-only: under a cached app shell the client restores userType from the
+            // hint cookie but never customerId, so a registered userType alone must show My Account.
+            render(createTestWrapper(<UserActions />, { userType: 'registered' }));
+            expect(screen.getByRole('link', { name: t('account:myAccount') })).toBeInTheDocument();
+            expect(screen.queryByRole('link', { name: t('header:signIn') })).not.toBeInTheDocument();
         });
     });
 });

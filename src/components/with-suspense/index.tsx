@@ -95,7 +95,7 @@ export default function withSuspense<TProps extends Record<string, unknown> = Re
 }
 
 // Internal component that handles promise resolution
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 function ComponentWithData<TProps extends Record<string, unknown>>({
     Component,
     resolve,

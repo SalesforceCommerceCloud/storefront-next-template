@@ -68,7 +68,7 @@ function buildRefine(preSelectedRefines: string): string[] {
 }
 
 const meta: Meta<typeof CategoryRefinements> = {
-    title: 'PRODUCTS/Category Refinements',
+    title: 'Category/Category Refinements',
     component: CategoryRefinements,
     parameters: {
         layout: 'padded',

@@ -112,6 +112,7 @@ export const routes = {
     accountPaymentMethods: '/account/payment-methods',
     accountStorePreferences: '/account/store-preferences',
     accountWishlist: '/account/wishlist',
+    accountPasskeys: '/account/passkeys',
     wishlist: '/wishlist',
     orderConfirmation: '/order-confirmation/:orderNo',
     search: '/search',
@@ -119,6 +120,7 @@ export const routes = {
     storeLocator: '/store-locator',
     maintenance: '/maintenance',
     logout: '/logout',
+    componentPreview: '/preview/component',
 } as const;
 
 /**
@@ -142,6 +144,7 @@ export const resourceRoutes = {
     updateBasketBillingAddress: '/resource/update-basket-billing-address',
     wishlistAdd: '/action/wishlist-add',
     wishlistRemove: '/action/wishlist-remove',
+    wishlistState: '/action/wishlist-state',
     paymentMethodAdd: '/action/payment-method-add',
     paymentMethodRemove: '/action/payment-method-remove',
     paymentMethodSetDefault: '/action/payment-method-set-default',
@@ -164,9 +167,14 @@ export const resourceRoutes = {
     recommendations: '/resource/recommendations',
     basketProducts: '/resource/basket-products',
     reviewsSummary: '/resource/reviews-summary',
+    categoryProducts: '/resource/category-products',
     stores: '/resource/stores',
     analyticsProxy: '/resource/analytics-proxy',
     apiClient: '/resource/api/client/:resource',
+    passkeyStatus: '/resource/passkey-status',
+    passkeyDeleteCredential: '/action/passkey-delete-credential',
+    passkeyStartAuthentication: '/action/passkey-start-authentication',
+    passkeyFinishAuthentication: '/action/passkey-finish-authentication',
 } as const;
 
 /**
@@ -190,7 +198,7 @@ const allPatterns: ReadonlySet<string> = new Set([...Object.values(routes), ...O
 
 export function routeHref(pattern: RoutePattern, params?: Record<string, string>): string {
     if (import.meta.env.DEV && !allPatterns.has(pattern)) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(
             `[routeHref] Pattern "${pattern}" is not declared in route-paths.ts. ` +
                 `Add it to routes or resourceRoutes to keep paths centralized.`
@@ -199,6 +207,6 @@ export function routeHref(pattern: RoutePattern, params?: Record<string, string>
     // Delegate to React Router's href() for param interpolation.
     // The cast is needed because RR's generated Pages type only includes prefixed patterns
     // (/:siteId/:localeId/...), but our constants use the short form without the prefix.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     return href(pattern as any, params);
 }

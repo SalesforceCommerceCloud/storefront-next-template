@@ -63,7 +63,7 @@ Object.assign(navigator, {
 
 // Mock navigator.share
 const mockShare = vi.fn();
-// eslint-disable-next-line @typescript-eslint/unbound-method -- test fixture
+// oxlint-disable-next-line @typescript-eslint/unbound-method -- test fixture
 const originalShare = navigator.share;
 
 // Mock window.open
@@ -392,7 +392,7 @@ describe('ProductView', () => {
 
         test('share button opens dropdown menu when native share is not available', async () => {
             // Temporarily set navigator.share to undefined to test fallback
-            // eslint-disable-next-line @typescript-eslint/unbound-method -- test fixture
+            // oxlint-disable-next-line @typescript-eslint/unbound-method -- test fixture
             const previousShare = navigator.share;
 
             Object.defineProperty(navigator, 'share', {
@@ -426,7 +426,7 @@ describe('ProductView', () => {
 
         test('share button respects disabled socialShare config in fallback menu', async () => {
             // Temporarily set navigator.share to undefined to test fallback
-            // eslint-disable-next-line @typescript-eslint/unbound-method -- test fixture
+            // oxlint-disable-next-line @typescript-eslint/unbound-method -- test fixture
             const previousShare = navigator.share;
 
             Object.defineProperty(navigator, 'share', {
@@ -482,7 +482,7 @@ describe('ProductView', () => {
 
         test('share button shows only configured providers in fallback menu', async () => {
             // Temporarily set navigator.share to undefined to test fallback
-            // eslint-disable-next-line @typescript-eslint/unbound-method -- test fixture
+            // oxlint-disable-next-line @typescript-eslint/unbound-method -- test fixture
             const previousShare = navigator.share;
 
             Object.defineProperty(navigator, 'share', {

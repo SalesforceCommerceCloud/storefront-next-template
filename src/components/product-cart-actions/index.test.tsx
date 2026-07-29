@@ -232,7 +232,7 @@ describe('ProductCartActions', () => {
     });
 
     describe('compact add mode (onBuyNow prop)', () => {
-        test('renders "Add to Cart" and "Buy it Now" buttons side by side when onBuyNow is provided', () => {
+        test('renders "Add to Cart" and "Buy It Now" buttons side by side when onBuyNow is provided', () => {
             const onBuyNow = vi.fn();
             renderProductCartActions({ product: standardProd, onBuyNow });
 
@@ -249,7 +249,7 @@ describe('ProductCartActions', () => {
             expect(screen.getByRole('button', { name: t('product:buyItNow') })).toBeInTheDocument();
         });
 
-        test('calls onBuyNow when "Buy it Now" is clicked', async () => {
+        test('calls onBuyNow when "Buy It Now" is clicked', async () => {
             const user = userEvent.setup();
             const onBuyNow = vi.fn();
             renderProductCartActions({ product: standardProd, onBuyNow });
@@ -259,7 +259,7 @@ describe('ProductCartActions', () => {
             expect(onBuyNow).toHaveBeenCalledOnce();
         });
 
-        test('"Buy it Now" button is disabled when product cannot be added to cart', () => {
+        test('"Buy It Now" button is disabled when product cannot be added to cart', () => {
             const outOfStockProduct = {
                 ...standardProd,
                 inventory: { ats: 0, orderable: false, id: 'test-inventory' },
@@ -270,7 +270,7 @@ describe('ProductCartActions', () => {
             expect(screen.getByRole('button', { name: t('product:buyItNow') })).toBeDisabled();
         });
 
-        test('standard add mode does not show Buy it Now button when onBuyNow is not provided', () => {
+        test('standard add mode does not show Buy It Now button when onBuyNow is not provided', () => {
             renderProductCartActions({ product: standardProd });
 
             expect(screen.getByRole('button', { name: /add to cart/i })).toBeInTheDocument();

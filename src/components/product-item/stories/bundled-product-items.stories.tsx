@@ -53,7 +53,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof BundledProductItems> = {
-    title: 'Components/ProductItem/BundledProductItems',
+    title: 'Products/Product Item/Bundled Product Items',
     component: BundledProductItems,
     tags: ['autodocs', 'interaction'],
     parameters: {

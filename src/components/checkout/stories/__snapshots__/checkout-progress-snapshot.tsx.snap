@@ -4,562 +4,555 @@ exports[`CheckoutProgress stories snapshot > AllCompleted story renders and matc
 <div
   class="w-full max-w-4xl mx-auto p-6"
 >
-  <div
+  <nav
+    aria-label="Checkout progress"
     class="w-full"
   >
-    <div
-      class="block md:hidden"
+    <ol
+      class="flex items-center justify-between mb-4 md:hidden"
     >
-      <div
-        class="flex items-center justify-between mb-4"
+      <li
+        class="flex items-center flex-1"
       >
         <div
-          class="flex items-center flex-1"
+          class="flex flex-col items-center"
         >
           <div
-            class="flex flex-col items-center"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Contact Info
-              </div>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 mx-2"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Pickup
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Shipping
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Delivery
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Payment
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Place Order
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="hidden md:block"
-    >
-      <div
-        class="space-y-6"
-      >
-        <div
-          class="relative flex items-start"
-        >
-          <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
-          />
-          <div
-            class="mr-4"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-          </div>
-          <div
-            class="flex-1 min-w-0"
-          >
-            <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Contact Info
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Email address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Pickup
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Store pickup
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Shipping
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Delivery address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Delivery
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Shipping method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Payment
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Payment method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="mr-4"
+            class="h-0.5 transition-colors bg-primary"
+          />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Place Order
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Place order
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ol>
+    <ol
+      class="hidden space-y-6 md:block"
+    >
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Contact Info
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Email address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Pickup
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Store pickup
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Shipping
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Delivery address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Delivery
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Shipping method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Payment
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Payment method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Place Order
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Place order
+          </div>
+        </div>
+      </li>
+    </ol>
+  </nav>
 </div>
 `;
 
@@ -567,394 +560,389 @@ exports[`CheckoutProgress stories snapshot > ContactInfo story renders and match
 <div
   class="w-full max-w-4xl mx-auto p-6"
 >
-  <div
+  <nav
+    aria-label="Checkout progress"
     class="w-full"
   >
-    <div
-      class="block md:hidden"
+    <ol
+      class="flex items-center justify-between mb-4 md:hidden"
     >
-      <div
-        class="flex items-center justify-between mb-4"
+      <li
+        aria-current="step"
+        class="flex items-center flex-1"
       >
         <div
-          class="flex items-center flex-1"
+          class="flex flex-col items-center"
         >
           <div
-            class="flex flex-col items-center"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                1
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Contact Info
-              </div>
-            </div>
+            <span>
+              1
+            </span>
           </div>
           <div
-            class="flex-1 mx-2"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                2
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Pickup
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                3
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Shipping
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                4
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Delivery
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Payment
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Place Order
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="hidden md:block"
-    >
-      <div
-        class="space-y-6"
-      >
-        <div
-          class="relative flex items-start"
-        >
-          <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
-          />
-          <div
-            class="mr-4"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                1
-              </span>
-            </div>
-          </div>
-          <div
-            class="flex-1 min-w-0"
-          >
-            <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Contact Info
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Email address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                2
-              </span>
-            </div>
+            <span>
+              2
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Pickup
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Store pickup
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                3
-              </span>
-            </div>
+            <span>
+              3
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Shipping
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Delivery address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                4
-              </span>
-            </div>
+            <span>
+              4
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Delivery
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Shipping method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
+            <span>
+              5
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Payment
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Payment method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="mr-4"
+            class="h-0.5 transition-colors bg-border"
+          />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
+            <span>
+              6
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Place Order
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Place order
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ol>
+    <ol
+      class="hidden space-y-6 md:block"
+    >
+      <li
+        aria-current="step"
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
+          >
+            <span>
+              1
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Contact Info
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Email address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              2
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Pickup
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Store pickup
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              3
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Shipping
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Delivery address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              4
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Delivery
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Shipping method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              5
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Payment
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Payment method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              6
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Place Order
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Place order
+          </div>
+        </div>
+      </li>
+    </ol>
+  </nav>
 </div>
 `;
 
@@ -962,506 +950,501 @@ exports[`CheckoutProgress stories snapshot > Payment story renders and matches s
 <div
   class="w-full max-w-4xl mx-auto p-6"
 >
-  <div
+  <nav
+    aria-label="Checkout progress"
     class="w-full"
   >
-    <div
-      class="block md:hidden"
+    <ol
+      class="flex items-center justify-between mb-4 md:hidden"
     >
-      <div
-        class="flex items-center justify-between mb-4"
+      <li
+        class="flex items-center flex-1"
       >
         <div
-          class="flex items-center flex-1"
+          class="flex flex-col items-center"
         >
           <div
-            class="flex flex-col items-center"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Contact Info
-              </div>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 mx-2"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Pickup
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Shipping
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Delivery
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                5
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Payment
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Place Order
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="hidden md:block"
-    >
-      <div
-        class="space-y-6"
-      >
-        <div
-          class="relative flex items-start"
-        >
-          <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
-          />
-          <div
-            class="mr-4"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-          </div>
-          <div
-            class="flex-1 min-w-0"
-          >
-            <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Contact Info
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Email address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Pickup
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Store pickup
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Shipping
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Delivery address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Delivery
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Shipping method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                5
-              </span>
-            </div>
+            <span>
+              5
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Payment
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Payment method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="mr-4"
+            class="h-0.5 transition-colors bg-border"
+          />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
+            <span>
+              6
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Place Order
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Place order
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ol>
+    <ol
+      class="hidden space-y-6 md:block"
+    >
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Contact Info
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Email address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Pickup
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Store pickup
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Shipping
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Delivery address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Delivery
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Shipping method
+          </div>
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
+          >
+            <span>
+              5
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Payment
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Payment method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              6
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Place Order
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Place order
+          </div>
+        </div>
+      </li>
+    </ol>
+  </nav>
 </div>
 `;
 
@@ -1469,422 +1452,417 @@ exports[`CheckoutProgress stories snapshot > Pickup story renders and matches sn
 <div
   class="w-full max-w-4xl mx-auto p-6"
 >
-  <div
+  <nav
+    aria-label="Checkout progress"
     class="w-full"
   >
-    <div
-      class="block md:hidden"
+    <ol
+      class="flex items-center justify-between mb-4 md:hidden"
     >
-      <div
-        class="flex items-center justify-between mb-4"
+      <li
+        class="flex items-center flex-1"
       >
         <div
-          class="flex items-center flex-1"
+          class="flex flex-col items-center"
         >
           <div
-            class="flex flex-col items-center"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Contact Info
-              </div>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 mx-2"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                2
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Pickup
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                3
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Shipping
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                4
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Delivery
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Payment
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Place Order
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="hidden md:block"
-    >
-      <div
-        class="space-y-6"
-      >
-        <div
-          class="relative flex items-start"
-        >
-          <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
-          />
-          <div
-            class="mr-4"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-          </div>
-          <div
-            class="flex-1 min-w-0"
-          >
-            <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Contact Info
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Email address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                2
-              </span>
-            </div>
+            <span>
+              2
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Pickup
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Store pickup
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                3
-              </span>
-            </div>
+            <span>
+              3
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Shipping
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Delivery address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                4
-              </span>
-            </div>
+            <span>
+              4
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Delivery
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Shipping method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
+            <span>
+              5
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Payment
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Payment method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="mr-4"
+            class="h-0.5 transition-colors bg-border"
+          />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
+            <span>
+              6
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Place Order
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Place order
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ol>
+    <ol
+      class="hidden space-y-6 md:block"
+    >
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Contact Info
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Email address
+          </div>
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
+          >
+            <span>
+              2
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Pickup
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Store pickup
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              3
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Shipping
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Delivery address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              4
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Delivery
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Shipping method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              5
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Payment
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Payment method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              6
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Place Order
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Place order
+          </div>
+        </div>
+      </li>
+    </ol>
+  </nav>
 </div>
 `;
 
@@ -1892,534 +1870,529 @@ exports[`CheckoutProgress stories snapshot > PlaceOrder story renders and matche
 <div
   class="w-full max-w-4xl mx-auto p-6"
 >
-  <div
+  <nav
+    aria-label="Checkout progress"
     class="w-full"
   >
-    <div
-      class="block md:hidden"
+    <ol
+      class="flex items-center justify-between mb-4 md:hidden"
     >
-      <div
-        class="flex items-center justify-between mb-4"
+      <li
+        class="flex items-center flex-1"
       >
         <div
-          class="flex items-center flex-1"
+          class="flex flex-col items-center"
         >
           <div
-            class="flex flex-col items-center"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Contact Info
-              </div>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 mx-2"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Pickup
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Shipping
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Delivery
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Payment
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                6
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Place Order
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="hidden md:block"
-    >
-      <div
-        class="space-y-6"
-      >
-        <div
-          class="relative flex items-start"
-        >
-          <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
-          />
-          <div
-            class="mr-4"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-          </div>
-          <div
-            class="flex-1 min-w-0"
-          >
-            <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Contact Info
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Email address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Pickup
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Store pickup
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Shipping
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Delivery address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Delivery
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Shipping method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Payment
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Payment method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="mr-4"
+            class="h-0.5 transition-colors bg-primary"
+          />
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                6
-              </span>
-            </div>
+            <span>
+              6
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Place Order
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Place order
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ol>
+    <ol
+      class="hidden space-y-6 md:block"
+    >
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Contact Info
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Email address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Pickup
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Store pickup
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Shipping
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Delivery address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Delivery
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Shipping method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Payment
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Payment method
+          </div>
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="relative flex items-start"
+      >
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
+          >
+            <span>
+              6
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Place Order
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Place order
+          </div>
+        </div>
+      </li>
+    </ol>
+  </nav>
 </div>
 `;
 
@@ -2427,450 +2400,445 @@ exports[`CheckoutProgress stories snapshot > ShippingAddress story renders and m
 <div
   class="w-full max-w-4xl mx-auto p-6"
 >
-  <div
+  <nav
+    aria-label="Checkout progress"
     class="w-full"
   >
-    <div
-      class="block md:hidden"
+    <ol
+      class="flex items-center justify-between mb-4 md:hidden"
     >
-      <div
-        class="flex items-center justify-between mb-4"
+      <li
+        class="flex items-center flex-1"
       >
         <div
-          class="flex items-center flex-1"
+          class="flex flex-col items-center"
         >
           <div
-            class="flex flex-col items-center"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Contact Info
-              </div>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 mx-2"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Pickup
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                3
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Shipping
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                4
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Delivery
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Payment
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Place Order
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="hidden md:block"
-    >
-      <div
-        class="space-y-6"
-      >
-        <div
-          class="relative flex items-start"
-        >
-          <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
-          />
-          <div
-            class="mr-4"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-          </div>
-          <div
-            class="flex-1 min-w-0"
-          >
-            <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Contact Info
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Email address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Pickup
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Store pickup
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                3
-              </span>
-            </div>
+            <span>
+              3
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Shipping
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Delivery address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                4
-              </span>
-            </div>
+            <span>
+              4
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Delivery
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Shipping method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
+            <span>
+              5
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Payment
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Payment method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="mr-4"
+            class="h-0.5 transition-colors bg-border"
+          />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
+            <span>
+              6
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Place Order
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Place order
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ol>
+    <ol
+      class="hidden space-y-6 md:block"
+    >
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Contact Info
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Email address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Pickup
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Store pickup
+          </div>
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
+          >
+            <span>
+              3
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Shipping
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Delivery address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              4
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Delivery
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Shipping method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              5
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Payment
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Payment method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              6
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Place Order
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Place order
+          </div>
+        </div>
+      </li>
+    </ol>
+  </nav>
 </div>
 `;
 
@@ -2878,477 +2846,472 @@ exports[`CheckoutProgress stories snapshot > ShippingOptions story renders and m
 <div
   class="w-full max-w-4xl mx-auto p-6"
 >
-  <div
+  <nav
+    aria-label="Checkout progress"
     class="w-full"
   >
-    <div
-      class="block md:hidden"
+    <ol
+      class="flex items-center justify-between mb-4 md:hidden"
     >
-      <div
-        class="flex items-center justify-between mb-4"
+      <li
+        class="flex items-center flex-1"
       >
         <div
-          class="flex items-center flex-1"
+          class="flex flex-col items-center"
         >
           <div
-            class="flex flex-col items-center"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Contact Info
-              </div>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 mx-2"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Pickup
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Shipping
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-primary"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                4
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-primary"
-              >
-                Delivery
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Payment
-              </div>
-            </div>
-          </div>
-          <div
-            class="flex-1 mx-2"
-          >
-            <div
-              class="h-0.5 transition-colors bg-border"
-            />
-          </div>
-        </div>
-        <div
-          class="flex items-center flex-1"
-        >
-          <div
-            class="flex flex-col items-center"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
-            <div
-              class="text-xs text-center mt-1 max-w-16"
-            >
-              <div
-                class="font-medium truncate text-muted-foreground"
-              >
-                Place Order
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="hidden md:block"
-    >
-      <div
-        class="space-y-6"
-      >
-        <div
-          class="relative flex items-start"
-        >
-          <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
-          />
-          <div
-            class="mr-4"
-          >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
-            >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
-          </div>
-          <div
-            class="flex-1 min-w-0"
-          >
-            <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Contact Info
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Email address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Pickup
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Store pickup
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="lucide lucide-check w-4 h-4"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M20 6 9 17l-5-5"
-                />
-              </svg>
-            </div>
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Shipping
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Delivery address
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-primary"
           />
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
-            >
-              <span>
-                4
-              </span>
-            </div>
+            <span>
+              4
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-primary"
+              class="font-medium truncate text-primary"
             >
               Delivery
             </div>
-            <div
-              class="text-xs mt-1 text-primary"
-            >
-              Shipping method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+            class="h-0.5 transition-colors bg-border"
           />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
           <div
-            class="mr-4"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                5
-              </span>
-            </div>
+            <span>
+              5
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Payment
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Payment method
-            </div>
           </div>
         </div>
         <div
-          class="relative flex items-start"
+          class="flex-1 mx-2"
         >
           <div
-            class="mr-4"
+            class="h-0.5 transition-colors bg-border"
+          />
+        </div>
+      </li>
+      <li
+        class="flex items-center flex-1"
+      >
+        <div
+          class="flex flex-col items-center"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
           >
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-muted text-muted-foreground"
-            >
-              <span>
-                6
-              </span>
-            </div>
+            <span>
+              6
+            </span>
           </div>
           <div
-            class="flex-1 min-w-0"
+            class="text-xs text-center mt-1 max-w-16"
           >
             <div
-              class="text-sm font-medium text-foreground"
+              class="font-medium truncate text-muted-foreground"
             >
               Place Order
             </div>
-            <div
-              class="text-xs mt-1 text-muted-foreground"
-            >
-              Place order
-            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ol>
+    <ol
+      class="hidden space-y-6 md:block"
+    >
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Contact Info
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Email address
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Pickup
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Store pickup
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary text-primary-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-check w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 6 9 17l-5-5"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Shipping
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Delivery address
+          </div>
+        </div>
+      </li>
+      <li
+        aria-current="step"
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors bg-primary/90 text-primary-foreground animate-pulse"
+          >
+            <span>
+              4
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-primary"
+          >
+            Delivery
+          </div>
+          <div
+            class="text-xs mt-1 text-primary"
+          >
+            Shipping method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="absolute left-4 top-10 w-0.5 h-6 bg-border"
+        />
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              5
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Payment
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Payment method
+          </div>
+        </div>
+      </li>
+      <li
+        class="relative flex items-start"
+      >
+        <div
+          class="mr-4"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors border-2 border-border text-muted-foreground"
+          >
+            <span>
+              6
+            </span>
+          </div>
+        </div>
+        <div
+          class="flex-1 min-w-0"
+        >
+          <div
+            class="text-sm font-medium text-foreground"
+          >
+            Place Order
+          </div>
+          <div
+            class="text-xs mt-1 text-muted-foreground"
+          >
+            Place order
+          </div>
+        </div>
+      </li>
+    </ol>
+  </nav>
 </div>
 `;

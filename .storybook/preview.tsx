@@ -21,11 +21,38 @@ const a11yTestMode: 'off' | 'todo' | 'error' =
     process.env.STORYBOOK_DISABLE_A11Y === 'true'
         ? 'off'
         : process.env.STORYBOOK_A11Y_TEST_MODE === 'error'
-          ? 'error'
-          : 'todo';
+            ? 'error'
+            : 'todo';
 
 const preview: Preview = {
     parameters: {
+        options: {
+            // Sidebar order. `order` fixes the top-level roots to the storefront's
+            // domain taxonomy (roughly the shopper journey); `'*'` catches anything
+            // not listed. `method: 'alphabetical'` sorts every deeper level
+            // deterministically, so new stories slot in predictably without editing
+            // this list. Docs entries always sort first within their group.
+            storySort: {
+                method: 'alphabetical',
+                order: [
+                    'Design System',
+                    'Core',
+                    'Content',
+                    'Layout',
+                    'Home',
+                    'Products',
+                    'Category',
+                    'Search',
+                    'Cart',
+                    'Checkout',
+                    'Account',
+                    'Authentication',
+                    'Extensions',
+                    '*',
+                ],
+            },
+        },
+
         controls: {
             matchers: {
                 color: /(background|color)$/i,

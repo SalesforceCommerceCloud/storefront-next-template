@@ -46,7 +46,7 @@ export default function ChangeStoreButton({ currentStoreId }: ChangeStoreButtonP
             void revalidator.revalidate();
         }
         wasOpenRef.current = isOpen;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedStoreInfo?.id, currentStoreId, isOpen]);
 
     return (

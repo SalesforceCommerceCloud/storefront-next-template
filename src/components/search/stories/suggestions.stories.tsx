@@ -31,8 +31,8 @@ import type { SearchSuggestions } from '../types';
 //   - else → renders RecentSearches
 // Visible state is driven by the counts in each suggestion bucket and the
 // recent-searches list. All of those fold cleanly into Controls. Callbacks
-// (closeAndNavigate, clearRecentSearches, onShopperAgentClick) bind to
-// `action()` directly via component props.
+// (closeAndNavigate, clearRecentSearches) bind to `action()` directly via
+// component props.
 // ---------------------------------------------------------------------------
 
 const ALL_CATEGORIES = [
@@ -78,7 +78,7 @@ const meta: Meta<typeof Suggestions> = {
         docs: {
             description: {
                 component:
-                    'Search dropdown that branches between a populated suggestion section (categories, products, popular searches) and a recent-searches list. Optional shopper-agent slot at the bottom.',
+                    'Search dropdown that branches between a populated suggestion section (categories, products, popular searches) and a recent-searches list.',
             },
         },
     },
@@ -106,7 +106,6 @@ type SyntheticArgs = {
     productCount: number;
     popularCount: number;
     recentCount: number;
-    showShopperAgent: boolean;
 };
 
 /**
@@ -121,7 +120,6 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
         productCount: 3,
         popularCount: 3,
         recentCount: 3,
-        showShopperAgent: false,
     },
     argTypes: {
         categoryCount: {
@@ -144,10 +142,6 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
             control: { type: 'number', min: 0, max: ALL_RECENT.length, step: 1 },
             table: { category: 'Synthetic (data shape)' },
         },
-        showShopperAgent: {
-            description: 'Direct prop: toggles the shopper-agent insight card at the bottom of the dropdown.',
-            control: 'boolean',
-        },
     },
     render: (args) => {
         const synthetic: SyntheticArgs = {
@@ -155,7 +149,6 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
             productCount: args.productCount ?? 0,
             popularCount: args.popularCount ?? 0,
             recentCount: args.recentCount ?? 0,
-            showShopperAgent: args.showShopperAgent ?? false,
         };
         const categories = ALL_CATEGORIES.slice(0, synthetic.categoryCount);
         const products = ALL_PRODUCTS.slice(0, synthetic.productCount);
@@ -175,8 +168,6 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
                 recentSearches={recents}
                 closeAndNavigate={action('closeAndNavigate')}
                 clearRecentSearches={action('clearRecentSearches')}
-                showShopperAgent={synthetic.showShopperAgent}
-                onShopperAgentClick={action('onShopperAgentClick')}
             />
         );
     },

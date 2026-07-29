@@ -5,13 +5,18 @@ exports[`Hero stories snapshot > Default story renders and matches snapshot 1`] 
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_1_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -35,7 +40,7 @@ exports[`Hero stories snapshot > Default story renders and matches snapshot 1`] 
           class="flex justify-center"
         >
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
             data-size="default"
             data-slot="button"
             data-variant="default"
@@ -55,13 +60,18 @@ exports[`Hero stories snapshot > LongCopy story renders and matches snapshot 1`]
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_4_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -85,7 +95,7 @@ exports[`Hero stories snapshot > LongCopy story renders and matches snapshot 1`]
           class="flex justify-center"
         >
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
             data-size="default"
             data-slot="button"
             data-variant="default"
@@ -105,13 +115,18 @@ exports[`Hero stories snapshot > PageDesignerStyling story renders and matches s
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_5_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -137,7 +152,7 @@ exports[`Hero stories snapshot > PageDesignerStyling story renders and matches s
           class="flex justify-center"
         >
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
             data-size="default"
             data-slot="button"
             data-variant="outline"
@@ -157,13 +172,18 @@ exports[`Hero stories snapshot > Playground story renders and matches snapshot 1
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_0_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -187,7 +207,7 @@ exports[`Hero stories snapshot > Playground story renders and matches snapshot 1
           class="flex justify-center"
         >
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
             data-size="default"
             data-slot="button"
             data-variant="default"
@@ -207,13 +227,18 @@ exports[`Hero stories snapshot > RightBlockCenteredText story renders and matche
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_7_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -237,7 +262,7 @@ exports[`Hero stories snapshot > RightBlockCenteredText story renders and matche
           class="flex justify-center"
         >
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
             data-size="default"
             data-slot="button"
             data-variant="default"
@@ -291,7 +316,7 @@ exports[`Hero stories snapshot > WithoutImage story renders and matches snapshot
           class="flex justify-center"
         >
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
             data-size="default"
             data-slot="button"
             data-variant="default"
@@ -311,13 +336,18 @@ exports[`Hero stories snapshot > WithoutSubtitle story renders and matches snaps
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
   data-hero-id="_r_2_"
 >
-  <img
-    alt="Hero background"
-    class="absolute inset-0 w-full h-full object-cover"
-    fetchpriority="high"
-    src="/images/hero-01.webp"
-    style="object-position: 50% 50%;"
-  />
+  <div
+    class="absolute inset-0 w-full h-full"
+  >
+    <img
+      alt="Hero background"
+      class="w-full h-full object-cover"
+      fetchpriority="high"
+      loading="eager"
+      src="/images/hero-01.webp"
+      style="object-position: 50% 50%;"
+    />
+  </div>
   <div
     class="absolute inset-0 z-10 flex items-center"
   >
@@ -336,7 +366,7 @@ exports[`Hero stories snapshot > WithoutSubtitle story renders and matches snaps
           class="flex justify-center"
         >
           <a
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary hover:bg-primary/90 h-9 has-[>svg]:px-3 text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6"
             data-size="default"
             data-slot="button"
             data-variant="default"

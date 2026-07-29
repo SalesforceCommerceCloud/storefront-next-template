@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useSyncExternalStore } from 'react';
 import { describe, test, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider, type ActionFunctionArgs, type RouteObject } from 'react-router';
 import PromoCodeForm from './index';
@@ -46,15 +47,40 @@ type CouponItemFixture = {
  * fetcher state, no mocked hook. Each test passes the action body it needs to
  * exercise success/error/in-flight behavior end-to-end.
  */
+type BasketFixture = { basketId?: string; couponItems?: CouponItemFixture[] };
+
 const renderWithFetcherActions = ({
     basket = { basketId: 'test-basket-id' },
     addAction,
     removeAction,
 }: {
-    basket?: { basketId?: string; couponItems?: CouponItemFixture[] };
+    basket?: BasketFixture;
     addAction?: (args: ActionFunctionArgs) => unknown | Promise<unknown>;
     removeAction?: (args: ActionFunctionArgs) => unknown | Promise<unknown>;
 } = {}) => {
+    // Drive `basket` through an external store so a test can update it on the
+    // already-mounted component (via the returned `setBasket`). Recreating the
+    // router instead would remount <PromoCodeForm> and drop the inline error a
+    // stale-error test needs to assert against. Existing tests ignore `setBasket`.
+    let current: BasketFixture = basket;
+    const listeners = new Set<() => void>();
+    const store = {
+        get: () => current,
+        subscribe: (cb: () => void) => {
+            listeners.add(cb);
+            return () => listeners.delete(cb);
+        },
+        set: (next: BasketFixture) => {
+            current = next;
+            listeners.forEach((cb) => cb());
+        },
+    };
+
+    const BasketBoundForm = () => {
+        const liveBasket = useSyncExternalStore(store.subscribe, store.get);
+        return <PromoCodeForm basket={liveBasket} />;
+    };
+
     const routes: RouteObject[] = [
         {
             path: '/cart',
@@ -64,7 +90,7 @@ const renderWithFetcherActions = ({
                     locale={mockLocale}
                     language={mockSiteObject.defaultLocale}
                     currency={mockSiteObject.defaultCurrency}>
-                    <PromoCodeForm basket={basket} />
+                    <BasketBoundForm />
                     <Toaster richColors expand position="top-right" />
                 </SiteProvider>
             ),
@@ -80,7 +106,10 @@ const renderWithFetcherActions = ({
     ];
 
     const router = createMemoryRouter(routes, { initialEntries: ['/cart'] });
-    return render(<RouterProvider router={router} />);
+    const result = render(<RouterProvider router={router} />);
+    // Update the mounted component's basket (wrapped in act so effects flush).
+    const setBasket = (next: BasketFixture) => act(() => store.set(next));
+    return { ...result, setBasket };
 };
 
 /**
@@ -488,6 +517,98 @@ describe('PromoCodeForm', () => {
             await user.click(screen.getByRole('button', { name: new RegExp(`^${t('cart:promoCode.remove')}\\s`) }));
 
             expect(await findToast(t('cart:promoCode.removeErrorMessage'))).toBeInTheDocument();
+        });
+    });
+
+    describe('stale apply error clears when the parked coupon auto-applies (W-23198531)', () => {
+        /**
+         * Locate the inline field error rendered by <FormMessage>, scoped to the
+         * promo-code form so it's never confused with the Sonner toast that shows
+         * the same message string.
+         */
+        const findInlineError = async (text: string) =>
+            waitFor(() => {
+                const form = screen.getByTestId('promo-code-form');
+                const match = within(form).queryByText(text);
+                if (!match) {
+                    throw new Error(`No inline form error found with text: ${text}`);
+                }
+                return match;
+            });
+
+        const queryInlineError = (text: string) => within(screen.getByTestId('promo-code-form')).queryByText(text);
+
+        /** Submit a code that the add action rejects, leaving an inline error. */
+        const submitFailingCode = async (code: string) => {
+            const user = userEvent.setup();
+            await user.type(screen.getByPlaceholderText(t('cart:promoCode.placeholder')), code);
+            await user.click(screen.getByRole('button', { name: t('cart:promoCode.apply') }));
+        };
+
+        test('clears the inline error once the failed code appears among applied coupons', async () => {
+            const errorMessage = t('cart:promoCode.errors.invalidCode', { code: '5TIES' });
+            const { setBasket } = renderWithFetcherActions({
+                basket: { basketId: 'test-basket-id' },
+                addAction: () => ({ success: false, error: { code: 'INVALID_INPUT', message: errorMessage } }),
+            });
+
+            // 1. Apply a valid-but-ineligible coupon → inline error shows.
+            await submitFailingCode('5TIES');
+            expect(await findInlineError(errorMessage)).toBeInTheDocument();
+
+            // 2. Shopper swaps to a qualifying variant: the cart loader revalidates
+            //    and the parked coupon now reports `applied`. The apply fetcher does
+            //    NOT re-fire — only the basket prop changes.
+            setBasket({
+                basketId: 'test-basket-id',
+                couponItems: [{ couponItemId: 'ci-1', code: '5TIES', statusCode: 'applied' }],
+            });
+
+            // 3. Inline error is gone and the applied-coupon badge renders.
+            await waitFor(() => expect(queryInlineError(errorMessage)).not.toBeInTheDocument());
+            expect(within(screen.getByTestId('applied-coupons')).getByText('5TIES')).toBeInTheDocument();
+        });
+
+        test('matches the applied coupon case-insensitively', async () => {
+            const errorMessage = t('cart:promoCode.errors.invalidCode', { code: '5ties' });
+            const { setBasket } = renderWithFetcherActions({
+                basket: { basketId: 'test-basket-id' },
+                addAction: () => ({ success: false, error: { code: 'INVALID_INPUT', message: errorMessage } }),
+            });
+
+            // Shopper types a lowercase code; SCAPI returns the canonical uppercase.
+            await submitFailingCode('5ties');
+            expect(await findInlineError(errorMessage)).toBeInTheDocument();
+
+            setBasket({
+                basketId: 'test-basket-id',
+                couponItems: [{ couponItemId: 'ci-1', code: '5TIES', statusCode: 'applied' }],
+            });
+
+            await waitFor(() => expect(queryInlineError(errorMessage)).not.toBeInTheDocument());
+        });
+
+        test('does NOT clear the error when an unrelated coupon applies', async () => {
+            const errorMessage = t('cart:promoCode.errors.invalidCode', { code: 'BADCODE' });
+            const { setBasket } = renderWithFetcherActions({
+                basket: { basketId: 'test-basket-id' },
+                addAction: () => ({ success: false, error: { code: 'INVALID_INPUT', message: errorMessage } }),
+            });
+
+            // BADCODE fails and owns the inline error.
+            await submitFailingCode('BADCODE');
+            expect(await findInlineError(errorMessage)).toBeInTheDocument();
+
+            // A *different* coupon becomes applied (e.g. one added elsewhere). The
+            // error for BADCODE must survive — it never became applicable.
+            setBasket({
+                basketId: 'test-basket-id',
+                couponItems: [{ couponItemId: 'ci-1', code: 'SAVE10', statusCode: 'applied' }],
+            });
+
+            // Give the effect a chance to (wrongly) fire, then assert the error stayed.
+            expect(within(screen.getByTestId('applied-coupons')).getByText('SAVE10')).toBeInTheDocument();
+            expect(queryInlineError(errorMessage)).toBeInTheDocument();
         });
     });
 });

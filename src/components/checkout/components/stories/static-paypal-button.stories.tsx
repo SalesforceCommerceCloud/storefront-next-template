@@ -23,7 +23,7 @@ import { action } from 'storybook/actions';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof StaticPayPalButton> = {
-    title: 'CHECKOUT/StaticPayPalButton',
+    title: 'Checkout/Payment/Static PayPal Button',
     component: StaticPayPalButton,
     parameters: {
         ...checkoutStrictA11yParameters,

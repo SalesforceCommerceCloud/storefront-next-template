@@ -154,7 +154,7 @@ function renderForm(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof CustomerAddressForm> = {
-    title: 'Components/Customer Address Form',
+    title: 'Account/Addresses/Customer Address Form',
     component: CustomerAddressForm,
     parameters: {
         layout: 'padded',

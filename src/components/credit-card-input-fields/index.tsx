@@ -67,10 +67,11 @@ export function CreditCardInputFields<TFormValues extends FieldValues & Partial<
                 name={'cardholderName' as Path<TFormValues>}
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="sr-only">{t('payment.nameOnCardLabel')}</FormLabel>
+                        <FormLabel>{t('payment.nameOnCardLabel')}</FormLabel>
                         <FormInput
                             placeholder={t('payment.cardholderPlaceholder')}
                             autoComplete="cc-name"
+                            // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first field on payment form section open (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                             autoFocus={autoFocus}
                             {...field}
                         />
@@ -87,7 +88,7 @@ export function CreditCardInputFields<TFormValues extends FieldValues & Partial<
                     const showCardIcon = detectedCardType && detectedCardType !== t('payment.unknownCardType');
                     return (
                         <FormItem>
-                            <FormLabel className="sr-only">{t('payment.cardNumberLabel')}</FormLabel>
+                            <FormLabel>{t('payment.cardNumberLabel')}</FormLabel>
                             <div className="relative flex items-center">
                                 <FormInput
                                     placeholder={t('payment.cardNumberPlaceholder')}
@@ -122,7 +123,7 @@ export function CreditCardInputFields<TFormValues extends FieldValues & Partial<
                     name={'expiryDate' as Path<TFormValues>}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="sr-only">{t('payment.expiryLabel')}</FormLabel>
+                            <FormLabel>{t('payment.expiryDateLabel')}*</FormLabel>
                             <FormInput
                                 placeholder={t('payment.expiryPlaceholder')}
                                 autoComplete="cc-exp"
@@ -143,7 +144,7 @@ export function CreditCardInputFields<TFormValues extends FieldValues & Partial<
                     name={'cvv' as Path<TFormValues>}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="sr-only">{t('payment.cvvLabel')}</FormLabel>
+                            <FormLabel>{t('payment.cvvLabel')}</FormLabel>
                             <div className="relative flex items-center">
                                 <Tooltip>
                                     <TooltipTrigger asChild>

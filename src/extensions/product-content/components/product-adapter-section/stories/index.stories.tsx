@@ -21,7 +21,7 @@ import ProductAdapterSection from '..';
 import CollapsibleSection from '@/components/collapsible-section';
 
 const meta: Meta<typeof ProductAdapterSection> = {
-    title: 'Extensions/ProductContent/ProductAdapterSection',
+    title: 'Extensions/Product Content/Product Adapter Section',
     component: ProductAdapterSection,
     tags: ['autodocs', 'interaction'],
     parameters: {

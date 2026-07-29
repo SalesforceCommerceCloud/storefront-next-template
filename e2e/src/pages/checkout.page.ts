@@ -719,7 +719,12 @@ class CheckoutPage {
             const first = items[0];
             const hasImg = first.querySelector('img') !== null;
             const hasLink = first.querySelector('a') !== null;
-            const hasPrice = first.querySelector('[aria-label*="price"]') !== null;
+            // The price's accessible name moved to an adjacent sr-only aria-live span, so the
+            // visible price is now aria-hidden (matching cart.page.ts's sibling migration). Scope
+            // to `span` so the aria-hidden decorative icons (e.g. the delivery-truck svg) don't
+            // false-match, and require numeric content so this still asserts a real price is shown.
+            const priceSpan = first.querySelector('span[aria-hidden="true"]');
+            const hasPrice = priceSpan !== null && /\d/.test(priceSpan.textContent ?? '');
             const text = first.textContent ?? '';
             const hasPromotionOrSaved = /Promotions|Saved\s/i.test(text);
             return {
@@ -1986,7 +1991,7 @@ class CheckoutPage {
      */
     async mockRegistrationUnavailable(): Promise<void> {
         await (I.usePlaywrightTo('mock registration API with unavailable', async ({ browserContext }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // oxlint-disable-next-line @typescript-eslint/no-explicit-any
             await browserContext.route('**/action/initiate-checkout-registration.data**', async (route: any) => {
                 const body = JSON.stringify([
                     { _1: 2 },
@@ -2146,6 +2151,90 @@ class CheckoutPage {
             await new Promise((resolve) => setTimeout(resolve, 500));
         }
         throw new Error('Passwordless OTP modal did not close within timeout');
+    }
+
+    // =========================================================================
+    // Accessibility / Tab-order helpers
+    // =========================================================================
+
+    /**
+     * Tab forward until the element matching `selector` becomes the active
+     * element. Resets focus to the document body first so traversal is
+     * deterministic. Returns true when the element is reached before maxTabs.
+     */
+    async tabUntilFocused(selector: string, maxTabs: number = 60): Promise<boolean> {
+        return (await I.usePlaywrightTo(`tab until "${selector}" is focused`, async ({ page }) => {
+            // Reset focus to body so traversal always starts from page top
+            await page.evaluate(() => {
+                const active = document.activeElement as HTMLElement | null;
+                if (active && typeof active.blur === 'function') active.blur();
+            });
+            await page.mouse.click(2, 2);
+
+            for (let i = 0; i < maxTabs; i++) {
+                await page.keyboard.press('Tab');
+                const matched = await page.evaluate((s: string) => {
+                    const el = document.activeElement;
+                    return el ? !!el.matches?.(s) : false;
+                }, selector);
+                if (matched) return true;
+            }
+            return false;
+        })) as unknown as boolean;
+    }
+
+    /**
+     * Capture the Tab-press index at which each of the named targets first becomes
+     * the active element. Resets focus to the document body before starting so the
+     * traversal always begins from the top of the page.
+     *
+     * Selectors are matched via `element.matches(selector)` on the active element at
+     * each step. Use structural or data-testid selectors for locale-independence.
+     *
+     * @param targets - Map of logical name to CSS selector
+     * @param maxTabs - Maximum Tab presses before giving up (default 40)
+     * @returns Map of name to Tab-press index (-1 if not reached)
+     */
+    async captureTabOrderPositions(
+        targets: Record<string, string>,
+        maxTabs: number = 40
+    ): Promise<Record<string, number>> {
+        await (I.usePlaywrightTo('wait for checkout-order-summary-sidebar to be attached', async ({ page }) => {
+            await page
+                .locator('[data-testid="checkout-order-summary-sidebar"]')
+                .first()
+                .waitFor({ state: 'attached', timeout: 20_000 });
+        }) as unknown as Promise<void>);
+
+        const positions = (await I.usePlaywrightTo('capture tab-order positions of key sections', async ({ page }) => {
+            // Blur any autofocused control and reset focus to the document body so
+            // Tab traversal starts from the top of the page.
+            await page.evaluate(() => {
+                const active = document.activeElement as HTMLElement | null;
+                if (active && typeof active.blur === 'function') active.blur();
+            });
+            await page.mouse.click(2, 2);
+
+            const keys = Object.keys(targets);
+            const selectorEntries = Object.entries(targets);
+            const seen: Record<string, number> = Object.fromEntries(keys.map((k) => [k, -1]));
+
+            for (let i = 1; i <= maxTabs; i++) {
+                await page.keyboard.press('Tab');
+                for (const [key, sel] of selectorEntries) {
+                    if (seen[key] !== -1) continue;
+                    const matched = await page.evaluate((s: string) => {
+                        const el = document.activeElement;
+                        return el ? !!el.matches?.(s) : false;
+                    }, sel);
+                    if (matched) seen[key] = i;
+                }
+                if (keys.every((k) => seen[k] !== -1)) break;
+            }
+            return seen;
+        })) as unknown as Record<string, number>;
+
+        return positions;
     }
 }
 

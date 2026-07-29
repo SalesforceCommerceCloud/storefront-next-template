@@ -29,7 +29,7 @@ import { AiInsightCard } from '../ai-insight-card';
  * and `ShoppingAssistant` stories bookmark the two production shapes.
  */
 const meta: Meta<typeof AiInsightCard> = {
-    title: 'Components/AiInsightCard',
+    title: 'Core/Data Display/AI Insight Card',
     component: AiInsightCard,
     tags: ['autodocs'],
     parameters: {

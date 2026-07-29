@@ -53,6 +53,7 @@ vi.mock('@/components/toast', () => ({
     }),
 }));
 
+
 vi.mock('@/components/link', () => ({
     Link: (props: React.PropsWithChildren<{ to?: string; href?: string; [key: string]: unknown }>) => {
         const { to, href, children, ...rest } = props ?? {};
@@ -92,11 +93,7 @@ vi.mock('@/hooks/use-current-site-and-locale-ref', () => ({
 }));
 
 vi.mock('@/components/locale-switcher', () => ({
-    default: () => (
-        <select aria-label="Select locale">
-            <option>English (UK)</option>
-        </select>
-    ),
+    default: () => <select aria-label="Select locale"><option>English (UK)</option></select>,
 }));
 
 vi.mock('@/components/currency-switcher', () => ({

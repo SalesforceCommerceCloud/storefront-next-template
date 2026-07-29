@@ -16,7 +16,7 @@
 
 import { buildSitePath } from '../utils/url-utils';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- codeceptjs/steps has no ESM export
+// oxlint-disable-next-line @typescript-eslint/no-require-imports -- codeceptjs/steps has no ESM export
 const step = require('codeceptjs/steps');
 const { I } = inject();
 
@@ -39,6 +39,9 @@ class LoginPage {
         // Validation error messages
         errorMessage: locate('div:has-text("Something went wrong")').as('Error Message'),
         fieldError: locate('.error, [class*="error"]').as('Field Error'),
+        wishlistMergeToast: locate('[data-sonner-toast]')
+            .withText('added to your account wishlist')
+            .as('Wishlist Merge Toast'),
     };
 
     /**
@@ -144,6 +147,61 @@ class LoginPage {
     validateLoginFailed(): void {
         I.seeInCurrentUrl('/login');
         I.seeElement(this.locators.errorMessage);
+    }
+
+    /**
+     * Get the current page URL. Used to assert on redirect targets/query params
+     * (e.g. after a successful passkey login) without calling `I.*` from a Scenario.
+     */
+    async getCurrentUrl(): Promise<string> {
+        return await I.grabCurrentUrl();
+    }
+
+    /**
+     * Waits for the URL to leave `/login`. Passkey login on this page succeeds via
+     * a client-side `navigate()` call (not a full document redirect), so this polls
+     * the URL rather than waiting for a navigation/load event.
+     */
+    async waitForRedirectAwayFromLogin(timeoutSeconds: number = 10): Promise<void> {
+        await (I.usePlaywrightTo('wait for redirect away from /login', async ({ page }) => {
+            await page.waitForURL((url: URL) => !url.pathname.includes('/login'), {
+                timeout: timeoutSeconds * 1000,
+            });
+        }) as unknown as Promise<void>);
+    }
+
+    /**
+     * Waits for the wishlist-merge toast (rendered by `WishlistMergeToast` in the app
+     * shell). Asserting on the `wishlistMerge` query param directly is racy — that
+     * component strips it via a client-side `navigate({replace: true})` immediately
+     * after mounting, so the param is only present for a moment.
+     */
+    waitForWishlistMergeToast(timeoutSeconds: number = 10): boolean {
+        try {
+            I.waitForElement(this.locators.wishlistMergeToast, timeoutSeconds);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Confirms the page is still on `/login` after a settle window. The inverse of
+     * `waitForRedirectAwayFromLogin` — for edge cases (dismissed/failed passkey) where
+     * a successful login would have redirected but a no-op should NOT. Resolves `false`
+     * as soon as a redirect is observed, otherwise `true` once the window elapses.
+     */
+    async staysOnLogin(settleSeconds: number = 3): Promise<boolean> {
+        return await (I.usePlaywrightTo('confirm no redirect away from /login', async ({ page }) => {
+            try {
+                await page.waitForURL((url: URL) => !url.pathname.includes('/login'), {
+                    timeout: settleSeconds * 1000,
+                });
+                return false; // a redirect happened within the window
+            } catch {
+                return true; // stayed on /login for the whole window
+            }
+        }) as unknown as Promise<boolean>);
     }
 }
 

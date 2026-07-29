@@ -30,10 +30,6 @@
     },
     "search": {
         "results": "Resultados de la búsqueda para",
-        "shopperAgent": {
-            "title": "Compra con tu agente de compras",
-            "description": "Puedo ayudarte a encontrar la pieza perfecta para tu espacio. Compra conmigo."
-        },
         "suggestions": {
             "didYouMean": "¿Quisiste decir",
             "categories": "Categorías",
@@ -301,7 +297,8 @@
         "quantityUpdateFailed": "No se pudo actualizar la cantidad",
         "onlyLeft": "¡Solo quedan {{stockLevel}}!",
         "onlyLeftForProduct": "¡Solo {{stockLevel}} queda para {{productName}}!",
-        "maxStockReached": "Stock máximo alcanzado"
+        "maxStockReached": "Stock máximo alcanzado",
+        "insufficientStock": "No hay suficiente stock disponible"
     },
     "cart": {
         "title": "Carrito",
@@ -408,6 +405,7 @@
             "emailInvalid": "Ingresa una dirección de correo electrónico válida.",
             "countryCodeLabel": "Código",
             "phoneLabel": "Número de teléfono",
+            "phoneFormatDescription": "Número de teléfono de 10 dígitos",
             "phoneRequired": "Ingresa tu número de teléfono.",
             "phoneInvalid": "Ingresa un número de teléfono válido.",
             "notProvided": "Todavía no se proporciona",
@@ -488,7 +486,8 @@
             "arrives": "Llega: {{estimatedArrivalTime}}",
             "free": "Gratis",
             "noMethodsAvailable": "No hay métodos de envío disponibles",
-            "noMethodsAvailableHelp": "Asegúrate de que tu dirección de envío esté completa e inténtalo de nuevo."
+            "noMethodsAvailableHelp": "Asegúrate de que tu dirección de envío esté completa e inténtalo de nuevo.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Pago",
@@ -616,7 +615,8 @@
                 "noAddress": "No hay dirección disponible",
                 "estimatedDatePlaceholder": "Procesando ahora",
                 "quantity": "Cantidad: {{count}}",
-                "freeShipping": "Gratis"
+                "freeShipping": "Gratis",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "promotions": "Promociones",
@@ -674,6 +674,7 @@
             "addresses": "Direcciones",
             "manageAddresses": "Administrar direcciones",
             "paymentMethods": "Métodos de pago",
+            "passkeys": "Passkeys",
             "storePreferences": "Preferencias de la tienda",
             "logOut": "Cerrar sesión"
         },
@@ -860,16 +861,6 @@
             "productPlaceholderInitial": "Elemento",
             "quantityLabel": "Cantidad: {{count}}",
             "trackingNumber": "Número de seguimiento",
-            "tracking": {
-                "provider": "Carrier",
-                "expectedDelivery": "Expected delivery",
-                "delivered": "Delivered",
-                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
-            },
-            "actions": {
-                "trackShipment": "Track shipment",
-                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
-            },
             "shippingAddress": "Dirección de envío",
             "paymentMethod": "Método de pago",
             "paymentMethodEndingIn": "{{cardType}} Terminando en {{lastDigits}}"
@@ -1056,6 +1047,50 @@
             "disclaimer": "Al habilitar estas preferencias de comunicación, acepta recibir nuestras comunicaciones de marketing, incluidas ofertas exclusivas, la información más reciente sobre productos y noticias sobre próximas colecciones. Consulte nuestros Términos & , Condiciones y Política de Privacidad para obtener más detalles.",
             "updateError": "No se pudo actualizar la preferencia de marketing. Intenta de nuevo.",
             "partialSuccess": "Se han guardado algunas preferencias. Actualice para ver la configuración actual."
+        },
+        "passkeys": {
+            "pageTitle": "Passkeys",
+            "pageSubtitle": "Sign in faster and more securely using your face, fingerprint, or device PIN.",
+            "sectionTitle": "Your passkeys",
+            "sectionSubtitle": "Manage the passkeys registered to your account.",
+            "addPasskey": "Add Passkey",
+            "addDialogTitle": "Name your passkey",
+            "addDialogDescription": "Choose a name that helps you identify this passkey later, like the device or browser you're using.",
+            "passkeyNameLabel": "Passkey name",
+            "passkeyNamePlaceholder": "For example, Chrome on MacBook Pro",
+            "passkeyNameHint": "To rename this passkey after saving, you need to remove it and add it again.",
+            "nameRequired": "Please enter a name for this passkey.",
+            "nameTooLong": "Passkey name must be 128 characters or fewer.",
+            "addContinue": "Continue",
+            "otpStepTitle": "Verify your email",
+            "otpStepDescription": "Check your email for a {{otpLength}}-digit code. Enter it to verify your identity before creating the passkey.",
+            "otpCodeLabel": "Verification code",
+            "addSuccess": "Passkey was added.",
+            "addSuccessDescription": "Manage passkeys in My Account.",
+            "viewPasskeys": "View Passkeys",
+            "addedOn": "Added {{date}}",
+            "lastUsed": "Last used {{date}}",
+            "notUsedYet": "Not used yet",
+            "uses_one": "{{count}} use",
+            "uses_other": "{{count}} uses",
+            "newBadge": "New",
+            "unnamedPasskey": "Unnamed passkey",
+            "deletePasskeyAriaLabel": "Delete passkey {{name}}",
+            "deleteDialogTitle": "Remove passkey?",
+            "deleteDialogDescription": "After you remove \"{{name}}\", you can't use it to sign in.",
+            "deleteConfirm": "Remove",
+            "deleting": "Removing…",
+            "deleteSuccess": "Passkey removed.",
+            "deleteError": "Failed to remove passkey. Please try again.",
+            "empty": "No Saved Passkeys",
+            "emptyHint": "Add a passkey to sign in faster with your face, fingerprint, or device PIN.",
+            "loadError": "We couldn't load your passkeys. Please refresh the page to try again.",
+            "addError": "Passkey creation failed. Please try again.",
+            "notSupportedError": "Passkeys aren't supported in this app or device. Please try again in a different way.",
+            "unsupportedBrowser": "This browser doesn't support passkeys. Try updating it or use a different browser.",
+            "registerToastTitle": "Set up faster sign-in",
+            "registerToastDescription": "Create a passkey to sign in with your face, fingerprint, or device PIN — no password needed.",
+            "registerToastAction": "Create Passkey"
         }
     },
     "home": {
@@ -1404,7 +1439,8 @@
             "viewAllReviews": "Ver todas las reseñas",
             "distributionAriaLabel": "{{rating}} estrellas: {{count, number}} de {{totalReviews, number}} reseñas",
             "distributionsAriaLabel": "Distribución de la clasificación por estrellas, {{total, number}} reseñas totales",
-            "seeCustomerReviews": "Ver las opiniones de los clientes >"
+            "seeCustomerReviews": "Ver las opiniones de los clientes >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "de",
         "outOfStock": "Agotado para {{productName}}",

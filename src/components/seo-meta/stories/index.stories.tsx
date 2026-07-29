@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SeoMeta } from '../index';
 
 const meta: Meta<typeof SeoMeta> = {
-    title: 'SEO/Seo Meta',
+    title: 'Core/SEO/SEO Meta',
     component: SeoMeta,
     tags: ['autodocs'],
     parameters: {

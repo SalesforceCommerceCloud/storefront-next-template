@@ -29,10 +29,6 @@
     },
     "search": {
         "results": "Sökresultat för",
-        "shopperAgent": {
-            "title": "Shoppa med en agent",
-            "description": "Jag kan hjälpa dig att hitta rätt produkt för dina behov. Shoppa med mig."
-        },
         "suggestions": {
             "didYouMean": "Menade du",
             "categories": "Kategorier",
@@ -300,7 +296,8 @@
         "quantityUpdateFailed": "Det gick inte att uppdatera kvantitet",
         "onlyLeft": "Det finns bara {{stockLevel}} kvar!",
         "onlyLeftForProduct": "Det finns bara {{stockLevel}} kvar av {{productName}}!",
-        "maxStockReached": "Maximal lagergräns uppnådd"
+        "maxStockReached": "Maximal lagergräns uppnådd",
+        "insufficientStock": "Otillräckligt lager"
     },
     "cart": {
         "title": "Kundvagn",
@@ -409,6 +406,7 @@
             "emailInvalid": "Ange en giltig e-postadress.",
             "countryCodeLabel": "Kod",
             "phoneLabel": "Telefonnummer",
+            "phoneFormatDescription": "10-siffrigt telefonnummer",
             "phoneRequired": "Ange ditt telefonnummer.",
             "phoneInvalid": "Ange ett giltigt telefonnummer.",
             "notProvided": "Ej angett än",
@@ -489,7 +487,8 @@
             "arrives": "Levereras: {{estimatedArrivalTime}}",
             "free": "Gratis",
             "noMethodsAvailable": "Inga leveransmetoder tillgängliga",
-            "noMethodsAvailableHelp": "Kontrollera att din fraktadress är fullständig och försök igen."
+            "noMethodsAvailableHelp": "Kontrollera att din fraktadress är fullständig och försök igen.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Betalning",
@@ -616,7 +615,8 @@
                 "noAddress": "Ingen adress tillgänglig",
                 "estimatedDatePlaceholder": "Bearbetas nu",
                 "quantity": "Antal: {{count}}",
-                "freeShipping": "Gratis"
+                "freeShipping": "Gratis",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Delsumma",
@@ -676,6 +676,7 @@
             "addresses": "Adresser",
             "manageAddresses": "Hantera adresser",
             "paymentMethods": "Betalningsmetoder",
+            "passkeys": "Passkeys",
             "storePreferences": "Butiksinställningar",
             "logOut": "Logga ut"
         },
@@ -861,16 +862,6 @@
             "productPlaceholderInitial": "Artikel",
             "quantityLabel": "Antal: {{count}}",
             "trackingNumber": "Spårningsnummer",
-            "tracking": {
-                "provider": "Carrier",
-                "expectedDelivery": "Expected delivery",
-                "delivered": "Delivered",
-                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
-            },
-            "actions": {
-                "trackShipment": "Track shipment",
-                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
-            },
             "shippingAddress": "Fraktadress",
             "paymentMethod": "Betalningsmetod",
             "paymentMethodEndingIn": "{{cardType}} som slutar med {{lastDigits}}"
@@ -1058,6 +1049,50 @@
             "disclaimer": "Genom att aktivera dessa kommunikationsinställningar samtycker du till att få marknadsföringskommunikation från oss, inklusive exklusiva erbjudanden, den senaste produktinformationen och nyheter om kommande kollektioner. Se våra villkor och vår sekretesspolicy för mer information.",
             "updateError": "Det gick inte att uppdatera marknadsföringsinställningar. Försök igen.",
             "partialSuccess": "Vissa inställningar sparade. Uppdatera för att se aktuella inställningar."
+        },
+        "passkeys": {
+            "pageTitle": "Passkeys",
+            "pageSubtitle": "Sign in faster and more securely using your face, fingerprint, or device PIN.",
+            "sectionTitle": "Your passkeys",
+            "sectionSubtitle": "Manage the passkeys registered to your account.",
+            "addPasskey": "Add Passkey",
+            "addDialogTitle": "Name your passkey",
+            "addDialogDescription": "Choose a name that helps you identify this passkey later, like the device or browser you're using.",
+            "passkeyNameLabel": "Passkey name",
+            "passkeyNamePlaceholder": "For example, Chrome on MacBook Pro",
+            "passkeyNameHint": "To rename this passkey after saving, you need to remove it and add it again.",
+            "nameRequired": "Please enter a name for this passkey.",
+            "nameTooLong": "Passkey name must be 128 characters or fewer.",
+            "addContinue": "Continue",
+            "otpStepTitle": "Verify your email",
+            "otpStepDescription": "Check your email for a {{otpLength}}-digit code. Enter it to verify your identity before creating the passkey.",
+            "otpCodeLabel": "Verification code",
+            "addSuccess": "Passkey was added.",
+            "addSuccessDescription": "Manage passkeys in My Account.",
+            "viewPasskeys": "View Passkeys",
+            "addedOn": "Added {{date}}",
+            "lastUsed": "Last used {{date}}",
+            "notUsedYet": "Not used yet",
+            "uses_one": "{{count}} use",
+            "uses_other": "{{count}} uses",
+            "newBadge": "New",
+            "unnamedPasskey": "Unnamed passkey",
+            "deletePasskeyAriaLabel": "Delete passkey {{name}}",
+            "deleteDialogTitle": "Remove passkey?",
+            "deleteDialogDescription": "After you remove \"{{name}}\", you can't use it to sign in.",
+            "deleteConfirm": "Remove",
+            "deleting": "Removing…",
+            "deleteSuccess": "Passkey removed.",
+            "deleteError": "Failed to remove passkey. Please try again.",
+            "empty": "No Saved Passkeys",
+            "emptyHint": "Add a passkey to sign in faster with your face, fingerprint, or device PIN.",
+            "loadError": "We couldn't load your passkeys. Please refresh the page to try again.",
+            "addError": "Passkey creation failed. Please try again.",
+            "notSupportedError": "Passkeys aren't supported in this app or device. Please try again in a different way.",
+            "unsupportedBrowser": "This browser doesn't support passkeys. Try updating it or use a different browser.",
+            "registerToastTitle": "Set up faster sign-in",
+            "registerToastDescription": "Create a passkey to sign in with your face, fingerprint, or device PIN — no password needed.",
+            "registerToastAction": "Create Passkey"
         }
     },
     "home": {
@@ -1392,7 +1427,8 @@
             "viewAllReviews": "Se alla recensioner",
             "distributionAriaLabel": "{{rating}} stjärnor: {{count, number}} av {{totalReviews, number}} recensioner",
             "distributionsAriaLabel": "Fördelning av stjärnbetyg, {{total, number}} totalt antal recensioner",
-            "seeCustomerReviews": "Se kundrecensioner >"
+            "seeCustomerReviews": "Se kundrecensioner >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "från",
         "outOfStock": "{{productName}} finns inte i lager",

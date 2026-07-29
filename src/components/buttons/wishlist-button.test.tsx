@@ -24,9 +24,11 @@ const mockToggle = vi.fn().mockResolvedValue({ success: true, data: null });
 // `mockIsMember` survives as the source of truth for the per-product hook in
 // these tests; toast/analytics branches read it via useIsInWishlist below.
 const mockIsMember = vi.fn().mockReturnValue(false);
+const mockLoad = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@/providers/wishlist', () => ({
     useIsInWishlist: (productId: string | undefined) => (productId ? (mockIsMember(productId) as boolean) : false),
+    useWishlistLoader: () => mockLoad,
     useWishlistActions: () => ({
         add: vi.fn(),
         remove: vi.fn(),
@@ -62,6 +64,15 @@ describe('WishlistButton — toast UX', () => {
         mockIsPending = false;
         mockIsMember.mockReturnValue(false);
         mockToggle.mockReset();
+        mockLoad.mockClear();
+    });
+
+    test('triggers the lazy wishlist load on mount (PDP heart is visible at load)', () => {
+        // The PDP heart renders immediately at load, so it kicks the once-per-session lazy read
+        // itself rather than waiting on a tile intent. Idempotent (module-level guard).
+        render(<WishlistButton product={baseProduct} surface="pdp" />);
+
+        expect(mockLoad).toHaveBeenCalledTimes(1);
     });
 
     test('success add: shows addedToWishlist success toast', async () => {

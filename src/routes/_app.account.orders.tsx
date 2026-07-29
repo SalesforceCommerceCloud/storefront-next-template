@@ -15,6 +15,27 @@
  */
 import type { ReactElement } from 'react';
 import { Outlet } from 'react-router';
+import type { Route } from './+types/_app.account.orders';
+import { fetchOmsMetaData, type OmsMetaDataResult } from '@/lib/api/order.server';
+
+type OrdersLayoutLoaderData = {
+    // Deferred OMS cancel/return reason codes (non-critical). OMS metadata is
+    // org-level, not order-level, so it lives on this section-layout loader:
+    // React Router skips a parent loader when only child params change, so the
+    // fetch runs once on entry to /account/orders and is reused across
+    // order-to-order navigation instead of re-firing per $orderNo. Consumers
+    // read it via `useRouteLoaderData('routes/_app.account.orders')`.
+    omsMetaData: Promise<OmsMetaDataResult>;
+};
+
+/** Section loader: fetches org-level OMS reason codes once, shared by all order routes. */
+export function loader({ context }: Route.LoaderArgs): OrdersLayoutLoaderData {
+    return {
+        // Deferred: never awaited here. fetchOmsMetaData never rejects, so this
+        // promise always resolves — a metadata failure can't break the section.
+        omsMetaData: fetchOmsMetaData(context),
+    };
+}
 
 /**
  * Layout for /account/orders. Renders child routes:

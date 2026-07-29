@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ComponentProps, createContext, type ReactNode, type Ref, useContext, useMemo, useRef } from 'react';
+import {
+    type ComponentProps,
+    createContext,
+    type ElementType,
+    type ReactNode,
+    type Ref,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/spinner';
@@ -30,6 +40,10 @@ const ToggleCardContext = createContext<ToggleCardContextValue | undefined>(unde
 export type ToggleCardProps = Omit<ComponentProps<'div'>, 'title'> & {
     id?: string;
     title?: ReactNode;
+    /** Override the HTML element rendered for the CardTitle. Defaults to "div". */
+    titleAs?: ElementType;
+    /** Additional className merged into the CardTitle element alongside its default classes. */
+    titleClassName?: string;
     description?: ReactNode;
     editing?: boolean;
     disabled?: boolean;
@@ -48,6 +62,8 @@ export type ToggleCardProps = Omit<ComponentProps<'div'>, 'title'> & {
 export function ToggleCard({
     id,
     title,
+    titleAs,
+    titleClassName,
     description,
     editing = false,
     disabled = false,
@@ -65,6 +81,20 @@ export function ToggleCard({
     ...props
 }: ToggleCardProps) {
     const titleRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
+    const prevEditingRef = useRef(editing);
+
+    useEffect(() => {
+        if (editing && !prevEditingRef.current) {
+            requestAnimationFrame(() => {
+                const el = contentRef.current?.querySelector<HTMLElement>(
+                    'input:not([type="hidden"]), textarea, select, [tabindex]:not([tabindex="-1"])'
+                );
+                el?.focus();
+            });
+        }
+        prevEditingRef.current = editing;
+    }, [editing]);
 
     const contextValue = useMemo<ToggleCardContextValue>(() => ({ editing, disabled }), [editing, disabled]);
 
@@ -84,10 +114,12 @@ export function ToggleCard({
                     )}>
                     <CardTitle
                         ref={titleRef as unknown as Ref<HTMLDivElement>}
-                        tabIndex={0}
+                        as={titleAs}
+                        tabIndex={-1}
                         className={cn(
                             'text-base font-semibold',
-                            disabled && !editing ? 'text-muted-foreground' : 'text-foreground'
+                            disabled && !editing ? 'text-muted-foreground' : 'text-foreground',
+                            titleClassName
                         )}>
                         {title}
                     </CardTitle>
@@ -134,7 +166,9 @@ export function ToggleCard({
                     </CardAction>
                 </CardHeader>
 
-                <CardContent data-testid={id ? `sf-toggle-card-${id}-content` : undefined}>{children}</CardContent>
+                <CardContent ref={contentRef} data-testid={id ? `sf-toggle-card-${id}-content` : undefined}>
+                    {children}
+                </CardContent>
 
                 {isLoading ? (
                     <div className="absolute inset-0 z-10 bg-background/60">

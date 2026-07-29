@@ -15,7 +15,7 @@
  */
 
 // React
-import { type ReactElement } from 'react';
+import { type ReactElement, useCallback } from 'react';
 
 // Hooks
 import { useQuantityPicker } from '@/hooks/use-quantity-picker';
@@ -43,6 +43,10 @@ interface QuantityPickerProps {
     disabled?: boolean;
     /** Additional class names for the container */
     className?: string;
+    /** ID for the input element to enable label linkage */
+    id?: string;
+    /** ID of element describing this input */
+    'aria-describedby'?: string;
 }
 
 /**
@@ -65,6 +69,8 @@ export default function QuantityPicker({
     productName,
     disabled = false,
     className,
+    id,
+    'aria-describedby': ariaDescribedby,
 }: QuantityPickerProps): ReactElement {
     const { t: tQuantity } = useTranslation('quantitySelector');
     const { t: tCommon } = useTranslation('common');
@@ -88,13 +94,38 @@ export default function QuantityPicker({
         max,
     });
 
+    // Keyboard focus management: a boundary button disables itself once the value reaches its
+    // limit. A disabled control cannot hold focus, so focus would fall to the document body.
+    // Move focus to the input before the button disables so keyboard users keep a logical focus
+    // position (WCAG 2.4.3). The conditions below mirror the hook's disable predicates applied to
+    // the value the click produces: decrement disables at 1, increment disables at max.
+    const handleDecrementClick = useCallback(() => {
+        const currentValue = parseInt(value, 10) || 0;
+        const nextValue = Math.max(currentValue - 1, min);
+        if (nextValue === 1 && nextValue !== currentValue) {
+            inputRef.current?.focus();
+        }
+        handleDecrement();
+    }, [value, min, handleDecrement, inputRef]);
+
+    const handleIncrementClick = useCallback(() => {
+        const currentValue = parseInt(value, 10) || 0;
+        if (max != null && Math.min(currentValue + 1, max) >= max && currentValue < max) {
+            inputRef.current?.focus();
+        }
+        handleIncrement();
+    }, [value, max, handleIncrement, inputRef]);
+
     return (
-        <div className={cn('inline-flex items-center border border-input rounded-ui overflow-hidden', className)}>
+        <div
+            role="group"
+            aria-label={tQuantity('quantityForProduct', { productName: productName || tCommon('product') })}
+            className={cn('inline-flex items-center border border-input rounded-ui overflow-hidden', className)}>
             {/* Decrement Button */}
             <button
-                onClick={handleDecrement}
+                onClick={handleDecrementClick}
                 disabled={disabled || isDecrementDisabled}
-                className="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={tQuantity('decreaseQuantityForProduct', { productName: productName || tCommon('product') })}
                 data-testid="quantity-decrement">
                 −
@@ -103,6 +134,7 @@ export default function QuantityPicker({
             {/* Input Field */}
             <input
                 ref={inputRef}
+                id={id}
                 type="number"
                 min={min}
                 max={max}
@@ -114,17 +146,18 @@ export default function QuantityPicker({
                 onKeyDown={handleKeyDown}
                 disabled={disabled}
                 className={cn(
-                    'w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed',
+                    'w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed',
                     '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
                 )}
-                aria-label={tQuantity('quantity')}
+                aria-label={id ? undefined : tQuantity('quantity')}
+                aria-describedby={ariaDescribedby}
             />
 
             {/* Increment Button */}
             <button
-                onClick={handleIncrement}
+                onClick={handleIncrementClick}
                 disabled={disabled || isIncrementDisabled}
-                className="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={tQuantity('increaseQuantityForProduct', { productName: productName || tCommon('product') })}
                 data-testid="quantity-increment">
                 +

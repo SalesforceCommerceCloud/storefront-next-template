@@ -26,7 +26,7 @@ exports[`PromoCodeForm stories snapshot > Default story renders and matches snap
           <button
             aria-controls="radix-_r_1_"
             aria-expanded="true"
-            class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
             data-orientation="vertical"
             data-radix-collection-item=""
             data-slot="accordion-trigger"
@@ -94,7 +94,7 @@ exports[`PromoCodeForm stories snapshot > Default story renders and matches snap
                   >
                     <input
                       aria-invalid="false"
-                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                       data-slot="input"
                       id="_r_2_-form-item"
                       name="code"
@@ -102,7 +102,7 @@ exports[`PromoCodeForm stories snapshot > Default story renders and matches snap
                       value=""
                     />
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                       data-size="default"
                       data-slot="button"
                       data-variant="secondary"
@@ -148,7 +148,7 @@ exports[`PromoCodeForm stories snapshot > WithAppliedCoupon story renders and ma
           <button
             aria-controls="radix-_r_4_"
             aria-expanded="true"
-            class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
             data-orientation="vertical"
             data-radix-collection-item=""
             data-slot="accordion-trigger"
@@ -216,7 +216,7 @@ exports[`PromoCodeForm stories snapshot > WithAppliedCoupon story renders and ma
                   >
                     <input
                       aria-invalid="false"
-                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                       data-slot="input"
                       id="_r_5_-form-item"
                       name="code"
@@ -224,7 +224,7 @@ exports[`PromoCodeForm stories snapshot > WithAppliedCoupon story renders and ma
                       value=""
                     />
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                       data-size="default"
                       data-slot="button"
                       data-variant="secondary"
@@ -251,7 +251,7 @@ exports[`PromoCodeForm stories snapshot > WithAppliedCoupon story renders and ma
           class="inline-flex items-stretch"
         >
           <span
-            class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+            class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
             data-slot="badge"
           >
             <svg
@@ -275,7 +275,7 @@ exports[`PromoCodeForm stories snapshot > WithAppliedCoupon story renders and ma
           </span>
           <button
             aria-label="Remove SAVE10"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
             data-size="icon-sm"
             data-slot="button"
             data-variant="secondary"
@@ -340,7 +340,7 @@ exports[`PromoCodeForm stories snapshot > WithCouponDiscount story renders and m
           <button
             aria-controls="radix-_r_7_"
             aria-expanded="true"
-            class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
             data-orientation="vertical"
             data-radix-collection-item=""
             data-slot="accordion-trigger"
@@ -408,7 +408,7 @@ exports[`PromoCodeForm stories snapshot > WithCouponDiscount story renders and m
                   >
                     <input
                       aria-invalid="false"
-                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                       data-slot="input"
                       id="_r_8_-form-item"
                       name="code"
@@ -416,7 +416,7 @@ exports[`PromoCodeForm stories snapshot > WithCouponDiscount story renders and m
                       value=""
                     />
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                       data-size="default"
                       data-slot="button"
                       data-variant="secondary"
@@ -443,7 +443,7 @@ exports[`PromoCodeForm stories snapshot > WithCouponDiscount story renders and m
           class="inline-flex items-stretch"
         >
           <span
-            class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+            class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
             data-slot="badge"
           >
             <svg
@@ -467,7 +467,7 @@ exports[`PromoCodeForm stories snapshot > WithCouponDiscount story renders and m
           </span>
           <button
             aria-label="Remove SAVE10"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
             data-size="icon-sm"
             data-slot="button"
             data-variant="secondary"
@@ -532,7 +532,7 @@ exports[`PromoCodeForm stories snapshot > WithNotApplicableCoupon story renders 
           <button
             aria-controls="radix-_r_a_"
             aria-expanded="true"
-            class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+            class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
             data-orientation="vertical"
             data-radix-collection-item=""
             data-slot="accordion-trigger"
@@ -600,7 +600,7 @@ exports[`PromoCodeForm stories snapshot > WithNotApplicableCoupon story renders 
                   >
                     <input
                       aria-invalid="false"
-                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                      class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                       data-slot="input"
                       id="_r_b_-form-item"
                       name="code"
@@ -608,7 +608,7 @@ exports[`PromoCodeForm stories snapshot > WithNotApplicableCoupon story renders 
                       value=""
                     />
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                       data-size="default"
                       data-slot="button"
                       data-variant="secondary"

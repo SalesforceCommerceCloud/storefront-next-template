@@ -259,9 +259,50 @@ export default function ProductInfo({
 
     return (
         <div className="relative grid gap-4">
-            {/* Action icons — top-right */}
+            {/* Compact style: brand (uppercase) then product name */}
+            {isCompactStyle && (
+                <>
+                    {product.brand && (
+                        <p className="text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground">
+                            {product.brand}
+                        </p>
+                    )}
+                    <h2 className="text-3xl font-bold text-card-foreground tracking-tight">{product.name}</h2>
+                </>
+            )}
+
+            {/* Product Title, SKU, Description */}
+            {!isCompactStyle && (
+                <div className="flex items-start justify-between gap-4">
+                    <div className={`${hideActionIcons ? '' : 'sm:pr-20'} min-w-0`}>
+                        {product.brand && (
+                            <p className="mb-1 text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground">
+                                {product.brand}
+                            </p>
+                        )}
+                        <h1
+                            data-testid="product-title"
+                            className="text-3xl font-bold text-card-foreground tracking-tight break-words">
+                            {product.name}
+                        </h1>
+                        {product.id && (
+                            <p className="mt-2 text-xs leading-none text-secondary-foreground">
+                                {t('sku')} {product.id}
+                            </p>
+                        )}
+                        {product.shortDescription && (
+                            <p className="mt-2 text-base font-normal leading-6 text-accent-foreground">
+                                {product.shortDescription}
+                            </p>
+                        )}
+                    </div>
+                    {headerAction ? <div className="pt-1 shrink-0">{headerAction}</div> : null}
+                </div>
+            )}
+
+            {/* Action icons — top-right, after title in DOM for correct focus order */}
             {!isCompactStyle && !hideActionIcons && (
-                <div className="absolute top-0 right-0 flex items-center gap-2 z-10">
+                <div className="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10">
                     <WishlistButton
                         product={{
                             productId: product.id,
@@ -278,47 +319,6 @@ export default function ProductInfo({
                         size="sm"
                         className="!static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
                     />
-                </div>
-            )}
-
-            {/* Compact style: brand (uppercase) then product name */}
-            {isCompactStyle && (
-                <>
-                    {product.brand && (
-                        <p className="text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground">
-                            {product.brand}
-                        </p>
-                    )}
-                    <h2 className="text-3xl font-bold text-card-foreground tracking-tight">{product.name}</h2>
-                </>
-            )}
-
-            {/* Product Title, SKU, Description */}
-            {!isCompactStyle && (
-                <div className="flex items-start justify-between gap-4">
-                    <div className={`${hideActionIcons ? '' : 'pr-20'} min-w-0`}>
-                        {product.brand && (
-                            <p className="mb-1 text-xs font-normal leading-none uppercase tracking-wide text-secondary-foreground">
-                                {product.brand}
-                            </p>
-                        )}
-                        <h1
-                            data-testid="product-title"
-                            className="text-3xl font-bold text-card-foreground tracking-tight">
-                            {product.name}
-                        </h1>
-                        {product.id && (
-                            <p className="mt-2 text-xs leading-none text-secondary-foreground">
-                                {t('sku')} {product.id}
-                            </p>
-                        )}
-                        {product.shortDescription && (
-                            <p className="mt-2 text-base font-normal leading-6 text-accent-foreground">
-                                {product.shortDescription}
-                            </p>
-                        )}
-                    </div>
-                    {headerAction ? <div className="pt-1 shrink-0">{headerAction}</div> : null}
                 </div>
             )}
             {/* Rating summary - visible on both mobile and desktop */}
@@ -424,7 +424,8 @@ export default function ProductInfo({
                             value={swatchValue}
                             name={valueName}
                             shape={id === 'color' ? 'color' : 'label'}
-                            labeled>
+                            labeled
+                            outOfStockSuffix={t('outOfStockSuffix')}>
                             {content}
                         </Swatch>
                     );

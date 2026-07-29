@@ -109,6 +109,7 @@ export function PageViewTracker() {
                         userType: auth.userType ?? 'guest',
                         encUserId: auth.encUserId ?? undefined,
                         usid: auth.usid,
+                        customerId: auth.customerId,
                     },
                 });
                 const eventSiteInfo = { siteId: site.id, localeId: language };

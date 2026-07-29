@@ -63,7 +63,7 @@ export default function CartBadge(): ReactElement {
                 fallback={
                     <Button
                         variant="ghost"
-                        className="relative pointer-events-none hover:bg-transparent"
+                        className="relative pointer-events-none lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent"
                         aria-label={t('badge.ariaLabel', { count: numberOfItems })}>
                         <CartBadgeIcon numberOfItems={numberOfItems} />
                     </Button>
@@ -71,7 +71,7 @@ export default function CartBadge(): ReactElement {
                 <CartSheet>
                     <Button
                         variant="ghost"
-                        className="relative cursor-pointer hover:bg-transparent hover:opacity-50 transition-opacity"
+                        className="relative cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
                         onPointerEnter={prefetch}
                         onFocus={prefetch}
                         aria-label={t('badge.ariaLabel', { count: numberOfItems })}>
@@ -85,7 +85,7 @@ export default function CartBadge(): ReactElement {
     return (
         <Button
             variant="ghost"
-            className="relative cursor-pointer hover:bg-transparent hover:opacity-50 transition-opacity"
+            className="relative cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
             onClick={() => {
                 setClicked(true);
                 setMiniCartOpen(true);

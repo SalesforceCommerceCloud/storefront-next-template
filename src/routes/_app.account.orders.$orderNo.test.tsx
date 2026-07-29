@@ -40,10 +40,11 @@ vi.mock('@/lib/api/order.server', () => ({
 }));
 
 vi.mock('@/components/account/order-details', () => ({
-    default: ({ order, productsById }: { order: any; productsById: any }) => (
+    default: ({ order, productsById, omsMetaData }: { order: any; productsById: any; omsMetaData?: Promise<any> }) => (
         <div data-testid="order-details">
             <span data-testid="order-no">{order?.orderNo}</span>
             <span data-testid="products-count">{Object.keys(productsById || {}).length}</span>
+            <span data-testid="oms-metadata-threaded">{omsMetaData ? 'yes' : 'no'}</span>
         </div>
     ),
 }));
@@ -75,10 +76,19 @@ function createOrderDetailsRouter(orderNo: string) {
     return createMemoryRouter(
         [
             {
-                path: '/account/orders/:orderNo',
-                element: <OrderDetailsPage />,
-                // Route-typed loader needs cast for createMemoryRouter's generic LoaderFunction signature
-                loader: loader as any,
+                // Parent section route supplies OMS reason codes via useRouteLoaderData
+                // ('routes/_app.account.orders'), matching the hoisted section loader.
+                id: 'routes/_app.account.orders',
+                path: '/account/orders',
+                loader: () => ({ omsMetaData: Promise.resolve({ omsActive: true }) }),
+                children: [
+                    {
+                        path: ':orderNo',
+                        element: <OrderDetailsPage />,
+                        // Route-typed loader needs cast for createMemoryRouter's generic LoaderFunction signature
+                        loader: loader as any,
+                    },
+                ],
             },
         ],
         { initialEntries: [`/account/orders/${orderNo}`] }
@@ -102,10 +112,20 @@ function createRouterWithRejectingLoader(orderNo: string) {
     return createMemoryRouter(
         [
             {
-                path: '/account/orders/:orderNo',
-                element: <OrderDetailsPage />,
-                // Route-typed loader needs cast for createMemoryRouter's generic LoaderFunction signature
-                loader: loader as any,
+                // Same parent-route nesting as createOrderDetailsRouter so
+                // useRouteLoaderData('routes/_app.account.orders') resolves consistently
+                // across all route-level tests (not just the happy path).
+                id: 'routes/_app.account.orders',
+                path: '/account/orders',
+                loader: () => ({ omsMetaData: Promise.resolve({ omsActive: false }) }),
+                children: [
+                    {
+                        path: ':orderNo',
+                        element: <OrderDetailsPage />,
+                        // Route-typed loader needs cast for createMemoryRouter's generic LoaderFunction signature
+                        loader: loader as any,
+                    },
+                ],
             },
         ],
         { initialEntries: [`/account/orders/${orderNo}`] }
@@ -152,6 +172,22 @@ describe('Order Details Route (_app.account.orders.$orderNo)', () => {
             const data2 = await result2.orderData;
             expect(data2.order.orderNo).toBe('CUSTOM-456');
         });
+
+        test('does not fetch OMS metadata itself — that is the parent section loader (org-level)', () => {
+            vi.mocked(fetchOrderWithProducts).mockReturnValue({
+                orderDataPromise: Promise.resolve({
+                    order: { ...mockOrder, orderNo: 'ORD-123' },
+                    productsById: mockProductsById,
+                }),
+                orderPromise: Promise.resolve({ ...mockOrder, orderNo: 'ORD-123' }),
+            });
+
+            const result = loader({ context: {} as any, params: { orderNo: 'ORD-123' } } as any);
+
+            // OMS reason codes moved to _app.account.orders (parent) so they fetch
+            // once per section, not per order. This loader must not carry them.
+            expect(result).not.toHaveProperty('omsMetaData');
+        });
     });
 
     describe('ErrorBoundary', () => {
@@ -184,6 +220,18 @@ describe('Order Details Route (_app.account.orders.$orderNo)', () => {
             await screen.findByTestId('order-details');
             expect(screen.getByTestId('order-no')).toHaveTextContent('INO001');
             expect(screen.getByTestId('products-count')).toBeInTheDocument();
+        });
+
+        test('threads the section-loader omsMetaData promise into OrderDetails', async () => {
+            const router = createOrderDetailsRouter('INO001');
+            render(
+                <AllProvidersWrapper>
+                    <RouterProvider router={router} />
+                </AllProvidersWrapper>
+            );
+
+            await screen.findByTestId('order-details');
+            expect(screen.getByTestId('oms-metadata-threaded')).toHaveTextContent('yes');
         });
 
         test('shows order not found card when orderData promise rejects (Await errorElement)', async () => {

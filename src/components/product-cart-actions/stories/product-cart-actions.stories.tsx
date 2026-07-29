@@ -26,7 +26,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { action } from 'storybook/actions';
 
 const meta: Meta<typeof ProductCartActions> = {
-    title: 'Components/ProductCartActions',
+    title: 'Products/Product Cart Actions',
     component: ProductCartActions,
     tags: ['autodocs', 'interaction'],
     parameters: {
@@ -109,7 +109,7 @@ export const CompactWithBuyNow: Story = {
 
         const addToCartButton = canvas.getByRole('button', { name: /add to cart/i });
         await expect(addToCartButton).toBeInTheDocument();
-        const buyNowButton = canvas.getByRole('button', { name: /buy it now/i });
+        const buyNowButton = canvas.getByRole('button', { name: /Buy It Now/i });
         await expect(buyNowButton).toBeInTheDocument();
     },
 };

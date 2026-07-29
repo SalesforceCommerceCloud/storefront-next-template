@@ -1,0 +1,155 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`LoadMore stories snapshot > AllLoaded story renders and matches snapshot 1`] = `
+<div
+  class="p-4"
+>
+  <div
+    class="flex flex-col items-center gap-4"
+    data-slot="load-more"
+  >
+    <p
+      aria-live="polite"
+      class="text-sm text-muted-foreground"
+      data-slot="load-more-status"
+      id="_r_3_"
+    >
+      Showing 218 of 218
+    </p>
+    <p
+      class="text-sm text-muted-foreground"
+      data-slot="load-more-end"
+    >
+      You've reached the end of the results
+    </p>
+  </div>
+</div>
+`;
+
+exports[`LoadMore stories snapshot > CapReached story renders and matches snapshot 1`] = `
+<div
+  class="p-4"
+>
+  <div
+    class="flex flex-col items-center gap-4"
+    data-slot="load-more"
+  >
+    <p
+      aria-live="polite"
+      class="text-sm text-muted-foreground"
+      data-slot="load-more-status"
+      id="_r_4_"
+    >
+      Showing 200 of 553
+    </p>
+    <p
+      class="max-w-md text-center text-sm text-muted-foreground"
+      data-slot="load-more-cap"
+    >
+      You've viewed 200 products. Refine your filters to narrow down the results.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`LoadMore stories snapshot > Default story renders and matches snapshot 1`] = `
+<div
+  class="p-4"
+>
+  <div
+    class="flex flex-col items-center gap-4"
+    data-slot="load-more"
+  >
+    <p
+      aria-live="polite"
+      class="text-sm text-muted-foreground"
+      data-slot="load-more-status"
+      id="_r_0_"
+    >
+      Showing 24 of 218
+    </p>
+    <button
+      aria-describedby="_r_0_"
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 rounded-ui px-6 has-[>svg]:px-4 h-12 w-full min-w-56 sm:h-11 sm:w-auto"
+      data-size="lg"
+      data-slot="load-more-button"
+      data-variant="outline"
+      type="button"
+    >
+      Load more
+    </button>
+  </div>
+</div>
+`;
+
+exports[`LoadMore stories snapshot > Error story renders and matches snapshot 1`] = `
+<div
+  class="p-4"
+>
+  <div
+    class="flex flex-col items-center gap-4"
+    data-slot="load-more"
+  >
+    <p
+      aria-live="polite"
+      class="text-sm text-muted-foreground"
+      data-slot="load-more-status"
+      id="_r_2_"
+    >
+      Showing 24 of 218
+    </p>
+    <p
+      class="text-sm text-destructive"
+      data-slot="load-more-error"
+      role="alert"
+    >
+      Something went wrong. Please try again.
+    </p>
+    <button
+      aria-describedby="_r_2_"
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 rounded-ui px-6 has-[>svg]:px-4 h-12 w-full min-w-56 sm:h-11 sm:w-auto"
+      data-size="lg"
+      data-slot="load-more-button"
+      data-variant="outline"
+      type="button"
+    >
+      Try again
+    </button>
+  </div>
+</div>
+`;
+
+exports[`LoadMore stories snapshot > Loading story renders and matches snapshot 1`] = `
+<div
+  class="p-4"
+>
+  <div
+    class="flex flex-col items-center gap-4"
+    data-slot="load-more"
+  >
+    <p
+      aria-live="polite"
+      class="text-sm text-muted-foreground"
+      data-slot="load-more-status"
+      id="_r_1_"
+    >
+      Showing 24 of 218
+    </p>
+    <button
+      aria-describedby="_r_1_"
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 rounded-ui px-6 has-[>svg]:px-4 h-12 w-full min-w-56 sm:h-11 sm:w-auto"
+      data-size="lg"
+      data-slot="load-more-button"
+      data-variant="outline"
+      disabled=""
+      type="button"
+    >
+      <div
+        aria-hidden="true"
+        class="animate-spin rounded-full border-2 border-border border-t-primary size-4"
+      />
+      Loading…
+    </button>
+  </div>
+</div>
+`;

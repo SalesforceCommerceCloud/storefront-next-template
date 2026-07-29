@@ -20,7 +20,7 @@ import { mockConfig } from '@/test-utils/config';
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     useConfig: () => mockConfig,
 }));
-// eslint-disable-next-line import/no-namespace
+// oxlint-disable-next-line import/no-namespace
 import * as CollapsibleHtmlSectionStories from './collapsible-html-section.stories';
 import { render, cleanup } from '@testing-library/react';
 

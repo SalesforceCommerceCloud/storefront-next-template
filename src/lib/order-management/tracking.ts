@@ -18,11 +18,11 @@ import type { OrderLike, OrderTrackingEntry } from '@/lib/order-management/types
 
 /**
  * An OMS shipment as carried on `order.omsData.shipments[]`, taken straight from
- * the generated SCAPI client (`ShopperOrders` exposes it as `schemas-Shipment`)
+ * the generated SCAPI client (`ShopperOrders` exposes it as `OmsShipment`)
  * so a field rename in the schema is caught at compile time — no hand-maintained
  * shape to drift.
  */
-type OmsShipment = ShopperOrders.schemas['schemas-Shipment'];
+type OmsShipment = ShopperOrders.schemas['OmsShipment'];
 
 /**
  * True when an entry carries at least one tracking-relevant field.
@@ -43,6 +43,19 @@ type OmsShipment = ShopperOrders.schemas['schemas-Shipment'];
  * two predicates separate is intentional: the mapper is the general source of
  * truth; the render gate is the display policy.
  */
+/**
+ * Trim a source string field and collapse a blank/whitespace-only value to `undefined`.
+ * OMS can return `""` (or a padded string) for a field it means as "unset"; without this,
+ * a whitespace-only `trackingNumber`/`provider`/`trackingUrl` is truthy and slips past
+ * {@link hasTrackingData}/`hasDisplayableTracking`, producing an empty tracking card or a
+ * "Track shipment" action that links nowhere. (Mirrors the blank-status normalization in
+ * `resolveOrderStatus`.)
+ */
+function normalizeField(value: string | undefined): string | undefined {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : undefined;
+}
+
 function hasTrackingData(entry: OrderTrackingEntry): boolean {
     return Boolean(
         entry.trackingNumber ||
@@ -78,10 +91,10 @@ export function getOrderTrackingEntries(order: OrderLike): OrderTrackingEntry[] 
             .map(
                 (shipment, index): OrderTrackingEntry => ({
                     id: shipment.id ?? `oms-${index}`,
-                    status: shipment.status,
-                    provider: shipment.provider,
-                    trackingNumber: shipment.trackingNumber,
-                    trackingUrl: shipment.trackingUrl,
+                    status: normalizeField(shipment.status),
+                    provider: normalizeField(shipment.provider),
+                    trackingNumber: normalizeField(shipment.trackingNumber),
+                    trackingUrl: normalizeField(shipment.trackingUrl),
                     expectedDeliveryDate: shipment.expectedDeliveryDate,
                     actualDeliveryDate: shipment.actualDeliveryDate,
                 })
@@ -95,8 +108,8 @@ export function getOrderTrackingEntries(order: OrderLike): OrderTrackingEntry[] 
         .map(
             (shipment, index): OrderTrackingEntry => ({
                 id: shipment.shipmentId ?? `ecom-${index}`,
-                status: shipment.shippingStatus,
-                trackingNumber: shipment.trackingNumber,
+                status: normalizeField(shipment.shippingStatus),
+                trackingNumber: normalizeField(shipment.trackingNumber),
             })
         )
         .filter(hasTrackingData);
@@ -111,8 +124,13 @@ export function getOrderTrackingEntries(order: OrderLike): OrderTrackingEntry[] 
  * 2. A truthy-but-unparseable string yields an Invalid Date, caught via
  *    `isNaN(getTime())`, so it renders nothing instead of throwing in
  *    downstream formatting.
+ * 3. A truthy epoch-era sentinel string (e.g. `"1970-01-01T00:00:00Z"`) parses
+ *    to a *valid* Date — the falsy check in guard 1 doesn't catch it — and would
+ *    render "Jan 1, 1970". OMS does not currently send such a sentinel; this is
+ *    cheap insurance if it ever does. (Note `new Date("0")` is year 2000, not the
+ *    epoch, so this specifically targets truthy 1970-era strings.)
  *
- * Returns the parsed `Date`, or `null` if either guard trips.
+ * Returns the parsed `Date`, or `null` if any guard trips.
  */
 export function parseTrackingDate(value: string | undefined | null): Date | null {
     if (!value) {
@@ -120,6 +138,9 @@ export function parseTrackingDate(value: string | undefined | null): Date | null
     }
     const date = new Date(value);
     if (isNaN(date.getTime())) {
+        return null;
+    }
+    if (date.getUTCFullYear() <= 1970) {
         return null;
     }
     return date;

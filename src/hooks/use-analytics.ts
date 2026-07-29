@@ -86,6 +86,7 @@ async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
             userType: auth.userType ?? 'guest',
             encUserId: auth.encUserId ?? undefined,
             usid: auth.usid,
+            customerId: auth.customerId,
         },
     } as Parameters<typeof createEvent<TEventType>>[1]);
     return void mediator.track(event, siteInfo, consentPreferences);
@@ -136,7 +137,7 @@ export const useAnalytics = () => {
 
     // On the server, return empty functions
     if (typeof window === 'undefined') {
-        /* eslint-disable @typescript-eslint/no-empty-function */
+        /* oxlint-disable @typescript-eslint/no-empty-function */
         return {
             trackViewPage: () => {},
             trackViewProduct: () => {},
@@ -155,7 +156,7 @@ export const useAnalytics = () => {
             trackWishlistItemMerged: () => {},
             trackWishlistMerged: () => {},
         };
-        /* eslint-enable @typescript-eslint/no-empty-function */
+        /* oxlint-enable @typescript-eslint/no-empty-function */
     }
 
     /**

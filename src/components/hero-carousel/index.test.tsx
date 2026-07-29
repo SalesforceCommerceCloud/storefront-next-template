@@ -15,11 +15,35 @@
  */
 import React from 'react';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
-import { vi, describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, test, expect, beforeEach, afterEach, type Mock } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import HeroCarousel, { type HeroSlide } from './index';
+import { isServer } from '@/lib/utils';
 import type { CarouselApi } from '@/components/ui/carousel';
+
+// Preserve real utils (cn, etc.) but make isServer togglable so we can exercise the SSR
+// preload branch inside <DynamicImage>. Defaults to false to match the client-render path
+// the rest of the suite relies on.
+vi.mock('@/lib/utils', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/utils')>();
+    return {
+        ...actual,
+        isServer: vi.fn().mockReturnValue(false),
+    };
+});
+
+// Spy on React 19's preload() so we can assert only the first (LCP) slide emits <link rel="preload"> during SSR.
+const preloadMock = vi.fn();
+vi.mock('react-dom', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('react-dom')>();
+    return {
+        ...actual,
+        preload: (...args: unknown[]) => preloadMock(...args),
+    };
+});
+
+// Import the component after mocks are set up
+import HeroCarousel, { type HeroSlide } from './index';
 
 // Mock data constants
 const mockSlides: HeroSlide[] = [
@@ -77,11 +101,37 @@ vi.mock('@/components/ui/carousel', () => ({
 vi.mock('lucide-react', () => ({
     ChevronLeft: () => <div data-testid="chevron-left" />,
     ChevronRight: () => <div data-testid="chevron-right" />,
+    Pause: () => <div data-testid="pause" />,
+    Play: () => <div data-testid="play" />,
 }));
 
 vi.mock('@/components/ui/button', () => ({
     Button: ({ children, asChild, className }: { children: React.ReactNode; asChild?: boolean; className?: string }) =>
         asChild ? children : <button className={className}>{children}</button>,
+}));
+
+// Mock the region <Component> wrapper so the region-delegation path can be exercised without a
+// populated Page Designer registry. The mock echoes the merged `data` the carousel injects into
+// each slide, so tests can assert overlay/priority/loading/fillHeight are threaded through.
+vi.mock('@/components/region/component', () => ({
+    Component: ({
+        component,
+        regionId,
+    }: {
+        component: { id: string; data?: Record<string, unknown> };
+        regionId: string;
+    }) => (
+        <div
+            data-testid="region-component"
+            data-region={regionId}
+            data-component-id={component.id}
+            data-overlay={String(component.data?.overlay)}
+            data-priority={String(component.data?.priority)}
+            data-loading={String(component.data?.loading)}
+            data-fill-height={String(component.data?.fillHeight)}>
+            {String(component.data?.title ?? '')}
+        </div>
+    ),
 }));
 
 // Router testing helper
@@ -101,6 +151,7 @@ const renderWithRouter = (component: React.ReactElement) => {
 describe('HeroCarousel', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        (isServer as Mock).mockReturnValue(false);
         vi.useFakeTimers();
     });
 
@@ -313,6 +364,167 @@ describe('HeroCarousel', () => {
             expect(mockCarouselApi?.selectedScrollSnap).toHaveBeenCalled();
             expect(mockCarouselApi?.canScrollPrev).toHaveBeenCalled();
             expect(mockCarouselApi?.canScrollNext).toHaveBeenCalled();
+        });
+    });
+
+    describe('Responsive image (DynamicImage)', () => {
+        const SFCC_SRC =
+            'https://demo-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-catalog/default/dw000/images/large/hero.jpg';
+
+        const disSlides: HeroSlide[] = [
+            { id: '1', title: 'First Slide', imageUrl: SFCC_SRC, imageAlt: 'First image' },
+            { id: '2', title: 'Second Slide', imageUrl: SFCC_SRC, imageAlt: 'Second image' },
+        ];
+
+        test('renders every slide image as a responsive <picture> with DIS-powered <source> elements', () => {
+            const { container } = renderWithRouter(<HeroCarousel slides={disSlides} />);
+
+            const pictures = container.querySelectorAll('picture');
+            expect(pictures).toHaveLength(disSlides.length);
+
+            const firstSources = pictures[0].querySelectorAll('source');
+            expect(firstSources.length).toBeGreaterThan(0);
+            // DIS conversion: WebP output for the <source> candidates.
+            expect(firstSources[0]).toHaveAttribute('type', 'image/webp');
+            expect(firstSources[0].getAttribute('srcset')).toMatch(/\bsw=\d+/);
+        });
+
+        test('renders each slide image as a full-bleed cover layer', () => {
+            const { container } = renderWithRouter(<HeroCarousel slides={disSlides} />);
+
+            // The absolute-fill positioning lives on the wrapper; object-cover on the <img> itself.
+            const image = screen.getByRole('img', { name: 'First image' });
+            expect(image).toHaveClass('w-full', 'h-full', 'object-cover');
+
+            const wrapper = container.querySelector('picture')?.parentElement;
+            expect(wrapper).toHaveClass('absolute', 'inset-0', 'w-full', 'h-full');
+        });
+    });
+
+    describe('SSR preload', () => {
+        const disSlide = (n: number): HeroSlide => ({
+            id: `${n}`,
+            title: `Slide ${n}`,
+            imageUrl: `https://demo-001.dx.commercecloud.salesforce.com/on/demandware.static/-/Sites-catalog/default/dw000/images/large/slide-${n}.jpg`,
+            imageAlt: `Image ${n}`,
+        });
+        const disSlides: HeroSlide[] = [disSlide(1), disSlide(2), disSlide(3)];
+
+        test('preloads only the first slide during server rendering', () => {
+            (isServer as Mock).mockReturnValue(true);
+
+            renderWithRouter(<HeroCarousel slides={disSlides} />);
+
+            // Every preload hint must target the first slide (the above-the-fold LCP candidate) — the
+            // off-screen slides must never be preloaded, regardless of how many the carousel holds. A
+            // single responsive image emits one <link> per breakpoint, so more than one call is expected.
+            expect(preloadMock).toHaveBeenCalled();
+            for (const [href, opts] of preloadMock.mock.calls as [string, Record<string, unknown>][]) {
+                expect(opts).toMatchObject({ as: 'image', fetchPriority: 'high' });
+                // DIS-hosted, WebP-converted preload target for the first slide only.
+                expect(String(href)).toContain('edge.disstg.commercecloud.salesforce.com');
+                expect(String(href)).toContain('slide-1');
+                expect(String(opts.imageSrcSet)).toContain('.webp');
+                expect(String(opts.imageSrcSet)).toContain('slide-1');
+                expect(String(opts.imageSrcSet)).not.toContain('slide-2');
+                expect(String(opts.imageSrcSet)).not.toContain('slide-3');
+            }
+        });
+
+        test('does not preload during client rendering', () => {
+            (isServer as Mock).mockReturnValue(false);
+
+            renderWithRouter(<HeroCarousel slides={disSlides} />);
+
+            expect(preloadMock).not.toHaveBeenCalled();
+        });
+
+        test('does not preload the empty placeholder state', () => {
+            (isServer as Mock).mockReturnValue(true);
+
+            renderWithRouter(<HeroCarousel slides={[]} />);
+
+            expect(preloadMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Page Designer region delegation', () => {
+        // Component whose `slides` region holds authored Hero children.
+        const componentWithHeroes = (heroes: Array<{ id: string; data?: Record<string, unknown> }>) =>
+            ({
+                id: 'pd-hero-carousel',
+                typeId: 'Layout.heroCarousel',
+                regions: [{ id: 'slides', components: heroes.map((h) => ({ typeId: 'Content.hero', ...h })) }],
+            }) as any;
+
+        test('renders each authored Hero through the <Component> registry, not HeroSlideContent', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    component={componentWithHeroes([
+                        { id: 'hero-1', data: { title: 'Region Slide 1' } },
+                        { id: 'hero-2', data: { title: 'Region Slide 2' } },
+                    ])}
+                />
+            );
+
+            const delegated = screen.getAllByTestId('region-component');
+            expect(delegated).toHaveLength(2);
+            expect(delegated[0]).toHaveAttribute('data-region', 'slides');
+            expect(delegated[0]).toHaveTextContent('Region Slide 1');
+            expect(delegated[1]).toHaveTextContent('Region Slide 2');
+        });
+
+        test('forces uniform height and eager/high-priority only on the first slide', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    component={componentWithHeroes([
+                        { id: 'hero-1', data: { title: 'A' } },
+                        { id: 'hero-2', data: { title: 'B' } },
+                    ])}
+                />
+            );
+
+            const [first, second] = screen.getAllByTestId('region-component');
+            expect(first).toHaveAttribute('data-fill-height', 'true');
+            expect(second).toHaveAttribute('data-fill-height', 'true');
+            expect(first).toHaveAttribute('data-priority', 'high');
+            expect(first).toHaveAttribute('data-loading', 'eager');
+            expect(second).toHaveAttribute('data-priority', 'auto');
+            expect(second).toHaveAttribute('data-loading', 'lazy');
+        });
+
+        test('applies the carousel default overlay (Dark) when a slide has none', () => {
+            renderWithRouter(
+                <HeroCarousel component={componentWithHeroes([{ id: 'hero-1', data: { title: 'A' } }])} />
+            );
+            expect(screen.getByTestId('region-component')).toHaveAttribute('data-overlay', 'Dark');
+        });
+
+        test('per-slide Hero overlay overrides the carousel default', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    overlay="Dark"
+                    component={componentWithHeroes([{ id: 'hero-1', data: { title: 'A', overlay: 'Light' } }])}
+                />
+            );
+            expect(screen.getByTestId('region-component')).toHaveAttribute('data-overlay', 'Light');
+        });
+
+        test('the carousel overlay prop sets the inherited default for slides without one', () => {
+            renderWithRouter(
+                <HeroCarousel
+                    overlay="None"
+                    component={componentWithHeroes([{ id: 'hero-1', data: { title: 'A' } }])}
+                />
+            );
+            expect(screen.getByTestId('region-component')).toHaveAttribute('data-overlay', 'None');
+        });
+
+        test('falls back to the slides prop when the region has no authored heroes', () => {
+            renderWithRouter(<HeroCarousel slides={mockSlides} component={componentWithHeroes([])} />);
+            // No delegated components; the prop-driven HeroSlideContent path renders instead.
+            expect(screen.queryByTestId('region-component')).not.toBeInTheDocument();
+            expect(screen.getByText('First Slide')).toBeInTheDocument();
         });
     });
 });

@@ -38,15 +38,15 @@ PDP (_app.product.$productId)
 ## State management
 
 - **ProductReviewsContext** (inside ProductReviewsProvider):
-    - **reviewsSummary** / **reviewsSummaryLoading** – from `getReviewsSummary` on product change.
-    - **reviews** / **reviewsLoading** – from `getReviews` when **loadReviewsIfNeeded** runs (e.g. accordion expanded).
-    - **aiSummary** – from summary or full-list response.
-    - **loadReviewsIfNeeded** – idempotent fetch of full list (used when accordion opens).
-    - **addReview(review)** – appends review to `reviews` and calls adapter `addReview`.
-    - **expandReviews** / **registerExpand** – so ProductRatingSummary can open the CustomerReviewsSection accordion without direct refs.
+  - **reviewsSummary** / **reviewsSummaryLoading** – from `getReviewsSummary` on product change.
+  - **reviews** / **reviewsLoading** – from `getReviews` when **loadReviewsIfNeeded** runs (e.g. accordion expanded).
+  - **aiSummary** – from summary or full-list response.
+  - **loadReviewsIfNeeded** – idempotent fetch of full list (used when accordion opens).
+  - **addReview(review)** – appends review to `reviews` and calls adapter `addReview`.
+  - **expandReviews** / **registerExpand** – so ProductRatingSummary can open the CustomerReviewsSection accordion without direct refs.
 
 - **Local UI state** (not in context):
-    - **CustomerReviewsSection**: accordion open/closed, selected rating filter for the distribution bar.
-    - **ReviewCardsSection**: search query, sort, current page, "photos only" toggle; rating filter can be controlled by parent (distribution clicks) or internal.
+  - **CustomerReviewsSection**: accordion open/closed, selected rating filter for the distribution bar.
+  - **ReviewCardsSection**: search query, sort, current page, "photos only" toggle; rating filter can be controlled by parent (distribution clicks) or internal.
 
 Data flow: adapter (backend) ↔ ProductReviewsProvider ↔ useProductReviews() ↔ CustomerReviewsSection, ReviewCardsSection, ProductRatingSummary, WriteReviewModalContent.

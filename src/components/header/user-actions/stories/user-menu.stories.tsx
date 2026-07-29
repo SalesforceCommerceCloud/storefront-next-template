@@ -19,7 +19,7 @@ import { UserMenu } from '../user-menu';
 import { Button } from '@/components/ui/button';
 
 const meta: Meta<typeof UserMenu> = {
-    title: 'LAYOUT/Header/User Menu',
+    title: 'Layout/Header/User Menu',
     component: UserMenu,
     tags: ['autodocs'],
     parameters: {

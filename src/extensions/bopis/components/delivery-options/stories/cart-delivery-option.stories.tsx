@@ -75,7 +75,7 @@ const mockProductItem: EnrichedProductItem = {
 };
 
 const meta: Meta<typeof CartDeliveryOption> = {
-    title: 'Extensions/BOPIS/CartDeliveryOption',
+    title: 'Extensions/BOPIS/Cart Delivery Option',
     component: CartDeliveryOption,
     tags: ['autodocs', 'interaction'],
     parameters: {

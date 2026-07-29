@@ -179,7 +179,7 @@ export async function measureOperation<T>(
     const result = await operation();
     const duration = performance.now() - start;
 
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.log(`[Performance] ${label}: ${duration.toFixed(2)}ms`);
 
     return { result, duration };

@@ -19,7 +19,7 @@ const { t } = getTranslation();
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
@@ -65,7 +65,7 @@ describe('StandardLoginForm', () => {
             expect(emailInput).toHaveAttribute('name', 'email');
             expect(emailInput).toHaveAttribute('id', 'email');
             expect(emailInput).toHaveAttribute('placeholder', t('login:emailPlaceholder'));
-            expect(emailInput).toHaveAttribute('autocomplete', 'email');
+            expect(emailInput).toHaveAttribute('autocomplete', 'username webauthn');
             expect(emailInput).toBeRequired();
 
             // Password field

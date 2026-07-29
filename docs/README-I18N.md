@@ -296,7 +296,7 @@ src/routes/
 The i18n utilities (`getTranslation`, `getLocale`, `mockI18nContext`, `createI18nMiddleware`, `initI18next`) are provided by the SDK and split across two subpaths:
 
 - `@salesforce/storefront-next-runtime/i18n` — server-capable APIs (`getTranslation`, `getLocale`, `mockI18nContext`, `createI18nMiddleware`). Safe to import from server modules, route modules, and components.
-- `@salesforce/storefront-next-runtime/i18n/client` — **browser-only** APIs (`initI18next`). This entry pulls in `i18next-browser-languagedetector`, which has no Node support, so it must only be imported from client-side code (e.g. inside `useEffect` in `root.tsx`). Importing it from a `*.server.ts` file will fail to bundle and is blocked by ESLint.
+- `@salesforce/storefront-next-runtime/i18n/client` — **browser-only** APIs (`initI18next`). This entry pulls in `i18next-browser-languagedetector`, which has no Node support, so it must only be imported from client-side code (e.g. inside `useEffect` in `root.tsx`). Importing it from a `*.server.ts` file will fail to bundle and is blocked by the linter (OxLint `no-restricted-imports`).
 
 They do not live in `src/lib/` anymore.
 
@@ -794,7 +794,7 @@ Did you forget to return it from "vi.mock"?
 
 ### Solution
 
-Make sure your own mock of react-router includes `createCookie`. For example, in [this file](https://github.com/SalesforceCommerceCloud/storefront-next/blob/bfd08dd74b2d717f0c0984d5d82329c2dbca0ae9/packages/template-retail-rsc-app/src/components/reset-password-form/stories/index-snapshot.tsx#L4-L9):
+Make sure your own mock of react-router includes `createCookie`. For example, in [this file](../src/components/reset-password-form/stories/index-snapshot.tsx):
 
 ```typescript
 vi.mock('react-router', () => ({

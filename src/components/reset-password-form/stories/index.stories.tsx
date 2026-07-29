@@ -20,7 +20,7 @@ import { allModes } from '../../../../.storybook/modes';
 import { ResetPasswordForm } from '../index';
 
 const meta: Meta<typeof ResetPasswordForm> = {
-    title: 'AUTHENTICATION/Reset Password Form',
+    title: 'Authentication/Reset Password Form',
     component: ResetPasswordForm,
     tags: ['autodocs', 'interaction'],
     parameters: {

@@ -196,6 +196,7 @@ export default function StoreDetails({
                                             variant="muted"
                                             as="div"
                                             className="whitespace-pre-line"
+                                            // oxlint-disable-next-line react/no-danger -- oxlint flags dangerouslySetInnerHTML on custom components; eslint-plugin-react only flags host elements
                                             dangerouslySetInnerHTML={{ __html: String(store.storeHours) }}
                                         />
                                     </>

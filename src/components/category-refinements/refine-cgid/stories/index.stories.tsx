@@ -42,7 +42,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof RefineCategory> = {
-    title: 'CATEGORY/Category Refinements/Refine Category',
+    title: 'Category/Category Refinements/Refine Category',
     component: RefineCategory,
     tags: ['autodocs', 'interaction'],
     parameters: {

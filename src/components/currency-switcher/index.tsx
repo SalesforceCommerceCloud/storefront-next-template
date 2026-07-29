@@ -55,9 +55,16 @@ export default function CurrencySwitcher(): ReactElement {
         });
     };
 
+    // WCAG 3.2.2 On Input: fold the context-change advice into the accessible name so it is read
+    // on focus, before the shopper changes the value. Kept on aria-label (not a separate
+    // aria-describedby span) so it adds no server-rendered DOM to every page.
+    const label = `${t('ariaLabel')}. ${t('changesContextHint', {
+        defaultValue: 'Selecting a currency updates prices across the site.',
+    })}`;
+
     return (
         <div>
-            <NativeSelect id={id} onChange={handleCurrencyChange} aria-label={t('ariaLabel')} value={currentCurrency}>
+            <NativeSelect id={id} onChange={handleCurrencyChange} aria-label={label} value={currentCurrency}>
                 {currentSite.supportedCurrencies.map((currency) => (
                     <option key={currency} value={currency}>
                         {t(`currencies.${currency}`, { defaultValue: currency })}

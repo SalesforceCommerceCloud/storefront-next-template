@@ -121,7 +121,7 @@ function FormFieldsDemo({
 }
 
 const meta: Meta = {
-    title: 'FORMS/Form Fields',
+    title: 'Core/Forms/Form Fields',
     component: FormInput,
     parameters: {
         layout: 'centered',

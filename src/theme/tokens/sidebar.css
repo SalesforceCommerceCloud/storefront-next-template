@@ -1,11 +1,11 @@
 :root {
     /* sidebar palette (Figma: colors.light.sidebar) */
-    --sidebar: #fafafa;
-    --sidebar-foreground: #3f3f46;
-    --sidebar-primary: #3b82f6;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #ececec;
-    --sidebar-accent-foreground: #1e3a8a;
-    --sidebar-border: #fafafa;
-    --sidebar-ring: #3d73f2;
+    --sidebar: #FAFAFA;
+    --sidebar-foreground: #3F3F46;
+    --sidebar-primary: #3B82F6;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #ECECEC;
+    --sidebar-accent-foreground: #1E3A8A;
+    --sidebar-border: #FAFAFA;
+    --sidebar-ring: #3D73F2;
 }

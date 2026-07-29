@@ -36,7 +36,10 @@ Before(async () => {
 Scenario('Guest shopper can remove an applied coupon from the cart by clicking the X', async () => {
     productDetailPage.navigate(PRODUCT_PATH);
     await productDetailPage.waitForPageReady();
-    await productDetailPage.selectAllVariants();
+    // The `pid` in PRODUCT_PATH pre-selects the qualifying YELLOSI variant — the only
+    // variant of this master that `5ties` discounts. Do NOT call selectAllVariants():
+    // it clicks the first swatch (Cobalt), navigating off the qualifying variant so the
+    // coupon parks as `no_applicable_promotion` and no badge renders.
 
     const enabled = await productDetailPage.waitForAddToCartReady();
     expect(enabled, 'Add to Cart should be enabled for the test product').to.equal(true);

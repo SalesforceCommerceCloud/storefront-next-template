@@ -27,7 +27,7 @@ import { getActionPath } from './shared';
  * `clientAuth` is untouched) and writes no site/locale/currency cookie; and (2) it is submitted via a non-navigating
  * `useFetcher().submit()` and returns data (not a `redirect`), so root would otherwise revalidate for nothing.
  * Cart/wishlist state reaches the client without the root loader anyway — the basket via the `__sfdc_basket` cookie +
- * `BasketProvider` and the action's own fetcher result, the wishlist via the client-side `WishlistProvider` store;
+ * `BasketProvider` and the action's own fetcher result, the wishlist via the client-side module-level wishlist store;
  * `basketSnapshot` on the root loader is only an SSR seed, the cookie is the post-hydration source of truth.
  *
  * This is a denylist, NOT an allowlist. The root loader carries `clientAuth`, so the safe default must be to

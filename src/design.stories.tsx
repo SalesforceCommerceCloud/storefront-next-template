@@ -834,7 +834,7 @@ function ModeDecorator({ Story, mode }: { Story: React.ComponentType; mode: Desi
 
     const clientLogger = (message: unknown, source: 'host' | 'client') => {
         if (source === 'host') {
-            /* eslint-disable-next-line no-console */
+            /* oxlint-disable-next-line no-console */
             console.log(`PageDesignerClient event: `, message);
         }
     };
@@ -849,7 +849,7 @@ function ModeDecorator({ Story, mode }: { Story: React.ComponentType; mode: Desi
 }
 
 const meta = {
-    title: 'Design Layer/Page Designer',
+    title: 'Content/Page Designer/Overview',
     parameters: {
         layout: 'fullscreen',
         docs: {

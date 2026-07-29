@@ -66,7 +66,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof ShippingCalculator> = {
-    title: 'Extensions/BOPIS/ShippingCalculator',
+    title: 'Extensions/BOPIS/Shipping Calculator',
     component: ShippingCalculator,
     tags: ['autodocs', 'interaction'],
     parameters: {

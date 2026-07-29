@@ -18,9 +18,10 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
         >
           <a
-            aria-label="View Charcoal Single Pleat Wool Suit"
+            aria-hidden="true"
             class="block w-full h-full flex-1"
             href="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
+            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
           >
             <div
@@ -68,7 +69,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           </a>
         </div>
         <a
-          aria-label="View Charcoal Single Pleat Wool Suit"
+          aria-hidden="true"
           class="absolute inset-0 z-[1] cursor-pointer"
           href="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
           tabindex="-1"
@@ -78,12 +79,11 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
         >
           <div
-            class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
           >
             <button
               aria-label="Add to Wishlist"
               class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-              tabindex="-1"
             >
               <svg
                 aria-hidden="true"
@@ -106,11 +106,11 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
         >
           <button
             aria-label="Quick Add Charcoal Single Pleat Wool Suit"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
             data-size="default"
             data-slot="button"
             data-variant="outline"
@@ -131,10 +131,9 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
         >
           <a
             aria-label="View Charcoal Single Pleat Wool Suit in Navy"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
             href="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
             style="background-color: navy;"
-            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
           >
             <img
@@ -147,9 +146,8 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           <a
             aria-current="true"
             aria-label="View Charcoal Single Pleat Wool Suit in Charcoal"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
             href="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
-            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
           >
             <img
@@ -162,7 +160,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
         </div>
       </div>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
       >
         Test Store
       </p>
@@ -178,7 +176,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
         </a>
       </h3>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         data-testid="product-tile-sku"
       >
         SKU:
@@ -262,7 +260,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -275,8 +273,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           class="items-center gap-2 text-sm"
         >
           <span
-            aria-label="Price range from £143.99 to £191.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
           >
             £143.99 – £191.99
@@ -342,9 +339,10 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
         >
           <a
-            aria-label="View Charcoal Single Pleat Wool Suit"
+            aria-hidden="true"
             class="block w-full h-full flex-1"
             href="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
+            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
           >
             <div
@@ -392,7 +390,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           </a>
         </div>
         <a
-          aria-label="View Charcoal Single Pleat Wool Suit"
+          aria-hidden="true"
           class="absolute inset-0 z-[1] cursor-pointer"
           href="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
           tabindex="-1"
@@ -402,12 +400,11 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
         >
           <div
-            class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
           >
             <button
               aria-label="Add to Wishlist"
               class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-              tabindex="-1"
             >
               <svg
                 aria-hidden="true"
@@ -430,11 +427,11 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
         >
           <button
             aria-label="Quick Add Charcoal Single Pleat Wool Suit"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
             data-size="default"
             data-slot="button"
             data-variant="outline"
@@ -455,10 +452,9 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
         >
           <a
             aria-label="View Charcoal Single Pleat Wool Suit in Navy"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
             href="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
             style="background-color: navy;"
-            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
           >
             <img
@@ -471,9 +467,8 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           <a
             aria-current="true"
             aria-label="View Charcoal Single Pleat Wool Suit in Charcoal"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
             href="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
-            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
           >
             <img
@@ -486,7 +481,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
         </div>
       </div>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
       >
         Test Store
       </p>
@@ -502,7 +497,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
         </a>
       </h3>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         data-testid="product-tile-sku"
       >
         SKU:
@@ -586,7 +581,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -599,8 +594,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           class="items-center gap-2 text-sm"
         >
           <span
-            aria-label="Price range from £143.99 to £191.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
           >
             £143.99 – £191.99
@@ -649,9 +643,10 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
         >
           <a
-            aria-label="View Long Sleeve Embellished Boat Neck Top"
+            aria-hidden="true"
             class="block w-full h-full flex-1"
             href="/RefArchGlobal/en-GB/product/25518101M?color=JJ908XX"
+            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25518101M?color=JJ908XX"
           >
             <div
@@ -699,7 +694,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           </a>
         </div>
         <a
-          aria-label="View Long Sleeve Embellished Boat Neck Top"
+          aria-hidden="true"
           class="absolute inset-0 z-[1] cursor-pointer"
           href="/RefArchGlobal/en-GB/product/25518101M?pid=701642823919M"
           tabindex="-1"
@@ -718,47 +713,46 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
         <div
           class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
         >
-          <div>
+          <div
+            aria-label="Pickup Available"
+            class="group/pickup relative"
+            data-testid="pickup-available-indicator"
+            role="img"
+          >
             <div
-              class="group/pickup relative"
-              data-testid="pickup-available-indicator"
+              class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+            >
+              <svg
+                aria-hidden="true"
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                />
+              </svg>
+            </div>
+            <div
+              class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
             >
               <div
-                class="w-9 h-9 p-2 bg-muted text-muted-foreground flex items-center justify-center"
+                class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
               >
-                <svg
-                  aria-hidden="true"
-                  class="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="1.5"
-                  />
-                </svg>
-              </div>
-              <div
-                class="absolute right-0 top-full mt-1 z-50 opacity-0 group-hover/pickup:opacity-100 transition-opacity duration-200 pointer-events-none"
-              >
-                <div
-                  class="bg-foreground text-background text-xs font-medium px-2 py-1 whitespace-nowrap shadow-lg"
-                >
-                  Pickup Available
-                </div>
+                Pickup Available
               </div>
             </div>
           </div>
           <div
-            class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
           >
             <button
               aria-label="Add to Wishlist"
               class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-              tabindex="-1"
             >
               <svg
                 aria-hidden="true"
@@ -781,11 +775,11 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
         >
           <button
             aria-label="Quick Add Long Sleeve Embellished Boat Neck Top"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
             data-size="default"
             data-slot="button"
             data-variant="outline"
@@ -806,9 +800,8 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
         >
           <a
             aria-label="View Long Sleeve Embellished Boat Neck Top in Begonia Pink"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
             href="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
-            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
           >
             <img
@@ -821,9 +814,8 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           <a
             aria-current="true"
             aria-label="View Long Sleeve Embellished Boat Neck Top in Grey Heather"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
             href="/RefArchGlobal/en-GB/product/25518101M?color=JJ908XX"
-            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/25518101M?color=JJ908XX"
           >
             <img
@@ -836,12 +828,12 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
         </div>
       </div>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
       >
         Test Store
       </p>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
       >
         Men
       </p>
@@ -857,7 +849,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
         </a>
       </h3>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         data-testid="product-tile-sku"
       >
         SKU:
@@ -941,7 +933,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -954,8 +946,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           class="items-center gap-2 text-sm"
         >
           <span
-            aria-label="Current price: £18.55"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
           >
             £18.55
@@ -971,7 +962,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           </span>
            
           <span
-            aria-label="List price from £31.36"
+            aria-hidden="true"
             class="font-medium text-left text-muted-foreground text-sm leading-none line-through"
           >
             £31.36
@@ -983,7 +974,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           >
             Long Sleeve Embellished Boat Neck Top
              
-            List price: £31.36
+            List price from £31.36
           </span>
         </div>
         <div
@@ -1019,9 +1010,10 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
           class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square w-full aspect-square [&_img]:object-cover! [&_img]:h-full! [&_img]:max-w-full! [&_img]:mx-auto!"
         >
           <a
-            aria-label="View Winter Look"
+            aria-hidden="true"
             class="block w-full h-full flex-1"
             href="/RefArchGlobal/en-GB/product/winter-lookM"
+            tabindex="-1"
             to="/RefArchGlobal/en-GB/product/winter-lookM"
           >
             <div
@@ -1069,7 +1061,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
           </a>
         </div>
         <a
-          aria-label="View Winter Look"
+          aria-hidden="true"
           class="absolute inset-0 z-[1] cursor-pointer"
           href="/RefArchGlobal/en-GB/product/winter-lookM"
           tabindex="-1"
@@ -1079,12 +1071,11 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
           class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
         >
           <div
-            class="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
           >
             <button
               aria-label="Add to Wishlist"
               class="w-9 h-9 p-2 flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
-              tabindex="-1"
             >
               <svg
                 aria-hidden="true"
@@ -1107,11 +1098,11 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
         >
           <button
             aria-label="Quick Add Winter Look"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full shadow-sm cursor-pointer"
             data-size="default"
             data-slot="button"
             data-variant="outline"
@@ -1125,7 +1116,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
       class="relative p-4"
     >
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
       >
         Test Store
       </p>
@@ -1141,7 +1132,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
         </a>
       </h3>
       <p
-        class="text-sm font-normal leading-none text-muted-foreground mb-1"
+        class="text-sm font-normal leading-normal text-muted-foreground mb-1"
         data-testid="product-tile-sku"
       >
         SKU:
@@ -1225,7 +1216,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 rounded-ui text-xs text-muted-foreground"
+              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -1238,8 +1229,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
           class="items-center gap-2 text-sm"
         >
           <span
-            aria-label="Price range from £40.16 to £71.03"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
           >
             £40.16 – £71.03

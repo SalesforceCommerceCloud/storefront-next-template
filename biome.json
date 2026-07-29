@@ -1,0 +1,101 @@
+{
+    "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+    "root": true,
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "ignoreUnknown": true,
+        "includes": [
+            "**/*.ts",
+            "**/*.tsx",
+            "**/*.js",
+            "**/*.jsx",
+            "**/*.mjs",
+            "**/*.cjs",
+            "**/*.mts",
+            "**/*.cts",
+            "**/*.json",
+            "!**/dist/**",
+            "!**/build/**",
+            "!**/coverage/**",
+            "!**/storybook-static/**",
+            "!**/node_modules/**",
+            "!**/src/scapi-client/generated/**",
+            "!**/src/scapi/generated/**",
+            "!**/src/scapi/custom-clients.ts",
+            "!**/src/components/ui/**",
+            "!**/src/dashboard/components/ui/**",
+            "!**/.shadcn-baseline/**",
+            "!**/src/lib/page-designer/static-registry.ts",
+            "!**/lighthouserc.cjs",
+            "!**/generate-config.cjs",
+            "!!**/e2e/**",
+            "!!e2e/**",
+            "!.storybook/**",
+            "!_local/**",
+            "!**/__snapshots__/**",
+            "!**/*-snapshot.tsx",
+            "!lint-plugins/**"
+        ]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120,
+        "bracketSameLine": true,
+        "bracketSpacing": true,
+        "lineEnding": "lf",
+        "useEditorconfig": false
+    },
+    "javascript": {
+        "parser": {
+            "unsafeParameterDecoratorsEnabled": true
+        },
+        "formatter": {
+            "quoteStyle": "single",
+            "jsxQuoteStyle": "double",
+            "quoteProperties": "asNeeded",
+            "semicolons": "always",
+            "trailingCommas": "es5",
+            "arrowParentheses": "always",
+            "bracketSameLine": true,
+            "bracketSpacing": true
+        }
+    },
+    "json": {
+        "parser": {
+            "allowComments": true,
+            "allowTrailingCommas": true
+        },
+        "formatter": {
+            "enabled": true,
+            "indentWidth": 4,
+            "trailingCommas": "none"
+        }
+    },
+    "css": {
+        "formatter": {
+            "enabled": false
+        }
+    },
+    "graphql": {
+        "formatter": {
+            "enabled": false
+        }
+    },
+    "html": {
+        "formatter": {
+            "enabled": false
+        }
+    },
+    "linter": {
+        "enabled": false
+    },
+    "assist": {
+        "enabled": false
+    }
+}

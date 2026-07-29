@@ -15,15 +15,15 @@
  */
 import { vi, expect, test, describe, afterEach } from 'vitest';
 import { composeStories } from '@storybook/react-vite';
-// eslint-disable-next-line import/no-namespace
+// oxlint-disable-next-line import/no-namespace
 import * as ProductRecommendationsStories from './index.stories';
 import { render, cleanup } from '@testing-library/react';
 
 // Hoist dependencies for use in vi.mock (avoids async imports which fail on Windows)
 const { createContext: reactCreateContext, actualReactRouter } = vi.hoisted(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const React = require('react');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // oxlint-disable-next-line @typescript-eslint/no-require-imports
     const reactRouter = require('react-router');
     return { createContext: React.createContext, actualReactRouter: reactRouter };
 });

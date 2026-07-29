@@ -93,7 +93,7 @@ export default function ExpressPayments({
     const amazonPayLabel = t('expressPayments.amazonPayLabel');
     const handleApplePayClick = () => {
         if (!disabled) {
-            // eslint-disable-next-line no-alert
+            // oxlint-disable-next-line no-alert
             alert(
                 'Apple Pay express checkout would be processed here. This would skip all form steps and go directly to payment confirmation.'
             );
@@ -102,7 +102,7 @@ export default function ExpressPayments({
 
     const handleGooglePayClick = () => {
         if (!disabled) {
-            // eslint-disable-next-line no-alert
+            // oxlint-disable-next-line no-alert
             alert(
                 'Google Pay express checkout would be processed here. This would skip all form steps and go directly to payment confirmation.'
             );
@@ -111,7 +111,7 @@ export default function ExpressPayments({
 
     const handleAmazonPayClick = () => {
         if (!disabled) {
-            // eslint-disable-next-line no-alert
+            // oxlint-disable-next-line no-alert
             alert(
                 'Amazon Pay express checkout would be processed here. This would skip all form steps and go directly to payment confirmation.'
             );
@@ -120,7 +120,7 @@ export default function ExpressPayments({
 
     const handleVenmoClick = () => {
         if (!disabled) {
-            // eslint-disable-next-line no-alert
+            // oxlint-disable-next-line no-alert
             alert(
                 'Venmo express checkout would be processed here. This would skip all form steps and go directly to payment confirmation.'
             );
@@ -129,7 +129,7 @@ export default function ExpressPayments({
 
     const handlePayPalClick = () => {
         if (!disabled) {
-            // eslint-disable-next-line no-alert
+            // oxlint-disable-next-line no-alert
             alert(
                 'PayPal express checkout would be processed here. This would skip all form steps and go directly to payment confirmation.'
             );

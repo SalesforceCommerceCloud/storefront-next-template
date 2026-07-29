@@ -50,7 +50,7 @@ type PlaygroundArgs = {
 };
 
 const meta: Meta<PlaygroundArgs> = {
-    title: 'Components/ProductRecommendations',
+    title: 'Products/Product Recommendations',
     component: ProductRecommendations,
     tags: ['autodocs'],
     parameters: {

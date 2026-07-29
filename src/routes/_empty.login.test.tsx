@@ -22,13 +22,17 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import userEvent from '@testing-library/user-event';
 import { getAuth, authorizePasswordless, getPasswordLessAccessToken, updateAuth } from '@/middlewares/auth.server';
+import { getLoginPreferencesLazy } from '@salesforce/storefront-next-runtime/data-store';
 import { loginRegisteredUser } from '@/lib/api/auth/standard-login.server';
 import { authorizeIDP } from '@/lib/api/auth/social-login.server';
 import { mergeBasket } from '@/lib/api/basket.server';
+import { getCustomer } from '@/lib/api/customer.server';
+import { createApiClients } from '@/lib/api-clients.server';
 import { updateBasketResource } from '@/middlewares/basket.server';
 import { isAbsoluteURL, extractResponseError } from '@/lib/utils';
 import { getAppOrigin } from '@/lib/origin';
 import { buildUrlFromContext } from '@/lib/url.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 
 vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(),
@@ -47,6 +51,18 @@ vi.mock('@/lib/api/auth/social-login.server', () => ({
 
 vi.mock('@/lib/api/basket.server', () => ({
     mergeBasket: vi.fn(),
+}));
+
+vi.mock('@/lib/api/customer.server', () => ({
+    getCustomer: vi.fn(),
+}));
+
+vi.mock('@/lib/api-clients.server', () => ({
+    createApiClients: vi.fn(() => ({
+        shopperBasketsV2: {
+            updateCustomerForBasket: vi.fn(),
+        },
+    })),
 }));
 
 vi.mock('@/lib/api/wishlist.server', () => ({
@@ -86,6 +102,15 @@ vi.mock('@/lib/origin', () => ({
     getAppOrigin: vi.fn(),
 }));
 
+const mockAbortPasskeyLogin = vi.fn();
+vi.mock('@/hooks/use-passkey-login', () => ({
+    usePasskeyLogin: () => ({
+        loginWithPasskey: vi.fn(),
+        abortPasskeyLogin: mockAbortPasskeyLogin,
+        isAuthenticating: false,
+    }),
+}));
+
 // Mock passwordless form since we're focusing on standard login full-flow tests
 vi.mock('@/components/login/passwordless-login-form', () => ({
     __esModule: true,
@@ -114,6 +139,9 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
                     callbackUri: '/social-callback',
                     providers: ['Apple', 'Google'],
                 },
+                passkey: {
+                    enabled: true,
+                },
             },
             commerce: {
                 api: {
@@ -123,6 +151,14 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
         })),
     };
 });
+
+// Default: empty prefs ({}), so emailVerificationEnabled is undefined and passwordless is
+// effectively disabled. Existing tests rely on this default to land in 'password' mode.
+// The login route reads prefs through the local `@/lib/login-preferences.server` wrapper,
+// which awaits `getLoginPreferencesLazy` — so that is the export the tests drive.
+vi.mock('@salesforce/storefront-next-runtime/data-store', () => ({
+    getLoginPreferencesLazy: vi.fn(() => Promise.resolve({})),
+}));
 
 vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
     getTranslation: vi.fn(() => ({
@@ -143,20 +179,36 @@ const mockLoginRegisteredUser = vi.mocked(loginRegisteredUser);
 const mockAuthorizeIDP = vi.mocked(authorizeIDP);
 const mockAuthorizePasswordless = vi.mocked(authorizePasswordless);
 const mockMergeBasket = vi.mocked(mergeBasket);
+const mockGetCustomer = vi.mocked(getCustomer);
+const mockCreateApiClients = vi.mocked(createApiClients);
 const mockUpdateBasketResource = vi.mocked(updateBasketResource);
 const mockGetAppOrigin = vi.mocked(getAppOrigin);
 const mockIsAbsoluteURL = vi.mocked(isAbsoluteURL);
 const mockExtractResponseError = vi.mocked(extractResponseError);
 const mockBuildUrlFromContext = vi.mocked(buildUrlFromContext);
+const mockGetLoginPreferences = vi.mocked(getLoginPreferencesLazy);
+const mockGetConfig = vi.mocked(getConfig);
 
 describe('Login Route', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockAbortPasskeyLogin.mockClear();
         mockGetAppOrigin.mockReturnValue('http://localhost:5173');
         mockIsAbsoluteURL.mockImplementation((url: string) => /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url));
         mockExtractResponseError.mockResolvedValue({ responseMessage: 'error' } as any);
         // Default: pass-through. Tests that exercise the site/locale prefix override this.
         mockBuildUrlFromContext.mockImplementation((to: string) => to);
+        // Default: passwordless disabled. Tests that need passwordless override this.
+        mockGetLoginPreferences.mockResolvedValue({});
+        // Default: no active basket (reconciliation is a no-op when no basket).
+        mockGetCustomer.mockResolvedValue({ email: 'customer@example.com', login: 'customer@example.com' } as any);
+        mockCreateApiClients.mockReturnValue({
+            shopperBasketsV2: {
+                updateCustomerForBasket: vi.fn().mockResolvedValue({
+                    data: { basketId: 'basket-1', customerInfo: { email: 'customer@example.com' } },
+                }),
+            },
+        } as any);
     });
 
     afterEach(() => {
@@ -330,8 +382,9 @@ describe('Login Route', () => {
             }
         });
 
-        it('should parse mode from URL query parameter', async () => {
+        it('honors ?mode=passwordless when the email-verification permission is enabled', async () => {
             mockGetAuth.mockReturnValue({ userType: 'guest' });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
 
             const mockRequest = new Request('http://localhost:5173/login?mode=passwordless');
             const mockContext = { get: vi.fn(), set: vi.fn() };
@@ -341,6 +394,51 @@ describe('Login Route', () => {
 
             if (!(result instanceof Response)) {
                 expect(result.mode).toBe('passwordless');
+            }
+        });
+
+        it('forces password mode when ?mode=passwordless is set but the permission is disabled', async () => {
+            mockGetAuth.mockReturnValue({ userType: 'guest' });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: false });
+
+            const mockRequest = new Request('http://localhost:5173/login?mode=passwordless');
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await loader(
+                createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            if (!(result instanceof Response)) {
+                expect(result.mode).toBe('password');
+            }
+        });
+
+        it('honors ?otp=true when the email-verification permission is enabled', async () => {
+            mockGetAuth.mockReturnValue({ userType: 'guest' });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
+
+            const mockRequest = new Request('http://localhost:5173/login?otp=true');
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await loader(
+                createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            if (!(result instanceof Response)) {
+                expect(result.showOTPForm).toBe(true);
+            }
+        });
+
+        it('suppresses ?otp=true when the email-verification permission is disabled', async () => {
+            mockGetAuth.mockReturnValue({ userType: 'guest' });
+            mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: false });
+
+            const mockRequest = new Request('http://localhost:5173/login?otp=true');
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await loader(
+                createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            if (!(result instanceof Response)) {
+                expect(result.showOTPForm).toBe(false);
             }
         });
 
@@ -431,8 +529,9 @@ describe('Login Route', () => {
                 }
             });
 
-            it('should show OTP form with error when token verification fails', async () => {
+            it('should show OTP form with error when token verification fails (permission enabled)', async () => {
                 mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: true });
                 mockGetPasswordLessAccessToken.mockRejectedValue(new Error('Invalid token'));
 
                 const mockRequest = new Request(
@@ -456,6 +555,26 @@ describe('Login Route', () => {
                     if ('email' in result) {
                         expect(result.email).toBe('test@example.com');
                     }
+                }
+            });
+
+            it('suppresses the OTP form on auto-verify failure when the permission is disabled', async () => {
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockGetLoginPreferences.mockResolvedValueOnce({ emailVerificationEnabled: false });
+                mockGetPasswordLessAccessToken.mockRejectedValue(new Error('Invalid token'));
+
+                const mockRequest = new Request(
+                    'http://localhost:5173/login?email=test@example.com&token=invalid-token&otp=true'
+                );
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await loader(
+                    createLoaderArgs<Route.LoaderArgs>(mockRequest, mockContext, {
+                        pattern: ROUTE_PATTERN,
+                    })
+                );
+
+                if (!(result instanceof Response) && 'showOTPForm' in result) {
+                    expect(result.showOTPForm).toBe(false);
                 }
             });
 
@@ -633,6 +752,109 @@ describe('Login Route', () => {
             );
             expect(mockMergeBasket).toHaveBeenCalledWith(mockContext);
             expect(mockUpdateBasketResource).toHaveBeenCalledWith(mockContext, mergedBasket);
+        });
+
+        it('marks the successful-login redirect as a full document reload', async () => {
+            // The login page's conditional-mediation passkey listener (usePasskeyLogin) can
+            // escalate to the browser's native credential picker. That picker is browser-chrome
+            // UI, not app state, so only an actual page unload reliably dismisses it — a
+            // client-side transition leaves it open over the next page. redirectDocument signals
+            // react-router to perform a full navigation instead for this specific redirect.
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'test-customer-123',
+                accessToken: 'test-token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({ basketId: 'basket-1' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'test@example.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect((result as Response).headers.get('X-Remix-Reload-Document')).toBe('true');
+        });
+
+        it('uses a plain client-side redirect when passkeys are disabled (no picker to dismiss)', async () => {
+            mockGetConfig.mockReturnValue({
+                auth: { otpLength: 6 },
+                features: {
+                    passwordlessLogin: {
+                        landingUri: '/passwordless-login-landing',
+                        callbackUri: '/passwordless-login-callback',
+                    },
+                    socialLogin: { enabled: true, callbackUri: '/social-callback', providers: ['Apple', 'Google'] },
+                    passkey: { enabled: false },
+                },
+                commerce: { api: { privateKeyEnabled: false } },
+            } as any);
+
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'test-customer-123',
+                accessToken: 'test-token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({ basketId: 'basket-1' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'test@example.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect((result as Response).headers.get('X-Remix-Reload-Document')).not.toBe('true');
+        });
+
+        it('uses a plain client-side redirect for background re-auth (skipDocumentRedirect) even with passkeys enabled', async () => {
+            // The account page re-authenticates via a background fetcher after a password/email
+            // change. It never opened a passkey picker, so it opts out of the document reload —
+            // a full navigation would unmount the page before its queued success toast renders.
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'test-customer-123',
+                accessToken: 'test-token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({ basketId: 'basket-1' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'test@example.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+            formData.append('skipDocumentRedirect', 'true');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect((result as Response).headers.get('X-Remix-Reload-Document')).not.toBe('true');
         });
 
         it('should redirect to returnUrl on successful login', async () => {
@@ -934,6 +1156,121 @@ describe('Login Route', () => {
 
             expect(result).toHaveProperty('error', 'An error occurred. Please try again.');
             expect(mockLoginRegisteredUser).not.toHaveBeenCalled();
+        });
+
+        it('reconciles basket email to customer email when they differ after login', async () => {
+            const mockUpdateCustomerForBasket = vi.fn().mockResolvedValue({
+                data: { basketId: 'basket-1', customerInfo: { email: 'customer@x.com' } },
+            });
+            mockCreateApiClients.mockReturnValue({
+                shopperBasketsV2: { updateCustomerForBasket: mockUpdateCustomerForBasket },
+            } as any);
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'cust-123',
+                accessToken: 'token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({
+                basketId: 'basket-1',
+                customerInfo: { email: 'guest@x.com' },
+            } as any);
+            mockGetCustomer.mockResolvedValue({ email: 'customer@x.com' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'customer@x.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect(result).toBeInstanceOf(Response);
+            expect((result as Response).status).toBe(302);
+            expect(mockUpdateCustomerForBasket).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    body: { email: 'customer@x.com' },
+                })
+            );
+        });
+
+        it('skips basket email reconciliation when no active basket exists after login', async () => {
+            const mockUpdateCustomerForBasket = vi.fn();
+            mockCreateApiClients.mockReturnValue({
+                shopperBasketsV2: { updateCustomerForBasket: mockUpdateCustomerForBasket },
+            } as any);
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'cust-123',
+                accessToken: 'token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            // mergeBasket returns undefined - no active basket
+            mockMergeBasket.mockResolvedValue(undefined);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'customer@x.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            expect(result).toBeInstanceOf(Response);
+            expect((result as Response).status).toBe(302);
+            expect(mockUpdateCustomerForBasket).not.toHaveBeenCalled();
+        });
+
+        it('does not fail login when basket email reconciliation throws', async () => {
+            mockCreateApiClients.mockReturnValue({
+                shopperBasketsV2: {
+                    updateCustomerForBasket: vi.fn().mockRejectedValue(new Error('SCAPI error')),
+                },
+            } as any);
+            mockGetAuth.mockReturnValue({
+                userType: 'registered',
+                customerId: 'cust-123',
+                accessToken: 'token',
+            });
+            mockLoginRegisteredUser.mockResolvedValue({ success: true });
+            mockMergeBasket.mockResolvedValue({
+                basketId: 'basket-1',
+                customerInfo: { email: 'guest@x.com' },
+            } as any);
+            mockGetCustomer.mockResolvedValue({ email: 'customer@x.com' } as any);
+
+            const formData = new URLSearchParams();
+            formData.append('email', 'customer@x.com');
+            formData.append('password', 'password123');
+            formData.append('loginMode', 'password');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            // Login succeeds despite reconciliation error
+            expect(result).toBeInstanceOf(Response);
+            expect((result as Response).status).toBe(302);
         });
     });
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line @typescript-eslint/require-await
+// oxlint-disable-next-line @typescript-eslint/require-await
 export async function runHook(_hookId: string, context: unknown, _options?: { blocking?: boolean }) {
     return context;
 }

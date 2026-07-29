@@ -170,7 +170,7 @@ describe('componentLoader', () => {
             expect(result).toHaveProperty('id', 'mock-component');
             expect(result).toHaveProperty('componentData', {});
             expect(fetchComponent).toHaveBeenCalledWith(TEST_CONTEXT, { componentId: MOCK_COMPONENT_ID });
-            // eslint-disable-next-line @typescript-eslint/unbound-method
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
             expect(mockedRegistry.callLoader).toHaveBeenCalledTimes(0);
         });
 

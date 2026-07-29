@@ -93,7 +93,7 @@ function MiniCartShell({
 const baseProduct = { ...mockCartLineProduct, productName: 'Product Name' };
 
 const meta: Meta<typeof MiniCartItem> = {
-    title: 'CART/Mini Cart Item',
+    title: 'Cart/Mini Cart/Mini Cart Item',
     component: MiniCartItem,
     tags: ['autodocs', 'interaction', 'skip-a11y'],
     parameters: {

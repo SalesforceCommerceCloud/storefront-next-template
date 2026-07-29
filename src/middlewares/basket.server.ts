@@ -395,20 +395,29 @@ export const getBasket = async (
     try {
         let basket: Basket | null = null;
         const clients = createApiClients(context);
+        // Expand approaching-discount data on the shared basket fetch so every surface can render the
+        // banner without an extra round-trip. `expand` is only valid on getBasket, not mutations, so
+        // their responses are down-shaped — the provider's shape-aware dedup tie-break (useBasketUpdater
+        // in providers/basket.tsx) keeps the expanded read from being deduped away; extend it if you add
+        // another expand-gated field a surface reads post-mutation.
+        const expandApproachingDiscounts: 'approaching_discounts'[] = ['approaching_discounts'];
         if (ensureBasket === 'read') {
             ({ data: basket } = await clients.shopperBasketsV2
                 .getBasket({
-                    params: { path: { basketId: basketId as string } },
+                    params: {
+                        path: { basketId: basketId as string },
+                        query: { expand: expandApproachingDiscounts },
+                    },
                 })
                 .catch(async () => ({
                     data: await clients.basket.getOrCreateBasket({
-                        params: { path: { basketId } },
+                        params: { path: { basketId }, query: { expand: expandApproachingDiscounts } },
                         body: { currency },
                     }),
                 })));
         } else {
             basket = await clients.basket.getOrCreateBasket({
-                params: { path: { basketId } },
+                params: { path: { basketId }, query: { expand: expandApproachingDiscounts } },
                 body: { currency },
             });
         }

@@ -43,7 +43,7 @@ function ImageNavArrowsWrapper({ imageCount, size, className }: SyntheticArgs) {
 }
 
 const meta: Meta<ComponentType<SyntheticArgs>> = {
-    title: 'NAVIGATION/ImageNavArrows',
+    title: 'Core/Navigation/Image Nav Arrows',
     component: ImageNavArrows as unknown as ComponentType<SyntheticArgs>,
     tags: ['autodocs', 'interaction'],
     parameters: {

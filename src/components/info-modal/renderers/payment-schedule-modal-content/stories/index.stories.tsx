@@ -62,7 +62,7 @@ function PaymentScheduleModalContentWrapper({
 }
 
 const meta: Meta<typeof PaymentScheduleModalContentWrapper> = {
-    title: 'COMMON/Info Modal/Payment Schedule Modal Content',
+    title: 'Core/Overlays/Info Modal/Payment Schedule Modal Content',
     component: PaymentScheduleModalContentWrapper,
     tags: ['autodocs'],
     parameters: {

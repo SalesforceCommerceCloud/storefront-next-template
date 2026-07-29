@@ -41,7 +41,7 @@ if (inBasketMultipleItemDetails.data && basketWithMultipleItems.productItems) {
 }
 
 const meta: Meta<typeof OrderSummaryMobileAccordion> = {
-    title: 'CHECKOUT/Order Summary/Mobile Accordion',
+    title: 'Checkout/Order Summary/Mobile Accordion',
     component: OrderSummaryMobileAccordion,
     tags: ['autodocs', 'interaction'],
     parameters: {

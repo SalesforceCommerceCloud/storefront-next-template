@@ -26,7 +26,7 @@ import { canadianPostalCodeRegex, usPostalCodeRegex } from './constants';
  * @example const schema = createCustomerAddressFormSchema(t);
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
 export const createCustomerAddressFormSchema = (t: TFunction<any, any>) => {
     return z
         .object({
@@ -115,9 +115,8 @@ export { CustomerAddressFields } from './customer-address-fields';
 export { type CustomerAddressFormProps, type CustomerAddressFieldsProps } from './types';
 
 // Export constants and types
-// eslint-disable-next-line react-refresh/only-export-components
 export { COUNTRY_CODES } from './constants';
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { getStatesForCountry, getCountryName, getStateName } from './utils';
 
 export type { CountryCode, StateCode } from './constants';

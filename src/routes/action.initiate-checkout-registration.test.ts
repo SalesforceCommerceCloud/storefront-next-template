@@ -663,6 +663,7 @@ describe('action.initiate-checkout-registration', () => {
         });
 
         it('still sets cc-tv cookie when SCAPI returns 400 email-not-verified (unavailable)', async () => {
+            // oxlint-disable-next-line no-restricted-imports -- oxlint flags dynamic await import(); core eslint no-restricted-imports ignores dynamic imports
             const { ApiError } = await import('@salesforce/storefront-next-runtime/scapi');
             const apiError = new ApiError({
                 status: 400,
@@ -692,6 +693,7 @@ describe('action.initiate-checkout-registration', () => {
         });
 
         it('still sets cc-tv cookie when SCAPI returns a different 400 error', async () => {
+            // oxlint-disable-next-line no-restricted-imports -- oxlint flags dynamic await import(); core eslint no-restricted-imports ignores dynamic imports
             const { ApiError } = await import('@salesforce/storefront-next-runtime/scapi');
             const apiError = new ApiError({
                 status: 400,

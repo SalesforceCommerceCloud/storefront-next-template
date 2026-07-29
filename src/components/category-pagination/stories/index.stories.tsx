@@ -19,7 +19,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof CategoryPagination> = {
-    title: 'CATEGORY/Category Pagination',
+    title: 'Category/Category Pagination',
     component: CategoryPagination,
     tags: ['autodocs', 'interaction'],
     parameters: {

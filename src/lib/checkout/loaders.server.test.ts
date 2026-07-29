@@ -219,6 +219,69 @@ describe('Checkout Loaders', () => {
             expect(result.gcpApiKey).toBe('gcp-ootb-key');
         });
 
+        it('streams the registered-shopper prefill mutation rather than awaiting it', async () => {
+            // The registered path used to `await handleBasketPrefill(...)` in the loader, which
+            // blocked first byte on any outbound `sfcc.app.shipping.calculate` hook (e.g. CDS).
+            // The loader must now return `prefilledBasket` as an unresolved Promise so the render
+            // can commit its shell before the hook runs.
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer, getCustomerProfileForCheckout } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+
+            vi.mocked(isRegisteredCustomer).mockReturnValue(true);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'registered', customerId: 'customer-123' } as any);
+            vi.mocked(getBasket).mockResolvedValue({
+                current: { basketId: 'registered-basket', productItems: [], shipments: [{}] },
+            } as any);
+            vi.mocked(getCustomerProfileForCheckout).mockResolvedValue({
+                customer: { customerId: 'customer-123', login: 'test@example.com' },
+                addresses: [],
+                paymentInstruments: [],
+            } as any);
+
+            const result = await loader(createMockArgs());
+
+            expect(result.prefilledBasket).toBeInstanceOf(Promise);
+            // The returned `basket` is the pre-prefill snapshot — it must not have been mutated
+            // by an in-loader `await` of `handleBasketPrefill`.
+            expect(result.basket).toEqual(expect.objectContaining({ basketId: 'registered-basket' }));
+        });
+
+        it('degrades the streamed prefill promise to null (and methods to {}) when the prefill chain rejects', async () => {
+            // The streamed `prefilledBasket` / `shippingMethodsMap` promises are consumed by `use()`
+            // inside `CheckoutErrorBoundary`. An uncaught rejection there would collapse the whole
+            // checkout to the error card — a fail-open → fail-closed regression vs the old awaited path.
+            // Force `handleBasketPrefill` to throw (its initial getBasket AND its catch-branch getBasket
+            // both reject); this drives `prefilledBasketPromise` through its new `.catch` → null. The
+            // methods chain then runs against the loader basket (whose lone shipment has no shipmentId,
+            // so it is filtered out) and resolves to `{}` via the normal empty-map path — either way the
+            // consumer sees a settled soft-degrade value, never a rejection.
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const { isRegisteredCustomer, getCustomerProfileForCheckout } = await import('@/lib/api/customer.server');
+            const { getAuth } = await import('@/middlewares/auth.server');
+
+            vi.mocked(isRegisteredCustomer).mockReturnValue(true);
+            vi.mocked(getAuth).mockReturnValue({ userType: 'registered', customerId: 'customer-123' } as any);
+            vi.mocked(getBasket)
+                .mockResolvedValueOnce({
+                    current: { basketId: 'registered-basket', productItems: [], shipments: [{}] },
+                } as any)
+                .mockRejectedValue(new Error('SCAPI blip'));
+            vi.mocked(getCustomerProfileForCheckout).mockResolvedValue({
+                customer: { customerId: 'customer-123', login: 'test@example.com' },
+                addresses: [],
+                paymentInstruments: [],
+            } as any);
+
+            const result = await loader(createMockArgs());
+
+            expect(result.prefilledBasket).toBeInstanceOf(Promise);
+            expect(result.shippingMethodsMap).toBeInstanceOf(Promise);
+            // Neither promise rejects; they degrade so PrefillSync / ShippingMethodsBridge no-op.
+            await expect(result.prefilledBasket).resolves.toBeNull();
+            await expect(result.shippingMethodsMap).resolves.toEqual({});
+        });
+
         it('should return fallback data when an error occurs', async () => {
             const { isRegisteredCustomer } = await import('@/lib/api/customer.server');
 
@@ -279,10 +342,13 @@ describe('Checkout Loaders', () => {
             const result = await loader(args);
             const productMap = await result.productMap;
 
-            // 25 IDs -> two batches (24 + 1), neither exceeding the SCAPI limit.
+            // 25 IDs -> two batches, neither exceeding the SCAPI limit. Assert the invariant
+            // (cap respected + all IDs fetched) rather than an exact split, so the test isn't
+            // tied to batch iteration order.
             expect(mockGetProducts).toHaveBeenCalledTimes(2);
             const batchSizes = mockGetProducts.mock.calls.map((call) => call[0].params.query.ids.length);
-            expect(batchSizes).toEqual([24, 1]);
+            expect(batchSizes.every((n) => n <= 24)).toBe(true); // none over the SCAPI cap
+            expect(batchSizes.reduce((a, b) => a + b, 0)).toBe(25); // all IDs fetched
             // The batches merge back into a full itemId -> product map (one entry per basket item).
             expect(Object.keys(productMap)).toHaveLength(25);
         });
@@ -734,6 +800,93 @@ describe('Checkout Loaders', () => {
 
             const result = await initializeBasketForReturningCustomer({} as any, mockCustomerProfile);
             expect(result).toBeNull();
+        });
+
+        it('should reconcile basket email when it differs from the authenticated customer email', async () => {
+            const { getBasket, updateBasketResource } = await import('@/middlewares/basket.server');
+            const mockBasket = {
+                basketId: 'test-basket',
+                customerInfo: { email: 'guest@x.com', customerId: 'cust-123' },
+                shipments: [
+                    {
+                        shipmentId: 'me',
+                        shippingAddress: { firstName: 'Jane', lastName: 'Doe', address1: '1 Main St' },
+                    },
+                ],
+            };
+            const reconciled = { ...mockBasket, customerInfo: { email: 'customer@x.com', customerId: 'cust-123' } };
+
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket } as any);
+            vi.mocked(updateBasketResource).mockImplementation(() => {});
+            mockShopperBasketsClient.updateCustomerForBasket.mockResolvedValue({ data: reconciled });
+
+            const mockCustomerProfile = {
+                customer: { email: 'customer@x.com', login: 'customer@x.com', customerId: 'cust-123' },
+                addresses: [{ addressId: 'addr-1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [],
+            } as CustomerProfile;
+
+            await initializeBasketForReturningCustomer({} as any, mockCustomerProfile);
+
+            expect(mockShopperBasketsClient.updateCustomerForBasket).toHaveBeenCalledWith({
+                params: { path: { basketId: 'test-basket' } },
+                body: { email: 'customer@x.com' },
+            });
+        });
+
+        it('should not call updateCustomerForBasket when basket email equals customer email (case-insensitive)', async () => {
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const mockBasket = {
+                basketId: 'test-basket',
+                customerInfo: { email: 'ABC@x.com', customerId: 'cust-123' },
+                shipments: [
+                    {
+                        shipmentId: 'me',
+                        shippingAddress: { firstName: 'Jane', lastName: 'Doe', address1: '1 Main St' },
+                    },
+                ],
+            };
+
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket } as any);
+
+            const mockCustomerProfile = {
+                customer: { email: 'abc@x.com', login: 'abc@x.com', customerId: 'cust-123' },
+                addresses: [{ addressId: 'addr-1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [],
+            } as CustomerProfile;
+
+            const result = await initializeBasketForReturningCustomer({} as any, mockCustomerProfile);
+
+            expect(mockShopperBasketsClient.updateCustomerForBasket).not.toHaveBeenCalled();
+            expect(result).toEqual(mockBasket);
+        });
+
+        it('should not call updateCustomerForBasket when customer has no email and login is not an email (social login without email)', async () => {
+            const { getBasket } = await import('@/middlewares/basket.server');
+            const mockBasket = {
+                basketId: 'test-basket',
+                customerInfo: { email: 'guest@x.com', customerId: 'cust-123' },
+                shipments: [
+                    {
+                        shipmentId: 'me',
+                        shippingAddress: { firstName: 'Jane', lastName: 'Doe', address1: '1 Main St' },
+                    },
+                ],
+            };
+
+            vi.mocked(getBasket).mockResolvedValue({ current: mockBasket } as any);
+
+            const mockCustomerProfile = {
+                customer: { email: undefined, login: 'Google-111292267709658666876', customerId: 'cust-123' },
+                addresses: [{ addressId: 'addr-1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [],
+            } as CustomerProfile;
+
+            const result = await initializeBasketForReturningCustomer({} as any, mockCustomerProfile);
+
+            // customerEmail is undefined for social login without email - no mismatch, no update
+            expect(mockShopperBasketsClient.updateCustomerForBasket).not.toHaveBeenCalled();
+            expect(result).toEqual(mockBasket);
         });
 
         // @sfdc-extension-block-start SFDC_EXT_BOPIS

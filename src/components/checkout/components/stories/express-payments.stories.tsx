@@ -50,7 +50,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof ExpressPayments> = {
-    title: 'CHECKOUT/ExpressPayments',
+    title: 'Checkout/Express Payments',
     component: ExpressPayments,
     parameters: {
         ...checkoutStrictA11yParameters,

@@ -21,7 +21,7 @@ import { SessionExpiredBanner } from '../session-expired-banner';
 
 const meta: Meta<typeof SessionExpiredBanner> = {
     component: SessionExpiredBanner,
-    title: 'CHECKOUT/SessionExpiredBanner',
+    title: 'Checkout/Session Expired Banner',
     tags: ['autodocs'],
     parameters: {
         layout: 'padded',

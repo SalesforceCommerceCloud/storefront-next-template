@@ -12,7 +12,7 @@ keywords:
 model: claude-opus-20250514
 token_budget: 50000
 preconditions:
-  - "User is in storefront-next project (packages/template-retail-rsc-app)"
+  - "User is in storefront-next project (packages/template)"
   - "E2E test environment is set up (CodeceptJS, Playwright)"
   - "Checkout page object exists (e2e/src/pages/checkout.page.ts)"
   - "Test data is available (e2e/src/test-data/checkout.data.ts)"
@@ -288,7 +288,7 @@ This skill is validated by the `evals/checkout-evals.json` test suite covering:
 Run evals:
 ```bash
 # Validate skill generates correct tests
-claude eval packages/template-retail-rsc-app/e2e/.claude/skills/checkout-test-development/evals/checkout-evals.json
+claude eval packages/template/e2e/.claude/skills/checkout-test-development/evals/checkout-evals.json
 ```
 
 ## Related Skills

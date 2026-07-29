@@ -24,7 +24,7 @@ import PreferredStore from '..';
 const { t } = getTranslation();
 
 const meta: Meta<typeof PreferredStore> = {
-    title: 'Components/Store Preferences/Preferred Store',
+    title: 'Account/Store Preferences/Preferred Store',
     component: PreferredStore,
     tags: ['autodocs', 'sfdc-ext-store-locator'],
     parameters: {

@@ -14,7 +14,7 @@ Complete testing guide for Cloudflare Turnstile bot protection.
 
 ```bash
 # 1. Start dev server
-cd packages/template-retail-rsc-app
+cd packages/template
 pnpm dev
 
 # 2. Run E2E tests

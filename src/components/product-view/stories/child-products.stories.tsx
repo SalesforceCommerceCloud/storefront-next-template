@@ -35,7 +35,7 @@ type SyntheticArgs = {
 const resolveParent = (productType: ProductType) => (productType === 'set' ? setProduct : bundleProd);
 
 const meta: Meta<typeof ChildProducts> = {
-    title: 'Components/ProductView/ChildProducts',
+    title: 'Products/Product View/Child Products',
     component: ChildProducts,
     tags: ['autodocs', 'interaction'],
     parameters: {

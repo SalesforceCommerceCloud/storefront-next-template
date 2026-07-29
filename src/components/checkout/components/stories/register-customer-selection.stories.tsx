@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof RegisterCustomerSelection> = {
-    title: 'CHECKOUT/Register Customer Selection',
+    title: 'Checkout/Registration/Register Customer Selection',
     component: RegisterCustomerSelection,
     tags: ['autodocs', 'interaction'],
     parameters: {

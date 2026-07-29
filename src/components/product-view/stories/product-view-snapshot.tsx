@@ -93,14 +93,14 @@ vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     }),
 }));
 
-// Mock useWishlistActions and useIsInWishlist
+// Mock useWishlistActions, useIsInWishlist, and useWishlistLoader
 vi.mock('@/providers/wishlist', () => ({
-    WishlistProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     useWishlistActions: () => ({
         addItem: vi.fn(),
         removeItem: vi.fn(),
     }),
     useIsInWishlist: () => false,
+    useWishlistLoader: () => vi.fn(),
 }));
 
 const composed = composeStories(ProductViewStories);

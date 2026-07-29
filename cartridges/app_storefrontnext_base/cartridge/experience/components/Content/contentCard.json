@@ -18,11 +18,29 @@
                     "description": "Field: title"
                 },
                 {
+                    "id": "titleTypography",
+                    "name": "Title Typography",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Visual typography for the title",
+                    "values": ["...CONTENT_CARD_TYPOGRAPHY_VALUES"],
+                    "default_value": "Default"
+                },
+                {
                     "id": "description",
                     "name": "Description",
                     "type": "string",
                     "required": false,
                     "description": "Field: description"
+                },
+                {
+                    "id": "descriptionTypography",
+                    "name": "Description Typography",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Visual typography for the description",
+                    "values": ["...CONTENT_CARD_TYPOGRAPHY_VALUES"],
+                    "default_value": "Default"
                 },
                 {
                     "id": "imageUrl",

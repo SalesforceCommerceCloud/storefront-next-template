@@ -16,9 +16,11 @@
 import React, { type ReactElement, useState, useEffect, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Link } from '@/components/link';
+import { DynamicImage } from '@/components/dynamic-image';
+import { useTranslation } from 'react-i18next';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import withSuspense from '@/components/with-suspense';
@@ -27,12 +29,18 @@ import { RegionDefinition } from '@/lib/decorators/region-definition';
 import heroImage from '/images/hero-01.webp';
 import { normalizeOverlayPosition, normalizeOverlayAlignment, overlayPositionLayout } from '@/components/hero/utils';
 import type { ComponentType } from '@/components/region';
+import { Component as RegionComponent } from '@/components/region/component';
+
+/** Each slide is edge-to-edge at every breakpoint, so the image always requests a viewport-width variant from DIS. */
+const HERO_IMAGE_WIDTHS = ['100vw'];
 
 const heroCarouselDefaults = {
     autoPlay: true,
     autoPlayInterval: 5000,
     showDots: true,
     showNavigation: true,
+    /** Default gradient scrim applied to every slide; each Hero slide can override its own `overlay`. */
+    overlay: 'Dark',
 } as const;
 
 @Component('heroCarousel', {
@@ -51,6 +59,7 @@ const heroCarouselDefaults = {
         componentTypeInclusions: ['Content.hero'],
     },
 ])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class HeroCarouselMetadata {
     @AttributeDefinition({ defaultValue: heroCarouselDefaults.autoPlay })
     autoPlay?: boolean;
@@ -63,6 +72,17 @@ export class HeroCarouselMetadata {
 
     @AttributeDefinition({ defaultValue: heroCarouselDefaults.showNavigation })
     showNavigation?: boolean;
+
+    @AttributeDefinition({
+        id: 'overlay',
+        name: 'Slide Overlay',
+        description:
+            'Default gradient scrim applied to every slide to keep text legible. Individual Hero slides can override this with their own Overlay setting.',
+        type: 'enum',
+        values: ['None', 'Light', 'Dark'],
+        defaultValue: heroCarouselDefaults.overlay,
+    })
+    overlay?: string;
 }
 
 type Image = {
@@ -126,6 +146,8 @@ interface HeroCarouselProps {
     autoPlayInterval?: number;
     showDots?: boolean;
     showNavigation?: boolean;
+    /** Default gradient scrim applied to every slide; a per-slide Hero `overlay` overrides it. */
+    overlay?: string;
     /** Component data containing regions from Page Designer */
     component?: ComponentType;
 }
@@ -137,53 +159,68 @@ export function HeroCarouselPlain({
     autoPlayInterval = heroCarouselDefaults.autoPlayInterval,
     showDots = heroCarouselDefaults.showDots,
     showNavigation = heroCarouselDefaults.showNavigation,
+    overlay = heroCarouselDefaults.overlay,
     component,
 }: HeroCarouselProps): ReactElement {
-    // Convert page designer heroes to slides format
-    const slidesFromComponent = useMemo(() => {
-        if (!Array.isArray(component?.regions)) {
-            return [];
-        }
-
+    // Production (Page Designer) path: render each slide by delegating to the real Hero
+    // component through the <Component> registry, so every authored Hero attribute (typography,
+    // colors, button style, focal point, styleOverride, …) is honored — instead of flattening a
+    // handful of fields into a bespoke slide renderer. Mirrors product-carousel's region path.
+    const regionComponents = useMemo(() => {
+        if (!Array.isArray(component?.regions)) return [];
         const slidesRegion = component.regions.find((r) => r.id === 'slides');
-        if (!Array.isArray(slidesRegion?.components)) {
-            return [];
-        }
-
-        return slidesRegion.components
-            .filter((comp) => comp.id && comp.typeId)
-            .map((comp) => {
-                const data = comp.data as Record<string, unknown> | undefined;
-                const imageUrl = data?.imageUrl as { url?: string } | undefined;
-                return {
-                    id: comp.id,
-                    title: (data?.title as string) || '',
-                    subtitle: data?.subtitle as string | undefined,
-                    imageUrl: imageUrl?.url || heroImage,
-                    imageAlt: (data?.imageAlt as string) || '',
-                    ctaText: data?.ctaText as string | undefined,
-                    ctaLink: data?.ctaLink as string | undefined,
-                };
-            });
+        if (!Array.isArray(slidesRegion?.components)) return [];
+        return slidesRegion.components.filter((comp) => comp.id && comp.typeId) as ComponentType[];
     }, [component]);
 
-    // Use component data slides if available, otherwise use prop slides
-    const slides = slidesFromComponent.length ? slidesFromComponent : propSlides;
+    // When the region has authored heroes we delegate to <Component>; otherwise we fall back to
+    // the `slides` prop (storybook/test path) rendered by the local HeroSlideContent.
+    const usingRegion = regionComponents.length > 0;
+    const slides = propSlides;
+    const { t } = useTranslation('common');
+
+    // Unified per-slide metadata (id + title) for dot indicators and the aria-live announcement,
+    // independent of which render path is active.
+    const slideMeta = useMemo(
+        () =>
+            usingRegion
+                ? regionComponents.map((comp) => ({
+                      id: comp.id,
+                      title: ((comp.data as Record<string, unknown> | undefined)?.title as string) || '',
+                  }))
+                : slides.map((slide) => ({ id: slide.id, title: slide.title })),
+        [usingRegion, regionComponents, slides]
+    );
+    const slideCount = slideMeta.length;
     const [currentSlide, setCurrentSlide] = useState(0);
     const [api, setApi] = useState<CarouselApi | null>(null);
     const [isPaused, setIsPaused] = useState(false);
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
+    const [isManuallyPaused, setIsManuallyPaused] = useState(false);
+
+    // Check for prefers-reduced-motion
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (mediaQuery.matches && autoPlay) {
+            setIsManuallyPaused(true);
+        }
+    }, [autoPlay]);
 
     useEffect(() => {
-        if (!autoPlay || !api || isPaused) return;
+        if (!autoPlay || !api || isPaused || isManuallyPaused) return;
 
         const interval = setInterval(() => {
             api.scrollNext();
         }, autoPlayInterval);
 
         return () => clearInterval(interval);
-    }, [api, autoPlay, autoPlayInterval, isPaused]);
+    }, [api, autoPlay, autoPlayInterval, isPaused, isManuallyPaused]);
+
+    const togglePlayPause = useCallback(() => {
+        setIsManuallyPaused((prev) => !prev);
+    }, []);
 
     const onSelect = useCallback(() => {
         if (!api) return;
@@ -211,11 +248,11 @@ export function HeroCarouselPlain({
 
     const goToSlide = useCallback(
         (index: number) => {
-            if (!api || index < 0 || index >= slides.length) return;
+            if (!api || index < 0 || index >= slideCount) return;
 
             api.scrollTo(index);
         },
-        [api, slides.length]
+        [api, slideCount]
     );
 
     const handleFocus = useCallback(() => setIsPaused(true), []);
@@ -242,11 +279,11 @@ export function HeroCarouselPlain({
                     break;
                 case 'End':
                     event.preventDefault();
-                    api.scrollTo(slides.length - 1);
+                    api.scrollTo(slideCount - 1);
                     break;
             }
         },
-        [api, slides.length]
+        [api, slideCount]
     );
 
     const emptyState = useMemo(
@@ -258,21 +295,23 @@ export function HeroCarouselPlain({
         []
     );
 
-    if (!slides || slides.length === 0) {
+    if (slideCount === 0) {
         return emptyState;
     }
 
     return (
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- labelled carousel region: keydown/hover handlers pause autoplay and drive arrow-key slide nav, not the primary control
         <div
             data-slot="hero-carousel"
-            className="relative w-full overflow-hidden h-[400px] md:h-[500px] lg:h-[600px]"
+            className="relative w-full overflow-hidden h-[400px] md:h-[500px] lg:h-[600px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             role="region"
-            aria-label={`Hero carousel with ${slides.length} slides`}
+            aria-label={`Hero carousel with ${slideCount} slides`}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onKeyDown={handleKeyDown}
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- intentional tab stop so keyboard users can reach the carousel's arrow-key slide navigation
             tabIndex={0}>
             <Carousel
                 setApi={setApi}
@@ -284,57 +323,124 @@ export function HeroCarouselPlain({
                 className="w-full h-full [&_[data-slot=carousel-content]]:h-full [&_[data-slot=carousel-item]]:h-full">
                 {/* Passing -ml-4 to the CarouselContent to prevent CLS issues during hydration */}
                 <CarouselContent className="h-full">
-                    {slides.map((slide) => (
-                        <CarouselItem key={slide.id} className="h-full">
-                            <HeroSlideContent slide={image ? { ...slide, imageUrl: image.url } : slide} />
-                        </CarouselItem>
-                    ))}
+                    {usingRegion
+                        ? regionComponents.map((comp, index) => (
+                              <CarouselItem
+                                  key={comp.contentLinkUuid ?? comp.id}
+                                  className="h-full"
+                                  aria-hidden={index !== currentSlide}
+                                  inert={index !== currentSlide ? true : undefined}>
+                                  <RegionComponent
+                                      component={withSlideProps(comp, {
+                                          overlay,
+                                          priority: index === 0 ? 'high' : 'auto',
+                                          loading: index === 0 ? 'eager' : 'lazy',
+                                          fillHeight: true,
+                                      })}
+                                      regionId="slides"
+                                      className="h-full w-full"
+                                  />
+                              </CarouselItem>
+                          ))
+                        : slides.map((slide, index) => (
+                              <CarouselItem
+                                  key={slide.id}
+                                  className="h-full"
+                                  aria-hidden={index !== currentSlide}
+                                  inert={index !== currentSlide ? true : undefined}>
+                                  <HeroSlideContent
+                                      slide={image ? { ...slide, imageUrl: image.url } : slide}
+                                      priority={index === 0}
+                                  />
+                              </CarouselItem>
+                          ))}
                 </CarouselContent>
             </Carousel>
 
-            {slides.length > 1 && (
+            {slideCount > 1 && (
                 <div className="absolute bottom-6 inset-x-0 z-30 section-container">
                     <div className="relative flex items-center justify-center">
                         {showDots && (
                             <div className="flex gap-2" role="tablist" aria-label="Slide navigation">
-                                {slides.map((slide, index) => (
+                                {slideMeta.map((slide, index) => (
                                     <DotButton
                                         key={`dot-${slide.id}`}
                                         index={index}
                                         isActive={currentSlide === index}
-                                        totalSlides={slides.length}
+                                        totalSlides={slideCount}
                                         onClick={goToSlide}
                                     />
                                 ))}
                             </div>
                         )}
-                        {showNavigation && (
-                            <div className="absolute right-0 flex gap-2">
-                                <NavigationButton
-                                    direction="prev"
-                                    onClick={() => api?.scrollPrev()}
-                                    disabled={!canScrollPrev}
-                                    currentSlide={currentSlide + 1}
-                                    totalSlides={slides.length}
-                                />
-                                <NavigationButton
-                                    direction="next"
-                                    onClick={() => api?.scrollNext()}
-                                    disabled={!canScrollNext}
-                                    currentSlide={currentSlide + 1}
-                                    totalSlides={slides.length}
-                                />
-                            </div>
-                        )}
+                        <div className="absolute right-0 flex gap-2">
+                            {autoPlay && (
+                                <button
+                                    type="button"
+                                    onClick={togglePlayPause}
+                                    className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    aria-label={isManuallyPaused ? t('carousel.play') : t('carousel.pause')}>
+                                    {isManuallyPaused ? (
+                                        <Play className="w-6 h-6 text-primary-foreground" strokeWidth={2} />
+                                    ) : (
+                                        <Pause className="w-6 h-6 text-primary-foreground" strokeWidth={2} />
+                                    )}
+                                </button>
+                            )}
+                            {showNavigation && (
+                                <>
+                                    <NavigationButton
+                                        direction="prev"
+                                        onClick={() => api?.scrollPrev()}
+                                        disabled={!canScrollPrev}
+                                        currentSlide={currentSlide + 1}
+                                        totalSlides={slideCount}
+                                    />
+                                    <NavigationButton
+                                        direction="next"
+                                        onClick={() => api?.scrollNext()}
+                                        disabled={!canScrollNext}
+                                        currentSlide={currentSlide + 1}
+                                        totalSlides={slideCount}
+                                    />
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
 
             <div className="sr-only" aria-live="polite" aria-atomic="true">
-                Slide {currentSlide + 1} of {slides.length}: {slides[currentSlide]?.title}
+                Slide {currentSlide + 1} of {slideCount}: {slideMeta[currentSlide]?.title}
             </div>
         </div>
     );
+}
+
+/**
+ * Clone a Page Designer Hero component with carousel-controlled slide props merged into its
+ * `data` (which <Component> spreads onto the Hero). A per-slide Hero `overlay` authored in
+ * Page Designer wins over the carousel default; `priority`/`loading`/`fillHeight` are always
+ * set by the carousel (they're not Page-Designer attributes).
+ */
+function withSlideProps(
+    comp: ComponentType,
+    slideProps: { overlay: string; priority: 'high' | 'auto'; loading: 'eager' | 'lazy'; fillHeight: boolean }
+): ComponentType {
+    const data = (comp.data as Record<string, unknown> | undefined) ?? {};
+    return {
+        ...comp,
+        data: {
+            ...data,
+            // Per-slide overlay overrides the carousel default; carousel default fills in when unset.
+            overlay: (data.overlay as string | undefined) ?? slideProps.overlay,
+            priority: slideProps.priority,
+            loading: slideProps.loading,
+            fillHeight: slideProps.fillHeight,
+        },
+        // SCAPI types Component.data as Record<string, never>; the runtime payload is arbitrary
+        // attribute data, so cast through unknown to attach the carousel-controlled slide props.
+    } as unknown as ComponentType;
 }
 
 const DotButton = React.memo(
@@ -350,15 +456,24 @@ const DotButton = React.memo(
         onClick: (index: number) => void;
     }): ReactElement => (
         <button
+            type="button"
             onClick={() => onClick(index)}
-            className={`rounded-ui transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 ${
-                isActive ? 'w-8 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/75'
-            }`}
+            // The visible pip is only 8px tall, well under the 24px WCAG 2.5.8 minimum tap target.
+            // Keep the pip's look but give the button a >=24x24 hit area (min-w-6 min-h-6) with the
+            // pip centered inside as a decorative span, so the target the shopper can tap/click meets
+            // the minimum without enlarging the indicator visually.
+            className="group flex items-center justify-center min-w-6 min-h-6 rounded-ui focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             role="tab"
             aria-selected={isActive}
             aria-label={`Go to slide ${index + 1} of ${totalSlides}`}
-            tabIndex={isActive ? 0 : -1}
-        />
+            tabIndex={isActive ? 0 : -1}>
+            <span
+                aria-hidden="true"
+                className={`block rounded-ui transition-all duration-300 ${
+                    isActive ? 'w-8 h-2 bg-white' : 'w-2 h-2 bg-white/50 group-hover:bg-white/75'
+                }`}
+            />
+        </button>
     )
 );
 
@@ -383,9 +498,10 @@ const NavigationButton = React.memo(
 
         return (
             <button
+                type="button"
                 onClick={onClick}
                 disabled={disabled}
-                className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="rounded-ui p-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={`${label} slide (${currentSlide} of ${totalSlides})`}>
                 <Icon className="w-6 h-6 text-primary-foreground" strokeWidth={2} />
             </button>
@@ -395,7 +511,7 @@ const NavigationButton = React.memo(
 
 NavigationButton.displayName = 'NavigationButton';
 
-const HeroSlideContent = React.memo(({ slide }: { slide: HeroSlide }): ReactElement => {
+const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; priority: boolean }): ReactElement => {
     const position = normalizeOverlayPosition(slide.overlayPosition);
     const alignment = normalizeOverlayAlignment(slide.overlayAlignment);
     const { vertical, horizontal } = overlayPositionLayout(position);
@@ -416,26 +532,36 @@ const HeroSlideContent = React.memo(({ slide }: { slide: HeroSlide }): ReactElem
 
     return (
         <div className="relative w-full h-full overflow-hidden">
-            <img
+            <DynamicImage
                 src={slide.imageUrl}
                 alt={slide.imageAlt || slide.title || 'Hero Carousel'}
-                fetchPriority="high"
-                className="absolute inset-0 w-full h-full object-cover"
+                widths={HERO_IMAGE_WIDTHS}
+                // One full-width slide is visible per view (CarouselItem is basis-full), so slide 0 is what
+                // paints first and is the LCP candidate: preload it and load it eagerly. Off-screen slides stay
+                // lazy so they don't compete with the LCP image for bandwidth.
+                priority={priority ? 'high' : 'auto'}
+                loading={priority ? 'eager' : 'lazy'}
+                className="absolute inset-0 w-full h-full"
+                imageProps={{ className: 'w-full h-full object-cover' }}
             />
-            <div
-                className="absolute inset-0"
-                style={{
-                    background:
-                        'linear-gradient(to top, color-mix(in oklch, var(--brand-black) 30%, transparent) 0%, transparent 100%), linear-gradient(to right, color-mix(in oklch, var(--brand-black) 60%, transparent) 0%, color-mix(in oklch, var(--brand-black) 30%, transparent) 50%, transparent 100%)',
-                }}
-            />
+            {/*
+             * Scrim for WCAG 1.4.3 text contrast. The overlay text is white and can be placed at any of the
+             * 9 overlayPosition slots over an arbitrary merchant photo, so a directional gradient cannot
+             * guarantee legibility everywhere (a top or centre heading over a bright sky measured ~1.7:1). A
+             * uniform scrim floor keeps the composited background dark enough for white text over any region
+             * of any image: worst case (a blown-out white region behind) is 5.7:1 for fashion and 4.7:1 for
+             * cosmetic, both clearing the 4.5:1 AA minimum. The scrim recipe lives in each vertical's
+             * `theme/tokens/brand.css` as `--hero-scrim` (mixed from that brand's `--brand-black` so it keeps
+             * the warm/neutral tint rather than forcing pure black), so an omitted brand color can't silently
+             * collapse the scrim. The image itself is unchanged. */}
+            <div className="absolute inset-0 bg-[var(--hero-scrim)]" />
 
             <div className={cn('relative h-full flex z-20 overflow-hidden', overlayRowClass, overlayEdgePaddingClass)}>
                 <div className="section-container w-full">
                     <div className={cn(contentBlockClass, textAlignClass)}>
-                        <h1 className="text-6xl font-bold leading-none [letter-spacing:-1.5px] text-primary-foreground mb-4">
+                        <h2 className="text-6xl font-bold leading-none [letter-spacing:-1.5px] text-primary-foreground mb-4">
                             {slide.title}
-                        </h1>
+                        </h2>
 
                         {slide.subtitle && (
                             <p className="text-lg font-normal leading-[120%] text-primary-foreground mb-8">
@@ -500,5 +626,5 @@ const HeroCarousel = withSuspense(HeroCarouselPlain, {
 
 export default HeroCarousel;
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { HeroCarouselSkeleton, HeroCarouselSkeleton as fallback };

@@ -26,8 +26,11 @@ export default function UserActions(): ReactElement {
     const { t } = useTranslation('header');
     const { t: tAccount } = useTranslation('account');
     const isAuthenticated: boolean = useMemo(() => {
-        // Check if user is authenticated (has valid token and is registered)
-        return Boolean(session?.userType === 'registered' && session?.customerId);
+        // Gate on userType only. Under a cached app shell the client restores userType from the
+        // `__sfdc_usertype` hint cookie, but customerId is never carried in that hint — gating on it
+        // too would wrongly keep a genuinely-registered visitor on the guest branch. userType is
+        // authoritative: it is 'registered' iff the JWT carried a registered-customer id.
+        return session?.userType === 'registered';
     }, [session]);
 
     const accountLink = isAuthenticated ? '/account/overview' : '/login';
@@ -37,9 +40,14 @@ export default function UserActions(): ReactElement {
     const trigger = (
         <Button
             variant="ghost"
-            className="cursor-pointer lg:px-4 px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
+            // Icon-only trigger. The Button size default sets `has-[>svg]:px-3` (12px) for icon
+            // children, which sits in the same tailwind-merge group as the compact padding below,
+            // so a bare `px-1` here is dead code. Use the `has-[>svg]:` modifier so the compact
+            // mobile padding actually wins; without it the header row overflows a 320px viewport
+            // and the mobile menu button is pushed off-screen (WCAG 1.4.10 Reflow).
+            className="cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
             asChild>
-            <Link to={accountLink} aria-label={ariaLabel}>
+            <Link to={accountLink} aria-label={ariaLabel} data-testid="user-account-trigger">
                 {icon}
             </Link>
         </Button>

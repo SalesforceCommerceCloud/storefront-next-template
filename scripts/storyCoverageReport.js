@@ -91,6 +91,7 @@ const EXCLUDED_COMPONENTS = new Set([
     // Page Designer Region and Component Wrapper, there is no value in having storybook stories for these
     'region/component',
     'region/component-data-context',
+    'region/embedded-component-region',
     'region/index',
     'region/region-wrapper',
     // Tiny error-boundary fallback components consumed via React Router's `errorElement` —
@@ -137,6 +138,11 @@ const EXCLUDED_COMPONENTS = new Set([
     'footer/policy-links',
     'footer/social-icons',
     'footer/switchers',
+    // Cimulate (Commerce Client) — thin deferred loader, config validator, and external script injector.
+    // Depends on a CDN-loaded UMD bundle; no visual rendering testable in Storybook isolation.
+    'cimulate/index',
+    'cimulate/cimulate-ui',
+    'cimulate/cimulate-window',
 ]);
 // Ensure OUTPUT DIR exists
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -419,32 +425,33 @@ ${missing.map((m) => `- \`${m.name}\``).join('\n')}
 
 ${
     jsonSummary.codeCoverage
-        ? (() => {
-              const lines = jsonSummary.codeCoverage.lines?.pct || 0;
-              const statements = jsonSummary.codeCoverage.statements?.pct || 0;
-              const functions = jsonSummary.codeCoverage.functions?.pct || 0;
-              const branches = jsonSummary.codeCoverage.branches?.pct || 0;
-              const avgCoverage = (lines + statements + functions + branches) / 4;
+        ? (
+              () => {
+                  const lines = jsonSummary.codeCoverage.lines?.pct || 0;
+                  const statements = jsonSummary.codeCoverage.statements?.pct || 0;
+                  const functions = jsonSummary.codeCoverage.functions?.pct || 0;
+                  const branches = jsonSummary.codeCoverage.branches?.pct || 0;
+                  const avgCoverage = (lines + statements + functions + branches) / 4;
 
-              let codeCoverageBadgeColor = 'red';
-              if (avgCoverage >= 90) {
-                  codeCoverageBadgeColor = 'brightgreen';
-              } else if (avgCoverage >= 80) {
-                  codeCoverageBadgeColor = 'green';
-              } else if (avgCoverage >= 70) {
-                  codeCoverageBadgeColor = 'yellowgreen';
-              } else if (avgCoverage >= 50) {
-                  codeCoverageBadgeColor = 'yellow';
-              }
+                  let codeCoverageBadgeColor = 'red';
+                  if (avgCoverage >= 90) {
+                      codeCoverageBadgeColor = 'brightgreen';
+                  } else if (avgCoverage >= 80) {
+                      codeCoverageBadgeColor = 'green';
+                  } else if (avgCoverage >= 70) {
+                      codeCoverageBadgeColor = 'yellowgreen';
+                  } else if (avgCoverage >= 50) {
+                      codeCoverageBadgeColor = 'yellow';
+                  }
 
-              const getStatusEmoji = (pct) => {
-                  if (pct >= 90) return '🟢';
-                  if (pct >= 80) return '🟡';
-                  if (pct >= 70) return '🟠';
-                  return '🔴';
-              };
+                  const getStatusEmoji = (pct) => {
+                      if (pct >= 90) return '🟢';
+                      if (pct >= 80) return '🟡';
+                      if (pct >= 70) return '🟠';
+                      return '🔴';
+                  };
 
-              return `
+                  return `
 ---
 ## 💻 Code Coverage (Story Interaction Tests)
 
@@ -462,7 +469,8 @@ ${
 | **🌿 Branches** | \`${branches.toFixed(2)}%\` | ${getStatusEmoji(branches)} | \`${CODE_COVERAGE_THRESHOLD}%\` ${branches >= CODE_COVERAGE_THRESHOLD ? '✅' : '❌'} |
 | **📊 Average** | **\`${avgCoverage.toFixed(2)}%\`** | ${getStatusEmoji(avgCoverage)} | \`${CODE_COVERAGE_THRESHOLD}%\` ${avgCoverage >= CODE_COVERAGE_THRESHOLD ? '✅' : '❌'} |
 `;
-          })()
+              }
+          )()
         : ''
 }
 

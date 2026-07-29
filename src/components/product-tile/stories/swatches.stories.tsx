@@ -54,7 +54,7 @@ const mockColorValues: DecoratedVariationAttributeValue[] = [
 ];
 
 const meta: Meta<typeof ProductTileSwatches> = {
-    title: 'Components/ProductTile/Swatches',
+    title: 'Products/Product Tile/Swatches',
     component: ProductTileSwatches,
     tags: ['autodocs', 'interaction'],
     parameters: {

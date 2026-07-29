@@ -69,6 +69,7 @@ vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+
 vi.mock('@/components/link', () => ({
     Link: (props: React.PropsWithChildren<{ to?: string; [key: string]: unknown }>) => {
         const { to, children, ...rest } = props ?? {};

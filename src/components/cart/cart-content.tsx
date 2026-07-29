@@ -303,6 +303,7 @@ export default function CartContent({
 
                 <div className="grid grid-cols-1 lg:grid-cols-[66%_1fr] lg:gap-11">
                     <div className="md:order-2 lg:order-1">
+                        <UITarget targetId="sfcc.cart.promotions.approachingDiscounts" />
                         {/* @sfdc-extension-block-start SFDC_EXT_BOPIS */}
                         {/* Group store info cards with their product items */}
                         {pickupItems.length > 0 && store && (
@@ -346,8 +347,10 @@ export default function CartContent({
                         )}
                     </div>
                     <div data-slot="order-summary" className="hidden md:block md:order-1 lg:order-2">
+                        <UITarget targetId="sfcc.cart.orderSummary.before" />
                         <OrderSummary
                             basket={basket}
+                            surface="cart"
                             showCartItems={false}
                             isEstimate={true}
                             productsByItemId={productsByItemId}

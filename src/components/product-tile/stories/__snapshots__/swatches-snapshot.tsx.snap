@@ -12,10 +12,9 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     <a
       aria-current="true"
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
     >
       <img
@@ -27,10 +26,9 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=red"
     >
       <img
@@ -42,10 +40,9 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
     >
       <img
@@ -57,10 +54,9 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Black"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=black"
       style="background-color: black;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=black"
     >
       <img
@@ -72,10 +68,9 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Green"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=green"
       style="background-color: green;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=green"
     >
       <img
@@ -100,10 +95,9 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
   >
     <a
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
     >
       <img
@@ -116,10 +110,9 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
     <a
       aria-current="true"
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=red"
     >
       <img
@@ -131,10 +124,9 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
     >
       <img
@@ -146,9 +138,8 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
     </a>
     <a
       aria-label="View all 5 colours for Test Product"
-      class="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:ring-[3px] hover:ring-muted-hover transition-all"
+      class="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:ring-[3px] hover:ring-muted-hover focus-visible:ring-[3px] focus-visible:ring-ring transition-all"
       href="/RefArchGlobal/en-GB/product/test"
-      tabindex="-1"
       title="+2 more"
       to="/RefArchGlobal/en-GB/product/test"
     >
@@ -180,10 +171,9 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
   >
     <a
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
     >
       <img
@@ -195,10 +185,9 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=red"
     >
       <img
@@ -210,10 +199,9 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
     >
       <img
@@ -225,10 +213,9 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Black"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=black"
       style="background-color: black;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=black"
     >
       <img
@@ -240,10 +227,9 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Green"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=green"
       style="background-color: green;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=green"
     >
       <img
@@ -281,10 +267,9 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     <a
       aria-current="true"
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
     >
       <img
@@ -296,10 +281,9 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=red"
     >
       <img
@@ -311,10 +295,9 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
     >
       <img
@@ -326,10 +309,9 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Black"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=black"
       style="background-color: black;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=black"
     >
       <img
@@ -341,10 +323,9 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Green"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=green"
       style="background-color: green;"
-      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/test?color=green"
     >
       <img

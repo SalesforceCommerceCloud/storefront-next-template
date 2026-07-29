@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, Suspense, useEffect } from 'react';
+import { Fragment, type ReactElement, Suspense, useEffect, useId } from 'react';
 import { UITarget } from '@/targets/ui-target';
 import AddressDisplay from '@/components/address-display';
 import { Await, useFetcher, useParams, useRouteError } from 'react-router';
@@ -23,9 +23,11 @@ import { Link } from '@/components/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/typography';
 import ProductImage from '@/components/product-image/product-image';
 import { formatCurrency } from '@/lib/currency';
+import { formatDeliveryWindow } from '@/lib/date-utils';
 import { fetchOrderWithProducts } from '@/lib/api/order.server';
 import { destroyBasket } from '@/middlewares/basket.server';
 import { useBasketReset } from '@/providers/basket';
@@ -232,6 +234,7 @@ function OrderConfirmationContent({
     const { t, i18n } = useTranslation('checkout');
     const { currency } = useSite();
     const resetBasket = useBasketReset();
+    const newsletterEmailId = useId();
 
     // Track registration fetcher to keep showing the card after revalidation
     // (loader flips showPostOrderRegistration to false once the user is logged in)
@@ -333,19 +336,21 @@ function OrderConfirmationContent({
                             <Typography variant="p" className="text-foreground font-medium">
                                 {t('confirmation.hero.needHelp')}
                             </Typography>
-                            <div className="flex flex-wrap gap-3">
-                                {helpActions.map(({ label, href }) =>
-                                    href ? (
-                                        <Button key={label} variant="outline" size="sm" asChild>
-                                            <Link to={href}>{label}</Link>
-                                        </Button>
-                                    ) : (
-                                        <Button key={label} variant="outline" size="sm">
-                                            {label}
-                                        </Button>
-                                    )
-                                )}
-                            </div>
+                            <ul role="list" className="flex flex-wrap gap-3 list-none">
+                                {helpActions.map(({ label, href }) => (
+                                    <li key={label}>
+                                        {href ? (
+                                            <Button variant="outline" size="sm" asChild>
+                                                <Link to={href}>{label}</Link>
+                                            </Button>
+                                        ) : (
+                                            <Button variant="outline" size="sm">
+                                                {label}
+                                            </Button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     </CardContent>
                 </Card>
@@ -365,7 +370,7 @@ function OrderConfirmationContent({
                 {store && (
                     <Card className="mb-8">
                         <CardHeader>
-                            <CardTitle>{tBopis('storePickup.title')}</CardTitle>
+                            <CardTitle as="h2">{tBopis('storePickup.title')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <StoreDetails
@@ -384,66 +389,86 @@ function OrderConfirmationContent({
 
                 {/* Shipping Details section - supports multiple shipments if present */}
                 <UITarget targetId="sfcc.orderConfirmation.shipping.details">
-                    {deliveryShipments.map((shipment) => {
-                        const shippingAddress = shipment.shippingAddress;
-                        const shippingMethodName =
-                            shipment.shippingMethod?.name || t('confirmation.fields.defaultShippingMethod');
-                        const estimatedDeliveryTime =
-                            shipment.shippingMethod?.description ||
-                            t('confirmation.summaryLabels.estimatedDatePlaceholder');
-                        return (
-                            <Card key={shipment.shipmentId} className="border border-border/70">
-                                <CardContent className="grid gap-6 p-6 md:grid-cols-3">
-                                    <div>
-                                        <p className="text-base font-semibold tracking-wide text-foreground">
-                                            {t('confirmation.summaryLabels.arriving')}
-                                        </p>
-                                        <p className="mt-3 text-sm font-medium text-muted-foreground">
-                                            {estimatedDeliveryTime}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-base font-semibold tracking-wide text-foreground">
-                                            {t('confirmation.summaryLabels.shippingAddress')}
-                                        </p>
-                                        <div className="mt-3 space-y-2">
-                                            {shippingAddress ? (
-                                                <AddressDisplay address={shippingAddress} />
-                                            ) : (
-                                                <p className="text-sm font-medium text-muted-foreground">
-                                                    {t('confirmation.summaryLabels.noAddress')}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-base font-semibold tracking-wide text-foreground">
-                                            {t('confirmation.summaryLabels.shippingMethod')}
-                                        </p>
-                                        <p className="mt-3 text-sm font-medium text-muted-foreground">
-                                            {shippingMethodName}
-                                        </p>
-                                    </div>
-                                    <UITarget targetId="sfcc.orderConfirmation.shipping.tracking" />
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
+                    <ul role="list" className="space-y-6 list-none">
+                        {deliveryShipments.map((shipment) => {
+                            const shippingAddress = shipment.shippingAddress;
+                            const shippingMethodName =
+                                shipment.shippingMethod?.name || t('confirmation.fields.defaultShippingMethod');
+                            const deliveryWindowFormatted = formatDeliveryWindow(
+                                {
+                                    startAt: (shipment as Record<string, unknown>).c_deliveryWindowStartAt as
+                                        | string
+                                        | undefined,
+                                    endAt: (shipment as Record<string, unknown>).c_deliveryWindowEndAt as
+                                        | string
+                                        | undefined,
+                                },
+                                i18n.language
+                            );
+                            const estimatedDeliveryTime = deliveryWindowFormatted
+                                ? t('confirmation.summaryLabels.deliveryWindow', { window: deliveryWindowFormatted })
+                                : shipment.shippingMethod?.description ||
+                                  t('confirmation.summaryLabels.estimatedDatePlaceholder');
+                            return (
+                                <li key={shipment.shipmentId}>
+                                    <Card className="border border-border/70">
+                                        <CardContent className="p-6">
+                                            <dl className="grid gap-6 md:grid-cols-3">
+                                                <div>
+                                                    <dt className="text-base font-semibold tracking-wide text-foreground">
+                                                        {t('confirmation.summaryLabels.arriving')}
+                                                    </dt>
+                                                    <dd className="mt-3 text-sm font-medium text-muted-foreground">
+                                                        {estimatedDeliveryTime}
+                                                    </dd>
+                                                </div>
+                                                <div>
+                                                    <dt className="text-base font-semibold tracking-wide text-foreground">
+                                                        {t('confirmation.summaryLabels.shippingAddress')}
+                                                    </dt>
+                                                    <dd className="mt-3 space-y-2">
+                                                        {shippingAddress ? (
+                                                            <AddressDisplay address={shippingAddress} />
+                                                        ) : (
+                                                            <p className="text-sm font-medium text-muted-foreground">
+                                                                {t('confirmation.summaryLabels.noAddress')}
+                                                            </p>
+                                                        )}
+                                                    </dd>
+                                                </div>
+                                                <div>
+                                                    <dt className="text-base font-semibold tracking-wide text-foreground">
+                                                        {t('confirmation.summaryLabels.shippingMethod')}
+                                                    </dt>
+                                                    <dd className="mt-3 text-sm font-medium text-muted-foreground">
+                                                        {shippingMethodName}
+                                                    </dd>
+                                                </div>
+                                            </dl>
+                                            <UITarget targetId="sfcc.orderConfirmation.shipping.tracking" />
+                                        </CardContent>
+                                    </Card>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </UITarget>
 
                 {/* Product Items Summary section */}
                 <Card className="border border-border/70">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-2xl font-medium">{t('confirmation.summaryTitle')}</CardTitle>
+                        <CardTitle as="h2" className="text-2xl font-medium">
+                            {t('confirmation.summaryTitle')}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="space-y-4">
-                            {productItems.length === 0 ? (
-                                <Typography variant="p" className="text-muted-foreground">
-                                    {t('confirmation.emptyItemsFallback')}
-                                </Typography>
-                            ) : (
-                                productItems.map((item, index) => {
+                        {productItems.length === 0 ? (
+                            <Typography variant="p" className="text-muted-foreground">
+                                {t('confirmation.emptyItemsFallback')}
+                            </Typography>
+                        ) : (
+                            <ul role="list" className="space-y-4" data-testid="order-confirmation-product-list">
+                                {productItems.map((item, index) => {
                                     const finalPrice =
                                         item.priceAfterOrderDiscount ??
                                         item.priceAfterItemDiscount ??
@@ -468,7 +493,7 @@ function OrderConfirmationContent({
                                               )
                                             : [];
                                     return (
-                                        <div
+                                        <li
                                             key={productKey}
                                             className="rounded-ui border border-border/70 bg-card p-4 sm:p-7 flex flex-col gap-4 sm:flex-row sm:items-center">
                                             <div className="flex items-center justify-center">
@@ -490,14 +515,16 @@ function OrderConfirmationContent({
                                                 <p className="font-semibold text-foreground leading-tight">
                                                     {productName}
                                                 </p>
-                                                {variationValues.length > 0 &&
-                                                    variationValues.map(([label, value]) => (
-                                                        <p
-                                                            key={`${productKey}-${label}`}
-                                                            className="text-sm text-muted-foreground">
-                                                            {label}: {value}
-                                                        </p>
-                                                    ))}
+                                                {variationValues.length > 0 && (
+                                                    <dl className="text-sm text-muted-foreground grid grid-cols-[auto_1fr] gap-x-1">
+                                                        {variationValues.map(([label, value]) => (
+                                                            <Fragment key={`${productKey}-${label}`}>
+                                                                <dt>{label}:</dt>
+                                                                <dd>{value}</dd>
+                                                            </Fragment>
+                                                        ))}
+                                                    </dl>
+                                                )}
                                                 <p className="text-sm text-muted-foreground">
                                                     {t('confirmation.summaryLabels.quantity', {
                                                         count: item.quantity ?? 1,
@@ -514,16 +541,16 @@ function OrderConfirmationContent({
                                                     {formatCurrency(finalPrice, i18n.language, currency)}
                                                 </p>
                                             </div>
-                                        </div>
+                                        </li>
                                     );
-                                })
-                            )}
-                        </div>
-                        <div className="space-y-2 border-t pt-4">
+                                })}
+                            </ul>
+                        )}
+                        <ul role="list" className="space-y-2 border-t pt-4 list-none">
                             {summaryRows.map((row) => {
                                 const isPromotion = row.key === 'promotions' && row.value !== 0;
                                 const rowEl = (
-                                    <div key={row.key} className="flex items-center justify-between text-sm">
+                                    <li key={row.key} className="flex items-center justify-between text-sm">
                                         <span
                                             className={
                                                 row.bold ? 'font-semibold text-foreground' : 'text-muted-foreground'
@@ -542,7 +569,7 @@ function OrderConfirmationContent({
                                                 ? t('confirmation.summaryLabels.freeShipping')
                                                 : formatCurrency(row.value, i18n.language, currency)}
                                         </span>
-                                    </div>
+                                    </li>
                                 );
                                 return row.key === 'tax' ? (
                                     <UITarget key={row.key} targetId="sfcc.orderConfirmation.tax.summary">
@@ -552,7 +579,7 @@ function OrderConfirmationContent({
                                     rowEl
                                 );
                             })}
-                        </div>
+                        </ul>
                     </CardContent>
                 </Card>
 
@@ -583,14 +610,23 @@ function OrderConfirmationContent({
                             <p className="text-sm text-muted-foreground">{t('confirmation.newsletter.subtitle')}</p>
                         </div>
                         {/* This is a static placeholder form. Integrators should handle submit events here
-                           (e.g., call their marketing/newsletter API or hook into an existing newsletter service). */}
-                        <form className="flex flex-col gap-3 sm:flex-row">
-                            <Input
-                                type="email"
-                                placeholder={t('confirmation.newsletter.placeholder')}
-                                className="h-12 flex-1"
-                            />
-                            <Button type="button" className="h-12 sm:w-auto">
+                           (e.g., call their marketing/newsletter API or hook into an existing newsletter service).
+                           preventDefault keeps the placeholder inert: the submit button still triggers native
+                           required-field validation on an empty email, but a filled submit does not reload the page. */}
+                        <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(e) => e.preventDefault()}>
+                            <div className="flex-1 space-y-1">
+                                <Label htmlFor={newsletterEmailId} className="text-sm font-medium">
+                                    {t('confirmation.newsletter.label')}
+                                </Label>
+                                <Input
+                                    id={newsletterEmailId}
+                                    type="email"
+                                    required
+                                    placeholder={t('confirmation.newsletter.placeholder')}
+                                    className="h-12"
+                                />
+                            </div>
+                            <Button type="submit" className="h-12 sm:w-auto sm:self-end">
                                 {t('confirmation.newsletter.cta')}
                             </Button>
                         </form>

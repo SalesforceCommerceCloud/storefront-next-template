@@ -265,20 +265,24 @@ export default function ProductItemsList({
             );
 
             if (separateCards) {
-                return <Card key={productItem.itemId || `item-${index}`}>{currentProductItem}</Card>;
+                return (
+                    <li key={productItem.itemId || `item-${index}`}>
+                        <Card>{currentProductItem}</Card>
+                    </li>
+                );
             }
 
             return (
-                <div
+                <li
                     key={productItem.itemId || `item-${index}`}
                     className="border-b border-muted-foreground/10 last:border-b-0">
                     {currentProductItem}
-                </div>
+                </li>
             );
         });
         // Intentionally exclude primaryAction and secondaryActions from dependencies
         // to prevent re-computation when parent components re-render with new function references
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         productItems,
         productsByItemId,
@@ -291,5 +295,9 @@ export default function ProductItemsList({
         isPickup,
     ]);
 
-    return <div className={variant === 'summary' ? SUMMARY_SPACING : DEFAULT_SPACING}>{memoizedItems}</div>;
+    return (
+        <ul role="list" className={variant === 'summary' ? SUMMARY_SPACING : DEFAULT_SPACING}>
+            {memoizedItems}
+        </ul>
+    );
 }

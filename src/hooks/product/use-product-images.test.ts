@@ -323,22 +323,29 @@ describe('useProductImages', () => {
             expect(result.current.galleryImages).toEqual([]);
         });
 
-        it.each(['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'jp2', 'tif', 'tiff'])(
-            'keeps entries with DIS-supported extension .%s',
-            (ext) => {
-                const image = {
-                    link: `https://example.com/product.${ext}`,
-                    disBaseLink: `https://example.com/product.${ext}`,
-                    alt: 'Product Image',
-                } as ShopperProducts.schemas['Image'];
+        it.each([
+            'jpg',
+            'jpeg',
+            'png',
+            'webp',
+            'gif',
+            'avif',
+            'jp2',
+            'tif',
+            'tiff',
+        ])('keeps entries with DIS-supported extension .%s', (ext) => {
+            const image = {
+                link: `https://example.com/product.${ext}`,
+                disBaseLink: `https://example.com/product.${ext}`,
+                alt: 'Product Image',
+            } as ShopperProducts.schemas['Image'];
 
-                const product = createMockProduct([createMockImageGroup('large', [image])]);
+            const product = createMockProduct([createMockImageGroup('large', [image])]);
 
-                const { result } = renderHook(() => useProductImages({ product }), { wrapper });
+            const { result } = renderHook(() => useProductImages({ product }), { wrapper });
 
-                expect(result.current.galleryImages).toHaveLength(1);
-            }
-        );
+            expect(result.current.galleryImages).toHaveLength(1);
+        });
 
         it('keeps only the image entries when image groups mix images and unsupported assets', () => {
             const mixedMedia = [

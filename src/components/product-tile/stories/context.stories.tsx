@@ -40,7 +40,7 @@ function ProductTileProviderWrapper({ tileCount }: ContextStoryArgs) {
 }
 
 const meta: Meta<typeof ProductTileProviderWrapper> = {
-    title: 'Components/ProductTile/Context',
+    title: 'Products/Product Tile/Context',
     component: ProductTileProviderWrapper,
     tags: ['autodocs', 'interaction'],
     parameters: {

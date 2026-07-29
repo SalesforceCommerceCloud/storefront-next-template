@@ -18,7 +18,7 @@ import { ApiError } from '@/scapi';
 import { createApiClients } from '@/lib/api-clients.server';
 import { createTestContext } from '@/lib/test-utils';
 import { NormalizedApiError } from './normalized-api-error';
-import { fetchCategory, fetchCategories } from './categories.server';
+import { fetchCategory, fetchCategories, fetchCategoriesByIds } from './categories.server';
 
 vi.mock('@/lib/api-clients.server', () => ({
     createApiClients: vi.fn(),
@@ -35,9 +35,11 @@ vi.mock('@/lib/logger.server', () => ({
 
 describe('categories.server', () => {
     const mockGetCategory = vi.fn();
+    const mockGetCategories = vi.fn();
     const mockClients = {
         shopperProducts: {
             getCategory: mockGetCategory,
+            getCategories: mockGetCategories,
         },
     };
 
@@ -192,6 +194,117 @@ describe('categories.server', () => {
 
             const context = createTestContext();
             await expect(fetchCategories(context, 'root', 1)).rejects.toThrow(NormalizedApiError);
+        });
+    });
+
+    describe('fetchCategoriesByIds', () => {
+        it('should fetch all ids in a single getCategories call and flatten the result', async () => {
+            const categories = [
+                { id: 'cat1', name: 'Category 1', categories: [{ id: 'cat1-1' }] },
+                { id: 'cat2', name: 'Category 2', categories: [{ id: 'cat2-1' }] },
+            ];
+            mockGetCategories.mockResolvedValue({ data: { data: categories, limit: 2, total: 2 } });
+
+            const context = createTestContext();
+            const result = await fetchCategoriesByIds(context, ['cat1', 'cat2'], 2);
+
+            expect(result).toEqual(categories);
+            expect(mockGetCategories).toHaveBeenCalledTimes(1);
+            expect(mockGetCategories).toHaveBeenCalledWith({
+                params: {
+                    query: { ids: ['cat1', 'cat2'], levels: 2 },
+                },
+            });
+        });
+
+        it('should not call SCAPI and return an empty array when there are no ids', async () => {
+            const context = createTestContext();
+            const result = await fetchCategoriesByIds(context, [], 2);
+
+            expect(result).toEqual([]);
+            expect(mockGetCategories).not.toHaveBeenCalled();
+        });
+
+        it('should issue a single request for exactly 50 ids', async () => {
+            const ids = Array.from({ length: 50 }, (_, i) => `cat${i}`);
+            mockGetCategories.mockResolvedValue({
+                data: { data: ids.map((id) => ({ id })), limit: 50, total: 50 },
+            });
+
+            const context = createTestContext();
+            const result = await fetchCategoriesByIds(context, ids, 2);
+
+            expect(result).toHaveLength(50);
+            expect(mockGetCategories).toHaveBeenCalledTimes(1);
+            expect(mockGetCategories).toHaveBeenCalledWith({
+                params: { query: { ids, levels: 2 } },
+            });
+        });
+
+        it('should chunk ids into requests of at most 50', async () => {
+            const ids = Array.from({ length: 51 }, (_, i) => `cat${i}`);
+            mockGetCategories.mockImplementation(({ params }) => {
+                const chunkIds = params.query.ids as string[];
+                return Promise.resolve({
+                    data: { data: chunkIds.map((id) => ({ id })), limit: chunkIds.length, total: chunkIds.length },
+                });
+            });
+
+            const context = createTestContext();
+            const result = await fetchCategoriesByIds(context, ids, 2);
+
+            expect(mockGetCategories).toHaveBeenCalledTimes(2);
+            expect((mockGetCategories.mock.calls[0][0].params.query.ids as string[]).length).toBe(50);
+            expect((mockGetCategories.mock.calls[1][0].params.query.ids as string[]).length).toBe(1);
+            expect(result).toHaveLength(51);
+        });
+
+        it('should return categories regardless of the order the API responds in', async () => {
+            // SCAPI does not guarantee response order matches the requested id order.
+            mockGetCategories.mockResolvedValue({
+                data: {
+                    data: [
+                        { id: 'cat2', name: 'Category 2' },
+                        { id: 'cat1', name: 'Category 1' },
+                    ],
+                    limit: 2,
+                    total: 2,
+                },
+            });
+
+            const context = createTestContext();
+            const result = await fetchCategoriesByIds(context, ['cat1', 'cat2'], 2);
+
+            expect(result.map((category) => category.id)).toEqual(['cat2', 'cat1']);
+        });
+
+        it('should throw NormalizedApiError when a request fails', async () => {
+            mockGetCategories.mockRejectedValue(new TypeError('boom'));
+
+            const context = createTestContext();
+            await expect(fetchCategoriesByIds(context, ['cat1'], 2)).rejects.toThrow(NormalizedApiError);
+            await expect(fetchCategoriesByIds(context, ['cat1'], 2)).rejects.toThrow('boom');
+        });
+
+        it('should log operation context when a request fails', async () => {
+            const mockLogger = {
+                error: vi.fn(),
+                warn: vi.fn(),
+                info: vi.fn(),
+                debug: vi.fn(),
+            };
+            const { getLogger } = await import('@/lib/logger.server');
+            vi.mocked(getLogger).mockReturnValue(mockLogger as never);
+
+            mockGetCategories.mockRejectedValue(new TypeError('boom'));
+
+            const context = createTestContext();
+            await fetchCategoriesByIds(context, ['cat1'], 2).catch(() => {});
+
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                'shopperProducts.getCategories failed',
+                expect.objectContaining({ ids: ['cat1'], levels: 2 })
+            );
         });
     });
 });

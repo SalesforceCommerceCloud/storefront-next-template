@@ -40,7 +40,7 @@ export function ExpressPaymentsSkeleton(): ReactElement {
 
 export function ContactInfoSkeleton(): ReactElement {
     return (
-        <Card className="relative gap-4">
+        <Card className="relative gap-4 min-h-[168px]">
             <CardHeader>
                 <Skeleton className="h-6 w-40" />
             </CardHeader>
@@ -63,7 +63,7 @@ export function ContactInfoSkeleton(): ReactElement {
 
 export function ShippingAddressSkeleton(): ReactElement {
     return (
-        <Card className="relative gap-4">
+        <Card className="relative gap-4 min-h-[520px]">
             <CardHeader>
                 <Skeleton className="h-6 w-48" />
             </CardHeader>
@@ -108,7 +108,7 @@ export function ShippingAddressSkeleton(): ReactElement {
 
 export function ShippingOptionsSkeleton(): ReactElement {
     return (
-        <Card className="relative gap-4">
+        <Card className="relative gap-4 min-h-[180px]">
             <CardHeader>
                 <Skeleton className="h-6 w-44" />
             </CardHeader>
@@ -135,7 +135,7 @@ export function ShippingOptionsSkeleton(): ReactElement {
 
 export function PaymentSkeleton(): ReactElement {
     return (
-        <Card className="relative gap-4">
+        <Card className="relative gap-4 min-h-[280px]">
             <CardHeader>
                 <Skeleton className="h-6 w-32" />
             </CardHeader>
@@ -229,7 +229,7 @@ export function MyCartSkeleton({ itemCount = 2 }: { itemCount?: number }): React
         <div className="w-full" data-testid="my-cart-skeleton">
             <div className="divide-y divide-border -mx-[var(--cart-divider-extend,0px)] [&>*]:px-[var(--cart-divider-extend,0px)]">
                 {Array.from({ length: itemCount }).map((_, i) => (
-                    // eslint-disable-next-line react/no-array-index-key
+                    // oxlint-disable-next-line react/no-array-index-key
                     <div key={`cart-item-skeleton-${i}`} className="py-4" data-testid={`my-cart-item-skeleton-${i}`}>
                         <div className="flex gap-3 md:gap-4">
                             <Skeleton className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0" />

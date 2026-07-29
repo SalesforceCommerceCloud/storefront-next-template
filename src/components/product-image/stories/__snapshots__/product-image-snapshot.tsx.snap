@@ -9,9 +9,10 @@ exports[`ProductImage stories snapshot > CustomAspectRatio story renders and mat
     style="aspect-ratio: 0.75;"
   >
     <a
-      aria-label="View Laptop Briefcase with wheels (37L)"
+      aria-hidden="true"
       class="block w-full h-full flex-1"
       href="/RefArchGlobal/en-GB/product/P0048M"
+      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/P0048M"
     >
       <div
@@ -69,9 +70,10 @@ exports[`ProductImage stories snapshot > Default story renders and matches snaps
     class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square "
   >
     <a
-      aria-label="View Laptop Briefcase with wheels (37L)"
+      aria-hidden="true"
       class="block w-full h-full flex-1"
       href="/RefArchGlobal/en-GB/product/P0048M"
+      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/P0048M"
     >
       <div
@@ -129,9 +131,10 @@ exports[`ProductImage stories snapshot > MissingImages story renders and matches
     class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square "
   >
     <a
-      aria-label="View Laptop Briefcase with wheels (37L)"
+      aria-hidden="true"
       class="block w-full h-full flex-1"
       href="/RefArchGlobal/en-GB/product/P0048M"
+      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/P0048M"
     >
       <div
@@ -157,9 +160,10 @@ exports[`ProductImage stories snapshot > WithColorVariant story renders and matc
     class="relative overflow-hidden bg-secondary/20 flex flex-col aspect-square "
   >
     <a
-      aria-label="View Long Sleeve Embellished Boat Neck Top"
+      aria-hidden="true"
       class="block w-full h-full flex-1"
       href="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
+      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
     >
       <div
@@ -217,9 +221,10 @@ exports[`ProductImage stories snapshot > WithNavigationArrows story renders and 
     class="group/image relative overflow-hidden bg-secondary/20 flex flex-col aspect-square "
   >
     <a
-      aria-label="View Long Sleeve Embellished Boat Neck Top"
+      aria-hidden="true"
       class="block w-full h-full flex-1"
       href="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
+      tabindex="-1"
       to="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
     >
       <div

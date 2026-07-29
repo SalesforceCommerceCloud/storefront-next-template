@@ -74,7 +74,7 @@ const createProductMapPromise = () => Promise.resolve(mockProductMap);
 
 const meta: Meta<typeof CheckoutPickupWithData> = {
     component: CheckoutPickupWithData,
-    title: 'CHECKOUT/CheckoutPickupWithData',
+    title: 'Extensions/BOPIS/Checkout Pickup With Data',
     tags: ['autodocs', 'interaction'],
     parameters: {
         layout: 'padded',

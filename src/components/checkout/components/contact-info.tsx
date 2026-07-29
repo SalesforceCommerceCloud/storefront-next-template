@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useMemo, useRef, useCallback, useEffect, useState, lazy, Suspense, type ReactNode } from 'react';
+import { useMemo, useRef, useCallback, useEffect, useState, lazy, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFetcher, useResolvedPath, useRevalidator } from 'react-router';
@@ -21,7 +21,7 @@ import { ToggleCard, ToggleCardEdit, ToggleCardSummary } from '@/components/togg
 import { Button } from '@/components/ui/button';
 import { FormInput, FormNativeSelect } from '@/components/form-fields';
 import { Typography } from '@/components/typography';
-import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormDescription, FormMessage, useFormField } from '@/components/ui/form';
 import { useBasket } from '@/providers/basket';
 import { createContactInfoSchema, type ContactInfoData } from '@/lib/checkout/schemas';
 import { useLoginSuggestion } from '@/hooks/use-customer-lookup';
@@ -41,6 +41,7 @@ import {
 } from '@/lib/address/phone-utils';
 import type { OtpFlowActiveRef } from '@/hooks/use-checkout-actions';
 import { Spinner } from '@/components/spinner';
+import { usePasskeyLogin } from '@/hooks/use-passkey-login';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { TurnstileWidget } from '@/components/security/turnstile-widget';
 import { getTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
@@ -48,6 +49,18 @@ import { resourceRoutes } from '@/route-paths';
 
 const OtpModal = lazy(() => import('@/components/login/otp-modal'));
 const LoginModal = lazy(() => import('@/components/login/login-modal'));
+
+/**
+ * FormInput variant that also references the sibling FormDescription element via
+ * aria-describedby so screen readers announce the format instruction when focus
+ * enters the field. Required by WCAG 3.3.2 when the description holds instructions
+ * the shopper needs to complete the field.
+ */
+function FormInputWithDescription(props: React.ComponentProps<typeof FormInput>) {
+    const { formDescriptionId, formMessageId, error } = useFormField();
+    const describedBy = error ? `${formDescriptionId} ${formMessageId}` : formDescriptionId;
+    return <FormInput aria-describedby={describedBy} {...props} />;
+}
 
 interface ContactInfoProps {
     onSubmit: (data: ContactInfoData) => void;
@@ -62,6 +75,8 @@ interface ContactInfoProps {
     otpFlowActiveRef?: OtpFlowActiveRef;
     /** Initial OTP sending state — used in Storybook to show the spinner in the email field without triggering fetcher logic */
     defaultOtpSending?: boolean;
+    /** When explicitly false, the Turnstile widget is skipped entirely for this step. Undefined is treated as enabled. */
+    emailVerificationEnabled?: boolean;
     // Step state managed by container
     isCompleted: boolean;
     isEditing: boolean;
@@ -77,6 +92,7 @@ export default function ContactInfo({
     suppressRegisteredEmailLoginHints = false,
     otpFlowActiveRef,
     defaultOtpSending = false,
+    emailVerificationEnabled,
     isCompleted: _isCompleted,
     isEditing,
     onEdit,
@@ -103,6 +119,7 @@ export default function ContactInfo({
     const [isOtpOpen, setIsOtpOpen] = useState(false);
     const [otpModalEmail, setOtpModalEmail] = useState('');
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const passkeyEnabled = Boolean(appConfig.features.passkey.enabled);
 
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileBypassed, setTurnstileBypassed] = useState(false);
@@ -119,7 +136,7 @@ export default function ContactInfo({
     const verificationFailureCountRef = useRef(0);
     const MAX_VERIFICATION_RETRIES = 3;
 
-    const turnstileEnabled = isTurnstileEnabled(appConfig);
+    const turnstileEnabled = isTurnstileEnabled(appConfig) && emailVerificationEnabled !== false;
     const turnstileMode = getTurnstileMode(appConfig);
     const turnstileSiteKey = useMemo(() => {
         if (!turnstileEnabled) return null;
@@ -231,6 +248,40 @@ export default function ContactInfo({
         }
     }, [turnstileEnabled, showTurnstile, verificationError]);
 
+    const lastPasskeyEmailRef = useRef<string | null>(null);
+
+    const handlePasskeyLoginSuccess = useCallback(
+        () => {
+            // A passkey login supersedes any passwordless-email OTP or the sign-in modal
+            // already in flight for this blur — the conditional mediation suggestion can
+            // resolve while LoginModal is open (its email input also carries
+            // autoComplete="username webauthn"), so both must be dismissed here or they'd
+            // stay open after the shopper has already signed in via the autofill suggestion.
+            setIsOtpOpen(false);
+            setIsLoginModalOpen(false);
+            onPasswordlessOtpVerified?.();
+            otpSuccessRevalidatingRef.current = true;
+            void revalidator.revalidate();
+            if (otpFlowActiveRef) otpFlowActiveRef.current = false;
+        },
+        // Ref is stable; .current is mutated intentionally — omit from deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        [onPasswordlessOtpVerified, revalidator]
+    );
+
+    const handlePasskeyLoginError = useCallback(() => {
+        // The shopper picked a passkey suggestion but the server couldn't complete the login.
+        // Surface the generic verification-error message so they aren't left silently stuck;
+        // it clears when they focus the email field again (see the effect that resets it).
+        setVerificationError(t('contactInfo.passkeyLoginFailed'));
+    }, [t]);
+
+    const {
+        loginWithPasskey,
+        abortPasskeyLogin,
+        isAuthenticating: isPasskeyLoginPending,
+    } = usePasskeyLogin(handlePasskeyLoginSuccess, handlePasskeyLoginError);
+
     const handleEmailBlur = useCallback(
         (e: React.FocusEvent<HTMLInputElement>, fieldOnBlur: (e: React.FocusEvent<HTMLInputElement>) => void) => {
             fieldOnBlur(e);
@@ -238,6 +289,15 @@ export default function ContactInfo({
             if (!raw) return;
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) return;
             const normalized = raw.toLowerCase();
+
+            // Runs in parallel with (not blocking) the passwordless-email authorization below —
+            // conditional mediation is a passive browser suggestion, not a server round trip, so
+            // it doesn't need to wait on Turnstile or dedupe against the same guards.
+            if (passkeyEnabled && lastPasskeyEmailRef.current !== normalized) {
+                lastPasskeyEmailRef.current = normalized;
+                abortPasskeyLogin();
+                void loginWithPasskey();
+            }
 
             if (turnstileEnabled && !showTurnstile) {
                 setShowTurnstile(true);
@@ -272,7 +332,7 @@ export default function ContactInfo({
             if (otpFlowActiveRef) otpFlowActiveRef.current = true;
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [
             form,
             passwordlessEmailFetcher,
@@ -282,6 +342,9 @@ export default function ContactInfo({
             turnstileEnabled,
             showTurnstile,
             resetTurnstile,
+            passkeyEnabled,
+            abortPasskeyLogin,
+            loginWithPasskey,
         ]
     );
 
@@ -307,7 +370,7 @@ export default function ContactInfo({
             action: authorizePasswordlessEmailPath,
         });
         if (otpFlowActiveRef) otpFlowActiveRef.current = true;
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
     }, [turnstileBypassed, passwordlessEmailFetcher, authorizePasswordlessEmailPath]);
 
     useEffect(() => {
@@ -328,7 +391,7 @@ export default function ContactInfo({
             action: authorizePasswordlessEmailPath,
         });
         if (otpFlowActiveRef) otpFlowActiveRef.current = true;
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef is a ref
     }, [turnstileToken, passwordlessEmailFetcher, authorizePasswordlessEmailPath]);
 
     // When authorize (blur) succeeds, open OTP modal so user can enter the code
@@ -338,7 +401,7 @@ export default function ContactInfo({
             setOtpModalEmail(data.email);
             setIsOtpOpen(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only open modal when state/data from last submit
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only open modal when state/data from last submit
     }, [passwordlessEmailFetcher.state, passwordlessEmailFetcher.data?.success, passwordlessEmailFetcher.data?.email]);
 
     useEffect(() => {
@@ -346,7 +409,7 @@ export default function ContactInfo({
         if (state === 'idle' && data?.requiresLogin === true) {
             setIsLoginModalOpen(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to requiresLogin flag
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only react to requiresLogin flag
     }, [passwordlessEmailFetcher.state, passwordlessEmailFetcher.data?.requiresLogin]);
 
     // Server-side Turnstile rejection (403 NOT_AUTHORIZED) handling.
@@ -369,7 +432,7 @@ export default function ContactInfo({
             tokenConsumedRef.current = false;
             resetTurnstile();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to verification rejection
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- only react to verification rejection
     }, [
         passwordlessEmailFetcher.state,
         passwordlessEmailFetcher.data?.success,
@@ -386,7 +449,7 @@ export default function ContactInfo({
             setIsOtpOpen(false);
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [onPasswordlessOtpVerified, revalidator]
     );
 
@@ -398,7 +461,7 @@ export default function ContactInfo({
             if (otpFlowActiveRef) otpFlowActiveRef.current = false;
             setIsLoginModalOpen(false);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
         [onPasswordlessOtpVerified, revalidator]
     );
 
@@ -436,12 +499,19 @@ export default function ContactInfo({
 
     /**
      * Checkout only: close OTP without calling verify-passwordless-otp — shopper stays a guest (no SLAS session from OTP).
-     * Parent unblocks contact step and hides place-order create-account checkbox for this session.
+     * Persists a newly-typed email if it differs from the basket email, then unblocks the contact step.
      */
     const handleCheckoutAsGuestFromOtp = useCallback(() => {
+        const typedEmail = form.getValues('email');
+        const basketEmail = cart?.customerInfo?.email || '';
+        if (typedEmail && typedEmail.toLowerCase() !== basketEmail.toLowerCase()) {
+            void form.handleSubmit(handleFormSubmit)();
+        }
         lastEmailSentRef.current = null;
         onRegisteredUserChoseGuest?.(true);
-    }, [onRegisteredUserChoseGuest]);
+        // form and cart are stable across renders; handleFormSubmit is defined above in the same scope
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
+    }, [form, cart, onRegisteredUserChoseGuest]);
 
     let nextStepButtonLabel = isLoading ? t('contactInfo.saving') : t('contactInfo.continue');
 
@@ -455,7 +525,9 @@ export default function ContactInfo({
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     const stepTitle = (
-        <span className="text-2xl font-bold tracking-tight text-card-foreground">{t('contactInfo.title')}</span>
+        <span id="contact-info-heading" className="text-2xl font-bold tracking-tight text-card-foreground">
+            {t('contactInfo.title')}
+        </span>
     );
 
     const isSendingOtp =
@@ -467,13 +539,17 @@ export default function ContactInfo({
     useEffect(
         () => {
             if (otpFlowActiveRef) {
-                otpFlowActiveRef.current = isSendingOtp || isOtpOpen || isLoginModalOpen;
+                otpFlowActiveRef.current = isSendingOtp || isOtpOpen || isLoginModalOpen || isPasskeyLoginPending;
             }
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
-        [isSendingOtp, isOtpOpen, isLoginModalOpen]
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
+        [isSendingOtp, isOtpOpen, isLoginModalOpen, isPasskeyLoginPending]
     );
+
+    // Abort any in-flight conditional mediation ceremony on unmount (step exit) so it
+    // doesn't resolve — and potentially call onSuccess — after this component is gone.
+    useEffect(() => abortPasskeyLogin, [abortPasskeyLogin]);
 
     const otpLength = (appConfig?.auth as { otpLength?: number } | undefined)?.otpLength ?? 6;
 
@@ -481,7 +557,9 @@ export default function ContactInfo({
         <>
             <ToggleCard
                 id="contact-info"
-                title={stepTitle as ReactNode}
+                title={stepTitle}
+                titleAs="h2"
+                titleClassName="text-2xl font-bold tracking-tight text-card-foreground"
                 editing={isEditing}
                 onEdit={onEdit}
                 editLabel={t('common.edit')}
@@ -494,111 +572,134 @@ export default function ContactInfo({
                             onSubmit={(e) => void form.handleSubmit(handleFormSubmit)(e)}
                             className="flex flex-col gap-4 pt-2 pb-2"
                             noValidate>
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t('contactInfo.emailLabel')}*</FormLabel>
-                                        <div className="relative">
-                                            <FormInput
-                                                type="email"
-                                                placeholder={t('contactInfo.emailPlaceholder')}
-                                                autoComplete="email"
-                                                autoFocus={isEditing}
-                                                disabled={isSendingOtp}
-                                                className="pr-12"
-                                                {...field}
-                                                onFocus={handleEmailFocus}
-                                                onBlur={(e) => handleEmailBlur(e, field.onBlur)}
-                                            />
-                                            {isSendingOtp && (
-                                                <div
-                                                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
-                                                    aria-hidden>
-                                                    <Spinner size="sm" className="text-muted-foreground" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <FormMessage />
-                                    </FormItem>
+                            <fieldset
+                                className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
+                                aria-labelledby="contact-info-heading">
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t('contactInfo.emailLabel')}*</FormLabel>
+                                            <div className="relative">
+                                                <FormInput
+                                                    type="email"
+                                                    placeholder={t('contactInfo.emailPlaceholder')}
+                                                    // Opt the email field into WebAuthn conditional mediation
+                                                    // so a saved passkey can autofill during checkout sign-in.
+                                                    autoComplete="username webauthn"
+                                                    // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first field on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
+                                                    autoFocus={isEditing}
+                                                    disabled={isSendingOtp}
+                                                    className="pr-12"
+                                                    {...field}
+                                                    onFocus={handleEmailFocus}
+                                                    onBlur={(e) => handleEmailBlur(e, field.onBlur)}
+                                                />
+                                                {isSendingOtp && (
+                                                    <div
+                                                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                                                        aria-hidden>
+                                                        <Spinner size="sm" className="text-muted-foreground" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {turnstileEnabled && turnstileSiteKey && showTurnstile && (
+                                    <TurnstileWidget
+                                        siteKey={turnstileSiteKey}
+                                        onSuccess={handleTurnstileSuccess}
+                                        onError={handleTurnstileError}
+                                        onExpire={handleTurnstileExpire}
+                                        onTimeout={handleTurnstileTimeout}
+                                        onBypass={handleTurnstileBypass}
+                                        onRetryExhausted={handleTurnstileRetryExhausted}
+                                        enabled={turnstileEnabled}
+                                        mode={turnstileMode}
+                                        resetRef={turnstileResetRef}
+                                        executeRef={turnstileExecuteRef}
+                                    />
                                 )}
-                            />
 
-                            {turnstileEnabled && turnstileSiteKey && showTurnstile && (
-                                <TurnstileWidget
-                                    siteKey={turnstileSiteKey}
-                                    onSuccess={handleTurnstileSuccess}
-                                    onError={handleTurnstileError}
-                                    onExpire={handleTurnstileExpire}
-                                    onTimeout={handleTurnstileTimeout}
-                                    onBypass={handleTurnstileBypass}
-                                    onRetryExhausted={handleTurnstileRetryExhausted}
-                                    enabled={turnstileEnabled}
-                                    mode={turnstileMode}
-                                    resetRef={turnstileResetRef}
-                                    executeRef={turnstileExecuteRef}
-                                />
-                            )}
+                                {verificationError && (
+                                    <div
+                                        role="alert"
+                                        className="text-destructive text-sm"
+                                        data-testid="contact-info-verification-error">
+                                        {verificationError}
+                                    </div>
+                                )}
 
-                            {verificationError && (
-                                <div
-                                    role="alert"
-                                    className="text-destructive text-sm"
-                                    data-testid="contact-info-verification-error">
-                                    {verificationError}
+                                <div className="flex items-start gap-2">
+                                    <FormField
+                                        control={form.control}
+                                        name="countryCode"
+                                        render={({ field }) => (
+                                            <FormItem className="w-20 [&_[data-slot=native-select-wrapper]]:w-full">
+                                                <FormLabel>{t('contactInfo.countryCodeLabel')}</FormLabel>
+                                                <FormNativeSelect
+                                                    aria-label={t('contactInfo.countryCodeLabel')}
+                                                    value={field.value}
+                                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                                        field.onChange(e.target.value)
+                                                    }>
+                                                    {countryCodeOptions}
+                                                </FormNativeSelect>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="phone"
+                                        render={({ field }) => (
+                                            <FormItem className="flex-1">
+                                                <FormLabel>{t('contactInfo.phoneLabel')}*</FormLabel>
+                                                <FormDescription className="sr-only">
+                                                    {t('contactInfo.phoneFormatDescription')}
+                                                </FormDescription>
+                                                <div className="relative">
+                                                    <FormInputWithDescription
+                                                        type="tel"
+                                                        inputMode="numeric"
+                                                        autoComplete="tel-national"
+                                                        maxLength={14}
+                                                        {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(stripNonDigits(e.target.value).slice(0, 10));
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            field.onBlur();
+                                                            // Skip reformat when the field is empty so we don't
+                                                            // fire an onChange that triggers required-phone
+                                                            // validation before the shopper has typed anything.
+                                                            if (e.target.value) {
+                                                                field.onChange(formatPhoneInput(e.target.value));
+                                                            }
+                                                        }}
+                                                        onFocus={(e) => {
+                                                            const digits = stripNonDigits(e.target.value);
+                                                            if (digits !== e.target.value) field.onChange(digits);
+                                                        }}
+                                                    />
+                                                    {!field.value && (
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-base text-muted-foreground md:text-sm">
+                                                            {t('contactInfo.phonePlaceholder')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
-                            )}
-
-                            <div className="flex items-start gap-2">
-                                <FormField
-                                    control={form.control}
-                                    name="countryCode"
-                                    render={({ field }) => (
-                                        <FormItem className="w-20 [&_[data-slot=native-select-wrapper]]:w-full">
-                                            <FormLabel>{t('contactInfo.countryCodeLabel')}</FormLabel>
-                                            <FormNativeSelect
-                                                aria-label={t('contactInfo.countryCodeLabel')}
-                                                value={field.value}
-                                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                                    field.onChange(e.target.value)
-                                                }>
-                                                {countryCodeOptions}
-                                            </FormNativeSelect>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="phone"
-                                    render={({ field }) => (
-                                        <FormItem className="flex-1">
-                                            <FormLabel>{t('contactInfo.phoneLabel')}*</FormLabel>
-                                            <FormInput
-                                                type="tel"
-                                                inputMode="numeric"
-                                                placeholder={t('contactInfo.phonePlaceholder')}
-                                                autoComplete="tel-national"
-                                                maxLength={14}
-                                                {...field}
-                                                onChange={(e) => {
-                                                    field.onChange(stripNonDigits(e.target.value).slice(0, 10));
-                                                }}
-                                                onBlur={(e) => {
-                                                    field.onBlur();
-                                                    field.onChange(formatPhoneInput(e.target.value));
-                                                }}
-                                                onFocus={(e) => {
-                                                    const digits = stripNonDigits(e.target.value);
-                                                    if (digits !== e.target.value) field.onChange(digits);
-                                                }}
-                                            />
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                            </fieldset>
 
                             <div
                                 data-checkout-mobile-bar
@@ -676,6 +777,11 @@ export default function ContactInfo({
                         onCheckoutAsGuest={
                             onRegisteredUserChoseGuest
                                 ? () => {
+                                      const typedEmail = form.getValues('email');
+                                      const basketEmail = cart?.customerInfo?.email || '';
+                                      if (typedEmail && typedEmail.toLowerCase() !== basketEmail.toLowerCase()) {
+                                          void form.handleSubmit(handleFormSubmit)();
+                                      }
                                       setIsLoginModalOpen(false);
                                       lastEmailSentRef.current = null;
                                       if (otpFlowActiveRef) otpFlowActiveRef.current = false;

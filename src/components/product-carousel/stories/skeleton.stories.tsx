@@ -60,7 +60,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof ProductCarouselSkeleton> = {
-    title: 'Components/ProductCarousel/Skeleton',
+    title: 'Products/Product Carousel/Skeleton',
     component: ProductCarouselSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

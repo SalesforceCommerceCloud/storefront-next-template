@@ -41,7 +41,7 @@ export default function RecentSearches({
                                 key={recentSearch}
                                 type="button"
                                 data-slot="suggestion"
-                                onMouseDown={() => {
+                                onClick={() => {
                                     closeAndNavigate(searchUrlBuilder(recentSearch));
                                 }}
                                 className="w-full text-left pl-4 py-2 hover:bg-accent hover:text-foreground text-sm font-medium">
@@ -51,7 +51,7 @@ export default function RecentSearches({
                         <button
                             type="button"
                             data-slot="suggestion"
-                            onMouseDown={clearRecentSearches}
+                            onClick={clearRecentSearches}
                             className="w-full text-left py-2 hover:bg-accent hover:text-foreground text-sm font-medium">
                             {t('suggestions.clearRecentSearches')}
                         </button>

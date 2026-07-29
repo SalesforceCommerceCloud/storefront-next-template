@@ -26,7 +26,7 @@ import { mockConfig } from '@/test-utils/config';
 import DynamicImageProvider from '@/providers/dynamic-image';
 
 const meta: Meta<typeof ProductImageContainer> = {
-    title: 'Components/ProductImage',
+    title: 'Products/Product Image',
     component: ProductImageContainer,
     tags: ['autodocs', 'interaction'],
     parameters: {
@@ -55,7 +55,9 @@ export const Default: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const image = canvas.getByRole('img');
+        // The image link is redundant with the product-name link on the tile, so it is
+        // hidden from assistive tech (aria-hidden). Query with hidden:true to reach it.
+        const image = canvas.getByRole('img', { hidden: true });
         await expect(image).toBeInTheDocument();
         await expect(image).toHaveAttribute('src');
     },
@@ -69,7 +71,7 @@ export const WithColorVariant: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const image = canvas.getByRole('img');
+        const image = canvas.getByRole('img', { hidden: true });
         await expect(image).toBeInTheDocument();
         // The src should correspond to the selected color variant
         // In the mock, Begonia Pink (JJ5QZXX) has specific images.
@@ -86,7 +88,7 @@ export const CustomAspectRatio: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const image = canvas.getByRole('img');
+        const image = canvas.getByRole('img', { hidden: true });
         await expect(image).toBeInTheDocument();
     },
 };
@@ -116,7 +118,7 @@ export const WithNavigationArrows: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const image = canvas.getByRole('img');
+        const image = canvas.getByRole('img', { hidden: true });
         await expect(image).toBeInTheDocument();
         // Navigation arrows render (visible on hover via CSS)
         const arrows = canvasElement.querySelectorAll('button');

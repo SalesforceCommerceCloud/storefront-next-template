@@ -170,8 +170,8 @@ describe('Footer', () => {
         // Footer should have mt-auto class
         expect(footer).toHaveClass('mt-auto');
 
-        // Newsletter section should have primary background
-        const newsletterSection = footer?.querySelector('.bg-primary');
+        // Newsletter section should have the newsletter-band background
+        const newsletterSection = footer?.querySelector('.bg-newsletter-background');
         expect(newsletterSection).toBeInTheDocument();
 
         // Links section should have footer background

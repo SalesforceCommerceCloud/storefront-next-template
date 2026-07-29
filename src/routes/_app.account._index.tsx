@@ -44,6 +44,7 @@ import { getPasswordlessErrorMessageKey } from '@/lib/auth/error-handler';
 import { buildUrl } from '@salesforce/storefront-next-runtime/site-context';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useCurrentSiteAndLocaleRef } from '@/hooks/use-current-site-and-locale-ref';
+import { useDeferredUnmount } from '@/hooks/use-deferred-unmount';
 
 // Lazy load OTP modal for passwordless email editing
 const OtpModal = lazy(() => import('@/components/login/otp-modal').then((m) => ({ default: m.default })));
@@ -94,13 +95,17 @@ function AccountDetailsContent({
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
+    const profileFormRef = useRef<HTMLDivElement | null>(null);
     // Optimistic profile values shown after save until the server customer prop refreshes.
     const [profileOverride, setProfileOverride] = useState<Partial<Customer> | null>(null);
 
     // OTP modal state for passwordless email editing
     const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
     const [otpModalEmail, setOtpModalEmail] = useState<string>('');
-    const [otpModalLoaded, setOtpModalLoaded] = useState(false);
+    // Keep the lazy OTP subtree mounted while open, then unmount shortly after close so its
+    // Radix exit animation plays and its useFetcher, resend-countdown timer, and effects tear
+    // down instead of lingering for the rest of the session.
+    const isOtpModalMounted = useDeferredUnmount(isOtpModalOpen);
     const [otpError, setOtpError] = useState<string | undefined>();
     const [otpModalMode, setOtpModalMode] = useState<'changeEmail' | 'verifyEmail' | 'reauthenticate'>('changeEmail');
 
@@ -108,6 +113,17 @@ function AccountDetailsContent({
     useEffect(() => {
         setProfileOverride(null);
     }, [customer]);
+
+    useEffect(() => {
+        if (isEditingProfile) {
+            requestAnimationFrame(() => {
+                const el = profileFormRef.current?.querySelector<HTMLElement>(
+                    'input:not([type="hidden"]), textarea, select'
+                );
+                el?.focus();
+            });
+        }
+    }, [isEditingProfile]);
 
     const { addToast } = useToast();
     const updatePasswordLoginFetcher = useFetcher();
@@ -370,8 +386,7 @@ function AccountDetailsContent({
             action: resourceRoutes.otpRequest,
         });
 
-        // Open OTP modal (lazy load if first time)
-        setOtpModalLoaded(true);
+        // Open OTP modal (lazy loads on first open, unmounts shortly after close)
         setIsOtpModalOpen(true);
     };
 
@@ -391,7 +406,6 @@ function AccountDetailsContent({
             action: resourceRoutes.otpRequest,
         });
 
-        setOtpModalLoaded(true);
         setIsOtpModalOpen(true);
     };
 
@@ -424,8 +438,7 @@ function AccountDetailsContent({
                 action: resourceRoutes.authorizePasswordlessEmail,
             });
 
-            // Open OTP modal (lazy load if first time)
-            setOtpModalLoaded(true);
+            // Open OTP modal (lazy loads on first open, unmounts shortly after close)
             setIsOtpModalOpen(true);
             return;
         }
@@ -441,6 +454,10 @@ function AccountDetailsContent({
                     // Email is used as loginId in SFCC; after an email update the current session
                     // USID is tied to the old identity. Skip it so SLAS issues a fresh session.
                     skipUsid: 'true',
+                    // Background re-auth: keep this a client-side redirect. A document reload
+                    // (used on the login page to dismiss the passkey picker) would unmount the
+                    // page before the success toast queued above can render.
+                    skipDocumentRedirect: 'true',
                 },
                 {
                     method: 'POST',
@@ -593,6 +610,10 @@ function AccountDetailsContent({
                     password: formData.password,
                     loginMode: 'password',
                     returnUrl: accountUrl,
+                    // Background re-auth: keep this a client-side redirect. A document reload
+                    // (used on the login page to dismiss the passkey picker) would unmount the
+                    // page before the success toast queued above can render.
+                    skipDocumentRedirect: 'true',
                 },
                 {
                     method: 'POST',
@@ -642,22 +663,22 @@ function AccountDetailsContent({
             {/* Page Header Card */}
             <Card className="bg-card border-border">
                 <CardContent className="px-6 py-3">
-                    <h1 className="text-2xl font-semibold text-foreground mb-1" tabIndex={0}>
-                        {t('title')}
-                    </h1>
+                    <h1 className="text-2xl font-semibold text-foreground mb-1">{t('title')}</h1>
                     <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
                 </CardContent>
             </Card>
 
             {/* Personal Information – same layout as Interests & Preferences (header actions top right) */}
             <Card data-testid="profile-card" className="bg-card border-border">
-                <CardHeader className="flex flex-row items-start justify-between border-b border-border pb-4">
-                    <div className="space-y-1.5">
-                        <CardTitle className="text-base font-semibold">{t('profile.title')}</CardTitle>
+                <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-4">
+                    <div className="space-y-1.5 min-w-0">
+                        <CardTitle as="h2" className="text-base font-semibold">
+                            {t('profile.title')}
+                        </CardTitle>
                         <CardDescription className="text-muted-foreground">{t('profile.description')}</CardDescription>
                     </div>
                     {isEditingProfile ? (
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <Button
                                 type="submit"
                                 form="customer-profile-form"
@@ -692,21 +713,23 @@ function AccountDetailsContent({
 
                 <CardContent className="pt-6">
                     {isEditingProfile ? (
-                        <CustomerProfileForm
-                            formId="customer-profile-form"
-                            hideActions
-                            initialData={{
-                                firstName: displayCustomer?.firstName || '',
-                                lastName: displayCustomer?.lastName || '',
-                                phone: displayCustomer?.phoneHome || displayCustomer?.phoneMobile || '',
-                                gender: displayCustomer?.gender !== undefined ? String(displayCustomer.gender) : '',
-                                birthday: displayCustomer?.birthday || '',
-                            }}
-                            updateFetcher={updateProfileFetcher}
-                            onSuccess={handleCustomerProfileSuccess}
-                            onError={handleCustomerProfileError}
-                            onCancel={handleCustomerProfileCancel}
-                        />
+                        <div ref={profileFormRef}>
+                            <CustomerProfileForm
+                                formId="customer-profile-form"
+                                hideActions
+                                initialData={{
+                                    firstName: displayCustomer?.firstName || '',
+                                    lastName: displayCustomer?.lastName || '',
+                                    phone: displayCustomer?.phoneHome || displayCustomer?.phoneMobile || '',
+                                    gender: displayCustomer?.gender !== undefined ? String(displayCustomer.gender) : '',
+                                    birthday: displayCustomer?.birthday || '',
+                                }}
+                                updateFetcher={updateProfileFetcher}
+                                onSuccess={handleCustomerProfileSuccess}
+                                onError={handleCustomerProfileError}
+                                onCancel={handleCustomerProfileCancel}
+                            />
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
@@ -779,10 +802,10 @@ function AccountDetailsContent({
                     <div
                         className="flex flex-wrap items-center justify-between gap-3"
                         data-testid="sf-toggle-card-email-content">
-                        <div className="space-y-2">
-                            <p className="text-sm font-medium text-foreground">{t('email.title')}</p>
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm text-foreground" data-testid="email-value">
+                        <div className="space-y-2 min-w-0">
+                            <h2 className="text-sm font-medium text-foreground">{t('email.title')}</h2>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-sm text-foreground break-all" data-testid="email-value">
                                     {userInfo.email || t('profile.notProvided')}
                                 </p>
                                 {isEmailVerificationEnabled && (
@@ -796,7 +819,7 @@ function AccountDetailsContent({
                                 )}
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             {isEmailVerificationEnabled && !isEmailVerified && (
                                 <Button
                                     variant="outline"
@@ -848,7 +871,7 @@ function AccountDetailsContent({
                         className="flex flex-wrap items-center justify-between gap-3"
                         data-testid="sf-toggle-card-password-content">
                         <div className="space-y-2">
-                            <p className="text-sm font-medium leading-5 text-foreground">{t('password.password')}</p>
+                            <h2 className="text-sm font-medium leading-5 text-foreground">{t('password.password')}</h2>
                             <p className="text-sm font-normal leading-5 text-muted-foreground">
                                 {hasPassword ? t('password.hiddenPassword') : t('password.notProvided')}
                             </p>
@@ -889,7 +912,7 @@ function AccountDetailsContent({
             />
 
             {/* OTP Modal for passwordless email editing */}
-            {otpModalLoaded && (
+            {isOtpModalMounted && (
                 <Suspense fallback={null}>
                     <OtpModal
                         isOpen={isOtpModalOpen}

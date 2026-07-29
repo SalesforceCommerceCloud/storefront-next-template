@@ -100,15 +100,15 @@ export default function Payment({
         paymentSubmissionRef,
     });
 
-    const stepTitle = (
-        <span className="text-2xl font-bold tracking-tight text-card-foreground">{t('payment.title')}</span>
-    );
+    const stepTitle = t('payment.title');
 
     return (
         <div ref={paymentSectionRef}>
             <ToggleCard
                 id="payment"
-                title={stepTitle as React.ReactNode}
+                title={stepTitle}
+                titleAs="h2"
+                titleClassName="text-2xl font-bold tracking-tight text-card-foreground"
                 editing={isEditing}
                 disabled={isUpcomingStep ? false : disabled}
                 disableEdit={isUpcomingStep}
@@ -259,10 +259,14 @@ export default function Payment({
                                                     </div>
                                                 )}
 
-                                                <CreditCardInputFields
-                                                    form={form}
-                                                    autoFocus={isEditing && paymentRadioValue === 'new'}
-                                                />
+                                                <fieldset className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0">
+                                                    <legend className="sr-only">{t('payment.creditCardOption')}</legend>
+                                                    <CreditCardInputFields
+                                                        form={form}
+                                                        // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first field on payment section open when new card selected (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
+                                                        autoFocus={isEditing && paymentRadioValue === 'new'}
+                                                    />
+                                                </fieldset>
                                                 {customerProfile?.customer?.customerId && !hidePaymentSaveCheckbox ? (
                                                     <FormField
                                                         control={form.control}
@@ -424,17 +428,21 @@ export default function Payment({
                                                 )}
                                                 {(selectedBillingAddressId === 'new' ||
                                                     billingAddressOptions.length === 0) && (
-                                                    <div>
+                                                    <fieldset className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0">
+                                                        <legend className="sr-only">
+                                                            {t('payment.billingSummaryTitle')}
+                                                        </legend>
                                                         <AddressFormFields
                                                             form={form}
                                                             fieldPrefix="billing"
                                                             showPhone={false}
                                                             showCountry
                                                             countryCode="US"
+                                                            // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first field on billing address section open (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
                                                             autoFocus
                                                             autoFocusField="firstName"
                                                         />
-                                                    </div>
+                                                    </fieldset>
                                                 )}
                                             </div>
                                         )}

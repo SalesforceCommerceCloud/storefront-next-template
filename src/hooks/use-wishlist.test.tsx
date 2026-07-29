@@ -16,7 +16,7 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import type { ShopperSearch } from '@/scapi';

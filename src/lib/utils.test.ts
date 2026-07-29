@@ -79,10 +79,10 @@ describe('ensureExternalUrl', () => {
         // scheme-less host → prepend https:// (the carrier-tracking bug)
         expect(ensureExternalUrl('www.testingtracking.com')).toBe('https://www.testingtracking.com/');
         expect(ensureExternalUrl('fedex.com/track?n=123')).toBe('https://fedex.com/track?n=123');
-        // protocol-relative, host:port (URL would mis-read as a scheme), and IPv4 hosts
+        // protocol-relative, host:port (URL would mis-read as a scheme), and a PUBLIC IPv4 host
         expect(ensureExternalUrl('//carrier.com/track')).toBe('https://carrier.com/track');
         expect(ensureExternalUrl('carrier.com:8080/track')).toBe('https://carrier.com:8080/track');
-        expect(ensureExternalUrl('192.168.0.1/track')).toBe('https://192.168.0.1/track');
+        expect(ensureExternalUrl('8.8.8.8/track')).toBe('https://8.8.8.8/track');
         // already-absolute http(s): kept; scheme + host lowercased by the URL parser
         expect(ensureExternalUrl('https://www.carrier.com/track?n=1')).toBe('https://www.carrier.com/track?n=1');
         expect(ensureExternalUrl('http://carrier.com')).toBe('http://carrier.com/');
@@ -125,6 +125,13 @@ describe('ensureExternalUrl', () => {
         expect(ensureExternalUrl('\\\\evil.com')).toBeUndefined();
         // control char between slashes must NOT collapse a relative path into //host
         expect(ensureExternalUrl('/\x00/evil.com')).toBeUndefined();
+        // leading whitespace/control chars must NOT let a relative "/\x00/host" payload skip
+        // the relative-path guard and then collapse into "//host" once stripped+trimmed
+        expect(ensureExternalUrl(' /\x00/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('\t/\x00/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('\n/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('\x00\x00/evil.com')).toBeUndefined();
+        expect(ensureExternalUrl('  /\x00\x00/evil.com')).toBeUndefined();
         // dotted-"protocol" WITH an authority (`label.tld://host`) — parses to a dotted
         // protocol so it skips the dot-less validation, and the real host is the part after
         // `//` (`ups.com`/`evil.com`), not the leading label. Must NOT fall through to be
@@ -133,11 +140,38 @@ describe('ensureExternalUrl', () => {
         expect(ensureExternalUrl('foo.bar://evil.com')).toBeUndefined();
     });
 
+    it('rejects private / loopback / link-local IPv4 literals (a carrier link must not target the internal network)', () => {
+        // these all contain dots, so the generic dot-based host check does NOT catch them —
+        // a scheme-less or fully-qualified value pointed at an internal address must be rejected
+        expect(ensureExternalUrl('127.0.0.1/track')).toBeUndefined();
+        expect(ensureExternalUrl('http://127.0.0.1/track')).toBeUndefined();
+        expect(ensureExternalUrl('192.168.0.1/track')).toBeUndefined();
+        expect(ensureExternalUrl('192.168.1.254')).toBeUndefined();
+        expect(ensureExternalUrl('10.0.0.5/track')).toBeUndefined();
+        expect(ensureExternalUrl('172.16.0.1')).toBeUndefined();
+        expect(ensureExternalUrl('172.31.255.255')).toBeUndefined();
+        // cloud instance-metadata endpoint (link-local) — the highest-value SSRF target
+        expect(ensureExternalUrl('http://169.254.169.254/latest/meta-data/')).toBeUndefined();
+        expect(ensureExternalUrl('0.0.0.0/track')).toBeUndefined();
+        expect(ensureExternalUrl('100.64.0.1')).toBeUndefined(); // carrier-grade NAT
+        expect(ensureExternalUrl('224.0.0.1')).toBeUndefined(); // multicast
+        // ...but a genuine PUBLIC IPv4 host must still externalize, and a public address that
+        // merely borders a private range must not be over-rejected
+        expect(ensureExternalUrl('8.8.8.8/track')).toBe('https://8.8.8.8/track');
+        expect(ensureExternalUrl('172.15.0.1')).toBe('https://172.15.0.1/'); // just below 172.16/12
+        expect(ensureExternalUrl('172.32.0.1')).toBe('https://172.32.0.1/'); // just above 172.31
+        expect(ensureExternalUrl('192.169.0.1')).toBe('https://192.169.0.1/'); // not 192.168
+    });
+
     it('still externalizes a genuine scheme-less host:port (no // authority — must not be over-rejected)', () => {
         // The dotted-protocol-authority guard must NOT catch a real `host:port`, whose parse
         // has an EMPTY host (the part after `:` is the port), unlike the `label.tld://…` spoof.
         expect(ensureExternalUrl('carrier.com:8080')).toBe('https://carrier.com:8080/');
         expect(ensureExternalUrl('carrier.com:8080/track')).toBe('https://carrier.com:8080/track');
+        // the leading-whitespace hardening must NOT over-reject a genuine protocol-relative
+        // (`//host`) or scheme-less value that merely has surrounding whitespace
+        expect(ensureExternalUrl('  //carrier.com/track')).toBe('https://carrier.com/track');
+        expect(ensureExternalUrl('  www.carrier.com/track  ')).toBe('https://www.carrier.com/track');
     });
 
     it('rejects junk / non-host values that would become dead external links', () => {

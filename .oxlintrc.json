@@ -1,0 +1,658 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "ignorePatterns": [
+        "**/src/scapi-client/generated/**",
+        "**/src/scapi/generated/**",
+        "**/src/scapi/custom-clients.ts",
+        "**/src/components/ui/**",
+        "**/src/dashboard/components/ui/**",
+        "**/.shadcn-baseline/**",
+        "**/src/lib/page-designer/static-registry.ts",
+        ".claude/**",
+        "**/lighthouserc.cjs",
+        "**/generate-config.cjs",
+        "e2e/**",
+        ".storybook/**/*",
+        "build/**/*",
+        "coverage/**/*",
+        "storybook-static/**/*",
+        "_local/**/*",
+        "**/__snapshots__/**/*",
+        "**/*-snapshot.tsx",
+        "lint-plugins/**"
+    ],
+    "plugins": ["react", "typescript", "import", "jsx-a11y"],
+    "categories": {
+        "correctness": "off",
+        "suspicious": "off",
+        "pedantic": "off",
+        "perf": "off",
+        "style": "off",
+        "restriction": "off",
+        "nursery": "off"
+    },
+    "jsPlugins": ["./lint-plugins/index.ts"],
+    "rules": {
+        "for-direction": "error",
+        "no-async-promise-executor": "error",
+        "no-case-declarations": "error",
+        "no-compare-neg-zero": "error",
+        "no-cond-assign": ["error", "except-parens"],
+        "no-constant-binary-expression": "error",
+        "no-constant-condition": [
+            "error",
+            {
+                "checkLoops": "allExceptWhileTrue"
+            }
+        ],
+        "no-control-regex": "error",
+        "no-debugger": "error",
+        "no-delete-var": "error",
+        "no-dupe-class-members": "error",
+        "no-dupe-else-if": "error",
+        "no-duplicate-case": "error",
+        "no-empty": [
+            "error",
+            {
+                "allowEmptyCatch": false
+            }
+        ],
+        "no-empty-character-class": "error",
+        "no-empty-pattern": [
+            "error",
+            {
+                "allowObjectPatternsAsParameters": false
+            }
+        ],
+        "no-empty-static-block": "error",
+        "no-ex-assign": "error",
+        "no-extra-boolean-cast": ["error", {}],
+        "no-fallthrough": [
+            "error",
+            {
+                "allowEmptyCase": false,
+                "reportUnusedFallthroughComment": false
+            }
+        ],
+        "no-global-assign": [
+            "error",
+            {
+                "exceptions": []
+            }
+        ],
+        "no-invalid-regexp": ["error", {}],
+        "no-irregular-whitespace": [
+            "error",
+            {
+                "skipComments": false,
+                "skipJSXText": false,
+                "skipRegExps": false,
+                "skipStrings": true,
+                "skipTemplates": false
+            }
+        ],
+        "no-loss-of-precision": "error",
+        "no-misleading-character-class": "error",
+        "no-nonoctal-decimal-escape": "error",
+        "no-prototype-builtins": "error",
+        "no-redeclare": "error",
+        "no-regex-spaces": "error",
+        "no-self-assign": [
+            "error",
+            {
+                "props": true
+            }
+        ],
+        "no-shadow-restricted-names": [
+            "error",
+            {
+                "reportGlobalThis": false
+            }
+        ],
+        "no-sparse-arrays": "error",
+        "no-unsafe-finally": "error",
+        "no-unsafe-optional-chaining": [
+            "error",
+            {
+                "disallowArithmeticOperators": false
+            }
+        ],
+        "no-unused-labels": "error",
+        "no-unused-private-class-members": "error",
+        "no-unused-vars": [
+            "error",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
+        "no-useless-backreference": "error",
+        "no-useless-catch": "error",
+        "no-useless-escape": [
+            "error",
+            {
+                "allowRegexCharacters": []
+            }
+        ],
+        "require-yield": "error",
+        "use-isnan": [
+            "error",
+            {
+                "enforceForIndexOf": false,
+                "enforceForSwitchCase": true
+            }
+        ],
+        "valid-typeof": [
+            "error",
+            {
+                "requireStringLiterals": false
+            }
+        ],
+        "no-var": "error",
+        "prefer-const": [
+            "error",
+            {
+                "destructuring": "any",
+                "ignoreReadBeforeAssign": false
+            }
+        ],
+        "prefer-rest-params": "error",
+        "prefer-spread": "error",
+        "typescript/await-thenable": "error",
+        "typescript/ban-ts-comment": "error",
+        "no-array-constructor": "error",
+        "typescript/no-array-delete": "error",
+        "typescript/no-duplicate-enum-values": "error",
+        "typescript/no-duplicate-type-constituents": "error",
+        "typescript/no-empty-object-type": "error",
+        "typescript/no-explicit-any": "error",
+        "typescript/no-extra-non-null-assertion": "error",
+        "typescript/no-floating-promises": "error",
+        "typescript/no-for-in-array": "error",
+        "typescript/no-implied-eval": "error",
+        "typescript/no-misused-new": "error",
+        "typescript/no-misused-promises": [
+            "error",
+            {
+                "checksVoidReturn": {
+                    "attributes": false
+                }
+            }
+        ],
+        "typescript/no-namespace": "error",
+        "typescript/no-non-null-asserted-optional-chain": "error",
+        "typescript/no-require-imports": "error",
+        "typescript/no-this-alias": "error",
+        "typescript/no-unnecessary-type-assertion": "off",
+        "typescript/no-unnecessary-type-constraint": "error",
+        "typescript/no-unsafe-declaration-merging": "error",
+        "typescript/no-unsafe-enum-comparison": "error",
+        "typescript/no-unsafe-function-type": "error",
+        "typescript/no-unsafe-unary-minus": "error",
+        "no-unused-expressions": [
+            "error",
+            {
+                "allowShortCircuit": true,
+                "allowTaggedTemplates": false,
+                "allowTernary": true
+            }
+        ],
+        "typescript/no-wrapper-object-types": "error",
+        "typescript/only-throw-error": "error",
+        "typescript/prefer-as-const": "error",
+        "typescript/prefer-namespace-keyword": "error",
+        "typescript/prefer-promise-reject-errors": [
+            "error",
+            {
+                "allowThrowingAny": true,
+                "allowThrowingUnknown": true
+            }
+        ],
+        "typescript/require-await": "error",
+        "typescript/restrict-plus-operands": "error",
+        "typescript/restrict-template-expressions": "error",
+        "typescript/triple-slash-reference": "error",
+        "typescript/unbound-method": "error",
+        "react/display-name": "error",
+        "react/jsx-key": "error",
+        "react/jsx-no-comment-textnodes": "error",
+        "react/jsx-no-duplicate-props": "error",
+        "react/jsx-no-target-blank": "error",
+        "react/jsx-no-undef": "error",
+        "react/no-children-prop": "error",
+        "react/no-danger-with-children": "error",
+        "react/no-direct-mutation-state": "error",
+        "react/no-find-dom-node": "error",
+        "react/no-is-mounted": "error",
+        "react/no-render-return-value": "error",
+        "react/no-string-refs": "error",
+        "react/no-unescaped-entities": "error",
+        "react/no-unknown-property": "error",
+        "react/no-unsafe": "error",
+        "react/require-render-return": "error",
+        "no-restricted-imports": [
+            "warn",
+            {
+                "paths": [
+                    {
+                        "name": "react-router",
+                        "importNames": ["Link", "NavLink", "useNavigate"],
+                        "message": "Import Link/NavLink from \"@/components/link\" and useNavigate from \"@/hooks/use-navigate\" for multi-site URL prefixing."
+                    }
+                ],
+                "patterns": [
+                    {
+                        "group": [
+                            "@salesforce/storefront-next-runtime/scapi",
+                            "@salesforce/storefront-next-runtime/scapi/*"
+                        ],
+                        "message": "Import SCAPI types and clients from \"@/scapi\" so overrides resolve correctly."
+                    }
+                ]
+            }
+        ],
+        "typescript/consistent-type-exports": "error",
+        "typescript/consistent-type-imports": [
+            "error",
+            {
+                "prefer": "type-imports"
+            }
+        ],
+        "typescript/dot-notation": [
+            "error",
+            {
+                "allowIndexSignaturePropertyAccess": false,
+                "allowKeywords": true,
+                "allowPattern": "",
+                "allowPrivateClassPropertyAccess": true,
+                "allowProtectedClassPropertyAccess": true
+            }
+        ],
+        "no-empty-function": [
+            "error",
+            {
+                "allow": []
+            }
+        ],
+        "typescript/no-non-null-assertion": "error",
+        "no-shadow": "error",
+        "no-useless-constructor": "warn",
+        "react/no-array-index-key": "error",
+        "react/no-danger": "error",
+        "react/self-closing-comp": "error",
+        "react/style-prop-object": "error",
+        "react/void-dom-elements-no-children": "error",
+        "jsx-a11y/alt-text": [
+            "error",
+            {
+                "elements": ["img", "object", "area", "input[type=\"image\"]"],
+                "img": ["DynamicImage", "ProductImage"]
+            }
+        ],
+        "jsx-a11y/img-redundant-alt": "warn",
+        "jsx-a11y/anchor-ambiguous-text": "error",
+        "jsx-a11y/anchor-has-content": "error",
+        "jsx-a11y/anchor-is-valid": "error",
+        "jsx-a11y/aria-activedescendant-has-tabindex": "error",
+        "jsx-a11y/aria-props": "error",
+        "jsx-a11y/aria-proptypes": "error",
+        "jsx-a11y/aria-role": "error",
+        "jsx-a11y/aria-unsupported-elements": "error",
+        "jsx-a11y/autocomplete-valid": "error",
+        "jsx-a11y/click-events-have-key-events": "error",
+        "jsx-a11y/heading-has-content": "error",
+        "jsx-a11y/html-has-lang": "error",
+        "jsx-a11y/iframe-has-title": "error",
+        "jsx-a11y/interactive-supports-focus": "error",
+        "jsx-a11y/label-has-associated-control": "error",
+        "jsx-a11y/media-has-caption": "error",
+        "jsx-a11y/mouse-events-have-key-events": "error",
+        "jsx-a11y/no-access-key": "error",
+        "jsx-a11y/no-aria-hidden-on-focusable": "error",
+        "jsx-a11y/no-autofocus": "error",
+        "jsx-a11y/no-distracting-elements": "error",
+        "jsx-a11y/no-interactive-element-to-noninteractive-role": "error",
+        "jsx-a11y/no-noninteractive-element-interactions": "error",
+        "jsx-a11y/no-noninteractive-element-to-interactive-role": "error",
+        "jsx-a11y/no-noninteractive-tabindex": "error",
+        "jsx-a11y/no-redundant-roles": [
+            "error",
+            {
+                "ul": ["list"]
+            }
+        ],
+        "jsx-a11y/no-static-element-interactions": "error",
+        "jsx-a11y/role-has-required-aria-props": "error",
+        "jsx-a11y/role-supports-aria-props": "error",
+        "jsx-a11y/scope": "error",
+        "jsx-a11y/tabindex-no-positive": "error",
+        "react/rules-of-hooks": "error",
+        "react/exhaustive-deps": "warn",
+        "react/only-export-components": [
+            "warn",
+            {
+                "allowConstantExport": true
+            }
+        ],
+        "import/no-namespace": "error",
+        "no-console": ["error", {}],
+        "no-alert": "warn",
+        "no-duplicate-imports": [
+            "error",
+            {
+                "includeExports": false,
+                "allowSeparateTypeImports": false
+            }
+        ],
+        "no-useless-return": "warn",
+        "no-useless-rename": [
+            "warn",
+            {
+                "ignoreDestructuring": false,
+                "ignoreImport": false,
+                "ignoreExport": false
+            }
+        ],
+        "object-shorthand": "warn",
+        "prefer-template": "warn",
+        "custom/color-linter": "error",
+        "custom/header-format": [
+            "error",
+            {
+                "source": "string",
+                "content": "Copyright 2026 Salesforce, Inc.\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.",
+                "style": "jsdoc",
+                "preservePragmas": true,
+                "enableVueSupport": false
+            }
+        ]
+    },
+    "overrides": [
+        {
+            "files": ["**/*.{js,mjs,cjs,mts,cts}"],
+            "env": {
+                "node": true,
+                "builtin": true
+            },
+            "rules": {
+                "constructor-super": "error",
+                "custom/color-linter": "off",
+                "getter-return": [
+                    "error",
+                    {
+                        "allowImplicit": false
+                    }
+                ],
+                "import/no-namespace": "off",
+                "jsx-a11y/alt-text": "off",
+                "jsx-a11y/img-redundant-alt": "off",
+                "no-alert": "off",
+                "no-class-assign": "error",
+                "no-console": "off",
+                "no-const-assign": "error",
+                "no-dupe-keys": "error",
+                "no-duplicate-imports": "off",
+                "no-empty-function": "off",
+                "no-func-assign": "error",
+                "no-import-assign": "error",
+                "no-new-native-nonconstructor": "error",
+                "no-obj-calls": "error",
+                "no-redeclare": [
+                    "error",
+                    {
+                        "builtinGlobals": true
+                    }
+                ],
+                "no-restricted-imports": "off",
+                "no-setter-return": "error",
+                "no-shadow": "off",
+                "no-this-before-super": "error",
+                "no-undef": [
+                    "error",
+                    {
+                        "typeof": false
+                    }
+                ],
+                "no-unreachable": "error",
+                "no-unsafe-negation": [
+                    "error",
+                    {
+                        "enforceForOrderingRelations": false
+                    }
+                ],
+                "no-unused-expressions": [
+                    "error",
+                    {
+                        "allowShortCircuit": false,
+                        "allowTaggedTemplates": false,
+                        "allowTernary": false
+                    }
+                ],
+                "no-unused-vars": "error",
+                "no-useless-constructor": "off",
+                "no-useless-rename": "off",
+                "no-useless-return": "off",
+                "no-var": "off",
+                "no-with": "error",
+                "object-shorthand": "off",
+                "prefer-const": "off",
+                "prefer-rest-params": "off",
+                "prefer-spread": "off",
+                "prefer-template": "off",
+                "react/exhaustive-deps": "off",
+                "react/no-array-index-key": "off",
+                "react/no-danger": "off",
+                "react/no-unsafe": "off",
+                "react/only-export-components": "off",
+                "react/rules-of-hooks": "off",
+                "react/self-closing-comp": "off",
+                "react/style-prop-object": "off",
+                "react/void-dom-elements-no-children": "off",
+                "typescript/await-thenable": "off",
+                "typescript/consistent-type-exports": "off",
+                "typescript/consistent-type-imports": "off",
+                "typescript/dot-notation": "off",
+                "typescript/no-array-delete": "off",
+                "typescript/no-duplicate-type-constituents": "off",
+                "typescript/no-floating-promises": "off",
+                "typescript/no-for-in-array": "off",
+                "typescript/no-implied-eval": "off",
+                "typescript/no-misused-promises": "off",
+                "typescript/no-non-null-assertion": "off",
+                "typescript/no-unnecessary-type-assertion": "off",
+                "typescript/no-unsafe-enum-comparison": "off",
+                "typescript/no-unsafe-unary-minus": "off",
+                "typescript/only-throw-error": "off",
+                "typescript/prefer-promise-reject-errors": "off",
+                "typescript/require-await": "off",
+                "typescript/restrict-plus-operands": "off",
+                "typescript/restrict-template-expressions": "off",
+                "typescript/unbound-method": "off"
+            }
+        },
+        {
+            "files": [
+                "**/src/components/link/index.tsx",
+                "**/src/components/link.tsx",
+                "**/src/dashboard/components/link.tsx",
+                "**/src/hooks/use-navigate.ts"
+            ],
+            "rules": {
+                "no-restricted-imports": "off",
+                "react/only-export-components": "off"
+            }
+        },
+        {
+            "files": ["**/src/scapi/**/*.{ts,tsx}", "**/src/lib/api-clients.server.ts"],
+            "rules": {
+                "no-restricted-imports": "off"
+            }
+        },
+        {
+            "files": ["**/src/lib/logger.ts"],
+            "rules": {
+                "no-console": "off"
+            }
+        },
+        {
+            "files": ["**/*.config.{js,ts}", "**/scripts/**/*.{js,ts}"],
+            "rules": {
+                "no-console": "off"
+            }
+        },
+        {
+            "files": ["**/*.{test,spec}.{ts,tsx,js,jsx}", "**/__tests__/**/*.{ts,tsx,js,jsx}"],
+            "rules": {
+                "no-console": "off",
+                "no-empty-function": "off",
+                "no-restricted-imports": [
+                    "warn",
+                    {
+                        "patterns": [
+                            {
+                                "group": [
+                                    "@salesforce/storefront-next-runtime/scapi",
+                                    "@salesforce/storefront-next-runtime/scapi/*"
+                                ],
+                                "message": "Import SCAPI types and clients from \"@/scapi\" so overrides resolve correctly."
+                            }
+                        ]
+                    }
+                ],
+                "typescript/consistent-type-imports": "off",
+                "typescript/no-explicit-any": "off",
+                "jsx-a11y/no-autofocus": "off",
+                "jsx-a11y/anchor-is-valid": "off",
+                "jsx-a11y/click-events-have-key-events": "off",
+                "jsx-a11y/no-static-element-interactions": "off",
+                "jsx-a11y/aria-role": "off"
+            }
+        },
+        {
+            "files": ["**/routes/**/*.{ts,tsx}"],
+            "excludeFiles": ["**/routes/**/*.test.{ts,tsx}"],
+            "rules": {
+                "no-restricted-exports": [
+                    "error",
+                    {
+                        "restrictedNamedExports": ["clientAction", "clientLoader"]
+                    }
+                ],
+                "react/only-export-components": "off",
+                "typescript/only-throw-error": [
+                    "error",
+                    {
+                        "allow": [
+                            {
+                                "from": "lib",
+                                "name": ["Response"]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["**/root.tsx"],
+            "rules": {
+                "react/no-danger": "off",
+                "react/only-export-components": "off"
+            }
+        },
+        {
+            "files": ["**/*.server.{ts,tsx}"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "@salesforce/storefront-next-runtime/i18n/client",
+                                "message": "The /i18n/client entry is browser-only. Import server-capable i18n APIs from \"@salesforce/storefront-next-runtime/i18n\"."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["**/*.d.ts"],
+            "rules": {
+                "no-unused-vars": "off",
+                "typescript/no-explicit-any": "off"
+            }
+        },
+        {
+            "files": ["src/**/*.{ts,tsx}"],
+            "excludeFiles": [
+                "src/**/*.{test,spec}.{ts,tsx}",
+                "src/**/__tests__/**/*.{ts,tsx}",
+                "src/scapi/**/*.{ts,tsx}",
+                "src/lib/api-clients.server.ts",
+                "src/components/link/index.tsx",
+                "src/components/link.tsx",
+                "src/hooks/use-navigate.ts"
+            ],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "react-router",
+                                "importNames": ["Link", "NavLink", "useNavigate"],
+                                "message": "Import Link/NavLink from \"@/components/link\" and useNavigate from \"@/hooks/use-navigate\" for multi-site URL prefixing."
+                            }
+                        ],
+                        "patterns": [
+                            {
+                                "group": [
+                                    "@salesforce/storefront-next-runtime/scapi",
+                                    "@salesforce/storefront-next-runtime/scapi/*"
+                                ],
+                                "message": "Import SCAPI types and clients from \"@/scapi\" so overrides resolve correctly."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["src/**/*.{test,spec}.{ts,tsx}", "src/**/__tests__/**/*.{ts,tsx}"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "patterns": [
+                            {
+                                "group": [
+                                    "@salesforce/storefront-next-runtime/scapi",
+                                    "@salesforce/storefront-next-runtime/scapi/*"
+                                ],
+                                "message": "Import SCAPI types and clients from \"@/scapi\" so overrides resolve correctly."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["**/*.stories.{ts,tsx,js,jsx}"],
+            "rules": {
+                "custom/color-linter": "off",
+                "import/no-namespace": "off",
+                "no-empty-function": "off",
+                "no-unused-vars": [
+                    "warn",
+                    {
+                        "argsIgnorePattern": "^_"
+                    }
+                ],
+                "typescript/consistent-type-imports": "off",
+                "typescript/no-explicit-any": "off",
+                "typescript/no-floating-promises": "off",
+                "typescript/no-non-null-assertion": "off",
+                "typescript/require-await": "off"
+            }
+        }
+    ]
+}

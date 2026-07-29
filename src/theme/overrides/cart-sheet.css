@@ -1,6 +1,6 @@
 /* Mini cart flyout: hide the default SheetContent close button (a raw
  * Radix Close primitive without a data-slot) so only the custom
  * SheetClose rendered inside the panel is visible. */
-[data-slot='sheet-content'].mini-cart-flyout > button:not([data-slot]) {
+[data-slot="sheet-content"].mini-cart-flyout > button:not([data-slot]) {
     display: none;
 }

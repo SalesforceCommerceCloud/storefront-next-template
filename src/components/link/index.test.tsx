@@ -84,6 +84,21 @@ describe('Link', () => {
 
         expect(getByRole('link')).toHaveAttribute('href', '/global/en-GB/');
     });
+
+    test('renders a scheme-less external domain as an absolute https link (no site prefix)', () => {
+        // Page Designer merchants typically type a bare domain (e.g. `www.google.com`) into an
+        // external-link field. It must become a real cross-origin href, not a site-prefixed path
+        // like `/global/en-GBwww.google.com`.
+        const { getByRole } = renderWithRouter(<Link to="www.google.com">External</Link>);
+
+        expect(getByRole('link')).toHaveAttribute('href', 'https://www.google.com');
+    });
+
+    test('leaves a fully-qualified external URL untouched', () => {
+        const { getByRole } = renderWithRouter(<Link to="https://www.example.com/foo">External</Link>);
+
+        expect(getByRole('link')).toHaveAttribute('href', 'https://www.example.com/foo');
+    });
 });
 
 // Hybrid legacy-route tests: stub useConfig to turn hybrid ON with a configurable legacyRoutes

@@ -77,7 +77,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof RefinePrice> = {
-    title: 'CATEGORY/Category Refinements/Refine Price',
+    title: 'Category/Category Refinements/Refine Price',
     component: RefinePrice,
     tags: ['autodocs', 'interaction'],
     parameters: {

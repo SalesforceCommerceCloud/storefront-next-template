@@ -42,7 +42,7 @@ const sampleOrder: Order = {
 };
 
 const meta: Meta<typeof RateRecentPurchasesCard> = {
-    title: 'ACCOUNT/Account Overview/Rate Recent Purchases Card',
+    title: 'Account/Overview/Rate Recent Purchases Card',
     component: RateRecentPurchasesCard,
     tags: ['autodocs', 'skip-a11y'],
     parameters: {
@@ -94,6 +94,17 @@ export const SingleLineNoImage: Story = {
                     productName: 'Unnamed catalog item',
                 },
             ],
+        },
+    },
+};
+
+// A derived return status surfaces in the caption instead of the raw order status.
+export const WithReturnStatus: Story = {
+    args: {
+        order: {
+            ...sampleOrder,
+            status: 'completed',
+            returnStatus: 'RETURN_COMPLETE',
         },
     },
 };

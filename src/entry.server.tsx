@@ -101,7 +101,7 @@ export default function handleRequest(
                 onError(error: unknown) {
                     responseStatusCode = 500;
                     if (shellRendered) {
-                        // eslint-disable-next-line no-console
+                        // oxlint-disable-next-line no-console
                         console.error(error);
                     }
                 },

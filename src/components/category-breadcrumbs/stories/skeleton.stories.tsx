@@ -19,7 +19,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof CategoryBreadcrumbsSkeleton> = {
-    title: 'CATEGORY/CategoryBreadcrumbsSkeleton',
+    title: 'Category/Category Breadcrumbs Skeleton',
     component: CategoryBreadcrumbsSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

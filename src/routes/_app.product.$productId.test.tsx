@@ -19,7 +19,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { use } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import { type ProductPageData } from './_app.product.$productId';
-import { EMPTY_WISHLIST_STATE } from '@/lib/wishlist/state';
 
 // ProductPage reads `nonce` from the root loader. Tests render the page outside
 // a real data router, so stub `useRouteLoaderData` with a deterministic value.
@@ -84,6 +83,7 @@ vi.mock('@/components/with-suspense', () => ({
 vi.mock('@/components/product-carousel', () => ({
     ProductCarouselWithSuspense: ({ title, resolve }: any) => {
         try {
+            // oxlint-disable-next-line react/rules-of-hooks -- oxlint flags use() in try/catch; eslint-plugin-react-hooks accepts this test pattern
             const data = use(resolve);
             return (
                 <div data-testid="product-carousel">
@@ -158,10 +158,6 @@ vi.mock('@/extensions/store-locator/middlewares/selected-store.server', () => ({
     selectedStoreContext: { id: 'selectedStoreContext' },
 }));
 
-vi.mock('@/lib/wishlist/fetch-initial-state.server', () => ({
-    fetchWishlistInitialState: vi.fn(() => Promise.resolve(EMPTY_WISHLIST_STATE)),
-}));
-
 vi.mock('@/extensions/bopis/context/pickup-context', () => ({
     default: ({ children }: any) => <div data-testid="pickup-provider">{children}</div>,
 }));
@@ -205,7 +201,6 @@ describe('Product Detail Route', () => {
     });
 
     const mockExtensionLoaderData = {
-        wishlistInitialState: Promise.resolve(EMPTY_WISHLIST_STATE),
         // @sfdc-extension-block-start SFDC_EXT_BNPL
         bnplMessage: Promise.resolve({
             paymentCount: 4,
@@ -258,7 +253,6 @@ describe('Product Detail Route', () => {
             warranty: { heading: '', intro: '', whatsCovered: [], whatsNotCovered: [], claimsProcess: '' },
             exchanges: { heading: '', intro: '', process: '' },
         }),
-        faqQuestions: Promise.resolve({ questions: [] }),
         pdpCollapsibles: Promise.resolve([]),
         // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
         // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY

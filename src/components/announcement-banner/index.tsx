@@ -79,6 +79,7 @@ function normalizeColorScheme(value: string | undefined): AnnouncementBannerColo
     description: 'A banner for announcements, promotions, and alerts',
 })
 @RegionDefinition([])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class AnnouncementBannerMetadata {
     @AttributeDefinition({ name: 'Message', type: 'string' })
     message!: string;
@@ -184,5 +185,5 @@ export function AnnouncementBannerFallback() {
     );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { AnnouncementBannerFallback as fallback };

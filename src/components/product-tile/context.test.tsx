@@ -15,10 +15,10 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { act, render, renderHook, screen } from '@testing-library/react';
-import type { PropsWithChildren } from 'react';
+import { type PropsWithChildren, useReducer } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import { ProductTileProvider, useProductTileContext } from './context';
+import { isDesktopViewport, ProductTileProvider, useProductTileContext } from './context';
 
 const mockNavigate = vi.fn();
 
@@ -30,12 +30,23 @@ vi.mock('react-router', async (importOriginal) => {
     };
 });
 
-vi.mock('react-i18next', () => ({
-    useTranslation: (ns: string) => ({
-        t: (key: string) => `${ns}:${key}`,
-        i18n: { language: 'en-US' },
-    }),
-}));
+// react-i18next returns a referentially stable `t` per namespace while language/namespace are
+// unchanged. Mirror that here — a fresh `t` per call would spuriously break the value-stability
+// assertions below, a failure real i18next does not exhibit.
+vi.mock('react-i18next', () => {
+    const cache = new Map<string, (key: string) => string>();
+    return {
+        useTranslation: (ns: string) => {
+            if (!cache.has(ns)) {
+                cache.set(ns, (key: string) => `${ns}:${key}`);
+            }
+            return {
+                t: cache.get(ns),
+                i18n: { language: 'en-US' },
+            };
+        },
+    };
+});
 
 /**
  * Helper to render a hook within the full provider stack (Router + Config).
@@ -117,7 +128,6 @@ describe('ProductTileProvider', () => {
             expect.objectContaining({
                 navigate: expect.any(Function),
                 currency: 'USD',
-                swatchMode: expect.stringMatching(/^(click|hover)$/),
             })
         );
         expect(result.current.config).toBeDefined();
@@ -152,6 +162,109 @@ describe('ProductTileProvider', () => {
     });
 });
 
+describe('ProductTileProvider value stability', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    test('keeps the context value referentially stable across provider re-renders with unchanged inputs', () => {
+        const captured: ReturnType<typeof useProductTileContext>[] = [];
+        let forceRerender: () => void = () => {};
+
+        function Consumer() {
+            captured.push(useProductTileContext());
+            return null;
+        }
+
+        function Harness() {
+            const [, bump] = useReducer((n: number) => n + 1, 0);
+            forceRerender = bump;
+            return (
+                <ProductTileProvider>
+                    <Consumer />
+                </ProductTileProvider>
+            );
+        }
+
+        const router = createMemoryRouter(
+            [
+                {
+                    path: '/',
+                    element: (
+                        <AllProvidersWrapper>
+                            <Harness />
+                        </AllProvidersWrapper>
+                    ),
+                },
+            ],
+            { initialEntries: ['/'] }
+        );
+
+        render(<RouterProvider router={router} />);
+
+        const initialRenderCount = captured.length;
+        expect(initialRenderCount).toBeGreaterThan(0);
+        const before = captured[captured.length - 1];
+
+        // Re-render the provider without changing any of its inputs.
+        act(() => {
+            forceRerender();
+        });
+
+        // The consumer re-rendered (it is a child of the re-rendered subtree)...
+        expect(captured.length).toBeGreaterThan(initialRenderCount);
+        // ...but the context value must be the same reference, so memoized consumers can bail out.
+        expect(captured[captured.length - 1]).toBe(before);
+    });
+
+    test('keeps the fallback value referentially stable across re-renders outside a provider', () => {
+        const captured: ReturnType<typeof useProductTileContext>[] = [];
+        let forceRerender: () => void = () => {};
+
+        function Consumer() {
+            captured.push(useProductTileContext());
+            return null;
+        }
+
+        function Harness() {
+            const [, bump] = useReducer((n: number) => n + 1, 0);
+            forceRerender = bump;
+            // No ProductTileProvider — exercises the fallback path in useProductTileContext.
+            return <Consumer />;
+        }
+
+        const router = createMemoryRouter(
+            [
+                {
+                    path: '/',
+                    element: (
+                        <AllProvidersWrapper>
+                            <Harness />
+                        </AllProvidersWrapper>
+                    ),
+                },
+            ],
+            { initialEntries: ['/'] }
+        );
+
+        render(<RouterProvider router={router} />);
+
+        const initialRenderCount = captured.length;
+        const before = captured[captured.length - 1];
+
+        act(() => {
+            forceRerender();
+        });
+
+        expect(captured.length).toBeGreaterThan(initialRenderCount);
+        expect(captured[captured.length - 1]).toBe(before);
+    });
+});
+
 describe('useProductTileContext', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -171,7 +284,6 @@ describe('useProductTileContext', () => {
         expect(result.current.config).toBeDefined();
         expect(result.current.t).toBeTypeOf('function');
         expect(result.current.currency).toBe('USD');
-        expect(result.current.swatchMode).toMatch(/^(click|hover)$/);
         expect(result.current.getBadges).toBeTypeOf('function');
     });
 
@@ -185,7 +297,6 @@ describe('useProductTileContext', () => {
         expect(result.current.config).toBeDefined();
         expect(result.current.t).toBeTypeOf('function');
         expect(result.current.currency).toBe('USD');
-        expect(result.current.swatchMode).toMatch(/^(click|hover)$/);
         expect(result.current.getBadges).toBeTypeOf('function');
     });
 
@@ -201,7 +312,7 @@ describe('useProductTileContext', () => {
         const keys = Object.keys(withProvider.current).sort();
         const fallbackKeys = Object.keys(withoutProvider.current).sort();
         expect(keys).toEqual(fallbackKeys);
-        expect(keys).toEqual(['config', 'currency', 'getBadges', 'navigate', 'swatchMode', 't']);
+        expect(keys).toEqual(['config', 'currency', 'getBadges', 'navigate', 't']);
     });
 });
 
@@ -266,7 +377,7 @@ describe('getBadges (via useProductTileContext)', () => {
     });
 });
 
-describe('useSwatchMode (via useProductTileContext)', () => {
+describe('isDesktopViewport', () => {
     let originalMatchMedia: typeof globalThis.matchMedia;
 
     beforeEach(() => {
@@ -279,7 +390,7 @@ describe('useSwatchMode (via useProductTileContext)', () => {
         globalThis.matchMedia = originalMatchMedia;
     });
 
-    test('returns "click" when viewport is below 1024px (mobile)', () => {
+    test('returns false below the lg breakpoint (mobile)', () => {
         globalThis.matchMedia = vi.fn().mockImplementation((query: string) => ({
             matches: false,
             media: query,
@@ -291,14 +402,10 @@ describe('useSwatchMode (via useProductTileContext)', () => {
             dispatchEvent: vi.fn(),
         }));
 
-        const { result } = renderHook(() => useProductTileContext(), {
-            wrapper: createProviderWrapper(),
-        });
-
-        expect(result.current.swatchMode).toBe('click');
+        expect(isDesktopViewport()).toBe(false);
     });
 
-    test('returns "hover" when viewport is at or above 1024px (desktop)', () => {
+    test('returns true at or above the lg breakpoint (desktop)', () => {
         globalThis.matchMedia = vi.fn().mockImplementation((query: string) => ({
             matches: true,
             media: query,
@@ -310,79 +417,13 @@ describe('useSwatchMode (via useProductTileContext)', () => {
             dispatchEvent: vi.fn(),
         }));
 
-        const { result } = renderHook(() => useProductTileContext(), {
-            wrapper: createProviderWrapper(),
-        });
-
-        expect(result.current.swatchMode).toBe('hover');
+        expect(isDesktopViewport()).toBe(true);
     });
 
-    test('updates swatchMode when media query changes', () => {
-        let changeCallback: (() => void) | null = null;
-        let currentMatches = false;
-
-        globalThis.matchMedia = vi.fn().mockImplementation((query: string) => ({
-            get matches() {
-                return currentMatches;
-            },
-            media: query,
-            addEventListener: vi.fn((_event: string, cb: () => void) => {
-                changeCallback = cb;
-            }),
-            removeEventListener: vi.fn(),
-            onchange: null,
-            addListener: vi.fn(),
-            removeListener: vi.fn(),
-            dispatchEvent: vi.fn(),
-        }));
-
-        const { result } = renderHook(() => useProductTileContext(), {
-            wrapper: createProviderWrapper(),
-        });
-
-        expect(result.current.swatchMode).toBe('click');
-
-        // Simulate viewport change to desktop
-        currentMatches = true;
-        act(() => {
-            changeCallback?.();
-        });
-
-        expect(result.current.swatchMode).toBe('hover');
-    });
-
-    test('cleans up media query listener on unmount', () => {
-        const removeEventListener = vi.fn();
-
-        globalThis.matchMedia = vi.fn().mockImplementation((query: string) => ({
-            matches: false,
-            media: query,
-            addEventListener: vi.fn(),
-            removeEventListener,
-            onchange: null,
-            addListener: vi.fn(),
-            removeListener: vi.fn(),
-            dispatchEvent: vi.fn(),
-        }));
-
-        const { unmount } = renderHook(() => useProductTileContext(), {
-            wrapper: createProviderWrapper(),
-        });
-
-        unmount();
-
-        expect(removeEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-    });
-
-    test('returns "click" as server snapshot (when matchMedia is unavailable)', () => {
-        // Simulate server environment where matchMedia is not available
+    test('returns false when matchMedia is unavailable (server)', () => {
+        // Simulate a server environment where matchMedia is not defined.
         globalThis.matchMedia = undefined as unknown as typeof globalThis.matchMedia;
 
-        const { result } = renderHook(() => useProductTileContext(), {
-            wrapper: createProviderWrapper(),
-        });
-
-        // Without matchMedia, getSwatchModeSnapshot returns 'click' (falsy ?. chain)
-        expect(result.current.swatchMode).toBe('click');
+        expect(isDesktopViewport()).toBe(false);
     });
 });

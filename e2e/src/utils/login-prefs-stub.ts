@@ -22,6 +22,7 @@
  */
 
 import type { Route, Request } from 'playwright';
+import { turboStreamEncode } from './turbo-stream';
 
 /** Branch to render on email blur. */
 export type LoginPrefsBranch = 'otp' | 'loginModal' | 'guest';
@@ -95,48 +96,6 @@ function encodeAuthorizePasswordlessEmailResponse(branch: LoginPrefsBranch, emai
         case 'guest':
             return turboStreamEncode({ data: { success: false, email } });
     }
-}
-
-/**
- * Minimal React Router single-fetch encoder for plain objects with primitive
- * leaves. Mirrors the upstream flatten/stringify walk so output is byte-for-byte
- * decodable by `decodeViaTurboStream`. Handles only the subset this stub needs.
- */
-function turboStreamEncode(input: unknown): string {
-    const slots: string[] = [];
-    const indices = new Map<unknown, number>();
-
-    function flatten(value: unknown): number {
-        const existing = indices.get(value);
-        if (existing !== undefined) return existing;
-        const index = slots.length;
-        indices.set(value, index);
-        slots.push('');
-        slots[index] = stringify(value);
-        return index;
-    }
-
-    function stringify(value: unknown): string {
-        if (value === null) return 'null';
-        switch (typeof value) {
-            case 'boolean':
-            case 'number':
-            case 'string':
-                return JSON.stringify(value);
-            case 'object': {
-                if (Array.isArray(value)) {
-                    return `[${value.map(flatten).join(',')}]`;
-                }
-                const obj = value as Record<string, unknown>;
-                const parts = Object.keys(obj).map((k) => `"_${flatten(k)}":${flatten(obj[k])}`);
-                return `{${parts.join(',')}}`;
-            }
-        }
-        throw new Error(`turboStreamEncode: unsupported value of type ${typeof value}`);
-    }
-
-    flatten(input);
-    return `[${slots.join(',')}]\n`;
 }
 
 /** Internal exports for unit tests. */

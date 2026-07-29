@@ -1,217 +1,217 @@
 {
-    "version": "1.0",
-    "description": "Evaluation suite for checkout-test-development skill",
-    "locale": "en-US",
-    "evals": [
-        {
-            "id": "e2e-test-generation-basic",
-            "category": "E2E Test Generation",
-            "name": "Generate basic guest checkout test",
-            "description": "Verify skill can generate a basic guest checkout E2E test with proper structure",
-            "prompt": "Using the checkout-test-development skill, generate an E2E test for: Guest user adds product to cart, navigates to checkout, fills contact info with email, enters shipping address, selects first shipping method, fills payment details, and completes order. Use TEST_PRODUCT_CATEGORIES.MENS_JACKETS. Include proper tags (@checkout, @guest-checkout, @place-order) and Feature/Scenario structure.",
-            "success_criteria": [
-                "Test includes Feature() with @core and @checkout tags",
-                "Test includes Scenario() with @guest-checkout and @place-order tags",
-                "Uses addToCartFlow.executeAndNavigateToCheckout()",
-                "Uses checkoutPage methods (not direct I.* calls)",
-                "Uses generateTestEmail() for unique email generation",
-                "Includes expect() assertions for order number validation",
-                "Includes proper waits and timing (waitForOrderConfirmation)",
-                "No hardcoded test data (uses TEST_* constants)"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "e2e-test-generation-billing",
-            "category": "E2E Test Generation",
-            "name": "Generate billing address test",
-            "description": "Verify skill can generate a test with different billing address logic",
-            "prompt": "Generate an E2E test for: Registered shopper uses saved shipping address, then selects 'use different billing address', enters custom billing address, selects payment method, and completes order. Include: waitForUseDifferentBillingCheckbox, checkUseDifferentBillingAddress, fillBillingAddress, and verify billing address saved to account.",
-            "success_criteria": [
-                "Includes loginFlow.execute() for registered user",
-                "Includes After() logout hook",
-                "Uses waitForUseDifferentBillingCheckbox() before interaction",
-                "Uses checkUseDifferentBillingAddress() async method",
-                "Uses fillBillingAddress() with custom address object",
-                "Includes account address verification after order",
-                "Uses proper tag (@registered-shopper, @billing-address)",
-                "Handles both prefilled and new address patterns"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "e2e-test-payment-validation",
-            "category": "E2E Test Generation",
-            "name": "Generate payment validation test",
-            "description": "Verify skill generates payment validation tests with error handling",
-            "prompt": "Generate a test that validates payment form error handling: Fill invalid card number, verify error appears, correct card number, verify error clears, successfully submit payment.",
-            "success_criteria": [
-                "Uses INVALID_TEST_DATA.SHORT_CARD_NUMBER for invalid input",
-                "Fills invalid data and waits for validation errors",
-                "Uses proper error selectors or page object methods",
-                "Corrects invalid field with valid TEST_PAYMENT data",
-                "Verifies error clears after correction",
-                "Completes order successfully",
-                "Includes @payment-validation tag",
-                "Uses expect() for assertion validation"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "storybook-story-generation",
-            "category": "Storybook Story Generation",
-            "name": "Generate Storybook story for form component",
-            "description": "Verify skill can generate properly structured Storybook stories",
-            "prompt": "Generate a Storybook story for ContactForm component with variants: Empty (all fields blank), Filled (with valid data), Loading (spinning state), WithErrors (validation errors). Include Meta, argTypes, and Story definitions.",
-            "success_criteria": [
-                "Includes Meta type definition with title and component",
-                "Includes tags: ['autodocs'] for auto-documentation",
-                "Defines argTypes with controls (boolean for isLoading, action for onSubmit)",
-                "Exports default meta",
-                "Exports type Story = StoryObj<typeof meta>",
-                "Includes at least 4 story variants (Empty, Filled, Loading, WithErrors)",
-                "Each story has args with initial values",
-                "Uses realistic test data matching checkout context"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "debugging-diagnosis",
-            "category": "Debugging",
-            "name": "Provide debugging approach for timing issue",
-            "description": "Verify skill diagnoses and provides solutions for common timeout issues",
-            "prompt": "Debug: Test times out waiting for payment form after shipping method selection. Context: Contact info filled, shipping address entered, shipping method selected (index 0), then wait for payment form times out after 15 seconds. What are the likely causes and solutions?",
-            "success_criteria": [
-                "Identifies shipping method not selected as potential cause",
-                "Identifies form state issues or re-renders",
-                "Suggests checking element selector in DOM",
-                "Recommends using expandPaymentStep() for prefilled data",
-                "Suggests increasing wait time to 20+ seconds",
-                "Recommends checking for overlay elements",
-                "Suggests scrollIntoView() if element off-screen",
-                "Provides concrete code examples for debugging"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "debugging-billing-address",
-            "category": "Debugging",
-            "name": "Debug billing address checkbox not responding",
-            "description": "Verify skill diagnoses billing address toggle issues",
-            "prompt": "Billing address checkbox doesn't toggle. After clicking 'use different billing address', the form fields don't appear. What debugging steps should we take?",
-            "success_criteria": [
-                "Recommends using page object method areBillingAddressFieldsVisible()",
-                "Suggests checking waitForUseDifferentBillingCheckbox() before interaction",
-                "Recommends verifying checkbox state with isUsingDifferentBillingAddress()",
-                "Suggests checking for CSS animation delays",
-                "Recommends DOM inspection to verify fields exist",
-                "Suggests checking form state synchronization",
-                "References proper timing patterns for form toggles"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "performance-analysis",
-            "category": "Performance Analysis",
-            "name": "Analyze checkout performance bottleneck",
-            "description": "Verify skill can identify performance issues and suggest optimizations",
-            "prompt": "Checkout performance: Page load 4.5s (target 3s), shipping API 2.3s (target 1s), payment form render 1.8s (target 500ms). Which is the critical bottleneck and what are optimization strategies?",
-            "success_criteria": [
-                "Identifies shipping API as critical bottleneck (2.3s)",
-                "Suggests API caching as primary optimization",
-                "Suggests CDN for static shipping rate data",
-                "Recommends request batching or optimization",
-                "Identifies payment form rendering as secondary issue",
-                "Suggests component memoization or lazy validation",
-                "Recommends monitoring network vs rendering separately",
-                "Suggests establishing baseline metrics before optimization"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "preconditions-validation",
-            "category": "Preconditions",
-            "name": "Verify skill preconditions are met",
-            "description": "Verify skill checks all required preconditions before proceeding",
-            "prompt": "I'm in the storefront-next project. Can I use the checkout-test-development skill?",
-            "success_criteria": [
-                "Confirms user is in correct project (template-retail-rsc-app/e2e)",
-                "Checks for required files (checkout.page.ts, checkout.data.ts)",
-                "Verifies test environment setup (CodeceptJS, Playwright)",
-                "Provides guidance if preconditions not met",
-                "Offers setup instructions if missing dependencies"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "multi-currency-test",
-            "category": "E2E Test Generation",
-            "name": "Generate data-driven multi-currency test",
-            "description": "Verify skill generates data-driven tests for multiple currencies",
-            "prompt": "Generate a data-driven test that runs checkout in multiple currencies (USD and GBP). Use TEST_LOCALE_CURRENCIES from test data. Test should verify currency symbol on order summary and confirmation page.",
-            "success_criteria": [
-                "Uses TEST_LOCALE_CURRENCIES array for data-driven iteration",
-                "Uses for...of loop or data loop pattern",
-                "Generates test name with currency label",
-                "Uses sitePrefix option with locale/site info",
-                "Verifies currency pattern with regex (not hardcoded symbol)",
-                "Checks currency on both order summary and confirmation",
-                "Includes proper tags (@multi-currency and specific currency)",
-                "Uses locale-specific shipping address for each currency"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "page-object-method-usage",
-            "category": "Code Quality",
-            "name": "Verify proper page object method usage",
-            "description": "Verify skill recommends and uses page object methods correctly",
-            "prompt": "What are the key checkout page object methods and when should they be used instead of direct I.* calls?",
-            "success_criteria": [
-                "Lists completeCheckout() for happy-path tests",
-                "Lists fillContactInfo(), fillShippingAddress(), selectShippingMethod()",
-                "Lists checkUseDifferentBillingAddress(), fillBillingAddress()",
-                "Lists fillPaymentInfo() vs fillPaymentFieldsOnly()",
-                "Explains never using direct I.* calls in test scenarios",
-                "Explains advantage of page object abstraction",
-                "Recommends review of checkout.page.ts for available methods",
-                "Shows proper usage patterns in code examples"
-            ],
-            "locale": "en-US"
-        },
-        {
-            "id": "test-data-management",
-            "category": "Code Quality",
-            "name": "Demonstrate proper test data usage",
-            "description": "Verify skill uses proper test data constants",
-            "prompt": "Show proper test data usage patterns for checkout testing. What constants are available?",
-            "success_criteria": [
-                "References TEST_SHIPPING_ADDRESS constant",
-                "References TEST_PAYMENT constant",
-                "References TEST_PRODUCT_CATEGORIES object",
-                "References TEST_LOCALE_CURRENCIES for multi-currency",
-                "References INVALID_TEST_DATA for error testing",
-                "Shows generateTestEmail() for unique email generation",
-                "Imports from e2e/src/test-data/checkout.data.ts",
-                "Explains advantage of centralized test data"
-            ],
-            "locale": "en-US"
-        }
-    ],
-    "metadata": {
-        "created_date": "2026-04-02",
-        "last_updated": "2026-04-02",
-        "total_evals": 11,
-        "estimated_duration_minutes": 45,
-        "coverage_areas": [
-            "E2E Test Generation (4 evals)",
-            "Storybook Story Generation (1 eval)",
-            "Debugging (2 evals)",
-            "Performance Analysis (1 eval)",
-            "Code Quality (2 evals)",
-            "Preconditions (1 eval)"
-        ],
-        "success_rate_target": "95%",
-        "notes": "Evals test skill's ability to generate checkout tests, debug issues, create Storybook stories, and provide performance guidance. All evals in en-US locale per skill requirements."
+  "version": "1.0",
+  "description": "Evaluation suite for checkout-test-development skill",
+  "locale": "en-US",
+  "evals": [
+    {
+      "id": "e2e-test-generation-basic",
+      "category": "E2E Test Generation",
+      "name": "Generate basic guest checkout test",
+      "description": "Verify skill can generate a basic guest checkout E2E test with proper structure",
+      "prompt": "Using the checkout-test-development skill, generate an E2E test for: Guest user adds product to cart, navigates to checkout, fills contact info with email, enters shipping address, selects first shipping method, fills payment details, and completes order. Use TEST_PRODUCT_CATEGORIES.MENS_JACKETS. Include proper tags (@checkout, @guest-checkout, @place-order) and Feature/Scenario structure.",
+      "success_criteria": [
+        "Test includes Feature() with @core and @checkout tags",
+        "Test includes Scenario() with @guest-checkout and @place-order tags",
+        "Uses addToCartFlow.executeAndNavigateToCheckout()",
+        "Uses checkoutPage methods (not direct I.* calls)",
+        "Uses generateTestEmail() for unique email generation",
+        "Includes expect() assertions for order number validation",
+        "Includes proper waits and timing (waitForOrderConfirmation)",
+        "No hardcoded test data (uses TEST_* constants)"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "e2e-test-generation-billing",
+      "category": "E2E Test Generation",
+      "name": "Generate billing address test",
+      "description": "Verify skill can generate a test with different billing address logic",
+      "prompt": "Generate an E2E test for: Registered shopper uses saved shipping address, then selects 'use different billing address', enters custom billing address, selects payment method, and completes order. Include: waitForUseDifferentBillingCheckbox, checkUseDifferentBillingAddress, fillBillingAddress, and verify billing address saved to account.",
+      "success_criteria": [
+        "Includes loginFlow.execute() for registered user",
+        "Includes After() logout hook",
+        "Uses waitForUseDifferentBillingCheckbox() before interaction",
+        "Uses checkUseDifferentBillingAddress() async method",
+        "Uses fillBillingAddress() with custom address object",
+        "Includes account address verification after order",
+        "Uses proper tag (@registered-shopper, @billing-address)",
+        "Handles both prefilled and new address patterns"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "e2e-test-payment-validation",
+      "category": "E2E Test Generation",
+      "name": "Generate payment validation test",
+      "description": "Verify skill generates payment validation tests with error handling",
+      "prompt": "Generate a test that validates payment form error handling: Fill invalid card number, verify error appears, correct card number, verify error clears, successfully submit payment.",
+      "success_criteria": [
+        "Uses INVALID_TEST_DATA.SHORT_CARD_NUMBER for invalid input",
+        "Fills invalid data and waits for validation errors",
+        "Uses proper error selectors or page object methods",
+        "Corrects invalid field with valid TEST_PAYMENT data",
+        "Verifies error clears after correction",
+        "Completes order successfully",
+        "Includes @payment-validation tag",
+        "Uses expect() for assertion validation"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "storybook-story-generation",
+      "category": "Storybook Story Generation",
+      "name": "Generate Storybook story for form component",
+      "description": "Verify skill can generate properly structured Storybook stories",
+      "prompt": "Generate a Storybook story for ContactForm component with variants: Empty (all fields blank), Filled (with valid data), Loading (spinning state), WithErrors (validation errors). Include Meta, argTypes, and Story definitions.",
+      "success_criteria": [
+        "Includes Meta type definition with title and component",
+        "Includes tags: ['autodocs'] for auto-documentation",
+        "Defines argTypes with controls (boolean for isLoading, action for onSubmit)",
+        "Exports default meta",
+        "Exports type Story = StoryObj<typeof meta>",
+        "Includes at least 4 story variants (Empty, Filled, Loading, WithErrors)",
+        "Each story has args with initial values",
+        "Uses realistic test data matching checkout context"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "debugging-diagnosis",
+      "category": "Debugging",
+      "name": "Provide debugging approach for timing issue",
+      "description": "Verify skill diagnoses and provides solutions for common timeout issues",
+      "prompt": "Debug: Test times out waiting for payment form after shipping method selection. Context: Contact info filled, shipping address entered, shipping method selected (index 0), then wait for payment form times out after 15 seconds. What are the likely causes and solutions?",
+      "success_criteria": [
+        "Identifies shipping method not selected as potential cause",
+        "Identifies form state issues or re-renders",
+        "Suggests checking element selector in DOM",
+        "Recommends using expandPaymentStep() for prefilled data",
+        "Suggests increasing wait time to 20+ seconds",
+        "Recommends checking for overlay elements",
+        "Suggests scrollIntoView() if element off-screen",
+        "Provides concrete code examples for debugging"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "debugging-billing-address",
+      "category": "Debugging",
+      "name": "Debug billing address checkbox not responding",
+      "description": "Verify skill diagnoses billing address toggle issues",
+      "prompt": "Billing address checkbox doesn't toggle. After clicking 'use different billing address', the form fields don't appear. What debugging steps should we take?",
+      "success_criteria": [
+        "Recommends using page object method areBillingAddressFieldsVisible()",
+        "Suggests checking waitForUseDifferentBillingCheckbox() before interaction",
+        "Recommends verifying checkbox state with isUsingDifferentBillingAddress()",
+        "Suggests checking for CSS animation delays",
+        "Recommends DOM inspection to verify fields exist",
+        "Suggests checking form state synchronization",
+        "References proper timing patterns for form toggles"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "performance-analysis",
+      "category": "Performance Analysis",
+      "name": "Analyze checkout performance bottleneck",
+      "description": "Verify skill can identify performance issues and suggest optimizations",
+      "prompt": "Checkout performance: Page load 4.5s (target 3s), shipping API 2.3s (target 1s), payment form render 1.8s (target 500ms). Which is the critical bottleneck and what are optimization strategies?",
+      "success_criteria": [
+        "Identifies shipping API as critical bottleneck (2.3s)",
+        "Suggests API caching as primary optimization",
+        "Suggests CDN for static shipping rate data",
+        "Recommends request batching or optimization",
+        "Identifies payment form rendering as secondary issue",
+        "Suggests component memoization or lazy validation",
+        "Recommends monitoring network vs rendering separately",
+        "Suggests establishing baseline metrics before optimization"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "preconditions-validation",
+      "category": "Preconditions",
+      "name": "Verify skill preconditions are met",
+      "description": "Verify skill checks all required preconditions before proceeding",
+      "prompt": "I'm in the storefront-next project. Can I use the checkout-test-development skill?",
+      "success_criteria": [
+        "Confirms user is in correct project (e2e)",
+        "Checks for required files (checkout.page.ts, checkout.data.ts)",
+        "Verifies test environment setup (CodeceptJS, Playwright)",
+        "Provides guidance if preconditions not met",
+        "Offers setup instructions if missing dependencies"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "multi-currency-test",
+      "category": "E2E Test Generation",
+      "name": "Generate data-driven multi-currency test",
+      "description": "Verify skill generates data-driven tests for multiple currencies",
+      "prompt": "Generate a data-driven test that runs checkout in multiple currencies (USD and GBP). Use TEST_LOCALE_CURRENCIES from test data. Test should verify currency symbol on order summary and confirmation page.",
+      "success_criteria": [
+        "Uses TEST_LOCALE_CURRENCIES array for data-driven iteration",
+        "Uses for...of loop or data loop pattern",
+        "Generates test name with currency label",
+        "Uses sitePrefix option with locale/site info",
+        "Verifies currency pattern with regex (not hardcoded symbol)",
+        "Checks currency on both order summary and confirmation",
+        "Includes proper tags (@multi-currency and specific currency)",
+        "Uses locale-specific shipping address for each currency"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "page-object-method-usage",
+      "category": "Code Quality",
+      "name": "Verify proper page object method usage",
+      "description": "Verify skill recommends and uses page object methods correctly",
+      "prompt": "What are the key checkout page object methods and when should they be used instead of direct I.* calls?",
+      "success_criteria": [
+        "Lists completeCheckout() for happy-path tests",
+        "Lists fillContactInfo(), fillShippingAddress(), selectShippingMethod()",
+        "Lists checkUseDifferentBillingAddress(), fillBillingAddress()",
+        "Lists fillPaymentInfo() vs fillPaymentFieldsOnly()",
+        "Explains never using direct I.* calls in test scenarios",
+        "Explains advantage of page object abstraction",
+        "Recommends review of checkout.page.ts for available methods",
+        "Shows proper usage patterns in code examples"
+      ],
+      "locale": "en-US"
+    },
+    {
+      "id": "test-data-management",
+      "category": "Code Quality",
+      "name": "Demonstrate proper test data usage",
+      "description": "Verify skill uses proper test data constants",
+      "prompt": "Show proper test data usage patterns for checkout testing. What constants are available?",
+      "success_criteria": [
+        "References TEST_SHIPPING_ADDRESS constant",
+        "References TEST_PAYMENT constant",
+        "References TEST_PRODUCT_CATEGORIES object",
+        "References TEST_LOCALE_CURRENCIES for multi-currency",
+        "References INVALID_TEST_DATA for error testing",
+        "Shows generateTestEmail() for unique email generation",
+        "Imports from e2e/src/test-data/checkout.data.ts",
+        "Explains advantage of centralized test data"
+      ],
+      "locale": "en-US"
     }
+  ],
+  "metadata": {
+    "created_date": "2026-04-02",
+    "last_updated": "2026-04-02",
+    "total_evals": 11,
+    "estimated_duration_minutes": 45,
+    "coverage_areas": [
+      "E2E Test Generation (4 evals)",
+      "Storybook Story Generation (1 eval)",
+      "Debugging (2 evals)",
+      "Performance Analysis (1 eval)",
+      "Code Quality (2 evals)",
+      "Preconditions (1 eval)"
+    ],
+    "success_rate_target": "95%",
+    "notes": "Evals test skill's ability to generate checkout tests, debug issues, create Storybook stories, and provide performance guidance. All evals in en-US locale per skill requirements."
+  }
 }

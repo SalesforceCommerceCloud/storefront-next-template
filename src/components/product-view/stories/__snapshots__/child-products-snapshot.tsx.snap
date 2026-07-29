@@ -26,8 +26,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £38.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-bold text-card-foreground tracking-tight"
           >
             £38.00
@@ -89,12 +88,13 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="space-y-3"
         >
           <div
-            aria-label="Color"
+            aria-labelledby="swatch-group-label-_r_0_"
             class="flex flex-col gap-3"
             role="radiogroup"
           >
             <div
               class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+              id="swatch-group-label-_r_0_"
             >
               <span>
                 Color
@@ -163,8 +163,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £45.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-bold text-card-foreground tracking-tight"
           >
             £45.00
@@ -226,12 +225,13 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="space-y-3"
         >
           <div
-            aria-label="Color"
+            aria-labelledby="swatch-group-label-_r_1_"
             class="flex flex-col gap-3"
             role="radiogroup"
           >
             <div
               class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+              id="swatch-group-label-_r_1_"
             >
               <span>
                 Color
@@ -300,8 +300,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £30.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="[&:not(:first-child)]:mt-6 text-left text-lg font-bold text-card-foreground tracking-tight"
           >
             £30.00
@@ -363,12 +362,13 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           class="space-y-3"
         >
           <div
-            aria-label="Color"
+            aria-labelledby="swatch-group-label-_r_2_"
             class="flex flex-col gap-3"
             role="radiogroup"
           >
             <div
               class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+              id="swatch-group-label-_r_2_"
             >
               <span>
                 Color
@@ -431,24 +431,26 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
         <label
           class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
           data-slot="label"
-          for="quantity"
+          for="quantity-_r_3_"
         >
           Quantity
         </label>
         <div
+          aria-label="Quantity for Turquoise Jewelry Bundle"
           class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+          role="group"
         >
           <button
             aria-label="Decrement Quantity for Turquoise Jewelry Bundle"
-            class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="quantity-decrement"
             disabled=""
           >
             −
           </button>
           <input
-            aria-label="Quantity"
-            class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            id="quantity-_r_3_"
             min="1"
             step="1"
             type="number"
@@ -456,7 +458,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
           />
           <button
             aria-label="Increment Quantity for Turquoise Jewelry Bundle"
-            class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="quantity-increment"
           >
             +
@@ -492,7 +494,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
             >
               <button
                 aria-checked="false"
-                class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+                class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
                 data-radix-collection-item=""
                 data-slot="radio-group-item"
                 data-state="unchecked"
@@ -535,7 +537,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
             >
               <button
                 aria-checked="false"
-                class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
+                class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
                 data-disabled=""
                 data-radix-collection-item=""
                 data-slot="radio-group-item"
@@ -605,7 +607,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
     class="flex justify-center"
   >
     <button
-      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 min-w-64"
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 min-w-64"
       data-size="lg"
       data-slot="button"
       data-testid="add-to-cart"
@@ -614,5 +616,9 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
       Add Bundle to Cart
     </button>
   </div>
+  <div
+    aria-atomic="true"
+    role="status"
+  />
 </div>
 `;

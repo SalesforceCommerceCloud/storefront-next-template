@@ -22,7 +22,7 @@
  * @fileoverview Exports for product carousel functionality including loading states and Suspense boundaries
  */
 import { AttributeDefinition, Component, RegionDefinition } from '@/lib/decorators';
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
 
 const productCarouselDefaults = {
@@ -56,6 +56,7 @@ export default ProductCarouselWithSuspense;
         componentTypeInclusions: ['Content.productTile'],
     },
 ])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class ProductCarouselWithSuspenseMetadata {
     @AttributeDefinition({
         defaultValue: productCarouselDefaults.title,
@@ -79,5 +80,5 @@ export class ProductCarouselWithSuspenseMetadata {
     limit?: number;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { default as fallback } from './skeleton';

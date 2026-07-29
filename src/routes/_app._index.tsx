@@ -19,9 +19,6 @@ import type { Route } from './+types/_app._index';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { fetchCarouselProducts } from '@/components/product-carousel/loaders';
 import { fetchCategories } from '@/lib/api/categories.server';
-import { fetchWishlistInitialState } from '@/lib/wishlist/fetch-initial-state.server';
-import type { WishlistInitialState } from '@/lib/wishlist/state';
-import { WishlistProvider } from '@/providers/wishlist';
 import { siteContext, resolvePrefix, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { Region } from '@/components/region';
 import PopularCategories from '@/components/home/popular-categories';
@@ -43,7 +40,7 @@ import { ProductCarouselWithData } from '@/components/product-carousel/carousel'
 import { SeoMeta } from '@/components/seo-meta';
 import { buildCanonicalUrl } from '@/utils/canonical-url';
 import { useTranslation } from 'react-i18next';
-import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import type { NormalizedApiError } from '@/lib/api/normalized-api-error';
 
 export { shouldRevalidate } from '@/lib/revalidation/routes/home';
 
@@ -88,7 +85,6 @@ export type HomePageData = {
     page: ReturnType<typeof fetchPageWithComponentData>;
     searchResult: Promise<ShopperSearch.schemas['ProductSearchResult']>;
     categories: Promise<ShopperProducts.schemas['Category'][]>;
-    wishlistInitialState: Promise<WishlistInitialState>;
     pageUrl: string;
     ogImageUrl: string;
 };
@@ -131,7 +127,6 @@ export function loader(args: Route.LoaderArgs): HomePageData {
             currency: currency ?? undefined,
         }),
         categories: fetchCategories(args.context, 'root', 1),
-        wishlistInitialState: fetchWishlistInitialState(args.context),
         pageUrl,
         ogImageUrl: new URL(hero01, requestUrl.origin).href,
     };
@@ -193,8 +188,9 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
     ];
 
     return (
-        <WishlistProvider initialState={loaderData.wishlistInitialState}>
+        <>
             <div className="pb-16 -mt-8">
+                <h1 className="sr-only">{t('meta.title', { defaultValue: 'NextGen PWA Kit Store' })}</h1>
                 <SeoMeta
                     rawTitle
                     title={t('meta.title', { defaultValue: 'NextGen PWA Kit Store' })}
@@ -267,6 +263,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
                                             imageUrl={hero03}
                                             imageAlt={t('featuredContent.women.imageAlt')}
                                             buttonText={t('featuredContent.women.ctaText')}
+                                            buttonAriaLabel={t('featuredContent.women.ctaAriaLabel')}
                                             buttonLink="/category/womens"
                                             showBackground={false}
                                             showBorder={false}
@@ -278,6 +275,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
                                             imageUrl={hero04}
                                             imageAlt={t('featuredContent.men.imageAlt')}
                                             buttonText={t('featuredContent.men.ctaText')}
+                                            buttonAriaLabel={t('featuredContent.men.ctaAriaLabel')}
                                             buttonLink="/category/mens"
                                             showBackground={false}
                                             showBorder={false}
@@ -303,6 +301,6 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
                     }
                 />
             </div>
-        </WishlistProvider>
+        </>
     );
 }

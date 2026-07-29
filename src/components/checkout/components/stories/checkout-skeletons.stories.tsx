@@ -32,7 +32,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta = {
-    title: 'CHECKOUT/CheckoutSkeletons',
+    title: 'Checkout/Skeletons',
     parameters: {
         ...checkoutStrictA11yParameters,
         layout: 'padded',

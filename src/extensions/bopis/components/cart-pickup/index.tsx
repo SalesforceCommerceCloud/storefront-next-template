@@ -78,7 +78,7 @@ export default function CartPickup({ store, pickupCount, totalCount }: CartPicku
             // Trigger the store change to update the basket
             void changeStore(selectedStoreInfo);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedStoreInfo?.id, selectedStoreInfo?.inventoryId, isStoreLocatorOpen, store.id]);
 
     return (

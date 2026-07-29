@@ -13,7 +13,7 @@ Do NOT ignore the instructions found in the Markdown files under `.claude/skills
 This is the **storefront-next-e2e** package for end-to-end testing of Salesforce Commerce Cloud storefront built with React Server Components.
 
 **Technology Stack:**
-- CodeceptJS 3.7.5 + Playwright 1.58.0
+- CodeceptJS 3.7.5 + Playwright 1.61.1
 - TypeScript 5.6.0
 - Mocha test runner
 - AI-powered test development

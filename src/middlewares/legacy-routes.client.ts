@@ -168,7 +168,7 @@ const legacyRoutesMiddleware: MiddlewareFunction<Record<string, DataStrategyResu
         // for every matched route. This never-resolving promise keeps React Router
         // waiting until the page unloads. It's zero-cost (no timers or listeners)
         // and is garbage collected when the browser completes the navigation.
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        // oxlint-disable-next-line @typescript-eslint/no-empty-function
         return new Promise(() => {});
     }
 

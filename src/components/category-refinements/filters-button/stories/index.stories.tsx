@@ -29,7 +29,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 // ---------------------------------------------------------------------------
 
 const meta: Meta<typeof FiltersButton> = {
-    title: 'CATEGORY/Category Refinements/Filters Button',
+    title: 'Category/Category Refinements/Filters Button',
     component: FiltersButton,
     tags: ['autodocs', 'interaction'],
     parameters: {

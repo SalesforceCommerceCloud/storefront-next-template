@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { type ReactElement, Suspense } from 'react';
-import { Await, redirect, useLoaderData, useParams } from 'react-router';
+import { Await, redirect, useLoaderData, useParams, useRouteLoaderData } from 'react-router';
 import type { Route } from './+types/_app.account.orders.$orderNo';
 import { Link } from '@/components/link';
 import { routes } from '@/route-paths';
@@ -35,7 +35,7 @@ import OrderSkeleton from '@/components/order-skeleton';
 import { SeoMeta } from '@/components/seo-meta';
 import { useTranslation } from 'react-i18next';
 import type { ShopperOrders } from '@/scapi';
-import { fetchOrderWithProducts } from '@/lib/api/order.server';
+import { fetchOrderWithProducts, type OmsMetaDataResult } from '@/lib/api/order.server';
 import { buildUrlFromContext } from '@/lib/url.server';
 import { getLogger } from '@/lib/logger.server';
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
@@ -70,6 +70,11 @@ export function loader({ context, params }: Route.LoaderArgs): OrderDetailsPageL
 
     return {
         orderData: orderDataPromise,
+        // Note: OMS reason codes are fetched by the parent section loader
+        // (_app.account.orders), not here — they're org-level, so fetching once
+        // per section (not once per order) avoids a redundant round-trip on
+        // every order-to-order navigation. Consumers read them via
+        // useRouteLoaderData('routes/_app.account.orders').
         // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
         // Form config for per-line "Rate & Review" — one config per order is sufficient.
         writeReviewForm: getWriteReviewForm(orderNo),
@@ -112,6 +117,12 @@ export default function OrderDetailsPage(): ReactElement {
     const { t } = useTranslation('account');
     const { orderNo } = useParams();
     const loaderData = useLoaderData<typeof loader>();
+    // OMS reason codes are fetched once by the parent section loader
+    // (_app.account.orders), not per order — read the deferred promise from there.
+    const ordersSectionData = useRouteLoaderData<{ omsMetaData: Promise<OmsMetaDataResult> }>(
+        'routes/_app.account.orders'
+    );
+    const omsMetaData = ordersSectionData?.omsMetaData;
 
     let content: ReactElement = (
         <div className="w-full section-container pt-0 pb-8">
@@ -149,7 +160,9 @@ export default function OrderDetailsPage(): ReactElement {
                             <OrderNotFoundCard />
                         </div>
                     }>
-                    {(data) => <OrderDetails order={data.order} productsById={data.productsById} />}
+                    {(data) => (
+                        <OrderDetails order={data.order} productsById={data.productsById} omsMetaData={omsMetaData} />
+                    )}
                 </Await>
             </Suspense>
         </div>

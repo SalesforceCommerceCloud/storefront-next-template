@@ -4,19 +4,18 @@ This folder contains **feature extensions** that allow you to enhance and custom
 
 ## Purpose
 
-The `extensions` directory is the central place for developing and managing reusable application extensions, such as UI widgets, backend integrations, or business logic add-ons. Files under each is self-contained and can be included individually, making it easy to add new features or integrations to your retail application.
+The `extensions` directory is the central place for developing and managing reusable application extensions, such as UI widgets, backend integrations, or business logic add-ons. Files under each is self-contained and can be included individually, making it easy to add new features or integrations to your retail application. 
 
 ## Extension Target
 
 ### Component
-
 Extension components can be inserted into target points defined in the main application. These target points are marked with the `UITarget` element, each identified by a unique targetId. For example:
 
 ```
 <UITarget targetId='header.before.cart' />
 ```
 
-To insert a component into a target point, configure the `target-config.json` file under `src/extensions/<your-extension>` folder. For example:
+To insert a component into a target point, configure the `target-config.json` file under `src/extensions/<your-extension>` folder. For example: 
 
 ```
 {
@@ -29,7 +28,6 @@ To insert a component into a target point, configure the `target-config.json` fi
     ]
 }
 ```
-
 When more than one components target the same targetId, they'll be rendered in ascending order as specified.
 
 ### Context provider
@@ -48,24 +46,20 @@ Similarly, a custom context provider can also be inserted into the application r
 ```
 
 ### Route
-
 To add a custom route for an extension, simply create a new file under the `src/extensions/<your-extension>/routes` folder. Any file under this folder will be processed as a new route.
 
 ## Extension Integration
-
 This folder contains only "net-new" files related to an extention. Integration changes, i.e., additional code changes to the core application, are made in files outside the extension folder. They're marked by special comment markers to indicate the annotated code snippet is a part of an extension.
 
 Example integration code:
 
 - A single line of code
-
 ```typescript
 /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */
-import storeLocator from '@extensions/store-locator';
+import storeLocator from '@extensions/store-locator'
 ```
 
 - A block of code
-
 ```typescript
 {/* @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR */}
 <li>
@@ -78,11 +72,11 @@ import storeLocator from '@extensions/store-locator';
 ```
 
 - An entire file
-
 ```typescript
 /** @sfdc-extension-file SFDC_EXT_STORE_LOCATOR */
 ...
 ```
+
 
 ## How Extensions Are Registered
 
@@ -157,14 +151,13 @@ src/
             store-locator-badge.tsx    ← cosmetic override
 ```
 
-**How resolution works**: at dev time, the vertical-first Vite resolver (`vite-plugins/vertical-resolvers.ts`) checks `src/verticals/${VERTICAL}/<spec>` before canonical `src/<spec>` for any `@/...` import. At mirror time, `overlayVerticalSrcTree()` in `scripts/mirror.mjs` copies vertical files over canonical so the customer artifact has a single flat tree with the override baked in. **The overlay only resolves when the consumer imports through the `@/...` alias** — sibling-relative imports bypass the resolver and pin the canonical file.
+**How resolution works**: at dev time, the vertical-first Vite resolver (`vite-plugins/vertical-resolvers.ts`) checks `src/verticals/${VERTICAL}/<spec>` before canonical `src/<spec>` for any `@/...` import. At mirror time, `overlayVerticalSrcTree()` in `scripts/internal/mirror.mjs` copies vertical files over canonical so the customer artifact has a single flat tree with the override baked in. **The overlay only resolves when the consumer imports through the `@/...` alias** — sibling-relative imports bypass the resolver and pin the canonical file.
 
-**Extension routes** (`src/extensions/<name>/routes/`) are merged into the route tree by the SDK's `flatRoutes()` (in `@salesforce/storefront-next-runtime/routing`). Per-vertical route overrides under `src/verticals/<name>/routes/` are merged on top — vertical wins on file-id collision. This applies to extension routes too, but the more common pattern is to override individual _files_ the route imports.
+**Extension routes** (`src/extensions/<name>/routes/`) are merged into the route tree by the SDK's `flatRoutes()` (in `@salesforce/storefront-next-runtime/routing`). Per-vertical route overrides under `src/verticals/<name>/routes/` are merged on top — vertical wins on file-id collision. This applies to extension routes too, but the more common pattern is to override individual *files* the route imports.
 
 ### Out of scope: net-new extensions per vertical
 
-The aggregators (`pnpm locales:aggregate-extensions` and `pnpm config:aggregate-extensions`) scan canonical `src/extensions/` only — verticals can override files inside an existing extension, but they cannot register a _brand-new_ extension that lives only under `src/verticals/<name>/extensions/<new-ext>/`. If a vertical needs a feature no other vertical has, add the extension under canonical and gate its UI through tokens or per-vertical config. File a follow-up if a true per-vertical extension surface is needed.
-
+The aggregators (`pnpm locales:aggregate-extensions` and `pnpm config:aggregate-extensions`) scan canonical `src/extensions/` only — verticals can override files inside an existing extension, but they cannot register a *brand-new* extension that lives only under `src/verticals/<name>/extensions/<new-ext>/`. If a vertical needs a feature no other vertical has, add the extension under canonical and gate its UI through tokens or per-vertical config. File a follow-up if a true per-vertical extension surface is needed.
 ## Extension Configuration
 
 Extensions can ship client-side configuration defaults (API keys, feature toggles, TTLs) without editing core files. Add a `config.ts` to your extension that default-exports a plain object; it is discovered and merged during the build process (when you run `pnpm dev` or `pnpm build`).
@@ -212,13 +205,12 @@ PUBLIC__app__extension__loqateAddressVerification__apiKey=123456
 ```
 
 Notes:
-
 - **`config.ts` is client-side and `PUBLIC__`.** Values are exposed to the browser via `window.__APP_CONFIG__`. Never put server-only secrets here — read those from `process.env` in a server route, or use `server-config.ts` (below) for static server-only defaults. See [README-CONFIG.md](../../docs/README-CONFIG.md).
 - **Author the default as a plain object, no `as const`,** so merchants can override it and the value types stay widened (`apiKey: string`, not the literal `''`).
 - **Use JSON-serializable values only** (strings, numbers, booleans, arrays, nested objects) — config is serialized into `window.__APP_CONFIG__`. Functions, `Date`, `Map`, etc. don't survive serialization and aren't supported.
 - **Use a folder name of letters, digits, and hyphens that starts with a letter** (`loqate-address-verification`). The build fails fast if a folder name can't form a valid config key.
 - **Don't import core config** (`config.server.ts`, `src/types/config.ts`) from `config.ts` — keep it a leaf module of defaults.
-- The discovered defaults are written to `src/extensions/config/index.ts` (auto-generated; do not edit). This is distinct from the `config.json` extension _registry_ in this same directory.
+- The discovered defaults are written to `src/extensions/config/index.ts` (auto-generated; do not edit). This is distinct from the `config.json` extension *registry* in this same directory.
 
 ### Server-only extension config
 
@@ -260,16 +252,13 @@ The same authoring rules apply (plain object literal, JSON-serializable static v
 The discovered defaults are written to `src/extensions/config/server.ts` (auto-generated; do not edit). The same AST validator runs over `server-config.ts` — anything beyond a static object literal still throws, including `process.env` reads.
 
 ## Generating Installation/Uninstallation Instructions
-
 If you’re building an extension for customer distribution, you can generate installation and uninstallation instructions that both humans and LLMs can follow to complete the install/uninstall steps.
-
 ```
 npx @salesforce/storefront-next-dev create-instructions -d /path/to/this/project -c /path/to/src/extensions/config.json -e SFDC_EXT_STORE_LOCATOR -p https://github.com/your/template.git -f /path/to/src/extensions/your-extension
 ```
+ Complete options:
 
-Complete options:
-
-- `-d, --project-directory <dir>`: Project directory
+ - `-d, --project-directory <dir>`: Project directory
 - `-c, --extension-config <config>`: Extension config JSON file location
 - `-e, --extension <extension>`: Extension marker value (e.g. SFDC_EXT_featureA)
 - `-p, --template-repo <repo>`: Your storefront template repo URL (default: https://github.com/SalesforceCommerceCloud/storefront-next-template.git)
@@ -281,13 +270,13 @@ Complete options:
 
 Each `config.json` must adhere to the following schema:
 
-| Field                        | Type   | Required | Description                                              |
-| ---------------------------- | ------ | -------- | -------------------------------------------------------- |
-| `name`                       | string | yes      | Human-readable name of the extension                     |
-| `description`                | string | yes      | A short description of what the extension does           |
-| `installationInstructions`   | string | no       | (Optional) Path to file with installation instructions   |
-| `uninstallationInstructions` | string | no       | (Optional) Path to file with uninstallation instructions |
-| `folder`                     | string | no       | (Optional) Folder containing extension specfic code      |
+| Field                         | Type     | Required | Description                                                                   |
+| ----------------------------- | -------- | -------- | ----------------------------------------------------------------------------- |
+| `name`                        | string   | yes      | Human-readable name of the extension                                          |
+| `description`                 | string   | yes      | A short description of what the extension does                                |
+| `installationInstructions`    | string   | no       | (Optional) Path to file with installation instructions                        |
+| `uninstallationInstructions`  | string   | no       | (Optional) Path to file with uninstallation instructions                      |
+| `folder`                      | string   | no       | (Optional) Folder containing extension specfic code                           |
 
 ### Example `config.json`
 
@@ -319,12 +308,10 @@ Action hooks and SCAPI hooks operate at different layers and are complementary:
 Each checkout server action contains calls to `runHook(hookId, context)`. When your extension registers a handler for a given `hookId`, it runs as part of a **waterfall**: handlers execute in series (ordered by `order`), each receiving the previous handler's output. If no handlers are registered for a hook, the original context passes through unchanged.
 
 Handlers receive an `ActionHookContext` with:
-
 - `data` — the action's current data (e.g., basket, payment info, address)
 - `actionContext` — the React Router action context (for API access)
 
 Handlers can:
-
 - **Enrich**: Return modified `data` to add information for the next step
 - **Transform**: Return modified `data` to change values (e.g., filter shipping methods)
 - **Abort**: Throw an `ActionHookError` to stop the action and return a user-facing error
@@ -385,12 +372,10 @@ export default async function fraudCheck(context: ActionHookContext) {
 Hooks are classified by where they appear in the checkout flow:
 
 **Blocking hooks** (pre-order gates) — if the handler throws an unexpected error, the action fails. These hooks guard critical operations and must succeed before proceeding:
-
 - `sfcc.checkout.fraud.beforePlace`
 - `sfcc.checkout.payments.beforePlaceOrder`
 
 **Non-blocking hooks** (post-action enrichment) — if the handler throws an unexpected error, the action logs the error and continues. These hooks enrich or observe but should not prevent checkout:
-
 - `sfcc.checkout.fraud.afterSubmitContactInfo`
 - `sfcc.checkout.addressVerification.afterSubmitShippingAddress`
 - `sfcc.checkout.shipping.afterMethodsFetch`
@@ -398,7 +383,7 @@ Hooks are classified by where they appear in the checkout flow:
 - `sfcc.checkout.payments.afterSubmitPayment`
 - `sfcc.checkout.payments.afterPlaceOrder`
 
-In both cases, throwing `ActionHookError` intentionally aborts the action with a user-facing error response. The blocking/non-blocking distinction only affects what happens when an _unexpected_ error occurs.
+In both cases, throwing `ActionHookError` intentionally aborts the action with a user-facing error response. The blocking/non-blocking distinction only affects what happens when an *unexpected* error occurs.
 
 ### Timeout and Per-Handler Isolation
 
@@ -411,16 +396,16 @@ When multiple handlers are registered for the same hook ID, they run in series (
 
 ### Available Hook IDs
 
-| Hook ID                                                        | Server Action           | Blocking | Description                                                            |
-| -------------------------------------------------------------- | ----------------------- | -------- | ---------------------------------------------------------------------- |
-| `sfcc.checkout.fraud.afterSubmitContactInfo`                   | submit-contact-info     | No       | Fraud/identity checks after email and phone are saved                  |
-| `sfcc.checkout.addressVerification.afterSubmitShippingAddress` | submit-shipping-address | No       | Address verification after shipping address is saved                   |
-| `sfcc.checkout.shipping.afterMethodsFetch`                     | submit-shipping-address | No       | Enrich or filter shipping methods after fetch                          |
-| `sfcc.checkout.shipping.afterMethodSelect`                     | submit-shipping-options | No       | Post-processing after shipping method selection                        |
-| `sfcc.checkout.payments.afterSubmitPayment`                    | submit-payment          | No       | Post-processing after payment instrument is added (e.g., tokenization) |
-| `sfcc.checkout.fraud.beforePlace`                              | place-order             | Yes      | Fraud gate before order creation                                       |
-| `sfcc.checkout.payments.beforePlaceOrder`                      | place-order             | Yes      | Payment gate before order creation (e.g., 3DS verification)            |
-| `sfcc.checkout.payments.afterPlaceOrder`                       | place-order             | No       | Post-order processing (e.g., capture, analytics)                       |
+| Hook ID | Server Action | Blocking | Description |
+|---------|---------------|----------|-------------|
+| `sfcc.checkout.fraud.afterSubmitContactInfo` | submit-contact-info | No | Fraud/identity checks after email and phone are saved |
+| `sfcc.checkout.addressVerification.afterSubmitShippingAddress` | submit-shipping-address | No | Address verification after shipping address is saved |
+| `sfcc.checkout.shipping.afterMethodsFetch` | submit-shipping-address | No | Enrich or filter shipping methods after fetch |
+| `sfcc.checkout.shipping.afterMethodSelect` | submit-shipping-options | No | Post-processing after shipping method selection |
+| `sfcc.checkout.payments.afterSubmitPayment` | submit-payment | No | Post-processing after payment instrument is added (e.g., tokenization) |
+| `sfcc.checkout.fraud.beforePlace` | place-order | Yes | Fraud gate before order creation |
+| `sfcc.checkout.payments.beforePlaceOrder` | place-order | Yes | Payment gate before order creation (e.g., 3DS verification) |
+| `sfcc.checkout.payments.afterPlaceOrder` | place-order | No | Post-order processing (e.g., capture, analytics) |
 
 ### Build-Time Optimization
 
@@ -447,3 +432,4 @@ test('handler enriches data', async () => {
 3. Add your extension integration code.
 4. Generate install/uninstall instructions.
 5. Create a new entry in `config.json` per the schema above.
+

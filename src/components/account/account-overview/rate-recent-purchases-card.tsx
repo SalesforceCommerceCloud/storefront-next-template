@@ -19,8 +19,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Order } from '@/components/account/order-list';
 import { useTranslation } from 'react-i18next';
-import { formatStatusFallbackLabel, getOrderStatusConfig } from '@/lib/order/status';
+import { formatStatusFallbackLabel, getOrderReturnStatusConfig, getOrderStatusConfig } from '@/lib/order/status';
 import { routes, routeHref } from '@/route-paths';
+import { accountPrimaryButtonClasses } from '@/lib/account-action-styles';
 
 const MAX_THUMBNAILS = 2;
 
@@ -42,8 +43,15 @@ export function RateRecentPurchasesCard({ order }: RateRecentPurchasesCardProps)
     const productItems = order.productItems ?? [];
     const thumbs = productItems.slice(0, MAX_THUMBNAILS);
     const titleLine = buildProductTitleLine(order);
+    // A derived return status wins over the raw order status so the caption stays
+    // consistent with the order-history list and detail badges after a return.
+    const returnStatusConfig = getOrderReturnStatusConfig(order.returnStatus);
     const orderStatusConfig = getOrderStatusConfig(order.status);
-    const statusLabel = orderStatusConfig ? t(orderStatusConfig.labelKey) : formatStatusFallbackLabel(order.status);
+    const statusLabel = returnStatusConfig
+        ? t(returnStatusConfig.labelKey)
+        : orderStatusConfig
+          ? t(orderStatusConfig.labelKey)
+          : formatStatusFallbackLabel(order.status);
     const orderDetailsUrl = routeHref(routes.accountOrderDetail, { orderNo: order.orderNo });
 
     return (
@@ -106,7 +114,7 @@ export function RateRecentPurchasesCard({ order }: RateRecentPurchasesCardProps)
                                     asChild
                                     variant="default"
                                     size="default"
-                                    className="min-w-[10.5rem] bg-foreground text-background hover:bg-foreground/90">
+                                    className={`min-w-[10.5rem] ${accountPrimaryButtonClasses}`}>
                                     <Link to={orderDetailsUrl}>{t('overview.rateRecentPurchases.cta')}</Link>
                                 </Button>
                             </div>

@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { PickupIcon } from '../pickup-icon';
 
 const meta: Meta<typeof PickupIcon> = {
-    title: 'Components/Icons/Pickup Icon',
+    title: 'Core/Icons/Pickup Icon',
     component: PickupIcon,
     tags: ['autodocs'],
     parameters: {

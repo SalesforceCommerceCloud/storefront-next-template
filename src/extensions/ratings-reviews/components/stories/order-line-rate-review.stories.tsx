@@ -39,7 +39,7 @@ const mockProduct = {
 } as ShopperProducts.schemas['Product'];
 
 const meta: Meta<typeof OrderLineRateReview> = {
-    title: 'ACCOUNT/Order Details/Order Line Rate Review',
+    title: 'Extensions/Ratings & Reviews/Order Line Rate Review',
     component: OrderLineRateReview,
     tags: ['autodocs', 'skip-a11y'],
     parameters: {

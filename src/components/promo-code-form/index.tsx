@@ -24,7 +24,7 @@ import type { TFunction } from 'i18next';
  * @example const schema = createPromoCodeFormSchema(t);
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
 export const createPromoCodeFormSchema = (t: TFunction<any, any>) => {
     return z.object({
         code: z.string().min(2, {

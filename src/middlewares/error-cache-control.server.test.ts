@@ -181,22 +181,21 @@ describe('middlewares/error-cache-control.server.ts', () => {
                 expect(result.headers.get('Cache-Control')).toBe('max-age=2');
             });
 
-            it.each([500, 501, 502, 504])(
-                'should override existing Cache-Control with no-store on a %i data response',
-                async (status) => {
-                    const response = asData(
-                        new Response('Error', {
-                            status,
-                            headers: { 'Cache-Control': 'max-age=3600' },
-                        })
-                    );
-                    mockNext.mockResolvedValue(response);
+            it.each([
+                500, 501, 502, 504,
+            ])('should override existing Cache-Control with no-store on a %i data response', async (status) => {
+                const response = asData(
+                    new Response('Error', {
+                        status,
+                        headers: { 'Cache-Control': 'max-age=3600' },
+                    })
+                );
+                mockNext.mockResolvedValue(response);
 
-                    const result = await callMiddleware(request);
+                const result = await callMiddleware(request);
 
-                    expect(result.headers.get('Cache-Control')).toBe('no-store');
-                }
-            );
+                expect(result.headers.get('Cache-Control')).toBe('no-store');
+            });
 
             it('should override existing Cache-Control with max-age=2 on a 503 data response', async () => {
                 const response = asData(
@@ -245,18 +244,17 @@ describe('middlewares/error-cache-control.server.ts', () => {
     });
 
     describe('document (non-data) responses', () => {
-        it.each([500, 501, 502, 503, 504])(
-            'should not set no-store on a returned %i document response',
-            async (status) => {
-                const response = new Response('Server Error', { status });
-                mockNext.mockResolvedValue(response);
+        it.each([
+            500, 501, 502, 503, 504,
+        ])('should not set no-store on a returned %i document response', async (status) => {
+            const response = new Response('Server Error', { status });
+            mockNext.mockResolvedValue(response);
 
-                const result = await callMiddleware(DOCUMENT_REQUEST);
+            const result = await callMiddleware(DOCUMENT_REQUEST);
 
-                expect(result.status).toBe(status);
-                expect(result.headers.has('Cache-Control')).toBe(false);
-            }
-        );
+            expect(result.status).toBe(status);
+            expect(result.headers.has('Cache-Control')).toBe(false);
+        });
 
         it('should not set no-store on a 200 document response', async () => {
             const response = new Response('OK', { status: 200 });
@@ -276,16 +274,15 @@ describe('middlewares/error-cache-control.server.ts', () => {
          * (`queryRoute`) server paths, so `next()` never rejects with a `Response`. Any rejection therefore propagates
          * untouched and the `Cache-Control` logic never runs — including for a thrown 5xx `Response`.
          */
-        it.each([500, 501, 502, 503, 504])(
-            'should re-throw a thrown %i data Response untouched, without setting Cache-Control',
-            async (status) => {
-                const errorResponse = new Response('Server Error', { status });
-                mockNext.mockRejectedValue(errorResponse);
+        it.each([
+            500, 501, 502, 503, 504,
+        ])('should re-throw a thrown %i data Response untouched, without setting Cache-Control', async (status) => {
+            const errorResponse = new Response('Server Error', { status });
+            mockNext.mockRejectedValue(errorResponse);
 
-                await expect(callMiddleware(DATA_REQUEST)).rejects.toBe(errorResponse);
-                expect(errorResponse.headers.has('Cache-Control')).toBe(false);
-            }
-        );
+            await expect(callMiddleware(DATA_REQUEST)).rejects.toBe(errorResponse);
+            expect(errorResponse.headers.has('Cache-Control')).toBe(false);
+        });
 
         it('should re-throw a thrown 500 document Response untouched, without setting no-store', async () => {
             const errorResponse = new Response('Server Error', { status: 500 });

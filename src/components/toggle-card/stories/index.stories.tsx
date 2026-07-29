@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const meta: Meta<typeof ToggleCard> = {
-    title: 'COMMON/Toggle Card',
+    title: 'Core/Forms/Toggle Card',
     component: ToggleCard,
     parameters: {
         layout: 'padded',

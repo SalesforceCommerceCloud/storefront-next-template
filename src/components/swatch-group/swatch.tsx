@@ -45,6 +45,8 @@ interface SwatchProps extends VariantProps<typeof swatchVariants> {
     onClick?: (e: MouseEvent | TouchEvent) => void;
     /** Interaction mode: 'click' for click interaction, 'hover' for hover interaction. Only applies when handleSelect is provided. */
     mode?: 'hover' | 'click';
+    /** Translated out-of-stock suffix for disabled swatches */
+    outOfStockSuffix?: string;
 }
 
 /**
@@ -86,15 +88,19 @@ export const Swatch: FC<SwatchProps> = ({
     shape = 'color',
     labeled = false,
     mode = 'click',
+    outOfStockSuffix = '(out of stock)',
 }) => {
     const onSelect = useCallback(
         (e: MouseEvent | TouchEvent) => {
             e.preventDefault();
+            if (disabled) {
+                return;
+            }
             if (handleSelect && value) {
                 handleSelect(value);
             }
         },
-        [handleSelect, value]
+        [handleSelect, value, disabled]
     );
 
     // Build event handlers based on mode
@@ -112,22 +118,32 @@ export const Swatch: FC<SwatchProps> = ({
 
     const innerClasses = 'flex items-center justify-center w-full h-full text-sm font-medium leading-5';
 
+    // Build accessible name that includes out-of-stock status
+    const accessibleName = disabled ? `${name || label || value} ${outOfStockSuffix}` : name || label || value;
+
     const commonProps = {
-        'aria-label': name || label,
+        'aria-label': accessibleName,
         'aria-checked': selected,
+        'aria-disabled': disabled ? true : undefined,
         'data-labeled': labeled || undefined,
         'data-swatch-type': shape,
         position: 'relative',
         role: 'radio',
-        tabIndex: isFocusable ? 0 : -1,
+        tabIndex: disabled ? -1 : isFocusable ? 0 : -1,
         className: baseClasses,
         // if href exists, we do not want to attach selectHandlers since they are not compatible with each other
         ...(href ? {} : selectHandlers),
     };
 
     if (href) {
+        const handleNavLinkClick = (e: MouseEvent | TouchEvent) => {
+            if (disabled) {
+                e.preventDefault();
+            }
+        };
+
         return (
-            <NavLink to={href} preventScrollReset={true} {...commonProps}>
+            <NavLink to={href} preventScrollReset={true} {...commonProps} onClick={handleNavLinkClick}>
                 <div className={innerClasses} data-slot="swatch-content">
                     {children}
                     {label && (
@@ -141,7 +157,7 @@ export const Swatch: FC<SwatchProps> = ({
     }
 
     return (
-        <button type="button" {...commonProps} disabled={disabled}>
+        <button type="button" {...commonProps}>
             <div className={innerClasses} data-slot="swatch-content">
                 {children}
                 {label && (

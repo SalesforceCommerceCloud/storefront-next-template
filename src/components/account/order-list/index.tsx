@@ -27,7 +27,7 @@ import {
     type PickupLocation,
 } from '@/components/account/order-list-item';
 import { getOffsetLimitPaginationState } from '@/lib/pagination-utils';
-import type { OrderStatusType } from '@/lib/order/status';
+import type { OrderReturnStatusType, OrderStatusType } from '@/lib/order/status';
 import { routes } from '@/route-paths';
 
 /** Re-export for consumers. Single source of truth: @/lib/order/status */
@@ -42,6 +42,10 @@ export type Order = {
     orderDate: string;
     status: string;
     statusLabel?: string;
+    /** Derived order-level cancel status; takes priority over return and raw status. */
+    cancelStatus?: 'cancelled';
+    /** Derived order-level return status; overrides the raw status badge when set. */
+    returnStatus?: OrderReturnStatusType;
     total: number;
     currency?: string;
     itemCount: number;
@@ -74,6 +78,8 @@ function toOrderListItemData(order: Order): OrderListItemData {
         currency: order.currency,
         status: order.status,
         statusLabel: order.statusLabel,
+        cancelStatus: order.cancelStatus,
+        returnStatus: order.returnStatus,
         itemCount: order.itemCount,
         productItems: order.productItems,
         pickupLocation: order.pickupLocation,
@@ -110,7 +116,7 @@ export function OrderListHeader({ title, subtitle }: { title: string; subtitle?:
     return (
         <Card className="bg-card border-border rounded-b-none border-b-0">
             <CardContent className="px-5">
-                <Typography variant="h4" className="text-foreground mb-1.5" tabIndex={0}>
+                <Typography variant="h4" className="text-foreground mb-1.5">
                     {title}
                 </Typography>
                 {subtitle && (
@@ -170,16 +176,17 @@ export function OrderListBody({
             {orders.length === 0 ? (
                 <OrderListEmpty message={emptyMessage} />
             ) : (
-                <div className="space-y-4 m-0 border-x border-t border-border rounded-t-none">
+                <ul role="list" className="space-y-4 m-0 border-x border-t border-border rounded-t-none">
                     {orders.map((order) => (
-                        <OrderListItem
-                            key={order.orderNo}
-                            order={toOrderListItemData(order)}
-                            maxThumbnails={maxThumbnails}
-                            onViewDetails={onViewDetails}
-                        />
+                        <li key={order.orderNo}>
+                            <OrderListItem
+                                order={toOrderListItemData(order)}
+                                maxThumbnails={maxThumbnails}
+                                onViewDetails={onViewDetails}
+                            />
+                        </li>
                     ))}
-                </div>
+                </ul>
             )}
             <div className="p-6 m-0 border-b border-x border-border rounded-b-xl flex flex-row items-center w-full gap-4">
                 <Typography

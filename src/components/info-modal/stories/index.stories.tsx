@@ -51,7 +51,7 @@ function InfoModalWrapper({
 }
 
 const meta: Meta<typeof InfoModalWrapper> = {
-    title: 'COMMON/Info Modal',
+    title: 'Core/Overlays/Info Modal',
     component: InfoModalWrapper,
     tags: ['autodocs', 'interaction'],
     parameters: {

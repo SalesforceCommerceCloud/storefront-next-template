@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_CUSTOMER_PREFERENCES */
-/* eslint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
+/* oxlint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
 import { createContext, useContext, type PropsWithChildren, type ReactElement } from 'react';
 import type { CustomerPreferencesData } from '@/extensions/customer-preferences/lib/api/customer-preferences.server';
 

@@ -6,16 +6,19 @@
         {
             "id": "plpTopFullWidth",
             "name": "Top Full Width Region",
+            "description": "Full screen width region at the top of the results",
             "max_components": 5
         },
         {
             "id": "plpTopContent",
             "name": "Top Content Region",
+            "description": "Content width region below sort/filter, above product grid",
             "max_components": 5
         },
         {
             "id": "plpBottom",
             "name": "Bottom Region",
+            "description": "Region at the bottom of search results after product grid",
             "max_components": 5
         }
     ],

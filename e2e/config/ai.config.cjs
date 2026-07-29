@@ -25,41 +25,42 @@
  * to enable AI features, and our config needs to align with that behavior.
  */
 function getAIConfig() {
-    const isAIEnabled = process.argv.includes('--ai') || process.env.CODECEPT_AI === 'true';
+  const isAIEnabled = process.argv.includes('--ai') || process.env.CODECEPT_AI === 'true';
 
-    if (!isAIEnabled) {
-        return {};
-    }
+  if (!isAIEnabled) {
+    return {};
+  }
 
-    const providerName = process.env.AI_PROVIDER || 'anthropic';
-    let provider;
-    try {
-        provider = require(`./providers/${providerName}.cjs`);
-    } catch {
-        throw new Error(
-            `Unknown AI provider: "${providerName}". ` + `Set AI_PROVIDER to a supported value (e.g. anthropic).`
-        );
-    }
+  const providerName = process.env.AI_PROVIDER || 'anthropic';
+  let provider;
+  try {
+    provider = require(`./providers/${providerName}.cjs`);
+  } catch {
+    throw new Error(
+      `Unknown AI provider: "${providerName}". ` +
+        `Set AI_PROVIDER to a supported value (e.g. anthropic).`
+    );
+  }
 
-    const missingVars = provider.requiredVars.filter((v) => !process.env[v]);
-    if (missingVars.length) {
-        console.error('Missing required AI environment variables:');
-        missingVars.forEach((v) => console.error(`  - ${v}`));
-        console.error('\nSee .env.sample for configuration instructions.');
-        throw new Error('AI environment variables not configured.');
-    }
+  const missingVars = provider.requiredVars.filter((v) => !process.env[v]);
+  if (missingVars.length) {
+    console.error('Missing required AI environment variables:');
+    missingVars.forEach((v) => console.error(`  - ${v}`));
+    console.error('\nSee .env.sample for configuration instructions.');
+    throw new Error('AI environment variables not configured.');
+  }
 
-    return {
-        request: provider.request.bind(provider),
+  return {
+    request: provider.request.bind(provider),
 
-        prompts: {
-            healStep: (html, context) => [
-                {
-                    role: 'user',
-                    content: `As a test automation engineer I am testing a Salesforce Commerce Cloud storefront using CodeceptJS.
+    prompts: {
+      healStep: (html, context) => [
+        {
+          role: 'user',
+          content: `As a test automation engineer I am testing a Salesforce Commerce Cloud storefront using CodeceptJS.
                     I want to heal a test that fails. Here is the list of executed steps: ${context.prevSteps
-                        .map((s) => s.toString())
-                        .join(', ')}
+                      .map((s) => s.toString())
+                      .join(', ')}
                     Propose how to adjust ${context.step.toCode()} step to fix the test.
 
                     Context: This is an e-commerce storefront with typical commerce elements like product tiles, search inputs, cart buttons, checkout forms.
@@ -74,13 +75,13 @@ function getAIConfig() {
                     Here is the error message: ${context.error.message}
                     Here is HTML code of a page where the failure has happened: \n\n${html}
                     ${context.customMessage ? `\n\n${context.customMessage}` : ''}`,
-                },
-            ],
+        },
+      ],
 
-            generatePageObject: (html, extraPrompt = '', rootLocator = null) => [
-                {
-                    role: 'user',
-                    content: `Read the existing HTML code of a Salesforce Commerce Cloud storefront page and generate a page object for the current page.
+      generatePageObject: (html, extraPrompt = '', rootLocator = null) => [
+        {
+          role: 'user',
+          content: `Read the existing HTML code of a Salesforce Commerce Cloud storefront page and generate a page object for the current page.
 
                     The html code is: ${html}. ${extraPrompt}.
 
@@ -126,12 +127,12 @@ class StorefrontPage {
 }
 
 export = new StorefrontPage();`,
-                },
-            ],
         },
-    };
+      ],
+    },
+  };
 }
 
 module.exports = {
-    getAIConfig,
+  getAIConfig,
 };

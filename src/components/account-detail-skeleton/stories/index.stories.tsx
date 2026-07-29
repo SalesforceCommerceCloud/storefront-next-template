@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AccountDetailSkeleton } from '../index';
 
 const meta: Meta<typeof AccountDetailSkeleton> = {
-    title: 'ACCOUNT/Account Detail Skeleton',
+    title: 'Account/Account Detail Skeleton',
     component: AccountDetailSkeleton,
     tags: ['autodocs'],
     parameters: {

@@ -143,9 +143,11 @@ describe('ProductView', () => {
             const images = screen.getAllByRole('img');
             expect(images.length).toBeGreaterThan(0);
 
-            // Check for specific image alt text (using getAllBy since images appear in main + thumbnails)
+            // The main image carries its descriptive alt. Thumbnails are decorative
+            // (alt="") with the description moved onto the thumbnail button label, so
+            // each additional image is reachable as a labelled button, not an alt.
             expect(screen.getAllByAltText('Image 1').length).toBeGreaterThan(0);
-            expect(screen.getAllByAltText('Image 2').length).toBeGreaterThan(0);
+            expect(screen.getByRole('button', { name: 'Product image 2 of 2' })).toBeInTheDocument();
         });
     });
 

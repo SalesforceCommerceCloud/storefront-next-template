@@ -19,7 +19,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockCategory, createMockCategoryWithChildren, testData } from './__tests__/data';
 import CategoryNavigationMenu from './impl';
 import { WithCategoryNavigationMenu } from './index';
-// eslint-disable-next-line import/no-namespace
+// oxlint-disable-next-line import/no-namespace
 import * as contextModule from './context';
 
 // Mock CategoryNavigationMenu component

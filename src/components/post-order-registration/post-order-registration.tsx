@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -71,37 +72,66 @@ export function PostOrderRegistration({
     const isSubmitting = fetcher.state !== 'idle' || defaultSubmitting;
     const registrationSuccess = fetcher.data?.success === true || defaultSuccess;
     const error = fetcher.data?.error ?? defaultError;
+    const errorRef = useRef<HTMLDivElement | null>(null);
 
-    if (registrationSuccess) {
-        return (
-            <Card className="border border-border/70">
-                <CardHeader>
-                    <CardTitle>{t('confirmation.postOrderRegistration.title')}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center py-10 space-y-3">
-                    <div className="flex items-center justify-center size-12 rounded-full bg-primary/10">
-                        <Check className="size-6 text-primary" />
-                    </div>
-                    <p className="text-lg font-semibold text-foreground text-center">
-                        {t('confirmation.postOrderRegistration.successTitle')}
-                    </p>
-                    <p className="text-sm text-muted-foreground text-center max-w-md">
-                        {t('confirmation.postOrderRegistration.successDescription', { email })}
-                    </p>
-                </CardContent>
-            </Card>
-        );
-    }
+    // Move focus to the error on each failed submit so it is announced once (the focus move
+    // itself reads the container's text; the box carries no role="alert", which would announce
+    // a second time). Keying on the fetcher response identity, not the error string, means a
+    // repeated submit that returns the same message still re-fires and re-announces.
+    const submissionResult = fetcher.data;
+    useEffect(() => {
+        if (error) {
+            errorRef.current?.focus();
+        }
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- re-run per response, not per string
+    }, [submissionResult, defaultError]);
 
-    return (
+    // Persistent, initially-empty polite live region. It stays mounted across both the form
+    // and success states, so when registration succeeds the message is written into an
+    // existing region and assistive tech announces it. A status node that first mounts already
+    // populated (the earlier early-return placement) generally stays silent.
+    const liveRegion = (
+        <div role="status" className="sr-only">
+            {registrationSuccess ? (
+                <>
+                    {t('confirmation.postOrderRegistration.successTitle')}{' '}
+                    {t('confirmation.postOrderRegistration.successDescription', { email })}
+                </>
+            ) : null}
+        </div>
+    );
+
+    const successView = (
         <Card className="border border-border/70">
             <CardHeader>
-                <CardTitle>{t('confirmation.postOrderRegistration.title')}</CardTitle>
+                <CardTitle as="h2">{t('confirmation.postOrderRegistration.title')}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center py-10 space-y-3">
+                <div className="flex items-center justify-center size-12 rounded-full bg-primary/10">
+                    <Check className="size-6 text-primary" />
+                </div>
+                <p className="text-lg font-semibold text-foreground text-center">
+                    {t('confirmation.postOrderRegistration.successTitle')}
+                </p>
+                <p className="text-sm text-muted-foreground text-center max-w-md">
+                    {t('confirmation.postOrderRegistration.successDescription', { email })}
+                </p>
+            </CardContent>
+        </Card>
+    );
+
+    const formView = (
+        <Card className="border border-border/70">
+            <CardHeader>
+                <CardTitle as="h2">{t('confirmation.postOrderRegistration.title')}</CardTitle>
                 <p className="text-sm text-muted-foreground">{t('confirmation.postOrderRegistration.subtitle')}</p>
             </CardHeader>
             <CardContent>
                 {error && (
-                    <div className="mb-4 p-3 rounded-ui bg-destructive/10 border border-destructive/20">
+                    <div
+                        ref={errorRef}
+                        tabIndex={-1}
+                        className="mb-4 p-3 rounded-ui bg-destructive/10 border border-destructive/20">
                         <p className="text-sm text-destructive">{error}</p>
                     </div>
                 )}
@@ -140,8 +170,14 @@ export function PostOrderRegistration({
                                 onChange={handlePasswordChange}
                                 className="mt-1"
                                 placeholder={t('confirmation.postOrderRegistration.passwordPlaceholder')}
+                                aria-describedby="post-order-password-requirements"
                             />
-                            <PasswordRequirement password={password} className="mt-2" />
+                            <PasswordRequirement
+                                password={password}
+                                className="mt-2"
+                                id="post-order-password-requirements"
+                                headingLevel={3}
+                            />
                         </div>
 
                         <div>
@@ -160,10 +196,18 @@ export function PostOrderRegistration({
                                 onChange={handleConfirmPasswordChange}
                                 className="mt-1"
                                 aria-invalid={showPasswordMismatch && confirmPassword ? true : undefined}
+                                aria-describedby={
+                                    showPasswordMismatch && confirmPassword
+                                        ? 'post-order-confirm-password-error'
+                                        : undefined
+                                }
                                 placeholder={t('confirmation.postOrderRegistration.confirmPasswordPlaceholder')}
                             />
                             {showPasswordMismatch && confirmPassword && (
-                                <p className="mt-1 text-sm text-destructive">
+                                <p
+                                    id="post-order-confirm-password-error"
+                                    role="alert"
+                                    className="mt-1 text-sm text-destructive">
                                     {t('confirmation.postOrderRegistration.passwordMismatch')}
                                 </p>
                             )}
@@ -184,5 +228,12 @@ export function PostOrderRegistration({
                 </fetcher.Form>
             </CardContent>
         </Card>
+    );
+
+    return (
+        <>
+            {liveRegion}
+            {registrationSuccess ? successView : formView}
+        </>
     );
 }

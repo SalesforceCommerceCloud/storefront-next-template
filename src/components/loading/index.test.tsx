@@ -15,7 +15,7 @@
  */
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import Loading from './index';

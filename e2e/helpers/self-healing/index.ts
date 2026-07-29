@@ -20,6 +20,7 @@ export {
     searchInputRecipe,
     cartIconRecipe,
     userIconRecipe,
+    userMenuLogoutButtonRecipe,
     navMenuRecipe,
     categoryLinksRecipe,
     megaMenuContainerRecipe,
@@ -163,6 +164,16 @@ export {
 } from './account-addresses.recipes';
 
 export {
+    passkeysPageTitleRecipe,
+    addPasskeyButtonRecipe,
+    passkeyDeleteButtonsRecipe,
+    emptyStateMessageRecipe as emptyStateMessagePasskeysRecipe,
+    deletePasskeyDialogRecipe,
+    passkeyRegistrationModalRecipe,
+    accountPasskeysRecipes,
+} from './account-passkeys.recipes';
+
+export {
     backToOrdersLinkRecipe,
     orderDetailsPageTitleRecipe,
     orderNumberRecipe,
@@ -182,11 +193,26 @@ export {
     orderDetailsRecipes,
 } from './order-details.recipes';
 
+export {
+    passkeyModalRecipe,
+    passkeyNameInputRecipe,
+    passkeyNameContinueButtonRecipe,
+    passkeyOtpInputsRecipe,
+    passkeyErrorMessageRecipe,
+    passkeyVerifyingStatusRecipe,
+    passkeyResendButtonRecipe,
+    passkeyUpsellToastRecipe,
+    passkeyUpsellToastActionRecipe,
+    passkeySuccessToastRecipe,
+    passkeyRegistrationRecipes,
+} from './passkey-registration.recipes';
+
 import type { HealingRecipe } from './types';
 import {
     searchInputRecipe,
     cartIconRecipe,
     userIconRecipe,
+    userMenuLogoutButtonRecipe,
     navMenuRecipe,
     categoryLinksRecipe,
     megaMenuContainerRecipe,
@@ -336,12 +362,33 @@ import {
     errorToastAddressesRecipe,
     formErrorAddressesRecipe,
 } from './account-addresses.recipes';
+import {
+    passkeyModalRecipe,
+    passkeyNameInputRecipe,
+    passkeyNameContinueButtonRecipe,
+    passkeyOtpInputsRecipe,
+    passkeyErrorMessageRecipe,
+    passkeyVerifyingStatusRecipe,
+    passkeyResendButtonRecipe,
+    passkeyUpsellToastRecipe,
+    passkeyUpsellToastActionRecipe,
+    passkeySuccessToastRecipe,
+} from './passkey-registration.recipes';
+import {
+    passkeysPageTitleRecipe,
+    addPasskeyButtonRecipe,
+    passkeyDeleteButtonsRecipe,
+    emptyStateMessageRecipe as emptyStateMessagePasskeysRecipe,
+    deletePasskeyDialogRecipe,
+    passkeyRegistrationModalRecipe,
+} from './account-passkeys.recipes';
 
 export const healingRecipes: HealingRecipe[] = [
     // Storefront / header / navigation
     searchInputRecipe,
     cartIconRecipe,
     userIconRecipe,
+    userMenuLogoutButtonRecipe,
     navMenuRecipe,
     categoryLinksRecipe,
     megaMenuContainerRecipe,
@@ -483,6 +530,24 @@ export const healingRecipes: HealingRecipe[] = [
     successToastAddressesRecipe,
     errorToastAddressesRecipe,
     formErrorAddressesRecipe,
+    // Passkey registration
+    passkeyModalRecipe,
+    passkeyNameInputRecipe,
+    passkeyNameContinueButtonRecipe,
+    passkeyOtpInputsRecipe,
+    passkeyErrorMessageRecipe,
+    passkeyVerifyingStatusRecipe,
+    passkeyResendButtonRecipe,
+    passkeyUpsellToastRecipe,
+    passkeyUpsellToastActionRecipe,
+    passkeySuccessToastRecipe,
+    // Account passkeys
+    passkeysPageTitleRecipe,
+    addPasskeyButtonRecipe,
+    passkeyDeleteButtonsRecipe,
+    emptyStateMessagePasskeysRecipe,
+    deletePasskeyDialogRecipe,
+    passkeyRegistrationModalRecipe,
 ];
 
 export default healingRecipes;

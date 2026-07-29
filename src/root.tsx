@@ -38,7 +38,7 @@ import { createInstance, type i18n } from 'i18next';
 import { I18nextProvider, useTranslation, initReactI18next } from 'react-i18next';
 import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
-import { dataStoreMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
+import { dataStoreMiddlewareLazy, sitesMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
 import {
     buildUrl,
     SiteProvider,
@@ -52,6 +52,7 @@ import authMiddlewareServer, { getAuth as getAuthServer } from '@/middlewares/au
 import { getPublicSessionData } from '@/middlewares/auth.utils';
 import createBasketMiddleware, { basketResourceContext, type BasketSnapshot } from '@/middlewares/basket.server';
 import shopperContextMiddlewareServer from '@/middlewares/shopper-context.server';
+import { userTypeHintMiddleware } from '@/middlewares/user-type-hint.server';
 import legacyRoutesMiddlewareClient from '@/middlewares/legacy-routes.client';
 import {
     performanceMetricsMiddlewareClient,
@@ -60,9 +61,9 @@ import {
 import { appConfigMiddlewareServer } from '@/middlewares/app-config.server';
 import { appConfigMiddlewareClient } from '@/middlewares/app-config.client';
 import { ConfigProvider, getConfig, clientAppConfigContext } from '@salesforce/storefront-next-runtime/config';
-import type { AppConfig } from '@/types/config';
 import type { ClientAppConfig } from '@/lib/app-config-client';
 import { siteContextMiddleware } from '@/middlewares/site-context.server';
+import { sitesConfigMiddleware } from '@/middlewares/sites-config.server';
 import { i18nextMiddleware } from '@/middlewares/i18next.server';
 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
 import {
@@ -75,7 +76,7 @@ import { correlationMiddleware } from '@/middlewares/correlation.server';
 import { requestOriginMiddleware } from '@/middlewares/request-origin';
 import { getAppOrigin } from '@/lib/origin';
 import { loggingMiddleware } from '@/middlewares/logging.server';
-import { pageDesignerResolutionMiddleware } from '@/middlewares/page-designer-page-resolution.server';
+import { pageDesignerResolutionMiddleware } from '@/middlewares/page-designer-content-resolution.server';
 import { siteUrlConfigMiddleware } from '@/middlewares/site-url-config.server';
 import { modeDetectionMiddlewareServer, modeDetectionMiddlewareClient } from '@/middlewares/mode-detection';
 import { maintenanceMiddleware } from '@/middlewares/maintenance.server';
@@ -89,20 +90,22 @@ import AuthProvider from '@/providers/auth';
 import BasketProvider from '@/providers/basket';
 import { ComposeProviders } from '@/providers/compose-providers';
 import { CorrelationProvider } from '@/providers/correlation';
+import { PasskeyRegistrationProvider } from '@/providers/passkey-registration';
 import { correlationContext } from '@/lib/correlation';
 
 // Components
 import { AppToaster } from '@/components/toast';
 import { TrackingConsentBanner } from '@/components/tracking-consent-banner';
-import ShopperAgent from '@/components/shopper-agent';
+import CimulateAgent, { isCimulateEnabled } from '@/components/cimulate';
 
 // Hooks
 import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
+import { usePasskeyRegistration } from '@/hooks/use-passkey-registration';
 
 // Lib/Utils
 import type { PublicSessionData } from '@/lib/api/types';
+import { useCurrency } from '@/lib/currency/use-currency';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
-import { initI18next } from '@salesforce/storefront-next-runtime/i18n/client';
 import { PageViewTracker } from '@/analytics/page-view-tracker';
 import { initializeRegistry } from '@/lib/page-designer/static-registry';
 import { buildSeoMetaDescriptors } from '@/utils/seo';
@@ -127,6 +130,7 @@ import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
 // Layout Components - logo for error page. Imported via `@/...` so different
 // logo implementations (raster, inline-SVG, etc.) can be provided per brand.
 import Logo from '@/components/logo';
+import { SkipLink } from '@/components/skip-link';
 
 export const links: Route.LinksFunction = () => {
     return [
@@ -149,6 +153,11 @@ export const middleware: MiddlewareFunction<Response>[] = [
     modeDetectionMiddlewareServer,
     appConfigMiddlewareServer,
     securityHeadersMiddleware,
+    // Registers the lazy DAL sites loader, then (behind commerce.sitesFromDal) rewrites
+    // commerce.sites before siteContextMiddleware reads it. Both must run after appConfig
+    // populates the config contexts and before siteContextMiddleware resolves the site.
+    sitesMiddlewareLazy,
+    sitesConfigMiddleware,
     siteContextMiddleware, // Must run after appConfig, before i18next and currency
     ...dataStoreMiddlewareLazy,
     siteUrlConfigMiddleware, // Must run after siteContextMiddleware (entry key uses site id)
@@ -160,6 +169,10 @@ export const middleware: MiddlewareFunction<Response>[] = [
     authMiddlewareServer,
     createBasketMiddleware(),
     shopperContextMiddlewareServer,
+    // Must run after authMiddlewareServer (reads the final session userType). Writes the JS-readable
+    // `__sfdc_usertype` hint in its response phase so AuthProvider can restore the header auth state
+    // under a cached app shell. Writes only the userType hint — never the httpOnly token cookies.
+    userTypeHintMiddleware,
 ];
 
 export const clientMiddleware: MiddlewareFunction<Record<string, DataStrategyResult>>[] = [
@@ -171,17 +184,11 @@ export const clientMiddleware: MiddlewareFunction<Record<string, DataStrategyRes
     performanceMetricsMiddlewareClient as unknown as MiddlewareFunction<Record<string, DataStrategyResult>>,
 ];
 
-// On the client side, initialize i18next.
-// (On the server side, it's initialized elsewhere in middlewares/i18next.ts file)
-// Read the language from the server-rendered HTML to avoid language detection issues
-const i18nextOnClient =
-    typeof window !== 'undefined'
-        ? initI18next({
-              language: document.documentElement.lang || undefined,
-              // The import() must live here so Vite can resolve the path at build time
-              loadLocale: (language) => import(`@/locales/${language}/index.ts`),
-          })
-        : undefined;
+// Client-side i18next instance. Hydration is deferred until its initial-language
+// namespaces have loaded — see `entry.client.tsx` / `whenI18nReady()` — so the
+// first client render matches the server-rendered translated HTML (no hydration
+// mismatch) without inlining the translation bundle into the document.
+import { i18nextOnClient } from '@/i18n-client-init';
 
 export { shouldRevalidate } from '@/lib/revalidation/routes/root';
 
@@ -308,6 +315,7 @@ export function Layout({ children }: PropsWithChildren) {
               .replace(/\u2028/g, '\\u2028')
               .replace(/\u2029/g, '\\u2029')};`
         : '';
+
     // React 19 omits the attribute when the value is undefined, so coerce null/missing to undefined.
     // Falls back to the NonceContext so the error path (root loader threw → no
     // loader data) still gets a valid nonce on its inline scripts. The middleware
@@ -401,6 +409,7 @@ function ErrorPageContent({
 }) {
     return (
         <>
+            <SkipLink />
             {/* Simple Header */}
             <header className="bg-header-background text-header-foreground sticky top-0 z-50">
                 <div className="section-container">
@@ -413,7 +422,7 @@ function ErrorPageContent({
             </header>
 
             {/* Main Content */}
-            <main className="grow pt-8">
+            <main id="main-content" tabIndex={-1} className="grow pt-8">
                 <div className="flex items-center justify-center min-h-[60vh] px-4 py-12">
                     <div className="mx-auto max-w-3xl w-full text-center">
                         {/* Large status code */}
@@ -637,7 +646,7 @@ export default function App({
         clientAuth,
         basketSnapshot,
         getI18next,
-        currency,
+        currency: loaderCurrency,
         correlationId,
         pageDesignerMode,
         site,
@@ -650,7 +659,7 @@ export default function App({
     loaderData: LoaderData;
 }) {
     // Currency is always provided by loader (which reads from middleware)
-    if (!currency) {
+    if (!loaderCurrency) {
         throw new Error('Currency is required but not provided by loader');
     }
 
@@ -673,9 +682,14 @@ export default function App({
 
     const i18next = (typeof window === 'undefined' ? getI18next?.() : i18nextOnClient) as i18n;
 
-    const sites = appConfig.commerce.sites as AppConfig['commerce']['sites'];
-    const defaultSite = sites.find((s) => s.id === appConfig.defaultSiteId) ?? sites[0];
-    const shopperAgentLocale = i18next?.language ?? defaultSite?.defaultLocale ?? appConfig.i18n.fallbackLng;
+    // Under a cached shell the loader currency is frozen; restore from the cookie post-hydration.
+    // The cookie name is bundled app config (never changes at runtime), so read it straight from
+    // appConfig rather than threading it through the loader.
+    const currency = useCurrency(
+        loaderCurrency,
+        site.supportedCurrencies,
+        appConfig.siteContext?.currencyCookieName ?? 'currency'
+    );
 
     // Memoize the providers array to prevent unnecessary remounting of providers on render
     const providers = useMemo(
@@ -687,7 +701,10 @@ export default function App({
                 // include i18next.language since these infos tend to go together.
                 // site will drive the language/locale and currency
                 [SiteProvider, { site, locale, language: i18next.language, currency }],
-                [AuthProvider, { value: clientAuth }],
+                // siteId resolves the namespaced `__sfdc_usertype` hint cookie so AuthProvider can
+                // restore the header auth state under a cached app shell. Must be the raw site.id
+                // (not the alias) to match the cookie the userType-hint middleware writes.
+                [AuthProvider, { value: clientAuth, siteId: site.id }],
                 [BasketProvider, { snapshot: basketSnapshot }],
                 [CorrelationProvider, { value: correlationId }],
                 // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
@@ -711,30 +728,31 @@ export default function App({
 
     const hybridEnabled = Boolean(appConfig?.hybrid?.enabled);
 
+    const passkeyEnabled = Boolean(appConfig?.features?.passkey?.enabled);
+
+    const innerTree = (
+        <UITargetProviders>
+            <AuthActionExecutor />
+            {passkeyEnabled && <PasskeyRegistrationTrigger />}
+            {hybridEnabled && <BackNavigationRevalidator />}
+            <PageDesignerProvider
+                clientId="storefront-next"
+                targetOrigin="*"
+                usid={clientAuth?.usid}
+                mode={pageDesignerMode}>
+                <PageDesignerInit />
+                <Outlet />
+            </PageDesignerProvider>
+            <TrackingConsentBanner />
+            {typeof window !== 'undefined' && <PageViewTracker />}
+        </UITargetProviders>
+    );
+
     return (
         <ComposeProviders providers={providers}>
-            <UITargetProviders>
-                <AuthActionExecutor />
-                {hybridEnabled && <BackNavigationRevalidator />}
-                <PageDesignerProvider
-                    clientId="storefront-next"
-                    targetOrigin="*"
-                    usid={clientAuth?.usid}
-                    mode={pageDesignerMode}>
-                    <PageDesignerInit />
-                    <Outlet />
-                </PageDesignerProvider>
-                <TrackingConsentBanner />
-                {typeof window !== 'undefined' && <PageViewTracker />}
-            </UITargetProviders>
-            {(appConfig.commerceAgent?.enabled === 'true' || appConfig.commerceAgent?.enabled === true) && (
-                <ShopperAgent
-                    commerceAgentConfiguration={appConfig.commerceAgent}
-                    locale={shopperAgentLocale}
-                    currency={currency}
-                    userId={clientAuth?.customerId}
-                    usid={clientAuth?.usid}
-                />
+            {passkeyEnabled ? <PasskeyRegistrationProvider>{innerTree}</PasskeyRegistrationProvider> : innerTree}
+            {isCimulateEnabled(appConfig.cimulateAgent?.enabled) && (
+                <CimulateAgent cimulateConfiguration={appConfig.cimulateAgent} />
             )}
         </ComposeProviders>
     );
@@ -746,6 +764,11 @@ export default function App({
  */
 function AuthActionExecutor() {
     useExecutePendingAction();
+    return null;
+}
+
+function PasskeyRegistrationTrigger() {
+    usePasskeyRegistration();
     return null;
 }
 
@@ -763,7 +786,7 @@ function BackNavigationRevalidator() {
             didRevalidateRef.current = true;
             void revalidator.revalidate();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return null;
 }

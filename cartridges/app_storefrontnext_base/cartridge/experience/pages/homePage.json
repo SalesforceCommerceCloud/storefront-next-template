@@ -6,11 +6,13 @@
         {
             "id": "headerbanner",
             "name": "Header Banner Region",
+            "description": "Region for promotional banners and hero content",
             "max_components": 3
         },
         {
             "id": "main",
             "name": "Main Content Region",
+            "description": "Region for main content",
             "max_components": 10
         }
     ],

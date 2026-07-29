@@ -83,7 +83,7 @@ function StoryWrapper({ children }: { children: ReactNode }) {
 }
 
 const meta: Meta<typeof StoreLocatorSheet> = {
-    title: 'Extensions/StoreLocator/StoreLocatorSheet',
+    title: 'Extensions/Store Locator/Store Locator Sheet',
     component: StoreLocatorSheet,
     tags: ['autodocs', 'interaction'],
     parameters: {

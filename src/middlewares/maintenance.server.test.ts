@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable prefer-template */
+/* oxlint-disable @typescript-eslint/prefer-promise-reject-errors */
+/* oxlint-disable @typescript-eslint/unbound-method */
+/* oxlint-disable prefer-template */
 import { describe, test, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 
@@ -49,7 +49,7 @@ vi.mock('react-router', async (importOriginal) => {
                     Location: url,
                 },
             });
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
+            // oxlint-disable-next-line @typescript-eslint/only-throw-error
             throw response;
         },
     };
@@ -560,7 +560,7 @@ describe('maintenanceMiddleware', () => {
                 ),
             ];
 
-            // eslint-disable-next-line @typescript-eslint/await-thenable
+            // oxlint-disable-next-line @typescript-eslint/await-thenable
             const results = (await Promise.all(requests)) as Response[];
 
             results.forEach((result) => {

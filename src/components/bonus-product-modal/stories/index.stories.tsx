@@ -181,7 +181,7 @@ function BonusProductModalWrapper(): ReactElement {
 }
 
 const meta: Meta<typeof BonusProductModal> = {
-    title: 'CART/Bonus Product Modal',
+    title: 'Cart/Bonus Products/Bonus Product Modal',
     component: BonusProductModal,
     parameters: {
         layout: 'centered',

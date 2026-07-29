@@ -15,9 +15,11 @@
  */
 /** @sfdc-extension-file SFDC_EXT_RATINGS_REVIEWS */
 import { type ReactElement, useMemo, useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StarRating } from '@/components/product-ratings/star-rating';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useProductReviews } from '@/extensions/ratings-reviews/providers/product-reviews-context';
+import { uiConfig } from '@/lib/config.ui';
 import { cn } from '@/lib/utils';
 
 const StarRatingDistributionModalContent = lazy(() =>
@@ -37,9 +39,16 @@ const POPOVER_CLOSE_DELAY_MS = 150;
  * link scrolls to the customer reviews accordion.
  */
 export function ProductRatingSummary({ interactive = true }: { interactive?: boolean }): ReactElement | null {
+    const { t } = useTranslation('product');
     const { reviewsSummary, reviews, expandReviews, registerOnExpanded } = useProductReviews();
+    // @/lib/config.ui seam — a vertical (e.g. foundations) overlays this to show the
+    // numeric average and a "{count} reviews" label; the baseline shows count-only.
+    const { showRatingAverage } = uiConfig.pages.product;
     const [popoverOpen, setPopoverOpen] = useState(false);
     const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // True only while the current close was triggered by Escape (a keyboard dismissal), so the
+    // close handler can return focus to the trigger for that path and leave it alone otherwise.
+    const escapeDismissRef = useRef(false);
 
     const clearCloseTimeout = useCallback(() => {
         if (closeTimeoutRef.current != null) {
@@ -105,7 +114,14 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
     const canInteract = interactive && hasReviews;
 
     const scrollToReviews = useCallback(() => {
-        document.getElementById(CUSTOMER_REVIEWS_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const target = document.getElementById(CUSTOMER_REVIEWS_ID);
+        if (!target) return;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Move keyboard focus to the reviews section, not just the viewport. Without this a
+        // keyboard or screen-reader user stays on the rating summary while the page scrolls
+        // away beneath them. `preventScroll` keeps the smooth scroll above from being cut short
+        // by the focus call. The target carries tabIndex={-1} so it can receive focus. (W-23325662)
+        target.focus({ preventScroll: true });
     }, []);
 
     const handleSeeReviewsClick = useCallback(() => {
@@ -135,6 +151,7 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
         <div className="relative mt-2 inline-block">
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
+                    {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- hover-only popover trigger (onMouseEnter/Leave); eslint-plugin-jsx-a11y's default handler list excludes mouse-enter/leave, so this is not a keyboard-interaction gap */}
                     <div
                         className={cn('relative inline-block', canInteract && 'cursor-pointer')}
                         onMouseEnter={() => {
@@ -153,13 +170,25 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
                             <StarRating
                                 rating={aggregateRating.average}
                                 reviewCount={aggregateRating.count}
-                                showRatingLabel={false}
+                                // Gate the numeric average on hasReviews, mirroring the review-count
+                                // suffix below — without reviews the average is 0, and a lone "0" next
+                                // to empty stars is neither the with-reviews label ("4.8 (124 reviews)")
+                                // nor the count-only baseline. Only the average+count pair should show.
+                                showRatingLabel={showRatingAverage && hasReviews}
+                                ratingLabelPosition="right"
+                                ratingLabelFormat="short"
+                                ratingLabelClassName="text-sm font-medium text-card-foreground"
                                 showRatingLink={false}
                                 starSize="default"
                             />
-                            {aggregateRating.count > 0 && (
-                                <span className="text-sm text-muted-foreground">({aggregateRating.count})</span>
-                            )}
+                            {aggregateRating.count > 0 &&
+                                (showRatingAverage ? (
+                                    <span className="text-sm text-muted-foreground">
+                                        {t('rating.reviewCount', { count: aggregateRating.count })}
+                                    </span>
+                                ) : (
+                                    <span className="text-sm text-muted-foreground">({aggregateRating.count})</span>
+                                ))}
                         </div>
                     </div>
                 </PopoverTrigger>
@@ -169,7 +198,22 @@ export function ProductRatingSummary({ interactive = true }: { interactive?: boo
                     sideOffset={4}
                     className="min-w-[280px] max-w-[304px] p-4 bg-card text-card-foreground"
                     aria-label="Star rating distribution"
-                    onCloseAutoFocus={(e) => e.preventDefault()}
+                    onEscapeKeyDown={() => {
+                        // Mark this close as a keyboard dismissal so onCloseAutoFocus below returns
+                        // focus to the trigger (Radix fires onEscapeKeyDown before onCloseAutoFocus).
+                        escapeDismissRef.current = true;
+                    }}
+                    onCloseAutoFocus={(e) => {
+                        // The popover is hover-opened, so most closes are a mouse-leave: the pointer
+                        // has moved on and returning focus to the trigger would yank the page (and
+                        // scroll) back to the rating summary. Only Escape, a keyboard dismissal, must
+                        // return focus to the trigger for WCAG 2.4.3. Let Radix's default run for
+                        // Escape; suppress it for every other close.
+                        if (!escapeDismissRef.current) {
+                            e.preventDefault();
+                        }
+                        escapeDismissRef.current = false;
+                    }}
                     onMouseEnter={clearCloseTimeout}
                     onMouseLeave={scheduleClose}>
                     <Suspense fallback={null}>

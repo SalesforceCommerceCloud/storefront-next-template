@@ -14,36 +14,38 @@
  * limitations under the License.
  */
 import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
-import { type ReactNode, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { EMPTY_WISHLIST_STATE, type WishlistInitialState } from '@/lib/wishlist/state';
 import {
-    WishlistProvider,
     useIsInWishlist,
     useWishlistActions,
     useWishlistCount,
     useWishlistEntry,
+    useWishlistLoader,
     useWishlistIds,
+    useWishlistSession,
 } from './wishlist';
+import { resetWishlistStore, seedWishlistStore } from '@/test-utils/wishlist';
+import { resourceRoutes } from '@/route-paths';
 
 /** Build a `Response` mirroring what `/action/wishlist-*` serializes via `data()`. */
 function actionResponse(body: unknown, status = 200): Response {
     return new Response(JSON.stringify(body), { status });
 }
 
-describe('WishlistProvider — read-only behavior', () => {
-    test('useIsInWishlist returns true for ids seeded by initialState.productIds', () => {
-        const initialState: WishlistInitialState = {
-            customerId: 'c',
-            productIds: new Set(['sku-1', 'sku-2']),
-        };
-        const wrapper = ({ children }: { children: ReactNode }) => (
-            <WishlistProvider initialState={initialState}>{children}</WishlistProvider>
-        );
+// The store is a module-level singleton (no provider): reset every bit of its state between tests
+// so ids, load latch, session owner, and the write chain never leak across cases.
+beforeEach(() => {
+    resetWishlistStore();
+});
 
-        const sku1 = renderHook(() => useIsInWishlist('sku-1'), { wrapper });
-        const sku2 = renderHook(() => useIsInWishlist('sku-2'), { wrapper });
-        const missing = renderHook(() => useIsInWishlist('not-in-list'), { wrapper });
+describe('wishlist store — read-only behavior', () => {
+    test('useIsInWishlist returns true for seeded ids', () => {
+        seedWishlistStore('c', ['sku-1', 'sku-2']);
+
+        const sku1 = renderHook(() => useIsInWishlist('sku-1'));
+        const sku2 = renderHook(() => useIsInWishlist('sku-2'));
+        const missing = renderHook(() => useIsInWishlist('not-in-list'));
 
         expect(sku1.result.current).toBe(true);
         expect(sku2.result.current).toBe(true);
@@ -51,53 +53,21 @@ describe('WishlistProvider — read-only behavior', () => {
     });
 
     test('useWishlistCount returns the seeded size', () => {
-        const initialState: WishlistInitialState = {
-            customerId: 'c',
-            productIds: new Set(['sku-1', 'sku-2']),
-        };
-        const wrapper = ({ children }: { children: ReactNode }) => (
-            <WishlistProvider initialState={initialState}>{children}</WishlistProvider>
-        );
-        const { result } = renderHook(() => useWishlistCount(), { wrapper });
+        seedWishlistStore('c', ['sku-1', 'sku-2']);
+        const { result } = renderHook(() => useWishlistCount());
         expect(result.current).toBe(2);
     });
 
-    test('useWishlistIds returns a stable Set per snapshot', () => {
-        const initialState: WishlistInitialState = {
-            customerId: 'c',
-            productIds: new Set(['sku-1', 'sku-2']),
-        };
-        const wrapper = ({ children }: { children: ReactNode }) => (
-            <WishlistProvider initialState={initialState}>{children}</WishlistProvider>
-        );
-        const { result } = renderHook(() => useWishlistIds(), { wrapper });
+    test('useWishlistIds returns the seeded ids', () => {
+        seedWishlistStore('c', ['sku-1', 'sku-2']);
+        const { result } = renderHook(() => useWishlistIds());
         expect(Array.from(result.current).sort()).toEqual(['sku-1', 'sku-2']);
     });
 
-    test('hooks throw when used outside a provider', () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        try {
-            expect(() => renderHook(() => useIsInWishlist('x'))).toThrow(
-                /Wishlist hooks must be used inside <WishlistProvider>/
-            );
-            expect(() => renderHook(() => useWishlistCount())).toThrow(
-                /Wishlist hooks must be used inside <WishlistProvider>/
-            );
-            expect(() => renderHook(() => useWishlistActions())).toThrow(
-                /useWishlistActions must be used inside <WishlistProvider>/
-            );
-        } finally {
-            consoleSpy.mockRestore();
-        }
-    });
-
-    test('exposes EMPTY_WISHLIST_STATE shape: count 0, no members, not pending', () => {
-        const wrapper = ({ children }: { children: ReactNode }) => (
-            <WishlistProvider initialState={EMPTY_WISHLIST_STATE}>{children}</WishlistProvider>
-        );
-        const count = renderHook(() => useWishlistCount(), { wrapper });
-        const member = renderHook(() => useIsInWishlist('anything'), { wrapper });
-        const actions = renderHook(() => useWishlistActions(), { wrapper });
+    test('empty store: count 0, no members, not pending', () => {
+        const count = renderHook(() => useWishlistCount());
+        const member = renderHook(() => useIsInWishlist('anything'));
+        const actions = renderHook(() => useWishlistActions());
 
         expect(count.result.current).toBe(0);
         expect(member.result.current).toBe(false);
@@ -105,7 +75,7 @@ describe('WishlistProvider — read-only behavior', () => {
     });
 });
 
-describe('WishlistProvider — action-backed mutations', () => {
+describe('wishlist store — action-backed mutations', () => {
     let fetchSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
@@ -115,39 +85,21 @@ describe('WishlistProvider — action-backed mutations', () => {
         fetchSpy.mockRestore();
     });
 
-    const signedInState = (): WishlistInitialState => ({
-        customerId: 'cust-1',
-        productIds: new Set(),
-    });
-
-    function setup(state = signedInState()) {
-        const wrapper = ({ children }: { children: ReactNode }) => (
-            <WishlistProvider initialState={state}>{children}</WishlistProvider>
-        );
-        // Exposes the actions only — per-product membership is asserted via setupFor()
-        // so we don't violate rules-of-hooks by calling useIsInWishlist inside a callback.
-        return renderHook(
-            () => ({
-                actions: useWishlistActions(),
-            }),
-            { wrapper }
-        );
+    /** Seed a signed-in session (default 'cust-1') plus any pre-existing ids, then expose the actions. */
+    function setup(customerId: string | null = 'cust-1', productIds: string[] = []) {
+        seedWishlistStore(customerId, productIds);
+        return renderHook(() => ({ actions: useWishlistActions() }));
     }
 
-    // For tests that need a stable per-product subscription across mutations, render
-    // a small harness that holds a single productId and exposes its membership flag.
-    function setupFor(productId: string, state = signedInState()) {
-        const wrapper = ({ children }: { children: ReactNode }) => (
-            <WishlistProvider initialState={state}>{children}</WishlistProvider>
-        );
-        return renderHook(
-            () => ({
-                actions: useWishlistActions(),
-                inWishlist: useIsInWishlist(productId),
-                entry: useWishlistEntry(productId),
-            }),
-            { wrapper }
-        );
+    // For tests that need a stable per-product subscription across mutations, also expose that
+    // product's membership + entry flags alongside the actions.
+    function setupFor(productId: string, productIds: string[] = [], customerId: string | null = 'cust-1') {
+        seedWishlistStore(customerId, productIds);
+        return renderHook(() => ({
+            actions: useWishlistActions(),
+            inWishlist: useIsInWishlist(productId),
+            entry: useWishlistEntry(productId),
+        }));
     }
 
     test('add(): optimistic insert while pending; success confirms; a single POST is issued', async () => {
@@ -203,13 +155,9 @@ describe('WishlistProvider — action-backed mutations', () => {
     });
 
     test('remove(): optimistic delete; success keeps inWishlist false', async () => {
-        const state: WishlistInitialState = {
-            customerId: 'cust-1',
-            productIds: new Set(['sku-3']),
-        };
         fetchSpy.mockResolvedValue(actionResponse({ success: true }));
 
-        const { result } = setupFor('sku-3', state);
+        const { result } = setupFor('sku-3', ['sku-3']);
         expect(result.current.inWishlist).toBe(true);
 
         await act(async () => {
@@ -224,13 +172,9 @@ describe('WishlistProvider — action-backed mutations', () => {
     });
 
     test('remove(): server failure rolls back so inWishlist returns to true', async () => {
-        const state: WishlistInitialState = {
-            customerId: 'cust-1',
-            productIds: new Set(['sku-4']),
-        };
         fetchSpy.mockResolvedValue(actionResponse({ success: false, error: { message: 'Boom' } }, 500));
 
-        const { result } = setupFor('sku-4', state);
+        const { result } = setupFor('sku-4', ['sku-4']);
 
         await act(async () => {
             await result.current.actions.remove('sku-4');
@@ -240,7 +184,7 @@ describe('WishlistProvider — action-backed mutations', () => {
     });
 
     test('toggle(): adds when absent, removes when present', async () => {
-        // A fresh Response per call — postWishlistAction consumes the body via .text(),
+        // A fresh Response per call — postWishlistAction consumes the body via .json(),
         // so a single shared Response instance would be already-consumed on the 2nd fetch.
         fetchSpy.mockImplementation(() => Promise.resolve(actionResponse({ success: true })));
 
@@ -258,13 +202,8 @@ describe('WishlistProvider — action-backed mutations', () => {
         expect(result.current.inWishlist).toBe(false);
     });
 
-    test('add(): already in state returns alreadyInWishlist signal without a server call', async () => {
-        const state: WishlistInitialState = {
-            customerId: 'cust-1',
-            productIds: new Set(['sku-existing']),
-        };
-
-        const { result } = setupFor('sku-existing', state);
+    test('add(): already in the store returns alreadyInWishlist signal without a server call', async () => {
+        const { result } = setupFor('sku-existing', ['sku-existing']);
 
         let response: { success: boolean; data?: { alreadyInWishlist?: boolean } } | undefined;
         await act(async () => {
@@ -346,11 +285,7 @@ describe('WishlistProvider — action-backed mutations', () => {
     });
 
     test('add()/remove() short-circuit without a customerId (no session) and make no server call', async () => {
-        const noSessionState: WishlistInitialState = {
-            customerId: null,
-            productIds: new Set(),
-        };
-        const { result } = setup(noSessionState);
+        const { result } = setup(null);
 
         await act(async () => {
             const added = (await result.current.actions.add('sku-6')) as { success: boolean; errors?: string[] };
@@ -402,10 +337,10 @@ describe('WishlistProvider — action-backed mutations', () => {
     });
 
     test('add(): concurrent first-adds serialize their POSTs so list provisioning finishes first', async () => {
-        // Regression guard for the get-or-create race (W-23135032): the first add for a
+        // Regression guard for the get-or-create race: the first add for a
         // shopper with no wishlist provisions the list server-side. If two concurrent
         // first-adds both POST before the first resolves, each server request sees "no
-        // list" and creates its own — duplicate lists, stranded items. The provider must
+        // list" and creates its own — duplicate lists, stranded items. The store must
         // serialize the network round-trips so the second POST starts only after the first
         // settles. Optimistic UI still flips synchronously (asserted separately).
         const resolvers: Array<(r: Response) => void> = [];
@@ -478,7 +413,7 @@ describe('WishlistProvider — action-backed mutations', () => {
     });
 });
 
-describe('WishlistProvider — re-render isolation', () => {
+describe('wishlist store — re-render isolation', () => {
     let fetchSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
@@ -491,11 +426,12 @@ describe('WishlistProvider — re-render isolation', () => {
     /**
      * Test that subscribing to product A via `useIsInWishlist` does NOT trigger
      * a re-render when product B is added. This is the entire point of the
-     * topic-subscription provider — without it, every heart in a product grid
+     * topic-subscription store — without it, every heart in a product grid
      * would re-render on every wishlist mutation.
      */
     test('mutating one productId does not re-render consumers subscribed to another', async () => {
         fetchSpy.mockResolvedValue(new Response(JSON.stringify({ success: true }), { status: 200 }));
+        seedWishlistStore('cust-1', []);
 
         const skuARenders = { count: 0, last: false };
         const skuBRenders = { count: 0, last: false };
@@ -530,11 +466,11 @@ describe('WishlistProvider — re-render isolation', () => {
         }
 
         render(
-            <WishlistProvider initialState={{ customerId: 'cust-1', productIds: new Set() }}>
+            <>
                 <SubscriberA />
                 <SubscriberB />
                 <ActionsCapture />
-            </WishlistProvider>
+            </>
         );
 
         // After mount: each subscriber has rendered once.
@@ -564,6 +500,7 @@ describe('WishlistProvider — re-render isolation', () => {
             resolveFirst = resolve;
         });
         fetchSpy.mockReturnValueOnce(firstResponse);
+        seedWishlistStore('cust-1', []);
 
         const countRenders = { count: 0, last: -1 };
 
@@ -585,10 +522,10 @@ describe('WishlistProvider — re-render isolation', () => {
         }
 
         render(
-            <WishlistProvider initialState={{ customerId: 'cust-1', productIds: new Set() }}>
+            <>
                 <CountSubscriber />
                 <ActionsCapture />
-            </WishlistProvider>
+            </>
         );
 
         expect(countRenders.last).toBe(0);
@@ -615,82 +552,373 @@ describe('WishlistProvider — re-render isolation', () => {
     });
 });
 
-describe('WishlistProvider — async hydration via Promise initialState', () => {
-    function CountReadout() {
-        const count = useWishlistCount();
-        return <span data-testid="count">{count}</span>;
-    }
+describe('wishlist store — lazy load', () => {
+    let fetchSpy: ReturnType<typeof vi.spyOn>;
 
-    function MembershipReadout({ productId }: { productId: string }) {
-        const inWishlist = useIsInWishlist(productId);
-        return <span data-testid={`member-${productId}`}>{inWishlist ? 'in' : 'out'}</span>;
-    }
+    /** Response mirroring `/action/wishlist-state` serialized via `data()`. */
+    const stateResponse = (productIds: string[], status = 200): Response =>
+        new Response(JSON.stringify({ productIds }), { status });
 
-    test('pending Promise: hooks return safe empty defaults until the Promise resolves', () => {
-        // A never-resolving Promise keeps the provider in its initial empty state.
-        const pending = new Promise<WishlistInitialState>(() => {});
-
-        render(
-            <WishlistProvider initialState={pending}>
-                <CountReadout />
-                <MembershipReadout productId="anything" />
-            </WishlistProvider>
-        );
-
-        expect(screen.getByTestId('count')).toHaveTextContent('0');
-        expect(screen.getByTestId('member-anything')).toHaveTextContent('out');
+    beforeEach(() => {
+        fetchSpy = vi.spyOn(globalThis, 'fetch');
+    });
+    afterEach(() => {
+        fetchSpy.mockRestore();
     });
 
-    test('resolved Promise: hydrates the store via useEffect after mount', async () => {
-        const resolve: Promise<WishlistInitialState> = Promise.resolve({
-            customerId: 'c1',
-            productIds: new Set(['abc']),
-        });
+    /** Bind a signed-in session whose lazy read has NOT run yet, so the load trigger is armed. */
+    const seedGuest = (productIds: string[] = []) => seedWishlistStore('guest-1', productIds, { loaded: false });
+
+    test('load fetches /action/wishlist-state and fills the store', async () => {
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1', 'sku-2'])));
+        seedGuest();
+
+        const { result } = renderHook(() => ({ load: useWishlistLoader(), sku1: useIsInWishlist('sku-1') }));
+
+        expect(result.current.sku1).toBe(false);
 
         await act(async () => {
-            render(
-                <WishlistProvider initialState={resolve}>
-                    <MembershipReadout productId="abc" />
-                </WishlistProvider>
-            );
-            await resolve;
+            await result.current.load();
+        });
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit | undefined];
+        expect(url).toBe(resourceRoutes.wishlistState);
+        expect(init?.method ?? 'GET').toBe('GET');
+
+        await waitFor(() => {
+            expect(result.current.sku1).toBe(true);
+        });
+    });
+
+    test('fires at most once even when called many times', async () => {
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1'])));
+        seedGuest();
+
+        const { result } = renderHook(() => useWishlistLoader());
+
+        await act(async () => {
+            await Promise.all([result.current(), result.current(), result.current()]);
+            await result.current();
+        });
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('does not re-fetch across separate mounts, and the second mount shows the loaded item', async () => {
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1'])));
+        seedGuest();
+
+        const first = renderHook(() => useWishlistLoader());
+        await act(async () => {
+            await first.result.current();
+        });
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        first.unmount();
+
+        // A new route mounts fresh hooks against the same singleton — the load is already
+        // satisfied AND the previously-loaded item must be visible without a re-fetch.
+        const second = renderHook(() => ({ load: useWishlistLoader(), sku1: useIsInWishlist('sku-1') }));
+        expect(second.result.current.sku1).toBe(true);
+        await act(async () => {
+            await second.result.current.load();
+        });
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('re-binding the SAME session does not wipe loaded hearts or re-fetch', async () => {
+        // On client navigation the destination loader re-runs and re-supplies the same customerId.
+        // setSessionCustomerId no-ops on an unchanged id, so a prior load's hearts must survive.
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1'])));
+
+        const { result, rerender } = renderHook(
+            ({ customerId }: { customerId: string }) => {
+                useWishlistSession(customerId);
+                return { load: useWishlistLoader(), sku1: useIsInWishlist('sku-1') };
+            },
+            { initialProps: { customerId: 'guest-1' } }
+        );
+
+        await act(async () => {
+            await result.current.load();
+        });
+        await waitFor(() => expect(result.current.sku1).toBe(true));
+
+        act(() => {
+            rerender({ customerId: 'guest-1' });
+        });
+
+        expect(result.current.sku1).toBe(true);
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('a different shopper does NOT inherit the prior shopper hearts (session eviction)', async () => {
+        // Auth transitions are client-side, so the singleton survives a shopper change in the same
+        // tab. When useWishlistSession sees a new customerId it must evict the prior hearts, clear
+        // the done latch, and — because an earlier intent already armed the load — replay the read
+        // for the new shopper.
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-A'])));
+
+        const { result, rerender } = renderHook(
+            ({ customerId }: { customerId: string }) => {
+                useWishlistSession(customerId);
+                return {
+                    load: useWishlistLoader(),
+                    skuA: useIsInWishlist('sku-A'),
+                    skuB: useIsInWishlist('sku-B'),
+                };
+            },
+            { initialProps: { customerId: 'guest-A' } }
+        );
+
+        // Guest A's first intent fills sku-A (and arms loadRequested).
+        await act(async () => {
+            await result.current.load();
+        });
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(result.current.skuA).toBe(true));
+
+        // Guest B takes over the tab (post logout/login, no hard reload). Different owner: the
+        // session change evicts A's heart and replays the read for B.
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-B'])));
+        act(() => {
+            rerender({ customerId: 'guest-B' });
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('member-abc')).toHaveTextContent('in');
+            expect(result.current.skuA).toBe(false);
+            expect(result.current.skuB).toBe(true);
         });
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
 
-    test('rejected Promise: provider stays in empty state, no error escapes', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        try {
-            const rejected = Promise.reject(new Error('scapi failed'));
-            rejected.catch(() => {}); // prevent unhandled-rejection noise
+    test('a remove landing mid-load is not resurrected by the server snapshot', async () => {
+        // The lazy GET reflects the wishlist as of when it fired; a remove that lands while it's
+        // in flight must win over that stale snapshot rather than be undone by the load merge.
+        let resolveState: (r: Response) => void = () => {};
+        const inFlightState = new Promise<Response>((resolve) => {
+            resolveState = resolve;
+        });
+        seedWishlistStore('guest-1', ['sku-1'], { loaded: false });
 
-            await act(async () => {
-                render(
-                    <WishlistProvider initialState={rejected}>
-                        <CountReadout />
-                    </WishlistProvider>
-                );
-                await Promise.allSettled([rejected]);
-            });
+        const { result } = renderHook(() => ({
+            load: useWishlistLoader(),
+            actions: useWishlistActions(),
+            sku1: useIsInWishlist('sku-1'),
+        }));
+        expect(result.current.sku1).toBe(true);
 
-            await waitFor(() => {
-                expect(screen.getByTestId('count')).toHaveTextContent('0');
-            });
-        } finally {
-            consoleSpy.mockRestore();
-        }
+        // Kick off the load (GET hangs) — the server will report sku-1 still present.
+        fetchSpy.mockReturnValueOnce(inFlightState);
+        let loadPromise!: Promise<void>;
+        act(() => {
+            loadPromise = result.current.load();
+        });
+
+        // Remove sku-1 while the GET is in flight. remove() POSTs to wishlist-remove (success).
+        fetchSpy.mockImplementation(() => Promise.resolve(actionResponse({ success: true })));
+        await act(async () => {
+            await result.current.actions.remove('sku-1');
+        });
+        expect(result.current.sku1).toBe(false);
+
+        // Now let the stale GET resolve WITH sku-1 present — the merge must not resurrect it.
+        await act(async () => {
+            resolveState(stateResponse(['sku-1']));
+            await loadPromise;
+        });
+        expect(result.current.sku1).toBe(false);
     });
 
-    test('resolving the Promise hydrates the store WITHOUT re-rendering useWishlistActions consumers', async () => {
-        // The store fill must reach only the topic subscribers whose entries changed to prevent a whole-page hydration
-        // flicker.
+    test('a failed remove mid-load rolls back and is NOT dropped by the load merge', async () => {
+        // A remove marks the item in pendingRemovals at optimistic-delete time. If the server
+        // remove then FAILS, the store rolls back — and the removal marker must be discarded, or
+        // the in-flight load would subtract the still-saved item and blank a valid heart.
+        let resolveState: (r: Response) => void = () => {};
+        const inFlightState = new Promise<Response>((resolve) => {
+            resolveState = resolve;
+        });
+        seedWishlistStore('guest-1', ['sku-1'], { loaded: false });
+
+        const { result } = renderHook(() => ({
+            load: useWishlistLoader(),
+            actions: useWishlistActions(),
+            sku1: useIsInWishlist('sku-1'),
+        }));
+        expect(result.current.sku1).toBe(true);
+
+        // Kick off the load (GET hangs) — the server will report sku-1 still present.
+        fetchSpy.mockReturnValueOnce(inFlightState);
+        let loadPromise!: Promise<void>;
+        act(() => {
+            loadPromise = result.current.load();
+        });
+
+        // Remove sku-1 while the GET is in flight, but the server remove FAILS → rollback.
+        fetchSpy.mockImplementation(() => Promise.resolve(actionResponse({ success: false, errors: ['nope'] })));
+        await act(async () => {
+            await result.current.actions.remove('sku-1');
+        });
+        expect(result.current.sku1).toBe(true);
+
+        // The GET resolves WITH sku-1 present — the rolled-back item must survive the merge.
+        await act(async () => {
+            resolveState(stateResponse(['sku-1']));
+            await loadPromise;
+        });
+        expect(result.current.sku1).toBe(true);
+    });
+
+    test('an add landing mid-load is not dropped by the server snapshot', async () => {
+        // The stale GET snapshot won't list an item added after it fired; the merge must union
+        // in the current store keys so a mid-fetch add survives.
+        let resolveState: (r: Response) => void = () => {};
+        const inFlightState = new Promise<Response>((resolve) => {
+            resolveState = resolve;
+        });
+        seedGuest();
+
+        const { result } = renderHook(() => ({
+            load: useWishlistLoader(),
+            actions: useWishlistActions(),
+            sku2: useIsInWishlist('sku-2'),
+        }));
+
+        // Load GET hangs; it will resolve to sku-1 only (no sku-2).
+        fetchSpy.mockReturnValueOnce(inFlightState);
+        let loadPromise!: Promise<void>;
+        act(() => {
+            loadPromise = result.current.load();
+        });
+
+        // Add sku-2 while the GET is in flight (POST succeeds).
+        fetchSpy.mockImplementation(() => Promise.resolve(actionResponse({ success: true })));
+        await act(async () => {
+            await result.current.actions.add('sku-2');
+        });
+        expect(result.current.sku2).toBe(true);
+
+        // The GET resolves without sku-2 — the union must keep the mid-fetch add.
+        await act(async () => {
+            resolveState(stateResponse(['sku-1']));
+            await loadPromise;
+        });
+        expect(result.current.sku2).toBe(true);
+    });
+
+    test('an add whose POST resolves after a shopper swap does NOT land in the new session store', async () => {
+        // Auth transitions are client-side (no reload), so a POST can still be in flight when the
+        // session swaps. The add-success settle write must be gated on the owner at write time, or
+        // the prior shopper's confirmed heart leaks into the new shopper's store.
+        let resolveAdd: (r: Response) => void = () => {};
+        const inFlightAdd = new Promise<Response>((resolve) => {
+            resolveAdd = resolve;
+        });
+        seedWishlistStore('guest-A', [], { loaded: true });
+
+        const { result, rerender } = renderHook(
+            ({ customerId }: { customerId: string }) => {
+                useWishlistSession(customerId);
+                return { actions: useWishlistActions(), skuA: useIsInWishlist('sku-A') };
+            },
+            { initialProps: { customerId: 'guest-A' } }
+        );
+
+        // Guest A adds sku-A; the POST hangs.
+        fetchSpy.mockReturnValueOnce(inFlightAdd);
+        let addPromise!: Promise<unknown>;
+        act(() => {
+            addPromise = result.current.actions.add('sku-A');
+        });
+
+        // Guest B takes over the tab before the POST resolves — the swap evicts A's store.
+        act(() => {
+            rerender({ customerId: 'guest-B' });
+        });
+        expect(result.current.skuA).toBe(false);
+
+        // A's POST now resolves success — the settle write must be skipped for B's session.
+        await act(async () => {
+            resolveAdd(actionResponse({ success: true }));
+            await addPromise;
+        });
+        expect(result.current.skuA).toBe(false);
+    });
+
+    test('a failed remove whose POST resolves after a shopper swap does NOT roll back into the new session store', async () => {
+        // Same window on the remove rollback path: a failed POST must not restore the prior
+        // shopper's item into the new shopper's store after a mid-flight session swap.
+        let resolveRemove: (r: Response) => void = () => {};
+        const inFlightRemove = new Promise<Response>((resolve) => {
+            resolveRemove = resolve;
+        });
+        seedWishlistStore('guest-A', ['sku-A'], { loaded: true });
+
+        const { result, rerender } = renderHook(
+            ({ customerId }: { customerId: string }) => {
+                useWishlistSession(customerId);
+                return { actions: useWishlistActions(), skuA: useIsInWishlist('sku-A') };
+            },
+            { initialProps: { customerId: 'guest-A' } }
+        );
+        expect(result.current.skuA).toBe(true);
+
+        // Guest A removes sku-A (optimistic delete); the POST hangs.
+        fetchSpy.mockReturnValueOnce(inFlightRemove);
+        let removePromise!: Promise<unknown>;
+        act(() => {
+            removePromise = result.current.actions.remove('sku-A');
+        });
+
+        // Guest B takes over before the POST resolves — the swap evicts A's store.
+        act(() => {
+            rerender({ customerId: 'guest-B' });
+        });
+        expect(result.current.skuA).toBe(false);
+
+        // A's remove FAILS — the rollback must be skipped for B's session.
+        await act(async () => {
+            resolveRemove(actionResponse({ success: false, errors: ['nope'] }));
+            await removePromise;
+        });
+        expect(result.current.skuA).toBe(false);
+    });
+
+    test('load no-ops once the session is already loaded', async () => {
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1'])));
+        // Default seed marks the load done — an already-loaded session must not fire the read.
+        seedWishlistStore('reg-1', []);
+
+        const { result } = renderHook(() => useWishlistLoader());
+
+        await act(async () => {
+            await result.current();
+        });
+
+        expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test('load no-ops without a session', async () => {
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1'])));
+        // No session bound (reset leaves customerId null): the read cannot know whose wishlist to load.
+        const { result } = renderHook(() => useWishlistLoader());
+
+        await act(async () => {
+            await result.current();
+        });
+
+        expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    test('load fill reaches topic subscribers without re-rendering useWishlistActions consumers', async () => {
+        // The store fill must reach only the topic subscribers whose entries changed — a consumer
+        // of the actions (which subscribe to the pending flag only) must not re-render, or the
+        // whole page would flicker on load.
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['abc'])));
+        seedGuest();
+
         const actionsRenders = { count: 0 };
         function ActionsConsumer() {
-            // Subscribes to the actions context only — NOT to the store. It must not
-            // re-render when the store hydrates.
             useWishlistActions();
             const renderRef = useRef(0);
             renderRef.current += 1;
@@ -699,29 +927,107 @@ describe('WishlistProvider — async hydration via Promise initialState', () => 
             });
             return <span data-testid="actions-consumer">ok</span>;
         }
+        function MembershipReadout() {
+            const inWishlist = useIsInWishlist('abc');
+            return <span data-testid="member-abc">{inWishlist ? 'in' : 'out'}</span>;
+        }
+        let load!: () => Promise<void>;
+        function LoadCapture() {
+            load = useWishlistLoader();
+            return null;
+        }
 
-        const resolve: Promise<WishlistInitialState> = Promise.resolve({
-            customerId: 'c1',
-            productIds: new Set(['abc']),
-        });
+        render(
+            <>
+                <ActionsConsumer />
+                <MembershipReadout />
+                <LoadCapture />
+            </>
+        );
 
         await act(async () => {
-            render(
-                <WishlistProvider initialState={resolve}>
-                    <ActionsConsumer />
-                    <MembershipReadout productId="abc" />
-                </WishlistProvider>
-            );
-            await resolve;
+            await load();
         });
 
-        // Hydration actually ran: the topic subscriber for 'abc' flipped to "in".
+        // The load actually ran: the topic subscriber for 'abc' flipped to "in".
         await waitFor(() => {
             expect(screen.getByTestId('member-abc')).toHaveTextContent('in');
         });
 
-        // The critical assertion: the actions consumer rendered exactly once (mount),
-        // proving the provider did not re-render and the actions context stayed stable.
+        // The critical assertion: the actions consumer rendered exactly once (mount).
         expect(actionsRenders.count).toBe(1);
+    });
+
+    test('an add propagates to the next mount via the singleton store', async () => {
+        // add() POSTs to /action/wishlist-add; load() would GET /action/wishlist-state.
+        fetchSpy.mockImplementation(() => Promise.resolve(actionResponse({ success: true })));
+        seedGuest();
+
+        const first = renderHook(() => useWishlistActions());
+        await act(async () => {
+            const r = (await first.result.current.add('sku-99')) as { success: boolean };
+            expect(r.success).toBe(true);
+        });
+        first.unmount();
+
+        // A new route's hooks read the same singleton — the just-added item must be present.
+        const second = renderHook(() => useIsInWishlist('sku-99'));
+        expect(second.result.current).toBe(true);
+    });
+
+    test('an at-load heart that requests the load before the session is known replays once bound', async () => {
+        // The PDP heart fires loadWishlist() from its own mount effect, which flushes child-before-
+        // parent — i.e. before the route's useWishlistSession effect has bound the session. A
+        // request with no session yet must be recorded and replayed once the session is known,
+        // otherwise the on-mount load would be a permanent no-op.
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1'])));
+
+        // Mirrors WishlistButton: triggers the load from a mount effect, nothing else.
+        function AtLoadHeart() {
+            const load = useWishlistLoader();
+            useEffect(() => {
+                void load();
+            }, [load]);
+            return null;
+        }
+
+        render(<AtLoadHeart />);
+        const readout = renderHook(() => useIsInWishlist('sku-1'));
+
+        // The mount-effect load() has fired, but no session is bound yet, so no fetch went
+        // out — the request is recorded, not dropped.
+        expect(fetchSpy).not.toHaveBeenCalled();
+        expect(readout.result.current).toBe(false);
+
+        // Bind the session — the recorded request must now replay, fire the read, and fill the heart.
+        renderHook(() => useWishlistSession('guest-1'));
+
+        await waitFor(() => {
+            expect(fetchSpy).toHaveBeenCalledTimes(1);
+            expect(readout.result.current).toBe(true);
+        });
+        expect(fetchSpy.mock.calls[0][0]).toBe(resourceRoutes.wishlistState);
+    });
+
+    test('leaves the store empty and allows retry when the fetch fails', async () => {
+        fetchSpy.mockImplementationOnce(() => Promise.reject(new Error('network')));
+        seedGuest();
+
+        const { result } = renderHook(() => ({ load: useWishlistLoader(), sku1: useIsInWishlist('sku-1') }));
+
+        await act(async () => {
+            await result.current.load();
+        });
+        expect(result.current.sku1).toBe(false);
+
+        // A later intent may retry — the guard must not be latched on failure.
+        fetchSpy.mockImplementation(() => Promise.resolve(stateResponse(['sku-1'])));
+        await act(async () => {
+            await result.current.load();
+        });
+        await waitFor(() => {
+            expect(result.current.sku1).toBe(true);
+        });
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
 });

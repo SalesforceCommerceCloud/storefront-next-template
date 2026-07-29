@@ -31,14 +31,16 @@
         },
         "previousImage": "Previous image",
         "nextImage": "Next image",
-        "quickCategoryFilters": "Quick category filters"
+        "thumbnailImage": "Product image {{current}} of {{total}}",
+        "quickCategoryFilters": "Quick category filters",
+        "carousel": {
+            "play": "Play carousel",
+            "pause": "Pause carousel"
+        },
+        "skipToMainContent": "Skip to main content"
     },
     "search": {
         "results": "Search Results for",
-        "shopperAgent": {
-            "title": "Ask Shopper Agent",
-            "description": "I can help you find the perfect piece for your space. Shop with me."
-        },
         "suggestions": {
             "didYouMean": "Did you mean",
             "categories": "Categories",
@@ -141,7 +143,8 @@
         "checkoutAsGuest": "Checkout as Guest",
         "resendCode": "Resend Code",
         "resendCodeTimer": "Resend in {{timer}}s",
-        "resendCodeError": "Failed to resend code. Please try again."
+        "resendCodeError": "Failed to resend code. Please try again.",
+        "passkeyError": "We couldn't sign you in with that passkey. Please try again or use another sign-in method."
     },
     "resetPassword": {
         "title": "Reset Password",
@@ -181,6 +184,7 @@
         "passwordsDoNotMatch": "Passwords don't match.",
         "passwordNotSecure": "Password doesn't meet security requirements.",
         "form": {
+            "nameFieldsLegend": "Name",
             "firstNameLabel": "First Name",
             "firstNamePlaceholder": "Enter your first name",
             "lastNameLabel": "Last Name",
@@ -207,7 +211,7 @@
         }
     },
     "socialCallback": {
-        "socialError": "Social login was cancelled or failed. Try again."
+        "socialError": "Social login was canceled or failed. Try again."
     },
     "errors": {
         "genericTryAgain": "Something went wrong. Try again.",
@@ -286,7 +290,8 @@
             "registrationFailed": "Registration failed. Try again.",
             "autoLoginFailed": "Auto-login failed. Log in manually.",
             "autoLoginAfterRegistrationFailed": "Account was created but auto-login failed. Log in manually.",
-            "notAuthenticated": "Customer ID not found."
+            "notAuthenticated": "Customer ID not found.",
+            "loginAlreadyInUse": "Email address is already registered. Please use a different email or try logging in."
         },
         "passwordless": {
             "missingToken": "Missing token.",
@@ -314,12 +319,15 @@
         "quantityInput": "Quantity",
         "quantityUpdated": "Quantity updated",
         "quantityUpdateFailed": "Failed to update quantity",
+        "quantityForProduct": "Quantity for {{productName}}",
         "onlyLeft": "Only {{stockLevel}} left!",
         "onlyLeftForProduct": "Only {{stockLevel}} left for {{productName}}!",
-        "maxStockReached": "Maximum stock reached"
+        "maxStockReached": "Maximum stock reached",
+        "insufficientStock": "Not enough stock available"
     },
     "cart": {
         "title": "Cart",
+        "loadingLabel": "Loading your cart",
         "meta": {
             "title": "Cart",
             "description": "View and manage items in your shopping cart"
@@ -391,7 +399,8 @@
         "checkout": {
             "continueToCheckout": "Continue to Checkout",
             "secure": "Secure",
-            "proceedToCheckout": "Proceed to Checkout"
+            "proceedToCheckout": "Proceed to Checkout",
+            "acceptedPaymentMethods": "Accepted payment methods: Visa, Mastercard, American Express, Discover"
         },
         "attributes": {
             "quantity": "Qty:",
@@ -451,6 +460,7 @@
             "countryCodeLabel": "Code",
             "phoneLabel": "Phone Number",
             "phonePlaceholder": "(000) 000-0000",
+            "phoneFormatDescription": "10-digit US phone number",
             "phoneRequired": "Please enter your phone number.",
             "phoneInvalid": "Please enter a valid phone number.",
             "notProvided": "Not provided yet",
@@ -462,7 +472,8 @@
             "lookupFallbackMessage": "Customer lookup failed. Continuing as guest.",
             "saveError": "Failed to save contact information",
             "sessionExpired": "Session expired. Sign in again.",
-            "verificationFailed": "We couldn't verify your information. Please try again."
+            "verificationFailed": "We couldn't verify your information. Please try again.",
+            "passkeyLoginFailed": "We couldn't sign you in with that passkey. Please try again or use another sign-in method."
         },
         "addressModal": {
             "title": "Add New Address",
@@ -534,7 +545,8 @@
             "priceAndMethod": "{{price}} | {{methodName}}",
             "free": "FREE",
             "noMethodsAvailable": "No shipping methods available",
-            "noMethodsAvailableHelp": "Make sure your shipping address is complete and try again."
+            "noMethodsAvailableHelp": "Make sure your shipping address is complete and try again.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "Payment",
@@ -553,8 +565,8 @@
             "cardNumberRequired": "Card number is required.",
             "cardNumberInvalid": "Enter a valid card number.",
             "cardNumberInvalidLength": "Enter a valid card number (13-19 digits).",
-            "expiryLabel": "mm/yy*",
-            "expiryPlaceholder": "mm/yy*",
+            "expiryDateLabel": "Expiry Date",
+            "expiryPlaceholder": "mm/yy",
             "expiryRequired": "Expiry date is required",
             "expiryInvalid": "Enter a valid expiry date (MM/YY)",
             "cvvLabel": "CVV*",
@@ -688,7 +700,8 @@
                 "noAddress": "No address available",
                 "estimatedDatePlaceholder": "Processing now",
                 "quantity": "Qty: {{count}}",
-                "freeShipping": "Free"
+                "freeShipping": "Free",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "Subtotal",
@@ -705,7 +718,8 @@
                 "title": "Get 10% off your next order. Join email list.",
                 "subtitle": "Stay up to date on product drops and exclusive offers.",
                 "placeholder": "Email address",
-                "cta": "Join"
+                "cta": "Join",
+                "label": "Email address"
             },
             "postOrderRegistration": {
                 "title": "Create an account for a faster checkout next time",
@@ -736,6 +750,8 @@
                 "tryAgain": "Try again"
             }
         },
+        "savingStatus": "Saving",
+        "placingOrderStatus": "Placing order",
         "registration": {
             "emailNotFound": "Email address is required to create an account. Please provide your email in the contact information section.",
             "initiationFailed": "Unable to send verification code. Please try again.",
@@ -770,6 +786,7 @@
             "addresses": "Addresses",
             "manageAddresses": "Manage Addresses",
             "paymentMethods": "Payment Methods",
+            "passkeys": "Passkeys",
             "storePreferences": "Store Preferences",
             "logOut": "Log Out"
         },
@@ -931,7 +948,8 @@
             "subtitle": "View and track your orders",
             "orderDate": "Order Date",
             "total": "Total",
-            "items": "Items",
+            "items_one": "Item",
+            "items_other": "Items",
             "pickupLocation": "Pickup Location",
             "location": "Location",
             "address": "Address",
@@ -950,9 +968,23 @@
                 "created": "Created",
                 "new": "New",
                 "completed": "Completed",
-                "cancelled": "Cancelled",
+                "cancelled": "Canceled",
                 "replaced": "Replaced",
                 "failed": "Failed"
+            },
+            "returnStatus": {
+                "initiated": "Return Initiated",
+                "partialInitiated": "Partial Return Initiated",
+                "complete": "Return Complete",
+                "partialComplete": "Partial Return Complete"
+            },
+            "fulfillmentStatus": {
+                "ordered": "Ordered",
+                "inProgress": "In Progress",
+                "partiallyShipped": "Partially Shipped",
+                "shipped": "Shipped",
+                "partOrderDelivered": "Part Order Delivered",
+                "delivered": "Delivered"
             },
             "shippingStatus": {
                 "notShipped": "Not Shipped",
@@ -984,15 +1016,64 @@
                 "provider": "Carrier",
                 "expectedDelivery": "Expected delivery",
                 "delivered": "Delivered",
-                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
+                "trackingNumberLinkLabel": "Track shipment {{trackingNumber}} (opens in a new tab)"
             },
             "actions": {
-                "trackShipment": "Track shipment",
-                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
+                "trackShipment": "Track Shipment",
+                "trackShipmentNewTab": "Track Shipment (opens in a new tab)",
+                "trackNumber": "Track {{trackingNumber}}",
+                "trackShipmentNumber": "Track Shipment {{number}}",
+                "trackNumberNewTab": "Track {{trackingNumber}} (opens in a new tab)",
+                "trackShipmentNumberNewTab": "Track Shipment {{number}} (opens in a new tab)"
             },
             "shippingAddress": "Shipping Address",
             "paymentMethod": "Payment Method",
-            "paymentMethodEndingIn": "{{cardType}} Ending in {{lastDigits}}"
+            "paymentMethodEndingIn": "{{cardType}} Ending in {{lastDigits}}",
+            "returnItems": "Return Items",
+            "returnUnavailable": "Nothing left to return on this order.",
+            "returnDialogTitle": "Return items from order #{{orderNo}}",
+            "returnDialogSubtitle": "Select the items you want to return and tell us why.",
+            "returnAvailableToReturn": "Up to {{count}} available to return",
+            "returnQuantityLabel": "Quantity",
+            "returnReasonFor": "Reason for {{name}}",
+            "returnReviewButton": "Review Return",
+            "returnBackButton": "Back",
+            "returnSubmitButton": "Submit Return",
+            "returnCancelButton": "Cancel",
+            "returnReviewTitle": "Review your return",
+            "returnReviewSubtitle": "Confirm these items. We'll email you a return label once your request is submitted.",
+            "returnReviewSubtitleNoReasons": "Confirm these items. A return reason will be assigned automatically, and we'll email you a return label once your request is submitted.",
+            "returnReviewQuantity": "Quantity: {{count}}",
+            "returnReviewReason": "Reason: {{reason}}",
+            "returnSuccessTitle": "Return submitted",
+            "returnSuccessMessage": "We'll email you a return label shortly.",
+            "returnError400InvalidReasonMessage": "The selected reason is no longer available. Choose another reason.",
+            "returnError400UnknownItemsMessage": "We can't find one or more items on this order. Refresh and try again.",
+            "returnError400QuantityMessage": "The quantity you selected exceeds what's available to return. Adjust the quantity and try again.",
+            "returnError404Message": "We can't find this order. Refresh and try again.",
+            "returnError409Message": "This order can't be returned right now. Reach out to the merchant.",
+            "returnErrorGenericTitle": "Something went wrong.",
+            "returnErrorGenericMessage": "We couldn't process your return right now. Try again in a few minutes.",
+            "returnReasonAutoAssigned": "A return reason will be assigned automatically.",
+            "cancelOrder": "Cancel order",
+            "cancelUnavailable": "This order can no longer be canceled.",
+            "cancelDialogTitle": "Cancel order {{orderNo}}",
+            "cancelDialogSubtitle": "Select a reason and confirm cancellation.",
+            "cancelDialogSubtitleNoReasons": "Confirm cancellation below.",
+            "cancelDialogImpact": "This cancels the entire order.",
+            "cancelReasonLabel": "Reason",
+            "cancelReasonPlaceholder": "Select a reason (optional)",
+            "cancelKeepOrder": "Keep order",
+            "cancelConfirm": "Confirm cancellation",
+            "cancelConfirmSubmitting": "Canceling…",
+            "cancelSuccessTitle": "Order canceled",
+            "cancelSuccessDescription": "Your order was canceled successfully.",
+            "cancelErrorNotFoundTitle": "Unable to cancel order",
+            "cancelErrorNotFoundDescription": "We could not find this order. Please refresh and try again.",
+            "cancelErrorConflictTitle": "Unable to cancel order",
+            "cancelErrorConflictDescription": "This order is already being processed and cannot be canceled. Please reach out to the merchant.",
+            "cancelErrorGenericTitle": "Something went wrong",
+            "cancelErrorGenericDescription": "We couldn't process your cancellation right now. Please wait a moment and try again."
         },
         "addresses": {
             "subtitle": "Manage your shipping addresses",
@@ -1125,7 +1206,8 @@
                 "emailInvalid": "Enter a valid email address.",
                 "phoneInvalid": "Enter a valid phone number.",
                 "birthdayFuture": "Date of birth cannot be in the future."
-            }
+            },
+            "phoneDescription": "Enter phone number including area code"
         },
         "email": {
             "title": "Email Address",
@@ -1188,7 +1270,9 @@
                 "hasUppercase": "At least one uppercase letter",
                 "hasLowercase": "At least one lowercase letter",
                 "hasNumber": "At least one number",
-                "hasSpecial": "At least one special character"
+                "hasSpecial": "At least one special character",
+                "statusMet": "Requirement met",
+                "statusNotMet": "Requirement not met"
             }
         },
         "common": {
@@ -1211,6 +1295,50 @@
             "disclaimer": "By enabling these communication preferences, you agree to receive marketing communications from us, including exclusive offers, latest product information, and news about upcoming collections. See our Terms & Conditions and Privacy Policy for more details.",
             "updateError": "Failed to update marketing preference. Try again.",
             "partialSuccess": "Some preferences saved. Refresh to see current settings."
+        },
+        "passkeys": {
+            "pageTitle": "Passkeys",
+            "pageSubtitle": "Sign in faster and more securely using your face, fingerprint, or device PIN.",
+            "sectionTitle": "Your passkeys",
+            "sectionSubtitle": "Manage the passkeys registered to your account.",
+            "addPasskey": "Add Passkey",
+            "addDialogTitle": "Name your passkey",
+            "addDialogDescription": "Choose a name that helps you identify this passkey later, like the device or browser you're using.",
+            "passkeyNameLabel": "Passkey name",
+            "passkeyNamePlaceholder": "For example, Chrome on MacBook Pro",
+            "passkeyNameHint": "To rename this passkey after saving, you need to remove it and add it again.",
+            "nameRequired": "Please enter a name for this passkey.",
+            "nameTooLong": "Passkey name must be 128 characters or fewer.",
+            "addContinue": "Continue",
+            "otpStepTitle": "Verify your email",
+            "otpStepDescription": "Check your email for a {{otpLength}}-digit code. Enter it to verify your identity before creating the passkey.",
+            "otpCodeLabel": "Verification code",
+            "addSuccess": "Passkey was added.",
+            "addSuccessDescription": "Manage passkeys in My Account.",
+            "viewPasskeys": "View Passkeys",
+            "addedOn": "Added {{date}}",
+            "lastUsed": "Last used {{date}}",
+            "notUsedYet": "Not used yet",
+            "uses_one": "{{count}} use",
+            "uses_other": "{{count}} uses",
+            "newBadge": "New",
+            "unnamedPasskey": "Unnamed passkey",
+            "deletePasskeyAriaLabel": "Delete passkey {{name}}",
+            "deleteDialogTitle": "Remove passkey?",
+            "deleteDialogDescription": "After you remove \"{{name}}\", you can't use it to sign in.",
+            "deleteConfirm": "Remove",
+            "deleting": "Removing…",
+            "deleteSuccess": "Passkey removed.",
+            "deleteError": "Failed to remove passkey. Please try again.",
+            "empty": "No Saved Passkeys",
+            "emptyHint": "Add a passkey to sign in faster with your face, fingerprint, or device PIN.",
+            "loadError": "We couldn't load your passkeys. Please refresh the page to try again.",
+            "addError": "Passkey creation failed. Please try again.",
+            "notSupportedError": "Passkeys aren't supported in this app or device. Please try again in a different way.",
+            "unsupportedBrowser": "This browser doesn't support passkeys. Try updating it or use a different browser.",
+            "registerToastTitle": "Set up faster sign-in",
+            "registerToastDescription": "Create a passkey to sign in with your face, fingerprint, or device PIN — no password needed.",
+            "registerToastAction": "Create Passkey"
         }
     },
     "home": {
@@ -1260,12 +1388,14 @@
                 "title": "Women",
                 "description": "Discover our curated collection of sophisticated footwear designed for the modern woman.",
                 "ctaText": "EXPLORE COLLECTION",
+                "ctaAriaLabel": "Explore collection: women's",
                 "imageAlt": "Women's Collection"
             },
             "men": {
                 "title": "Men",
                 "description": "Timeless craftsmanship meets contemporary style in our men's footwear collection.",
                 "ctaText": "EXPLORE COLLECTION",
+                "ctaAriaLabel": "Explore collection: men's",
                 "imageAlt": "Men's Collection"
             },
             "styleForRealLife": {
@@ -1308,7 +1438,10 @@
             "title": "Join Our Community",
             "description": "Be the first to discover new arrivals, exclusive offers, and style inspiration.",
             "emailPlaceholder": "Your email",
-            "subscribeButton": "Subscribe"
+            "emailLabel": "Email address for newsletter subscription",
+            "subscribeButton": "Subscribe",
+            "emailRequired": "Email address is required",
+            "invalidEmail": "Please enter a valid email address"
         },
         "copyright": "Salesforce or its affiliates. All rights reserved. This is a demo store only. Orders made WILL NOT be processed.",
         "address": "415 Mission St, San Francisco, CA 94105",
@@ -1496,7 +1629,8 @@
         "validation": {
             "unsupportedLocale": "Locale not supported",
             "usingDefault": "Using default locale: {{locale}}"
-        }
+        },
+        "changesContextHint": "Selecting a language reloads the page in that language."
     },
     "currencySwitcher": {
         "ariaLabel": "Currency switcher",
@@ -1517,7 +1651,8 @@
         "validation": {
             "unsupportedCurrency": "Currency not supported",
             "usingDefault": "Using default currency: {{currency}}"
-        }
+        },
+        "changesContextHint": "Selecting a currency updates prices across the site."
     },
     "addressSuggestionDropdown": {
         "suggested": "SUGGESTED",
@@ -1588,6 +1723,15 @@
             "next": "Next",
             "nextPage": "Next page",
             "page": "Page {{number}}"
+        },
+        "loadMore": {
+            "button": "Load more",
+            "loading": "Loading…",
+            "retry": "Try again",
+            "status": "Showing {{loaded}} of {{total}}",
+            "error": "Something went wrong. Please try again.",
+            "end": "You've reached the end of the results",
+            "capReached": "You've viewed {{loaded}} products. Refine your filters to narrow down the results."
         }
     },
     "maintenancePage": {
@@ -1642,7 +1786,8 @@
             "viewAllReviews": "View all reviews",
             "distributionAriaLabel": "{{rating}} stars: {{count, number}} out of {{totalReviews, number}} reviews",
             "distributionsAriaLabel": "Star rating distribution, {{total, number}} total reviews",
-            "seeCustomerReviews": "See customer reviews >"
+            "seeCustomerReviews": "See customer reviews >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "from",
         "outOfStock": "Out of stock for {{productName}}",
@@ -1652,6 +1797,17 @@
         "preOrder": "Available for pre-order",
         "backOrder": "Available for back order",
         "outOfStockLabel": "Out of stock",
+        "outOfStockSuffix": "(out of stock)",
+        "inventory": {
+            "srPrefix": {
+                "inStock": "Available: ",
+                "lowStock": "Limited availability: ",
+                "outOfStock": "Not available: ",
+                "preOrder": "Pre-order: ",
+                "backOrder": "Back order: "
+            },
+            "unavailable": "Inventory unavailable"
+        },
         "selectAllOptions": "Select all your options above",
         "description": "Description",
         "imageAlt": "Product Image",
@@ -1659,7 +1815,7 @@
         "addToCart": "Add to Cart",
         "moreOptions": "More Options",
         "quickAdd": "Quick Add",
-        "buyItNow": "Buy it Now",
+        "buyItNow": "Buy It Now",
         "pickupAvailable": "Pickup Available",
         "selectProduct": "Select a product",
         "updatingCart": "Updating...",

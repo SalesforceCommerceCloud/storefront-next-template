@@ -46,7 +46,7 @@ function DialogRender(args: ConfirmationDialogArgs): ReactElement {
 }
 
 const meta: Meta<typeof ConfirmationDialog> = {
-    title: 'COMMON/Confirmation Dialog',
+    title: 'Core/Overlays/Confirmation Dialog',
     component: ConfirmationDialog,
     tags: ['autodocs', 'interaction'],
     parameters: {

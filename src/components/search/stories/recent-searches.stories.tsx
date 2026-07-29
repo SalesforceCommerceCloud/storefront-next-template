@@ -45,7 +45,7 @@ const ALL_RECENT_SEARCHES = [
 const MAX_RECENT = ALL_RECENT_SEARCHES.length;
 
 const meta: Meta<typeof RecentSearches> = {
-    title: 'Search/RecentSearches',
+    title: 'Search/Recent Searches',
     component: RecentSearches,
     parameters: {
         chromatic: { modes: { desktop: allModes.desktop } },

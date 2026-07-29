@@ -21,7 +21,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { inBasketProductDetails } from '@/components/__mocks__/basket-with-dress';
 
 const meta: Meta<typeof CartItemEditButton> = {
-    title: 'CART/Cart Item Edit Button',
+    title: 'Cart/Items/Cart Item Edit Button',
     component: CartItemEditButton,
     tags: ['autodocs', 'interaction'],
     parameters: {

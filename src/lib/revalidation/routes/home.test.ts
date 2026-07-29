@@ -178,10 +178,10 @@ describe('home shouldRevalidate', () => {
     });
 
     describe('auth identity transitions are allowed through', () => {
-        // The home loader's fetchWishlistInitialState is auth-dependent. An identity transition (login / signup /
-        // logout) submitted while already on the home page can redirect back to '/', keeping the home route matched —
-        // so shouldRevalidate decides whether the wishlist seed is refreshed for the now-registered / now-guest
-        // session. Unlike the /action/* routes, the identity form actions are site/locale-prefixed (buildUrl prefixes
+        // The home loader's SCAPI reads are customer-group-scoped (pricing / promotions). An identity transition
+        // (login / signup / logout) submitted while already on the home page can redirect back to '/', keeping the
+        // home route matched — so shouldRevalidate decides whether those reads refresh for the now-registered /
+        // now-guest session. Unlike the /action/* routes, the identity form actions are site/locale-prefixed (buildUrl prefixes
         // them; they are not in url.excludeRoutes), so the match is on the trailing path segment, not an exact-string
         // compare.
         test('revalidates on a POST to the unprefixed logout path', () => {

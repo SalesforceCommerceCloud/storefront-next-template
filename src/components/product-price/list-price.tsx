@@ -61,12 +61,11 @@ export default function ListPrice({
                 as={as}
                 variant="small"
                 className={cn('line-through text-muted-foreground', className)}
-                aria-label={ariaLabel}>
+                aria-hidden="true">
                 {listPriceText}
             </Typography>
-            {/*For screen reader, we want to make sure the product name is announced before the price to avoid confusion*/}
             <span className="sr-only" aria-live="polite" aria-atomic={true}>
-                {labelForA11y} {t('price.listPrice', { price: listPriceText })}
+                {labelForA11y} {ariaLabel}
             </span>
         </>
     );

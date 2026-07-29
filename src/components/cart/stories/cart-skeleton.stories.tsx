@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import CartSkeleton from '../cart-skeleton';
 
 const meta: Meta<typeof CartSkeleton> = {
-    title: 'CART/Cart Skeleton',
+    title: 'Cart/Cart Skeleton',
     component: CartSkeleton,
     tags: ['autodocs', 'interaction'],
     args: {

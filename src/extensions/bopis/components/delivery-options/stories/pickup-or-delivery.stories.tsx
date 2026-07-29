@@ -83,7 +83,7 @@ const mockStore: SelectedStoreInfo = {
 };
 
 const meta: Meta<typeof PickupOrDelivery> = {
-    title: 'Extensions/BOPIS/PickupOrDelivery',
+    title: 'Extensions/BOPIS/Pickup Or Delivery',
     component: PickupOrDelivery,
     tags: ['autodocs', 'interaction'],
     parameters: {

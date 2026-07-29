@@ -48,40 +48,54 @@ export function SignupForm({ error, isPasswordless = false }: SignupFormProps) {
             )}
 
             <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="firstName" className="block text-sm font-medium text-foreground">
-                            {t('form.firstNameLabel')}
-                        </label>
-                        <Input
-                            id="firstName"
-                            name="firstName"
-                            type="text"
-                            autoComplete="given-name"
-                            required
-                            className="mt-1"
-                            placeholder={t('form.firstNamePlaceholder')}
-                        />
+                <fieldset>
+                    <legend className="sr-only">{t('form.nameFieldsLegend')}</legend>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="firstName" className="block text-sm font-medium text-foreground">
+                                {t('form.firstNameLabel')}
+                                <span aria-hidden="true" className="text-destructive ml-0.5">
+                                    *
+                                </span>
+                            </label>
+                            <Input
+                                id="firstName"
+                                name="firstName"
+                                type="text"
+                                autoComplete="given-name"
+                                required
+                                aria-required="true"
+                                className="mt-1"
+                                placeholder={t('form.firstNamePlaceholder')}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="lastName" className="block text-sm font-medium text-foreground">
+                                {t('form.lastNameLabel')}
+                                <span aria-hidden="true" className="text-destructive ml-0.5">
+                                    *
+                                </span>
+                            </label>
+                            <Input
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                autoComplete="family-name"
+                                required
+                                aria-required="true"
+                                className="mt-1"
+                                placeholder={t('form.lastNamePlaceholder')}
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="lastName" className="block text-sm font-medium text-foreground">
-                            {t('form.lastNameLabel')}
-                        </label>
-                        <Input
-                            id="lastName"
-                            name="lastName"
-                            type="text"
-                            autoComplete="family-name"
-                            required
-                            className="mt-1"
-                            placeholder={t('form.lastNamePlaceholder')}
-                        />
-                    </div>
-                </div>
+                </fieldset>
 
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium text-foreground">
                         {t('form.emailLabel')}
+                        <span aria-hidden="true" className="text-destructive ml-0.5">
+                            *
+                        </span>
                     </label>
                     <Input
                         id="email"
@@ -89,6 +103,7 @@ export function SignupForm({ error, isPasswordless = false }: SignupFormProps) {
                         type="email"
                         autoComplete="email"
                         required
+                        aria-required="true"
                         className="mt-1"
                         placeholder={t('form.emailPlaceholder')}
                     />
@@ -99,6 +114,9 @@ export function SignupForm({ error, isPasswordless = false }: SignupFormProps) {
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-foreground">
                                 {t('form.passwordLabel')}
+                                <span aria-hidden="true" className="text-destructive ml-0.5">
+                                    *
+                                </span>
                             </label>
                             <Input
                                 id="password"
@@ -106,17 +124,22 @@ export function SignupForm({ error, isPasswordless = false }: SignupFormProps) {
                                 type="password"
                                 autoComplete="new-password"
                                 required
+                                aria-required="true"
                                 value={password}
                                 onChange={handlePasswordChange}
                                 className="mt-1"
                                 placeholder={t('form.passwordPlaceholder')}
+                                aria-describedby="signup-password-requirements"
                             />
-                            <PasswordRequirement password={password} />
+                            <PasswordRequirement password={password} id="signup-password-requirements" />
                         </div>
 
                         <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
                                 {t('form.confirmPasswordLabel')}
+                                <span aria-hidden="true" className="text-destructive ml-0.5">
+                                    *
+                                </span>
                             </label>
                             <Input
                                 id="confirmPassword"
@@ -124,14 +147,25 @@ export function SignupForm({ error, isPasswordless = false }: SignupFormProps) {
                                 type="password"
                                 autoComplete="new-password"
                                 required
+                                aria-required="true"
                                 value={confirmPassword}
                                 onChange={handleConfirmPasswordChange}
                                 className="mt-1"
                                 aria-invalid={showPasswordMismatch && confirmPassword ? true : undefined}
+                                aria-describedby={
+                                    showPasswordMismatch && confirmPassword
+                                        ? 'signup-confirm-password-error'
+                                        : undefined
+                                }
                                 placeholder={t('form.confirmPasswordPlaceholder')}
                             />
                             {showPasswordMismatch && confirmPassword && (
-                                <p className="mt-1 text-sm text-destructive">{t('passwordsDoNotMatch')}</p>
+                                <p
+                                    id="signup-confirm-password-error"
+                                    role="alert"
+                                    className="mt-1 text-sm text-destructive">
+                                    {t('passwordsDoNotMatch')}
+                                </p>
                             )}
                         </div>
                     </>

@@ -118,6 +118,43 @@ describe('AttributeDefinition Decorator', () => {
             });
         });
 
+        test('stores searching config on field metadata', () => {
+            class TestComponent {
+                @AttributeDefinition({
+                    id: 'title',
+                    name: 'Title',
+                    type: 'string',
+                    searching: { searchable: true, refinable: true, boostFactor: 2, sortable: false },
+                })
+                title!: string;
+            }
+
+            const metadata = getAttributeDefinitions(TestComponent.prototype);
+            expect(metadata.fields.title?.searching).toEqual({
+                searchable: true,
+                refinable: true,
+                boostFactor: 2,
+                sortable: false,
+            });
+        });
+
+        test('stores dynamicLookup config on field metadata', () => {
+            class TestComponent {
+                @AttributeDefinition({
+                    id: 'productName',
+                    name: 'Product Name',
+                    type: 'string',
+                    dynamicLookup: { aspectAttributeAlias: 'product' },
+                })
+                productName!: string;
+            }
+
+            const metadata = getAttributeDefinitions(TestComponent.prototype);
+            expect(metadata.fields.productName?.dynamicLookup).toEqual({
+                aspectAttributeAlias: 'product',
+            });
+        });
+
         test('handles image type attribute', () => {
             class TestComponent {
                 @AttributeDefinition({

@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof AmazonPayLogo> = {
-    title: 'CHECKOUT/AmazonPayLogo',
+    title: 'Checkout/Payment/Logos/Amazon Pay Logo',
     component: AmazonPayLogo,
     parameters: {
         ...checkoutStrictA11yParameters,

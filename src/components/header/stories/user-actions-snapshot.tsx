@@ -62,6 +62,7 @@ vi.mock('@/providers/auth', () => ({
     useAuth: () => mockAuthValue,
 }));
 
+
 vi.mock('@/components/link', () => ({
     Link: (props: React.PropsWithChildren<{ to?: string; [key: string]: unknown }>) => {
         const { to, children, ...rest } = props ?? {};

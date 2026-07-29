@@ -73,7 +73,7 @@ export function CartItemModalAddContainer({
         ) {
             void initialProductFetcher.load();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [open, initialProductFetcher.state, initialProductFetcher.success, initialProductFetcher.errors]);
 
     const baseProduct: Product | null = (initialProductFetcher.success && initialProductFetcher.data) || null;
@@ -89,7 +89,7 @@ export function CartItemModalAddContainer({
             });
             setVariantInventoryCache({});
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [open, baseProduct]);
 
     const matchingVariant = useMemo(() => {
@@ -137,7 +137,7 @@ export function CartItemModalAddContainer({
         ) {
             void variantFetcher.load();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [
         shouldFetchVariantInventory,
         variantFetcher.state,

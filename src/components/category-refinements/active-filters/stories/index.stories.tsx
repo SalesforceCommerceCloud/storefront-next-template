@@ -60,7 +60,7 @@ function buildRefineSearch(preSelectedRefines: string): string {
 }
 
 const meta: Meta<typeof ActiveFilters> = {
-    title: 'CATEGORY/Category Refinements/Active Filters',
+    title: 'Category/Category Refinements/Active Filters',
     component: ActiveFilters,
     tags: ['autodocs', 'interaction'],
     parameters: {

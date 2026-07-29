@@ -25,12 +25,25 @@ import { ProductRatingSummary } from '../product-rating-summary';
 
 const mockProduct = { id: 'storybook-product', name: 'Storybook Product' };
 
-function ProductRatingSummaryWrapper({ interactive }: { interactive?: boolean }): ReactElement {
+const mockReviewsSummary = {
+    totalCount: 42,
+    averageRating: 4.2,
+    distribution: { oneStar: 2, twoStars: 3, threeStars: 5, fourStars: 12, fiveStars: 20 },
+    basedOnLabel: 'Based on 42 reviews',
+};
+
+function ProductRatingSummaryWrapper({
+    interactive,
+    withReviews,
+}: {
+    interactive?: boolean;
+    withReviews?: boolean;
+}): ReactElement {
     const inRouter = useInRouterContext();
     const content = (
         <ConfigProvider config={mockConfig}>
             <ProductProvider product={mockProduct}>
-                <ProductReviewsProvider>
+                <ProductReviewsProvider summary={withReviews ? mockReviewsSummary : undefined}>
                     <div className="max-w-md">
                         <ProductRatingSummary interactive={interactive} />
                     </div>
@@ -46,7 +59,7 @@ function ProductRatingSummaryWrapper({ interactive }: { interactive?: boolean })
 }
 
 const meta: Meta<typeof ProductRatingSummaryWrapper> = {
-    title: 'Components/ProductView/ProductRatingSummary',
+    title: 'Products/Product View/Product Rating Summary',
     component: ProductRatingSummaryWrapper,
     tags: ['autodocs'],
     parameters: {
@@ -83,4 +96,8 @@ export const Playground: Story = {
     args: {
         interactive: true,
     },
+};
+
+export const FocusReturnOnPopoverClose: Story = {
+    args: { interactive: true, withReviews: true },
 };

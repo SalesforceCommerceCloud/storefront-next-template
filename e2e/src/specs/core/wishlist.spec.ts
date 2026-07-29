@@ -25,6 +25,17 @@ Feature('Storefront Wishlist Tests').tag('@core').tag('@wishlist');
 const isWishlistLoginFlaky = true;
 const wishlistLoginScenario = isWishlistLoginFlaky ? Scenario.skip : Scenario;
 
+// TODO: "Wishlist item added from PDP persists after wishlist page refresh"
+// intermittently fails AFTER the refresh: login + add succeed and the item
+// renders before refresh, then waitForElement(Wishlist Item) times out after
+// I.refreshPage() — the add hasn't durably persisted (suspected SCAPI
+// read-after-write lag under parallel CI load). Distinct from the login-timeout
+// flake above. Observed on 5+ unrelated PR branches on 2026-07-23; passes on
+// main nightly. Tracked in W-22970888 (CC Sharks). Re-enable when the
+// underlying persistence lag is fixed.
+const isWishlistRefreshFlaky = true;
+const wishlistRefreshScenario = isWishlistRefreshFlaky ? Scenario.skip : Scenario;
+
 const { I, apiLoginFlow, storefrontPage, addToWishlistFlow, accountWishlistPage } = inject();
 import { expect } from 'chai';
 
@@ -43,7 +54,7 @@ Scenario('Registered shopper can add product to wishlist and see it in account w
     .tag('@happy-path')
     .tag('@wishlist-add');
 
-Scenario('Wishlist item added from PDP persists after wishlist page refresh', async () => {
+wishlistRefreshScenario('Wishlist item added from PDP persists after wishlist page refresh', async () => {
     const productTitle = await addToWishlistFlow.execute();
 
     accountWishlistPage.navigate();

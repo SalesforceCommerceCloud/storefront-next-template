@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, render, act, waitFor } from '@testing-library/react';
+import { createElement } from 'react';
 import { usePayment, isSameBillingAndShippingAddress } from './use-payment';
 
 vi.mock('@/providers/basket', () => ({ useBasket: vi.fn() }));
@@ -569,7 +570,7 @@ describe('usePayment hook', () => {
             expect(submissionRef.current.formDataGetter).toBeInstanceOf(Function);
             expect(submissionRef.current.setFormErrors).toBeInstanceOf(Function);
 
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
             const data = submissionRef.current.formDataGetter!() as Record<string, unknown>;
             expect(data.useSavedPaymentMethod).toBe(false);
             expect(data.selectedSavedPaymentMethod).toBeUndefined();
@@ -589,13 +590,87 @@ describe('usePayment hook', () => {
             );
 
             act(() => {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
                 submissionRef.current.setFormErrors!({
                     cardNumber: { type: 'server', message: 'Card declined' },
                 });
             });
 
             expect(result.current.form.formState.errors.cardNumber?.message).toBe('Card declined');
+        });
+
+        test('setFormErrors focuses the first invalid field', () => {
+            const submissionRef = makeSubmissionRef();
+
+            const { result } = renderHook(() =>
+                usePayment(
+                    createDefaultParams({
+                        paymentSubmissionRef: submissionRef,
+                    })
+                )
+            );
+
+            const setFocusSpy = vi.spyOn(result.current.form, 'setFocus');
+
+            act(() => {
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
+                submissionRef.current.setFormErrors!({
+                    cardNumber: { type: 'validation', message: 'Enter a valid card number.' },
+                    cvv: { type: 'validation', message: 'CVV is required' },
+                });
+            });
+
+            // First entry in visible-field order wins; setFocus should have been
+            // called with cardNumber.
+            expect(setFocusSpy).toHaveBeenCalledWith('cardNumber');
+        });
+
+        test('setFormErrors moves document.activeElement to the first invalid field', () => {
+            const submissionRef = makeSubmissionRef();
+
+            // Bind usePayment to real inputs so form.setFocus() has a target it can
+            // actually move keyboard focus to. renderHook alone doesn't produce
+            // registered DOM nodes, which would leave activeElement on <body>.
+            const Harness = () => {
+                const payment = usePayment(
+                    createDefaultParams({
+                        paymentSubmissionRef: submissionRef,
+                    })
+                );
+                return createElement(
+                    'form',
+                    null,
+                    createElement('input', {
+                        'data-testid': 'input-cardholderName',
+                        ...payment.form.register('cardholderName'),
+                    }),
+                    createElement('input', {
+                        'data-testid': 'input-cardNumber',
+                        ...payment.form.register('cardNumber'),
+                    }),
+                    createElement('input', {
+                        'data-testid': 'input-expiryDate',
+                        ...payment.form.register('expiryDate'),
+                    }),
+                    createElement('input', {
+                        'data-testid': 'input-cvv',
+                        ...payment.form.register('cvv'),
+                    })
+                );
+            };
+
+            const { getByTestId } = render(createElement(Harness));
+
+            act(() => {
+                // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
+                submissionRef.current.setFormErrors!({
+                    cvv: { type: 'validation', message: 'CVV is required' },
+                    cardNumber: { type: 'validation', message: 'Enter a valid card number.' },
+                });
+            });
+
+            // DOM order (cardNumber before cvv) beats object-key order (cvv first).
+            expect(document.activeElement).toBe(getByTestId('input-cardNumber'));
         });
 
         test('cleans up ref callbacks on unmount', () => {
@@ -629,7 +704,7 @@ describe('usePayment hook', () => {
             // Default form state has useDifferentBilling: false
             expect(result.current.form.getValues('useDifferentBilling')).toBe(false);
             expect(submissionRef.current.billingAddressGetter).toBeInstanceOf(Function);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(submissionRef.current.billingAddressGetter!()).toBeNull();
         });
 
@@ -662,7 +737,7 @@ describe('usePayment hook', () => {
             );
 
             expect(submissionRef.current.billingAddressGetter).toBeInstanceOf(Function);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
             const address = submissionRef.current.billingAddressGetter!() as Record<string, unknown>;
             expect(address).toEqual(
                 expect.objectContaining({

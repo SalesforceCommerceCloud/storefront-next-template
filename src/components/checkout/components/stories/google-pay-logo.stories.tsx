@@ -22,7 +22,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof GooglePayLogo> = {
-    title: 'CHECKOUT/GooglePayLogo',
+    title: 'Checkout/Payment/Logos/Google Pay Logo',
     component: GooglePayLogo,
     parameters: {
         ...checkoutStrictA11yParameters,

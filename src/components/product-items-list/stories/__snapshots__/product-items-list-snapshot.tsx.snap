@@ -5,8 +5,9 @@ exports[`ProductItemsList stories snapshot > Empty story renders and matches sna
   <div
     class="max-w-2xl mx-auto"
   >
-    <div
+    <ul
       class="space-y-4"
+      role="list"
     />
   </div>
 </div>
@@ -17,10 +18,11 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
   <div
     class="max-w-2xl mx-auto"
   >
-    <div
+    <ul
       class="space-y-4"
+      role="list"
     >
-      <div
+      <li
         class="border-b border-muted-foreground/10 last:border-b-0"
       >
         <div
@@ -79,15 +81,16 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                         </h2>
                       </div>
                       <div>
-                        <div
+                        <ul
                           class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                          role="list"
                         >
-                          <div>
+                          <li>
                             Size
                             : 
                             L
-                          </div>
-                        </div>
+                          </li>
+                        </ul>
                       </div>
                     </div>
                     <div
@@ -110,8 +113,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                             >
                               <span
-                                aria-label="Current price: £99.99"
-                                aria-live="polite"
+                                aria-hidden="true"
                                 class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                               >
                                 £99.99
@@ -139,24 +141,26 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                           <label
                             class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                             data-slot="label"
-                            for="quantity"
+                            for="cart-qty-_r_0_"
                           >
                             Quantity
                           </label>
                           <div
+                            aria-label="Quantity for the product"
                             class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                            role="group"
                           >
                             <button
                               aria-label="Decrement Quantity for the product"
-                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                               data-testid="quantity-decrement"
                               disabled=""
                             >
                               −
                             </button>
                             <input
-                              aria-label="Quantity"
-                              class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              id="cart-qty-_r_0_"
                               max="98"
                               min="0"
                               step="1"
@@ -165,7 +169,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                             />
                             <button
                               aria-label="Increment Quantity for the product"
-                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                               data-testid="quantity-increment"
                             >
                               +
@@ -180,8 +184,8 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
             </div>
           </div>
         </div>
-      </div>
-      <div
+      </li>
+      <li
         class="border-b border-muted-foreground/10 last:border-b-0"
       >
         <div
@@ -240,15 +244,16 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                         </h2>
                       </div>
                       <div>
-                        <div
+                        <ul
                           class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                          role="list"
                         >
-                          <div>
+                          <li>
                             Size
                             : 
                             L
-                          </div>
-                        </div>
+                          </li>
+                        </ul>
                       </div>
                     </div>
                     <div
@@ -271,8 +276,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               class="flex flex-row-reverse flex-wrap items-baseline justify-end gap-2"
                             >
                               <span
-                                aria-label="Current price: £99.99"
-                                aria-live="polite"
+                                aria-hidden="true"
                                 class="[&:not(:first-child)]:mt-6 text-xl font-bold leading-[120%] tracking-[-0.6px] text-card-foreground text-right relative"
                               >
                                 £99.99
@@ -288,7 +292,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                               </span>
                                
                               <span
-                                aria-label="List price: £199.98"
+                                aria-hidden="true"
                                 class="text-xl font-normal leading-[120%] tracking-[-0.6px] text-card-foreground text-right line-through relative"
                               >
                                 £199.98
@@ -316,7 +320,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                           class="flex w-full justify-end"
                         >
                           <span
-                            class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                            class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                             data-slot="badge"
                           >
                             Saved £99.99
@@ -332,23 +336,25 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                           <label
                             class="items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 block text-left font-sans text-base font-semibold leading-6 text-card-foreground"
                             data-slot="label"
-                            for="quantity"
+                            for="cart-qty-_r_4_"
                           >
                             Quantity
                           </label>
                           <div
+                            aria-label="Quantity for the product"
                             class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+                            role="group"
                           >
                             <button
                               aria-label="Decrement Quantity for the product"
-                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                               data-testid="quantity-decrement"
                             >
                               −
                             </button>
                             <input
-                              aria-label="Quantity"
-                              class="w-9 text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              id="cart-qty-_r_4_"
                               max="98"
                               min="0"
                               step="1"
@@ -357,7 +363,7 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
                             />
                             <button
                               aria-label="Increment Quantity for the product"
-                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
                               data-testid="quantity-increment"
                             >
                               +
@@ -372,8 +378,8 @@ exports[`ProductItemsList stories snapshot > FullyFeatured story renders and mat
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </li>
+    </ul>
   </div>
 </div>
 `;

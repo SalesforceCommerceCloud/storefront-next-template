@@ -11,6 +11,7 @@ exports[`SuggestionsList stories snapshot > FullyFeatured story renders and matc
     <button
       class="w-full flex justify-start items-center pl-4 py-0 hover:bg-accent hover:text-foreground transition-colors text-sm mt-0"
       data-slot="suggestion"
+      type="button"
     >
       <div
         class="flex items-center"
@@ -44,6 +45,7 @@ exports[`SuggestionsList stories snapshot > FullyFeatured story renders and matc
     <button
       class="w-full flex justify-start items-center pl-4 py-0 hover:bg-accent hover:text-foreground transition-colors text-sm mt-0"
       data-slot="suggestion"
+      type="button"
     >
       <div
         class="flex items-center"
@@ -77,6 +79,7 @@ exports[`SuggestionsList stories snapshot > FullyFeatured story renders and matc
     <button
       class="w-full flex justify-start items-center pl-4 py-0 hover:bg-accent hover:text-foreground transition-colors text-sm mt-0"
       data-slot="suggestion"
+      type="button"
     >
       <div
         class="flex items-center"

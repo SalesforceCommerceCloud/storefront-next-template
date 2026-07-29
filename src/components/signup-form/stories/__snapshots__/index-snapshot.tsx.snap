@@ -8,56 +8,84 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
     <div
       class="space-y-6"
     >
-      <div
-        class="grid grid-cols-2 gap-4"
-      >
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="firstName"
-          >
-            First Name
-          </label>
-          <input
-            autocomplete="given-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="firstName"
-            name="firstName"
-            placeholder="Enter your first name"
-            required=""
-            type="text"
-          />
+      <fieldset>
+        <legend
+          class="sr-only"
+        >
+          Name
+        </legend>
+        <div
+          class="grid grid-cols-2 gap-4"
+        >
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="firstName"
+            >
+              First Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="given-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="firstName"
+              name="firstName"
+              placeholder="Enter your first name"
+              required=""
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="lastName"
+            >
+              Last Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="family-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="lastName"
+              name="lastName"
+              placeholder="Enter your last name"
+              required=""
+              type="text"
+            />
+          </div>
         </div>
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="lastName"
-          >
-            Last Name
-          </label>
-          <input
-            autocomplete="family-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="lastName"
-            name="lastName"
-            placeholder="Enter your last name"
-            required=""
-            type="text"
-          />
-        </div>
-      </div>
+      </fieldset>
       <div>
         <label
           class="block text-sm font-medium text-foreground"
           for="email"
         >
           Email Address
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-required="true"
           autocomplete="email"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="email"
           name="email"
@@ -72,10 +100,18 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
           for="password"
         >
           Password
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-describedby="signup-password-requirements"
+          aria-required="true"
           autocomplete="new-password"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="password"
           name="password"
@@ -86,6 +122,7 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
         />
         <div
           class="space-y-2"
+          id="signup-password-requirements"
         >
           <p
             aria-level="4"
@@ -94,10 +131,11 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -124,8 +162,13 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -152,8 +195,13 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -180,8 +228,13 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -208,8 +261,13 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -236,8 +294,13 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
       <div>
@@ -246,10 +309,17 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
           for="confirmPassword"
         >
           Confirm Password
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-required="true"
           autocomplete="new-password"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="confirmPassword"
           name="confirmPassword"
@@ -261,7 +331,7 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
       </div>
       <div>
         <button
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="secondary"
@@ -284,56 +354,84 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
     <div
       class="space-y-6"
     >
-      <div
-        class="grid grid-cols-2 gap-4"
-      >
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="firstName"
-          >
-            First Name
-          </label>
-          <input
-            autocomplete="given-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="firstName"
-            name="firstName"
-            placeholder="Enter your first name"
-            required=""
-            type="text"
-          />
+      <fieldset>
+        <legend
+          class="sr-only"
+        >
+          Name
+        </legend>
+        <div
+          class="grid grid-cols-2 gap-4"
+        >
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="firstName"
+            >
+              First Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="given-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="firstName"
+              name="firstName"
+              placeholder="Enter your first name"
+              required=""
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="lastName"
+            >
+              Last Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="family-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="lastName"
+              name="lastName"
+              placeholder="Enter your last name"
+              required=""
+              type="text"
+            />
+          </div>
         </div>
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="lastName"
-          >
-            Last Name
-          </label>
-          <input
-            autocomplete="family-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="lastName"
-            name="lastName"
-            placeholder="Enter your last name"
-            required=""
-            type="text"
-          />
-        </div>
-      </div>
+      </fieldset>
       <div>
         <label
           class="block text-sm font-medium text-foreground"
           for="email"
         >
           Email Address
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-required="true"
           autocomplete="email"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="email"
           name="email"
@@ -348,10 +446,18 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
           for="password"
         >
           Password
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-describedby="signup-password-requirements"
+          aria-required="true"
           autocomplete="new-password"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="password"
           name="password"
@@ -362,6 +468,7 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
         />
         <div
           class="space-y-2"
+          id="signup-password-requirements"
         >
           <p
             aria-level="4"
@@ -370,10 +477,11 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -400,8 +508,13 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -428,8 +541,13 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -456,8 +574,13 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -484,8 +607,13 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -512,8 +640,13 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
       <div>
@@ -522,10 +655,17 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
           for="confirmPassword"
         >
           Confirm Password
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-required="true"
           autocomplete="new-password"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="confirmPassword"
           name="confirmPassword"
@@ -537,7 +677,7 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
       </div>
       <div>
         <button
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="secondary"
@@ -560,56 +700,84 @@ exports[`SignupForm stories snapshot > PasswordlessMode story renders and matche
     <div
       class="space-y-6"
     >
-      <div
-        class="grid grid-cols-2 gap-4"
-      >
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="firstName"
-          >
-            First Name
-          </label>
-          <input
-            autocomplete="given-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="firstName"
-            name="firstName"
-            placeholder="Enter your first name"
-            required=""
-            type="text"
-          />
+      <fieldset>
+        <legend
+          class="sr-only"
+        >
+          Name
+        </legend>
+        <div
+          class="grid grid-cols-2 gap-4"
+        >
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="firstName"
+            >
+              First Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="given-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="firstName"
+              name="firstName"
+              placeholder="Enter your first name"
+              required=""
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="lastName"
+            >
+              Last Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="family-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="lastName"
+              name="lastName"
+              placeholder="Enter your last name"
+              required=""
+              type="text"
+            />
+          </div>
         </div>
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="lastName"
-          >
-            Last Name
-          </label>
-          <input
-            autocomplete="family-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="lastName"
-            name="lastName"
-            placeholder="Enter your last name"
-            required=""
-            type="text"
-          />
-        </div>
-      </div>
+      </fieldset>
       <div>
         <label
           class="block text-sm font-medium text-foreground"
           for="email"
         >
           Email Address
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-required="true"
           autocomplete="email"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="email"
           name="email"
@@ -625,7 +793,7 @@ exports[`SignupForm stories snapshot > PasswordlessMode story renders and matche
       />
       <div>
         <button
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="default"
@@ -658,7 +826,7 @@ exports[`SignupForm stories snapshot > PasswordlessMode story renders and matche
           </div>
         </div>
         <button
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="outline"
@@ -689,56 +857,84 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
     <div
       class="space-y-6"
     >
-      <div
-        class="grid grid-cols-2 gap-4"
-      >
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="firstName"
-          >
-            First Name
-          </label>
-          <input
-            autocomplete="given-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="firstName"
-            name="firstName"
-            placeholder="Enter your first name"
-            required=""
-            type="text"
-          />
+      <fieldset>
+        <legend
+          class="sr-only"
+        >
+          Name
+        </legend>
+        <div
+          class="grid grid-cols-2 gap-4"
+        >
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="firstName"
+            >
+              First Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="given-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="firstName"
+              name="firstName"
+              placeholder="Enter your first name"
+              required=""
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-foreground"
+              for="lastName"
+            >
+              Last Name
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <input
+              aria-required="true"
+              autocomplete="family-name"
+              class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+              data-slot="input"
+              id="lastName"
+              name="lastName"
+              placeholder="Enter your last name"
+              required=""
+              type="text"
+            />
+          </div>
         </div>
-        <div>
-          <label
-            class="block text-sm font-medium text-foreground"
-            for="lastName"
-          >
-            Last Name
-          </label>
-          <input
-            autocomplete="family-name"
-            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
-            data-slot="input"
-            id="lastName"
-            name="lastName"
-            placeholder="Enter your last name"
-            required=""
-            type="text"
-          />
-        </div>
-      </div>
+      </fieldset>
       <div>
         <label
           class="block text-sm font-medium text-foreground"
           for="email"
         >
           Email Address
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-required="true"
           autocomplete="email"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="email"
           name="email"
@@ -753,10 +949,18 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
           for="password"
         >
           Password
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-describedby="signup-password-requirements"
+          aria-required="true"
           autocomplete="new-password"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="password"
           name="password"
@@ -767,6 +971,7 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
         />
         <div
           class="space-y-2"
+          id="signup-password-requirements"
         >
           <p
             aria-level="4"
@@ -775,10 +980,11 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
           >
             Password Requirements
           </p>
-          <div
+          <ul
             class="space-y-1.5"
+            role="list"
           >
-            <div
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -805,8 +1011,13 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least 8 characters
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -833,8 +1044,13 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one uppercase letter
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -861,8 +1077,13 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one lowercase letter
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -889,8 +1110,13 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one number
               </span>
-            </div>
-            <div
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+            <li
               class="flex items-center gap-2 text-sm transition-colors text-muted-foreground"
             >
               <svg
@@ -917,8 +1143,13 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
               <span>
                 At least one special character
               </span>
-            </div>
-          </div>
+              <span
+                class="sr-only"
+              >
+                Requirement not met
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
       <div>
@@ -927,10 +1158,17 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
           for="confirmPassword"
         >
           Confirm Password
+          <span
+            aria-hidden="true"
+            class="text-destructive ml-0.5"
+          >
+            *
+          </span>
         </label>
         <input
+          aria-required="true"
           autocomplete="new-password"
-          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
+          class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive mt-1"
           data-slot="input"
           id="confirmPassword"
           name="confirmPassword"
@@ -942,7 +1180,7 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
       </div>
       <div>
         <button
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 has-[>svg]:px-3 w-full"
           data-size="default"
           data-slot="button"
           data-variant="secondary"

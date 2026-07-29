@@ -92,7 +92,6 @@ export default function ProductView({ product }: ProductViewProps): ReactElement
                     {/* @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY */}
                     <UITarget targetId="sfcc.pdp.estimatedDelivery" />
                     {/* @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY */}
-                    <UITarget targetId="sfcc.pdp.faq" />
                     <UITarget targetId="sfcc.pdp.collapsibles" />
                 </div>
             </div>

@@ -215,6 +215,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -284,6 +285,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -307,6 +309,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -330,6 +333,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -359,6 +363,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -388,6 +393,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -417,6 +423,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -444,6 +451,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -471,6 +479,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -497,6 +506,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'guest',
                         usid: 'test-usid',
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },
@@ -521,6 +531,7 @@ describe('useAnalytics', () => {
                     payload: {
                         userType: 'registered',
                         usid: undefined,
+                        customerId: 'test-customer-id',
                     },
                 }),
                 { siteId: mockSiteObject.id, localeId: mockSiteObject.defaultLocale },

@@ -68,7 +68,7 @@ function PriceRangeInputStoryHarness({ children }: { children: ReactNode }): Rea
 }
 
 const meta: Meta<typeof PriceRangeInput> = {
-    title: 'COMMON/Price Range Input',
+    title: 'Core/Forms/Price Range Input',
     component: PriceRangeInput,
     tags: ['autodocs', 'interaction'],
     parameters: {

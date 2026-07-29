@@ -47,10 +47,10 @@ vi.mock('react-router', () => ({
 }));
 
 // Suppress console.error for expected error boundary errors
-// eslint-disable-next-line no-console
+// oxlint-disable-next-line no-console
 const originalError = console.error;
 beforeEach(() => {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.error = vi.fn((...args: unknown[]) => {
         // Suppress expected error boundary errors
         const message = args.map((arg) => (typeof arg === 'string' ? arg : String(arg))).join(' ');
@@ -66,9 +66,10 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.error = originalError;
 });
+
 
 vi.mock('@/components/link', () => ({
     Link: (props: React.PropsWithChildren<{ to?: string; [key: string]: unknown }>) => {

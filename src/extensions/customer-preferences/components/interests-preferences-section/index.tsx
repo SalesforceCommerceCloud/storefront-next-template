@@ -396,6 +396,7 @@ export function InterestsPreferencesSection({ initialData }: InterestsPreference
                                                         <button
                                                             key={option.value}
                                                             type="button"
+                                                            aria-pressed={isSelected}
                                                             onClick={() =>
                                                                 isEditing &&
                                                                 handleSelectButtonGroup(pref.id, option.value)

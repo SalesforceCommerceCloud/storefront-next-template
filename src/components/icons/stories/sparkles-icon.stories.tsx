@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SparklesIcon } from '../sparkles-icon';
 
 const meta: Meta<typeof SparklesIcon> = {
-    title: 'Components/Icons/Sparkles Icon',
+    title: 'Core/Icons/Sparkles Icon',
     component: SparklesIcon,
     tags: ['autodocs'],
     parameters: {

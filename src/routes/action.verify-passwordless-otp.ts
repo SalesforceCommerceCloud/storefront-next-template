@@ -27,6 +27,7 @@ import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode, type ActionError } from '@/lib/error-codes';
 import { extractErrorMessage } from '@/lib/auth/error-handler';
 import { getLogger } from '@/lib/logger.server';
+import { getCustomerProfileForCheckout } from '@/lib/api/customer.server';
 
 /** Response shape returned by the verify-passwordless-otp action. */
 export type VerifyPasswordlessOtpResponse = {
@@ -129,6 +130,36 @@ export async function action({
             }
         } catch (error) {
             logger.error('VerifyPasswordlessOtp: basket recalculation after authentication failed', { error });
+        }
+
+        // Guest may have entered a different email at contact-info before signing in.
+        // transferBasket keeps the guest email; reconcile so the order shows the signed-in customer's email.
+        try {
+            const authSession = getAuth(context);
+            const customerId = authSession.customerId;
+            if (customerId) {
+                const customerProfile = await getCustomerProfileForCheckout(context, customerId);
+                const customerEmail =
+                    customerProfile?.customer?.email ||
+                    (customerProfile?.customer?.login?.includes('@') ? customerProfile.customer.login : undefined);
+                const { current: currentBasket } = await getBasket(context);
+                const basketEmail = currentBasket?.customerInfo?.email;
+                const basketId = currentBasket?.basketId;
+                if (
+                    basketId &&
+                    customerEmail &&
+                    basketEmail &&
+                    basketEmail.toLowerCase() !== customerEmail.toLowerCase()
+                ) {
+                    const { data: reconciledBasket } = await clients.shopperBasketsV2.updateCustomerForBasket({
+                        params: { path: { basketId } },
+                        body: { email: customerEmail },
+                    });
+                    updateBasketResource(context, reconciledBasket);
+                }
+            }
+        } catch (error) {
+            logger.error('VerifyPasswordlessOtp: basket email reconciliation failed', { error });
         }
 
         let wishlistMerge: 'success' | 'partial' | undefined;

@@ -25,17 +25,14 @@ import { getActionPath, isAmbientMutation } from './shared';
  *
  * The exceptions are the shared {@link isAmbientMutation} dimensions: a currency switch genuinely changes the
  * loader's output (per-currency SCAPI prices), shopper-context updates change every SCAPI response, and an auth
- * identity transition re-scopes the auth-dependent wishlist seed (below) — so they must be allowed through.
- * Navigations and explicit `useRevalidator().revalidate()` calls carry no `formMethod` and are suppressed too — a
- * fresh navigation to the route is a new match that runs the loader regardless of this gate, and the basket badge
- * stays current via its provider rather than this loader.
+ * identity transition changes customer-group-scoped SCAPI output (pricing / promotions) — so they must be allowed
+ * through. Navigations and explicit `useRevalidator().revalidate()` calls carry no `formMethod` and are suppressed
+ * too — a fresh navigation to the route is a new match that runs the loader regardless of this gate, and the basket
+ * badge stays current via its provider rather than this loader.
  *
- * Auth note: the loader's `fetchWishlistInitialState` is auth-dependent (a registered session seeds the
- * `WishlistProvider` with the shopper's saved items; a guest session seeds it empty). Login and logout from any
- * other page redirect to `/`, which re-matches the home route fresh and re-runs the loader. The one path that would
- * otherwise slip through is a logout submitted while already on `/`: the header posts to `/logout` and redirects back
- * to `/`, so the home route stays matched and React Router consults this gate. The shared identity dimension returns
- * `true` for it so the loader re-runs and re-seeds the wishlist for the now-guest session.
+ * Wishlist note: the wishlist store's session binding is NOT threaded through this loader. The `_app` shell binds it
+ * from client auth (`useAuth()` → `useWishlistSession`), so cross-shopper eviction happens on the shell re-render that
+ * follows an identity transition, independent of this gate.
  * @see https://reactrouter.com/start/framework/route-module#shouldrevalidate
  */
 export function shouldRevalidate({ currentUrl, formMethod, formAction }: ShouldRevalidateFunctionArgs): boolean {

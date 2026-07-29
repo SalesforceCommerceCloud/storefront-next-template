@@ -48,7 +48,7 @@ describe('buildRegisteredSessionCookieOps', () => {
 
     it('clears the guest refresh token cookie to mirror the auth-middleware contract', () => {
         // Regression guard: the storefront's auth middleware deletes cc-nx-g_ on a real
-        // UI login (see template-retail-rsc-app/src/middlewares/auth.server.ts ~line 958).
+        // UI login (see src/middlewares/auth.server.ts ~line 958).
         // login.spec.ts asserts the guest cookie is absent post-login, so API login must
         // mirror that behavior or the spec breaks when migrated to dispatch through here.
         const ops = buildRegisteredSessionCookieOps('SiteA', tokens, 'https://example.com');
@@ -110,6 +110,7 @@ describe('getSfccCookieNames', () => {
             guestRefresh: 'cc-nx-g_RefArchGlobal',
             usid: 'usid_RefArchGlobal',
             customerId: 'customer_id_RefArchGlobal',
+            encUserId: 'enc_user_id_RefArchGlobal',
             basket: '__sfdc_basket',
         });
     });

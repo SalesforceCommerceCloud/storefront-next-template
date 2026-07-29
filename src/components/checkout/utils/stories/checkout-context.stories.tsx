@@ -199,7 +199,7 @@ function CheckoutContextStoryHarness({ children }: { children: ReactNode }): Rea
 }
 
 const meta: Meta<typeof CheckoutProvider> = {
-    title: 'CHECKOUT/Checkout Context',
+    title: 'Checkout/Context',
     component: CheckoutProvider,
     tags: ['autodocs', 'interaction'],
     parameters: {

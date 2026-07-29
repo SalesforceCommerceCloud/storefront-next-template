@@ -22,7 +22,7 @@
 /* c8 ignore end */
 
 import { Button } from '@/components/ui/button';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 
@@ -123,6 +123,7 @@ export function CustomerProfileFields({
                                     {...field}
                                 />
                             </FormControl>
+                            <FormDescription>{t('profile.phoneDescription')}</FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -141,8 +142,7 @@ export function CustomerProfileFields({
                                     value={field.value || ''}
                                     onChange={field.onChange}
                                     onBlur={field.onBlur}
-                                    name={field.name}
-                                    aria-label={t('profile.gender')}>
+                                    name={field.name}>
                                     <option value="">{t('profile.genderPlaceholder')}</option>
                                     {GENDER_OPTIONS.map((option) => (
                                         <option key={option.value} value={option.value}>
@@ -173,7 +173,6 @@ export function CustomerProfileFields({
                                     type="date"
                                     autoComplete="bday"
                                     className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                                    aria-label={t('profile.dateOfBirth')}
                                     {...field}
                                 />
                             </FormControl>

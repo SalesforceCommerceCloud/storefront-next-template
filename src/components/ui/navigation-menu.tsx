@@ -58,7 +58,7 @@ function NavigationMenuItem({
 }
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-9 w-max items-center justify-center rounded-ui bg-transparent px-4 py-2 text-sm font-medium hover:bg-header-menu-hover-background hover:text-[var(--header-menu-hover-foreground)] focus:bg-header-menu-hover-background focus:text-[var(--header-menu-hover-foreground)] disabled:pointer-events-none disabled:opacity-50 data-[state=open]:hover:bg-header-menu-hover-background data-[state=open]:hover:text-[var(--header-menu-hover-foreground)] data-[state=open]:focus:bg-header-menu-hover-background data-[state=open]:focus:text-[var(--header-menu-hover-foreground)] data-[state=open]:bg-header-menu-active-background focus-visible:ring-ring/50 outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1"
+  "group inline-flex h-9 w-max items-center justify-center rounded-ui bg-transparent px-4 py-2 text-sm font-medium hover:bg-header-menu-hover-background hover:text-[var(--header-menu-hover-foreground)] focus:bg-header-menu-hover-background focus:text-[var(--header-menu-hover-foreground)] disabled:pointer-events-none disabled:opacity-50 data-[state=open]:hover:bg-header-menu-hover-background data-[state=open]:hover:text-[var(--header-menu-hover-foreground)] data-[state=open]:focus:bg-header-menu-hover-background data-[state=open]:focus:text-[var(--header-menu-hover-foreground)] data-[state=open]:bg-header-menu-active-background focus-visible:ring-ring outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1"
 )
 
 function NavigationMenuTrigger({
@@ -124,7 +124,7 @@ function NavigationMenuLink({
     <NavigationMenuPrimitive.Link
       data-slot="navigation-menu-link"
       className={cn(
-        "data-[active=true]:focus:bg-header-menu-hover-background data-[active=true]:hover:bg-header-menu-hover-background data-[active=true]:bg-header-menu-active-background hover:bg-header-menu-hover-background focus:bg-header-menu-hover-background focus-visible:ring-ring/50 [&_svg:not([class*='text-'])]:text-header-menu-icon flex flex-col gap-1 rounded-ui p-2 text-sm transition-all outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&_svg:not([class*='size-'])]:size-4",
+        "data-[active=true]:focus:bg-header-menu-hover-background data-[active=true]:hover:bg-header-menu-hover-background data-[active=true]:bg-header-menu-active-background hover:bg-header-menu-hover-background focus:bg-header-menu-hover-background focus-visible:ring-ring [&_svg:not([class*='text-'])]:text-header-menu-icon flex flex-col gap-1 rounded-ui p-2 text-sm transition-all outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

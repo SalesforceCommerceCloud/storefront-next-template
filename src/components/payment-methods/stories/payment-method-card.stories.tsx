@@ -90,7 +90,7 @@ function renderCard(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof PaymentMethodCard> = {
-    title: 'Components/Payment Methods/Payment Method Card',
+    title: 'Account/Payment Methods/Payment Method Card',
     component: PaymentMethodCard,
     parameters: {
         layout: 'padded',

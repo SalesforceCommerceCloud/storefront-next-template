@@ -31,10 +31,10 @@ exports[`Swatch stories snapshot > Default story renders and matches snapshot 1`
 exports[`Swatch stories snapshot > Disabled story renders and matches snapshot 1`] = `
 <button
   aria-checked="false"
-  aria-label="Green"
+  aria-disabled="true"
+  aria-label="Green (out of stock)"
   class="border-[length:var(--swatch-border-width)] flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-pill-size)] h-[var(--swatch-pill-size)] p-[var(--swatch-pill-padding)] cursor-not-allowed before:content-[""] before:absolute before:top-1/2 before:left-1/2 before:h-[32px] before:w-[1px] before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-45 before:bg-black before:z-[1] border-[var(--swatch-color-border,transparent)] bg-[var(--swatch-color-bg,transparent)] text-[var(--swatch-color-text,inherit)] opacity-50"
   data-swatch-type="color"
-  disabled=""
   position="relative"
   role="radio"
   tabindex="-1"

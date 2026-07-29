@@ -46,7 +46,7 @@ exports[`OrderSummary stories snapshot > CartItemsAccordionInteraction story ren
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -118,46 +118,44 @@ exports[`OrderSummary stories snapshot > CartItemsAccordionInteraction story ren
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -210,7 +208,7 @@ exports[`OrderSummary stories snapshot > Default story renders and matches snaps
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -282,46 +280,44 @@ exports[`OrderSummary stories snapshot > Default story renders and matches snaps
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -374,7 +370,7 @@ exports[`OrderSummary stories snapshot > EmptyBasket story renders and matches s
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -446,46 +442,44 @@ exports[`OrderSummary stories snapshot > EmptyBasket story renders and matches s
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £0.00
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £0.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-primary font-medium"
             >
               FREE
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £0.00
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £0.00
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -538,7 +532,7 @@ exports[`OrderSummary stories snapshot > EstimateMode story renders and matches 
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -610,46 +604,44 @@ exports[`OrderSummary stories snapshot > EstimateMode story renders and matches 
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Estimated Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Estimated Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -683,46 +675,44 @@ exports[`OrderSummary stories snapshot > GrossTaxation story renders and matches
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £118.50
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £118.50
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -749,7 +739,7 @@ exports[`OrderSummary stories snapshot > MobileCollapsible story renders and mat
       <button
         aria-controls="radix-«x»"
         aria-expanded="false"
-        class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 px-[var(--cart-summary-px)] py-4 hover:no-underline"
+        class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 px-[var(--cart-summary-px)] py-4 hover:no-underline"
         data-orientation="vertical"
         data-radix-collection-item=""
         data-slot="accordion-trigger"
@@ -825,56 +815,52 @@ exports[`OrderSummary stories snapshot > NetTaxation story renders and matches s
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dd>
+          <dt>
+            Tax
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span>
-              Tax
-            </span>
-            <span>
-              £5.25
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+            £5.25
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £118.50
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £118.50
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -927,7 +913,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="false"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -999,61 +985,55 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
             />
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £73.57
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            20% Off Discount
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£14.71
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              20% Off Discount
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£14.71
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £73.57
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £73.57
+          </dd>
+        </dl>
         <hr
           class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
         />
@@ -1079,7 +1059,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                 <button
                   aria-controls="radix-«x»"
                   aria-expanded="true"
-                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+                  class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                   data-orientation="vertical"
                   data-radix-collection-item=""
                   data-slot="accordion-trigger"
@@ -1147,7 +1127,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                         >
                           <input
                             aria-invalid="false"
-                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                             data-slot="input"
                             id="_r_6_-form-item"
                             name="code"
@@ -1155,7 +1135,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                             value=""
                           />
                           <button
-                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                             data-size="default"
                             data-slot="button"
                             data-variant="secondary"
@@ -1182,7 +1162,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                 class="inline-flex items-stretch"
               >
                 <span
-                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                   data-slot="badge"
                 >
                   <svg
@@ -1206,7 +1186,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
                 </span>
                 <button
                   aria-label="Remove SAVE20"
-                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
+                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
                   data-size="icon-sm"
                   data-slot="button"
                   data-variant="secondary"
@@ -1294,7 +1274,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="true"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -1369,10 +1349,11 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                 <div
                   class="space-y-5"
                 >
-                  <div
+                  <ul
                     class="space-y-5"
+                    role="list"
                   >
-                    <div
+                    <li
                       class="border-b border-muted-foreground/10 last:border-b-0"
                     >
                       <div
@@ -1419,17 +1400,18 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                                
                               1
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                             <span
-                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                               data-slot="badge"
                             >
                               Saved £79.99
@@ -1439,8 +1421,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £20.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £20.00
@@ -1456,7 +1437,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99
@@ -1473,8 +1454,8 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div
+                    </li>
+                    <li
                       class="border-b border-muted-foreground/10 last:border-b-0"
                     >
                       <div
@@ -1503,7 +1484,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                           >
                             <span
                               aria-label="This item is a free bonus product"
-                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
                               data-slot="badge"
                               role="status"
                             >
@@ -1529,22 +1510,22 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                                
                               1
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                           <div
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £0.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £0.00
@@ -1560,7 +1541,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99
@@ -1577,8 +1558,8 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div
+                    </li>
+                    <li
                       class="border-b border-muted-foreground/10 last:border-b-0"
                     >
                       <div
@@ -1607,7 +1588,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                           >
                             <span
                               aria-label="This item is a free bonus product"
-                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
+                              class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90"
                               data-slot="badge"
                               role="status"
                             >
@@ -1633,22 +1614,22 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                                
                               1
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                           </div>
                           <div
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £0.00"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £0.00
@@ -1664,7 +1645,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99
@@ -1681,10 +1662,10 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                   <a
-                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
                     href="/RefArchGlobal/en-GB/cart"
                   >
                     Edit cart
@@ -1694,73 +1675,63 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
             </div>
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £20.00
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            Buy one Classic Fit Shirt, get 2 free ties!
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            £0.00
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £20.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              Buy one Classic Fit Shirt, get 2 free ties!
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              £0.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dd>
+          <dt>
+            Tax
+          </dt>
+          <dd
+            class="justify-self-end text-muted-foreground"
           >
-            <span>
-              Tax
-            </span>
-            <span
-              class="text-muted-foreground"
-            >
-              TBD
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+            TBD
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Estimated Total
-            </span>
-            <span>
-              £20.00
-            </span>
-          </div>
-        </div>
+            Estimated Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £20.00
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -1794,61 +1765,55 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £38.38
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            10% Off Order
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£3.84
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £38.38
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              10% Off Order
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£3.84
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £34.54
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £34.54
+          </dd>
+        </dl>
         <hr
           class="mx-[calc(var(--cart-summary-px)*-1)] border-border"
         />
@@ -1874,7 +1839,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                 <button
                   aria-controls="radix-«x»"
                   aria-expanded="true"
-                  class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
+                  class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start rounded-ui py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 justify-start gap-2 pt-1 pb-0 [&>svg]:text-primary"
                   data-orientation="vertical"
                   data-radix-collection-item=""
                   data-slot="accordion-trigger"
@@ -1942,7 +1907,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                         >
                           <input
                             aria-invalid="false"
-                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
+                            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive focus-visible:ring-0"
                             data-slot="input"
                             id="_r_d_-form-item"
                             name="code"
@@ -1950,7 +1915,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                             value=""
                           />
                           <button
-                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
+                            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 py-2 has-[>svg]:px-3 cursor-pointer px-4"
                             data-size="default"
                             data-slot="button"
                             data-variant="secondary"
@@ -1977,7 +1942,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                 class="inline-flex items-stretch"
               >
                 <span
-                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                  class="inline-flex items-center justify-center rounded-full border px-2 py-0.5 w-fit shrink-0 [&>svg]:size-3 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent bg-secondary [a&]:hover:bg-secondary/90 gap-1 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                   data-slot="badge"
                 >
                   <svg
@@ -2001,7 +1966,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
                 </span>
                 <button
                   aria-label="Remove SAVE10"
-                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
+                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-secondary text-secondary-foreground hover:bg-secondary/80 size-8 h-auto w-auto px-1.5 py-0.5"
                   data-size="icon-sm"
                   data-slot="button"
                   data-variant="secondary"
@@ -2089,7 +2054,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
               <button
                 aria-controls="radix-«x»"
                 aria-expanded="true"
-                class="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
+                class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui py-4 text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-left"
                 data-orientation="vertical"
                 data-radix-collection-item=""
                 data-slot="accordion-trigger"
@@ -2164,10 +2129,11 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                 <div
                   class="space-y-5"
                 >
-                  <div
+                  <ul
                     class="space-y-5"
+                    role="list"
                   >
-                    <div
+                    <li
                       class="border-b border-muted-foreground/10 last:border-b-0"
                     >
                       <div
@@ -2214,17 +2180,18 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                                
                               2
                             </div>
-                            <div
+                            <ul
                               class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+                              role="list"
                             >
-                              <div>
+                              <li>
                                 Size
                                 : 
                                 L
-                              </div>
-                            </div>
+                              </li>
+                            </ul>
                             <span
-                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
+                              class="inline-flex items-center justify-center rounded-full w-fit shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&]:hover:bg-primary/90 h-auto min-h-0 border-0 bg-muted px-1.5 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words"
                               data-slot="badge"
                             >
                               Saved £161.60
@@ -2234,8 +2201,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                             class="items-center gap-2 text-sm"
                           >
                             <span
-                              aria-label="Current price: £19.19"
-                              aria-live="polite"
+                              aria-hidden="true"
                               class="[&:not(:first-child)]:mt-6 text-card-foreground text-right font-semibold text-sm leading-none relative"
                             >
                               £19.19
@@ -2251,7 +2217,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                             </span>
                              
                             <span
-                              aria-label="List price: £99.99"
+                              aria-hidden="true"
                               class="font-medium line-through text-muted-foreground text-right text-sm leading-none relative"
                             >
                               £99.99
@@ -2268,10 +2234,10 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                   <a
-                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
+                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 w-full justify-center"
                     href="/RefArchGlobal/en-GB/cart"
                   >
                     Edit cart
@@ -2281,46 +2247,44 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
             </div>
           </div>
         </div>
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £38.38
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £38.38
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Estimated Total
-            </span>
-            <span>
-              £38.38
-            </span>
-          </div>
-        </div>
+            Estimated Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £38.38
+          </dd>
+        </dl>
       </div>
     </div>
   </div>
@@ -2354,76 +2318,66 @@ exports[`OrderSummary stories snapshot > WithItemLevelPromotions story renders a
         class="space-y-2"
         role="region"
       >
-        <div
-          class="space-y-2 text-sm font-normal leading-5 text-muted-foreground pb-2"
+        <dl
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
-          <div
-            class="flex justify-between items-center"
+          <dt>
+            Subtotal
+          </dt>
+          <dd
+            class="justify-self-end"
+          >
+            £58.29
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            $10 Off Ties
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£10.00
+          </dd>
+          <dt
+            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            data-slot="badge"
+          >
+            15% Off Tops
+          </dt>
+          <dd
+            class="text-sm font-normal leading-5 text-muted-foreground text-right"
+          >
+            -£5.28
+          </dd>
+          <dt
+            class="flex items-center"
           >
             <span>
-              Subtotal
+              Shipping
             </span>
-            <span>
-              £58.29
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
+          </dt>
+          <dd
+            class="justify-self-end"
           >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              $10 Off Ties
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£10.00
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center gap-2"
-          >
-            <span
-              class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
-              data-slot="badge"
-            >
-              15% Off Tops
-            </span>
-            <span
-              class="text-sm font-normal leading-5 text-muted-foreground text-right"
-            >
-              -£5.28
-            </span>
-          </div>
-          <div
-            class="flex justify-between items-center"
-          >
-            <div
-              class="flex items-center"
-            >
-              <span>
-                Shipping
-              </span>
-            </div>
             <span
               class="text-muted-foreground"
             >
               TBD
             </span>
-          </div>
-          <div
-            class="flex justify-between items-center text-sm font-bold leading-5 text-muted-foreground"
+          </dd>
+          <dt
+            class="font-bold"
           >
-            <span>
-              Total
-            </span>
-            <span>
-              £58.29
-            </span>
-          </div>
-        </div>
+            Total
+          </dt>
+          <dd
+            class="justify-self-end font-bold"
+          >
+            £58.29
+          </dd>
+        </dl>
       </div>
     </div>
   </div>

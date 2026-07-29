@@ -247,7 +247,7 @@ export function getAttachedBonusPromotions(
         }
 
         // Get promotion info with capacity
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
         const promoInfo = promotionMap.get(matchedPromotionId)!;
 
         // Get callout text from product promotions (product already fetched above)

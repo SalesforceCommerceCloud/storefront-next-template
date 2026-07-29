@@ -97,7 +97,7 @@ export function RemoveItemButtonWithConfirmation({
             }
         }
         //As addToast is unlikely to change, we don't need to include it in the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [fetcher.state, fetcher.data, t, updateBasket]);
 
     // Remove item function
@@ -121,7 +121,7 @@ export function RemoveItemButtonWithConfirmation({
         setShowConfirmation(false);
         removeItem();
         // removeItem: stable function from useRemoveItem hook, no need to recreate callback
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

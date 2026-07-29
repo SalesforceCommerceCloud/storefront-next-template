@@ -188,13 +188,13 @@ export function ProductItemVariantAttributes({
 
             {/* Variation Attributes */}
             {Object.keys(displayVariationValues).length > 0 && (
-                <div className="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1">
+                <ul role="list" className="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1">
                     {Object.entries(displayVariationValues).map(([name, value]) => (
-                        <div key={name}>
+                        <li key={name}>
                             {name}: {value}
-                        </div>
+                        </li>
                     ))}
-                </div>
+                </ul>
             )}
 
             {/* Promotions Info - shown in summary variant only, moved to right column for default */}

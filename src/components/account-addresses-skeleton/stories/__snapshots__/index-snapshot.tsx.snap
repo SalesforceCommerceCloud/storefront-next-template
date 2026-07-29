@@ -18,7 +18,6 @@ exports[`AccountAddressesSkeleton stories snapshot > Default story renders and m
         <div>
           <h1
             class="text-2xl font-semibold text-foreground mb-1"
-            tabindex="0"
           >
             Addresses
           </h1>

@@ -44,7 +44,7 @@ const defaultSubscriptions: MarketingConsentSubscriptions = {
 };
 
 const meta: Meta<typeof MarketingConsent> = {
-    title: 'ACCOUNT/Marketing Consent',
+    title: 'Account/Marketing Consent',
     component: MarketingConsent,
     args: {
         subscriptions: defaultSubscriptions,

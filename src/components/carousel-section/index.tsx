@@ -52,7 +52,7 @@ export interface CarouselSectionProps {
 const defaultLeftTitleClassName = 'text-4xl font-medium leading-none tracking-[-0.9px] text-foreground';
 const defaultCenterTitleClassName = 'text-4xl font-medium leading-none tracking-[-0.9px] text-foreground mb-4';
 
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { carouselItemImageWidths, productCarouselItemAspectRatio } from './constants';
 
 /**
@@ -134,8 +134,16 @@ export function CarouselSection({
             {(title !== undefined || subtitle) && titleSection}
             <Carousel className="w-full py-6" opts={{ align: 'start' }} aria-label={ariaLabel}>
                 <CarouselContent className="-ml-4 items-stretch flex-nowrap">{children}</CarouselContent>
-                <CarouselPrevious className="flex left-0 -translate-x-1/2 size-9 shadow-md" />
-                <CarouselNext className="flex right-0 translate-x-1/2 size-9 shadow-md" />
+                {/*
+                 * The nav buttons straddle the carousel edge on desktop (translated half their width
+                 * outside the track). At mobile widths the section-container has only 16px of side
+                 * padding, so an 18px outward straddle pushes the button 2px past a 320px viewport and
+                 * forces a horizontal scrollbar (WCAG 1.4.10 Reflow). Keep the straddle from `lg` up
+                 * and seat the buttons flush inside the track below it. This also keeps the buttons
+                 * on-screen and keyboard-reachable at mobile widths (W-23325488).
+                 */}
+                <CarouselPrevious className="flex left-0 lg:-translate-x-1/2 size-9 shadow-md" />
+                <CarouselNext className="flex right-0 lg:translate-x-1/2 size-9 shadow-md" />
             </Carousel>
         </div>
     );

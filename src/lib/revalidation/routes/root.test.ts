@@ -194,20 +194,19 @@ describe('rootShouldRevalidate', () => {
         // would otherwise revalidate for nothing. Use a site-prefixed checkout path to mirror production traffic.
         const checkoutPath = `/global/en-GB${routes.checkout}`;
 
-        test.each(Object.values(CHECKOUT_ACTION_INTENTS))(
-            'skips revalidation for intent=%s on the checkout route',
-            (intent) => {
-                expect(
-                    rootShouldRevalidate(
-                        buildArgs({
-                            formMethod: 'POST',
-                            formAction: checkoutPath,
-                            formData: formDataWithIntent(intent),
-                        })
-                    )
-                ).toBe(false);
-            }
-        );
+        test.each(
+            Object.values(CHECKOUT_ACTION_INTENTS)
+        )('skips revalidation for intent=%s on the checkout route', (intent) => {
+            expect(
+                rootShouldRevalidate(
+                    buildArgs({
+                        formMethod: 'POST',
+                        formAction: checkoutPath,
+                        formData: formDataWithIntent(intent),
+                    })
+                )
+            ).toBe(false);
+        });
 
         test('revalidates an unknown intent on the checkout route (denylist is intent-specific)', () => {
             expect(

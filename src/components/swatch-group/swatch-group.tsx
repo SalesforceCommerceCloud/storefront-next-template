@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React, { Children, useCallback, useRef } from 'react';
+import React, { Children, useCallback, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 const DIRECTIONS = {
@@ -36,8 +36,6 @@ interface SwatchChild {
  * Props for the SwatchGroup component
  */
 interface SwatchGroupProps {
-    /** Accessible label for screen readers */
-    ariaLabel?: string;
     /** Display name shown next to the label */
     displayName?: string;
     /** Swatch components to render within the group */
@@ -78,7 +76,6 @@ const noop = (..._args: unknown[]): void => {
  * ```
  */
 export const SwatchGroup: React.FC<SwatchGroupProps> = ({
-    ariaLabel,
     displayName,
     children,
     label = '',
@@ -87,6 +84,7 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
     className,
 }) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const labelId = `swatch-group-label-${React.useId()}`;
 
     const onKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
@@ -120,7 +118,8 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
                 // Call handleChange when navigating with keyboard
                 const newChildElement = childrenArray[index] as React.ReactElement<SwatchChild['props']>;
                 const newValue = newChildElement?.props?.value;
-                if (newValue) {
+                const isDisabled = newChildElement?.props?.disabled;
+                if (newValue && !isDisabled) {
                     handleChange(newValue);
                 }
 
@@ -131,11 +130,13 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
                 case 'ArrowUp':
                 case 'ArrowLeft':
                     e.preventDefault();
+                    userInteractedRef.current = true;
                     move(DIRECTIONS.BACKWARD);
                     break;
                 case 'ArrowDown':
                 case 'ArrowRight':
                     e.preventDefault();
+                    userInteractedRef.current = true;
                     move(DIRECTIONS.FORWARD);
                     break;
                 default:
@@ -143,7 +144,7 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
             }
         },
         // do not need handleChange as dep
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
         [children]
     );
 
@@ -159,28 +160,70 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
         ? 'inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1'
         : 'flex flex-wrap gap-[var(--swatch-pill-gap,0.5rem)] focus:outline-none';
 
+    // Exactly one swatch carries the group's tabstop (roving tabindex). Prefer the
+    // selected swatch, but a disabled swatch forces its own tabIndex to -1, so if the
+    // selected value maps to a disabled swatch (e.g. an out-of-stock variant named in
+    // the URL) the tabstop would vanish and the whole group become keyboard-unreachable.
+    // Fall back to the first enabled swatch in that case, then to index 0.
+    const childArray = Children.toArray(children) as React.ReactElement<SwatchChild['props']>[];
+    const selectedIndex = value ? childArray.findIndex((c) => c.props?.value === value) : -1;
+    const firstEnabledIndex = childArray.findIndex((c) => !c.props?.disabled);
+    const focusableIndex =
+        selectedIndex !== -1 && !childArray[selectedIndex].props?.disabled
+            ? selectedIndex
+            : firstEnabledIndex !== -1
+              ? firstEnabledIndex
+              : 0;
+
+    const prevValueRef = useRef(value);
+    const userInteractedRef = useRef(false);
+    useEffect(() => {
+        if (value && value !== prevValueRef.current && userInteractedRef.current && wrapperRef.current) {
+            const el = wrapperRef.current.children[focusableIndex] as HTMLElement | undefined;
+            // Arrow-key navigation already focuses the swatch synchronously in move(); only
+            // move focus here when it isn't already on the target (the click/navigation path),
+            // so a keyboard selection doesn't focus twice.
+            if (el && el !== document.activeElement) {
+                requestAnimationFrame(() => el.focus());
+            }
+            userInteractedRef.current = false;
+        }
+        prevValueRef.current = value;
+    }, [value, focusableIndex]);
+
     return (
-        <div className={containerClasses} onKeyDown={onKeyDown}>
+        // oxlint-disable-next-line jsx-a11y/no-static-element-interactions -- radiogroup composite widget: arrow-key roving handled at group level per ARIA APG
+        <div
+            className={containerClasses}
+            onKeyDown={onKeyDown}
+            onClick={(e) => {
+                // Only arm the post-selection focus restore for keyboard activation. A
+                // keyboard-driven click (Enter/Space) reports detail === 0; a real mouse click
+                // reports detail >= 1. This keeps a stray pointer click from leaving the flag set
+                // so a later external value change can't steal focus.
+                if (e.detail === 0) {
+                    userInteractedRef.current = true;
+                }
+            }}>
             <div
                 className={isSquareSwatchGroup ? 'inline-flex flex-col gap-3' : 'flex flex-col gap-3'}
                 role="radiogroup"
-                aria-label={ariaLabel || label}>
+                aria-labelledby={label ? labelId : undefined}>
                 {label && (
-                    <div className={labelClasses}>
+                    <div id={labelId} className={labelClasses}>
                         <span>{label}:</span>
                         {displayName && <span>{displayName}</span>}
                     </div>
                 )}
                 <div ref={wrapperRef} className={swatchesWrapperClasses} data-slot="swatch-container">
-                    {Children.toArray(children).map((child, index) => {
-                        const childElement = child as React.ReactElement<SwatchChild['props']>;
+                    {childArray.map((childElement, index) => {
                         const selected = childElement.props?.value === value;
 
                         return React.cloneElement(childElement, {
                             key: childElement.props?.value || index,
                             handleSelect: handleChange,
                             selected,
-                            isFocusable: value ? selected : index === 0,
+                            isFocusable: index === focusableIndex,
                         });
                     })}
                 </div>

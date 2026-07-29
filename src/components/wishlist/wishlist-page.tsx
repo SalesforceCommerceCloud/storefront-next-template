@@ -82,9 +82,7 @@ export function WishlistSkeleton(): ReactElement {
         <div className="space-y-6">
             {/* Header card skeleton */}
             <Card className="px-6 py-3 gap-0 rounded-ui bg-card border-border">
-                <h1 className="text-2xl font-semibold text-foreground mb-1" tabIndex={0}>
-                    {t('navigation.wishlist')}
-                </h1>
+                <h1 className="text-2xl font-semibold text-foreground mb-1">{t('navigation.wishlist')}</h1>
                 <Skeleton className="h-4 w-48" />
             </Card>
 
@@ -197,9 +195,7 @@ export function WishlistPageContent({ items, productsByProductId }: WishlistPage
             {/* Page Header Card */}
             <Card className="bg-card border-border">
                 <CardContent className="px-6 py-3">
-                    <h1 className="text-2xl font-semibold text-foreground mb-1" tabIndex={0}>
-                        {t('wishlist.pageTitle')}
-                    </h1>
+                    <h1 className="text-2xl font-semibold text-foreground mb-1">{t('wishlist.pageTitle')}</h1>
                     <p className="text-sm text-muted-foreground">{t('wishlist.pageSubtitle')}</p>
                 </CardContent>
             </Card>

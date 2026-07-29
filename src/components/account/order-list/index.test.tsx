@@ -180,7 +180,7 @@ describe('OrderList Component', () => {
                 ],
             });
             const badge = screen.getByText('New').closest('span');
-            expect(badge).toHaveClass('bg-info');
+            expect(badge).toHaveClass('bg-status-positive');
         });
     });
 
@@ -280,10 +280,10 @@ describe('OrderListHeader Component', () => {
         expect(screen.queryByText('Track your purchases')).not.toBeInTheDocument();
     });
 
-    test('title is focusable for accessibility', () => {
+    test('title is not an extra tab stop', () => {
         render(<OrderListHeader title="My Orders" />);
         const heading = screen.getByRole('heading', { level: 4 });
-        expect(heading).toHaveAttribute('tabindex', '0');
+        expect(heading).not.toHaveAttribute('tabindex');
     });
 });
 
@@ -349,5 +349,50 @@ describe('OrderListBody Component', () => {
     test('does not render header elements', () => {
         render(<OrderListBody orders={testOrders} />);
         expect(screen.queryByRole('heading', { level: 4 })).not.toBeInTheDocument();
+    });
+
+    // Guards Order → OrderListItemData threading through toOrderListItemData: an
+    // Order carrying returnStatus must surface the return badge in the list item.
+    test('threads returnStatus through to the OrderListItem return badge', () => {
+        const returnedOrder: Order = {
+            orderNo: 'ORD-RET',
+            orderDate: '2024-09-14T10:30:00Z',
+            status: 'completed',
+            statusLabel: 'Completed',
+            returnStatus: 'RETURN_COMPLETE',
+            total: 100,
+            itemCount: 1,
+            productItems: [{ productId: 'prod-1', quantity: 1 }],
+        };
+
+        render(<OrderListBody orders={[returnedOrder]} />);
+
+        const badge = screen.getByTestId('order-return-status-badge');
+        expect(badge).toHaveTextContent('Return Complete');
+        expect(screen.queryByText('Completed')).not.toBeInTheDocument();
+    });
+
+    describe('Semantic list markup', () => {
+        test('renders orders in a ul with role="list"', () => {
+            render(<OrderListBody orders={testOrders} />);
+
+            const list = screen.getByRole('list');
+            expect(list).toBeInTheDocument();
+            expect(list.tagName).toBe('UL');
+        });
+
+        test('renders each order in a li element', () => {
+            render(<OrderListBody orders={testOrders} />);
+
+            const list = screen.getByRole('list');
+            const listItems = list.querySelectorAll('li');
+            expect(listItems).toHaveLength(3);
+        });
+
+        test('does not render list when orders is empty', () => {
+            render(<OrderListBody orders={[]} />);
+
+            expect(screen.queryByRole('list')).not.toBeInTheDocument();
+        });
     });
 });

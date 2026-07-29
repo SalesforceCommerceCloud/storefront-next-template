@@ -17,6 +17,7 @@ import type { AppConfig } from '@/types/config';
 import { createEinsteinAdapter } from './einstein';
 import { addAdapter } from './store';
 import { createActiveDataAdapter } from './active-data';
+import { createDataCloudAdapter } from './data-cloud';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger();
@@ -49,6 +50,24 @@ export function initializeEngagementAdapters(appConfig: AppConfig): void {
             );
         } catch (error) {
             logger.warn('Failed to initialize Einstein adapter', { error });
+        }
+    }
+
+    if (engagementAdapterConfigs.dataCloud?.enabled) {
+        try {
+            addAdapter(
+                'dataCloud',
+                createDataCloudAdapter({
+                    appSourceId: engagementAdapterConfigs.dataCloud.appSourceId || '',
+                    tenantId: engagementAdapterConfigs.dataCloud.tenantId || '',
+                    siteId: engagementAdapterConfigs.dataCloud.siteId || '',
+                    webStoreId: engagementAdapterConfigs.dataCloud.webStoreId || 'sfnext',
+                    consentCategory: engagementAdapterConfigs.dataCloud.consentCategory,
+                    eventToggles: engagementAdapterConfigs.dataCloud.eventToggles || {},
+                })
+            );
+        } catch (error) {
+            logger.warn('Failed to initialize Data Cloud adapter', { error });
         }
     }
 

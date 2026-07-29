@@ -367,7 +367,6 @@ TurnstileScenario('Error handling - Challenge fails (2x00000000000000000000BB)',
 
     // Capture console warnings
     const consoleWarnings: string[] = [];
-    // eslint-disable-next-line @typescript-eslint/require-await
     await I.usePlaywrightTo('capture console warnings', async ({ page }) => {
         page.on('console', (msg: ConsoleMessage) => {
             if (msg.type() === 'warning' && msg.text().includes('Turnstile')) {

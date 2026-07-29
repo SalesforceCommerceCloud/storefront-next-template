@@ -47,20 +47,21 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
           </h2>
         </div>
         <div>
-          <div
+          <ul
             class="text-sm font-normal leading-5 text-muted-foreground space-y-1 mb-1"
+            role="list"
           >
-            <div>
+            <li>
               Size
               : 
               M
-            </div>
-            <div>
+            </li>
+            <li>
               Color
               : 
               Navy
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
         <p
           class="text-xs text-muted-foreground"
@@ -75,8 +76,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £61.99"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £61.99
@@ -92,7 +92,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
           </span>
            
           <span
-            aria-label="List price: £185.97"
+            aria-hidden="true"
             class="text-sm font-medium leading-none text-left line-through text-muted-foreground"
           >
             £185.97
@@ -108,7 +108,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
           </span>
         </div>
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-account-action-primary text-account-action-primary-foreground hover:bg-account-action-primary/90 text-xs"
           data-discover="true"
           data-size="sm"
           data-slot="button"
@@ -189,8 +189,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £10.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £10.00
@@ -207,7 +206,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
            
         </div>
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-account-action-primary text-account-action-primary-foreground hover:bg-account-action-primary/90 text-xs"
           data-discover="true"
           data-size="sm"
           data-slot="button"
@@ -273,8 +272,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
           class="items-center gap-2"
         >
           <span
-            aria-label="Current price: £20.00"
-            aria-live="polite"
+            aria-hidden="true"
             class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
           >
             £20.00
@@ -291,7 +289,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
            
         </div>
         <a
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-foreground text-background hover:bg-foreground/90 text-xs"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-ui font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-8 rounded-ui gap-1.5 px-3 has-[>svg]:px-2.5 bg-account-action-primary text-account-action-primary-foreground hover:bg-account-action-primary/90 text-xs"
           data-discover="true"
           data-size="sm"
           data-slot="button"

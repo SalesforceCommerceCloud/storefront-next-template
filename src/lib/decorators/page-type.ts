@@ -16,12 +16,20 @@
 import 'reflect-metadata';
 
 /**
+ * Preview capability for a page type. A typed string literal so the set of supported preview
+ * modes stays closed and type-checked at the decorator call site. More variants will be added
+ * as the mini-PD preview surface grows.
+ */
+export type PageTypePreview = 'default';
+
+/**
  * Configuration interface for the PageType decorator
  */
 export interface PageTypeConfig {
     name: string; // Human-readable name for the page type
     description: string; // Description of the page type
     supportedAspectTypes: string[]; // Array of supported aspect types
+    preview?: PageTypePreview; // When set, marks this page type as preview-capable; emitted into pagetype.json
 }
 
 /**

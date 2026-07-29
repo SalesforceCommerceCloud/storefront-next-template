@@ -71,7 +71,7 @@ class RegisteredShopperSetupFlow {
                 return await this.executeViaApi(config);
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
-                // eslint-disable-next-line no-console
+                // oxlint-disable-next-line no-console
                 console.warn(`API registered shopper setup failed (${message}), falling back to UI flow`);
             }
         }

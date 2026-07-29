@@ -30,10 +30,6 @@
     },
     "search": {
         "results": "검색 결과",
-        "shopperAgent": {
-            "title": "Shopper Agent로 쇼핑하기",
-            "description": "공간에 딱 맞는 제품을 찾도록 도와드리겠습니다. 저와 함께 쇼핑하세요."
-        },
         "suggestions": {
             "didYouMean": "다음을 찾으셨나요?",
             "categories": "카테고리",
@@ -301,7 +297,8 @@
         "quantityUpdateFailed": "수량을 업데이트하지 못했습니다.",
         "onlyLeft": "품절 임박({{stockLevel}}개 남음)",
         "onlyLeftForProduct": "{{productName}}이(가) {{stockLevel}}개 남았습니다!",
-        "maxStockReached": "최대 재고 도달"
+        "maxStockReached": "최대 재고 도달",
+        "insufficientStock": "재고가 부족합니다"
     },
     "cart": {
         "title": "카트",
@@ -408,6 +405,7 @@
             "emailInvalid": "유효한 이메일 주소를 입력하십시오.",
             "countryCodeLabel": "코드",
             "phoneLabel": "전화번호",
+            "phoneFormatDescription": "10자리 전화번호",
             "phoneRequired": "전화번호를 입력하십시오.",
             "phoneInvalid": "올바른 전화번호를 입력하십시오.",
             "notProvided": "아직 제공되지 않음",
@@ -488,7 +486,8 @@
             "arrives": "도착: {{estimatedArrivalTime}}",
             "free": "무료",
             "noMethodsAvailable": "사용 가능한 배송 방법이 없습니다.",
-            "noMethodsAvailableHelp": "배송 주소가 완전한지 확인하고 다시 시도하십시오."
+            "noMethodsAvailableHelp": "배송 주소가 완전한지 확인하고 다시 시도하십시오.",
+            "deliveryWindow": "Arrives {{window}}"
         },
         "payment": {
             "title": "결제",
@@ -614,7 +613,8 @@
                 "noAddress": "주소를 사용할 수 없음",
                 "estimatedDatePlaceholder": "지금 처리 중",
                 "quantity": "수량: {{count}}개",
-                "freeShipping": "무료"
+                "freeShipping": "무료",
+                "deliveryWindow": "{{window}}"
             },
             "totals": {
                 "subtotal": "소계",
@@ -674,6 +674,7 @@
             "addresses": "주소",
             "manageAddresses": "주소 관리",
             "paymentMethods": "결제 방법",
+            "passkeys": "Passkeys",
             "storePreferences": "매장 기본 설정",
             "logOut": "로그아웃"
         },
@@ -860,16 +861,6 @@
             "productPlaceholderInitial": "품목",
             "quantityLabel": "수량: {{count}}개",
             "trackingNumber": "추적 번호",
-            "tracking": {
-                "provider": "Carrier",
-                "expectedDelivery": "Expected delivery",
-                "delivered": "Delivered",
-                "trackingNumberLinkLabel": "Track shipment {{number}} (opens in a new tab)"
-            },
-            "actions": {
-                "trackShipment": "Track shipment",
-                "trackShipmentNewTab": "Track shipment (opens in a new tab)"
-            },
             "shippingAddress": "배송 주소",
             "paymentMethod": "결제 방법",
             "paymentMethodEndingIn": "{{cardType}}이(가) {{lastDigits}}(으)로 끝남"
@@ -1055,6 +1046,50 @@
             "disclaimer": "이 커뮤니케이션 기본 설정을 활성화하면 독점 오퍼, 최신 제품 정보 및 예정된 컬렉션의 소식을 비롯한 마케팅 커뮤니케이션을 수신하는 데 동의하는 것으로 간주됩니다. 자세한 내용은 이용 약관 및 개인정보보호 정책을 참조하십시오.",
             "updateError": "마케팅 기본 설정을 업데이트하지 못했습니다. 다시 시도하십시오.",
             "partialSuccess": "일부 기본 설정이 저장되었습니다. 현재 설정을 확인하려면 새로 고치십시오."
+        },
+        "passkeys": {
+            "pageTitle": "Passkeys",
+            "pageSubtitle": "Sign in faster and more securely using your face, fingerprint, or device PIN.",
+            "sectionTitle": "Your passkeys",
+            "sectionSubtitle": "Manage the passkeys registered to your account.",
+            "addPasskey": "Add Passkey",
+            "addDialogTitle": "Name your passkey",
+            "addDialogDescription": "Choose a name that helps you identify this passkey later, like the device or browser you're using.",
+            "passkeyNameLabel": "Passkey name",
+            "passkeyNamePlaceholder": "For example, Chrome on MacBook Pro",
+            "passkeyNameHint": "To rename this passkey after saving, you need to remove it and add it again.",
+            "nameRequired": "Please enter a name for this passkey.",
+            "nameTooLong": "Passkey name must be 128 characters or fewer.",
+            "addContinue": "Continue",
+            "otpStepTitle": "Verify your email",
+            "otpStepDescription": "Check your email for a {{otpLength}}-digit code. Enter it to verify your identity before creating the passkey.",
+            "otpCodeLabel": "Verification code",
+            "addSuccess": "Passkey was added.",
+            "addSuccessDescription": "Manage passkeys in My Account.",
+            "viewPasskeys": "View Passkeys",
+            "addedOn": "Added {{date}}",
+            "lastUsed": "Last used {{date}}",
+            "notUsedYet": "Not used yet",
+            "uses_one": "{{count}} use",
+            "uses_other": "{{count}} uses",
+            "newBadge": "New",
+            "unnamedPasskey": "Unnamed passkey",
+            "deletePasskeyAriaLabel": "Delete passkey {{name}}",
+            "deleteDialogTitle": "Remove passkey?",
+            "deleteDialogDescription": "After you remove \"{{name}}\", you can't use it to sign in.",
+            "deleteConfirm": "Remove",
+            "deleting": "Removing…",
+            "deleteSuccess": "Passkey removed.",
+            "deleteError": "Failed to remove passkey. Please try again.",
+            "empty": "No Saved Passkeys",
+            "emptyHint": "Add a passkey to sign in faster with your face, fingerprint, or device PIN.",
+            "loadError": "We couldn't load your passkeys. Please refresh the page to try again.",
+            "addError": "Passkey creation failed. Please try again.",
+            "notSupportedError": "Passkeys aren't supported in this app or device. Please try again in a different way.",
+            "unsupportedBrowser": "This browser doesn't support passkeys. Try updating it or use a different browser.",
+            "registerToastTitle": "Set up faster sign-in",
+            "registerToastDescription": "Create a passkey to sign in with your face, fingerprint, or device PIN — no password needed.",
+            "registerToastAction": "Create Passkey"
         }
     },
     "home": {
@@ -1450,7 +1485,8 @@
             "viewAllReviews": "모든 리뷰 보기",
             "distributionAriaLabel": "별점 {{rating}}: {{count, number}}/{{totalReviews, number}}개 리뷰",
             "distributionsAriaLabel": "별점 분포, 총 {{total, number}}개 리뷰",
-            "seeCustomerReviews": "고객 리뷰 보기 >"
+            "seeCustomerReviews": "고객 리뷰 보기 >",
+            "reviewCount": "{{count, number}} reviews"
         },
         "from": "시작",
         "outOfStock": "{{productName}}이(가) 품절입니다.",

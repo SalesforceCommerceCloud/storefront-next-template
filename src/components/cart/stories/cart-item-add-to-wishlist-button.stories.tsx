@@ -26,7 +26,7 @@ const sampleLine: EnrichedProductItem = {
 } as EnrichedProductItem;
 
 const meta: Meta<typeof CartItemAddToWishlistButton> = {
-    title: 'CART/Cart Item Add to Wishlist Button',
+    title: 'Cart/Items/Cart Item Add to Wishlist Button',
     component: CartItemAddToWishlistButton,
     tags: ['autodocs'],
     parameters: {

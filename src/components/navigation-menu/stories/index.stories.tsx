@@ -23,7 +23,7 @@ import { mockMegaMenuRootCategory } from '@/components/navigation-menu-mega/stor
 const rootCategories = mockMegaMenuRootCategory.categories || [];
 
 const meta: Meta<typeof CategoryNavigationMenu> = {
-    title: 'LAYOUT/Navigation Menu',
+    title: 'Layout/Navigation/Navigation Menu',
     component: CategoryNavigationMenu,
     tags: ['autodocs', 'interaction', 'chromatic-core'],
     parameters: {

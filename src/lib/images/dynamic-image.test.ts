@@ -49,12 +49,18 @@ describe('replaceImageFormat()', () => {
             expect(replaceImageFormat(disUrl('webp'))).toBe(disUrl('webp'));
         });
 
-        test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'avif'])(
-            'replaces %s with webp',
-            (ext: string) => {
-                expect(replaceImageFormat(disUrl(ext))).toContain(`/path/image.webp?sfrm=${ext}`);
-            }
-        );
+        test.each([
+            'jpg',
+            'jpeg',
+            'jp2',
+            'png',
+            'gif',
+            'tif',
+            'tiff',
+            'avif',
+        ])('replaces %s with webp', (ext: string) => {
+            expect(replaceImageFormat(disUrl(ext))).toContain(`/path/image.webp?sfrm=${ext}`);
+        });
     });
 
     describe('custom target format', () => {
@@ -62,12 +68,18 @@ describe('replaceImageFormat()', () => {
             expect(replaceImageFormat(disUrl('avif'), 'avif')).toBe(disUrl('avif'));
         });
 
-        test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'webp'])(
-            'replaces %s with avif',
-            (ext: string) => {
-                expect(replaceImageFormat(disUrl(ext), 'avif')).toContain(`/path/image.avif?sfrm=${ext}`);
-            }
-        );
+        test.each([
+            'jpg',
+            'jpeg',
+            'jp2',
+            'png',
+            'gif',
+            'tif',
+            'tiff',
+            'webp',
+        ])('replaces %s with avif', (ext: string) => {
+            expect(replaceImageFormat(disUrl(ext), 'avif')).toContain(`/path/image.avif?sfrm=${ext}`);
+        });
     });
 
     describe('URLs with query parameters', () => {
@@ -76,14 +88,20 @@ describe('replaceImageFormat()', () => {
             expect(replaceImageFormat(url)).toBe(url);
         });
 
-        test.each(['jpg', 'jpeg', 'jp2', 'png', 'gif', 'tif', 'tiff', 'avif'])(
-            'replaces %s with .webp',
-            (ext: string) => {
-                expect(replaceImageFormat(`${disUrl(ext)}?sw=461&q=60`)).toContain(
-                    `/path/image.webp?sw=461&q=60&sfrm=${ext}`
-                );
-            }
-        );
+        test.each([
+            'jpg',
+            'jpeg',
+            'jp2',
+            'png',
+            'gif',
+            'tif',
+            'tiff',
+            'avif',
+        ])('replaces %s with .webp', (ext: string) => {
+            expect(replaceImageFormat(`${disUrl(ext)}?sw=461&q=60`)).toContain(
+                `/path/image.webp?sw=461&q=60&sfrm=${ext}`
+            );
+        });
     });
 
     describe('case insensitivity', () => {
@@ -185,12 +203,19 @@ describe('replaceImageFormat()', () => {
 });
 
 describe('isDynamicImageSource()', () => {
-    test.each(['avif', 'gif', 'jp2', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'webp'])(
-        'returns true for DIS-supported extension .%s',
-        (ext) => {
-            expect(isDynamicImageSource(`https://example.com/foo.${ext}`)).toBe(true);
-        }
-    );
+    test.each([
+        'avif',
+        'gif',
+        'jp2',
+        'jpg',
+        'jpeg',
+        'png',
+        'tif',
+        'tiff',
+        'webp',
+    ])('returns true for DIS-supported extension .%s', (ext) => {
+        expect(isDynamicImageSource(`https://example.com/foo.${ext}`)).toBe(true);
+    });
 
     test('matches when a query string follows the extension', () => {
         expect(isDynamicImageSource('https://example.com/foo.jpg?sw=200')).toBe(true);
@@ -211,6 +236,32 @@ describe('isDynamicImageSource()', () => {
     test('returns false for empty / undefined input', () => {
         expect(isDynamicImageSource('')).toBe(false);
         expect(isDynamicImageSource(undefined)).toBe(false);
+    });
+});
+
+describe('getSrc() DIS dimension clamp', () => {
+    // DIS rejects sw/sh outside 10–3000px with HTTP 400, which renders as a broken image.
+    // The 2× DPR candidate for a 100vw image at the 2xl breakpoint (1536px) is 3072px, so getSrc
+    // must clamp the emitted sw=/sh= to 3000 while callers keep the true width for the `w` descriptor.
+    const disSrc = disImageURL.withoutOptionalParams;
+
+    test('clamps sw= above 3000 down to 3000', () => {
+        expect(getSrc(disSrc, { w: 3072 })).toContain('sw=3000');
+        expect(getSrc(disSrc, { w: 3072 })).not.toContain('sw=3072');
+    });
+
+    test('clamps sh= above 3000 down to 3000', () => {
+        expect(getSrc(disSrc, { h: 5000 })).toContain('sh=3000');
+    });
+
+    test('leaves in-range sw= untouched', () => {
+        expect(getSrc(disSrc, { w: 1536 })).toContain('sw=1536');
+        expect(getSrc(disSrc, { w: 3000 })).toContain('sw=3000');
+    });
+
+    test('clamps an over-cap sw= placeholder already present in the URL', () => {
+        // The `[?sw={width}]` placeholder resolves to sw=3072, which must still be clamped.
+        expect(getSrc(disImageURL.withOptionalParams, { w: 3072, f: 'webp' })).toContain('sw=3000');
     });
 });
 

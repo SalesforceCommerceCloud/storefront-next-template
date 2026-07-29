@@ -33,6 +33,7 @@ class StorefrontPage {
         searchInput: locate('input[data-testid="header-search"]:visible').as('Search Input'),
         cartIcon: locate('[data-testid*="cart"]').as('Cart Icon'),
         userIcon: locate('[data-testid*="user"]').as('User Icon'),
+        userMenuLogoutButton: locate('[data-testid="user-menu-logout"]').as('User Menu Logout Button'),
 
         // Navigation elements
         navMenu: locate('[data-slot="navigation-menu"]').as('Navigation Menu'),
@@ -234,6 +235,34 @@ class StorefrontPage {
      */
     goToUserAccount(): void {
         I.click(this.locators.userIcon);
+    }
+
+    /**
+     * Logs out via the real header "Log out" button — a client-side `<Form>` POST to
+     * `/logout` (see `user-menu.tsx`), unlike `logout()` above which clears cookies and does
+     * a full page reload. Use this when a scenario needs to verify behavior that only manifests
+     * across a client-side navigation (e.g. UI state that isn't reset by a full reload).
+     */
+    logoutViaHeaderMenu(): void {
+        I.click(this.locators.userIcon);
+        I.click(this.locators.userMenuLogoutButton);
+    }
+
+    /**
+     * Navigates to `/signup` via the guest header menu's "Create account" link — a
+     * client-side `<Link>` (see `user-menu.tsx`), unlike `signupPage.navigate()` which does a
+     * full page load. Use when a scenario needs the app root to stay mounted across the
+     * navigation (e.g. verifying state that only manifests without a full remount).
+     *
+     * The user icon is itself a `<Link to="/login">` (see `user-actions.tsx`) rendered as the
+     * Popover's `asChild` trigger — a `click()` fires both the popover's open-toggle AND the
+     * link's own navigation, sending the browser straight to `/login` instead of revealing the
+     * guest menu. The real UI only opens this menu via hover, so we must hover (not click) the
+     * icon to open it without triggering that navigation.
+     */
+    goToSignupViaHeaderMenu(): void {
+        I.moveCursorTo(this.locators.userIcon);
+        I.click(locate('a').withText('Create account').as('Create Account Link'));
     }
 
     /**

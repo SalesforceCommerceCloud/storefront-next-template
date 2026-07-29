@@ -23,23 +23,23 @@ Scenario('Homepage loads and sets SFCC cookies', async () => {
     // Navigate to the storefront homepage
     storefrontPage.navigate();
 
-    // Verify page has loaded (waits for nav), then check title.
-    // Assert on the brand-agnostic 'Storefront Next:' prefix rather than a
-    // specific store name: this spec ships flattened into every vertical mirror
-    // (fashion → "Market Street", cosmetic → "Dazzle") and into customer
-    // projects that rebrand the store. Coupling to one brand would break the
-    // others.
+    // Verify page has loaded (waits for nav), then check the title resolved.
+    // This spec ships flattened into every vertical mirror (fashion →
+    // "Storefront Next: Market Street", cosmetic → "Beauty Next") and into
+    // customer projects that rebrand the store, so we assert brand-agnostically:
+    // the title must resolve to a real store name — we do NOT couple to any
+    // prefix or specific brand, which would break the other mirrors.
     storefrontPage.validatePageLoaded();
-    storefrontPage.validateTitle('Storefront Next:');
 
-    // The prefix substring alone passes even on an empty/fallback title
-    // ("Storefront Next: " with nothing after the colon). Grab the full title
-    // and assert a non-whitespace brand suffix to confirm the site name actually
-    // resolved — still brand-agnostic (matches "Market Street", "Dazzle", or any
-    // rebrand), but no longer satisfied by a bare prefix.
     const title = await storefrontPage.getTitle();
-    expect(title, 'Homepage title should resolve a non-empty store name after the prefix').to.match(
-        /Storefront Next:\s*\S+/
+    // (a) non-empty, and (b) an actually-resolved name rather than an unresolved
+    // i18next key. When the site-name namespace fails to load, i18next echoes the
+    // raw dotted key (e.g. "meta.title" / "common.defaultSiteName"); a bare /\S/
+    // check would pass on that. Rejecting the dotted-key shape restores the
+    // "the site name actually resolved" guarantee without coupling to a brand.
+    expect(title, 'Homepage title should resolve a non-empty store name').to.match(/\S/);
+    expect(title, 'Homepage title should be a resolved store name, not an unresolved i18n key').to.not.match(
+        /^[a-z][\w-]*(?:\.[\w-]+)+$/
     );
 
     // Validate that SFCC cookies are properly set (storefront domain only)

@@ -63,7 +63,7 @@ function HelpStoryHarness({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof Help> = {
-    title: 'HOME/Help',
+    title: 'Home/Help',
     component: Help,
     tags: ['autodocs', 'interaction'],
     parameters: {

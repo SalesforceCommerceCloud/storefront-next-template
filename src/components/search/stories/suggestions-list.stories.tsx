@@ -97,7 +97,7 @@ const SUGGESTION_LISTS: Record<'category' | 'product' | 'popular', typeof ALL_CA
 };
 
 const meta: Meta<typeof SuggestionsList> = {
-    title: 'Search/SuggestionsList',
+    title: 'Search/Suggestions List',
     component: SuggestionsList,
     parameters: {
         layout: 'centered',

@@ -1149,12 +1149,12 @@ describe('signup route', () => {
             expect(screen.getByText(t('signup:title'))).toBeInTheDocument();
             expect(screen.getByText(t('signup:subtitle'))).toBeInTheDocument();
 
-            // Form fields
-            expect(screen.getByLabelText(t('signup:form.firstNameLabel'))).toBeInTheDocument();
-            expect(screen.getByLabelText(t('signup:form.lastNameLabel'))).toBeInTheDocument();
-            expect(screen.getByLabelText(t('signup:form.emailLabel'))).toBeInTheDocument();
-            expect(screen.getByLabelText(t('signup:form.passwordLabel'))).toBeInTheDocument();
-            expect(screen.getByLabelText(t('signup:form.confirmPasswordLabel'))).toBeInTheDocument();
+            // Form fields (with required-indicator asterisk)
+            expect(screen.getByLabelText(/^First Name/)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^Last Name/)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^Email/)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^Password/)).toBeInTheDocument();
+            expect(screen.getByLabelText(/^Confirm Password/)).toBeInTheDocument();
 
             // Submit button
             expect(screen.getByRole('button', { name: t('signup:form.createAccountButton') })).toBeInTheDocument();
@@ -1192,11 +1192,11 @@ describe('signup route', () => {
             );
 
             // Fill out the form
-            await user.type(screen.getByLabelText(t('signup:form.firstNameLabel')), 'John');
-            await user.type(screen.getByLabelText(t('signup:form.lastNameLabel')), 'Doe');
-            await user.type(screen.getByLabelText(t('signup:form.emailLabel')), 'test@example.com');
-            await user.type(screen.getByLabelText(t('signup:form.passwordLabel')), 'Test123!');
-            await user.type(screen.getByLabelText(t('signup:form.confirmPasswordLabel')), 'Test123!');
+            await user.type(screen.getByLabelText(/^First Name/), 'John');
+            await user.type(screen.getByLabelText(/^Last Name/), 'Doe');
+            await user.type(screen.getByLabelText(/^Email/), 'test@example.com');
+            await user.type(screen.getByLabelText(/^Password/), 'Test123!');
+            await user.type(screen.getByLabelText(/^Confirm Password/), 'Test123!');
 
             // Submit the form
             const submitButton = screen.getByRole('button', { name: t('signup:form.createAccountButton') });
@@ -1232,11 +1232,11 @@ describe('signup route', () => {
             );
 
             // Fill out the form with mismatched passwords
-            await user.type(screen.getByLabelText(t('signup:form.firstNameLabel')), 'John');
-            await user.type(screen.getByLabelText(t('signup:form.lastNameLabel')), 'Doe');
-            await user.type(screen.getByLabelText(t('signup:form.emailLabel')), 'test@example.com');
-            await user.type(screen.getByLabelText(t('signup:form.passwordLabel')), 'Test123!');
-            await user.type(screen.getByLabelText(t('signup:form.confirmPasswordLabel')), 'Different123!');
+            await user.type(screen.getByLabelText(/^First Name/), 'John');
+            await user.type(screen.getByLabelText(/^Last Name/), 'Doe');
+            await user.type(screen.getByLabelText(/^Email/), 'test@example.com');
+            await user.type(screen.getByLabelText(/^Password/), 'Test123!');
+            await user.type(screen.getByLabelText(/^Confirm Password/), 'Different123!');
 
             // Submit the form
             const submitButton = screen.getByRole('button', { name: t('signup:form.createAccountButton') });

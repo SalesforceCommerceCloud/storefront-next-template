@@ -15,11 +15,16 @@ customized in place (relative imports, `rounded-ui`/`shadow-ui`/`border-ui` shap
 ### Adding a NEW component
 
 ```bash
-npx shadcn@latest add <component-name>
+S=.claude/skills/sync-shadcn/sync.mjs
+npx shadcn@latest add <component-name>          # raw upstream into this folder
+node $S restyle src/components/ui/<component-name>.tsx   # apply our shape tokens + relative imports
+node $S sync <component-name> --bootstrap        # seed its merge baseline for future syncs
 ```
 
-Then apply our conventions (relative `../../lib/utils` import, `rounded-ui`/`shadow-ui` tokens) and
-seed its merge baseline: `node .claude/skills/sync-shadcn/sync.mjs sync <component-name>`.
+`restyle` applies our conventions mechanically from the declarative ruleset
+(`rounded-*`→`rounded-ui`, `shadow-*`→`shadow-ui`, `border`→`border-ui` on Card, `@/`→relative
+imports) — it's idempotent, so running it again is a no-op. Then verify with
+`pnpm lint && pnpm typecheck`.
 
 ### Updating a component from upstream — use the 3-way merge
 

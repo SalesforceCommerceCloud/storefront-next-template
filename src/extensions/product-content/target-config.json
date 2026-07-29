@@ -6,11 +6,6 @@
             "order": 0
         },
         {
-            "targetId": "sfcc.pdp.faq",
-            "path": "extensions/product-content/components/target/faq-target.tsx",
-            "order": 0
-        },
-        {
             "targetId": "sfcc.pdp.collapsibles",
             "path": "extensions/product-content/components/target/pdp-collapsibles-target.tsx",
             "order": 0

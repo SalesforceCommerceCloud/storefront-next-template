@@ -250,7 +250,7 @@ describe('CartItemModal — add mode', () => {
         const onOpenChange = vi.fn();
         renderCartItemModal({ open: true, onOpenChange, productId: variantProduct.id ?? '', onBuyNow });
 
-        // ProductCartActions renders "Buy it Now" in compact add mode
+        // ProductCartActions renders "Buy It Now" in compact add mode
         const buyNowBtn = screen.queryByRole('button', { name: t('product:buyItNow') });
         if (buyNowBtn) {
             await user.click(buyNowBtn);

@@ -125,7 +125,7 @@ class SignupFlow {
                 signupPage.assertFormInteractive();
                 signupPage.fillSignupForm(signupData);
             } catch (fillError) {
-                // eslint-disable-next-line no-console
+                // oxlint-disable-next-line no-console
                 console.warn(
                     `Signup form fill failed on first attempt (${
                         fillError instanceof Error ? fillError.message : String(fillError)

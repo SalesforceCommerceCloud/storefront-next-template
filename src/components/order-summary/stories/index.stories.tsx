@@ -34,7 +34,7 @@ import { mockStandardProductOrderable } from '@/components/__mocks__/standard-pr
 const mockSite = mockSiteObject;
 
 const meta: Meta<typeof OrderSummary> = {
-    title: 'CHECKOUT/Order Summary',
+    title: 'Checkout/Order Summary',
     component: OrderSummary,
     parameters: {
         layout: 'padded',
@@ -370,8 +370,9 @@ export const EstimateMode: Story = {
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const totalLabel = Array.from(canvasElement.querySelectorAll('span')).find((span) =>
-            span.textContent?.toLowerCase().includes('estimated total')
+        // Total-row label is a <dt> after the dl-grid refactor; older stories queried span-only.
+        const totalLabel = Array.from(canvasElement.querySelectorAll('dt, span')).find((el) =>
+            el.textContent?.toLowerCase().includes('estimated total')
         );
         await expect(totalLabel).not.toBeUndefined();
     },
@@ -484,7 +485,8 @@ export const GrossTaxation: Story = {
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const taxLabel = Array.from(canvasElement.querySelectorAll('span')).find((el) => el.textContent === 'Tax');
+        // Tax label is a <dt> after the dl-grid refactor; older stories queried span-only.
+        const taxLabel = Array.from(canvasElement.querySelectorAll('dt, span')).find((el) => el.textContent === 'Tax');
         await expect(taxLabel).toBeUndefined();
     },
 };
@@ -507,7 +509,8 @@ export const NetTaxation: Story = {
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const taxLabel = Array.from(canvasElement.querySelectorAll('span')).find((el) => el.textContent === 'Tax');
+        // Tax label is a <dt> after the dl-grid refactor; older stories queried span-only.
+        const taxLabel = Array.from(canvasElement.querySelectorAll('dt, span')).find((el) => el.textContent === 'Tax');
         await expect(taxLabel).toBeInTheDocument();
     },
 };

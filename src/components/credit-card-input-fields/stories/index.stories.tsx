@@ -79,7 +79,7 @@ function PlaygroundWrapper(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof CreditCardInputFields> = {
-    title: 'Components/Credit Card Input Fields',
+    title: 'Core/Forms/Credit Card Input Fields',
     component: CreditCardInputFields,
     parameters: {
         layout: 'padded',

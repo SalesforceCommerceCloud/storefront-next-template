@@ -26,7 +26,7 @@ import BasketProvider from '@/providers/basket';
 
 const meta: Meta<typeof ShippingOptions> = {
     component: ShippingOptions,
-    title: 'CHECKOUT/ShippingOptions',
+    title: 'Checkout/Shipping/Shipping Options',
     tags: ['autodocs', 'interaction'],
     parameters: {
         ...checkoutStrictA11yParameters,
@@ -157,9 +157,11 @@ export const EditView: Story = {
         const radios = canvas.getAllByRole('radio');
         await expect(radios.length).toBe(3);
 
-        await expect(canvas.getByText('Ground')).toBeInTheDocument();
-        await expect(canvas.getByText('2-Day Express')).toBeInTheDocument();
-        await expect(canvas.getByText('Overnight')).toBeInTheDocument();
+        // Each name appears in both the sr-only announcement span and the visible
+        // aria-hidden span; getAllByText tolerates the intentional duplication.
+        await expect(canvas.getAllByText('Ground').length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText('2-Day Express').length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText('Overnight').length).toBeGreaterThan(0);
     },
 };
 
@@ -200,9 +202,10 @@ export const EditViewWithFreeShipping: Story = {
         const radios = canvas.getAllByRole('radio');
         await expect(radios.length).toBe(2);
 
-        // The free option label should be visible
-        const freeLabel = canvas.getByText('Free Standard Shipping');
-        await expect(freeLabel).toBeInTheDocument();
+        // The free option label appears in both the sr-only announcement span and
+        // the visible aria-hidden span; both counting as "in the document" is fine.
+        const freeLabels = canvas.getAllByText('Free Standard Shipping');
+        await expect(freeLabels.length).toBeGreaterThan(0);
 
         // Click the free option and verify it is selected
         await userEvent.click(radios[0]);
@@ -528,5 +531,103 @@ export const DisabledState: Story = {
 
         // "Complete previous steps to continue" message is shown
         await expect(canvas.getByText(/complete previous steps/i)).toBeInTheDocument();
+    },
+};
+
+export const EditViewWithDeliveryWindow: Story = {
+    args: {
+        ...baseArgs,
+        shippingMethods: {
+            applicableShippingMethods: [
+                {
+                    id: 'ground',
+                    name: 'Ground',
+                    description: 'Order received within 7-10 business days',
+                    price: 15.99,
+                    deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                },
+                {
+                    id: 'express',
+                    name: '2-Day Express',
+                    description: 'Order received in 2 business days',
+                    price: 29.99,
+                    deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-04-30T12:00:00Z' },
+                },
+            ],
+        },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Edit view with delivery windows returned by the sfcc.app.shipping.quote hook — shows a date range for Ground and a single date for 2-Day Express.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Both methods have delivery windows, so two "Arrives" labels render
+        const arrivesLabels = canvas.getAllByText(/Arrives/);
+        await expect(arrivesLabels.length).toBe(2);
+
+        // Method names appear twice per option: once in the sr-only announcement
+        // span and once in the visible aria-hidden span below the header.
+        await expect(canvas.getAllByText('Ground').length).toBeGreaterThan(0);
+        await expect(canvas.getAllByText('2-Day Express').length).toBeGreaterThan(0);
+    },
+};
+
+const mockBasketWithDeliveryWindow = {
+    shipments: [
+        {
+            shippingMethod: {
+                id: 'ground',
+                name: 'Ground',
+                description: 'Order received within 7-10 business days',
+                price: 15.99,
+            },
+        },
+    ],
+};
+
+const withDeliveryWindowBasket = (Story: ComponentType) => (
+    <BasketProvider basket={mockBasketWithDeliveryWindow as never}>
+        <Story />
+    </BasketProvider>
+);
+
+export const SummaryViewWithDeliveryWindow: Story = {
+    args: {
+        ...baseArgs,
+        isCompleted: true,
+        isEditing: false,
+        shippingMethods: {
+            applicableShippingMethods: [
+                {
+                    id: 'ground',
+                    name: 'Ground',
+                    description: 'Order received within 7-10 business days',
+                    price: 15.99,
+                    deliveryWindow: { startAt: '2026-04-30T12:00:00Z', endAt: '2026-05-07T12:00:00Z' },
+                },
+            ],
+        },
+    },
+    decorators: [withDeliveryWindowBasket],
+    parameters: {
+        docs: {
+            description: {
+                story: 'Summary view with a delivery window on the selected shipping method — date range shown below the price line.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        await expect(canvas.queryAllByRole('radio').length).toBe(0);
+        await expect(canvas.getByText(/Arrives/)).toBeInTheDocument();
+        await expect(canvas.getByText(/Ground/)).toBeInTheDocument();
     },
 };

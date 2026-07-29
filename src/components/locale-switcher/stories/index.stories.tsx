@@ -33,7 +33,7 @@ import LocaleSwitcher from '../index';
  */
 
 const meta: Meta<typeof LocaleSwitcher> = {
-    title: 'LAYOUT/Locale Switcher',
+    title: 'Layout/Switchers/Locale Switcher',
     component: LocaleSwitcher,
     parameters: {
         chromatic: { modes: { desktop: allModes.desktop } },

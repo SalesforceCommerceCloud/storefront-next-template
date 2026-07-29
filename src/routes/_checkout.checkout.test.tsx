@@ -21,7 +21,7 @@ import {
     RouterProvider,
 } from 'react-router';
 import { createLoaderArgs } from '@/lib/test-utils';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React, { useState } from 'react';
 
 // CheckoutView calls useRevalidateOnReturn, which uses useRevalidator - that hook requires a data
@@ -57,19 +57,15 @@ vi.mock('@/components/checkout/checkout-form-page', () => ({
     default: () => <div data-testid="checkout-form-page">Checkout Form</div>,
 }));
 
-// Capture the props the route passes to CheckoutProvider so we can assert on `hasNoValidShippingMethods`
-// without mounting the full provider. Each render appends an entry; tests inspect the last call.
+// Capture the props the route passes to CheckoutProvider. Each render appends an entry; tests
+// inspect the last call. The `hasNoValidShippingMethods` wiring has been removed — the
+// shipping-methods map is now streamed to CheckoutFormPage as a Promise and the reload-pin
+// effect there handles the "no methods on refresh" case.
 const checkoutProviderProps: Array<Record<string, unknown>> = [];
 vi.mock('@/components/checkout/utils/checkout-context', () => ({
     default: ({ children, ...rest }: { children: React.ReactNode } & Record<string, unknown>) => {
         checkoutProviderProps.push(rest);
-        return (
-            <div
-                data-testid="checkout-provider"
-                data-has-no-valid-shipping-methods={String(!!rest.hasNoValidShippingMethods)}>
-                {children}
-            </div>
-        );
+        return <div data-testid="checkout-provider">{children}</div>;
     },
 }));
 
@@ -79,6 +75,7 @@ vi.mock('@/providers/basket', () => ({
             {children}
         </div>
     ),
+    useBasket: () => undefined,
     useBasketUpdater: () => vi.fn(),
     useBasketHydrated: () => true,
 }));
@@ -530,89 +527,6 @@ describe('Checkout Route Components', () => {
             );
 
             expect(screen.getByTestId('error-boundary')).toBeInTheDocument();
-        });
-    });
-
-    // When the basket's loader-provided shipping-methods map yields no valid options for any
-    // shipment, the route must mark `hasNoValidShippingMethods` so the provider keeps the shopper
-    // on Shipping Address. The loader is authoritative — on refresh it re-fetches methods for the
-    // current basket address; in-session advancement is gated by `noShippingMethodsRef`.
-    describe('hasNoValidShippingMethods wiring', () => {
-        const renderRoute = async (loaderDataOverrides: Record<string, unknown> = {}) => {
-            const checkoutRoute = await import('./_checkout.checkout');
-            const CheckoutPage = checkoutRoute.default;
-            const loaderData = {
-                basket: { basketId: 'test-basket', productItems: [{ itemId: 'i1', productId: 'p1' }] },
-                customerProfile: Promise.resolve(null),
-                shippingMethodsMap: Promise.resolve({}),
-                productMap: Promise.resolve({}),
-                ...loaderDataOverrides,
-            };
-            // The route's `use(promise)` calls suspend on first render; flush microtasks in act
-            // so the Suspense boundary resolves and CheckoutProvider mounts before assertions.
-            await act(async () => {
-                render(
-                    <DataRouterStub>
-                        <CheckoutPage loaderData={loaderData} />
-                    </DataRouterStub>
-                );
-                await Promise.resolve();
-            });
-            await screen.findByTestId('checkout-provider');
-        };
-
-        it('passes hasNoValidShippingMethods=true when loader map has no valid methods (refresh path)', async () => {
-            await renderRoute({
-                shippingMethodsMap: Promise.resolve({
-                    me: { applicableShippingMethods: [], defaultShippingMethodId: undefined },
-                }),
-            });
-            const lastProps = checkoutProviderProps.at(-1);
-            expect(lastProps?.hasNoValidShippingMethods).toBe(true);
-        });
-
-        it('passes hasNoValidShippingMethods=false when loader map is empty (no address submitted yet)', async () => {
-            // Critical: after a shipping-address step action, the checkout loader skips
-            // revalidation (`shouldRevalidate` returns false for step intents), so
-            // `loaderData.shippingMethodsMap` stays `{}` from before submission. Treating that
-            // empty map as evidence of "no methods" would pin the shopper to Shipping Address
-            // even though they just successfully submitted a valid address — the E2E checkout
-            // regression. Empty map = "no shipment failure observed", NOT "every shipment failed".
-            await renderRoute({ shippingMethodsMap: Promise.resolve({}) });
-            const lastProps = checkoutProviderProps.at(-1);
-            expect(lastProps?.hasNoValidShippingMethods).toBe(false);
-        });
-
-        it('passes hasNoValidShippingMethods=false when loader map has a valid method', async () => {
-            await renderRoute({
-                shippingMethodsMap: Promise.resolve({
-                    me: {
-                        applicableShippingMethods: [{ id: 'standard', name: 'Standard Shipping', price: 5.99 }],
-                        defaultShippingMethodId: 'standard',
-                    },
-                }),
-            });
-            const lastProps = checkoutProviderProps.at(-1);
-            expect(lastProps?.hasNoValidShippingMethods).toBe(false);
-        });
-
-        it('passes hasNoValidShippingMethods=true when one shipment in a multi-shipment basket has no methods', async () => {
-            // Partial-coverage multi-ship: shipment A has methods, shipment B does not. The order
-            // cannot be completed in this state, so the user must stay on Shipping Address.
-            await renderRoute({
-                shippingMethodsMap: Promise.resolve({
-                    me: {
-                        applicableShippingMethods: [{ id: 'standard', name: 'Standard Shipping', price: 5.99 }],
-                        defaultShippingMethodId: 'standard',
-                    },
-                    shipment_b: {
-                        applicableShippingMethods: [],
-                        defaultShippingMethodId: undefined,
-                    },
-                }),
-            });
-            const lastProps = checkoutProviderProps.at(-1);
-            expect(lastProps?.hasNoValidShippingMethods).toBe(true);
         });
     });
 

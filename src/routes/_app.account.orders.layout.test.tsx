@@ -14,10 +14,57 @@
  * limitations under the License.
  */
 
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import AccountOrdersLayout from './_app.account.orders';
+import AccountOrdersLayout, { loader } from './_app.account.orders';
+import { fetchOmsMetaData } from '@/lib/api/order.server';
+
+vi.mock('@/lib/api/order.server', () => ({
+    fetchOmsMetaData: vi.fn(),
+}));
+
+describe('Orders section loader (OMS metadata)', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    test('returns a deferred omsMetaData promise from fetchOmsMetaData', async () => {
+        vi.mocked(fetchOmsMetaData).mockResolvedValue({
+            omsActive: true,
+            cancelReasonCodes: [{ reason: 'Changed my mind', default: true }],
+            returnReasonCodes: [{ reason: 'Does not fit', default: true }],
+        });
+
+        const result = loader({ context: {} as any } as any);
+
+        expect(result).toHaveProperty('omsMetaData');
+        expect(result.omsMetaData).toBeInstanceOf(Promise);
+        await expect(result.omsMetaData).resolves.toEqual({
+            omsActive: true,
+            cancelReasonCodes: [{ reason: 'Changed my mind', default: true }],
+            returnReasonCodes: [{ reason: 'Does not fit', default: true }],
+        });
+    });
+
+    test('omsMetaData resolves (never rejects) so a metadata failure cannot break the section', async () => {
+        // fetchOmsMetaData is contractually non-throwing: even a degraded fetch
+        // resolves to the empty tri-state rather than rejecting.
+        vi.mocked(fetchOmsMetaData).mockResolvedValue({
+            omsActive: true,
+            cancelReasonCodes: [],
+            returnReasonCodes: [],
+        });
+
+        const result = loader({ context: {} as any } as any);
+
+        await expect(result.omsMetaData).resolves.toEqual({
+            omsActive: true,
+            cancelReasonCodes: [],
+            returnReasonCodes: [],
+        });
+    });
+});
 
 describe('Orders section layout', () => {
     test('shows the order list when a shopper navigates to orders', () => {

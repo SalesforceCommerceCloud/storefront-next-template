@@ -72,7 +72,7 @@ export type CommerceSdkMethodName<C extends CommerceSdkKeyMap> = Exclude<
  * @template M - The method name on the Commerce SDK client
  */
 export type CommerceSdkMethodReturnType<C extends CommerceSdkKeyMap, M extends CommerceSdkMethodName<C>> = ReturnType<
-    CommerceSdkCtorFromKey<C>[M] extends (...a: any[]) => any ? CommerceSdkCtorFromKey<C>[M] : never // eslint-disable-line @typescript-eslint/no-explicit-any
+    CommerceSdkCtorFromKey<C>[M] extends (...a: any[]) => any ? CommerceSdkCtorFromKey<C>[M] : never // oxlint-disable-line @typescript-eslint/no-explicit-any
 >;
 
 /**
@@ -81,7 +81,7 @@ export type CommerceSdkMethodReturnType<C extends CommerceSdkKeyMap, M extends C
  * @template M - The method name on the Commerce SDK client
  */
 export type CommerceSdkMethodParameters<C extends CommerceSdkKeyMap, M extends CommerceSdkMethodName<C>> = Parameters<
-    CommerceSdkCtorFromKey<C>[M] extends (...a: any[]) => any ? CommerceSdkCtorFromKey<C>[M] : never // eslint-disable-line @typescript-eslint/no-explicit-any
+    CommerceSdkCtorFromKey<C>[M] extends (...a: any[]) => any ? CommerceSdkCtorFromKey<C>[M] : never // oxlint-disable-line @typescript-eslint/no-explicit-any
 >;
 
 /**
@@ -90,7 +90,7 @@ export type CommerceSdkMethodParameters<C extends CommerceSdkKeyMap, M extends C
  * @template H - The helper namespace key
  */
 export type HelperMethodName<H extends HelperNamespaceKeyMap> = {
-    [K in keyof AppClients[H]]: AppClients[H][K] extends (...args: any[]) => any ? K : never; // eslint-disable-line @typescript-eslint/no-explicit-any
+    [K in keyof AppClients[H]]: AppClients[H][K] extends (...args: any[]) => any ? K : never; // oxlint-disable-line @typescript-eslint/no-explicit-any
 }[keyof AppClients[H]] &
     string;
 
@@ -102,7 +102,7 @@ export type HelperMethodName<H extends HelperNamespaceKeyMap> = {
 export type HelperMethodReturnType<
     H extends HelperNamespaceKeyMap,
     M extends HelperMethodName<H>,
-> = M extends keyof AppClients[H] ? (AppClients[H][M] extends (...args: any[]) => infer R ? R : never) : never; // eslint-disable-line @typescript-eslint/no-explicit-any
+> = M extends keyof AppClients[H] ? (AppClients[H][M] extends (...args: any[]) => infer R ? R : never) : never; // oxlint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * Type helper to extract the parameters of a helper method.
@@ -112,7 +112,7 @@ export type HelperMethodReturnType<
 export type HelperMethodParameters<
     H extends HelperNamespaceKeyMap,
     M extends HelperMethodName<H>,
-> = M extends keyof AppClients[H] ? (AppClients[H][M] extends (...args: infer P) => any ? P : never) : never; // eslint-disable-line @typescript-eslint/no-explicit-any
+> = M extends keyof AppClients[H] ? (AppClients[H][M] extends (...args: infer P) => any ? P : never) : never; // oxlint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * Structured response type for API operations

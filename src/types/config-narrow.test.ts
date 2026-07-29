@@ -47,7 +47,6 @@ import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config
 
 // Dummy component — never rendered; only exists so `useConfig()` types correctly
 // at a call site that respects React Hooks rules and module-augmentation timing.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ProbeComponent() {
     const config = useConfig();
     return config;
@@ -80,12 +79,10 @@ describe('useConfig() type narrow', () => {
 // `getConfig()` is not a hook — a module-level call expression gives TypeScript
 // a real call site where module augmentations have merged. The `ProbeComponent`
 // trick used for `useConfig()` isn't needed here.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getConfigProbe = getConfig();
 type GetConfigResult = typeof getConfigProbe;
 
 // Wrapper-shape probe — resolves the maybe-context overload (narrow default).
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getConfigMaybeProbe = getConfig(undefined as Readonly<RouterContextProvider> | undefined);
 type GetConfigMaybeResult = typeof getConfigMaybeProbe;
 

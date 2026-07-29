@@ -65,7 +65,7 @@ export function getTurnstileSecretKey(siteKey: string): string | null {
 
         return secretKeys[siteKey] || null;
     } catch (error) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.error('[Turnstile] Failed to parse TURNSTILE_SECRET_KEYS:', error);
         return null;
     }

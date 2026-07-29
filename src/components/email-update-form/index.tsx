@@ -23,7 +23,7 @@ import { z } from 'zod';
  *
  * @example const schema = createEmailUpdateFormSchema(t);
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
 export const createEmailUpdateFormSchema = (t: TFunction<any, any>, requirePassword = true) => {
     return z.object({
         currentPassword: requirePassword

@@ -69,7 +69,7 @@ export function StoreLocatorLayoutProvider({ forceMobile, children }: PropsWithC
  * layout flags. If no provider is mounted, the default value
  * `{ forceMobile: false }` is returned.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export function useStoreLocatorLayout(): StoreLocatorLayoutValue {
     return useContext(StoreLocatorLayoutContext);
 }

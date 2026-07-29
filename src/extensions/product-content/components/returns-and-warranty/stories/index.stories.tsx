@@ -88,7 +88,7 @@ function ReturnsAndWarrantyWrapper(): ReactElement {
 }
 
 const meta: Meta<typeof ReturnsAndWarrantyWrapper> = {
-    title: 'Extensions/ProductContent/ReturnsAndWarranty',
+    title: 'Extensions/Product Content/Returns And Warranty',
     component: ReturnsAndWarrantyWrapper,
     tags: ['autodocs'],
     parameters: {

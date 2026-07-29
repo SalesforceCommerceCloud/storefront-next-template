@@ -15,7 +15,9 @@
  */
 import { type CSSProperties, type ReactElement, useId } from 'react';
 import { Link } from '@/components/link';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { typographyVariants } from '@/components/typography';
+import { DynamicImage } from '@/components/dynamic-image';
+import { Button, type buttonVariants } from '@/components/ui/button';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators';
@@ -43,6 +45,29 @@ type ButtonStyle = (typeof BUTTON_STYLE_VALUES)[number];
 const HERO_HEIGHT_VALUES = ['sm', 'md', 'lg', 'xl', 'full'] as const;
 type HeroHeight = (typeof HERO_HEIGHT_VALUES)[number];
 
+const HERO_OVERLAY_VALUES = ['None', 'Light', 'Dark'] as const;
+type HeroOverlay = (typeof HERO_OVERLAY_VALUES)[number];
+
+/**
+ * Gradient scrim layered between the image and the text so overlay copy stays legible on
+ * busy imagery. `None` renders no scrim (the default for a standalone Hero). `Dark`/`Light`
+ * darken/lighten from the bottom-left, matching the treatment the Hero Carousel applies to
+ * its slides. The carousel sets a default overlay that each slide inherits unless the Hero
+ * author sets its own overlay.
+ *
+ * The gradient recipe itself lives in each vertical's `theme/tokens/brand.css`
+ * (`--hero-overlay-dark` / `--hero-overlay-light`), next to the `--brand-black`/`--brand-white`
+ * primitives it mixes, so the scrim geometry is brand-overridable and a vertical can't ship a
+ * brand color without the matching scrim.
+ */
+const HERO_OVERLAY_BACKGROUND: Record<Exclude<HeroOverlay, 'None'>, string> = {
+    Dark: 'var(--hero-overlay-dark)',
+    Light: 'var(--hero-overlay-light)',
+};
+
+/** Hero is edge-to-edge at every breakpoint, so the image always requests a viewport-width variant from DIS. */
+const HERO_IMAGE_WIDTHS = ['100vw'];
+
 const HERO_HEIGHT_CLASS: Record<HeroHeight, string> = {
     sm: 'h-[250px] md:h-[300px] lg:h-[350px]',
     md: 'h-[350px] md:h-[450px] lg:h-[500px]',
@@ -58,26 +83,33 @@ const BUTTON_STYLE_TO_VARIANT: Record<ButtonStyle, NonNullable<VariantProps<type
     Tertiary: 'outline',
 };
 
+/**
+ * The Heading/Paragraph presets derive from the shared Typography scale
+ * (`typographyVariants`) so there is a single source of truth for those sizes.
+ * `Default` is Hero-only (no cva equivalent) and stays local. `align: null`
+ * opts out of the cva `align` default — Hero controls text alignment on the
+ * container, so these presets must emit size/weight only.
+ */
 const TITLE_TYPOGRAPHY_CLASS: Record<HeroTypography, string> = {
     Default: 'text-6xl font-bold leading-none [letter-spacing:-1.5px]',
-    Paragraph: 'text-base font-normal leading-7',
-    'Heading 1': 'text-4xl font-bold tracking-tight',
-    'Heading 2': 'text-3xl font-semibold tracking-tight',
-    'Heading 3': 'text-2xl font-semibold tracking-tight',
-    'Heading 4': 'text-2xl font-semibold tracking-tight',
-    'Heading 5': 'text-sm font-semibold tracking-tight',
-    'Heading 6': 'text-base font-semibold tracking-tight',
+    Paragraph: typographyVariants({ variant: 'body', align: null }),
+    'Heading 1': typographyVariants({ variant: 'h1', align: null }),
+    'Heading 2': typographyVariants({ variant: 'h2', align: null }),
+    'Heading 3': typographyVariants({ variant: 'h3', align: null }),
+    'Heading 4': typographyVariants({ variant: 'h4', align: null }),
+    'Heading 5': typographyVariants({ variant: 'h5', align: null }),
+    'Heading 6': typographyVariants({ variant: 'h6', align: null }),
 };
 
 const SUBTITLE_TYPOGRAPHY_CLASS: Record<HeroTypography, string> = {
     Default: 'text-lg font-normal leading-[120%]',
-    Paragraph: 'text-base font-normal leading-7',
-    'Heading 1': 'text-4xl font-bold tracking-tight',
-    'Heading 2': 'text-3xl font-semibold tracking-tight',
-    'Heading 3': 'text-2xl font-semibold tracking-tight',
-    'Heading 4': 'text-2xl font-semibold tracking-tight',
-    'Heading 5': 'text-sm font-semibold tracking-tight',
-    'Heading 6': 'text-base font-semibold tracking-tight',
+    Paragraph: typographyVariants({ variant: 'body', align: null }),
+    'Heading 1': typographyVariants({ variant: 'h1', align: null }),
+    'Heading 2': typographyVariants({ variant: 'h2', align: null }),
+    'Heading 3': typographyVariants({ variant: 'h3', align: null }),
+    'Heading 4': typographyVariants({ variant: 'h4', align: null }),
+    'Heading 5': typographyVariants({ variant: 'h5', align: null }),
+    'Heading 6': typographyVariants({ variant: 'h6', align: null }),
 };
 
 const HEX_COLOR_REGEX = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
@@ -109,6 +141,13 @@ function normalizeHeroHeight(value: string | undefined): HeroHeight {
     return 'full';
 }
 
+function normalizeHeroOverlay(value: string | undefined): HeroOverlay {
+    if (value && (HERO_OVERLAY_VALUES as readonly string[]).includes(value)) {
+        return value as HeroOverlay;
+    }
+    return 'None';
+}
+
 function getCtaLabel(ctaText: string | undefined, ctaLink: string): string {
     const trimmed = ctaText?.trim();
     if (trimmed) return trimmed;
@@ -129,6 +168,7 @@ function getCtaLabel(ctaText: string | undefined, ctaLink: string): string {
     group: 'Content',
 })
 @RegionDefinition([])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class HeroMetadata {
     @AttributeDefinition()
     title?: string;
@@ -246,6 +286,17 @@ export class HeroMetadata {
     height?: string;
 
     @AttributeDefinition({
+        id: 'overlay',
+        name: 'Overlay',
+        description:
+            'Gradient scrim behind the text to keep overlay copy legible on busy imagery. None shows no scrim; Dark/Light darken/lighten the image.',
+        type: 'enum',
+        values: ['None', 'Light', 'Dark'],
+        defaultValue: 'None',
+    })
+    overlay?: string;
+
+    @AttributeDefinition({
         id: 'styleOverride',
         name: 'Style Override',
         description:
@@ -273,7 +324,11 @@ export default function Hero({
     overlayPosition,
     overlayAlignment,
     height,
+    overlay,
     styleOverride,
+    priority = 'high',
+    loading = 'eager',
+    fillHeight = false,
 }: {
     title?: string;
     titleTypography?: string;
@@ -290,7 +345,26 @@ export default function Hero({
     overlayPosition?: string;
     overlayAlignment?: string;
     height?: string;
+    /** Gradient scrim behind the text. Page-Designer authorable. */
+    overlay?: string;
     styleOverride?: string;
+    /**
+     * DIS image priority. Defaults to 'high' so a standalone Hero preloads its LCP image.
+     * The Hero Carousel passes 'auto' for off-screen slides to avoid competing for bandwidth.
+     * Not a Page-Designer attribute — set by the parent (e.g. the carousel), never a merchant.
+     */
+    priority?: 'high' | 'low' | 'auto';
+    /**
+     * Image loading strategy. Defaults to 'eager' (standalone Hero is above the fold). The
+     * carousel passes 'lazy' for non-first slides. Not a Page-Designer attribute.
+     */
+    loading?: 'eager' | 'lazy';
+    /**
+     * When true, the hero fills its parent's height (h-full) instead of applying its own
+     * `height` preset — used by the carousel to enforce uniform slide heights. Not a
+     * Page-Designer attribute.
+     */
+    fillHeight?: boolean;
 }): ReactElement {
     const uid = useId();
     const rawCss = styleOverride?.trim() || undefined;
@@ -304,13 +378,18 @@ export default function Hero({
         const focalY = focalPoint?.y != null ? `${focalPoint.y}%` : '50%';
 
         return (
-            <img
+            <DynamicImage
                 src={imageUrl.url}
                 alt={imageAlt || ''}
-                {...(imageTitle && { title: imageTitle })}
-                fetchPriority="high"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ objectPosition: `${focalX} ${focalY}` }}
+                widths={HERO_IMAGE_WIDTHS}
+                priority={priority}
+                loading={loading}
+                className="absolute inset-0 w-full h-full"
+                imageProps={{
+                    className: 'w-full h-full object-cover',
+                    style: { objectPosition: `${focalX} ${focalY}` },
+                    ...(imageTitle && { title: imageTitle }),
+                }}
             />
         );
     };
@@ -322,8 +401,13 @@ export default function Hero({
     const titleTypo = normalizeHeroTypography(titleTypography);
     const subtitleTypo = normalizeHeroTypography(subtitleTypography);
     const resolvedButtonStyle = normalizeButtonStyle(buttonStyle);
-    const heightClass = HERO_HEIGHT_CLASS[normalizeHeroHeight(height)];
+    // When the parent controls height (fillHeight, e.g. inside a carousel with uniform slide
+    // heights) the Hero's own height preset is ignored in favor of filling the parent.
+    const heightClass = fillHeight ? 'h-full' : HERO_HEIGHT_CLASS[normalizeHeroHeight(height)];
     const buttonVariant = BUTTON_STYLE_TO_VARIANT[resolvedButtonStyle];
+
+    const overlayMode = normalizeHeroOverlay(overlay);
+    const overlayBackground = overlayMode === 'None' ? undefined : HERO_OVERLAY_BACKGROUND[overlayMode];
 
     const titleHex = parseOptionalHex(titleColor);
     const subtitleHex = parseOptionalHex(subtitleColor);
@@ -359,11 +443,15 @@ export default function Hero({
     return (
         <>
             {scopedCss && (
-                // eslint-disable-next-line react/no-danger
+                // oxlint-disable-next-line react/no-danger
                 <style dangerouslySetInnerHTML={{ __html: scopedCss }} />
             )}
             <div data-hero-id={uid} className={cn('relative w-full overflow-hidden', heightClass)}>
                 {renderImage()}
+
+                {overlayBackground && (
+                    <div className="absolute inset-0 z-[5]" style={{ background: overlayBackground }} aria-hidden />
+                )}
 
                 <div className={cn('absolute inset-0 z-10 flex', overlayRowClass, overlayEdgePaddingClass)}>
                     <div className="container mx-auto w-full section-container">

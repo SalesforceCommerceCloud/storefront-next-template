@@ -367,7 +367,7 @@ export const createAuthPromise = (
             const promiseRef = context.get(authContext);
             if (promiseRef === undefined) {
                 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
-                    // eslint-disable-next-line no-console
+                    // oxlint-disable-next-line no-console
                     console.warn(
                         'createAuthPromise: authContext is not set on the provider. ' +
                             'This is expected in test harnesses; in production code it indicates createAuthPromise ' +
@@ -470,15 +470,16 @@ export interface SLASAccessTokenClaims {
  * Registered format: `uido:ecom::upn:<email>::uidn:<name>::gcid:<id>::rcid:<id>::chid:<channel>`
  *
  * @param isb - Raw isb claim string from the token payload
- * @returns Object with gcid and rcid values, or null for each if not found
+ * @returns Object with gcid, rcid, and upn values, or null for each if not found
  */
-function parseIsbClaim(isb: unknown): { gcid: string | null; rcid: string | null } {
+function parseIsbClaim(isb: unknown): { gcid: string | null; rcid: string | null; upn: string | null } {
     if (typeof isb !== 'string' || !isb) {
-        return { gcid: null, rcid: null };
+        return { gcid: null, rcid: null, upn: null };
     }
 
     let gcid: string | null = null;
     let rcid: string | null = null;
+    let upn: string | null = null;
 
     const parts = isb.split('::');
     for (const part of parts) {
@@ -486,10 +487,12 @@ function parseIsbClaim(isb: unknown): { gcid: string | null; rcid: string | null
             gcid = part.slice(5);
         } else if (part.startsWith('rcid:')) {
             rcid = part.slice(5);
+        } else if (part.startsWith('upn:')) {
+            upn = part.slice(4);
         }
     }
 
-    return { gcid, rcid };
+    return { gcid, rcid, upn };
 }
 
 /**
@@ -561,6 +564,22 @@ export function getSLASAccessTokenClaims(token: string): SLASAccessTokenClaims {
  */
 export function isRegisteredTokenClaims(claims: SLASAccessTokenClaims): boolean {
     return typeof claims.rcid === 'string' && claims.rcid.length > 0;
+}
+
+/**
+ * Extract the shopper's login email from a SLAS access token.
+ * SLAS encodes it in the `isb` claim as `upn:<email>`.
+ * Returns null when the token is absent, malformed, or belongs to a guest.
+ */
+export function getLoginEmailFromToken(accessToken: string | undefined): string | null {
+    if (!accessToken) return null;
+    try {
+        const payload = decodeSLASAccessToken(accessToken);
+        const { upn } = parseIsbClaim(payload.isb);
+        return upn && upn !== 'Guest' ? upn : null;
+    } catch {
+        return null;
+    }
 }
 
 /**

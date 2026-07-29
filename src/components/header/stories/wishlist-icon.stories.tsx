@@ -64,7 +64,7 @@ const registeredSession: SessionData = {
 };
 
 const meta: Meta<typeof WishlistIcon> = {
-    title: 'LAYOUT/Header/Wishlist Icon',
+    title: 'Layout/Header/Wishlist Icon',
     component: WishlistIcon,
     tags: ['autodocs', 'interaction'],
     parameters: {

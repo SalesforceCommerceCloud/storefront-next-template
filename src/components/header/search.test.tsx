@@ -117,10 +117,10 @@ describe('SearchBar Component', () => {
             const input = screen.getByRole('combobox');
             expect(input).toBeInTheDocument();
             expect(input).toHaveAttribute('placeholder', t('header:searchPlaceholder'));
-            expect(input).toHaveAttribute('aria-label', t('header:searchPlaceholder'));
+            expect(input.getAttribute('id')).toMatch(/^header-search-input-/);
             expect(input).toHaveAttribute('aria-autocomplete', 'list');
             expect(input).toHaveAttribute('aria-expanded', 'false');
-            expect(input).toHaveAttribute('aria-haspopup', 'listbox');
+            expect(input).toHaveAttribute('aria-haspopup', 'dialog');
         });
 
         it('should render search icon', () => {

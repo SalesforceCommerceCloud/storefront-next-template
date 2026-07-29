@@ -52,6 +52,10 @@ PUBLIC__app__features__otpRequest__callbackUri=https://www.example.com/otp-callb
 
 **Callback mode** requires the `callbackUri` to exactly match an allowlisted URL in the SLAS client (full URL, no wildcards). Email verification features (badge, Change Email, passwordless registration) are not available in callback mode.
 
+### Passkey Registration OTP
+
+`features.passkey.mode` and `features.passkey.callbackUri` control delivery of the OTP that authorizes passkey registration ([`PasskeyRegistrationModal`](../src/components/passkeys/passkey-registration-modal.tsx)), following the same `email`/`callback` modes and `callbackUri` allowlisting rules as above. See [features.passkey.mode](./README-CONFIG-OPTIONS.md#featurespasskeymode) for config reference.
+
 ## Feature Behavior
 
 ### Registration

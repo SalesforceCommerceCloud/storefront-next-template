@@ -59,9 +59,9 @@ describe('collectFromRegions', () => {
         collectFromRegions(createCtx(), undefined, map);
 
         expect(map).toEqual({});
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.hasLoaders).not.toHaveBeenCalled();
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.callLoader).not.toHaveBeenCalled();
     });
 
@@ -71,7 +71,7 @@ describe('collectFromRegions', () => {
         collectFromRegions(createCtx(), [], map);
 
         expect(map).toEqual({});
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.hasLoaders).not.toHaveBeenCalled();
     });
 
@@ -86,7 +86,7 @@ describe('collectFromRegions', () => {
         collectFromRegions(createCtx(), regions, map);
 
         expect(map).toEqual({});
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.hasLoaders).not.toHaveBeenCalled();
     });
 
@@ -116,7 +116,7 @@ describe('collectFromRegions', () => {
         collectFromRegions(createCtx(), regions, map);
 
         expect(map).toEqual({});
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.callLoader).not.toHaveBeenCalled();
     });
 
@@ -132,7 +132,7 @@ describe('collectFromRegions', () => {
         collectFromRegions(ctx, [createRegion([component])], map);
 
         await expect(map['hero-1']).resolves.toEqual(expected);
-        // eslint-disable-next-line @typescript-eslint/unbound-method
+        // oxlint-disable-next-line @typescript-eslint/unbound-method
         expect(mockedRegistry.callLoader).toHaveBeenCalledWith(
             'hero',
             { componentData: component, context: ctx.context, request: ctx.request },

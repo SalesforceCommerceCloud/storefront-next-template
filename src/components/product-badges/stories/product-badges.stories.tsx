@@ -22,7 +22,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof ProductBadges> = {
-    title: 'Components/ProductBadges',
+    title: 'Products/Product Badges',
     component: ProductBadges,
     tags: ['autodocs', 'interaction'],
     parameters: {

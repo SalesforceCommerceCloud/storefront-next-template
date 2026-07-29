@@ -30,7 +30,7 @@ type SyntheticArgs = {
 };
 
 const meta: Meta<typeof ProductAccordion> = {
-    title: 'Components/ProductView/ProductAccordion',
+    title: 'Products/Product View/Product Accordion',
     component: ProductAccordion,
     tags: ['autodocs', 'interaction'],
     parameters: {

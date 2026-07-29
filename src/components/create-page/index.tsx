@@ -110,7 +110,7 @@ export function createPage<TLoaderData = unknown>(config: {
         // The conditional `LoaderDataProp<TLoaderData>` produces a structural prop type that
         // does not match the spread shape after generic instantiation. The runtime is valid;
         // this cast bridges the generic-HOC type boundary.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // oxlint-disable-next-line @typescript-eslint/no-explicit-any
         const content = <ComponentWithSuspense {...(props as any)} />;
 
         if (pageKey) {

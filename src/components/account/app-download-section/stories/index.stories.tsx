@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { AppDownloadSection } from '../index';
 
 const meta: Meta<typeof AppDownloadSection> = {
-    title: 'ACCOUNT/App Download Section',
+    title: 'Account/App Download Section',
     component: AppDownloadSection,
     parameters: {
         chromatic: { modes: { desktop: allModes.desktop } },

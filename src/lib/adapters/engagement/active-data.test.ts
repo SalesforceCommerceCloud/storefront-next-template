@@ -148,7 +148,7 @@ beforeEach(() => {
     });
 
     // Mock Cookies.get to return undefined by default
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // oxlint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(Cookies.get).mockReturnValue(undefined as any);
 });
 
@@ -161,7 +161,7 @@ afterEach(() => {
  * @param value - The value to return for the dw_dnt cookie, or undefined to return undefined
  */
 function mockDwDntCookie(value: string | undefined): void {
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+    // oxlint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(Cookies.get).mockImplementation(((name?: string) => {
         if (name === 'dw_dnt') return value;
         return undefined;

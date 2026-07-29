@@ -105,7 +105,7 @@ function withProviders(Story: ComponentType, context: { args: Record<string, unk
 }
 
 const meta: Meta<typeof Link> = {
-    title: 'NAVIGATION/Link',
+    title: 'Core/Navigation/Link',
     component: Link,
     tags: ['autodocs', 'interaction'],
     parameters: {

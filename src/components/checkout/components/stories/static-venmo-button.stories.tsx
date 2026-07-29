@@ -23,7 +23,7 @@ import { action } from 'storybook/actions';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof StaticVenmoButton> = {
-    title: 'CHECKOUT/StaticVenmoButton',
+    title: 'Checkout/Payment/Static Venmo Button',
     component: StaticVenmoButton,
     parameters: {
         ...checkoutStrictA11yParameters,

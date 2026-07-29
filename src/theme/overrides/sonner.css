@@ -74,6 +74,32 @@
     stroke-width: 2px;
 }
 
+/* Passkey success toast opts into a close button alongside its action button —
+   restore the right padding the shared rule above removes so they don't overlap. */
+[data-sonner-toast].passkey-success-toast {
+    padding-right: 2.5rem;
+}
+
+/* Passkey upsell toast also opts into a close button alongside its action button —
+   same padding restoration as the success toast above. It's also wider than sonner's
+   fixed toast column (--width), so `width: fit-content` (set above) grows it past the
+   column instead of staying centered within it — sonner only left-anchors toasts inside
+   the column by default. Re-centering the toast on the column's own (screen-centered)
+   midpoint fixes this for any content width. `var(--y)` preserves sonner's enter/exit
+   slide animation, which otherwise sets this same `transform` property. */
+[data-sonner-toast].passkey-upsell-toast {
+    padding-right: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%) var(--y);
+}
+
+/* Passkey-not-supported error toast has no action button, so it doesn't need the padding
+   restoration above, but its message is wide enough to need the same re-centering fix. */
+[data-sonner-toast].passkey-not-supported-toast {
+    left: 50%;
+    transform: translateX(-50%) var(--y);
+}
+
 /* Ensure Sonner toasts are always interactive and visible above all content */
 [data-sonner-toaster] {
     pointer-events: auto;

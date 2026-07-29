@@ -18,7 +18,7 @@ import { composeStories } from '@storybook/react-vite';
 
 import * as CategoryPaginationStories from './index.stories';
 import { render, cleanup } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { StoryTestWrapper } from '../../../../.storybook/test-wrapper';
 
 const composed = composeStories(CategoryPaginationStories);
 
@@ -29,17 +29,15 @@ afterEach(() => {
 describe('CategoryPagination stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
         test(`${storyName} story renders and matches snapshot`, () => {
-            const router = createMemoryRouter(
-                [
-                    {
-                        path: '/',
-                        element: <Story />,
-                    },
-                ],
-                { initialEntries: ['/'] }
+            // CategoryPagination reads useConfig()/useCurrentSiteAndLocaleRef()
+            // (via the site-context-aware useNavigate) plus useLocation, so it
+            // needs the full provider stack, not a bare router — StoryTestWrapper
+            // supplies ConfigProvider + SiteProvider + a memory router.
+            const { container } = render(
+                <StoryTestWrapper>
+                    <Story />
+                </StoryTestWrapper>
             );
-
-            const { container } = render(<RouterProvider router={router} />);
             expect(container.firstChild).toMatchSnapshot();
         });
     }

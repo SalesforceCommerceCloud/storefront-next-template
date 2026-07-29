@@ -69,7 +69,7 @@ const testOrders: Order[] = [
 ];
 
 const meta: Meta<typeof OrderList> = {
-    title: 'ACCOUNT/Order List',
+    title: 'Account/Orders/Order List',
     component: OrderList,
     parameters: {
         layout: 'padded',
@@ -119,6 +119,26 @@ export const Default: Story = {
         await expect(canvas.getByRole('heading', { name: 'Order History' })).toBeInTheDocument();
         await expect(canvas.getByText('View and track your orders')).toBeInTheDocument();
         await expect(canvas.getAllByText('View Order Details')).toHaveLength(testOrders.length);
+    },
+};
+
+// An order carrying a derived returnStatus renders the informational return badge
+// (threaded through toOrderListItemData → OrderListItem) instead of the raw status.
+export const WithReturnStatus: Story = {
+    args: {
+        orders: [
+            { ...testOrders[0], status: 'completed', statusLabel: 'Completed', returnStatus: 'RETURN_COMPLETE' },
+            { ...testOrders[1], returnStatus: 'PARTIAL_RETURN_INITIATED' },
+        ],
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        const badges = canvas.getAllByTestId('order-return-status-badge');
+        await expect(badges).toHaveLength(2);
+        await expect(badges[0]).toHaveTextContent(t('account:orders.returnStatus.complete'));
+        await expect(badges[1]).toHaveTextContent(t('account:orders.returnStatus.partialInitiated'));
     },
 };
 

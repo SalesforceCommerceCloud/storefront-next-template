@@ -82,7 +82,13 @@ export default function CategoryBanner() {
                 ) : (
                     <div className="absolute inset-0 bg-muted" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/60" />
+                {/*
+                 * Scrim for WCAG 1.4.3: all text (eyebrow, category name, product count) is white and sits in the
+                 * lower half over an arbitrary merchant photo. The eyebrow is small text (12px/14px) and needs 4.5:1
+                 * contrast. The gradient stays lighter at the very top to keep the image visible but provides black/65
+                 * alpha by the eyebrow position (composited ~#595959 over worst-case white = 4.6:1 with text-white/80)
+                 * and darker still for the large heading and count below. The image is unchanged. */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/65 to-black/85" />
             </div>
 
             <div className="relative h-full flex items-end">

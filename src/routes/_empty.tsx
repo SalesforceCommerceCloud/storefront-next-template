@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Outlet } from 'react-router';
+import { SkipLink } from '@/components/skip-link';
 
 /**
  * Empty Layout Route
@@ -28,8 +29,11 @@ export default function EmptyLayout() {
     // `data-layout="empty"` marks this headerless layout so vertical themes can
     // opt its <main> out of header-height top padding (no header is rendered here).
     return (
-        <main data-layout="empty">
-            <Outlet />
-        </main>
+        <>
+            <SkipLink />
+            <main id="main-content" tabIndex={-1} data-layout="empty">
+                <Outlet />
+            </main>
+        </>
     );
 }

@@ -119,7 +119,7 @@ const minimalWishlistItem: ShopperCustomers.schemas['CustomerProductListItem'] =
 // -- Meta --
 
 const meta: Meta<typeof WishlistListItem> = {
-    title: 'ACCOUNT/Wishlist List Item',
+    title: 'Account/Wishlist/Wishlist List Item',
     component: WishlistListItem,
     tags: ['autodocs', 'interaction'],
     parameters: {

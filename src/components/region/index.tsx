@@ -215,6 +215,6 @@ export { RegionWrapper } from './region-wrapper';
 export type { RegionRendererProps } from './region-wrapper';
 
 // Re-export component data context utilities
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { ComponentDataProvider, useComponentData, useComponentDataById } from './component-data-context';
 export type { ComponentDataMap } from './component-data-context';

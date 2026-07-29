@@ -3,8 +3,7 @@
 exports[`CurrentPrice Snapshots > CustomElement snapshot 1`] = `
 <div>
   <h3
-    aria-label="Current price: €1,234.56"
-    aria-live="polite"
+    aria-hidden="true"
     class="[&:not(:first-child)]:mt-6 text-left font-semibold text-2xl text-blue-600"
   >
     €1,234.56
@@ -23,8 +22,7 @@ exports[`CurrentPrice Snapshots > CustomElement snapshot 1`] = `
 exports[`CurrentPrice Snapshots > Default snapshot 1`] = `
 <div>
   <span
-    aria-label="Current price: $99.99"
-    aria-live="polite"
+    aria-hidden="true"
     class="leading-7 [&:not(:first-child)]:mt-6 text-left font-semibold"
   >
     $99.99

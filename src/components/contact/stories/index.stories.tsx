@@ -22,7 +22,7 @@ import Contact from '../index';
 import { checkoutStrictA11yParameters } from '@/components/checkout/storybook/checkout-strict-a11y-parameters';
 
 const meta: Meta<typeof Contact> = {
-    title: 'COMMON/Contact',
+    title: 'Content/Marketing/Contact',
     component: Contact,
     tags: ['autodocs', 'interaction'],
     parameters: {

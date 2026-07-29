@@ -54,7 +54,7 @@ export const Component = memo(function Component({ component, className, regionI
     const FallbackComponent = registry.getFallback(component.typeId);
     const DynamicComponent = registry.getComponent(component.typeId);
     if (!DynamicComponent) {
-        // eslint-disable-next-line @typescript-eslint/only-throw-error
+        // oxlint-disable-next-line @typescript-eslint/only-throw-error
         throw registry.preload(component.typeId);
     }
 
@@ -64,7 +64,11 @@ export const Component = memo(function Component({ component, className, regionI
         isVisible: Boolean(component.visible),
         isLocalized: Boolean(component.localized),
         id: component.id,
-        contentLinkUuid: component.contentLinkUuid,
+        // In content block editor a standalone block has no contentLinkUuid.
+        // Fall back to the component id so selection/hover identity is never the empty
+        // string, which would otherwise collide with the '' default and render the block
+        // permanently selected. Matches the `?? id` fallback used in region-wrapper/index.
+        contentLinkUuid: component.contentLinkUuid ?? component.id,
     };
 
     return (

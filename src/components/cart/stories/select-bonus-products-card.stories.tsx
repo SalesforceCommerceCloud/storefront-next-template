@@ -31,7 +31,7 @@ const createMockPromotion = (overrides?: Partial<BonusPromotionInfo>): BonusProm
 });
 
 const meta: Meta<typeof SelectBonusProductsCard> = {
-    title: 'CART/Select Bonus Products Card',
+    title: 'Cart/Bonus Products/Select Bonus Products Card',
     component: SelectBonusProductsCard,
     tags: ['autodocs'],
     parameters: {

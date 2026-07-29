@@ -81,12 +81,14 @@ describe('ProductInfo', () => {
             expect(screen.getAllByText((content) => content.includes('$299.99')).length).toBeGreaterThanOrEqual(1);
         });
 
-        test('should render price from aria-label', () => {
+        test('exposes the price to screen readers as accessible text', () => {
             renderProductInfo({ product: mockProduct });
 
-            // Price has aria-label (single price or range depending on context)
-            const priceElement = screen.getByLabelText(/\$299\.99/);
-            expect(priceElement).toBeInTheDocument();
+            // The visible price is hidden from AT to avoid it being read twice; the
+            // accessible name is carried by an sr-only "Current price: $299.99" span.
+            expect(
+                screen.getByText((content) => content.includes('Current price:') && content.includes('$299.99'))
+            ).toBeInTheDocument();
         });
     });
 
@@ -303,8 +305,12 @@ describe('ProductInfo', () => {
                 variationValues: { color: 'CHARCWL', size: '042' },
             });
 
-            expect(screen.getByLabelText('Short')).toBeDisabled();
-            expect(screen.getByLabelText('Regular')).not.toBeDisabled();
+            // Disabled swatches expose aria-disabled (kept focusable/announceable) with an out-of-stock accessible name.
+            expect(screen.getByRole('radio', { name: /short.*out of stock/i })).toHaveAttribute(
+                'aria-disabled',
+                'true'
+            );
+            expect(screen.getByRole('radio', { name: /^regular$/i })).not.toHaveAttribute('aria-disabled', 'true');
         });
 
         test('should disable controlled swatch value when only matching variants are out of stock', () => {
@@ -354,8 +360,12 @@ describe('ProductInfo', () => {
                 variationValues: { color: 'CHARCWL', size: '042' },
             });
 
-            expect(screen.getByLabelText('Short')).toBeDisabled();
-            expect(screen.getByLabelText('Regular')).not.toBeDisabled();
+            // Disabled swatches expose aria-disabled (kept focusable/announceable) with an out-of-stock accessible name.
+            expect(screen.getByRole('radio', { name: /short.*out of stock/i })).toHaveAttribute(
+                'aria-disabled',
+                'true'
+            );
+            expect(screen.getByRole('radio', { name: /^regular$/i })).not.toHaveAttribute('aria-disabled', 'true');
         });
 
         test('should display in-stock inventory message when product has stock', () => {

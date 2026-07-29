@@ -259,44 +259,18 @@ export default function ShippingAddress({
         onSubmit(formData);
     };
 
-    const stepTitle =
-        hasSavedAddresses && isEditing ? (
-            <div className="flex items-center justify-between w-full gap-4">
-                <span className="text-2xl font-bold tracking-tight text-card-foreground">
-                    {t('shippingAddress.title')}
-                </span>
-                <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="w-36 font-medium text-secondary-foreground sm:w-auto"
-                        onClick={() => setAddressModalOpen(true)}
-                        aria-label={t('shippingAddress.addNewAddressButton')}>
-                        {t('shippingAddress.addNewAddressButton')}
-                    </Button>
-                    {/* @sfdc-extension-block-start SFDC_EXT_MULTISHIP */}
-                    {enableMultiAddress && (
-                        <Button
-                            type="button"
-                            variant="link"
-                            size="sm"
-                            className="h-auto w-36 cursor-pointer justify-start whitespace-normal px-0 text-left text-xs font-medium leading-normal sm:w-auto sm:justify-center"
-                            onClick={handleToggleShippingAddressMode}>
-                            {tMultiship('checkout.deliverToMultipleAddresses')}
-                        </Button>
-                    )}
-                    {/* @sfdc-extension-block-end SFDC_EXT_MULTISHIP */}
-                </div>
-            </div>
-        ) : (
-            <span className="text-2xl font-bold tracking-tight text-card-foreground">{t('shippingAddress.title')}</span>
-        );
+    const stepTitle = (
+        <span id="shipping-address-heading" className="text-2xl font-bold tracking-tight text-card-foreground">
+            {t('shippingAddress.title')}
+        </span>
+    );
 
     return (
         <ToggleCard
             id="shipping-address"
-            title={stepTitle as React.ReactNode}
+            title={stepTitle}
+            titleAs="h2"
+            titleClassName="text-2xl font-bold tracking-tight text-card-foreground"
             editing={isEditing}
             disableEdit={!isCompleted && !isEditing}
             onEdit={onEdit}
@@ -315,6 +289,30 @@ export default function ShippingAddress({
             <ToggleCardEdit>
                 {hasSavedAddresses ? (
                     <div className="flex flex-col gap-4 pt-2 pb-2">
+                        {/* Saved-address action buttons: above the list, outside the heading */}
+                        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="w-36 font-medium text-secondary-foreground sm:w-auto"
+                                onClick={() => setAddressModalOpen(true)}
+                                aria-label={t('shippingAddress.addNewAddressButton')}>
+                                {t('shippingAddress.addNewAddressButton')}
+                            </Button>
+                            {/* @sfdc-extension-block-start SFDC_EXT_MULTISHIP */}
+                            {enableMultiAddress && (
+                                <Button
+                                    type="button"
+                                    variant="link"
+                                    size="sm"
+                                    className="h-auto w-36 cursor-pointer justify-start whitespace-normal px-0 text-left text-xs font-medium leading-normal sm:w-auto sm:justify-center"
+                                    onClick={handleToggleShippingAddressMode}>
+                                    {tMultiship('checkout.deliverToMultipleAddresses')}
+                                </Button>
+                            )}
+                            {/* @sfdc-extension-block-end SFDC_EXT_MULTISHIP */}
+                        </div>
                         <SavedAddressesList
                             addresses={savedAddresses}
                             value={effectiveSelectedId}
@@ -338,14 +336,19 @@ export default function ShippingAddress({
                         <form
                             onSubmit={(e) => void form.handleSubmit(handleFormSubmit)(e)}
                             className="flex flex-col gap-4 pt-2 pb-2">
-                            <AddressFormFields
-                                form={form}
-                                showPhone={false}
-                                showCountry={true}
-                                autoFocus={isEditing}
-                                autoFocusField="firstName"
-                                countryCode={DEFAULT_COUNTRY_CODE}
-                            />
+                            <fieldset
+                                className="flex flex-col gap-4 border-0 p-0 m-0 min-w-0"
+                                aria-labelledby="shipping-address-heading">
+                                <AddressFormFields
+                                    form={form}
+                                    showPhone={false}
+                                    showCountry={true}
+                                    // oxlint-disable-next-line jsx-a11y/no-autofocus -- focus first field on toggle card edit mode (WCAG 2.4.3 focus order); expanding section is the exception the rule warns about
+                                    autoFocus={isEditing}
+                                    autoFocusField="firstName"
+                                    countryCode={DEFAULT_COUNTRY_CODE}
+                                />
+                            </fieldset>
                             <div
                                 data-checkout-mobile-bar
                                 className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2">

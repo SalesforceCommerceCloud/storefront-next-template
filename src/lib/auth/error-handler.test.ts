@@ -64,12 +64,13 @@ describe('getPasswordResetErrorMessageKey', () => {
         expect(getPasswordResetErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.TOO_MANY_PASSWORD_RESET_ATTEMPTS);
     });
 
-    it.each(['Invalid authentication token provided.', 'invalid token', 'INVALID TOKEN'])(
-        'returns INVALID_TOKEN for "%s"',
-        (message) => {
-            expect(getPasswordResetErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.INVALID_TOKEN);
-        }
-    );
+    it.each([
+        'Invalid authentication token provided.',
+        'invalid token',
+        'INVALID TOKEN',
+    ])('returns INVALID_TOKEN for "%s"', (message) => {
+        expect(getPasswordResetErrorMessageKey(message)).toBe(ERROR_MESSAGE_KEYS.INVALID_TOKEN);
+    });
 
     it('returns GENERIC for unknown error messages', () => {
         const message = 'Some unexpected error from backend';

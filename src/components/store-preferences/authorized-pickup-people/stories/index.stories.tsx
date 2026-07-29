@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import AuthorizedPickupPeople from '..';
 
 const meta: Meta<typeof AuthorizedPickupPeople> = {
-    title: 'Components/Store Preferences/Authorized Pickup People',
+    title: 'Account/Store Preferences/Authorized Pickup People',
     component: AuthorizedPickupPeople,
     tags: ['autodocs', 'interaction'],
     parameters: {

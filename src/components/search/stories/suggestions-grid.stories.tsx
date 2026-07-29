@@ -67,7 +67,7 @@ const ALL_PRODUCTS = [
 const MAX_PRODUCTS = ALL_PRODUCTS.length;
 
 const meta: Meta<typeof SuggestionsGrid> = {
-    title: 'Search/SuggestionsGrid',
+    title: 'Search/Suggestions Grid',
     component: SuggestionsGrid,
     parameters: {
         layout: 'centered',

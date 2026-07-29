@@ -16,7 +16,7 @@
 import { type ReactElement, useState, useRef, useEffect } from 'react';
 import { Form } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { House, Heart, ShoppingBag, User, MapPin, CreditCard, Building, LogOut } from 'lucide-react';
+import { House, Heart, ShoppingBag, User, MapPin, CreditCard, Building, KeyRound, LogOut } from 'lucide-react';
 
 // Runtime SDK
 import { buildUrl } from '@salesforce/storefront-next-runtime/site-context';
@@ -54,6 +54,7 @@ export function UserMenu({ isAuthenticated, trigger }: UserMenuProps): ReactElem
     const { t: tAccount } = useTranslation('account');
     const config = useConfig();
     const { siteRef, localeRef } = useCurrentSiteAndLocaleRef();
+    const passkeyEnabled = Boolean(config.features?.passkey?.enabled);
 
     // Clear timeout on unmount
     useEffect(() => {
@@ -190,6 +191,15 @@ export function UserMenu({ isAuthenticated, trigger }: UserMenuProps): ReactElem
                                     <CreditCard className="h-5 w-5" />
                                     {t('menu.paymentMethods')}
                                 </Link>
+                                {passkeyEnabled && (
+                                    <Link
+                                        to={routes.accountPasskeys}
+                                        className={menuItemClassName}
+                                        onMouseEnter={handleMenuItemMouseEnter}>
+                                        <KeyRound className="h-5 w-5" aria-hidden="true" />
+                                        {tAccount('navigation.passkeys')}
+                                    </Link>
+                                )}
                                 <Link
                                     to={routes.accountStorePreferences}
                                     className={menuItemClassName}
@@ -215,6 +225,7 @@ export function UserMenu({ isAuthenticated, trigger }: UserMenuProps): ReactElem
                                 className="w-full">
                                 <button
                                     type="submit"
+                                    data-testid="user-menu-logout"
                                     className={cn(menuItemClassName, 'w-full text-left cursor-pointer')}
                                     onMouseEnter={handleMenuItemMouseEnter}>
                                     <LogOut className="h-5 w-5" />

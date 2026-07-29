@@ -22,7 +22,7 @@ import { useProduct } from '@/providers/product-context';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
-// eslint-disable-next-line react-refresh/only-export-components -- loader re-export is required for the static-registry AST plugin
+// oxlint-disable-next-line react-refresh/only-export-components -- loader re-export is required for the static-registry AST plugin
 export { loader } from './loader';
 
 /**
@@ -43,6 +43,7 @@ export interface RecommenderConfig {
         'Displays product recommendations. Automatically reads product from context when available on product pages.',
     group: 'Content',
 })
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
 export class ProductRecommendationsMetadata {
     @AttributeDefinition({
         name: 'Recommender Name',
@@ -265,7 +266,7 @@ function ProductRecommendationsClientData({
         } else {
             void getRecommendations(recommenderName, products, args);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [recommenderName, recommenderType, productsKey, argsKey, currency, getRecommendations, getZoneRecommendations]);
 
     if (error) {

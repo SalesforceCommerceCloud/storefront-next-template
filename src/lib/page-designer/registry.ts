@@ -44,5 +44,5 @@ export function createReactComponentRegistry<TProps>() {
  * registry covariantly accepts any prop type. Switching to `unknown` would force every
  * call site to narrow before forwarding props, which defeats the runtime-driven design.
  */
-/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+/* oxlint-disable-next-line @typescript-eslint/no-explicit-any */
 export const registry = createReactComponentRegistry<any>();

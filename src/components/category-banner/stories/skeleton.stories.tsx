@@ -19,7 +19,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import CategoryBannerSkeleton from '../skeleton';
 
 const meta: Meta<typeof CategoryBannerSkeleton> = {
-    title: 'PLP/Category Banner Skeleton',
+    title: 'Category/Category Banner Skeleton',
     component: CategoryBannerSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

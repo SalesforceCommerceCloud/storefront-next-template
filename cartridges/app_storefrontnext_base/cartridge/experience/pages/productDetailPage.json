@@ -6,11 +6,13 @@
         {
             "id": "promoContent",
             "name": "Promo Content Region",
+            "description": "Promotional content region above main product content",
             "max_components": 1
         },
         {
             "id": "engagementContent",
             "name": "Engagement Content Region",
+            "description": "Engagement content region for recommendations and related products below main content",
             "max_components": 1
         }
     ],

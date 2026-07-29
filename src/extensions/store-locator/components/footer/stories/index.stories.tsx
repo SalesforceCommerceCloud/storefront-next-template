@@ -19,7 +19,7 @@ import { waitForStorybookReady, SITE_PREFIX } from '@storybook/test-utils';
 import StoreLocatorFooter from '../index';
 
 const meta: Meta<typeof StoreLocatorFooter> = {
-    title: 'Extensions/StoreLocator/StoreLocatorFooter',
+    title: 'Extensions/Store Locator/Store Locator Footer',
     component: StoreLocatorFooter,
     tags: ['autodocs', 'interaction'],
     parameters: {

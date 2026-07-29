@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line react-refresh/only-export-components
+// oxlint-disable-next-line react-refresh/only-export-components
 export { default } from './product-view';
 export { default as ProductView } from './product-view';
 export { default as ProductInfo } from './product-info';

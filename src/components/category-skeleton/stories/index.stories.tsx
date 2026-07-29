@@ -30,7 +30,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 // ---------------------------------------------------------------------------
 
 const meta: Meta<typeof ProductTileSkeleton> = {
-    title: 'LOADING/Category Skeleton',
+    title: 'Category/Category Skeleton',
     component: ProductTileSkeleton,
     tags: ['autodocs', 'interaction'],
     parameters: {

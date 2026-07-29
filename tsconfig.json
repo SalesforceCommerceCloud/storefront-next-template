@@ -8,7 +8,6 @@
         "moduleResolution": "bundler",
         "jsx": "react-jsx",
         "rootDirs": [".", "./.react-router/types"],
-        "baseUrl": ".",
         "esModuleInterop": true,
         "noEmit": true,
         "noUnusedLocals": true,
@@ -33,8 +32,10 @@
         ".storybook/tests/generated-stories/**",
         "e2e",
         "src/verticals/**/routes/**/*",
+        "lint-plugins/**/*",
         "e2e/**/*",
         "**/*-snapshot.tsx",
-        ".storybook/tests/generated-stories/**"
+        ".storybook/tests/generated-stories/**",
+        "lint-plugins"
     ]
 }

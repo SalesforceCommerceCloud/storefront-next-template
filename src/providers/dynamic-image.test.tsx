@@ -316,8 +316,9 @@ describe('DynamicImageProvider', () => {
 
                 const { result } = renderHook(() => useDynamicImageContext(), { wrapper });
 
+                const frozenWidths = result.current?.widths as number[];
                 expect(() => {
-                    (result.current?.widths as number[]).push(400);
+                    frozenWidths.push(400);
                 }).toThrow();
             });
 
@@ -336,8 +337,9 @@ describe('DynamicImageProvider', () => {
 
                 const { result } = renderHook(() => useDynamicImageContext(), { wrapper });
 
+                const frozenWidths = result.current?.widths as Record<string, number>;
                 expect(() => {
-                    (result.current?.widths as Record<string, number>).lg = 400;
+                    frozenWidths.lg = 400;
                 }).toThrow();
             });
 

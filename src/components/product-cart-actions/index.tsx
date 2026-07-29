@@ -41,7 +41,7 @@ interface ProductCartActionsProps {
     onAddToWishlistError?: (error: unknown) => void;
     /**
      * When provided in add mode, renders a compact two-button layout:
-     * "Add to Cart" + "Buy it Now" side by side. Express payments, BNPL,
+     * "Add to Cart" + "Buy It Now" side by side. Express payments, BNPL,
      * wishlist, and share buttons are hidden in this layout.
      * Typically navigates to the PDP for the full purchase flow.
      */
@@ -79,7 +79,7 @@ export default function ProductCartActions({
     } = useProductView();
 
     const isEditMode = mode === 'edit';
-    // Compact layout: shown in add mode when a "Buy it Now" handler is provided (e.g. Quick Add modal).
+    // Compact layout: shown in add mode when a "Buy It Now" handler is provided (e.g. Quick Add modal).
     // Hides express payments, BNPL, wishlist, and share — shopper goes to PDP for those.
     const isCompactAddMode = !isEditMode && !!onBuyNow;
 
@@ -140,15 +140,18 @@ export default function ProductCartActions({
 
     return (
         <div className="mt-6">
-            {/* Options Selection Message */}
-            {isMasterOrVariantProduct && !currentVariant && !isProductASet && !isProductABundle && (
-                <div className="text-destructive font-medium">{t('selectAllOptions')}</div>
-            )}
+            {/* Options Selection Message. role="status" lives on a persistent container so the
+                prompt is announced when it appears/clears as the shopper selects variant options. */}
+            <div role="status" aria-atomic="true">
+                {isMasterOrVariantProduct && !currentVariant && !isProductASet && !isProductABundle && (
+                    <span className="text-destructive font-medium">{t('selectAllOptions')}</span>
+                )}
+            </div>
             <UITarget targetId="sfcc.pdp.tax.productMessage" />
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">
-                {/* Compact layout (Quick Add modal): Add to Cart + Buy it Now side by side */}
+                {/* Compact layout (Quick Add modal): Add to Cart + Buy It Now side by side */}
                 {isCompactAddMode && !isProductASet && !isProductABundle && (
                     <div className="grid grid-cols-2 gap-3">
                         <Button

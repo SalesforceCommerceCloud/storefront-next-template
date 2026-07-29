@@ -70,7 +70,7 @@ class ErrorComponent extends React.Component<{ shouldThrow?: boolean }> {
 }
 
 const meta: Meta<typeof CheckoutErrorBoundary> = {
-    title: 'CHECKOUT/Checkout Error Boundary',
+    title: 'Checkout/Error Boundary',
     component: CheckoutErrorBoundary,
     tags: ['autodocs', 'interaction'],
     parameters: {

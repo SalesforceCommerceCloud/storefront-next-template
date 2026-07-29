@@ -28,11 +28,12 @@ import { getActionPath, isAmbientMutation } from './shared';
  *    shareability but never affect server data. A navigation that touches only those, is skipped.
  * 2. **Listing-irrelevant mutations.** A non-`GET` submission triggers RR's default post-action revalidation, but
  *    cart/wishlist/etc. mutations don't change listing data — cart state propagates via the `__sfdc_basket` cookie
- *    and the action's own fetcher result, wishlist via the client-side provider. Only the shared
+ *    and the action's own fetcher result, wishlist via the client-side module-level store. Only the shared
  *    {@link isAmbientMutation} dimensions are allowed to revalidate: currency / shopper-context change the
- *    loader's SCAPI prices and promotions, and an auth identity transition (login / signup / logout) re-scopes the
- *    auth-dependent `wishlistInitialState` seed the loader feeds the `WishlistProvider`. A submission with no
- *    resolvable `formAction` cannot be confirmed as an ambient dimension, so it is skipped too.
+ *    loader's SCAPI prices and promotions, and an auth identity transition (login / signup / logout) changes
+ *    customer-group-scoped SCAPI output (pricing / promotions). A submission with no resolvable `formAction`
+ *    cannot be confirmed as an ambient dimension, so it is skipped too. (Wishlist eviction is handled by the
+ *    `_app` shell from client auth, not this loader.)
  *
  * `setSelectedStore` / `cartPickupStoreUpdate` are intentionally NOT admitted: the listing's `productSearch` read
  * passes no `query.inventoryIds`, so a store change cannot stale its results. If a tile ever surfaces store-scoped

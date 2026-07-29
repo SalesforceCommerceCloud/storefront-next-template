@@ -175,7 +175,7 @@ function ReviewCardsSectionWrapper(): ReactElement {
 }
 
 const meta: Meta<typeof ReviewCardsSectionWrapper> = {
-    title: 'Components/ReviewCards/ReviewCardsSection',
+    title: 'Extensions/Ratings & Reviews/Review Cards Section',
     component: ReviewCardsSectionWrapper,
     tags: ['autodocs', 'interaction'],
     parameters: {

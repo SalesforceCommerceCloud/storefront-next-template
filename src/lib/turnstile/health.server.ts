@@ -210,7 +210,7 @@ function pruneSiteverifyByAge(now: number): void {
  */
 function* siteverifyIter(): IterableIterator<SiteverifySample> {
     for (let i = 0; i < siteverifyCount; i++) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        // oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
         yield siteverifyRing[(siteverifyHead + i) % SITEVERIFY_RING_CAPACITY]!;
     }
 }

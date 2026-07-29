@@ -16,6 +16,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
+import i18next from 'i18next';
 import PopularCategories from './popular-categories';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
@@ -349,12 +350,9 @@ describe('PopularCategories', () => {
             { timeout: 3000 }
         );
 
-        // Default subtitle from i18n
-        expect(
-            screen.getByText(
-                'At Market Street, we believe fashion should be effortless, authentic, and accessible. Our collections are designed for the modern individual who values quality, versatility, and timeless style.'
-            )
-        ).toBeInTheDocument();
+        // Default subtitle from i18n — assert the resolved value so this passes
+        // under any vertical's locale overrides (e.g. foundations rebrands this copy).
+        expect(screen.getByText(i18next.t('categoryGrid.description', { ns: 'home' }))).toBeInTheDocument();
     });
 
     test('renders custom title with default subtitle', async () => {
@@ -369,12 +367,9 @@ describe('PopularCategories', () => {
             { timeout: 3000 }
         );
 
-        // Should still show default subtitle from i18n
-        expect(
-            screen.getByText(
-                'At Market Street, we believe fashion should be effortless, authentic, and accessible. Our collections are designed for the modern individual who values quality, versatility, and timeless style.'
-            )
-        ).toBeInTheDocument();
+        // Should still show default subtitle from i18n — assert the resolved value so
+        // this passes under any vertical's locale overrides.
+        expect(screen.getByText(i18next.t('categoryGrid.description', { ns: 'home' }))).toBeInTheDocument();
     });
 
     test('renders custom subtitle with default title', async () => {

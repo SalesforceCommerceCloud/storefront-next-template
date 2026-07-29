@@ -19,10 +19,15 @@
     --account-action-destructive: var(--destructive);
     --account-action-destructive-foreground: #ffffff;
 
+    /* account primary CTAs (Buy Again, Rate & review) — semantic hook so verticals decide the fill.
+       Default is the neutral foreground/background pairing this brand has always used. */
+    --account-action-primary: var(--foreground);
+    --account-action-primary-foreground: var(--background);
+
     /* status colors (for inventory, availability indicators, etc.) */
     --status-positive: var(--success);
-    --status-warning: #c2410c;
-    --status-critical: #dc2626;
+    --status-warning: #C2410C;
+    --status-critical: #DC2626;
     --status-critical-strong: #dc2626;
     --status-critical-bg: #fef2f2;
     --status-critical-foreground: #991b1b;

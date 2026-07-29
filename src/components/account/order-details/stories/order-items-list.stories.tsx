@@ -22,7 +22,7 @@ import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 const mockSite = mockSiteObject;
 
 const meta: Meta<typeof OrderItemsList> = {
-    title: 'ACCOUNT/Order Details/Order Items List',
+    title: 'Account/Orders/Order Details/Order Items List',
     component: OrderItemsList,
     parameters: {
         layout: 'padded',

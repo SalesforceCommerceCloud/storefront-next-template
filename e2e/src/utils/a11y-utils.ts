@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 import { AxeBuilder } from '@axe-core/playwright';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
@@ -26,8 +26,10 @@ import {
     type AxeViolation,
     A11yBaselineError,
     WCAG_TAGS,
+    REPORTING_TAGS,
     getViolationCountsByRule,
     groupViolationsByImpact,
+    filterViolationsByTags,
     compareWithBaseline,
     formatViolationReport,
     formatBaselineFailure,
@@ -125,13 +127,9 @@ const MOBILE_BREAKPOINT_PX = 768;
  * violation counts are tracked independently.
  */
 export async function getViewportKey(): Promise<'desktop' | 'mobile'> {
-    const width = await (I.usePlaywrightTo(
-        'get viewport width',
-        // eslint-disable-next-line @typescript-eslint/require-await -- usePlaywrightTo requires an async callback
-        async ({ page }) => {
-            return page.viewportSize()?.width ?? 1200;
-        }
-    ) as unknown as Promise<number>);
+    const width = await (I.usePlaywrightTo('get viewport width', async ({ page }) => {
+        return page.viewportSize()?.width ?? 1200;
+    }) as unknown as Promise<number>);
 
     return width < MOBILE_BREAKPOINT_PX ? 'mobile' : 'desktop';
 }
@@ -203,11 +201,26 @@ export async function beginScan(pageKey: string): Promise<'desktop' | 'mobile'> 
  * @param viewport - Viewport key returned by {@link beginScan}.
  */
 export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobile'): Promise<void> {
-    const results: A11yScanResults = await runAxeScan();
     const key = `${pageKey}/${viewport}`;
 
+    // The baseline assert below ALWAYS reads a WCAG_TAGS (WCAG 2.1 AA) view, so
+    // widening the report can never change what fails CI.
+    //
+    // PR gate (default, A11Y_COLLECT_RESULTS unset): a single narrow WCAG scan.
+    // Collect/report path (pnpm a11y:report, nightly, local suite scans): a single
+    // WIDENED scan (WCAG 2.2 AA + best-practice + the incomplete "needs manual
+    // review" bucket) is persisted for the report, and the narrow assert view is
+    // DERIVED from it by filtering to WCAG_TAGS. Because axe runs each rule
+    // independently, that filtered view is identical to a standalone narrow scan —
+    // so collect mode now runs one axe pass per page instead of two, with the
+    // blocking gate input unchanged.
+    let results: A11yScanResults;
     if (isCollectMode) {
-        collectResults(key, results);
+        const reportResults = await runAxeScan({ tags: REPORTING_TAGS });
+        collectResults(key, reportResults);
+        results = filterViolationsByTags(reportResults, WCAG_TAGS);
+    } else {
+        results = await runAxeScan();
     }
 
     const baseline = loadBaseline();
@@ -235,7 +248,7 @@ export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobi
     const totalViolations = Object.values(results.violationCounts).reduce((a, b) => a + b, 0);
 
     if (Object.keys(comparison.decreasedViolations).length > 0) {
-        console.log(`↓ ${key} — violations decreased, run pnpm a11y:update-baseline`);
+        console.log(`↓ ${key} — violations decreased, run pnpm --filter ./e2e a11y:update-baseline`);
     } else {
         console.log(
             `✓ PASS: ${key} — ${totalViolations} violation${totalViolations !== 1 ? 's' : ''} (within baseline)`
@@ -247,7 +260,50 @@ export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobi
         Object.keys(comparison.informationalIncreasedViolations).length;
     if (informationalCount > 0) {
         console.log(
-            `  ⓘ ${informationalCount} moderate/minor rule${informationalCount !== 1 ? 's' : ''} exceeded baseline (not blocking — update with pnpm a11y:update-baseline)`
+            `  ⓘ ${informationalCount} moderate/minor rule${informationalCount !== 1 ? 's' : ''} exceeded baseline (not blocking — update with pnpm --filter ./e2e a11y:update-baseline)`
         );
     }
+}
+
+/**
+ * Run a WIDENED, NON-BLOCKING axe scan against the DOM in whatever state it is
+ * currently in, and (in collect mode) write it to the report under a state-suffixed
+ * key. This is the primitive the a11y suite skills use for "forced-state" scans:
+ * the caller first drives the page into a non-default state (open the cart drawer,
+ * submit a form to surface validation errors, select an out-of-stock variant, move
+ * focus after an action), THEN calls this — because a plain scan only ever sees the
+ * settled default DOM and misses the states where most audit findings live.
+ *
+ * It NEVER asserts and NEVER touches the baseline, so it cannot fail CI. It is not
+ * wired into the blocking public spec; it exists for `pnpm a11y:report` enrichment
+ * and for the suite's local per-WI verification. To gate on a state you would add an
+ * explicit {@link scanAndAssert}-style check with its own baseline entry — a separate
+ * decision.
+ *
+ * @param pageKey - Short page identifier, e.g. 'pdp'.
+ * @param stateLabel - The state the caller drove the DOM into, e.g. 'out-of-stock'.
+ * @param viewport - Viewport key returned by {@link beginScan}.
+ * @returns The widened scan results (violations + the incomplete needs-review
+ *   bucket). Never throws on a violation and never asserts — a caller can await it
+ *   purely to enrich the report without risking a failed scenario.
+ */
+export async function scanState(
+    pageKey: string,
+    stateLabel: string,
+    viewport: 'desktop' | 'mobile'
+): Promise<A11yScanResults> {
+    const results = await runAxeScan({ tags: REPORTING_TAGS });
+    const key = `${pageKey}-${stateLabel}/${viewport}`;
+
+    if (isCollectMode) {
+        collectResults(key, results);
+    }
+
+    const violationNodes = results.violations.reduce((sum, v) => sum + v.nodes.length, 0);
+    const reviewNodes = results.incomplete.reduce((sum, v) => sum + v.nodes.length, 0);
+    console.log(
+        `  ⓘ state scan [${pageKey}:${stateLabel}/${viewport}] — ${violationNodes} widened violation${violationNodes !== 1 ? 's' : ''}, ${reviewNodes} needs-review (non-blocking)`
+    );
+
+    return results;
 }

@@ -20,7 +20,7 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import OtpModal from '../otp-modal';
 
 const meta: Meta<typeof OtpModal> = {
-    title: 'AUTHENTICATION/Otp Modal',
+    title: 'Authentication/OTP Modal',
     component: OtpModal,
     tags: ['autodocs', 'interaction'],
     parameters: {

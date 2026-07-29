@@ -90,7 +90,7 @@ function ActionLogger({ children }: { children: ReactNode }): ReactElement {
 }
 
 const meta: Meta<typeof StoreLocatorForm> = {
-    title: 'Extensions/StoreLocator/StoreLocatorForm',
+    title: 'Extensions/Store Locator/Store Locator Form',
     component: StoreLocatorForm,
     tags: ['autodocs', 'interaction'],
     parameters: {

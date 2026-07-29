@@ -352,7 +352,7 @@ describe('Dynamic Image Component', () => {
         });
 
         test('handles undefined alt', () => {
-            // eslint-disable-next-line jsx-a11y/alt-text
+            // oxlint-disable-next-line jsx-a11y/alt-text
             render(<DynamicImage src={src} />);
 
             const img = screen.getByRole('presentation');

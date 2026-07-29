@@ -63,14 +63,9 @@ export default function CurrentPrice({
 
     return (
         <>
-            <Typography
-                as={as}
-                className={`font-semibold ${className || ''}`}
-                aria-live="polite"
-                aria-label={ariaLabel}>
+            <Typography as={as} className={`font-semibold ${className || ''}`} aria-hidden="true">
                 {displayText}
             </Typography>
-            {/*For screen reader, we want to make sure the product name is announced before the price to avoid confusion*/}
             <span className="sr-only" aria-live="polite" aria-atomic={true}>
                 {labelForA11y} {ariaLabel}
             </span>

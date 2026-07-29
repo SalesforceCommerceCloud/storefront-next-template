@@ -194,66 +194,6 @@ describe('Checkout Utils', () => {
             const result = computeStepFromBasket(basket, distributionNeedingMethods); // User hasn't completed shipping options
             expect(result).toBe(CHECKOUT_STEPS.SHIPPING_OPTIONS);
         });
-
-        // Refreshing on an address with no deliverable methods must stay on Shipping Address
-        it('should return SHIPPING_ADDRESS when address exists but no valid shipping methods are available', () => {
-            const basket = {
-                basketId: 'test-basket',
-                customerInfo: { email: 'test@example.com' },
-                shipments: [
-                    {
-                        shippingAddress: {
-                            firstName: 'John',
-                            lastName: 'Doe',
-                            address1: '123 Main St',
-                            city: 'Anytown',
-                            stateCode: 'CA',
-                            postalCode: '12345',
-                            countryCode: 'US',
-                        },
-                    },
-                ],
-            } as ShopperBasketsV2.schemas['Basket'];
-
-            const distributionNeedingMethods = {
-                ...mockShipmentDistribution,
-                hasUnaddressedDeliveryItems: false,
-                needsShippingMethods: true,
-            };
-            const result = computeStepFromBasket(
-                basket,
-                distributionNeedingMethods,
-                /*hasNoValidShippingMethods*/ true
-            );
-            expect(result).toBe(CHECKOUT_STEPS.SHIPPING_ADDRESS);
-        });
-
-        it('should not pin to SHIPPING_ADDRESS for pickup-only baskets without delivery items', () => {
-            const basket = {
-                basketId: 'test-basket',
-                customerInfo: { email: 'test@example.com' },
-                shipments: [],
-                paymentInstruments: [
-                    {
-                        paymentMethodId: 'CREDIT_CARD',
-                        paymentCard: {
-                            cardType: 'Visa',
-                            expirationMonth: 12,
-                            expirationYear: 2025,
-                            maskedNumber: '************1234',
-                        },
-                    },
-                ],
-            } as ShopperBasketsV2.schemas['Basket'];
-
-            const pickupOnlyDistribution = {
-                ...mockShipmentDistribution,
-                hasDeliveryItems: false,
-                hasPickupItems: true,
-            };
-            const result = computeStepFromBasket(basket, pickupOnlyDistribution, /*hasNoValidShippingMethods*/ true);
-            expect(result).toBe(CHECKOUT_STEPS.PLACE_ORDER);
-        });
     });
 
     describe('getCompletedSteps', () => {
@@ -422,62 +362,13 @@ describe('Checkout Utils', () => {
             expect(result).toBe(CHECKOUT_STEPS.SHIPPING_ADDRESS);
         });
 
-        it('should return PLACE_ORDER when customer has complete profile data', () => {
+        it('should return PLACE_ORDER when customer has complete profile data and the basket has been prefilled', () => {
+            // Post-prefill: basket carries a valid payment card AND an address for its delivery
+            // shipment. `basketHasAddress` inspects the distribution, so setting the distribution's
+            // `hasUnaddressedDeliveryItems` to false is what proves the address arrived.
             const basket = {
                 basketId: 'test',
                 customerInfo: { email: 'test@example.com' },
-            } as ShopperBasketsV2.schemas['Basket'];
-
-            const customerProfile = {
-                customer: { login: 'test@example.com' },
-                addresses: [{ addressId: 'addr_1', countryCode: 'US', lastName: 'Doe' }],
-                paymentInstruments: [
-                    {
-                        paymentInstrumentId: 'card_123',
-                        paymentMethodId: 'CREDIT_CARD',
-                    },
-                ],
-            } as CustomerProfile;
-
-            const result = computeFinalStepForReturningCustomer(basket, customerProfile, mockShipmentDistribution);
-            expect(result).toBe(CHECKOUT_STEPS.PLACE_ORDER);
-        });
-
-        it('should return PAYMENT when customer has addresses but no saved payment methods', () => {
-            const basket = {
-                basketId: 'test',
-                customerInfo: { email: 'test@example.com' },
-            } as ShopperBasketsV2.schemas['Basket'];
-
-            const customerProfile = {
-                customer: { login: 'test@example.com' },
-                addresses: [{ addressId: 'addr_1', countryCode: 'US', lastName: 'Doe' }],
-                paymentInstruments: [],
-            } as CustomerProfile;
-
-            const result = computeFinalStepForReturningCustomer(basket, customerProfile, mockShipmentDistribution);
-            expect(result).toBe(CHECKOUT_STEPS.PAYMENT);
-        });
-
-        // For a returning registered customer, refreshing with an address but no shipping
-        // methods must NOT short-circuit to PLACE_ORDER — pin to SHIPPING_ADDRESS instead.
-        it('should return SHIPPING_ADDRESS when address exists but no shipping methods, even for a complete profile', () => {
-            const basket = {
-                basketId: 'test',
-                customerInfo: { email: 'test@example.com' },
-                shipments: [
-                    {
-                        shippingAddress: {
-                            firstName: 'John',
-                            lastName: 'Doe',
-                            address1: '123 Main St',
-                            city: 'Anytown',
-                            stateCode: 'CA',
-                            postalCode: '12345',
-                            countryCode: 'US',
-                        },
-                    },
-                ],
                 paymentInstruments: [
                     {
                         paymentMethodId: 'CREDIT_CARD',
@@ -502,16 +393,14 @@ describe('Checkout Utils', () => {
                 ],
             } as CustomerProfile;
 
-            const result = computeFinalStepForReturningCustomer(
-                basket,
-                customerProfile,
-                mockShipmentDistribution,
-                /*hasNoValidShippingMethods*/ true
-            );
-            expect(result).toBe(CHECKOUT_STEPS.SHIPPING_ADDRESS);
+            const result = computeFinalStepForReturningCustomer(basket, customerProfile, mockShipmentDistribution);
+            expect(result).toBe(CHECKOUT_STEPS.PLACE_ORDER);
         });
 
-        it('should still pin to SHIPPING_ADDRESS when delivery items have no methods, even before payment is set', () => {
+        it('should return PAYMENT when customer has addresses but no saved payment methods and basket has been prefilled', () => {
+            // Post-prefill: the delivery shipment has an address (distribution's
+            // `hasUnaddressedDeliveryItems` is false). No payment on basket yet — the shopper still
+            // needs to complete PAYMENT.
             const basket = {
                 basketId: 'test',
                 customerInfo: { email: 'test@example.com' },
@@ -523,16 +412,52 @@ describe('Checkout Utils', () => {
                 paymentInstruments: [],
             } as CustomerProfile;
 
-            const result = computeFinalStepForReturningCustomer(
-                basket,
-                customerProfile,
-                mockShipmentDistribution,
-                /*hasNoValidShippingMethods*/ true
-            );
-            expect(result).toBe(CHECKOUT_STEPS.SHIPPING_ADDRESS);
+            const result = computeFinalStepForReturningCustomer(basket, customerProfile, mockShipmentDistribution);
+            expect(result).toBe(CHECKOUT_STEPS.PAYMENT);
         });
 
-        it('should not pin to SHIPPING_ADDRESS when unaddressed delivery items still exist', () => {
+        // Under streamed prefill, the initial paint sees a pre-prefill basket for a returning
+        // customer with a complete profile. The complete-profile branch must return null (and
+        // let `computeStepFromBasket` fall through) whenever the basket lacks a valid payment
+        // instrument, so we don't render / enable Place Order against an empty basket.
+        it('should fall through to null when profile is complete but basket has no payment yet', () => {
+            const basket = {
+                basketId: 'test',
+                customerInfo: { email: 'test@example.com' },
+                shipments: [
+                    {
+                        shippingAddress: {
+                            firstName: 'John',
+                            lastName: 'Doe',
+                            address1: '123 Main St',
+                            city: 'Anytown',
+                            stateCode: 'CA',
+                            postalCode: '12345',
+                            countryCode: 'US',
+                        },
+                    },
+                ],
+            } as ShopperBasketsV2.schemas['Basket'];
+
+            const customerProfile = {
+                customer: { login: 'test@example.com' },
+                addresses: [{ addressId: 'addr_1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [
+                    {
+                        paymentInstrumentId: 'card_123',
+                        paymentMethodId: 'CREDIT_CARD',
+                    },
+                ],
+            } as CustomerProfile;
+
+            const result = computeFinalStepForReturningCustomer(basket, customerProfile, mockShipmentDistribution);
+            expect(result).toBeNull();
+        });
+
+        // Same guard applies when the basket is pre-prefill and has no address either. Complete
+        // profile with delivery-items-but-unaddressed must fall through so `computeStepFromBasket`
+        // picks SHIPPING_ADDRESS, not PLACE_ORDER.
+        it('should fall through to null when profile is complete but basket has unaddressed delivery items', () => {
             const basket = {
                 basketId: 'test',
                 customerInfo: { email: 'test@example.com' },
@@ -550,8 +475,6 @@ describe('Checkout Utils', () => {
                 ],
             } as CustomerProfile;
 
-            // hasUnaddressedDeliveryItems=true means no address has been entered yet — the new branch
-            // should not fire (it only pins when an address is in place but methods are missing).
             const distributionWithUnaddressedItems = {
                 ...mockShipmentDistribution,
                 hasUnaddressedDeliveryItems: true,
@@ -559,12 +482,37 @@ describe('Checkout Utils', () => {
             const result = computeFinalStepForReturningCustomer(
                 basket,
                 customerProfile,
-                distributionWithUnaddressedItems,
-                /*hasNoValidShippingMethods*/ true
+                distributionWithUnaddressedItems
             );
-            // Complete-profile branch still wins — but the user is on Shipping Address anyway via
-            // computeStepFromBasket's unaddressed branch in the provider's fallback chain.
-            expect(result).toBe(CHECKOUT_STEPS.PLACE_ORDER);
+            expect(result).toBeNull();
+        });
+
+        // With addresses on the profile but no saved payment methods, PAYMENT is the final step —
+        // but only if the basket already has an address. Pre-prefill (basket has unaddressed
+        // delivery items) we still need to fall through so SHIPPING_ADDRESS is picked instead.
+        it('should fall through to null for PAYMENT branch when basket still has unaddressed delivery items', () => {
+            const basket = {
+                basketId: 'test',
+                customerInfo: { email: 'test@example.com' },
+                shipments: [{}],
+            } as ShopperBasketsV2.schemas['Basket'];
+
+            const customerProfile = {
+                customer: { login: 'test@example.com' },
+                addresses: [{ addressId: 'addr_1', countryCode: 'US', lastName: 'Doe' }],
+                paymentInstruments: [],
+            } as CustomerProfile;
+
+            const distributionWithUnaddressedItems = {
+                ...mockShipmentDistribution,
+                hasUnaddressedDeliveryItems: true,
+            };
+            const result = computeFinalStepForReturningCustomer(
+                basket,
+                customerProfile,
+                distributionWithUnaddressedItems
+            );
+            expect(result).toBeNull();
         });
 
         it('should return PLACE_ORDER when customer has addresses and valid payment instrument in basket, even without saved payment methods', () => {

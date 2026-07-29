@@ -25,8 +25,7 @@ import * as AccountOverviewStories from './index.stories';
 
 const composed = composeStories(AccountOverviewStories);
 const mockLocale =
-    mockSiteObject.supportedLocales.find((l) => l.id === mockSiteObject.defaultLocale) ??
-    mockSiteObject.supportedLocales[0];
+    mockSiteObject.supportedLocales.find((l) => l.id === mockSiteObject.defaultLocale) ?? mockSiteObject.supportedLocales[0];
 
 // `<AccountOverviewOrdersAwait>` defers its content behind <Suspense> + <Await>
 // until `ordersPromise` resolves. Without flushing that promise, snapshots

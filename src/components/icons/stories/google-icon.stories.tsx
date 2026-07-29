@@ -18,7 +18,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import GoogleIcon from '../google-icon';
 
 const meta: Meta<typeof GoogleIcon> = {
-    title: 'Components/Icons/Google Icon',
+    title: 'Core/Icons/Google Icon',
     component: GoogleIcon,
     tags: ['autodocs'],
     parameters: {

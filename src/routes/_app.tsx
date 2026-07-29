@@ -19,13 +19,16 @@ import type { Route } from './+types/_app';
 import { usePageUIConfig, mainPaddingDataAttributes } from '@/lib/routes/page-ui-config';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { type ShopperProducts } from '@/scapi';
-import { fetchCategory } from '@/lib/api/categories.server';
+import { fetchCategory, fetchCategoriesByIds } from '@/lib/api/categories.server';
 import { getLogger } from '@/lib/logger.server';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import ResponsiveNavigationMenu from '@/components/navigation-menu-mega';
 import { WishlistMergeToast } from '@/components/wishlist/wishlist-merge-toast';
+import { useAuth } from '@/providers/auth';
+import { useWishlistSession } from '@/providers/wishlist';
 import { EmbeddedComponentRegion } from '@/components/region/embedded-component-region';
+import { SkipLink } from '@/components/skip-link';
 import {
     fetchComponentWithComponentData,
     type ComponentWithComponentData,
@@ -66,28 +69,24 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
 
     // Load each second-level sub categories tree as well, in case the resolved root-level category has any sub
     // categories and maxDepth allows for it. We then base this composed second-level promise on the initial root
-    // category promise to allow for parallel loading and streaming of the two main promises.
+    // category promise to allow for parallel loading and streaming of the two main promises. The sub category trees
+    // are fetched in a single (chunked) getCategories request rather than one getCategory request per root category.
     const subCategoriesPromise =
         maxDepth >= 2
-            ? rootCategoryPromise.then((rootCategory: ShopperProducts.schemas['Category']) =>
-                  Promise.all(
-                      rootCategory.categories?.reduce(
-                          (
-                              acc: Promise<ShopperProducts.schemas['Category']>[],
-                              subCategory: ShopperProducts.schemas['Category']
-                          ) => {
-                              if (
-                                  typeof subCategory.onlineSubCategoriesCount === 'number' &&
-                                  subCategory.onlineSubCategoriesCount > 0
-                              ) {
-                                  acc.push(fetchCategory(context, subCategory.id, maxDepth as 0 | 1 | 2));
-                              }
-                              return acc;
-                          },
-                          []
-                      ) ?? []
-                  )
-              )
+            ? rootCategoryPromise.then((rootCategory: ShopperProducts.schemas['Category']) => {
+                  const subCategoryIds =
+                      rootCategory.categories?.reduce((acc: string[], subCategory) => {
+                          if (
+                              typeof subCategory.onlineSubCategoriesCount === 'number' &&
+                              subCategory.onlineSubCategoriesCount > 0
+                          ) {
+                              acc.push(subCategory.id);
+                          }
+                          return acc;
+                      }, []) ?? [];
+
+                  return fetchCategoriesByIds(context, subCategoryIds, maxDepth as 0 | 1 | 2);
+              })
             : Promise.resolve([]);
 
     // Fetch header embedded component data (non-blocking, streamed to client, should be blocking once data is available from KVS to avoid layout shift)
@@ -131,12 +130,18 @@ export default function DefaultLayout({ loaderData: { root, subs, headerComponen
     // would otherwise be added after first paint. Inert if no CSS matches.
     const mainPaddingAttrs = mainPaddingDataAttributes(usePageUIConfig());
 
+    // Bind the module-level wishlist store (see providers/wishlist) to the current shopper here,
+    // once, from client auth context. `customerId` only changes on login/logout — both are
+    // redirects that revalidate the root loader, refreshing `useAuth()` — so the shell re-runs
+    // this on every identity change and evicts the prior shopper's hearts. Plain browse never
+    // changes it. The actual read stays lazy, fired by the first product intent.
+    useWishlistSession(useAuth()?.customerId ?? null);
+
     // <WishlistMergeToast> stays at the app shell — it reads URL params and a one-time
-    // cookie set by the post-login redirect target, not wishlist state. Routes that need
-    // wishlist hooks mount their own <DeferredWishlistProvider> so the SCAPI call only
-    // fires on pages that actually render wishlist UI.
+    // cookie set by the post-login redirect target, not wishlist state.
     return (
         <>
+            <SkipLink />
             <WishlistMergeToast />
             <Header
                 announcementSlot={
@@ -144,7 +149,7 @@ export default function DefaultLayout({ loaderData: { root, subs, headerComponen
                 }>
                 <ResponsiveNavigationMenu resolve={refRoot.current} defer={refSubs.current} />
             </Header>
-            <main className="grow pt-8" {...mainPaddingAttrs}>
+            <main id="main-content" tabIndex={-1} className="grow pt-8" {...mainPaddingAttrs}>
                 <Outlet />
             </main>
             <Footer />

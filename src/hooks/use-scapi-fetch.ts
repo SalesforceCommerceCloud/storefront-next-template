@@ -78,7 +78,7 @@ function useScapiFetchCore<TData, TBody>(
             prevOptionsRef.current = options;
         }
         return prevOptionsRef.current;
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- `options` is intentionally excluded; `optionsString` is its stable identity key. Including the raw object would re-run the memo on every render (parent passes a new object literal each time).
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- `options` is intentionally excluded; `optionsString` is its stable identity key. Including the raw object would re-run the memo on every render (parent passes a new object literal each time).
     }, [optionsString]);
 
     // Default URL — captured once for the common (no-override) submit path.
@@ -111,7 +111,7 @@ function useScapiFetchCore<TData, TBody>(
                         // Non-JSON error body — surface it instead of silently dropping it,
                         // so "what went wrong?" is debuggable when SCAPI/an upstream proxy
                         // returns HTML or text on errors.
-                        // eslint-disable-next-line no-console
+                        // oxlint-disable-next-line no-console
                         console.error('[useScapiFetch] non-JSON error response', {
                             status: response.status,
                             statusText: response.statusText,

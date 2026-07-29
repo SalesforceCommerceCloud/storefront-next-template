@@ -38,13 +38,14 @@ describe('createEmailUpdateFormSchema', () => {
         }
     });
 
-    it.each(['user@example.com', 'user+tag@example.co.uk', 'user.name@domain.org'])(
-        'accepts valid email: %j',
-        (email) => {
-            const result = schema.safeParse({ currentPassword: 'pass123', email });
-            expect(result.success).toBe(true);
-        }
-    );
+    it.each([
+        'user@example.com',
+        'user+tag@example.co.uk',
+        'user.name@domain.org',
+    ])('accepts valid email: %j', (email) => {
+        const result = schema.safeParse({ currentPassword: 'pass123', email });
+        expect(result.success).toBe(true);
+    });
 
     describe('requirePassword=true (default)', () => {
         it('accepts valid currentPassword and email', () => {

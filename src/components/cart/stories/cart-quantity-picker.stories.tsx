@@ -19,7 +19,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 const meta: Meta<typeof CartQuantityPicker> = {
-    title: 'CART/Cart Quantity Picker',
+    title: 'Cart/Items/Cart Quantity Picker',
     component: CartQuantityPicker,
     tags: ['autodocs', 'interaction'],
     parameters: {

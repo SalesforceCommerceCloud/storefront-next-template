@@ -484,6 +484,31 @@ describe('AccountDetails', () => {
             });
         });
 
+        test('unmounts the OTP modal subtree after close so its fetcher and timer tear down', async () => {
+            await renderAccountDetails({ ...mockCustomer, emailVerified: false });
+
+            // The lazy OTP subtree is not mounted before the shopper opens it.
+            expect(screen.queryByTestId('otp-modal')).not.toBeInTheDocument();
+
+            act(() => {
+                screen.getByRole('button', { name: 'Verify Email' }).click();
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('otp-modal')).toBeInTheDocument();
+            });
+
+            // Closing must eventually tear the subtree down — not merely flip isOpen —
+            // so OtpModal's useFetcher, resend countdown timer, and effects stop existing.
+            act(() => {
+                capturedOtpModalProps?.onClose();
+            });
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('otp-modal')).not.toBeInTheDocument();
+            });
+        });
+
         test('translates invalid token OTP verify error in handleVerifyOtp', async () => {
             const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
                 new Response(
@@ -594,6 +619,7 @@ describe('AccountDetails', () => {
                     loginMode: 'password',
                     returnUrl: '/global/en-GB/account',
                     skipUsid: 'true',
+                    skipDocumentRedirect: 'true',
                 },
                 { method: 'POST', action: '/global/en-GB/login' }
             );
@@ -767,6 +793,7 @@ describe('AccountDetails', () => {
                             loginMode: 'password',
                             returnUrl: '/global/en-GB/account',
                             skipUsid: 'true',
+                            skipDocumentRedirect: 'true',
                         },
                         { method: 'POST', action: '/global/en-GB/login' }
                     );
@@ -1111,6 +1138,18 @@ describe('AccountDetails', () => {
             const passwordCard = screen.getByTestId('sf-toggle-card-password');
             expect(within(passwordCard).getByText('••••••••')).toBeInTheDocument();
             expect(within(passwordCard).getByRole('button', { name: 'Change password' })).toBeInTheDocument();
+        });
+    });
+
+    describe('Heading structure', () => {
+        test('uses h2 for section titles', async () => {
+            await renderAccountDetails(mockCustomer);
+
+            // The visible section title sits at the same level as the sibling Email and
+            // Password sections, so it is not skipped from heading navigation.
+            expect(screen.getByRole('heading', { level: 2, name: 'Personal Information' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { level: 2, name: 'Email Address' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { level: 2, name: 'Password' })).toBeInTheDocument();
         });
     });
 });

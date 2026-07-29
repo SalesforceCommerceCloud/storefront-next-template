@@ -156,7 +156,7 @@ src/
 - 🔐 [Authentication & Session Management](./README-AUTH.md)
 - 🌍 [Internationalization (i18n)](./README-I18N.md)
 - 🧪 [Tests & Coverage](./README-TESTS.md)
-- 🔍 [ESLint Configuration & TypeScript Enforcement](./README-ESLINT.md)
+- 🔍 [Linting (OxLint), Formatting (Biome) & TypeScript Enforcement](./README-LINTING.md)
 - 🖼️ [Images](./docs/README-IMAGES.md)
 - ⚡ [Performance Best Practices](./docs/README-PERFORMANCE.md)
 - 📈 [Performance Metrics](./docs/README-PERFORMANCE-METRICS.md)

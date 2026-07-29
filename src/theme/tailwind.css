@@ -5,7 +5,7 @@
     --font-mono: 'Sen', 'Courier New', monospace;
 
     /* Error page tokens */
-    --text-error-status: 12rem; /* Large status code display for error pages */
+    --text-error-status: 12rem;  /* Large status code display for error pages */
 
     /* -- shape tokens -- shadcn primitives use rounded-ui / shadow-ui so
        the corner radius and drop shadow re-skin per vertical without
@@ -66,6 +66,8 @@
     --color-active-foreground: var(--active-foreground);
     --color-account-action-destructive: var(--account-action-destructive);
     --color-account-action-destructive-foreground: var(--account-action-destructive-foreground);
+    --color-account-action-primary: var(--account-action-primary);
+    --color-account-action-primary-foreground: var(--account-action-primary-foreground);
     --color-status-positive: var(--status-positive);
     --color-status-warning: var(--status-warning);
     --color-status-critical: var(--status-critical);
@@ -112,6 +114,10 @@
     --color-footer-background: var(--footer-background);
     --color-footer-foreground: var(--footer-foreground);
 
+    /* -- newsletter band -- */
+    --color-newsletter-background: var(--newsletter-background);
+    --color-newsletter-foreground: var(--newsletter-foreground);
+
     /* -- agentic palette -- */
     --color-agentic: var(--agentic);
     --color-agentic-foreground: var(--agentic-foreground);
@@ -154,3 +160,4 @@
     border-style: solid;
     border-width: var(--ui-border-width);
 }
+

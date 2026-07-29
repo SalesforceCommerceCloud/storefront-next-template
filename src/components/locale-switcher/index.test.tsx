@@ -16,7 +16,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-// eslint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
+// oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
 import * as ReactRouter from 'react-router';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
@@ -102,8 +102,9 @@ describe('LocaleSwitcher', () => {
     test('renders a language selector with proper accessibility label', () => {
         renderWithRouter();
 
+        // The accessible name folds the SC 3.2.2 context-change hint into aria-label.
         const selector = screen.getByRole('combobox', {
-            name: t('localeSwitcher:ariaLabel'),
+            name: `${t('localeSwitcher:ariaLabel')}. ${t('localeSwitcher:changesContextHint')}`,
         });
         expect(selector).toBeInTheDocument();
     });

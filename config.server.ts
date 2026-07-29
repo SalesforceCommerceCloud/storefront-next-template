@@ -219,6 +219,11 @@ export default defineConfig<Config>(
                         supportedCurrencies: ['USD'],
                     },
                 ],
+                // Source `sites` from the DAL when the matching Business Manager sync is
+                // enabled. On by default; the sites above stay the source of truth whenever
+                // the DAL entry is missing, unavailable, or yields no usable sites.
+                // Override via PUBLIC__app__commerce__sitesFromDal=false.
+                sitesFromDal: true,
             },
             // Global default cookie attributes applied to ALL storefront cookies
             // (auth/session + site-context: site_id, locale, currency). A per-site
@@ -250,12 +255,16 @@ export default defineConfig<Config>(
             // Feature flags for enabling/disabling functionality
             // See CONFIG-OPTIONS.md#features for detailed documentation
             features: {
+                passkey: {
+                    enabled: false,
+                    mode: 'email',
+                    callbackUri: '',
+                },
                 passwordlessLogin: {
                     enabled: false,
                     mode: 'email',
                     callbackUri: '/passwordless-login-callback',
                     landingUri: '/login',
-                    skipWhenEmailVerificationDisabled: true,
                 },
                 otpRequest: {
                     mode: 'email',
@@ -418,26 +427,39 @@ export default defineConfig<Config>(
                     clientPerformanceMetricsEnabled: false,
                 },
             },
-            // Analytics and engagement adapters — DISABLED by default in generated projects.
+            // Analytics and engagement adapters — disabled by default in generated
+            // projects. No shopper data is sent until you opt in.
             //
-            // To send analytics to YOUR Commerce Cloud instance, set `enabled: true` on the
-            // adapter(s) below and fill in your own site values. Example shape (replace the
-            // placeholders with your own values):
+            // To send analytics to YOUR Commerce Cloud instance, set `enabled: true`
+            // on the adapter(s) below and fill in your own values (replace the
+            // placeholders):
             //   einstein:   einsteinId: '<your-einstein-id>', realm: '<your-realm>',
             //               siteId: '<your-site-id>'  (host already defaults to the cquotient prod endpoint)
             //   activeData: host: 'https://<your-instance>.dx.commercecloud.salesforce.com',
             //               siteUUID: '<your-site-uuid>'
+            //   dataCloud:  appSourceId: '<your-app-source-id>', tenantId: '<your-tenant-id>',
+            //               siteId: '<your-site-id>'
             //
-            // Heads up: product recommendation carousels are powered by Einstein. While the
-            // einstein adapter is disabled (or not yet configured with your own values),
-            // recommendations resolve to empty and those carousels stay hidden — configure
-            // einstein above to bring them online.
+            // Heads up: product recommendation carousels are powered by Einstein. While
+            // the einstein adapter is disabled (or not yet configured with your own
+            // values), recommendations resolve to empty and those carousels stay hidden.
             //
-            // See docs/README-CONFIG-OPTIONS.md#engagement for the full reference.
+            // See CONFIG-OPTIONS.md#engagement for the full reference.
             engagement: {
                 adapters: {
                     einstein: {
                         enabled: false,
+                        // Only fire when the shopper has granted the `analytics` consent
+                        // category. With the current binary consent UI this equals
+                        // "accepted tracking"; it also future-proofs the adapter for
+                        // granular per-category consent.
+                        //
+                        // Because this adapter requires the `analytics` category, keep
+                        // 'analytics' in analytics.trackingConsent.consentCategories below.
+                        // If consentCategories is empty the consent layer falls back to
+                        // ['necessary'] and this adapter sends nothing (a startup warning is
+                        // logged). To send unconditionally, remove this consentCategory line.
+                        consentCategory: 'analytics',
                         host: 'https://api.cquotient.com',
                         einsteinId: '',
                         isProduction: false,
@@ -466,32 +488,40 @@ export default defineConfig<Config>(
                     },
                     dataCloud: {
                         enabled: false,
+                        // Gate on the `analytics` consent category (see einstein above).
+                        consentCategory: 'analytics',
                         appSourceId: '',
                         tenantId: '',
                         siteId: '',
+                        // Distinguishes Storefront Next events from PWA Kit's ('pwa') in the shared DLO.
+                        webStoreId: 'sfnext',
+                        // PWA Kit parity: only view/impression events are mapped. Cart, checkout,
+                        // wishlist, and click events have no Data Cloud mapping and ship disabled.
                         eventToggles: {
                             view_page: true,
                             view_product: true,
                             view_search: true,
                             view_category: true,
                             view_recommender: true,
-                            click_product_in_category: true,
-                            click_product_in_search: true,
-                            click_product_in_recommender: true,
-                            cart_item_add: true,
-                            checkout_start: true,
-                            checkout_step: true,
-                            view_search_suggestion: true,
-                            click_search_suggestion: true,
-                            wishlist_item_added: true,
-                            wishlist_item_removed: true,
-                            wishlist_viewed: true,
-                            wishlist_item_merged: true,
-                            wishlist_merged: true,
+                            click_product_in_category: false,
+                            click_product_in_search: false,
+                            click_product_in_recommender: false,
+                            cart_item_add: false,
+                            checkout_start: false,
+                            checkout_step: false,
+                            view_search_suggestion: false,
+                            click_search_suggestion: false,
+                            wishlist_item_added: false,
+                            wishlist_item_removed: false,
+                            wishlist_viewed: false,
+                            wishlist_item_merged: false,
+                            wishlist_merged: false,
                         },
                     },
                     activeData: {
                         enabled: false,
+                        // Gate on the `analytics` consent category (see einstein above).
+                        consentCategory: 'analytics',
                         host: '',
                         siteUUID: '',
                         eventToggles: {
@@ -546,18 +576,16 @@ export default defineConfig<Config>(
             // Development tools and features
             // See CONFIG-OPTIONS.md#development for detailed documentation
             development: { enableDevtools: true, hotReload: true, strictMode: true },
-            // Commerce Agent (Embedded Service / Agentforce)
-            // Override via PUBLIC__app__commerceAgent (single JSON string; see src/components/shopper-agent/README.md).
-            commerceAgent: {
+            // Cimulate Agent (Commerce Client messaging widget)
+            // Override via PUBLIC__app__cimulateAgent (single JSON string; see src/components/cimulate/README.md).
+            cimulateAgent: {
                 enabled: '',
-                embeddedServiceName: '',
-                embeddedServiceEndpoint: '',
-                scriptSourceUrl: '',
+                commerceClientScriptSourceUrl: '',
                 scrt2Url: '',
                 salesforceOrgId: '',
-                siteId: '',
-                enableConversationContext: '',
-                conversationContext: [],
+                esDeveloperName: '',
+                commerceClientElementId: 'cimulate-messaging-container',
+                commerceClientDisplayMode: 'panel' as const,
             },
             // Defaults contributed by installed extensions, auto-discovered from each
             // src/extensions/*/config.ts. Do not edit by hand — regenerate with
@@ -581,7 +609,7 @@ export default defineConfig<Config>(
                         try {
                             return JSON.parse(process.env.PUBLIC__app__security__turnstile__sites);
                         } catch {
-                            // eslint-disable-next-line no-console
+                            // oxlint-disable-next-line no-console
                             console.error(
                                 '[Turnstile] Failed to parse PUBLIC__app__security__turnstile__sites - no sites configured (fail-closed)'
                             );

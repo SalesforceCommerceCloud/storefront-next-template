@@ -75,7 +75,7 @@ function PlaygroundHarness(args: Partial<SyntheticArgs>) {
 }
 
 const meta: Meta<typeof RemoveAddressConfirmationDialog> = {
-    title: 'DIALOG/RemoveAddressConfirmationDialog',
+    title: 'Account/Addresses/Remove Address Confirmation Dialog',
     component: RemoveAddressConfirmationDialog,
     parameters: {
         layout: 'centered',

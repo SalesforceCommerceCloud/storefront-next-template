@@ -28,16 +28,8 @@ vi.mock('react-router', async (importOriginal) => {
         useLocation: () => ({ pathname: '/', search: '', hash: '', state: null, key: 'test' }),
         useResolvedPath: () => ({ pathname: '/', search: '', hash: '' }),
         useHref: () => '/',
-        Link: (props: any) => (
-            <a href={props.to} {...props}>
-                {props.children}
-            </a>
-        ),
-        NavLink: (props: any) => (
-            <a href={props.to} {...props}>
-                {props.children}
-            </a>
-        ),
+        Link: (props: any) => <a href={props.to} {...props}>{props.children}</a>,
+        NavLink: (props: any) => <a href={props.to} {...props}>{props.children}</a>,
     };
 });
 vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOriginal) => {

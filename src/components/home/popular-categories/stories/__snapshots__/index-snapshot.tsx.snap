@@ -38,12 +38,13 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -94,7 +95,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -125,7 +126,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -176,7 +177,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -207,7 +208,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -258,7 +259,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -289,7 +290,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -340,7 +341,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -370,7 +371,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
             </div>
           </div>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 -translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-previous"
             data-variant="outline"
@@ -403,7 +404,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
             </span>
           </button>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-next"
             data-variant="outline"
@@ -480,10 +481,11 @@ exports[`PopularCategories stories snapshot > Default story renders and matches 
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             />
           </div>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 -translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-previous"
             data-variant="outline"
@@ -516,7 +518,7 @@ exports[`PopularCategories stories snapshot > Default story renders and matches 
             </span>
           </button>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-next"
             data-variant="outline"
@@ -605,10 +607,11 @@ exports[`PopularCategories stories snapshot > Loading story renders and matches 
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             />
           </div>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 -translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-previous"
             data-variant="outline"
@@ -641,7 +644,7 @@ exports[`PopularCategories stories snapshot > Loading story renders and matches 
             </span>
           </button>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-next"
             data-variant="outline"
@@ -718,12 +721,13 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -774,7 +778,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -805,7 +809,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -856,7 +860,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -887,7 +891,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -938,7 +942,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -969,7 +973,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1020,7 +1024,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1051,7 +1055,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1102,7 +1106,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1133,7 +1137,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1184,7 +1188,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1214,7 +1218,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
             </div>
           </div>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 -translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-previous"
             data-variant="outline"
@@ -1247,7 +1251,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
             </span>
           </button>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-next"
             data-variant="outline"
@@ -1336,12 +1340,13 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1392,7 +1397,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1423,7 +1428,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1474,7 +1479,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1505,7 +1510,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1556,7 +1561,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1587,7 +1592,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1638,7 +1643,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1668,7 +1673,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
             </div>
           </div>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 -translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-previous"
             data-variant="outline"
@@ -1701,7 +1706,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
             </span>
           </button>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-next"
             data-variant="outline"
@@ -1778,12 +1783,13 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1834,7 +1840,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1865,7 +1871,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1916,7 +1922,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -1947,7 +1953,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -1998,7 +2004,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2029,7 +2035,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2080,7 +2086,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2110,7 +2116,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
             </div>
           </div>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 -translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-previous"
             data-variant="outline"
@@ -2143,7 +2149,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
             </span>
           </button>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-next"
             data-variant="outline"
@@ -2220,12 +2226,13 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
           >
             <div
               class="flex -ml-4 items-stretch flex-nowrap"
+              role="list"
             >
               <div
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2257,7 +2264,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2288,7 +2295,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2320,7 +2327,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2351,7 +2358,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2383,7 +2390,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2414,7 +2421,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 aria-roledescription="slide"
                 class="min-w-0 shrink-0 grow-0 pl-4 w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex"
                 data-slot="carousel-item"
-                role="group"
+                role="listitem"
               >
                 <div
                   class="w-full max-w-full min-w-0 flex"
@@ -2446,7 +2453,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                         </div>
                       </div>
                       <div
-                        class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+                        class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"
                       >
                         <div
                           class="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-12 flex flex-col justify-end"
@@ -2476,7 +2483,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
             </div>
           </div>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 -translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex left-0 lg:-translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-previous"
             data-variant="outline"
@@ -2509,7 +2516,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
             </span>
           </button>
           <button
-            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 translate-x-1/2 size-9 shadow-md"
+            class="items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-ui hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 absolute rounded-full top-1/2 -translate-y-1/2 flex right-0 lg:translate-x-1/2 size-9 shadow-md"
             data-size="icon"
             data-slot="carousel-next"
             data-variant="outline"

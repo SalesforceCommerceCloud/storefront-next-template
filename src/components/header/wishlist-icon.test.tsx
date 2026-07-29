@@ -61,11 +61,13 @@ describe('WishlistIcon', () => {
         expect(link).toHaveAttribute('href', '/global/en-GB/account/wishlist');
     });
 
-    test('registered shopper without customerId: treated as guest, points to /wishlist', () => {
+    test('registered shopper without customerId: points to /account/wishlist', () => {
+        // Gating is userType-only: under a cached app shell the client restores userType from the hint
+        // cookie but never customerId, so a registered userType alone routes to the account wishlist.
         render(createTestWrapper(<WishlistIcon />, { userType: 'registered' }));
 
         const link = screen.getByRole('link', { name: t('header:wishlist') });
-        expect(link).toHaveAttribute('href', '/global/en-GB/wishlist');
+        expect(link).toHaveAttribute('href', '/global/en-GB/account/wishlist');
     });
 
     test('no session: defaults to guest /wishlist', () => {
