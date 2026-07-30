@@ -22,13 +22,15 @@ import {
     MIN_INPUT_LENGTH,
     type UseAutocompleteSuggestionsOptions,
 } from './use-autocomplete-suggestions';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
-vi.mock('@vis.gl/react-google-maps', () => ({
-    useMapsLibrary: vi.fn(),
+// Mock the GoogleMapsContext — @vis.gl/react-google-maps is NOT imported here.
+// This asserts the static edge has been removed from the hook.
+const mockActivate = vi.fn();
+const mockUseGoogleMaps = vi.hoisted(() => vi.fn());
+
+vi.mock('@/providers/google-maps-context', () => ({
+    useGoogleMaps: mockUseGoogleMaps,
 }));
-
-const mockUseMapsLibrary = useMapsLibrary as ReturnType<typeof vi.fn>;
 
 describe('useAutocompleteSuggestions', () => {
     let mockSessionToken: object;
@@ -77,7 +79,7 @@ describe('useAutocompleteSuggestions', () => {
             },
         };
 
-        mockUseMapsLibrary.mockReturnValue(mockPlacesLibrary);
+        mockUseGoogleMaps.mockReturnValue({ places: mockPlacesLibrary, activate: mockActivate });
     });
 
     afterEach(() => {
@@ -103,10 +105,10 @@ describe('useAutocompleteSuggestions', () => {
             expect(result.current.isLoading).toBe(false);
         });
 
-        it('should call useMapsLibrary with "places"', () => {
+        it('should call useGoogleMaps to get the places library (not @vis.gl directly)', () => {
             renderHook(() => useAutocompleteSuggestions());
 
-            expect(mockUseMapsLibrary).toHaveBeenCalledWith('places');
+            expect(mockUseGoogleMaps).toHaveBeenCalled();
         });
 
         it('should not fetch when inputString is empty', async () => {
@@ -127,6 +129,76 @@ describe('useAutocompleteSuggestions', () => {
             });
 
             expect(mockFetchAutocompleteSuggestions).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('deferred loading — places null until activated', () => {
+        it('should return empty suggestions when places library is null (not yet loaded)', async () => {
+            mockUseGoogleMaps.mockReturnValue({ places: null, activate: mockActivate });
+
+            const { result } = renderHook(() => useAutocompleteSuggestions({ inputString: '123 Main' }));
+
+            await act(async () => {
+                await vi.runAllTimersAsync();
+            });
+
+            expect(result.current.suggestions).toEqual([]);
+            expect(mockFetchAutocompleteSuggestions).not.toHaveBeenCalled();
+        });
+
+        it('should not lose typed input while places library loads (no fetch, no reset)', async () => {
+            // Simulate: user types before @vis.gl has loaded → places is null
+            mockUseGoogleMaps.mockReturnValue({ places: null, activate: mockActivate });
+
+            const { result, rerender } = renderHook(
+                ({ inputString }: UseAutocompleteSuggestionsOptions) => useAutocompleteSuggestions({ inputString }),
+                { initialProps: { inputString: '123 Main' } }
+            );
+
+            await act(async () => {
+                await vi.runAllTimersAsync();
+            });
+
+            // Suggestions are empty but the hook has not thrown or reset state
+            expect(result.current.suggestions).toEqual([]);
+            expect(result.current.isLoading).toBe(false);
+
+            // Now places library becomes available (module loaded)
+            mockUseGoogleMaps.mockReturnValue({ places: mockPlacesLibrary, activate: mockActivate });
+            rerender({ inputString: '123 Main' });
+
+            await act(async () => {
+                await vi.runAllTimersAsync();
+            });
+
+            // Autocomplete works once loaded — input text was never lost
+            expect(mockFetchAutocompleteSuggestions).toHaveBeenCalledTimes(1);
+            expect(result.current.suggestions).toHaveLength(2);
+        });
+
+        it('should fetch normally once places library becomes available', async () => {
+            // Start with no library
+            mockUseGoogleMaps.mockReturnValue({ places: null, activate: mockActivate });
+
+            const { rerender } = renderHook(
+                ({ inputString }: UseAutocompleteSuggestionsOptions) => useAutocompleteSuggestions({ inputString }),
+                { initialProps: { inputString: '123 Main' } }
+            );
+
+            await act(async () => {
+                await vi.runAllTimersAsync();
+            });
+            expect(mockFetchAutocompleteSuggestions).not.toHaveBeenCalled();
+
+            // Library loads
+            mockUseGoogleMaps.mockReturnValue({ places: mockPlacesLibrary, activate: mockActivate });
+            rerender({ inputString: '123 Main' });
+
+            await act(async () => {
+                await vi.runAllTimersAsync();
+            });
+
+            expect(mockFetchAutocompleteSuggestions).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -481,7 +553,7 @@ describe('useAutocompleteSuggestions', () => {
         });
 
         it('should not fetch when places library is not available', async () => {
-            mockUseMapsLibrary.mockReturnValue(null);
+            mockUseGoogleMaps.mockReturnValue({ places: null, activate: mockActivate });
 
             const { result } = renderHook(() => useAutocompleteSuggestions());
 
@@ -535,7 +607,7 @@ describe('useAutocompleteSuggestions', () => {
 
     describe('when places library is null', () => {
         it('should return empty suggestions', async () => {
-            mockUseMapsLibrary.mockReturnValue(null);
+            mockUseGoogleMaps.mockReturnValue({ places: null, activate: mockActivate });
 
             const { result } = renderHook(() =>
                 useAutocompleteSuggestions({
@@ -551,7 +623,7 @@ describe('useAutocompleteSuggestions', () => {
         });
 
         it('should not attempt to fetch', async () => {
-            mockUseMapsLibrary.mockReturnValue(null);
+            mockUseGoogleMaps.mockReturnValue({ places: null, activate: mockActivate });
 
             renderHook(() =>
                 useAutocompleteSuggestions({

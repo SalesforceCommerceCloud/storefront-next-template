@@ -29,6 +29,8 @@ describe('security defaults', () => {
               "https://*.demandware.net",
               "https://challenges.cloudflare.com",
               "https://api.cquotient.com",
+              "https://places.googleapis.com",
+              "https://maps.googleapis.com",
             ],
             "default-src": [
               "'self'",
@@ -81,6 +83,8 @@ describe('security defaults', () => {
                   "https://*.demandware.net",
                   "https://challenges.cloudflare.com",
                   "https://api.cquotient.com",
+                  "https://places.googleapis.com",
+                  "https://maps.googleapis.com",
                 ],
                 "default-src": [
                   "'self'",

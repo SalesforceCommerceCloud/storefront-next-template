@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PropsWithChildren } from 'react';
-import { APIProvider } from '@vis.gl/react-google-maps';
+import { type PropsWithChildren, useState, useCallback, useRef, type ComponentType } from 'react';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
+import { GoogleMapsContext, type PlacesLibrary } from './google-maps-context';
+import type { MapsLibraryBridge as MapsLibraryBridgeType } from './google-maps-bridge';
+
+type ApiProviderComponent = ComponentType<{ apiKey: string; children?: React.ReactNode }>;
+type MapsLibraryBridgeComponent = typeof MapsLibraryBridgeType;
+
+interface VisMod {
+    APIProvider: ApiProviderComponent;
+    MapsLibraryBridge: MapsLibraryBridgeComponent;
+}
 
 type GoogleCloudApiProviderProps = PropsWithChildren<{
     /**
@@ -39,29 +48,65 @@ type GoogleCloudApiProviderProps = PropsWithChildren<{
  */
 function useGoogleCloudAPIKey(dataStoreApiKey?: string): string {
     const config = useConfig();
-
     return config.features.googleCloudAPI.apiKey || dataStoreApiKey || '';
 }
 
 /**
- * Provider component that wraps children with Google Maps API context.
+ * Provider component that defers Google Maps API loading until autocomplete is needed.
  *
- * Conditionally renders the Google Maps APIProvider only when an API key is configured.
- * If no API key is set, children are rendered without the Maps API context.
+ * Design goals:
+ * - @vis.gl/react-google-maps is NOT on the initial checkout static graph.
+ *   It is dynamically imported only after `activate()` is called (triggered by
+ *   address field focus in AddressFormFields).
+ * - Children are never remounted. The @vis.gl APIProvider is rendered as a sibling
+ *   subtree (not as a parent), and a MapsLibraryBridge inside that sibling forwards
+ *   the loaded `places` library into GoogleMapsContext.
+ * - When no API key is configured, activate() is a no-op and places stays null.
  *
  * @example
  * ```tsx
  * <GoogleCloudApiProvider apiKey={loaderData.gcpApiKey}>
- *   <MapComponent />
+ *   <CheckoutFormPage />
  * </GoogleCloudApiProvider>
  * ```
  */
 export default function GoogleCloudApiProvider({ apiKey, children }: GoogleCloudApiProviderProps) {
     const googleCloudAPIKey = useGoogleCloudAPIKey(apiKey);
+    const [places, setPlaces] = useState<PlacesLibrary | null>(null);
+    const [visMod, setVisMod] = useState<VisMod | null>(null);
+    const activatedRef = useRef(false);
 
-    if (!googleCloudAPIKey) {
-        return <>{children}</>;
-    }
+    const activate = useCallback(() => {
+        if (!googleCloudAPIKey || activatedRef.current) return;
+        activatedRef.current = true;
 
-    return <APIProvider apiKey={googleCloudAPIKey}>{children}</APIProvider>;
+        // Dynamic import keeps @vis.gl off the initial checkout bundle.
+        // Reset the ref on rejection so a later focus can retry.
+        import('./google-maps-bridge')
+            .then((mod) => {
+                setVisMod({
+                    APIProvider: mod.APIProvider,
+                    MapsLibraryBridge: mod.MapsLibraryBridge,
+                });
+            })
+            .catch(() => {
+                activatedRef.current = false;
+            });
+    }, [googleCloudAPIKey]);
+
+    return (
+        <GoogleMapsContext.Provider value={{ places, activate }}>
+            {/*
+             * APIProvider lives here as a sibling, NOT as a parent of {children}.
+             * This prevents any remount when the module loads: {children} are
+             * always at the same position in the React tree.
+             */}
+            {visMod && (
+                <visMod.APIProvider apiKey={googleCloudAPIKey}>
+                    <visMod.MapsLibraryBridge onLoad={setPlaces} />
+                </visMod.APIProvider>
+            )}
+            {children}
+        </GoogleMapsContext.Provider>
+    );
 }

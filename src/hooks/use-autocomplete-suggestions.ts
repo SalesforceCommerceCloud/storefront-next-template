@@ -15,8 +15,8 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
-import { convertGoogleMapsSuggestions, type GoogleMapsSuggestion } from '@/lib/address/address-suggestions';
+import { useGoogleMaps } from '@/providers/google-maps-context';
+import { convertGoogleMapsSuggestions } from '@/lib/address/address-suggestions';
 import type { AddressSuggestion } from '@/components/address-suggestion-dropdown';
 
 export const DEBOUNCE_DELAY = 300;
@@ -50,16 +50,6 @@ export interface UseAutocompleteSuggestionsResult {
     fetchSuggestions: (input: string) => Promise<void>;
 }
 
-/**
- * Google Maps Places library types
- */
-interface PlacesLibrary {
-    AutocompleteSessionToken: new () => object;
-    AutocompleteSuggestion: {
-        fetchAutocompleteSuggestions: (request: AutocompleteRequest) => Promise<AutocompleteResponse>;
-    };
-}
-
 interface AutocompleteRequest {
     input: string;
     includedPrimaryTypes: string[];
@@ -67,15 +57,15 @@ interface AutocompleteRequest {
     includedRegionCodes?: string[];
 }
 
-interface AutocompleteResponse {
-    suggestions: GoogleMapsSuggestion[];
-}
-
 /**
- * Custom hook for Google Maps Places autocomplete suggestions
+ * Custom hook for Google Maps Places autocomplete suggestions.
  *
- * Uses the Google Maps Places API to fetch address suggestions based on user input.
- * Includes session token management, debouncing, and caching for optimal performance.
+ * Reads the Places library from GoogleMapsContext (provided by GoogleCloudApiProvider).
+ * The @vis.gl/react-google-maps package is NOT imported here — it is loaded lazily
+ * via a dynamic import triggered by address field focus.
+ *
+ * Returns empty suggestions when the Maps API is not yet loaded or when no API key
+ * is configured, so the form remains fully usable without autocomplete.
  *
  * @param options - Hook configuration options
  * @returns Object containing suggestions, loading state, and control functions
@@ -94,7 +84,8 @@ export function useAutocompleteSuggestions({
     minInputLength = MIN_INPUT_LENGTH,
     debounceDelay = DEBOUNCE_DELAY,
 }: UseAutocompleteSuggestionsOptions = {}): UseAutocompleteSuggestionsResult {
-    const places: PlacesLibrary | null = useMapsLibrary('places');
+    // Read the places library from GoogleMapsContext — no static @vis.gl import here.
+    const { places } = useGoogleMaps();
 
     const sessionTokenRef = useRef<object | null>(null);
     const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

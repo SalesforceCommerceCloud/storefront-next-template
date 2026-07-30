@@ -2204,6 +2204,14 @@ class CheckoutPage {
                 .locator('[data-testid="checkout-order-summary-sidebar"]')
                 .first()
                 .waitFor({ state: 'attached', timeout: 20_000 });
+            // The sidebar container ships in the SSR HTML, but its inner OrderSummary
+            // (and the PromoCodeForm accordion trigger inside it) is lazy-loaded behind a
+            // Suspense boundary. Wait for the trigger itself so the tab scan starts once
+            // the sidebar's focusable content is in the DOM.
+            await page
+                .locator('[data-testid="checkout-order-summary-sidebar"] [data-slot="accordion-trigger"]')
+                .first()
+                .waitFor({ state: 'attached', timeout: 20_000 });
         }) as unknown as Promise<void>);
 
         const positions = (await I.usePlaywrightTo('capture tab-order positions of key sections', async ({ page }) => {

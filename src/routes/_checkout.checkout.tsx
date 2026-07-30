@@ -146,13 +146,20 @@ function CheckoutView({
             <CheckoutProvider
                 customerProfile={customerProfileData ?? undefined}
                 shippingDefaultSet={shippingDefaultSet ?? Promise.resolve(undefined)}>
-                <CheckoutFormPage
-                    shippingMethodsMapPromise={shippingMethodsMap}
-                    productMapPromise={productMap}
-                    promotionsPromise={promotions}
-                    showToast={addToast}
-                    emailVerificationEnabled={emailVerificationEnabled}
-                />
+                {/*
+                 * GoogleCloudApiProvider is scoped to CheckoutFormPage only — the subtree
+                 * that contains AddressFormFields and needs address autocomplete.
+                 * PrefillSync, SeoMeta, and PickupProvider are intentionally outside.
+                 */}
+                <GoogleCloudApiProvider apiKey={gcpApiKey}>
+                    <CheckoutFormPage
+                        shippingMethodsMapPromise={shippingMethodsMap}
+                        productMapPromise={productMap}
+                        promotionsPromise={promotions}
+                        showToast={addToast}
+                        emailVerificationEnabled={emailVerificationEnabled}
+                    />
+                </GoogleCloudApiProvider>
             </CheckoutProvider>
         </>
     );
@@ -162,8 +169,6 @@ function CheckoutView({
     /// Initialize PickupProvider with stores by store id
     finalContent = <PickupProvider initialPickupStores={storesByStoreId}>{content}</PickupProvider>;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
-
-    finalContent = <GoogleCloudApiProvider apiKey={gcpApiKey}>{finalContent}</GoogleCloudApiProvider>;
 
     return finalContent;
 }

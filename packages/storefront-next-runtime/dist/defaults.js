@@ -34,7 +34,9 @@ const defaultCspDirectives = {
 		"https://*.commercecloud.salesforce.com",
 		"https://*.demandware.net",
 		"https://challenges.cloudflare.com",
-		"https://api.cquotient.com"
+		"https://api.cquotient.com",
+		"https://places.googleapis.com",
+		"https://maps.googleapis.com"
 	],
 	"frame-src": ["https://challenges.cloudflare.com"],
 	"frame-ancestors": ["'self'"],

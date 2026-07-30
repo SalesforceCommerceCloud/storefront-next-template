@@ -57,6 +57,10 @@ export const defaultCspDirectives: CspDirectives = {
         // Browser `navigator.sendBeacon` calls from the OOTB Einstein engagement
         // adapter to the CQuotient activities API (e.g. viewPage/viewProduct).
         'https://api.cquotient.com',
+        // Browser fetch/XHR to the Google Maps Places API for address autocomplete
+        // during checkout (Places "New" AutocompleteSuggestion + the Maps JS loader).
+        'https://places.googleapis.com',
+        'https://maps.googleapis.com',
     ],
     // Cloudflare Turnstile widget iframe.
     'frame-src': ['https://challenges.cloudflare.com'],

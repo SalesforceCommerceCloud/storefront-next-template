@@ -27,6 +27,7 @@ import { processAddressSuggestion } from '@/lib/address/address-suggestions';
 import { UITarget } from '@/targets/ui-target';
 import { getCommonPhoneCountryCodes } from '@/lib/address/country-codes';
 import { formatPhoneInput, stripNonDigits, stripCountryCode } from '@/lib/address/phone-utils';
+import { useGoogleMaps } from '@/providers/google-maps-context';
 
 /**
  * Base address field names that the form must support
@@ -103,6 +104,9 @@ export function AddressFormFields<TFormValues extends FieldValues>({
 }: AddressFormFieldsProps<TFormValues>) {
     const { t } = useTranslation('checkout');
     const { t: tCountries } = useTranslation('countries');
+
+    // Trigger deferred loading of the Google Maps API on first address-field focus.
+    const { activate } = useGoogleMaps();
 
     // Address autocomplete state
     const [addressInput, setAddressInput] = useState('');
@@ -313,6 +317,7 @@ export function AddressFormFields<TFormValues extends FieldValues>({
                                 autoFocus={autoFocus && autoFocusField === 'address1'}
                                 {...field}
                                 onChange={(e) => handleAddressInputChange(e, field.onChange)}
+                                onFocus={activate}
                             />
                             {renderAddressAutocomplete()}
                             <FormMessage />
