@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ComponentProps, lazy, Suspense, useCallback, useState } from 'react';
+import { type ComponentProps, lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { type WishlistButton } from '@/components/buttons/wishlist-button';
 import { HeartIcon } from '@/components/icons';
 import { useIsInWishlist, useWishlistLoader } from '@/providers/wishlist';
@@ -22,7 +22,17 @@ const LazyWishlistButton = lazy(() =>
     import('@/components/buttons/wishlist-button').then((m) => ({ default: m.WishlistButton }))
 );
 
-type WishlistButtonProps = ComponentProps<typeof WishlistButton>;
+type WishlistButtonProps = ComponentProps<typeof WishlistButton> & {
+    /**
+     * When true, eagerly swap the placeholder for the real interactive button. The enclosing
+     * `ProductTile` sets this on first tile intent — which, for keyboard users, fires when the
+     * image link one tab stop *before* this button receives focus. Loading here (rather than on
+     * this button's own `onFocus`) means the swap completes before Tab reaches the button, so the
+     * focused node is never remounted out from under the user (which would drop focus to `<body>`
+     * and skip the control entirely — WCAG 2.1.1).
+     */
+    preload?: boolean;
+};
 
 /**
  * Deferred WishlistButton for product tiles. Renders a placeholder icon until the tile receives a pointer event,
@@ -38,7 +48,7 @@ type WishlistButtonProps = ComponentProps<typeof WishlistButton>;
  * heart is `opacity-0` until tile hover, so the trigger belongs on the tile, not this icon); the
  * redundant call here is a harmless idempotent backstop.
  */
-export function DeferredWishlistButton(props: WishlistButtonProps) {
+export function DeferredWishlistButton({ preload, ...props }: WishlistButtonProps) {
     const [loaded, setLoaded] = useState(false);
     const productId = props.variant?.productId || props.product.productId;
     // Per-product subscription via useSyncExternalStore — only re-renders when
@@ -52,6 +62,15 @@ export function DeferredWishlistButton(props: WishlistButtonProps) {
         void loadWishlist();
         setLoaded(true);
     }, [loadWishlist]);
+
+    // Keyboard path: the tile requests preload when the image link (one tab stop before this
+    // button) is focused, so the placeholder→real swap finishes before Tab lands here. Swapping on
+    // this button's own focus instead would remount the focused node and drop focus to `<body>`.
+    useEffect(() => {
+        if (preload) {
+            handleIntent();
+        }
+    }, [preload, handleIntent]);
 
     if (loaded) {
         return (

@@ -45,6 +45,21 @@ describe('AiInsightCard', () => {
         expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Custom Title');
     });
 
+    it('renders the title as a non-heading when titleAs is set', () => {
+        render(
+            <AiInsightCard
+                variant="review"
+                title="AI Review Summary"
+                titleAs="span"
+                description="Summary text"
+                rating={4}
+                reviewCount={50}
+            />
+        );
+        expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+        expect(screen.getByText('AI Review Summary')).toBeInTheDocument();
+    });
+
     it('renders badge when badgeText is provided', () => {
         render(
             <AiInsightCard

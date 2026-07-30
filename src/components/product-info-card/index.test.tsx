@@ -58,4 +58,16 @@ describe('ProductInfoCard', () => {
 
         expect(screen.getByTestId('test-icon')).toBeInTheDocument();
     });
+
+    it('renders the title as plain text by default', () => {
+        render(<ProductInfoCard title="Estimated Delivery" />);
+
+        expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+    });
+
+    it('renders the title as a heading when titleAs is set', () => {
+        render(<ProductInfoCard title="Estimated Delivery" titleAs="h2" />);
+
+        expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Estimated Delivery');
+    });
 });

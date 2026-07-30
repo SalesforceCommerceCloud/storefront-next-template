@@ -165,6 +165,29 @@ describe('DeferredWishlistButton', () => {
         });
     });
 
+    describe('preload (keyboard reachability)', () => {
+        // The tile sets `preload` on first tile intent — which, for keyboard users, fires when the
+        // image link one tab stop *before* this button is focused. Swapping the placeholder for the
+        // real button here (rather than on this button's own focus) means the node is stable before
+        // Tab lands on it; a swap under focus would remount it and drop focus to <body>, skipping the
+        // control entirely (WCAG 2.1.1). Regression guard for the #2521 keyboard fix.
+        test('swaps to the real WishlistButton when preload becomes true, without needing focus', async () => {
+            const { rerender } = render(<DeferredWishlistButton {...defaultProps} preload={false} />);
+            expect(screen.queryByTestId('real-wishlist-button')).not.toBeInTheDocument();
+
+            rerender(<DeferredWishlistButton {...defaultProps} preload={true} />);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('real-wishlist-button')).toBeInTheDocument();
+            });
+        });
+
+        test('does not swap while preload is false', () => {
+            render(<DeferredWishlistButton {...defaultProps} preload={false} />);
+            expect(screen.queryByTestId('real-wishlist-button')).not.toBeInTheDocument();
+        });
+    });
+
     describe('prop forwarding', () => {
         test('forwards all props to the real WishlistButton once loaded', async () => {
             render(<DeferredWishlistButton {...defaultProps} />);

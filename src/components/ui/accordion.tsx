@@ -28,10 +28,19 @@ function AccordionItem({
 function AccordionTrigger({
   className,
   children,
+  headingLevel,
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+}: React.ComponentProps<typeof AccordionPrimitive.Trigger> & {
+  /**
+   * Overrides the heading level announced for this trigger. Radix renders the
+   * header as an `<h3>`; pass a level (e.g. `2`) via `aria-level` to place the
+   * trigger correctly in the page outline without skipping levels. Omit to keep
+   * the default `<h3>` semantics.
+   */
+  headingLevel?: number
+}) {
   return (
-    <AccordionPrimitive.Header className="flex">
+    <AccordionPrimitive.Header className="flex" aria-level={headingLevel}>
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
         className={cn(

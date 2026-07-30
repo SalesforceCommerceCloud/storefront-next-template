@@ -93,10 +93,9 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 1"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 left-2 flex flex-col items-start gap-1 z-20"
@@ -118,7 +117,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -145,7 +144,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 1"
@@ -168,11 +167,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 1"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId"
+            tabindex="-1"
           >
             Product 1
           </a>
@@ -373,16 +375,15 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 2"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=750518703077M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -409,7 +410,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 2"
@@ -447,11 +448,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 2"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=750518703077M"
+            tabindex="-1"
           >
             Product 2
           </a>
@@ -652,16 +656,15 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 3"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=701642823919M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -688,7 +691,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 3"
@@ -744,11 +747,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 3"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=701642823919M"
+            tabindex="-1"
           >
             Product 3
           </a>
@@ -958,16 +964,15 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 4"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=750518894461M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -994,7 +999,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 4"
@@ -1051,11 +1056,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 4"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=750518894461M"
+            tabindex="-1"
           >
             Product 4
           </a>
@@ -1250,16 +1258,15 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 5"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -1286,7 +1293,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 5"
@@ -1309,11 +1316,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 5"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId"
+            tabindex="-1"
           >
             Product 5
           </a>
@@ -1498,10 +1508,9 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 6"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 left-2 flex flex-col items-start gap-1 z-20"
@@ -1523,7 +1532,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -1550,7 +1559,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 6"
@@ -1573,11 +1582,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 6"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId"
+            tabindex="-1"
           >
             Product 6
           </a>
@@ -1778,16 +1790,15 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 7"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=750518703077M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -1814,7 +1825,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 7"
@@ -1852,11 +1863,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 7"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=750518703077M"
+            tabindex="-1"
           >
             Product 7
           </a>
@@ -2057,16 +2071,15 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 8"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=701642823919M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
           >
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -2093,7 +2106,7 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 8"
@@ -2149,11 +2162,14 @@ exports[`ProductGrid stories snapshot > FullyFeatured story renders and matches 
           Test Store
         </p>
         <h3
+          aria-label="Product 8"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=701642823919M"
+            tabindex="-1"
           >
             Product 8
           </a>
@@ -2583,10 +2599,9 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 1"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 left-2 flex flex-col items-start gap-1 z-20"
@@ -2642,7 +2657,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -2669,7 +2684,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 1"
@@ -2692,11 +2707,14 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           Test Store
         </p>
         <h3
+          aria-label="Product 1"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId"
+            tabindex="-1"
           >
             Product 1
           </a>
@@ -2897,10 +2915,9 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 2"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=750518703077M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -2940,7 +2957,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -2967,7 +2984,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 2"
@@ -3005,11 +3022,14 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           Test Store
         </p>
         <h3
+          aria-label="Product 2"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=750518703077M"
+            tabindex="-1"
           >
             Product 2
           </a>
@@ -3210,10 +3230,9 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 3"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=701642823919M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -3253,7 +3272,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -3280,7 +3299,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 3"
@@ -3336,11 +3355,14 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           Test Store
         </p>
         <h3
+          aria-label="Product 3"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=701642823919M"
+            tabindex="-1"
           >
             Product 3
           </a>
@@ -3550,10 +3572,9 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             </a>
           </div>
           <a
-            aria-hidden="true"
-            class="absolute inset-0 z-[1] cursor-pointer"
+            aria-label="Product 4"
+            class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
             href="/product/:productId?pid=750518894461M"
-            tabindex="-1"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -3593,7 +3614,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
               </div>
             </div>
             <div
-              class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+              class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
             >
               <button
                 aria-label="Add to Wishlist"
@@ -3620,7 +3641,7 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
             class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
           />
           <div
-            class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+            class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
           >
             <button
               aria-label="Quick Add Product 4"
@@ -3677,11 +3698,14 @@ exports[`ProductGrid stories snapshot > WithPickupAvailable story renders and ma
           Test Store
         </p>
         <h3
+          aria-label="Product 4"
           class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
         >
           <a
-            class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            aria-hidden="true"
+            class="hover:underline"
             href="/product/:productId?pid=750518894461M"
+            tabindex="-1"
           >
             Product 4
           </a>

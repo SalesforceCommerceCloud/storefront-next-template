@@ -51,6 +51,7 @@ export default function EstimatedDelivery({ data }: EstimatedDeliveryProps): Rea
                 <ProductInfoCard
                     icon={<CalendarDays className="h-5 w-5" />}
                     title={t('cardTitle')}
+                    titleAs="h2"
                     description={cardDescription}
                     action={{
                         label: t('learnMore'),

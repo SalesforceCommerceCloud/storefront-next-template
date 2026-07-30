@@ -15,7 +15,7 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
           Name
         </legend>
         <div
-          class="grid grid-cols-2 gap-4"
+          class="grid grid-cols-1 gap-4 md:grid-cols-2"
         >
           <div>
             <label
@@ -361,7 +361,7 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
           Name
         </legend>
         <div
-          class="grid grid-cols-2 gap-4"
+          class="grid grid-cols-1 gap-4 md:grid-cols-2"
         >
           <div>
             <label
@@ -707,7 +707,7 @@ exports[`SignupForm stories snapshot > PasswordlessMode story renders and matche
           Name
         </legend>
         <div
-          class="grid grid-cols-2 gap-4"
+          class="grid grid-cols-1 gap-4 md:grid-cols-2"
         >
           <div>
             <label
@@ -864,7 +864,7 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
           Name
         </legend>
         <div
-          class="grid grid-cols-2 gap-4"
+          class="grid grid-cols-1 gap-4 md:grid-cols-2"
         >
           <div>
             <label

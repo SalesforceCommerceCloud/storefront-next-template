@@ -400,8 +400,15 @@ const ProductTile = memo(
             // the tile — so binding the trigger to the heart alone means it never fires until the
             // pointer reaches the heart's box, leaving the revealed heart empty. Idempotent.
             const loadWishlist = useWishlistLoader();
+            // Tile intent (pointer/focus/touch anywhere on the tile) both kicks the wishlist data
+            // load and eagerly swaps the deferred wishlist button to its real interactive form. For
+            // keyboard users this fires when the image link — one tab stop before the button — is
+            // focused, so the swap is done before Tab reaches the button (see DeferredWishlistButton
+            // `preload`). Without this, focusing the button would remount it and drop focus.
+            const [tileEngaged, setTileEngaged] = useState(false);
             const handleTileIntent = useCallback(() => {
                 void loadWishlist();
+                setTileEngaged(true);
             }, [loadWishlist]);
 
             const productUrl = createProductUrl(product?.productId ?? '', null, 'color', defaultVariantPid);
@@ -459,13 +466,20 @@ const ProductTile = memo(
                             />
                             <UITarget targetId="sfcc.plp.shipping.deliveryEstimate" />
 
-                            {/* Clickable product link overlay — mouse convenience only, hidden from AT */}
+                            {/*
+                             * Clickable product link over the image. This is the tile's keyboard
+                             * entry point (a real tab stop with an accessible name): focusing it
+                             * fires `group-focus-within`, which reveals the wishlist and quick-add
+                             * controls before forward-Tab reaches them in DOM order — without it,
+                             * those controls stay `invisible` (removed from tab order) and keyboard
+                             * users can never reach them (WCAG 2.1.1). The product name link below
+                             * is `tabIndex={-1}` so this does not add a second tab stop.
+                             */}
                             <Link
                                 to={productUrl}
-                                className="absolute inset-0 z-[1] cursor-pointer"
-                                aria-hidden="true"
+                                className="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                                aria-label={productName}
                                 onClick={handleClick}
-                                tabIndex={-1}
                             />
 
                             {/* Badges — top-left */}
@@ -501,11 +515,19 @@ const ProductTile = memo(
                                     </div>
                                 )}
 
-                                <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
+                                {/*
+                                 * `invisible` (not just `opacity-0`) so the wishlist button is removed
+                                 * from the accessibility tree and tab order while hidden — an opacity-0
+                                 * control still gets announced and focused, so a screen reader hears
+                                 * "Add to wishlist" on every resting tile (WCAG 1.3.1). Revealed on tile
+                                 * hover and on keyboard focus reaching the tile (group-focus-within).
+                                 */}
+                                <div className="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                                     <DeferredWishlistButton
                                         product={product}
                                         surface="plp"
                                         size="sm"
+                                        preload={tileEngaged}
                                         className="relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
                                     />
                                 </div>
@@ -514,8 +536,10 @@ const ProductTile = memo(
                             {/* Hover overlay — subtle dark tint */}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none" />
 
-                            {/* Quick Add button */}
-                            <div className="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20">
+                            {/* Quick Add button — `invisible` at rest for the same reason as the
+                                wishlist button above: an opacity-0 control stays in the a11y tree and
+                                tab order, so it is announced on every resting tile (WCAG 1.3.1). */}
+                            <div className="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20">
                                 <QuickAddButton
                                     productId={product.productId ?? ''}
                                     productName={productName}
@@ -559,11 +583,18 @@ const ProductTile = memo(
                             </p>
                         )}
 
-                        {/* Product name — the single keyboard/SR tab stop for this tile */}
-                        <h3 className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
+                        {/* Product name — the heading carries the product's accessible name directly.
+                            The tile's single product link (keyboard + AT) is the image overlay above;
+                            this inner link is a mouse-only convenience, so it is `aria-hidden` and
+                            `tabIndex={-1}` to avoid duplicating that link in the accessibility tree. */}
+                        <h3
+                            aria-label={productName}
+                            className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
                             <Link
                                 to={productUrl}
-                                className="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                                className="hover:underline"
+                                tabIndex={-1}
+                                aria-hidden="true"
                                 onClick={handleClick}>
                                 {productName}
                             </Link>
