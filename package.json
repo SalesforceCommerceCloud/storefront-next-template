@@ -23,6 +23,7 @@
     "lint": "oxlint --type-aware --ignore-pattern \"e2e/**\" --report-unused-disable-directives --max-warnings 0 && pnpm format:check && pnpm --filter ./e2e lint",
     "lint:fix": "oxlint --type-aware --ignore-pattern \"e2e/**\" --fix && pnpm format && pnpm --filter ./e2e lint:fix",
     "lint:a11y": "node scripts/lint-a11y.mjs",
+    "a11y:scan-coverage": "node scripts/a11yScanCoverage.js",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "test": "vitest run",
