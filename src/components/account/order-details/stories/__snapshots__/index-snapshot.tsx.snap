@@ -3424,7 +3424,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
           data-variant="outline"
           type="button"
         >
-          Cancel order
+          Cancel Order
         </button>
         <span
           class="sr-only"
