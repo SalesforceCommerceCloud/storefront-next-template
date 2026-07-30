@@ -292,6 +292,48 @@ describe('DesignFrame - Toolbox affordance gating', () => {
     });
 });
 
+describe('DesignFrame - Fragment icon', () => {
+    afterEach(() => {
+        vi.clearAllMocks();
+        tlCleanup();
+    });
+
+    const renderFrame = (props: Partial<React.ComponentProps<typeof DesignFrame>>) =>
+        tlRender(
+            <PageDesignerProvider clientId="test1" targetOrigin="*" mode="EDIT">
+                <DesignFrame name="Test" showFrame {...props} />
+            </PageDesignerProvider>
+        );
+
+    it('renders the fragment icon before the name when isFragment is true', () => {
+        const { container } = renderFrame({ isFragment: true });
+        const label = container.querySelector('.pd-design__frame__label');
+        const icon = label?.querySelector('.pd-design__frame__fragment-icon');
+        const nameEl = label?.querySelector('.pd-design__frame__name');
+        const assistiveText = label?.querySelector('.pd-design__frame__assistive-text');
+
+        expect(icon).not.toBeNull();
+        // Icon → visually-hidden text → name span.
+        expect(icon?.nextElementSibling).toBe(assistiveText ?? null);
+        expect(assistiveText?.nextElementSibling).toBe(nameEl);
+    });
+
+    it('renders visually-hidden fragment text so assistive tech announces fragment status', () => {
+        const { container } = renderFrame({ isFragment: true });
+        const assistiveText = container.querySelector('.pd-design__frame__assistive-text');
+
+        expect(assistiveText).not.toBeNull();
+        // Default fallback string when no host label is provided.
+        expect(assistiveText?.textContent).toBe('Fragment');
+    });
+
+    it('does not render the fragment icon or assistive text when isFragment is false (default)', () => {
+        const { container } = renderFrame({});
+        expect(container.querySelector('.pd-design__frame__fragment-icon')).toBeNull();
+        expect(container.querySelector('.pd-design__frame__assistive-text')).toBeNull();
+    });
+});
+
 describe('DesignFrame - Label placement (above vs inside)', () => {
     afterEach(() => {
         vi.restoreAllMocks();

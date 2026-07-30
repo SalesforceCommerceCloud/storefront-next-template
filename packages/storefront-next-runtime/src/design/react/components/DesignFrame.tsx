@@ -16,6 +16,7 @@
 import React from 'react';
 import { useComponentType } from '../hooks/useComponentType';
 import { DeleteToolboxButton } from './DeleteToolboxButton';
+import { FragmentIcon } from './FragmentIcon';
 import { MoveToolboxButton } from './MoveToolboxButton';
 import { useDesignState } from '../hooks/useDesignState';
 import { useLabels } from '../hooks/useLabels';
@@ -29,6 +30,7 @@ export const DesignFrame = ({
     regionId,
     contentLinkUuid,
     localized = false,
+    isFragment = false,
     showFrame = false,
     showToolbox = true,
     isMoveable = true,
@@ -38,6 +40,7 @@ export const DesignFrame = ({
     componentId?: string;
     name: string;
     localized?: boolean;
+    isFragment?: boolean;
     parentId?: string;
     regionId?: string;
     contentLinkUuid?: string;
@@ -107,6 +110,12 @@ export const DesignFrame = ({
                     <span className="pd-design__icon">
                         <img src={componentType.image} alt="" />
                     </span>
+                )}
+                {isFragment && (
+                    <>
+                        <FragmentIcon />
+                        <span className="pd-design__frame__assistive-text">{labels.fragment ?? 'Fragment'}</span>
+                    </>
                 )}
                 <span className="pd-design__frame__name">{name}</span>
                 {!localized && (

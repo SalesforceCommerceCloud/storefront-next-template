@@ -186,6 +186,7 @@ function DesignComponent(props) {
 			componentId,
 			contentLinkUuid,
 			localized: isLocalized,
+			isFragment: Boolean(isFragment),
 			name: componentName,
 			parentId: parentComponentId,
 			isMoveable: isDraggable && !isRoot,

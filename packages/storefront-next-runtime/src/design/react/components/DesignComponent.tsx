@@ -233,6 +233,7 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
                 componentId={componentId}
                 contentLinkUuid={contentLinkUuid}
                 localized={isLocalized}
+                isFragment={Boolean(isFragment)}
                 name={componentName}
                 parentId={parentComponentId}
                 isMoveable={isDraggable && !isRoot}

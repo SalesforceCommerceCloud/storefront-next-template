@@ -62,19 +62,22 @@ vi.mock('./DesignFrame', () => ({
         showToolbox = true,
         isMoveable = true,
         isDeletable = true,
+        isFragment = false,
     }: {
         children: React.ReactNode;
         showFrame?: boolean;
         showToolbox?: boolean;
         isMoveable?: boolean;
         isDeletable?: boolean;
+        isFragment?: boolean;
     }) => (
         <div
             data-testid="design-frame"
             data-show-frame={String(Boolean(showFrame))}
             data-show-toolbox={String(Boolean(showToolbox))}
             data-is-moveable={String(Boolean(isMoveable))}
-            data-is-deletable={String(Boolean(isDeletable))}>
+            data-is-deletable={String(Boolean(isDeletable))}
+            data-is-fragment={String(Boolean(isFragment))}>
             {children}
         </div>
     ),
@@ -227,5 +230,36 @@ describe('DesignComponent - root component', () => {
         const frame = getByTestId('design-frame');
         expect(frame.getAttribute('data-is-deletable')).toBe('true');
         expect(frame.getAttribute('data-is-moveable')).toBe('true');
+    });
+});
+
+describe('DesignComponent - fragment flag', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        cleanup();
+    });
+
+    it('forwards isFragment=false by default', () => {
+        const { getByTestId } = render(<DesignComponent {...componentProps} />);
+        expect(getByTestId('design-frame').getAttribute('data-is-fragment')).toBe('false');
+    });
+
+    it('forwards isFragment=true to DesignFrame so the fragment icon renders', () => {
+        const fragmentProps = {
+            designMetadata: {
+                id: 'test-1',
+                contentLinkUuid: 'test-1-uuid',
+                isFragment: true,
+                isVisible: true,
+                isLocalized: true,
+            },
+            children: <div data-testid="inner">Test</div>,
+        } as unknown as ComponentDecoratorProps<unknown>;
+
+        const { getByTestId } = render(<DesignComponent {...fragmentProps} />);
+        expect(getByTestId('design-frame').getAttribute('data-is-fragment')).toBe('true');
     });
 });

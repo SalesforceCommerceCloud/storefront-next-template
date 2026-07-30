@@ -159,6 +159,26 @@
   white-space: nowrap;
 }
 
+.pd-design__frame__fragment-icon {
+  fill: currentColor;
+  flex-shrink: 0;
+  height: 0.75rem;
+  margin-right: 0.5rem;
+  width: 0.75rem;
+}
+
+.pd-design__frame__assistive-text {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .pd-design__frame__toolbox-button {
   align-items: center;
   background: rgba(0, 0, 0, 0);
