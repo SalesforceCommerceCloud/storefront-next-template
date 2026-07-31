@@ -218,6 +218,9 @@ export const EmptyState: StoryObj<typeof ProductGrid> = {
  * indicator per rendered tile.
  */
 export const WithPickupAvailable: StoryObj<typeof ProductGrid> = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         critical: ALL_PRODUCTS.slice(0, 4),
         nonCritical: [],

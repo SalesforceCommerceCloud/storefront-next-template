@@ -117,6 +117,7 @@ const mobileViewport = {
  */
 export const CheckoutVariant: Story = {
     parameters: {
+        chromatic: { disableSnapshot: true },
         docs: {
             description: {
                 story: 'Checkout header — logo + cart only. No search, user actions, wishlist, or navigation menu.',

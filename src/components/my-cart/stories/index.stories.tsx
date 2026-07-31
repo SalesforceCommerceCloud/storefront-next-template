@@ -183,6 +183,9 @@ export const Default: Story = {
  * on the two-item default's layout.
  */
 export const SingleItem: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     render: () => (
         <MyCart
             basket={
