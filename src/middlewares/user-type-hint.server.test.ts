@@ -19,6 +19,7 @@ import { createLoaderArgs, createTestContext } from '@/lib/test-utils';
 import { getAuth } from '@/middlewares/auth.server';
 import { getUserTypeCookieName } from '@/lib/auth/user-type-hint';
 import { userTypeHintMiddleware } from './user-type-hint.server';
+import config from '@/config/server';
 
 const mockLogger = vi.hoisted(() => ({
     error: vi.fn(),
@@ -35,9 +36,10 @@ vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(),
 }));
 
-// The site id `createTestContext` resolves from config (first configured site) — used to assert the
-// namespaced cookie name.
-const SITE_ID = 'RefArchGlobal';
+// SITE_ID is the first configured site's id, the same source `createTestContext` reads, so it
+// always matches the namespaced cookie name the middleware builds and the assertion holds
+// regardless of which site config is loaded.
+const SITE_ID = config.app.commerce.sites[0].id;
 
 describe('user-type-hint.server middleware', () => {
     let mockRequest: Request;

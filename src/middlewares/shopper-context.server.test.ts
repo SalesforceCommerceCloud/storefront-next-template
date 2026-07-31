@@ -22,6 +22,12 @@ import { getAuth } from './auth.server';
 import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { resourceRoutes } from '@/route-paths';
+import config from '@/config/server';
+
+// SITE_ID is the first configured site's id, the same source `createTestContext` reads, so it
+// always matches the namespaced `<name>_<siteId>` cookie the middleware builds and the assertion
+// holds regardless of which site config is loaded.
+const SITE_ID = config.app.commerce.sites[0].id;
 
 vi.mock('@/lib/shopper-context/constants', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/lib/shopper-context/constants')>();
@@ -297,7 +303,7 @@ describe('shopper-context.server', () => {
             const result = await shopperContextMiddleware(createMiddlewareArgs(mockRequest, mockContext), mockNext);
 
             const setCookieHeaders = (result as Response).headers.getSetCookie();
-            const sourceCodeHeader = setCookieHeaders.find((h) => h.startsWith('dwsourcecode_RefArchGlobal='));
+            const sourceCodeHeader = setCookieHeaders.find((h) => h.startsWith(`dwsourcecode_${SITE_ID}=`));
             expect(sourceCodeHeader).toBeDefined();
             // The substring after `name=` and before the first `;` is the cookie value.
             const value = (sourceCodeHeader as string).split(';')[0].split('=', 2)[1];
@@ -396,10 +402,8 @@ describe('shopper-context.server', () => {
                 const sourceCodeCookieHandler = createCookie('dwsourcecode', cookieConfig, mockContext);
                 const contextCookieHandler = createCookie('storefront-next-context', cookieConfig, mockContext);
 
-                const sourceCodeHeader = setCookieHeaders.find((h) => h.startsWith('dwsourcecode_RefArchGlobal='));
-                const contextHeader = setCookieHeaders.find((h) =>
-                    h.startsWith('storefront-next-context_RefArchGlobal=')
-                );
+                const sourceCodeHeader = setCookieHeaders.find((h) => h.startsWith(`dwsourcecode_${SITE_ID}=`));
+                const contextHeader = setCookieHeaders.find((h) => h.startsWith(`storefront-next-context_${SITE_ID}=`));
                 expect(sourceCodeHeader).toBeDefined();
                 expect(contextHeader).toBeDefined();
 
