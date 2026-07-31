@@ -255,7 +255,7 @@ export const mockBuildConfig: Config = {
                         wishlist_merged: true,
                     },
                 },
-                dataCloud: {
+                data360: {
                     enabled: false,
                     appSourceId: '',
                     tenantId: '',

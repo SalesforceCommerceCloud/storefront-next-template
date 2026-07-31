@@ -116,7 +116,7 @@ module.exports = {
                         //   a shared @/lib/auth/webauthn module imported by both the login hook and
                         //   the registration modal, so the bundler hoists it into the shared route
                         //   chunk the product page loads (cosmetic mirror measured 446288).
-                        //   447000 → 449000: merging main (Data Cloud analytics adapter, ECB content
+                        //   447000 → 449000: merging main (Data 360 analytics adapter, ECB content
                         //   blocks, et al.) grew the shared route chunk by ~1.4KB independently of
                         //   this feature (cosmetic mirror measured 447721). ~1.3KB headroom above
                         //   that absorbs main's drift plus run-to-run variance.

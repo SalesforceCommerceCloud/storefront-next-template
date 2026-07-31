@@ -17,7 +17,7 @@ import type { AppConfig } from '@/types/config';
 import { createEinsteinAdapter } from './einstein';
 import { addAdapter } from './store';
 import { createActiveDataAdapter } from './active-data';
-import { createDataCloudAdapter } from './data-cloud';
+import { createData360Adapter } from './data360';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger();
@@ -53,21 +53,21 @@ export function initializeEngagementAdapters(appConfig: AppConfig): void {
         }
     }
 
-    if (engagementAdapterConfigs.dataCloud?.enabled) {
+    if (engagementAdapterConfigs.data360?.enabled) {
         try {
             addAdapter(
-                'dataCloud',
-                createDataCloudAdapter({
-                    appSourceId: engagementAdapterConfigs.dataCloud.appSourceId || '',
-                    tenantId: engagementAdapterConfigs.dataCloud.tenantId || '',
-                    siteId: engagementAdapterConfigs.dataCloud.siteId || '',
-                    webStoreId: engagementAdapterConfigs.dataCloud.webStoreId || 'sfnext',
-                    consentCategory: engagementAdapterConfigs.dataCloud.consentCategory,
-                    eventToggles: engagementAdapterConfigs.dataCloud.eventToggles || {},
+                'data360',
+                createData360Adapter({
+                    appSourceId: engagementAdapterConfigs.data360.appSourceId || '',
+                    tenantId: engagementAdapterConfigs.data360.tenantId || '',
+                    siteId: engagementAdapterConfigs.data360.siteId || '',
+                    webStoreId: engagementAdapterConfigs.data360.webStoreId || 'sfnext',
+                    consentCategory: engagementAdapterConfigs.data360.consentCategory,
+                    eventToggles: engagementAdapterConfigs.data360.eventToggles || {},
                 })
             );
         } catch (error) {
-            logger.warn('Failed to initialize Data Cloud adapter', { error });
+            logger.warn('Failed to initialize Data 360 adapter', { error });
         }
     }
 

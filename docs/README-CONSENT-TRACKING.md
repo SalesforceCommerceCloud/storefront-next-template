@@ -61,7 +61,7 @@ These align with common GDPR consent management conventions:
 
 ### Default Adapter Consent
 
-Out of the box, all three shipped adapters — Einstein, Data Cloud, and Active Data — set `consentCategory: 'analytics'`. Each fires only once the shopper has granted the `analytics` category. With the default binary consent banner, granting consent maps to all configured categories, so `'analytics'` effectively means "the shopper accepted tracking"; the binary accept/decline at the hook layer is the first gate — no events flow until consent is explicitly accepted.
+Out of the box, all three shipped adapters — Einstein, Data 360, and Active Data — set `consentCategory: 'analytics'`. Each fires only once the shopper has granted the `analytics` category. With the default binary consent banner, granting consent maps to all configured categories, so `'analytics'` effectively means "the shopper accepted tracking"; the binary accept/decline at the hook layer is the first gate — no events flow until consent is explicitly accepted.
 
 The `consentCategory` gate matters once you offer granular, per-category consent (see [Configuration](#configuration) below): an adapter set to `'analytics'` then stays silent for a shopper who accepted, say, only `'marketing'`.
 
@@ -92,7 +92,7 @@ einstein: {
     consentCategory: 'analytics',
     // ... other config
 },
-dataCloud: {
+data360: {
     enabled: true,
     consentCategory: 'analytics',
     // ... other config

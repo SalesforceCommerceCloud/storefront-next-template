@@ -16,7 +16,7 @@
 
 /**
  * Engagement adapter registration tests — verifies the enable/disable gate
- * for each adapter, focusing on the dataCloud branch.
+ * for each adapter, focusing on the data360 branch.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { initializeEngagementAdapters } from './register';
@@ -48,14 +48,14 @@ const baseToggles = {
     wishlist_merged: false,
 };
 
-function makeConfig(dataCloudEnabled: boolean): AppConfig {
+function makeConfig(data360Enabled: boolean): AppConfig {
     return {
         engagement: {
             adapters: {
                 einstein: { enabled: false, eventToggles: baseToggles },
                 activeData: { enabled: false, eventToggles: baseToggles },
-                dataCloud: {
-                    enabled: dataCloudEnabled,
+                data360: {
+                    enabled: data360Enabled,
                     appSourceId: 'app-source-id',
                     tenantId: 'test-tenant',
                     siteId: 'RefArch',
@@ -67,20 +67,20 @@ function makeConfig(dataCloudEnabled: boolean): AppConfig {
     } as unknown as AppConfig;
 }
 
-describe('initializeEngagementAdapters — dataCloud', () => {
+describe('initializeEngagementAdapters — data360', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('registers the dataCloud adapter when enabled', () => {
+    it('registers the data360 adapter when enabled', () => {
         initializeEngagementAdapters(makeConfig(true));
         const names = mockAddAdapter.mock.calls.map((c) => c[0]);
-        expect(names).toContain('dataCloud');
+        expect(names).toContain('data360');
     });
 
-    it('does not register the dataCloud adapter when disabled', () => {
+    it('does not register the data360 adapter when disabled', () => {
         initializeEngagementAdapters(makeConfig(false));
         const names = mockAddAdapter.mock.calls.map((c) => c[0]);
-        expect(names).not.toContain('dataCloud');
+        expect(names).not.toContain('data360');
     });
 });

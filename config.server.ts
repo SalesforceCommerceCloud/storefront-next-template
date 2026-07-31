@@ -437,7 +437,7 @@ export default defineConfig<Config>(
             //               siteId: '<your-site-id>'  (host already defaults to the cquotient prod endpoint)
             //   activeData: host: 'https://<your-instance>.dx.commercecloud.salesforce.com',
             //               siteUUID: '<your-site-uuid>'
-            //   dataCloud:  appSourceId: '<your-app-source-id>', tenantId: '<your-tenant-id>',
+            //   data360:    appSourceId: '<your-app-source-id>', tenantId: '<your-tenant-id>',
             //               siteId: '<your-site-id>'
             //
             // Heads up: product recommendation carousels are powered by Einstein. While
@@ -486,7 +486,7 @@ export default defineConfig<Config>(
                             wishlist_merged: true,
                         },
                     },
-                    dataCloud: {
+                    data360: {
                         enabled: false,
                         // Gate on the `analytics` consent category (see einstein above).
                         consentCategory: 'analytics',
@@ -496,7 +496,7 @@ export default defineConfig<Config>(
                         // Distinguishes Storefront Next events from PWA Kit's ('pwa') in the shared DLO.
                         webStoreId: 'sfnext',
                         // PWA Kit parity: only view/impression events are mapped. Cart, checkout,
-                        // wishlist, and click events have no Data Cloud mapping and ship disabled.
+                        // wishlist, and click events have no Data 360 mapping and ship disabled.
                         eventToggles: {
                             view_page: true,
                             view_product: true,
@@ -658,7 +658,7 @@ export default defineConfig<Config>(
     {
         protectedPaths: [
             'app__engagement__adapters__einstein',
-            'app__engagement__adapters__dataCloud',
+            'app__engagement__adapters__data360',
             // intentionally lock these property at runtime override and allow the rest of config
             'app__engagement__adapters__activeData__enabled',
             'app__engagement__adapters__activeData__eventToggles',

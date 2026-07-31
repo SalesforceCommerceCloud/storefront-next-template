@@ -25,15 +25,15 @@ import { createLogger } from '@/lib/logger';
 import { bytesToBase64 } from '@/lib/url';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import {
-    validateDataCloudConfig,
-    type DataCloudConfig,
-    type DataCloudEvent,
-    type DataCloudInteraction,
-} from './data-cloud-config';
+    validateData360Config,
+    type Data360Config,
+    type Data360Event,
+    type Data360Interaction,
+} from './data360-config';
 
-export const DATA_CLOUD_ADAPTER_NAME = 'dataCloud' as const;
+export const DATA360_ADAPTER_NAME = 'data360' as const;
 
-const logger = createLogger({ adapter: DATA_CLOUD_ADAPTER_NAME });
+const logger = createLogger({ adapter: DATA360_ADAPTER_NAME });
 
 const DEFAULT_WEB_STORE_ID = 'sfnext';
 
@@ -45,7 +45,7 @@ function isAnalyticsUser(payload: unknown): payload is AnalyticsUser {
 }
 
 /**
- * Resolve the Data Cloud product id in the same priority order PWA Kit used:
+ * Resolve the Data 360 product id in the same priority order PWA Kit used:
  * variant sku (`id`) → search-hit sku (`productId`) → master sku (`masterId`).
  */
 function resolveProductId(
@@ -59,7 +59,7 @@ function resolveProductId(
  * The durable registered customer id, or `undefined` for guests / unresolved
  * sessions. Every SLAS session carries a `customerId` — guests get an ephemeral
  * `gcid`, registered shoppers a durable `rcid` — so `userType` alone decides
- * whether the id is the registered identity Data Cloud should key on. A guest
+ * whether the id is the registered identity Data 360 should key on. A guest
  * `gcid` is deliberately dropped here: it is per-session and unattributable, no
  * better than the `usid` we already send.
  */
@@ -68,7 +68,7 @@ function registeredCustomerId(user: AnalyticsUser | null): string | undefined {
 }
 
 /**
- * The base event carried on every Data Cloud event. `deviceId` prefers the
+ * The base event carried on every Data 360 event. `deviceId` prefers the
  * registered customer id and falls back to the guest `usid`; `customerId` is
  * only emitted for registered shoppers (a guest `gcid` is not). This matches
  * shipped PWA Kit exactly: its `use-datacloud.js` sets `deviceId = customerId ||
@@ -77,14 +77,14 @@ function registeredCustomerId(user: AnalyticsUser | null): string | undefined {
  *
  * `sessionId` is `sid || usid`: PWA Kit reads the `sid` cookie for the session
  * id, so preferring it keeps parity — a customer migrating from PWA Kit to
- * Storefront Next keeps the same session id in Data Cloud. `sid` isn't
+ * Storefront Next keeps the same session id in Data 360. `sid` isn't
  * guaranteed present, though (it's tied to Active Data being enabled, and may
  * not have landed yet when a beacon fires), so `usid` — always present — is the
  * fallback. `sid` is read fresh at send time (see `sendEvent`), so whichever
  * value exists when each beacon fires wins; early beacons fall back to `usid`
  * and later ones pick up `sid` once it's set.
  */
-function buildBaseEvent(user: AnalyticsUser | null, siteId: string, sid?: string): DataCloudEvent {
+function buildBaseEvent(user: AnalyticsUser | null, siteId: string, sid?: string): Data360Event {
     const usid = user?.usid ?? '';
     const customerId = registeredCustomerId(user);
     return {
@@ -98,7 +98,7 @@ function buildBaseEvent(user: AnalyticsUser | null, siteId: string, sid?: string
 }
 
 /** Per-event details block (unique event id + type + category). */
-function buildEventDetails(eventType: string, category: string): DataCloudEvent {
+function buildEventDetails(eventType: string, category: string): Data360Event {
     return {
         eventId: crypto.randomUUID(),
         eventType,
@@ -119,7 +119,7 @@ function buildEventDetails(eventType: string, category: string): DataCloudEvent 
  * key. Keep it this way unless identity resolution demonstrably needs `customerNo`;
  * adding it back means widening the client session payload to carry more PII.
  */
-function buildPartyIdentification(user: AnalyticsUser | null, siteId: string): DataCloudEvent {
+function buildPartyIdentification(user: AnalyticsUser | null, siteId: string): Data360Event {
     const customerId = registeredCustomerId(user);
     const identifier = customerId ?? user?.usid ?? '';
     const idType = customerId ? 'CC_REGISTERED_CUSTOMER_ID' : 'CC_USID';
@@ -140,12 +140,12 @@ function buildPartyIdentification(user: AnalyticsUser | null, siteId: string): D
  * sendEvent gate blocks on `hasConsent`), so there is no separate DNT path.
  */
 function buildStandardEvents(
-    base: DataCloudEvent,
+    base: Data360Event,
     user: AnalyticsUser | null,
     siteId: string,
-    identityExtras: DataCloudEvent = {}
-): DataCloudEvent[] {
-    const identity: DataCloudEvent = {
+    identityExtras: Data360Event = {}
+): Data360Event[] {
+    const identity: Data360Event = {
         ...base,
         ...buildEventDetails('identity', 'Profile'),
         // Anonymous unless we have a durable registered id — same gate as the party
@@ -154,7 +154,7 @@ function buildStandardEvents(
         isAnonymous: registeredCustomerId(user) ? 0 : 1,
         ...identityExtras,
     };
-    const partyIdentification: DataCloudEvent = {
+    const partyIdentification: Data360Event = {
         ...base,
         ...buildEventDetails('partyIdentification', 'Profile'),
         ...buildPartyIdentification(user, siteId),
@@ -176,7 +176,7 @@ function buildStandardEvents(
  * page-number formula). When paging is absent (undefined `offset`/`limit`) it
  * falls back to page-local values (position = per-page index, page = 1).
  */
-function buildSearchResult(index: number, searchTitle: string, offset = 0, limit = 0): DataCloudEvent {
+function buildSearchResult(index: number, searchTitle: string, offset = 0, limit = 0): Data360Event {
     return {
         searchResultTitle: searchTitle,
         searchResultPosition: offset + index,
@@ -185,12 +185,12 @@ function buildSearchResult(index: number, searchTitle: string, offset = 0, limit
 }
 
 /**
- * Map an analytics event to its Data Cloud domain event(s). Returns `null`
- * when the event type has no Data Cloud mapping (cart/checkout/wishlist/clicks
+ * Map an analytics event to its Data 360 domain event(s). Returns `null`
+ * when the event type has no Data 360 mapping (cart/checkout/wishlist/clicks
  * — PWA Kit parity only covers view/impression), so the caller can no-op
  * rather than throw and error the mediator's `Promise.allSettled` fan-out.
  */
-function buildDomainEvents(event: AnalyticsEvent, base: DataCloudEvent, webStoreId: string): DataCloudEvent[] | null {
+function buildDomainEvents(event: AnalyticsEvent, base: Data360Event, webStoreId: string): Data360Event[] | null {
     switch (event.eventType) {
         case 'view_page':
             return [
@@ -252,21 +252,21 @@ function buildDomainEvents(event: AnalyticsEvent, base: DataCloudEvent, webStore
             }));
 
         default:
-            // No Data Cloud mapping (cart/checkout/wishlist/click) — no-op.
+            // No Data 360 mapping (cart/checkout/wishlist/click) — no-op.
             return null;
     }
 }
 
 /**
  * Build the full interaction envelope for an event, or `null` when the event
- * type has no Data Cloud mapping.
+ * type has no Data 360 mapping.
  */
 function buildInteraction(
     event: AnalyticsEvent,
     siteId: string,
     webStoreId: string,
     sid?: string
-): DataCloudInteraction | null {
+): Data360Interaction | null {
     const user = isAnalyticsUser(event.payload) ? event.payload : null;
     const base = buildBaseEvent(user, siteId, sid);
 
@@ -279,33 +279,33 @@ function buildInteraction(
     }
 
     // page-view carries the source URL on its identity event too (PWA Kit parity).
-    const identityExtras: DataCloudEvent = event.eventType === 'view_page' ? { sourceUrl: event.path } : {};
+    const identityExtras: Data360Event = event.eventType === 'view_page' ? { sourceUrl: event.path } : {};
     const standardEvents = buildStandardEvents(base, user, siteId, identityExtras);
 
     return { events: [...standardEvents, ...domainEvents] };
 }
 
 /**
- * Create a Data Cloud adapter that implements the EngagementAdapter interface.
+ * Create a Data 360 adapter that implements the EngagementAdapter interface.
  *
  * Delivers interactions to `https://{tenantId}.c360a.salesforce.com/web/events/{appSourceId}/`
  * via `navigator.sendBeacon` with a base64 `event=` form body — the transform
- * the Data Cloud SDK's `DataCloudMiddleware` applies. Never throws for delivery.
+ * the Data 360 SDK's `DataCloudMiddleware` applies. Never throws for delivery.
  */
-export function createDataCloudAdapter(config: DataCloudConfig): EngagementAdapter {
-    const { errors } = validateDataCloudConfig(config);
+export function createData360Adapter(config: Data360Config): EngagementAdapter {
+    const { errors } = validateData360Config(config);
     if (!config.eventToggles) {
         errors.push(`Missing required field: eventToggles`);
     }
     if (errors.length > 0) {
-        throw new Error(`Data Cloud adapter configuration is invalid: ${errors.join('; ')}`, { cause: errors });
+        throw new Error(`Data 360 adapter configuration is invalid: ${errors.join('; ')}`, { cause: errors });
     }
 
     const webStoreId = config.webStoreId || DEFAULT_WEB_STORE_ID;
     const url = `https://${config.tenantId}.c360a.salesforce.com/web/events/${config.appSourceId}/`;
 
     return {
-        name: DATA_CLOUD_ADAPTER_NAME,
+        name: DATA360_ADAPTER_NAME,
 
         sendEvent: async (
             event: AnalyticsEvent,
@@ -334,7 +334,7 @@ export function createDataCloudAdapter(config: DataCloudConfig): EngagementAdapt
             const sid = Cookies.get('sid');
             const interaction = buildInteraction(event, siteId, webStoreId, sid);
             if (!interaction) {
-                // No Data Cloud mapping for this event type — no-op (don't throw).
+                // No Data 360 mapping for this event type — no-op (don't throw).
                 return Promise.resolve({});
             }
 
@@ -348,7 +348,7 @@ export function createDataCloudAdapter(config: DataCloudConfig): EngagementAdapt
                 // payload — most commonly a large fan-out (view_category/view_search
                 // impressions) exceeding the ~64KB beacon cap. The event is dropped;
                 // log it so the drop is diagnosable rather than silent.
-                logger.debug('sendBeacon refused the Data Cloud payload (dropped)', {
+                logger.debug('sendBeacon refused the Data 360 payload (dropped)', {
                     eventType: event.eventType,
                     bytes: body.length,
                 });

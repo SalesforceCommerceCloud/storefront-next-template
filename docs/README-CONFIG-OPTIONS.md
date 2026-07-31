@@ -1394,7 +1394,7 @@ Configuration for analytics and engagement adapters. Each adapter can be enabled
 **Available Adapters:**
 
 - `einstein` - Einstein Recommendations and Analytics
-- `dataCloud` - Salesforce Data Cloud integration
+- `data360` - Salesforce Data 360 integration
 - `activeData` - Active Data tracking
 
 ---
@@ -1487,39 +1487,39 @@ PUBLIC__app__engagement__adapters__einstein__eventToggles='{"view_product":true,
 
 ---
 
-### engagement.adapters.dataCloud.enabled
+### engagement.adapters.data360.enabled
 
 Type: `boolean` | Default: `false`
 
-Enables Salesforce Data Cloud integration for unified customer data.
+Enables Salesforce Data 360 integration for unified customer data.
 
 ---
 
-### engagement.adapters.dataCloud.appSourceId
+### engagement.adapters.data360.appSourceId
 
 Type: `string` | Default: `''`
 
-Your Data Cloud application source identifier.
+Your Data 360 application source identifier.
 
 ---
 
-### engagement.adapters.dataCloud.tenantId
+### engagement.adapters.data360.tenantId
 
 Type: `string` | Default: `''`
 
-Your Data Cloud tenant identifier.
+Your Data 360 tenant identifier.
 
 ---
 
-### engagement.adapters.dataCloud.siteId
+### engagement.adapters.data360.siteId
 
 Type: `string` | Default: `''`
 
-The site identifier for Data Cloud tracking.
+The site identifier for Data 360 tracking.
 
 ---
 
-### engagement.adapters.dataCloud.webStoreId
+### engagement.adapters.data360.webStoreId
 
 Type: `string` | Default: `'sfnext'`
 
@@ -1527,11 +1527,11 @@ The web store identifier attached to catalog engagement events (product views an
 
 ---
 
-### engagement.adapters.dataCloud.eventToggles
+### engagement.adapters.data360.eventToggles
 
 Type: `Record<string, boolean>`
 
-Individual toggles for each Data Cloud event type. Uses the same event types as Einstein.
+Individual toggles for each Data 360 event type. Uses the same event types as Einstein.
 
 ---
 

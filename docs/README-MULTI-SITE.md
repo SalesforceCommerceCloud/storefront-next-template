@@ -504,7 +504,7 @@ function MyComponent() {
 
 ## Engagement Data & Site Context
 
-Engagement adapters (Einstein, Active Data, Data Cloud) are initialized once at application startup with static configuration from `config.server.ts`. However, the current site and locale are injected dynamically at **event-send time** via `EventSiteInfo`, which is resolved from the site context middleware context.
+Engagement adapters (Einstein, Active Data, Data 360) are initialized once at application startup with static configuration from `config.server.ts`. However, the current site and locale are injected dynamically at **event-send time** via `EventSiteInfo`, which is resolved from the site context middleware context.
 
 ### How Site Context Flows to Adapters
 
@@ -528,7 +528,7 @@ mediator.track(event, siteInfo);
 |---------|-------------------|--------------------------|
 | **Active Data** | Yes | Uses `siteInfo.siteId` and `siteInfo.localeId` at event time to build the endpoint URL (`Sites-{siteId}-Site/{locale}`) |
 | **Einstein** | No (static) | Uses the `siteId` from config at initialization — ignores the `siteInfo` parameter at event time |
-| **Data Cloud** | N/A | Not yet implemented |
+| **Data 360** | Yes | Prefers `siteInfo.siteId` at event time (`siteId`/`internalOrganizationId`), falling back to the `siteId` from config |
 
 Active Data automatically routes events to the correct B2C Commerce site based on the shopper's current site context. Einstein currently sends all events to the single site configured in `config.server.ts` regardless of which site the shopper is browsing.
 

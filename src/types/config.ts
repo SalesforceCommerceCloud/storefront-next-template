@@ -130,7 +130,7 @@ export type AppConfig = {
                 siteId: string;
                 isProduction: boolean;
             };
-            dataCloud: EngagementAdapterConfig & {
+            data360: EngagementAdapterConfig & {
                 enabled: boolean;
                 appSourceId: string;
                 tenantId: string;

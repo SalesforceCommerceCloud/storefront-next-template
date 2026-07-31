@@ -15,7 +15,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { type CspResolutionContext, validateContributors } from '@salesforce/storefront-next-runtime/security';
-import { createDataCloudCspContributor } from './data-cloud';
+import { createData360CspContributor } from './data360';
 
 // contribute()/isActive() run at boot with a resolution context; contents are
 // irrelevant to this contributor (it derives its origin purely from config).
@@ -25,10 +25,10 @@ const ctx = { baseDirectives: {} } as CspResolutionContext;
 // interpolation, so the value only needs the right shape, not the real tenant.
 const TENANT = 'abc123def-xyz.example-tenant.pc-rnd';
 
-describe('createDataCloudCspContributor', () => {
+describe('createData360CspContributor', () => {
     it('is active and contributes the exact per-tenant connect-src when enabled with a tenantId', () => {
-        const contributor = createDataCloudCspContributor({ enabled: true, tenantId: TENANT });
-        expect(contributor.id).toBe('dataCloud');
+        const contributor = createData360CspContributor({ enabled: true, tenantId: TENANT });
+        expect(contributor.id).toBe('data360');
         expect(contributor.isActive(ctx)).toBe(true);
         expect(contributor.contribute(ctx)).toEqual({
             'connect-src': [`https://${TENANT}.c360a.salesforce.com`],
@@ -36,26 +36,26 @@ describe('createDataCloudCspContributor', () => {
     });
 
     it('passes the runtime CSP validator (no wildcard) so security-headers boots', () => {
-        const contributor = createDataCloudCspContributor({ enabled: true, tenantId: TENANT });
+        const contributor = createData360CspContributor({ enabled: true, tenantId: TENANT });
         // This is the path createSecurityHeadersMiddleware runs at boot. A wildcard
         // origin throws here — an exact per-tenant origin must not.
         expect(() => validateContributors([contributor], {})).not.toThrow();
     });
 
     it('is inactive and contributes nothing when disabled', () => {
-        const contributor = createDataCloudCspContributor({ enabled: false, tenantId: TENANT });
+        const contributor = createData360CspContributor({ enabled: false, tenantId: TENANT });
         expect(contributor.isActive(ctx)).toBe(false);
         expect(contributor.contribute(ctx)).toEqual({});
     });
 
     it('is inactive when enabled but tenantId is missing (cannot form an origin)', () => {
-        const contributor = createDataCloudCspContributor({ enabled: true, tenantId: '' });
+        const contributor = createData360CspContributor({ enabled: true, tenantId: '' });
         expect(contributor.isActive(ctx)).toBe(false);
         expect(contributor.contribute(ctx)).toEqual({});
     });
 
     it('is inactive when config is undefined', () => {
-        const contributor = createDataCloudCspContributor(undefined);
+        const contributor = createData360CspContributor(undefined);
         expect(contributor.isActive(ctx)).toBe(false);
         expect(contributor.contribute(ctx)).toEqual({});
     });
