@@ -12,11 +12,11 @@ exports[`OrderList stories snapshot > Default story renders and matches snapshot
       class="px-5"
       data-slot="card-content"
     >
-      <h4
+      <h1
         class="text-2xl font-semibold tracking-tight text-left text-foreground mb-1.5"
       >
         Order History
-      </h4>
+      </h1>
       <p
         class="font-medium text-left text-sm text-muted-foreground"
       >
@@ -592,11 +592,11 @@ exports[`OrderList stories snapshot > EmptyState story renders and matches snaps
       class="px-5"
       data-slot="card-content"
     >
-      <h4
+      <h1
         class="text-2xl font-semibold tracking-tight text-left text-foreground mb-1.5"
       >
         Order History
-      </h4>
+      </h1>
       <p
         class="font-medium text-left text-sm text-muted-foreground"
       >
@@ -657,11 +657,11 @@ exports[`OrderList stories snapshot > WithReturnStatus story renders and matches
       class="px-5"
       data-slot="card-content"
     >
-      <h4
+      <h1
         class="text-2xl font-semibold tracking-tight text-left text-foreground mb-1.5"
       >
         Order History
-      </h4>
+      </h1>
       <p
         class="font-medium text-left text-sm text-muted-foreground"
       >

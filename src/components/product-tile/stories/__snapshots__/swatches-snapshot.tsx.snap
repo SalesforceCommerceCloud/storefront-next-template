@@ -6,13 +6,13 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
 >
   <div
     aria-label="Available colours"
-    class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+    class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
     role="group"
   >
     <a
       aria-current="true"
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
@@ -26,7 +26,7 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
       to="/RefArchGlobal/en-GB/product/test?color=red"
@@ -40,7 +40,7 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
@@ -54,7 +54,7 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Black"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=black"
       style="background-color: black;"
       to="/RefArchGlobal/en-GB/product/test?color=black"
@@ -68,7 +68,7 @@ exports[`Swatches stories snapshot > ColorSwatches story renders and matches sna
     </a>
     <a
       aria-label="View Test Product in Green"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=green"
       style="background-color: green;"
       to="/RefArchGlobal/en-GB/product/test?color=green"
@@ -90,12 +90,12 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
 >
   <div
     aria-label="Available colours"
-    class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+    class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
     role="group"
   >
     <a
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
@@ -110,7 +110,7 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
     <a
       aria-current="true"
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
       to="/RefArchGlobal/en-GB/product/test?color=red"
@@ -124,7 +124,7 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
@@ -138,7 +138,7 @@ exports[`Swatches stories snapshot > ColorSwatchesWithOverflow story renders and
     </a>
     <a
       aria-label="View all 5 colours for Test Product"
-      class="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:ring-[3px] hover:ring-muted-hover focus-visible:ring-[3px] focus-visible:ring-ring transition-all"
+      class="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 relative cursor-pointer hover:ring-[3px] hover:ring-muted-hover focus-visible:ring-[3px] focus-visible:ring-ring transition-all before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2"
       href="/RefArchGlobal/en-GB/product/test"
       title="+2 more"
       to="/RefArchGlobal/en-GB/product/test"
@@ -166,12 +166,12 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
 >
   <div
     aria-label="Available colours"
-    class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+    class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
     role="group"
   >
     <a
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
@@ -185,7 +185,7 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
       to="/RefArchGlobal/en-GB/product/test?color=red"
@@ -199,7 +199,7 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
@@ -213,7 +213,7 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Black"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=black"
       style="background-color: black;"
       to="/RefArchGlobal/en-GB/product/test?color=black"
@@ -227,7 +227,7 @@ exports[`Swatches stories snapshot > NoSelection story renders and matches snaps
     </a>
     <a
       aria-label="View Test Product in Green"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=green"
       style="background-color: green;"
       to="/RefArchGlobal/en-GB/product/test?color=green"
@@ -249,7 +249,7 @@ exports[`Swatches stories snapshot > NoSwatches story renders and matches snapsh
 >
   <div
     aria-label="Available colours"
-    class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+    class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
     role="group"
   />
 </div>
@@ -261,13 +261,13 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
 >
   <div
     aria-label="Available colours"
-    class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+    class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
     role="group"
   >
     <a
       aria-current="true"
       aria-label="View Test Product in Navy"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
       href="/RefArchGlobal/en-GB/product/test?color=navy"
       style="background-color: navy;"
       to="/RefArchGlobal/en-GB/product/test?color=navy"
@@ -281,7 +281,7 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Red"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=red"
       style="background-color: red;"
       to="/RefArchGlobal/en-GB/product/test?color=red"
@@ -295,7 +295,7 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Blue"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=blue"
       style="background-color: blue;"
       to="/RefArchGlobal/en-GB/product/test?color=blue"
@@ -309,7 +309,7 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Black"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=black"
       style="background-color: black;"
       to="/RefArchGlobal/en-GB/product/test?color=black"
@@ -323,7 +323,7 @@ exports[`Swatches stories snapshot > Playground story renders and matches snapsh
     </a>
     <a
       aria-label="View Test Product in Green"
-      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+      class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
       href="/RefArchGlobal/en-GB/product/test?color=green"
       style="background-color: green;"
       to="/RefArchGlobal/en-GB/product/test?color=green"

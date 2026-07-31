@@ -264,7 +264,7 @@ export default function Signup({ loaderData }: { loaderData: SignupLoaderData })
                 />
                 <div className="max-w-md w-full space-y-8">
                     <div>
-                        <h2 className="mt-6 text-center text-3xl font-bold text-foreground">{t('title')}</h2>
+                        <h1 className="mt-6 text-center text-3xl font-bold text-foreground">{t('title')}</h1>
                         <p className="mt-2 text-center text-sm text-muted-foreground">{t('subtitle')}</p>
                     </div>
 

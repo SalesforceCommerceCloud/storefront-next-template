@@ -34,7 +34,7 @@ declare global {
  */
 class PasswordlessLoginPage {
     locators = {
-        loginHeading: locate('h2.text-3xl, h2.text-2xl').as('Login Heading'),
+        loginHeading: locate('h1.text-3xl, h1.text-2xl').as('Login Heading'),
         emailInput: locate('input[type="email"], input[name="email"]').as('Email Input'),
         continueButton: locate('button[type="submit"]').as('Continue Button'),
         cookieAcceptButton: locate('button:has-text("Accept"), button:has-text("Accept All"), button[id*="accept"]').as(
