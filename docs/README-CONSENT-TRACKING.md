@@ -61,9 +61,9 @@ These align with common GDPR consent management conventions:
 
 ### Default Adapter Consent
 
-Out of the box, neither Einstein nor Active Data has a `consentCategory` configured. This means once the shopper has accepted consent, both adapters fire for all event types. The binary accept/decline at the hook layer is the first gate — no events flow until consent is explicitly accepted.
+Out of the box, all three shipped adapters — Einstein, Data Cloud, and Active Data — set `consentCategory: 'analytics'`. Each fires only once the shopper has granted the `analytics` category. With the default binary consent banner, granting consent maps to all configured categories, so `'analytics'` effectively means "the shopper accepted tracking"; the binary accept/decline at the hook layer is the first gate — no events flow until consent is explicitly accepted.
 
-To enable per-adapter filtering, add a `consentCategory` to each adapter's config (see [Configuration](#configuration) below).
+The `consentCategory` gate matters once you offer granular, per-category consent (see [Configuration](#configuration) below): an adapter set to `'analytics'` then stays silent for a shopper who accepted, say, only `'marketing'`.
 
 ## Configuration
 
@@ -89,7 +89,12 @@ Assign a consent category to each adapter so it only fires when the shopper has 
 // config.server.ts → engagement.adapters
 einstein: {
     enabled: true,
-    consentCategory: 'personalization',
+    consentCategory: 'analytics',
+    // ... other config
+},
+dataCloud: {
+    enabled: true,
+    consentCategory: 'analytics',
     // ... other config
 },
 activeData: {
