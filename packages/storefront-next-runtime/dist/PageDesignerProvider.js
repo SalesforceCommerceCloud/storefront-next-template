@@ -11,7 +11,7 @@ const PageDesignerContext = createContext({
 	isPreviewMode: false
 });
 const usePageDesignerMode = () => useContext(PageDesignerContext);
-const PageDesignerProvider = ({ children, targetOrigin, clientId, usid, clientLogger, clientConnectionTimeout, clientConnectionInterval, mode }) => {
+const PageDesignerProvider = ({ children, targetOrigin, clientId, usid, isShopperContextEnabled, clientLogger, clientConnectionTimeout, clientConnectionInterval, mode }) => {
 	const contextValue = useMemo(() => ({
 		isDesignMode: mode === "EDIT" || isDesignModeActive(),
 		isPreviewMode: mode === "PREVIEW" || isPreviewModeActive()
@@ -30,6 +30,7 @@ const PageDesignerProvider = ({ children, targetOrigin, clientId, usid, clientLo
 			targetOrigin,
 			clientId,
 			usid,
+			isShopperContextEnabled,
 			clientLogger,
 			clientConnectionTimeout,
 			clientConnectionInterval,

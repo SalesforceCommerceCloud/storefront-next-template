@@ -16,6 +16,7 @@ type PageDesignerProviderProps = {
   clientId: string;
   targetOrigin: string;
   usid?: string;
+  isShopperContextEnabled?: boolean;
   clientLogger?: IsomorphicConfiguration['logger'];
   clientConnectionTimeout?: number;
   clientConnectionInterval?: number;
@@ -27,6 +28,7 @@ declare const PageDesignerProvider: {
     targetOrigin,
     clientId,
     usid,
+    isShopperContextEnabled,
     clientLogger,
     clientConnectionTimeout,
     clientConnectionInterval,

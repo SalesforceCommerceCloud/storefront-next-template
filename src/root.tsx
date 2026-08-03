@@ -739,6 +739,7 @@ export default function App({
                 clientId="storefront-next"
                 targetOrigin="*"
                 usid={clientAuth?.usid}
+                isShopperContextEnabled={appConfig?.features?.shopperContext?.enabled}
                 mode={pageDesignerMode}>
                 <PageDesignerInit />
                 <Outlet />

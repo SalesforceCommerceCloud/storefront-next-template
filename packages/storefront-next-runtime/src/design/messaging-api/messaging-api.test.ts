@@ -158,6 +158,36 @@ describe('Messaging API', () => {
 
                 await connect;
             });
+
+            it.each`
+                isShopperContextEnabled | expectedValue
+                ${true}                 | ${true}
+                ${false}                | ${false}
+                ${undefined}            | ${undefined}
+            `(
+                'should pass isShopperContextEnabled ($expectedValue) to the host',
+                async ({ isShopperContextEnabled, expectedValue }) => {
+                    const connect = new Promise<void>((resolve, reject) => {
+                        host.on('ClientInitialized', (event) => {
+                            try {
+                                expect(event.isShopperContextEnabled).toBe(expectedValue);
+                                resolve();
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
+                    });
+
+                    void makeClientConnectionPromise(
+                        isShopperContextEnabled === undefined ? {} : { params: { isShopperContextEnabled } }
+                    );
+                    vi.advanceTimersByTime(1500);
+                    void makeHostConnectionPromise(host);
+                    vi.advanceTimersByTime(1500);
+
+                    await connect;
+                }
+            );
         });
 
         describe('when an event is emitted on the client before the host', () => {
@@ -211,6 +241,36 @@ describe('Messaging API', () => {
 
                 await connect;
             });
+
+            it.each`
+                isShopperContextEnabled | expectedValue
+                ${true}                 | ${true}
+                ${false}                | ${false}
+                ${undefined}            | ${undefined}
+            `(
+                'should pass isShopperContextEnabled ($expectedValue) to the host',
+                async ({ isShopperContextEnabled, expectedValue }) => {
+                    const connect = new Promise<void>((resolve, reject) => {
+                        host.on('ClientInitialized', (event) => {
+                            try {
+                                expect(event.isShopperContextEnabled).toBe(expectedValue);
+                                resolve();
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
+                    });
+
+                    void makeHostConnectionPromise(host);
+                    vi.advanceTimersByTime(1500);
+                    void makeClientConnectionPromise(
+                        isShopperContextEnabled === undefined ? {} : { params: { isShopperContextEnabled } }
+                    );
+                    vi.advanceTimersByTime(1500);
+
+                    await connect;
+                }
+            );
         });
 
         describe('when the client times out waiting for the host to connect', () => {

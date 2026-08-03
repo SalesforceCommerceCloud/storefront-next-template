@@ -73,6 +73,7 @@ export const DesignProvider = ({
     targetOrigin,
     clientId,
     usid,
+    isShopperContextEnabled,
     clientConnectionTimeout,
     clientConnectionInterval,
     clientLogger = noop,
@@ -80,6 +81,7 @@ export const DesignProvider = ({
     targetOrigin: string;
     clientId: string;
     usid?: string;
+    isShopperContextEnabled?: boolean;
     clientConnectionTimeout?: number;
     clientConnectionInterval?: number;
     clientLogger?: IsomorphicConfiguration['logger'];
@@ -127,6 +129,7 @@ export const DesignProvider = ({
                 // TODO: Figure out how to handle this.
             },
             usid,
+            isShopperContextEnabled,
         });
 
         return () => {
@@ -134,7 +137,7 @@ export const DesignProvider = ({
             setPageDesignerConfig(null);
             setIsConnected(false);
         };
-    }, [clientApi, clientConnectionTimeout, clientConnectionInterval, usid]);
+    }, [clientApi, clientConnectionTimeout, clientConnectionInterval, usid, isShopperContextEnabled]);
 
     // Use the extracted state management hook
     const contextValue = React.useMemo<DesignContextType>(
