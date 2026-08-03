@@ -747,21 +747,22 @@ The URI path where users land to create a new password after requesting a reset.
 
 ### features.passkey.enabled
 
-Type: `boolean` Optional | Default: `true`
+Type: `boolean` Optional | Default: `false`
 
-Enables WebAuthn passkey registration and login.
+Enables WebAuthn passkey registration and login. Requires the `sfcc.pwdless_login` scope on your SLAS client.
 
 ---
 
 ### features.passkey.mode
 
-Type: `'email' | 'callback' | 'sms'` | Default: `'email'`
+Type: `'email' | 'callback'` | Default: `'email'`
 
 Determines how the OTP that authorizes passkey registration is delivered.
 
 - **`'email'`** (default): SLAS sends the OTP directly to the shopper's email.
 - **`'callback'`**: SLAS POSTs the OTP to your `callbackUri` instead of emailing the shopper. This mode requires the `callbackUri` to be configured and registered for your SLAS client, and is useful when using an external email or SMS provider.
-- **`'sms'`**: SLAS sends the OTP directly to the shopper's phone via SMS.
+
+Unlike the other auth flows, SLAS does **not** support `'sms'` mode for passkey authorization — the endpoint rejects it with a 400.
 
 Example:
 ```bash

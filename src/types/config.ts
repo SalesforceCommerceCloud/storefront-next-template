@@ -176,7 +176,8 @@ export type AppConfig = {
         passkey: {
             enabled?: boolean;
             callbackUri?: string;
-            mode: 'callback' | 'email' | 'sms';
+            // SLAS does not support 'sms' for passkey authorization (unlike the other auth flows).
+            mode: 'callback' | 'email';
         };
         passwordlessLogin: {
             enabled?: boolean;
