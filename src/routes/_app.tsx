@@ -38,6 +38,7 @@ type LoaderData = {
     root: Promise<ShopperProducts.schemas['Category']>;
     subs: Promise<ShopperProducts.schemas['Category'][]>;
     headerComponent: Promise<ComponentWithComponentData | null>;
+    megaMenuComponent: Promise<ComponentWithComponentData | null>;
 };
 
 /**
@@ -95,10 +96,17 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
         { componentId: 'header' }
     );
 
+    // Fetch mega-menu embedded component data — populates per-category dropdown panel content slots
+    const megaMenuComponentPromise = fetchComponentWithComponentData(
+        { context, request, params: {} } as Route.LoaderArgs,
+        { componentId: 'mega-menu' }
+    );
+
     return {
         root: rootCategoryPromise,
         subs: subCategoriesPromise,
         headerComponent: headerComponentPromise,
+        megaMenuComponent: megaMenuComponentPromise,
     };
 }
 
@@ -113,14 +121,20 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
  * Routes that need this layout should be prefixed with `_app.` in their filename.
  * For routes without default header/footer (e.g., login), use the `_empty.` prefix instead.
  */
-export default function DefaultLayout({ loaderData: { root, subs, headerComponent } }: { loaderData: LoaderData }) {
+export default function DefaultLayout({
+    loaderData: { root, subs, headerComponent, megaMenuComponent },
+}: {
+    loaderData: LoaderData;
+}) {
     const refRoot = useRef<Promise<ShopperProducts.schemas['Category']> | undefined>(undefined);
     const refSubs = useRef<Promise<ShopperProducts.schemas['Category'][]> | undefined>(undefined);
     const refHeaderComponent = useRef<Promise<ComponentWithComponentData | null> | undefined>(undefined);
-    if (!refRoot.current && !refSubs.current && !refHeaderComponent.current) {
+    const refMegaMenuComponent = useRef<Promise<ComponentWithComponentData | null> | undefined>(undefined);
+    if (!refRoot.current && !refSubs.current && !refHeaderComponent.current && !refMegaMenuComponent.current) {
         refRoot.current = root;
         refSubs.current = subs;
         refHeaderComponent.current = headerComponent;
+        refMegaMenuComponent.current = megaMenuComponent;
     }
 
     // Reflect the route's `handle.ui` config onto <main> as data-* attributes
@@ -147,7 +161,11 @@ export default function DefaultLayout({ loaderData: { root, subs, headerComponen
                 announcementSlot={
                     <EmbeddedComponentRegion component={refHeaderComponent.current} regionId="announcement" />
                 }>
-                <ResponsiveNavigationMenu resolve={refRoot.current} defer={refSubs.current} />
+                <ResponsiveNavigationMenu
+                    resolve={refRoot.current}
+                    defer={refSubs.current}
+                    embeddedComponent={refMegaMenuComponent.current}
+                />
             </Header>
             <main id="main-content" tabIndex={-1} className="grow pt-8" {...mainPaddingAttrs}>
                 <Outlet />

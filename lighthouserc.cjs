@@ -125,9 +125,11 @@ module.exports = {
                         //   preserving ProductTile's memo()) added ~0.4KB to the PDP shared chunk the
                         //   product-recommendations carousel loads (cosmetic mirror measured 449364).
                         //   ~1.6KB headroom absorbs main's drift plus run-to-run variance.
+                        //   451000 → 453000: mega-menu embedded region wiring grew the PDP shared chunk
+                        //   (CI measured 452830 across 5 runs).
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 451000, aggregationMethod: 'median' },
+                            { maxNumericValue: 453000, aggregationMethod: 'median' },
                         ],
                         'resource-summary:document:size': [
                             'error',
@@ -152,9 +154,11 @@ module.exports = {
                         // Raised 490000 → 495000: the feature/passkeys baseline grew the cart route
                         // chunk (cosmetic mirror measured 492663). Raised further 495000 → 500000
                         // on main; keep the higher ceiling to absorb both baselines.
+                        // Raised 500000 → 502000: mega-menu embedded region wiring grew the cart
+                        // shared chunk (CI measured 501930 across 5 runs).
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 500000, aggregationMethod: 'median' },
+                            { maxNumericValue: 502000, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.

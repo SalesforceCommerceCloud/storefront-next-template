@@ -23,7 +23,7 @@ import { registry } from '@/lib/page-designer/registry';
  *
  * DO NOT EDIT THIS FUNCTION MANUALLY - it will be overwritten on next build.
  *
- * Components registered: Content.announcementBanner, Content.contentCard, Content.hero, Content.pdImage, Content.popularCategory, Content.productRecommendations, Content.productTile, Layout.grid, Layout.header, Layout.heroCarousel, Layout.popularCategories, Layout.productCarousel
+ * Components registered: Content.announcementBanner, Content.contentCard, Content.hero, Content.pdImage, Content.popularCategory, Content.productRecommendations, Content.productTile, Layout.grid, Layout.header, Layout.heroCarousel, Layout.megaMenu, Layout.popularCategories, Layout.productCarousel
  */
 export function initializeRegistry(targetRegistry = registry): void {
     targetRegistry.registerImporter(
@@ -52,6 +52,7 @@ export function initializeRegistry(targetRegistry = registry): void {
     targetRegistry.registerImporter('Layout.heroCarousel', () => import('../../components/hero-carousel/index'), {
         fallback: 'fallback',
     });
+    targetRegistry.registerImporter('Layout.megaMenu', () => import('../../components/navigation-menu-mega/index'));
     targetRegistry.registerImporter(
         'Layout.popularCategories',
         () => import('../../components/home/popular-categories/index'),

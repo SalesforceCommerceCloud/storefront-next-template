@@ -409,13 +409,39 @@ describe('_app.tsx - Default Layout Route', () => {
             const request = new Request('https://example.test/');
             const result = loader({ context: mockContext, request } as any);
 
-            expect(mockFetchComponent).toHaveBeenCalledTimes(1);
-            const [args, options] = mockFetchComponent.mock.calls[0];
-            expect(args).toMatchObject({ context: mockContext, request, params: {} });
-            expect(options).toEqual({ componentId: 'header' });
+            // The loader fetches two embedded components: the header and the mega menu.
+            expect(mockFetchComponent).toHaveBeenCalledTimes(2);
+            const headerCall = mockFetchComponent.mock.calls.find(([, options]) => options?.componentId === 'header');
+            expect(headerCall).toBeDefined();
+            expect(headerCall?.[0]).toMatchObject({ context: mockContext, request, params: {} });
 
             const headerComponent = await result.headerComponent;
             expect(headerComponent).toEqual({ id: 'header-component' });
+        });
+
+        it('should fetch mega-menu embedded component data with componentId="mega-menu"', async () => {
+            const { fetchCategory } = await import('@/lib/api/categories.server');
+            const { fetchComponentWithComponentData } = await import('@/lib/page-designer/component-loader.server');
+            const mockFetchCategory = vi.mocked(fetchCategory);
+            const mockFetchComponent = vi.mocked(fetchComponentWithComponentData);
+
+            mockFetchCategory.mockResolvedValue({ id: 'root', name: 'Root', categories: [] });
+            mockFetchComponent.mockImplementation((_args, { componentId }) =>
+                Promise.resolve({ id: `${componentId}-component` } as never)
+            );
+
+            const mockContext = {} as any;
+            const request = new Request('https://example.test/');
+            const result = loader({ context: mockContext, request } as any);
+
+            const megaMenuCall = mockFetchComponent.mock.calls.find(
+                ([, options]) => options?.componentId === 'mega-menu'
+            );
+            expect(megaMenuCall).toBeDefined();
+            expect(megaMenuCall?.[0]).toMatchObject({ context: mockContext, request, params: {} });
+
+            const megaMenuComponent = await result.megaMenuComponent;
+            expect(megaMenuComponent).toEqual({ id: 'mega-menu-component' });
         });
 
         it('should propagate null when fetchComponentWithComponentData resolves to null', async () => {
