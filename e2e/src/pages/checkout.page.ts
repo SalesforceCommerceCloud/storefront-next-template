@@ -15,6 +15,8 @@
  */
 
 import { buildSitePath } from '../utils/url-utils';
+import { computeTurnstileVerifiedCookieValue, getTurnstileCookieMintParams } from '../utils/turnstile-cookie-utils';
+import { getStorefrontOrigin } from '../utils/cookie-utils';
 
 const { I } = inject();
 
@@ -85,6 +87,7 @@ class CheckoutPage {
         continueToShippingButton: locate('[data-testid="sf-toggle-card-contact-info"] button[type="submit"]').as(
             'Contact Info Continue Button'
         ),
+        turnstileWidget: locate('[data-testid="turnstile-widget"]').as('Turnstile Widget'),
         contactInfoEditButton: locate('[data-testid="sf-toggle-card-contact-info"]')
             .find('button')
             .withText('Edit')
@@ -2088,6 +2091,14 @@ class CheckoutPage {
     }
 
     /**
+     * Fill contact email and blur so the Turnstile widget mounts (first show is blur).
+     */
+    async fillEmailAndBlurForTurnstile(email: string): Promise<void> {
+        this.fillContactInfoEmail(email);
+        await this.blurEmailField();
+    }
+
+    /**
      * Blur the email field to trigger passwordless detection
      */
     async blurEmailField(): Promise<void> {
@@ -2095,6 +2106,80 @@ class CheckoutPage {
             const emailInput = await page.locator('input[type="email"]').first();
             await emailInput.blur();
         }) as unknown as Promise<void>);
+    }
+
+    /**
+     * True when `[data-testid="turnstile-widget"]` is in the DOM (including invisible mode).
+     */
+    async isTurnstileWidgetPresent(): Promise<boolean> {
+        return await I.executeScript(() => {
+            return document.querySelector('[data-testid="turnstile-widget"]') !== null;
+        });
+    }
+
+    /**
+     * True when the contact-info Continue submit button is enabled (not turnstile-gated / overlay-gated).
+     */
+    async isContactInfoContinueEnabled(): Promise<boolean> {
+        return await (I.usePlaywrightTo('check contact-info Continue enabled', async ({ page }) => {
+            const btn = page.locator('[data-testid="sf-toggle-card-contact-info"] button[type="submit"]').first();
+            await btn.waitFor({ state: 'attached', timeout: 10_000 });
+            return await btn.isEnabled();
+        }) as unknown as Promise<boolean>);
+    }
+
+    /**
+     * Seed a valid site-namespaced `cc-tv_*` cookie (same HMAC as authorize mint after siteverify).
+     * Used when headless cannot clear the interactive challenge pinned in local app `.env`.
+     *
+     * @returns false when TURNSTILE_SECRET_KEYS / site key cannot be resolved
+     */
+    async seedTurnstileVerifiedCookie(email: string): Promise<boolean> {
+        const params = getTurnstileCookieMintParams(email);
+        if (!params) return false;
+        const value = computeTurnstileVerifiedCookieValue(params.email, params.siteKey, params.secret);
+        const origin = getStorefrontOrigin();
+        await (I.usePlaywrightTo('seed cc-tv cookie', async ({ page }) => {
+            await page.context().addCookies([
+                {
+                    name: `cc-tv_${params.siteId}`,
+                    value,
+                    url: origin,
+                    httpOnly: true,
+                    sameSite: 'Lax',
+                },
+            ]);
+        }) as unknown as Promise<void>);
+        return true;
+    }
+
+    /**
+     * Leave checkout (home) then return so contact-info remounts with the same browser cookies.
+     */
+    async navigateAwayAndReturnToCheckout(): Promise<void> {
+        I.amOnPage(buildSitePath('/'));
+        await this.navigateWithRetry();
+        this.validatePageLoaded();
+        // Summary mode after a prior submit — open the form so email blur can run again.
+        const editVisible = await I.grabNumberOfVisibleElements(this.locators.contactInfoEditButton);
+        if (editVisible > 0) {
+            I.click(this.locators.contactInfoEditButton);
+            I.waitForElement(this.locators.emailInput, 10);
+        }
+    }
+
+    /**
+     * Close login / OTP overlays that gate Continue after passwordless authorize.
+     */
+    async dismissContactInfoAuthOverlays(): Promise<void> {
+        if (await this.isLoginModalVisible()) {
+            this.clickLoginModalCheckoutAsGuest();
+            this.waitForLoginModalClosed();
+        }
+        if (await this.isPasswordlessOtpModalVisible()) {
+            this.clickPasswordlessOtpCheckoutAsGuest();
+            await this.waitForPasswordlessOtpModalClosed();
+        }
     }
 
     /**

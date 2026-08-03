@@ -304,7 +304,7 @@ The docs below are where architectural detail lives — consult them for tasks i
 - [docs/README-AUTH.md](./docs/README-AUTH.md) — Authentication patterns
 - [docs/README-COOKIE-DOMAIN.md](./docs/README-COOKIE-DOMAIN.md) — Configurable cookie domains: storefront config (`app.cookies.domain` + per-site), the matching Business Manager setting, verification, rollout
 - [docs/README-EMAIL-VERIFICATION.md](./docs/README-EMAIL-VERIFICATION.md) — Email verification: OTP flows, passwordless registration/login, account details badge, Change Email
-- [docs/README-TURNSTILE.md](./docs/README-TURNSTILE.md) — Cloudflare Turnstile bot protection (BFF verification, three-tier health, fail-open)
+- [docs/README-TURNSTILE.md](./docs/README-TURNSTILE.md) — Cloudflare Turnstile bot protection (BFF verification, two-tier health, fail-open)
 - [docs/README-SECURITY-HEADERS.md](./docs/README-SECURITY-HEADERS.md) — Default security response headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
 - [docs/README-I18N.md](./docs/README-I18N.md) — Internationalization
 - [docs/README-MULTI-SITE.md](./docs/README-MULTI-SITE.md) — Site context and locale URL routing

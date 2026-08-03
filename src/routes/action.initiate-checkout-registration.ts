@@ -28,7 +28,7 @@ import { ApiError } from '@/scapi';
 import { getLogger } from '@/lib/logger.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { enforceTurnstile, resolveVerificationMode } from '@/lib/turnstile/enforce.server';
-import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
+import { createCookie, getCookieConfig, getCookieNameWithSiteId } from '@/lib/cookie-utils.server';
 import { COOKIE_TURNSTILE_VERIFIED, TURNSTILE_VERIFIED_MAX_AGE } from '@/lib/turnstile/constants';
 
 /** Response shape returned by the initiate-checkout-registration action. */
@@ -71,23 +71,28 @@ export async function action({
         context
     );
     let shouldSetCookie = false;
+    // HMAC-bound cookie value from a fresh siteverify call. Null when the request was
+    // already short-circuited by a valid cookie or when HMAC derivation was unavailable.
+    // Falls back to '1' in respondWithCookie so the attestation is always recorded.
+    let freshCookieValue: string | null = null;
 
     /**
      * Attach the cc-tv cookie to every response that originated from a
      * freshly-verified Turnstile pass on this request, regardless of whether
      * the downstream SCAPI call succeeded. The cookie attests "this client
-     * cleared the Turnstile gate" — nothing more. Conditioning it on SCAPI
+     * cleared the Turnstile gate" - nothing more. Conditioning it on SCAPI
      * outcome would force a fresh challenge on legitimate shoppers for events
      * (typed unrecognized email, transient SLAS blip) that have nothing to do
      * with bot detection.
      *
-     * When the request was already covered by a prior valid cookie
-     * (`turnstileVerifiedViaCookie === true`), shouldSetCookie stays false
-     * and we don't re-emit the cookie — there's nothing new to record.
+     * shouldSetCookie is true only when enforceTurnstile performed a fresh
+     * siteverify call and returned a non-null cookieValue. When the request
+     * was already covered by a valid HMAC-bound cookie, enforceTurnstile
+     * short-circuits and returns cookieValue: null - nothing new to record.
      */
     const respondWithCookie = async <T>(body: T, init?: ResponseInit): Promise<ReturnType<typeof data<T>>> => {
         if (!shouldSetCookie) return data(body, init);
-        const setCookieHeader = await tvCookie.serialize('1');
+        const setCookieHeader = await tvCookie.serialize(freshCookieValue ?? '1');
         const existingHeaders = init?.headers;
         const mergedHeaders =
             existingHeaders instanceof Headers
@@ -104,36 +109,40 @@ export async function action({
 
         const appConfig = getConfig(context);
 
-        const cookieHeader = request.headers.get('Cookie');
-        const turnstileVerifiedViaCookie = (await tvCookie.parse(cookieHeader)) === '1';
-
         const turnstileVerificationEnabled =
             appConfig.security?.turnstile?.enabled && resolveVerificationMode(appConfig) !== 'disabled';
 
         if (turnstileVerificationEnabled) {
-            if (turnstileToken || !turnstileVerifiedViaCookie) {
-                const allowed = await enforceTurnstile({
-                    request,
-                    config: appConfig,
-                    turnstileToken,
-                    logger,
-                    actionName: 'initiate-checkout-registration',
-                    email,
-                });
-                if (!allowed) {
-                    return data(
-                        {
-                            success: false,
-                            error: createActionError({
-                                code: ErrorCode.NOT_AUTHORIZED,
-                                message: 'Turnstile verification failed',
-                            }),
-                        },
-                        { status: 403 }
-                    );
-                }
-                shouldSetCookie = !turnstileVerifiedViaCookie;
+            // Always consult enforceTurnstile. The short-circuit logic lives inside it:
+            // when an HMAC-bound cookie is present and matches the current email + site,
+            // enforceTurnstile returns { allowed: true, cookieValue: null } immediately.
+            // Doing the pre-check here would bypass the HMAC binding and allow a cookie
+            // issued for one email to short-circuit requests for a different email.
+            const { allowed, cookieValue } = await enforceTurnstile({
+                request,
+                config: appConfig,
+                turnstileToken,
+                logger,
+                actionName: 'initiate-checkout-registration',
+                email,
+                turnstileCookieName: getCookieNameWithSiteId(COOKIE_TURNSTILE_VERIFIED, context),
+            });
+            if (!allowed) {
+                return data(
+                    {
+                        success: false,
+                        error: createActionError({
+                            code: ErrorCode.NOT_AUTHORIZED,
+                            message: 'Turnstile verification failed',
+                        }),
+                    },
+                    { status: 403 }
+                );
             }
+            // cookieValue is non-null only when enforceTurnstile ran a fresh siteverify.
+            // On cookie short-circuit it returns null - no new cookie to write.
+            freshCookieValue = cookieValue;
+            shouldSetCookie = cookieValue !== null;
         }
 
         if (!email) {

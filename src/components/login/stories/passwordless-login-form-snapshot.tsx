@@ -33,6 +33,7 @@ vi.mock('react-router', () => ({
     useFetcher: () => fetcherMock,
     useFetchers: () => [],
 
+    useResolvedPath: (to: string) => ({ pathname: to, search: '', hash: '', state: null, key: 'test' }),
     useNavigate: () => () => {},
     useLocation: () => ({ pathname: '/', search: '', hash: '', state: null, key: 'test' }),
     useNavigation: () => ({

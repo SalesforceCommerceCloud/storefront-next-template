@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
+import { createHash } from 'node:crypto';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { getTurnstileSiteKey, getTurnstileSecretKey, isTurnstileEnabled, getTurnstileMode } from './utils';
+import {
+    getTurnstileSiteKey,
+    getBrowserTurnstileSiteKey,
+    getTurnstileSecretKey,
+    isTurnstileEnabled,
+    getTurnstileMode,
+} from './utils';
+import { getTurnstileHmacKey } from './hmac.server';
 import type { AppConfig } from '@/types/config';
 
 describe('turnstile-utils', () => {
@@ -356,6 +364,98 @@ describe('turnstile-utils', () => {
             vi.stubEnv('TURNSTILE_SECRET_KEYS', JSON.stringify({ '0x4AAA_US_KEY': 'secret_us' }));
 
             expect(getTurnstileSecretKey('0x4AAA_US_KEY')).toBeNull();
+        });
+    });
+
+    describe('getTurnstileHmacKey', () => {
+        let originalWindow: typeof globalThis.window;
+
+        beforeEach(() => {
+            vi.resetModules();
+            originalWindow = globalThis.window;
+            // @ts-expect-error - temporarily undefining window for server-side tests
+            delete globalThis.window;
+        });
+
+        afterEach(() => {
+            vi.unstubAllEnvs();
+            globalThis.window = originalWindow;
+        });
+
+        it('returns a 32-byte Buffer derived from the Cloudflare secret', () => {
+            vi.stubEnv('TURNSTILE_SECRET_KEYS', JSON.stringify({ 'site-key': 'my-cloudflare-secret' }));
+
+            const result = getTurnstileHmacKey('site-key');
+
+            expect(result).toBeInstanceOf(Buffer);
+            expect(result?.length).toBe(32);
+
+            // Verify domain separation: the key is SHA-256("sfnext-turnstile-cookie-binding:" + secret),
+            // not the raw secret.
+            const expected = createHash('sha256')
+                .update('sfnext-turnstile-cookie-binding:my-cloudflare-secret')
+                .digest();
+            expect(result?.equals(expected)).toBe(true);
+        });
+
+        it('does NOT return the raw Cloudflare secret as the key', () => {
+            const rawSecret = 'my-cloudflare-secret';
+            vi.stubEnv('TURNSTILE_SECRET_KEYS', JSON.stringify({ 'site-key': rawSecret }));
+
+            const result = getTurnstileHmacKey('site-key');
+            const rawKey = Buffer.from(rawSecret, 'utf8');
+
+            // The derived key must differ from the raw secret bytes.
+            expect(result?.equals(rawKey)).toBe(false);
+        });
+
+        it('returns null when secret key is not configured', () => {
+            vi.stubEnv('TURNSTILE_SECRET_KEYS', JSON.stringify({}));
+
+            expect(getTurnstileHmacKey('unknown-site')).toBeNull();
+        });
+
+        it('returns null in a browser context via getTurnstileSecretKey guard', () => {
+            // hmac.server.ts is server-only (no local `typeof window` guard). Browser
+            // refusal is intentional via getTurnstileSecretKey(), which returns null
+            // when `window` is defined so secrets never resolve client-side.
+            globalThis.window = {} as Window & typeof globalThis;
+            vi.stubEnv('TURNSTILE_SECRET_KEYS', JSON.stringify({ 'site-key': 'secret' }));
+
+            expect(getTurnstileHmacKey('site-key')).toBeNull();
+        });
+
+        it('returns null when TURNSTILE_SECRET_KEYS is not set', () => {
+            vi.unstubAllEnvs();
+            expect(getTurnstileHmacKey('site-key')).toBeNull();
+        });
+    });
+
+    describe('getBrowserTurnstileSiteKey', () => {
+        const configWithLocalhost: AppConfig = {
+            security: {
+                turnstile: {
+                    enabled: true,
+                    sites: {
+                        local: [{ siteKey: 'test-site-key', domains: ['localhost'] }],
+                    },
+                },
+            },
+        } as unknown as AppConfig;
+
+        it('returns the site key for the current window location', () => {
+            expect(getBrowserTurnstileSiteKey(configWithLocalhost)).toBe('test-site-key');
+        });
+
+        it('returns null during SSR when window is undefined', () => {
+            const originalWindow = globalThis.window;
+            // @ts-expect-error - simulate SSR
+            delete globalThis.window;
+            try {
+                expect(getBrowserTurnstileSiteKey(configWithLocalhost)).toBeNull();
+            } finally {
+                globalThis.window = originalWindow;
+            }
         });
     });
 

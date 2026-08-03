@@ -24,7 +24,7 @@ import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getLoginPreferences } from '@/lib/login-preferences.server';
 import { enforceTurnstile } from '@/lib/turnstile/enforce.server';
 import { redactEmailForLog } from '@/lib/turnstile/log-redact.server';
-import { createCookie, getCookieConfig } from '@/lib/cookie-utils.server';
+import { createCookie, getCookieConfig, getCookieNameWithSiteId } from '@/lib/cookie-utils.server';
 import { COOKIE_TURNSTILE_VERIFIED, TURNSTILE_VERIFIED_MAX_AGE } from '@/lib/turnstile/constants';
 import { ApiError } from '@/scapi';
 
@@ -86,13 +86,14 @@ export async function action({
         return data({ success: false, requiresLogin: true, email });
     }
 
-    const allowed = await enforceTurnstile({
+    const { allowed, cookieValue } = await enforceTurnstile({
         request,
         config: appConfig,
         turnstileToken,
         logger,
         actionName: 'authorize-passwordless-email',
         email,
+        turnstileCookieName: getCookieNameWithSiteId(COOKIE_TURNSTILE_VERIFIED, context),
     });
     if (!allowed) {
         return data(
@@ -109,20 +110,26 @@ export async function action({
 
     // The cc-tv cookie attests that this client cleared the Turnstile gate. We set it
     // here, immediately after enforceTurnstile returned true, so every response path
-    // below carries it — success, 400, 404, 5xx, generic 500. The cookie's job is to
+    // below carries it (success, 400, 404, 5xx, generic 500). The cookie's job is to
     // record "Turnstile passed" so other Turnstile-protected endpoints (e.g.
     // /initiate-checkout-registration) can skip a fresh challenge within the 30-minute
     // window. SCAPI's later verdict is about the email/account, not about whether the
-    // client is a bot — conditioning the cookie on SCAPI success would force a fresh
+    // client is a bot. Conditioning the cookie on SCAPI success would force a fresh
     // challenge on legitimate shoppers for events (typed unrecognized email, transient
     // SLAS blip) that have nothing to do with bot detection.
-    const tvCookie = createCookie<string>(
-        COOKIE_TURNSTILE_VERIFIED,
-        getCookieConfig({ httpOnly: true, maxAge: TURNSTILE_VERIFIED_MAX_AGE }, context),
-        context
-    );
-    const setCookieHeader = await tvCookie.serialize('1');
-    const headers = { 'Set-Cookie': setCookieHeader };
+    //
+    // cookieValue is the HMAC-bound value for this email + site. Null means the request
+    // was short-circuited by an already-valid cookie; nothing new to record.
+    const shouldSetCookie = cookieValue !== null;
+    let headers: Record<string, string> = {};
+    if (shouldSetCookie) {
+        const tvCookie = createCookie<string>(
+            COOKIE_TURNSTILE_VERIFIED,
+            getCookieConfig({ httpOnly: true, maxAge: TURNSTILE_VERIFIED_MAX_AGE }, context),
+            context
+        );
+        headers = { 'Set-Cookie': await tvCookie.serialize(cookieValue) };
+    }
 
     try {
         await authorizePasswordless(context, { userid: email, strictVerify });

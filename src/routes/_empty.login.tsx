@@ -15,7 +15,7 @@
  */
 import { type ReactElement, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from '@/hooks/use-navigate';
-import { redirect, redirectDocument, useActionData } from 'react-router';
+import { data, redirect, redirectDocument, useActionData } from 'react-router';
 import { usePasskeyLogin } from '@/hooks/use-passkey-login';
 import type { Route } from './+types/_empty.login';
 import { Link } from '@/components/link';
@@ -60,11 +60,19 @@ import {
 import { getPasswordlessErrorMessageKey, extractErrorMessage } from '@/lib/auth/error-handler';
 import { getLogger } from '@/lib/logger.server';
 import { enforceTurnstile } from '@/lib/turnstile/enforce.server';
+import { COOKIE_TURNSTILE_VERIFIED, TURNSTILE_VERIFIED_MAX_AGE } from '@/lib/turnstile/constants';
+import { createCookie, getCookieConfig, getCookieNameWithSiteId } from '@/lib/cookie-utils.server';
 import { ApiError } from '@/scapi';
 
 type LoginActionResponse = {
     success: boolean;
     error?: string;
+    /**
+     * Machine-readable error code for client-side handling. `NOT_AUTHORIZED` indicates
+     * a Turnstile gate rejection so the form can reset the widget and show a generic
+     * verification message without leaking detection signals. See README-TURNSTILE.md.
+     */
+    errorCode?: string;
     showOTPForm?: boolean;
     email?: string;
 };
@@ -138,7 +146,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
             const tokenResponse = await getPasswordLessAccessToken(context, token);
 
             // Update session with auth data. userType, customerId, usid, and the refresh-token
-            // expiry cap all derive from the access-token JWT inside updateAuth — no follow-up
+            // expiry cap all derive from the access-token JWT inside updateAuth; no follow-up
             // call is needed.
             updateAuthServer(context, tokenResponse);
 
@@ -190,7 +198,7 @@ export async function loader({ request, context }: Route.LoaderArgs) {
     }
 
     // Drives the guest-saved-items banner above the form. Helper gates on guest userType
-    // and swallows SCAPI errors — a missing snapshot must not block sign-in.
+    // and swallows SCAPI errors; a missing snapshot must not block sign-in.
     const guestWishlistSnapshot = await captureGuestWishlistSnapshot(context);
 
     const { t } = getTranslation(context);
@@ -217,13 +225,18 @@ export async function loader({ request, context }: Route.LoaderArgs) {
  * Server action for authentication. Login is handled server-side for security (httpOnly cookies,
  * PKCE code verifier storage) and integration with SLAS.
  *
- * Returns `LoginActionResponse | Response` because the action has two distinct outcomes:
- * - `Response` (redirect) — successful login or social IDP authorization. React Router intercepts
+ * Returns `LoginActionResponse | Response | ReturnType<data<LoginActionResponse>>` because the action has three distinct outcomes:
+ * - `Response` (redirect): successful login or social IDP authorization. React Router intercepts
  *   the redirect before it reaches the component, so `useActionData()` never sees it.
- * - `LoginActionResponse` — errors or intermediate states (e.g., OTP form). This data is
+ * - `data(LoginActionResponse, { headers })`: passwordless OTP intermediate state that also sets
+ *   the Turnstile `cc-tv` cookie via Set-Cookie.
+ * - `LoginActionResponse`: errors or intermediate states without extra headers. This data is
  *   serialized and delivered to the component via `useActionData()` for rendering.
  */
-export async function action({ request, context }: Route.ActionArgs): Promise<LoginActionResponse | Response> {
+export async function action({
+    request,
+    context,
+}: Route.ActionArgs): Promise<LoginActionResponse | Response | ReturnType<typeof data<LoginActionResponse>>> {
     const logger = getLogger(context);
     const config = getConfig(context);
     const { t } = getTranslation(context);
@@ -269,16 +282,34 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Lo
             }
 
             const turnstileToken = formData.get('turnstileToken')?.toString();
-            const allowed = await enforceTurnstile({
+            const { allowed, cookieValue } = await enforceTurnstile({
                 request,
                 config,
                 turnstileToken,
                 logger,
                 actionName: 'login-passwordless',
                 email,
+                turnstileCookieName: getCookieNameWithSiteId(COOKIE_TURNSTILE_VERIFIED, context),
             });
             if (!allowed) {
-                return { success: false, error: t('errors:api.forbidden') };
+                return data(
+                    { success: false, error: t('errors:api.forbidden'), errorCode: 'NOT_AUTHORIZED' },
+                    { status: 403 }
+                );
+            }
+
+            // Write the cc-tv cookie when enforceTurnstile performed a fresh siteverify.
+            // Null means the request was already covered by a valid HMAC-bound cookie;
+            // nothing new to record. The cookie lets downstream endpoints (e.g. OTP resend)
+            // skip a fresh challenge within the 30-minute window.
+            let loginTvHeaders: Record<string, string> | undefined;
+            if (cookieValue !== null) {
+                const tvCookie = createCookie<string>(
+                    COOKIE_TURNSTILE_VERIFIED,
+                    getCookieConfig({ httpOnly: true, maxAge: TURNSTILE_VERIFIED_MAX_AGE }, context),
+                    context
+                );
+                loginTvHeaders = { 'Set-Cookie': await tvCookie.serialize(cookieValue) };
             }
 
             // Build redirectPath from returnUrl, action, and actionParams for passwordless flow
@@ -317,7 +348,9 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Lo
                 if (actionParams) {
                     params.set('actionParams', actionParams);
                 }
-                return { success: true, showOTPForm: true, email };
+                return loginTvHeaders
+                    ? data({ success: true, showOTPForm: true, email }, { headers: loginTvHeaders })
+                    : { success: true, showOTPForm: true, email };
             } catch (error) {
                 const errorMessage = extractErrorMessage(error);
                 const errorKey = getPasswordlessErrorMessageKey(errorMessage);
@@ -329,7 +362,9 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Lo
                     rawBody: error instanceof ApiError ? error.rawBody : undefined,
                 });
 
-                return { success: false, error: t(errorKey) };
+                return loginTvHeaders
+                    ? data({ success: false, error: t(errorKey) }, { headers: loginTvHeaders })
+                    : { success: false, error: t(errorKey) };
             }
         } else {
             // Standard password login flow (default case - handles 'password' mode or undefined/null)
@@ -430,7 +465,7 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Lo
 
             // Redirect to returnUrl (with preserved action params) or home.
             // `returnUrl` is guaranteed relative by `getSafeReturnUrl` above, so we mutate
-            // its query string in place rather than constructing a `URL` object — that
+            // its query string in place rather than constructing a `URL` object; that
             // keeps the redirect target relative end-to-end and removes any temptation
             // for a future refactor to forward an absolute URL past the open-redirect
             // guard.
@@ -479,6 +514,7 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
 
     const [resendTurnstileToken, setResendTurnstileToken] = useState<string | null>(null);
     const resendTurnstileResetRef = useRef<(() => void) | null>(null);
+    const [resendTurnstileBypassed, setResendTurnstileBypassed] = useState(false);
     const [passkeyLoginError, setPasskeyLoginError] = useState<string | null>(null);
 
     const { loginWithPasskey, abortPasskeyLogin } = usePasskeyLogin(
@@ -526,9 +562,15 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
     const handleResendTurnstileExpire = useCallback(() => {
         setResendTurnstileToken(null);
     }, []);
+    // CDN failure — resend proceeds without a token; the server may allow it based on
+    // the existing cc-tv cookie set when the first OTP was dispatched.
+    const handleResendTurnstileBypass = useCallback(() => {
+        setResendTurnstileBypassed(true);
+    }, []);
     // Prefer actionData error (from form submission) over loaderData error (from URL params);
     // a post-gesture passkey failure takes precedence since it reflects the shopper's latest action.
     const error = passkeyLoginError || actionData?.error || loaderError || undefined;
+    const actionErrorCode = actionData?.errorCode;
 
     // Check if we should show OTP form from actionData (after email submission) or loaderData (from URL)
     const shouldShowOTPForm = actionData?.showOTPForm || showOTPForm;
@@ -566,6 +608,7 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
                     error={error}
                     isPasswordlessEnabled={isPasswordlessLoginEnabled}
                     redirectPath={returnUrl || undefined}
+                    actionErrorCode={actionErrorCode}
                 />
             );
         }
@@ -607,13 +650,14 @@ export default function Login({ loaderData }: { loaderData: LoginLoaderData }): 
                 </div>
             </div>
 
-            {/* Turnstile widget for OTP resend — hidden, generates tokens for the resend fetch */}
-            {showOTPModal && turnstileEnabled && turnstileSiteKey && (
+            {/* Turnstile widget for OTP resend - hidden, generates tokens for the resend fetch */}
+            {showOTPModal && turnstileEnabled && turnstileSiteKey && !resendTurnstileBypassed && (
                 <TurnstileWidget
                     siteKey={turnstileSiteKey}
                     onSuccess={handleResendTurnstileSuccess}
                     onError={handleResendTurnstileError}
                     onExpire={handleResendTurnstileExpire}
+                    onBypass={handleResendTurnstileBypass}
                     enabled={turnstileEnabled}
                     mode={turnstileMode}
                     resetRef={resendTurnstileResetRef}

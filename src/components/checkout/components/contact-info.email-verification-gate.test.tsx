@@ -22,7 +22,7 @@
  */
 import React from 'react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 vi.mock('@/components/login/otp-modal', () => ({ default: () => null }));
@@ -39,6 +39,11 @@ vi.mock('@/lib/turnstile/utils', () => ({
     isTurnstileEnabled: () => true,
     getTurnstileMode: () => 'managed' as const,
     getTurnstileSiteKey: () => '2x00000000000000000000AB',
+    getBrowserTurnstileSiteKey: () => '2x00000000000000000000AB',
+}));
+
+vi.mock('@/lib/turnstile/check-session', () => ({
+    checkTurnstileSessionVerified: vi.fn().mockResolvedValue(false),
 }));
 
 vi.mock('react-router', async (importOriginal) => {
@@ -133,11 +138,14 @@ describe('ContactInfo - emailVerificationEnabled gate', () => {
         });
     });
 
-    test('widget does not mount on email focus when emailVerificationEnabled is false', () => {
+    test('widget does not mount on email blur when emailVerificationEnabled is false', () => {
         renderWithRouter(<ContactInfo {...baseProps} emailVerificationEnabled={false} />);
 
         const emailInput = screen.getByLabelText(/Email Address/i);
-        fireEvent.focus(emailInput);
+        fireEvent.change(emailInput, { target: { value: 'shopper@example.com' } });
+        act(() => {
+            fireEvent.blur(emailInput);
+        });
 
         expect(screen.queryByTestId('turnstile-widget')).not.toBeInTheDocument();
     });
@@ -150,21 +158,31 @@ describe('ContactInfo - emailVerificationEnabled gate', () => {
         expect(continueButton).not.toBeDisabled();
     });
 
-    test('widget mounts on email focus when emailVerificationEnabled is true', () => {
+    test('widget mounts on email blur when emailVerificationEnabled is true', async () => {
         renderWithRouter(<ContactInfo {...baseProps} emailVerificationEnabled={true} />);
 
         const emailInput = screen.getByLabelText(/Email Address/i);
-        fireEvent.focus(emailInput);
+        fireEvent.change(emailInput, { target: { value: 'shopper@example.com' } });
+        act(() => {
+            fireEvent.blur(emailInput);
+        });
 
-        expect(screen.getByTestId('turnstile-widget')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId('turnstile-widget')).toBeInTheDocument();
+        });
     });
 
-    test('widget mounts on email focus when emailVerificationEnabled is undefined (default enabled)', () => {
+    test('widget mounts on email blur when emailVerificationEnabled is undefined (default enabled)', async () => {
         renderWithRouter(<ContactInfo {...baseProps} />);
 
         const emailInput = screen.getByLabelText(/Email Address/i);
-        fireEvent.focus(emailInput);
+        fireEvent.change(emailInput, { target: { value: 'shopper@example.com' } });
+        act(() => {
+            fireEvent.blur(emailInput);
+        });
 
-        expect(screen.getByTestId('turnstile-widget')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId('turnstile-widget')).toBeInTheDocument();
+        });
     });
 });

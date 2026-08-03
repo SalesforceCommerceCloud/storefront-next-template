@@ -37,7 +37,7 @@ Three layers, each independently testable:
 │        │                                                         │
 │        ▼                                                         │
 │  Allow / block         decision logged; on success sets the     │
-│                        `cc-tv` session cookie so subsequent OTP │
+│                        `cc-tv_${siteId}` cookie so subsequent OTP │
 │                        steps in the same session can skip the   │
 │                        widget                                    │
 └─────────────────────────────────────────────────────────────────┘
@@ -51,24 +51,25 @@ Three layers, each independently testable:
 | `src/components/security/turnstile-error-codes.ts` | `TURNSTILE_ERROR_FAMILY` and `classifyTurnstileErrorCode()` - maps Cloudflare error codes to families (infrastructure / bot-detection / timeout / other). Lives in its own file so the widget stays component-only (Vite fast-refresh constraint). |
 | `src/hooks/use-turnstile.ts` | Older imperative hook + global `window.turnstile` types. Most callers use `TurnstileWidget`. |
 | `src/lib/turnstile/enforce.server.ts` | Single server entry point used by every protected action. Decides allow/block based on token + health signal. |
+| `src/lib/turnstile/cookie-match.server.ts` | HMAC cookie↔email match helpers (`isTurnstileSessionVerifiedForEmail`) shared by enforce + the session resource. |
+| `src/lib/turnstile/check-session.ts` | Client helper that calls `/resource/turnstile-session` on email blur for UI suppress. |
+| `src/routes/resource.turnstile-session.ts` | BFF resource: `{ verified }` for cookie↔email match only (no directory lookup). |
 | `src/lib/turnstile/verify.server.ts` | Cloudflare siteverify HTTP call. Records every outcome in health metrics. |
 | `src/lib/turnstile/health.server.ts` | Two-tier health detection (siteverify metrics → CDN probe). Maintains in-memory cache and the sliding-window metric. |
 | `src/lib/turnstile/utils.ts` | Site-key lookup by request origin; secret-key retrieval from env; mode/enabled helpers. |
-| `src/lib/turnstile/constants.ts` | Cookie name (`cc-tv`) and TTL (30 minutes). |
+| `src/lib/turnstile/constants.ts` | Cookie base name (`cc-tv`) and TTL (30 minutes). The cookie is written as `cc-tv_${siteId}` (site-namespaced) so multi-site deployments can't share attestations across sites. |
 
 ### Enforcement points
 
-Five distinct call sites use `enforceTurnstile`:
+Three call sites use `enforceTurnstile`:
 
-| Endpoint | File | Purpose | Sets `cc-tv` cookie? |
+| Endpoint | File | Purpose | Sets `cc-tv_${siteId}` cookie? |
 |---|---|---|---|
-| `action.authorize-passwordless-email` | `src/routes/action.authorize-passwordless-email.ts` | Initial email entry at checkout (sends OTP) | Yes |
-| `action.initiate-checkout-registration` | `src/routes/action.initiate-checkout-registration.ts` | Account creation during checkout | Yes |
-| Login page (resend OTP) | `src/routes/_empty.login.tsx` | OTP resend after first attempt | Yes |
-| Login page (initial submit) | `src/routes/_empty.login.tsx` | Standalone /login flow | Yes |
-| `action.otp-request` | `src/routes/action.otp-request.ts` | OTP resend during password-mode flow | Yes |
+| `action.authorize-passwordless-email` | `src/routes/action.authorize-passwordless-email.ts` | Initial email entry at checkout (sends OTP) | Yes - when siteverify returned `success: true` |
+| `action.initiate-checkout-registration` | `src/routes/action.initiate-checkout-registration.ts` | Account creation during checkout | Yes - when siteverify returned `success: true` |
+| Login page (passwordless submit and OTP resend) | `src/routes/_empty.login.tsx` | Standalone /login flow and OTP resend. WI-10 parity: generic alert shown on server rejection, form gated until challenge resolves. | Yes - when siteverify returned `success: true` |
 
-OTP verify (`action.verify-otp`) does not call `enforceTurnstile` directly. Instead, the presence of a valid `cc-tv` cookie (set by an upstream successful verify) is the proof-of-humanity signal for the verify step.
+`action.otp-verify` (verify-passwordless-otp) and `action.otp-request` do **not** call `enforceTurnstile` and do **not** require `cc-tv_${siteId}`. The upstream Turnstile challenge at the email-entry step plus the OTP code itself are the controls for those steps.
 
 ### Provider tree (where state lives)
 
@@ -78,12 +79,12 @@ The widget mounts inside the route component (e.g., `contact-info.tsx`) and stor
 
 Walk through what happens from page render to a verified login. Times are illustrative (warm caches, healthy network).
 
-### Step 1: Page renders, widget mounts
+### Step 1: Page renders; widget mounts on email blur
 
 1. Shopper navigates to a protected step (e.g. checkout contact info, or `/login`).
 2. The route component reads `config.security.turnstile` and resolves a site key for the current hostname via `getTurnstileSiteKey(config, baseUrl)`.
 3. If Turnstile is disabled or no site key matches, the widget never mounts and the form behaves normally.
-4. Otherwise `<TurnstileWidget siteKey={...} onSuccess={...} onError={...} onBypass={...} />` is rendered. The form's submit button is disabled while the token is pending (`turnstilePending = enabled && siteKey && !token && !bypassed`).
+4. Otherwise the form defers mounting until the shopper blurs a valid email field. On blur the client calls `GET /resource/turnstile-session?email=…`, which returns `{ verified }` for whether this request's httpOnly `cc-tv_*` cookie HMAC-matches that email. If `verified: true`, the widget is **not** mounted and the form treats the shopper as session-verified for UI gating (`turnstileSessionVerified`). If not verified, `<TurnstileWidget … />` mounts. Focus alone does not mount the widget; after retry exhaustion, re-focusing email remounts a fresh challenge for recovery. Submit stays disabled while a token is pending (`turnstilePending = enabled && siteKey && (checking || (!token && !bypassed && !sessionVerified))`).
 
 ### Step 2: Cloudflare script loads (browser)
 
@@ -91,14 +92,14 @@ Walk through what happens from page render to a verified login. Times are illust
 2. A 5-second load timeout is armed. If the script does not load in time:
    - `onBypass` fires.
    - The parent form un-disables the submit button (`turnstileBypassed = true`).
-   - The shopper can submit without a token. The server will independently detect the CDN outage via tier-1/2/3 health and either fail-open or fail-closed accordingly.
+   - The shopper can submit without a token. The server will independently detect the CDN outage via the two-tier health signal and either fail-open or fail-closed accordingly.
 3. On `script.onload`, the widget calls `window.turnstile.render(container, {...})` with the configured site key and callbacks.
 
 ### Step 3: Challenge runs (browser ↔ Cloudflare)
 
 1. The Turnstile script connects to Cloudflare and runs its bot/human checks. In `managed` mode (the default), Cloudflare decides per request whether to show the visible "Verify you are human" checkbox or run silently in the background.
 2. When the challenge succeeds, Cloudflare invokes the widget's `callback` with a single-use token (a long opaque string starting with `XXXX.DUMMY...` for test keys, or a real signed token in production).
-3. The widget's `callback` updates React state via `setTurnstileToken(token)` and (in checkout) records `sessionStorage.turnstileVerified = '1'` so child components can react.
+3. The widget's `callback` updates React state via `setTurnstileToken(token)` and enables the submit button.
 4. The submit button enables.
 
 If anything goes wrong client-side:
@@ -152,9 +153,11 @@ What Cloudflare validates inside siteverify (we don't see the internals, but per
 
 ### Step 7: BFF → response (BFF → browser)
 
-If `enforceTurnstile` returned `true`:
-- The action sets a `Set-Cookie: cc-tv=1; Max-Age=1800; HttpOnly; Secure; SameSite=Lax` header. This is the session-scoped proof-of-humanity (see "Cookie-based session reuse" below). The cookie is attached to **every** response path on this request — success, 400, 404, 5xx, generic 500. The cookie attests that the client cleared the Turnstile gate, which has nothing to do with how SCAPI later decides about the email or account.
-- The action proceeds with its real work (e.g. SLAS `authorizePasswordless` for the email step) and returns the response (with the cookie attached).
+If `enforceTurnstile` returned `true` **and** the result was a successful Cloudflare siteverify call (`success: true`):
+- The action sets a `Set-Cookie: cc-tv_${siteId}=<hmac>; Max-Age=1800; HttpOnly; Secure; SameSite=Lax` header. The value is an HMAC-SHA-256 hex string (64 characters) computed as `hmac_sha256(derivedKey, siteKey + ':' + normalizedEmail)`, where `siteKey` is the Cloudflare public site key (distinct from the storefront `siteId` used in the cookie name). This binds the attestation to this shopper's email and the specific Cloudflare key in use. The cookie is attached to **every** response path on this request: success, 400, 404, 5xx, generic 500. The cookie attests that the client cleared the Turnstile gate, which has nothing to do with how SCAPI later decides about the email or account.
+- **Fail-open paths do NOT issue the cookie.** When `enforceTurnstile` allows the request without a siteverify call — either because the token was missing while Cloudflare was degraded, or because siteverify returned an infrastructure error (`internal-error`, `http-error-5xx`) — no `cc-tv_${siteId}` cookie is emitted. Only a successful siteverify (`passed`) yields a cookie.
+- When the request was already covered by a valid HMAC-bound cookie (short-circuit path), `enforceTurnstile` returns `cookieValue: null`. No new cookie is emitted; there is nothing new to record.
+- The action proceeds with its real work (e.g. SLAS `authorizePasswordless` for the email step) and returns the response (with the cookie attached when applicable).
 
 If `enforceTurnstile` returned `false`:
 - The action returns HTTP 403 with `{ success: false, error: { code: 'NOT_AUTHORIZED', message: 'Turnstile verification failed' } }`.
@@ -162,12 +165,9 @@ If `enforceTurnstile` returned `false`:
 
 ### Step 8: Subsequent steps in the same session
 
-For the remainder of the 30-minute `cc-tv` cookie lifetime, the shopper can interact with related actions (OTP request, OTP verify, registration submit) without re-rendering the widget. Each protected action does:
+For the remainder of the 30-minute `cc-tv_${siteId}` cookie lifetime, the shopper can interact with related actions (registration submit) without re-rendering the widget. **Every protected action always calls `enforceTurnstile`**; the HMAC short-circuit lives inside it. When the cookie is present and its HMAC value matches the current email + Cloudflare site key, `enforceTurnstile` short-circuits and returns `{ allowed: true, cookieValue: null }` without making a fresh siteverify call. When `cookieValue` is null the caller skips the Set-Cookie header (nothing new to record).
 
-```
-1. Read cc-tv cookie → if value === '1' AND no new turnstileToken submitted: skip enforceTurnstile, allow.
-2. Otherwise (cookie missing/expired or token submitted): call enforceTurnstile with the new token; if it returns true, set the cookie on every response path; if it returns false, return 403 with no cookie.
-```
+Note: `action.otp-verify` and `action.otp-request` are **not** on the protected-action list — they never call `enforceTurnstile` and do not check for `cc-tv_${siteId}`. The OTP code itself plus the upstream challenge are the controls for those steps.
 
 This avoids forcing a Turnstile widget on every checkout step, which would be unacceptable friction.
 
@@ -269,23 +269,15 @@ Single function called by every protected action. Decision flow:
    - If healthy → block (no token + healthy CF = bot).
 5. **Verify token.** Call `verifyTurnstileToken({ token, secretKey, remoteIp })`. Outcome is recorded in the health metric (see below) regardless of allow/block.
 6. **Classify failures.**
-   - Infrastructure errors (`internal-error`, `http-error-*`) → allow (fail-open), warn log.
-   - All other failures → block, warn log including the error codes.
+   - Infrastructure errors (`internal-error`, `http-error-5xx`) → allow (fail-open), warn log.
+   - All other failures (including `http-error-4xx`) → block, warn log including the error codes.
 7. **Allow** on success with debug log.
 
-### Cookie-based session reuse (`cc-tv`)
+### Cookie-based session reuse (`cc-tv_${siteId}`)
 
-After `enforceTurnstile` returns true, the action sets a 30-minute httpOnly cookie named `cc-tv` containing the value `'1'`. Subsequent protected actions in the same checkout session check this cookie first:
+After a fresh siteverify pass (`success: true`), the action sets a 30-minute httpOnly cookie named `cc-tv_${siteId}` (site-namespaced via `getCookieNameWithSiteId`). The value is `hmac_sha256(derivedKey, siteKey + ':' + normalizedEmail)`: a 64-character hex string where `siteKey` is the Cloudflare public site key (not the storefront `siteId` in the cookie name). This binds the attestation to this shopper's email and the specific Cloudflare key in use — a different site key means a different HMAC. On the next request, `enforceTurnstile` reads the cookie and calls `crypto.timingSafeEqual` against the expected HMAC; if it matches, verification is skipped. On email mismatch the request falls through to a fresh siteverify call rather than being rejected, so changing the email address doesn't block checkout.
 
-```typescript
-// from action.initiate-checkout-registration.ts
-const turnstileVerifiedViaCookie = (await tvCookie.parse(cookieHeader)) === '1';
-
-if (turnstileToken || !turnstileVerifiedViaCookie) {
-    // run enforceTurnstile - new token attached, or cookie missing/expired
-}
-// else: cookie present, accept without re-running enforce
-```
+**UI suppress (same cookie):** Because `cc-tv_*` is httpOnly, the client cannot read it. On email blur, checkout contact-info and passwordless login call `GET /resource/turnstile-session?email=…`, which uses the same HMAC match helper (`isTurnstileSessionVerifiedForEmail`) and returns only `{ verified: boolean }` for *this request's cookie vs this email* (no customer-directory lookup — anti-enumeration). When `verified` is true the widget stays unmounted and Continue/submit is not gated; changing to an email that does not match remounts the widget on the next blur. This is UX only — every protected action still calls `enforceTurnstile`.
 
 Why: forcing a Turnstile widget on every checkout step would be extremely friction-heavy. The cookie functions as a session-scoped proof-of-humanity, with the same TTL (30 min) as a typical SLAS session.
 
@@ -293,15 +285,18 @@ The cookie is httpOnly (no JS access), Secure, and SameSite-Lax. It is never tru
 
 #### When the cookie is set
 
-The cookie is set on **every response path** where `enforceTurnstile` returned `true` on the current request — success, 400, 404, 5xx, generic 500 — not only on the success path of the gated business action.
+The cookie is set on **every response path** where `enforceTurnstile` performed a successful siteverify call (`success: true`) on the current request (success, 400, 404, 5xx, generic 500), not only on the success path of the gated business action.
 
-The reason is the cookie's semantics. The cookie attests "this client cleared the Turnstile gate." Once a request reaches SLAS at all, the client has already cleared Turnstile (either solved a challenge, was passed silently by Cloudflare, or hit the fail-open path because Cloudflare itself was unavailable — see Two-tier health signal below). None of that changes based on whether SLAS later returns 200, 400, 404, or 5xx. SCAPI's verdict is about the email or the account, not about whether the client is a bot.
+**Fail-open allow paths do not set the cookie.** When `enforceTurnstile` allows without a siteverify call — missing token while Cloudflare was degraded, or siteverify returning `internal-error` / `http-error-5xx` — no cookie is emitted. The fail-open path attests nothing about whether this client passed a challenge; only a verified `success: true` from Cloudflare produces a cookie.
+
+The reason is the cookie's semantics. The cookie attests "this client passed a Cloudflare siteverify check." Once siteverify returned `success: true`, the client cleared the Turnstile gate regardless of what SLAS later says about the email or account. None of that changes based on whether SLAS later returns 200, 400, 404, or 5xx. SCAPI's verdict is about the email or the account, not about whether the client is a bot.
 
 If we conditioned the cookie on SCAPI success, every legitimate shopper who typed an unrecognized email or hit a transient SLAS upstream blip on their first attempt would be forced through a fresh Turnstile challenge on the next protected endpoint. That punishes real shoppers for events that have nothing to do with bot detection. Bot-mitigation TTL is the cookie's `Max-Age`, not the boolean of SCAPI-success.
 
-The only path that does NOT set the cookie is when `enforceTurnstile` itself rejected the request (returning HTTP 403). In that case the gate explicitly said no, so the response carries no cookie and the next request will be forced to verify again.
-
-For actions that read the cookie before deciding whether to call `enforceTurnstile` (e.g. `action.initiate-checkout-registration`), the cookie is also not re-emitted when a prior valid cookie was already present — there's nothing new to record.
+Paths that do NOT set the cookie:
+- `enforceTurnstile` rejected the request (returning HTTP 403) — gate said no.
+- Fail-open allow: missing token while Cloudflare was degraded, or siteverify returned `internal-error` / `http-error-5xx` — no challenge was actually verified.
+- Short-circuit path: valid HMAC-bound cookie already present — `enforceTurnstile` returns `cookieValue: null`; nothing new to record.
 
 ## Two-tier health signal
 
@@ -466,7 +461,7 @@ Each top-level flag can be overridden by env var via the `PUBLIC__` prefix (per 
 | Value | Behaviour |
 |---|---|
 | `'enforce'` | Full verification; blocks requests that fail (default when `TURNSTILE_VERIFICATION_ENABLED=true`). |
-| `'log-only'` | Full verification pipeline runs — siteverify is called, health signal is updated — but the result is only logged. No shopper is ever blocked. |
+| `'log-only'` | Full verification pipeline runs (siteverify is called, health signal is updated), but the result is only logged. No shopper is ever blocked. |
 | `'disabled'` | Verification is skipped entirely. Equivalent to `TURNSTILE_VERIFICATION_ENABLED=false`. |
 
 `mode` takes precedence over the legacy `enabled` boolean. When neither is set, `disabled` is assumed.
@@ -476,7 +471,7 @@ Each top-level flag can be overridden by env var via the `PUBLIC__` prefix (per 
 Use `log-only` to observe real traffic before committing to enforcement:
 
 1. Deploy with `PUBLIC__app__security__turnstile__verification__mode=log-only`
-2. Monitor logs — filter on `mode: log-only` and group by `would_block`:
+2. Monitor logs - filter on `mode: log-only` and group by `would_block`:
    ```
    fields @timestamp, would_block, reason, action, siteKey
    | filter mode = "log-only"
@@ -484,7 +479,7 @@ Use `log-only` to observe real traffic before committing to enforcement:
    ```
 3. Once the `would_block: true` rate is acceptably low, switch to `mode=enforce`.
 
-> **Cutover note:** During log-only mode, shoppers who passed verification receive a `cc-tv` session cookie (30-minute TTL). When you flip to `enforce`, any shoppers still holding that cookie bypass enforcement until it expires — a maximum 30-minute residual window after cutover. This is by design and self-heals without any action.
+> **Cutover note:** In log-only mode no `cc-tv_${siteId}` cookies are emitted (the gate is observation-only, not enforcement). When you flip to `enforce`, all shoppers start from scratch — the first request on each protected endpoint runs a fresh siteverify call. There is no pre-populated cookie window to work through.
 
 ### Required environment variables
 
@@ -492,9 +487,9 @@ Use `log-only` to observe real traffic before committing to enforcement:
 |---|---|---|
 | `TURNSTILE_SECRET_KEYS` | JSON map of `siteKey → secretKey` for server verification | Server-only. Required if verification mode is `enforce` or `log-only`. |
 | `PUBLIC__app__security__turnstile__verification__mode` | Verification mode | `enforce`, `log-only`, or `disabled`. Takes precedence over `TURNSTILE_VERIFICATION_ENABLED`. |
-| `PUBLIC__security__turnstile__enabled` | Master switch (client-visible) | When `false`, the widget never renders and `enforceTurnstile` returns `true`. |
-| `PUBLIC__security__turnstile__sites` | JSON site config | Same shape as `config.server.ts` `sites` field. |
-| `PUBLIC__security__turnstile__mode` | Widget mode override | One of `managed` / `non-interactive` / `invisible`. |
+| `PUBLIC__app__security__turnstile__enabled` | Master switch (client-visible) | When `false`, the widget never renders and `enforceTurnstile` returns `true`. |
+| `PUBLIC__app__security__turnstile__sites` | JSON site config | Same shape as `config.server.ts` `sites` field. |
+| `PUBLIC__app__security__turnstile__mode` | Widget mode override | One of `managed` / `non-interactive` / `invisible`. |
 
 ### Optional / deprecated environment variables
 
@@ -515,7 +510,7 @@ Cloudflare publishes documented test keys that always succeed/fail/time-out. Use
 | `2x00000000000000000000BB` | `2x0000000000000000000000000000000AA` | Always blocks (invisible) | No - silent fail |
 | `3x00000000000000000000FF` | `1x0000000000000000000000000000000AA` | Forces interactive challenge | Yes - challenge UI |
 
-The widget mounts with `appearance: 'interaction-only'`, so it stays hidden whenever Cloudflare doesn't need shopper input. **The only test sitekey that produces visible widget UI in this codebase is `3x...FF`** (forces an interactive challenge). All other test keys (always-pass and always-block alike) succeed or fail silently with no visible UI - the widget mounts a hidden iframe that does its work invisibly. Verify those via the network tab, server logs, or the `cc-tv` cookie.
+The widget mounts with `appearance: 'interaction-only'`, so it stays hidden whenever Cloudflare doesn't need shopper input. **The only test sitekey that produces visible widget UI in this codebase is `3x...FF`** (forces an interactive challenge). All other test keys (always-pass and always-block alike) succeed or fail silently with no visible UI - the widget mounts a hidden iframe that does its work invisibly. Verify those via the network tab, server logs, or the `cc-tv_${siteId}` cookie.
 
 ### Manual test plan
 
@@ -601,7 +596,7 @@ Fail-open: missing token while platform is degraded (e.g. CDN unreachable, no to
 ```jsonc
 {
   "level": "warn",
-  "msg": "[Turnstile] Missing token — allowed (Turnstile platform degraded)",
+  "msg": "[Turnstile] Missing token - allowed (Turnstile platform degraded)",
   "email": "shopper@example.com",
   "remoteIp": "203.0.113.42",
   "userAgent": "Mozilla/5.0 ...",
@@ -622,7 +617,7 @@ Fail-open: siteverify returned `internal-error`:
 ```jsonc
 {
   "level": "warn",
-  "msg": "[Turnstile] Verification failed due to infrastructure issue — allowed (fail-open)",
+  "msg": "[Turnstile] Verification failed due to infrastructure issue - allowed (fail-open)",
   "errorCodes": ["internal-error"],
   "email": "shopper@example.com",
   "remoteIp": "203.0.113.42",
@@ -644,7 +639,7 @@ Fail-CLOSED: verify returned `invalid-input-response` (bot or replay - no metric
 ```jsonc
 {
   "level": "warn",
-  "msg": "[Turnstile] Verification failed — potential bot or replay attack",
+  "msg": "[Turnstile] Verification failed - potential bot or replay attack",
   "errorCodes": ["invalid-input-response"],
   "email": "shopper@example.com",
   "remoteIp": "203.0.113.42",
@@ -661,3 +656,27 @@ Fail-CLOSED: verify returned `invalid-input-response` (bot or replay - no metric
 - [Turnstile siteverify API](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
 - [Test keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/)
 - Internal: feature spec at [`e2e/feature-specs/checkout/turnstile-protection.spec.md`](../e2e/feature-specs/checkout/turnstile-protection.spec.md)
+
+## Local E2E (Cloudflare test keys)
+
+Local-only suite tagged **`@turnstile`** (not `@core` / `@smoke`). CI never selects it.
+
+```bash
+# App: packages/template/.env has Turnstile enabled + TURNSTILE_SECRET_KEYS for all test keys,
+# plus MRT_DATA_STORE_DEFAULTS seeding emailVerificationEnabled (passwordless login UI).
+pnpm dev                 # must be running; restart after changing MRT_DATA_STORE_DEFAULTS
+
+# Tests — from packages/template or packages/template/e2e:
+unset CI                 # if Cursor/IDE exported CI=true; do not set CI=false in e2e/.env
+pnpm e2e:turnstile       # greps @turnstile; refuses real CI; clears local CI=false sentinels
+```
+
+**Passwordless prerequisite (login-page scenarios):** `/login` only renders the passwordless form (where Turnstile is wired) when the site preference `emailVerificationEnabled` is true. Production gets that from Business Manager (**Storefront Login Preferences → Enable Email Verification**). Locally, seed it in `packages/template/.env`:
+
+```bash
+MRT_DATA_STORE_DEFAULTS={"RefArchGlobal-login-preferences":{"data":{"emailVerificationEnabled":true}},"RefArch-login-preferences":{"data":{"emailVerificationEnabled":true}}}
+```
+
+(`SFNEXT_DATA_STORE_DEFAULTS` is an accepted alias.) Without this, `/login` shows email/password only and login Turnstile scenarios fail waiting for `[data-testid="turnstile-widget"]`.
+
+Per-test keys via `overrideTurnstileConfig` (see [`e2e/test-plans/turnstile-test-plan.md`](../e2e/test-plans/turnstile-test-plan.md)). Interactive-challenge *solving* is not automatable; `RUN_MANUAL_TURNSTILE=true` unlocks human-solve scenarios. Continue stays gated until a token exists (WI-10).

@@ -18,7 +18,8 @@
         "a11y": "tsx src/scripts/run-a11y.ts",
         "a11y:headless": "cross-env HEADLESS=true tsx src/scripts/run-a11y.ts",
         "a11y:report": "tsx src/scripts/generate-a11y-report.ts",
-        "a11y:update-baseline": "tsx src/scripts/update-a11y-baseline.ts"
+        "a11y:update-baseline": "tsx src/scripts/update-a11y-baseline.ts",
+        "e2e:turnstile": "tsx src/scripts/cli/run-turnstile-e2e.ts"
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.10.1",

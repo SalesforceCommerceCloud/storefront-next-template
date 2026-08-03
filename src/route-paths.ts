@@ -172,6 +172,7 @@ export const resourceRoutes = {
     analyticsProxy: '/resource/analytics-proxy',
     apiClient: '/resource/api/client/:resource',
     passkeyStatus: '/resource/passkey-status',
+    turnstileSession: '/resource/turnstile-session',
     passkeyDeleteCredential: '/action/passkey-delete-credential',
     passkeyStartAuthentication: '/action/passkey-start-authentication',
     passkeyFinishAuthentication: '/action/passkey-finish-authentication',

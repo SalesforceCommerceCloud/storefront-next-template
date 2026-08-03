@@ -43,6 +43,7 @@
     "extensions:list": "node scripts/list-extension-points.js",
     "b2c": "b2c",
     "e2e": "pnpm --filter ./e2e e2e",
+    "e2e:turnstile": "pnpm --filter ./e2e e2e:turnstile",
     "a11y": "pnpm --filter ./e2e a11y"
   },
   "dependencies": {

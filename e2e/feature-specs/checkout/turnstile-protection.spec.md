@@ -32,7 +32,7 @@ changelog:
     date: 2026-04-27
     change: >
       WI-6: Skip redundant Turnstile challenge during registration if shopper already completed challenge during login
-      with server-side verification cookie (cc-tv), early widget mount on focus, executeRef prop
+      with server-side verification cookie (cc-tv_${siteId}), early widget mount on focus, executeRef prop
     author: Avinash Kumar
   - version: 3.0
     date: 2026-04-23
@@ -70,7 +70,7 @@ changelog:
 
 ## Overview
 
-Protect all passwordless login and registration endpoints from bot abuse using Cloudflare Turnstile. Default mode is **managed**: Cloudflare decides whether to show an interactive challenge or auto-pass based on risk signals. All server-side enforcement uses a shared utility (`enforceTurnstile`) with fail-closed defaults — if no Turnstile site keys are configured, protected endpoints reject requests. Graceful degradation ensures that Cloudflare outages never block legitimate shoppers — the server independently detects infrastructure issues and fails open when Cloudflare is at fault.
+Protect all passwordless login and registration endpoints from bot abuse using Cloudflare Turnstile. Default mode is **managed**: Cloudflare decides whether to show an interactive challenge or auto-pass based on risk signals. All server-side enforcement uses a shared utility (`enforceTurnstile`) with fail-closed defaults: if no Turnstile site keys are configured, protected endpoints reject requests. Graceful degradation ensures that Cloudflare outages never block legitimate shoppers; the server independently detects infrastructure issues and fails open when Cloudflare is at fault.
 
 ## User Experience
 
@@ -87,7 +87,7 @@ Protect all passwordless login and registration endpoints from bot abuse using C
 
 **Login page:**
 1. Shopper enters email and submits the passwordless login form
-2. Challenge is included inline — form cannot submit without a solved challenge
+2. Challenge is included inline; form cannot submit without a solved challenge
 
 **When Cloudflare is down:**
 1. Widget fails to load or challenge times out (5 seconds)
@@ -137,7 +137,7 @@ Protect all passwordless login and registration endpoints from bot abuse using C
 
 **WI-2b: Integration into server actions:**
 - `action.authorize-passwordless-email.ts` extracts `turnstileToken` from FormData
-- Token verified BEFORE calling `authorizePasswordless()` — rejects early on failure
+- Token verified BEFORE calling `authorizePasswordless()`: rejects early on failure
 - If `verification.enabled = false`, verification is skipped entirely
 
 **WI-2c: Secret key management:**
@@ -153,7 +153,7 @@ Protect all passwordless login and registration endpoints from bot abuse using C
 
 - [x] Bot bypass attempts (missing token) are logged with IP, user-agent, and email
 - [x] Verification failures (replay, invalid token) are logged with error codes, IP, and user-agent
-- [x] Merchant misconfiguration (missing secret key) is logged without blocking the shopper
+- [x] Merchant misconfiguration (missing secret key) is logged **and blocks the request** (fail-closed in enforce mode — aligns with WI-5d)
 - [x] All logs include the action name for easy filtering in monitoring tools
 
 #### Design
@@ -177,7 +177,7 @@ The checkout registration endpoint triggers OTP emails for guest account creatio
 - `TurnstileWidget` added to `register-customer-selection.tsx`, rendered below the checkbox
 - `turnstileToken` included in both initial submission and resend code flow
 - Server action (`action.initiate-checkout-registration.ts`) calls `enforceTurnstile()`
-- Accepts either a fresh token OR the `cc-tv` httpOnly cookie (see WI-6) as proof
+- Accepts either a fresh token OR the `cc-tv_${siteId}` httpOnly cookie (see WI-6) as proof
 - POST method check returns 405 for other methods
 - Attack logging follows WI-3 patterns
 
@@ -202,7 +202,7 @@ All passwordless entry points use a shared enforcement utility. Test credentials
 #### WI-5d: Fail-closed configuration [done]
 - [x] If no site keys are configured, all protected requests are blocked (fail-closed)
 - [x] Malformed configuration JSON is treated as empty (fail-closed)
-- [x] Test keys are not present in production config — only in local dev `.env.default`
+- [x] Test keys are not present in production config; only in local dev `.env.default`
 - [x] Missing Origin/Referer headers cause rejection (blocks requests without a browser)
 
 #### WI-5e: Locale fix [done]
@@ -210,7 +210,7 @@ All passwordless entry points use a shared enforcement utility. Test credentials
 
 #### Design
 
-- `enforceTurnstile()` in `enforce.server.ts` — single entry point called by all three server actions
+- `enforceTurnstile()` in `enforce.server.ts`: single entry point called by all three server actions
 - Checks performed in order: config enabled → origin/referer present → site key match → secret key configured → token present → token verified
 - Token reset via `resetRef` (registration, login resend) or `tokenConsumedRef` tracking (contact info)
 - `config.server.ts` defaults `sites` to `{}` with try/catch on JSON.parse
@@ -221,24 +221,27 @@ All passwordless entry points use a shared enforcement utility. Test credentials
 Shoppers who already passed a challenge at checkout contact info should not be challenged again at registration.
 
 #### WI-6a: Deferred execution [done]
-- [x] The challenge widget mounts on email focus (gathering browser signals early) but executes on blur
+- [x] The challenge widget mounts on email blur (not focus) to avoid loading the Cloudflare script until the shopper finishes entering email
 - [x] This prevents a double-challenge when the shopper types email and immediately clicks Continue
-- [x] Parents can control when the challenge executes via a ref
+- [x] Parents can control when the challenge executes via a ref (non-interactive mode)
+- [x] After widget retry exhaustion, re-focusing email remounts a fresh challenge (recovery path)
+- [x] On blur, if `GET /resource/turnstile-session` reports the httpOnly `cc-tv_*` cookie already matches this email, the widget is **not** mounted and the form is not gated (UI suppress only; server `enforceTurnstile` still runs)
 
 #### WI-6b: Session-level verification [done]
 - [x] After passing a challenge at contact info, the shopper is not challenged again at registration within the same session
 - [x] The server sets an httpOnly verification cookie (30-minute TTL) on successful verification
-- [x] The registration endpoint accepts this cookie as proof — no second token required
+- [x] The registration endpoint accepts this cookie as proof; no second token required
 - [x] If neither a fresh token nor the cookie is present, the request is rejected
 - [x] A fresh token is still accepted if provided (handles expired cookies or direct access)
+- [x] Starting checkout again with the **same email** within the cookie TTL suppresses the contact-info / passwordless-login widget (cookie↔email match via `/resource/turnstile-session`); a different email shows the widget again — covered by `@turnstile` E2E (`Cookie session suppress` scenarios)
 
 #### Design
 
-- Contact info widget uses `execution: 'execute'` mode — mounts on email focus, explicitly executed on blur via `executeRef`
+- Contact info / passwordless login widgets mount on email blur (deferred render), **unless** `/resource/turnstile-session` reports the `cc-tv_*` cookie already matches that email (widget suppressed; form ungated). After retry exhaustion, remount-on-focus recovers a fresh challenge. Non-interactive mode still uses `execution: 'execute'` and calls `executeRef` on blur once mounted.
 - `tokenConsumedRef` prevents premature reset when token is pending server verification
-- The `cc-tv` httpOnly cookie is the single source of truth for "this client cleared Turnstile recently." No mirroring client-side state.
-- Server sets `cc-tv` httpOnly cookie (`COOKIE_TURNSTILE_VERIFIED`, 30min TTL) via `action.authorize-passwordless-email.ts` on every response path where `enforceTurnstile` returned true (success, 400, 404, 5xx, generic 500); never on the Turnstile-rejected path
-- `action.initiate-checkout-registration.ts` parses `cc-tv` cookie — if `'1'`, skips token requirement; otherwise calls `enforceTurnstile` and sets the cookie on every response path where it returned true
+- The `cc-tv_${siteId}` httpOnly cookie is the single source of truth for "this client cleared Turnstile recently." No mirroring client-side state.
+- Server sets `cc-tv_${siteId}` httpOnly cookie (`COOKIE_TURNSTILE_VERIFIED`, 30min TTL) via `action.authorize-passwordless-email.ts` on every response path where siteverify returned `success: true` (success, 400, 404, 5xx, generic 500); never on the Turnstile-rejected path and never on fail-open paths (missing token + degraded, or infrastructure siteverify errors)
+- `action.initiate-checkout-registration.ts` passes the site-namespaced cookie name into `enforceTurnstile`, which **always runs** and performs HMAC binding verification internally: if the cookie value matches `hmac_sha256(derivedKey, siteKey + ':' + normalizedEmail)` (where `siteKey` is the Cloudflare public site key), the request is short-circuited without a fresh siteverify call; otherwise a fresh siteverify call runs and the HMAC-bound value is written as the new cookie on every response path where siteverify returned `success: true`
 
 ### Turnstile-WI-7: Graceful Degradation [done]
 
@@ -269,19 +272,19 @@ Ensure Cloudflare outages or infrastructure issues never block legitimate shoppe
 **Cold start** = the first time a specific MRT instance needs to check Cloudflare health and has no cached result yet (e.g., after a deployment or instance scale-up). Only this first request pays the probe cost; all subsequent requests on that instance use the cache.
 
 **Security requirements:**
-- [x] The server must independently verify Cloudflare availability — clients cannot signal bypass
+- [x] The server must independently verify Cloudflare availability; clients cannot signal bypass
 - [x] No client-supplied form data (e.g., hidden input flags) may influence the server's allow/block decision
 - [x] All fail-open decisions are logged at warn level with IP, user-agent, email, and action name
 - [x] Health check results are cached to avoid adding latency to the shopper's request path
 - [x] On cold start, the health check adds at most 3 seconds of latency
-- [x] After initial cache is populated, the health check adds zero latency (stale-while-revalidate — returns stale value immediately while refreshing in background)
+- [x] After initial cache is populated, the health check adds zero latency (stale-while-revalidate: returns stale value immediately while refreshing in background)
 
 **Client-side requirements:**
 - [x] If the Turnstile script fails to load within 5 seconds, the UI unblocks the shopper
 - [x] If the challenge fails 3 consecutive times (error-callback retry cap), the widget stops retrying (form stays gated - misconfiguration must be fixed)
 - [x] When an interactive challenge times out, Cloudflare auto-resets the widget via `refresh-timeout: 'auto'` (no hardcoded duration; see WI-9)
 - [x] The widget exposes an `onBypass` callback so parent components can release button/form gates (fires only on script load failure - CDN unreachable)
-- [x] No bypass signal is sent to the server — the client only controls local UI state
+- [x] No bypass signal is sent to the server; the client only controls local UI state
 
 #### Design
 
@@ -323,17 +326,17 @@ This unblocks the UI so shoppers are not permanently stuck when Cloudflare's CDN
 - Challenge errors (misconfigured site key) - widget resets up to 3 times then stops. Form stays gated. This is intentional: misconfiguration is a deployment issue that must be fixed, not silently degraded.
 - Interactive challenge timeout - Cloudflare auto-resets the widget on its own schedule (`refresh-timeout: 'auto'`). Shopper may be idle; widget should remain available when they return.
 
-**Removed: client-trusted `turnstileBypassed` form data field.** Previously, the client could send `turnstileBypassed=1` in form data to tell the server to skip verification. This was a security vulnerability — any bot could include this field. Replaced by server-side health detection.
+**Removed: client-trusted `turnstileBypassed` form data field.** Previously, the client could send `turnstileBypassed=1` in form data to tell the server to skip verification. This was a security vulnerability; any bot could include this field. Replaced by server-side health detection.
 
 **Unit test coverage (`src/lib/turnstile/`):**
-- `health.server.test.ts` — CDN probe behavior, CDN-tier verdict, caching, in-flight refresh dedup, cold-start dedup, siteverify metrics tier, min-failure guard, hysteresis (full snapshot pinning at every transition and exact threshold boundaries), latency dimension, ring buffer integrity, metrics snapshot semantics (value-based assertions, no identity coupling), full state-machine transition matrix, temporal edge cases
-- `health-integration.test.ts` — cross-module wiring: `verifyTurnstileToken` → `recordSiteverifyOutcome` against the live (un-mocked) health module. Catches rename / refactor regressions the unit suites cannot see.
-- `health-min-failure-guard.test.ts` — isolates the min-failure guard under a low `RATE_ENTER` env override; pins env-override range and non-numeric fallback behavior.
-- `enforce.server.test.ts` — enforcement decisions, log enrichment, header/origin edge cases (Origin-vs-Referer precedence, x-forwarded-for first-hop trimming, cf-connecting-ip fallback, multi-hop addresses), http-error classification (5xx fail-open, 4xx fail-closed), exhaustive log-meta shape pinning per decision (every warn/debug call's complete meta asserted via `toEqual`), email redaction contract, config edge cases
-- `verify.server.test.ts` — HTTP layer, outcome recording (rate, latency, edge cases, abort timer, exact wall-clock duration via fake timers), malformed-body handling (empty body, invalid JSON, non-array error-codes), action/challengeTs round-trip, remoteIp body-encoding
-- `log-redact.server.test.ts` — `redactEmailForLog` contract: deterministic, case-insensitive on local-part, plaintext domain, malformed-input safety
-- `utils.test.ts` — site-key / secret-key resolution, hostname extraction (incl. malformed URL fallback, protocol stripping, empty input), client-side null guard
-- `constants.test.ts` — cookie name and TTL invariants
+- `health.server.test.ts`: CDN probe behavior, CDN-tier verdict, caching, in-flight refresh dedup, cold-start dedup, siteverify metrics tier, min-failure guard, hysteresis (full snapshot pinning at every transition and exact threshold boundaries), latency dimension, ring buffer integrity, metrics snapshot semantics (value-based assertions, no identity coupling), full state-machine transition matrix, temporal edge cases
+- `health-integration.test.ts`: cross-module wiring: `verifyTurnstileToken` -> `recordSiteverifyOutcome` against the live (un-mocked) health module. Catches rename / refactor regressions the unit suites cannot see.
+- `health-min-failure-guard.test.ts`: isolates the min-failure guard under a low `RATE_ENTER` env override; pins env-override range and non-numeric fallback behavior.
+- `enforce.server.test.ts`: enforcement decisions, log enrichment, header/origin edge cases (Origin-vs-Referer precedence, x-forwarded-for first-hop trimming, cf-connecting-ip fallback, multi-hop addresses), http-error classification (5xx fail-open, 4xx fail-closed), exhaustive log-meta shape pinning per decision (every warn/debug call's complete meta asserted via `toEqual`), email redaction contract, config edge cases
+- `verify.server.test.ts`: HTTP layer, outcome recording (rate, latency, edge cases, abort timer, exact wall-clock duration via fake timers), malformed-body handling (empty body, invalid JSON, non-array error-codes), action/challengeTs round-trip, remoteIp body-encoding
+- `log-redact.server.test.ts`: `redactEmailForLog` contract: deterministic, case-insensitive on local-part, plaintext domain, malformed-input safety
+- `utils.test.ts`: site-key / secret-key resolution, hostname extraction (incl. malformed URL fallback, protocol stripping, empty input), client-side null guard
+- `constants.test.ts`: cookie name and TTL invariants
 
 Coverage target: 100% statements / 100% branches / 100% functions / 100% lines on every production file in `src/lib/turnstile/`. Field-level value assertions (not just shape) on every log meta object and metrics snapshot. Snapshot tests compare values, never object identity, so the cache implementation can change without churning tests.
 
@@ -392,7 +395,7 @@ Only CF-side failures count toward the failure rate. Bot-detection failures (`in
 - Infrastructure errors call `onBypass` immediately (iframe load issue means the user is stuck)
 - Other errors fall through to the existing 3-reset cap before stopping
 - `refresh-timeout: 'auto'` replaces the previous 120s `setTimeout` and the supporting `resolvedRef`/`startChallengeTimer`/`clearChallengeTimer` machinery
-- `timeout-callback` exposed as `onTimeout` prop. Contact info wires it to clear the local token and show a soft `contactInfo.verificationRefreshed` message; CF auto-resets the widget so the shopper just retries.
+- `timeout-callback` exposed as `onTimeout` prop for parent use (e.g. soft "verification is refreshing" hint); CF auto-resets the widget so the shopper just retries.
 - Script-load timer and "wait for window.turnstile" interval are tracked in effect-scoped variables and cleared by the cleanup, so a fast unmount during the 5s load window does not fire callbacks against a stale closure.
 
 **Type changes (`use-turnstile.ts` global declaration):**
@@ -496,9 +499,15 @@ This section covers cross-cutting design decisions that apply across all work it
 **Protected Endpoints:**
 | Endpoint | Component | Enforcement |
 |----------|-----------|-------------|
-| `action.authorize-passwordless-email` | `contact-info.tsx` | Token required; sets `cc-tv` cookie on every response path where `enforceTurnstile` returned true (success or any SCAPI failure) |
-| `action.initiate-checkout-registration` | `register-customer-selection.tsx` | Token OR `cc-tv` cookie required; sets `cc-tv` cookie on every response path when verified by fresh token |
-| `_empty.login.tsx` (server action) | `_empty.login.tsx` | Token required (login page) |
+| `action.authorize-passwordless-email` | `contact-info.tsx` | Token required; sets `cc-tv_${siteId}` cookie on every response path where siteverify returned `success: true` (success or any SCAPI failure). Fail-open paths do not set the cookie. |
+| `action.initiate-checkout-registration` | `register-customer-selection.tsx` | Token OR `cc-tv_${siteId}` cookie required; `enforceTurnstile` always called — HMAC short-circuit is internal. Sets `cc-tv_${siteId}` cookie on every response path when siteverify returned `success: true` on a fresh token. |
+| `_empty.login.tsx` (server action) | `_empty.login.tsx` | Token required; sets `cc-tv_${siteId}` cookie when siteverify returned `success: true`. WI-10 parity: generic alert on server rejection, form gated. |
+
+**Not protected by Turnstile (no `enforceTurnstile` call, `cc-tv_${siteId}` not required):**
+- `action.otp-verify` / verify-passwordless-otp
+- `action.otp-request`
+
+The upstream Turnstile challenge at the email-entry step plus the OTP code itself are the controls for those steps.
 
 ### Cloudflare Siteverify API
 
@@ -567,20 +576,20 @@ PUBLIC__security__turnstile__sites={"local-dev":[{"siteKey":"1x00000000000000000
 ### Token Flows
 
 **Checkout contact info:**
-1. Shopper focuses email field → widget mounts with `execution: 'execute'` (deferred)
-2. Shopper blurs email → `turnstile.execute()` called, challenge runs
-3. Token stored in React state, `tokenConsumedRef` set to false
-4. Token included in passwordless email request
-5. `enforceTurnstile()` verifies token, `authorizePasswordless()` sends OTP
-6. Server sets `cc-tv` httpOnly cookie (30min TTL)
-7. `tokenConsumedRef` set to true (prevents reuse without reset)
-8. If email changes: `resetTurnstile()` called → effect calls `execute()` → fresh token generated
+1. Shopper blurs a valid email field → widget mounts (and in non-interactive mode `turnstile.execute()` runs)
+2. Token stored in React state, `tokenConsumedRef` set to false
+3. Token included in passwordless email request
+4. `enforceTurnstile()` verifies token, `authorizePasswordless()` sends OTP
+5. Server sets `cc-tv_${siteId}` httpOnly cookie (30min TTL)
+6. `tokenConsumedRef` set to true (prevents reuse without reset)
+7. If email changes: `resetTurnstile()` called → effect calls `execute()` → fresh token generated
+8. After retry exhaustion, re-focusing email remounts a fresh widget (recovery; first show remains blur)
 
 **Checkout registration:**
 1. Shopper checks "Save for faster checkout" checkbox
 2. Widget always mounts when Turnstile is enabled; the server cookie alone decides whether to skip re-verification
-3. Server checks `cc-tv` cookie — if present, request proceeds without token (no fresh check)
-4. Otherwise: widget-generated token sent with request, server calls `enforceTurnstile`, sets `cc-tv` cookie on every response path on pass
+3. The server always calls `enforceTurnstile`. If `cc-tv_${siteId}` is present and its HMAC matches, `enforceTurnstile` short-circuits internally without a fresh siteverify call; no second token is required
+4. Otherwise: widget-generated token sent with request, server calls `enforceTurnstile`, sets `cc-tv_${siteId}` cookie on every response path where siteverify returned `success: true`
 
 ### Server Logging
 
@@ -589,10 +598,10 @@ PUBLIC__security__turnstile__sites={"local-dev":[{"siteKey":"1x00000000000000000
 | `[Turnstile] No Origin or Referer header` | warn | Cannot determine site key (check reverse-proxy config) |
 | `[Turnstile] No site key match for request origin` | warn | Origin doesn't match any configured domain |
 | `[Turnstile] No secret key configured for site` | warn | Site key found but no matching secret |
-| `[Turnstile] Missing token — allowed (Turnstile platform degraded)` | warn | CDN down, fail-open |
-| `[Turnstile] Missing token — blocked` | warn | CDN healthy, bot bypassed widget |
-| `[Turnstile] Verification failed due to infrastructure issue — allowed` | warn | `internal-error` or `http-error-5xx`, fail-open |
-| `[Turnstile] Verification failed — potential bot or replay attack` | warn | Invalid/replayed token, blocked |
+| `[Turnstile] Missing token - allowed (Turnstile platform degraded)` | warn | CDN down, fail-open |
+| `[Turnstile] Missing token - blocked` | warn | CDN healthy, bot bypassed widget |
+| `[Turnstile] Verification failed due to infrastructure issue - allowed` | warn | `internal-error` or `http-error-5xx`, fail-open |
+| `[Turnstile] Verification failed - potential bot or replay attack` | warn | Invalid/replayed token, blocked |
 
 All warn logs include: `remoteIp`, `userAgent`, `email`, `action`. The `email` field is redacted to `<sha256-prefix>@domain` (8-char hash of the lowercased local-part, plaintext domain) so fail-open at scale during a CF outage does not accumulate raw PII while still letting operators correlate per-shopper events. Implemented in `log-redact.server.ts`.
 
@@ -629,12 +638,24 @@ All warn logs include: `remoteIp`, `userAgent`, `email`, `action`. The `email` f
 | Token already spent | `3x0000000000000000000000000000000AA` | Replay attack blocked |
 | Interactive challenge blocks | `3x00000000000000000000FF` | Form blocked until solved |
 
-**Run:**
+**Run (local only — CI never selects `@turnstile`):**
+
 ```bash
-pnpm e2e --grep "@turnstile"           # All turnstile tests
-pnpm e2e --grep "@checkout-ac31"       # Server verification only
-pnpm e2e --grep "@blocks-submission"   # Interactive challenge gating
+# Terminal 1 — storefront app with Turnstile + passwordless prefs in packages/template/.env:
+#   PUBLIC__app__security__turnstile__enabled=true
+#   PUBLIC__app__security__turnstile__sites=… (localhost site key)
+#   TURNSTILE_VERIFICATION_ENABLED=true + TURNSTILE_SECRET_KEYS map for all test keys
+#   MRT_DATA_STORE_DEFAULTS=…emailVerificationEnabled:true…  (passwordless /login UI)
+pnpm dev                 # restart after changing MRT_DATA_STORE_DEFAULTS
+
+# Terminal 2 — from packages/template (or e2e/):
+unset CI                 # CI=true/1 refused; do NOT set CI=false in e2e/.env (truthy string)
+pnpm e2e:turnstile       # greps @turnstile; clears local CI sentinels before spawn
 ```
+
+**Login-page Turnstile** needs passwordless enabled: seed `MRT_DATA_STORE_DEFAULTS` with `<siteId>-login-preferences` → `{ "data": { "emailVerificationEnabled": true } }` (see test plan / README-TURNSTILE). Without it, `/login` shows email/password only.
+
+Per-test Cloudflare keys use `overrideTurnstileConfig(...)`, not multiple tags. Continue stays gated (WI-10) until the challenge yields a token.
 
 **Test Site Keys (client):**
 
@@ -660,9 +681,9 @@ Source: [Cloudflare Turnstile Testing](https://developers.cloudflare.com/turnsti
 1. **Get production site key + secret key** from Cloudflare Dashboard
 2. **Set client config** in MRT Runtime Admin: `PUBLIC__security__turnstile__sites` with your production domains
 3. **Set server secrets** in MRT Runtime Admin: `TURNSTILE_SECRET_KEYS` and `TURNSTILE_VERIFICATION_ENABLED=true`
-4. **Do NOT hardcode test keys** in `config.server.ts` — the default is `{}` (fail-closed). Test keys belong only in `.env.default` for local development.
-5. **Deploy** — Frontend widget and server verification active immediately on all three endpoints
-6. **Monitor** — Watch MRT logs for `[Turnstile]` warn entries to detect attacks and misconfigurations
+4. **Do NOT hardcode test keys** in `config.server.ts`; the default is `{}` (fail-closed). Test keys belong only in `.env.default` for local development.
+5. **Deploy**: Frontend widget and server verification active immediately on all three endpoints
+6. **Monitor**: Watch MRT logs for `[Turnstile]` warn entries to detect attacks and misconfigurations
 
 ## Documentation
 

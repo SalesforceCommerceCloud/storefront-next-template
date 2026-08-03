@@ -19,7 +19,8 @@ import { verifyTurnstileToken } from '@/lib/turnstile/verify.server';
 import { getTurnstileSecretKey, getTurnstileSiteKey } from '@/lib/turnstile/utils';
 import { getSiteverifyMetricsSnapshot, isTurnstileDegraded } from '@/lib/turnstile/health.server';
 import { redactEmailForLog } from '@/lib/turnstile/log-redact.server';
-import { COOKIE_TURNSTILE_VERIFIED } from '@/lib/turnstile/constants';
+import { parseAllCookies } from '@/lib/cookie-utils.server';
+import { computeTurnstileCookieValue, turnstileCookieMatchesEmail } from '@/lib/turnstile/cookie-match.server';
 
 const INFRASTRUCTURE_ERROR_CODES = new Set(['internal-error']);
 // Only HTTP 5xx from siteverify is a CF-side failure. 4xx codes (400/401/403/etc.) mean
@@ -40,6 +41,14 @@ interface EnforceTurnstileOptions {
     logger: TurnstileEnforceLogger;
     actionName: string;
     email?: string;
+    /**
+     * Fully-resolved cookie name for the Turnstile "verified recently" attestation,
+     * including any site-namespacing that `createCookie` applied on the write side.
+     * Callers should compute this via `getCookieNameWithSiteId(COOKIE_TURNSTILE_VERIFIED, context)`
+     * so the read and write paths agree. Required so a caller cannot forget the
+     * namespacing and silently disable the short-circuit.
+     */
+    turnstileCookieName: string;
 }
 
 interface EnforcementOutcome {
@@ -49,6 +58,18 @@ interface EnforcementOutcome {
     meta: Record<string, unknown>;
     /** Routing key for log-only mode — not included in enforce-mode log meta. */
     reason: string;
+}
+
+export interface EnforceTurnstileResult {
+    /** Whether the request may proceed. */
+    allowed: boolean;
+    /**
+     * The value to store in the Turnstile session cookie when `allowed` is true
+     * and a fresh siteverify call was made. Null when the request was short-circuited
+     * by an existing valid cookie (no new cookie is needed) or when the request was
+     * blocked. Callers should serialize this into the cc-tv cookie when non-null.
+     */
+    cookieValue: string | null;
 }
 
 /**
@@ -71,7 +92,7 @@ export function resolveVerificationMode(config: AppConfig): 'enforce' | 'log-onl
  * or merely record the would-be decision (log-only mode).
  */
 async function computeOutcome(
-    options: EnforceTurnstileOptions & { siteKey: string; secretKey: string }
+    options: Omit<EnforceTurnstileOptions, 'turnstileCookieName'> & { siteKey: string; secretKey: string }
 ): Promise<EnforcementOutcome> {
     const { request, turnstileToken, actionName, email, secretKey } = options;
 
@@ -177,17 +198,20 @@ async function computeOutcome(
 /**
  * Enforces Turnstile verification when enabled in config.
  *
- * Returns `true` if the request may proceed — either because verification is
- * disabled or because the token passed Cloudflare's siteverify check.
+ * Returns an `EnforceTurnstileResult` with:
+ * - `allowed`: whether the request may proceed.
+ * - `cookieValue`: the HMAC-bound value to store in the cc-tv cookie when `allowed`
+ *   is true and a fresh siteverify call was made. Null on short-circuit (cookie already
+ *   valid) or on block. Callers serialize this into the cc-tv cookie when non-null.
  *
- * Returns `false` if the request must be blocked (missing token, failed
- * verification, origin mismatch, etc.). The reason is logged at `warn` level
- * with the supplied `actionName` for traceability.
+ * Returns `allowed: false` if the request must be blocked (missing token, failed
+ * verification, origin mismatch, etc.). The reason is logged at `warn` level with
+ * the supplied `actionName` for traceability.
  *
- * In `log-only` mode the full verification pipeline still runs, but the
- * function always returns `true`. The would-be decision is logged at `info`
- * level with `would_block: true|false` so merchants can safely observe what
- * would happen in enforce mode before committing to it.
+ * In `log-only` mode the full verification pipeline still runs, but the function
+ * always returns `allowed: true`. The would-be decision is logged at `info` level
+ * with `would_block: true|false` so merchants can safely observe what would happen
+ * in enforce mode before committing to it.
  */
 export async function enforceTurnstile({
     request,
@@ -196,31 +220,44 @@ export async function enforceTurnstile({
     logger,
     actionName,
     email,
-}: EnforceTurnstileOptions): Promise<boolean> {
+    turnstileCookieName,
+}: EnforceTurnstileOptions): Promise<EnforceTurnstileResult> {
     const mode = resolveVerificationMode(config);
     if (mode === 'disabled' || !config.security?.turnstile?.enabled) {
-        return true;
+        return { allowed: true, cookieValue: null };
     }
 
-    // Skip when the cc-tv cookie has a non-empty value: this client cleared a Turnstile
-    // challenge recently within the cookie's max-age. The cookie is httpOnly + Secure
-    // and is set by /action/authorize-passwordless-email only after enforceTurnstile
-    // previously returned true, so it is a soft "passed-recently" attestation (not a
-    // signed token). This avoids re-challenging the shopper on subsequent
-    // Turnstile-protected actions in the same checkout flow.
-    const cookieHeader = request.headers.get('cookie') || '';
-    const ccTvPresent = cookieHeader.split(';').some((c) => {
-        const [name, ...rest] = c.trim().split('=');
-        return name === COOKIE_TURNSTILE_VERIFIED && rest.join('=').length > 0;
-    });
-    if (ccTvPresent) {
-        logger.debug('[Turnstile] Skipping verification - cc-tv cookie present', {
-            action: actionName,
-        });
-        return true;
-    }
+    // Short-circuit when the Turnstile session cookie is present and its value matches
+    // the HMAC binding for the current email + site. The cookie is httpOnly + Secure and
+    // is written only after a successful siteverify call, so it attests that this client
+    // cleared the Turnstile gate for this email within the cookie's max-age window.
+    //
+    // When email is absent or HMAC computation fails, we fall through to fresh siteverify
+    // rather than blocking - fail-open preserves the user experience. When the cookie
+    // value does not match the expected HMAC (e.g. the shopper changed email), we also
+    // fall through so they can solve a new challenge for the new email.
+    //
+    // The cookie name is fully namespaced (`cc-tv_${siteId}`) so it agrees with what
+    // `createCookie` emits on the write side.
+    const cookies = parseAllCookies(request.headers.get('cookie'));
+    const cookieRawValue = cookies[turnstileCookieName];
 
     const requestUrl = request.headers.get('origin') || request.headers.get('referer') || '';
+
+    if (cookieRawValue) {
+        const cookieSiteKey = requestUrl ? getTurnstileSiteKey(config, requestUrl) : null;
+        const emailMatchesCookie =
+            email && cookieSiteKey ? turnstileCookieMatchesEmail(cookieRawValue, email, cookieSiteKey) : false;
+
+        if (emailMatchesCookie) {
+            logger.debug('[Turnstile] Skipping verification - cc-tv cookie present', {
+                action: actionName,
+            });
+            return { allowed: true, cookieValue: null };
+        }
+        // Cookie present but email mismatch (or email absent / key missing): fall through
+        // to fresh siteverify. Do not block - the shopper may have changed their email.
+    }
 
     if (!requestUrl) {
         logger.warn(
@@ -230,7 +267,7 @@ export async function enforceTurnstile({
                 email: redactEmailForLog(email),
             }
         );
-        return mode === 'log-only' ? true : false;
+        return { allowed: mode === 'log-only' ? true : false, cookieValue: null };
     }
 
     const siteKey = getTurnstileSiteKey(config, requestUrl);
@@ -245,7 +282,7 @@ export async function enforceTurnstile({
             email: redactEmailForLog(email),
             action: actionName,
         });
-        return mode === 'log-only' ? true : false;
+        return { allowed: mode === 'log-only' ? true : false, cookieValue: null };
     }
 
     const secretKey = getTurnstileSecretKey(siteKey);
@@ -255,7 +292,7 @@ export async function enforceTurnstile({
             requestUrl,
             action: actionName,
         });
-        return mode === 'log-only' ? true : false;
+        return { allowed: mode === 'log-only' ? true : false, cookieValue: null };
     }
 
     const outcome = await computeOutcome({
@@ -280,10 +317,20 @@ export async function enforceTurnstile({
             ...(outcome.meta.remoteIp !== undefined && { remoteIp: outcome.meta.remoteIp }),
             ...(outcome.meta.metrics !== undefined && { metrics: outcome.meta.metrics }),
         });
-        return true;
+        return { allowed: true, cookieValue: null };
     }
 
     // enforce mode: log at the outcome's level and return the actual decision
     logger[outcome.logLevel](outcome.message, outcome.meta);
-    return outcome.allowed;
+
+    if (!outcome.allowed) {
+        return { allowed: false, cookieValue: null };
+    }
+
+    // Only mint the cc-tv cookie on a genuine Cloudflare-verified pass. Fail-open paths
+    // (missing-token-degraded, infrastructure-error) allow the request but must not
+    // attest that a real challenge was completed — callers should not persist a cookie
+    // that would short-circuit future checks after a degraded session.
+    const newCookieValue = outcome.reason === 'passed' && email ? computeTurnstileCookieValue(email, siteKey) : null;
+    return { allowed: true, cookieValue: newCookieValue };
 }

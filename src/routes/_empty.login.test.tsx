@@ -41,6 +41,32 @@ vi.mock('@/middlewares/auth.server', () => ({
     updateAuth: vi.fn(),
 }));
 
+// The passwordless action calls `getCookieNameWithSiteId` to compute the
+// Turnstile cookie name. This test's `mockContext.get` returns undefined for
+// any key, which trips the "Site context not initialized" guard inside
+// `getCookieNameWithSiteId`. Stub it here to return the namespaced name the
+// production callers would produce. `createCookie` and `getCookieConfig` are
+// also stubbed so cookie serialization works without real context.
+vi.mock('@/lib/cookie-utils.server', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/lib/cookie-utils.server')>()),
+    getCookieNameWithSiteId: vi.fn((name: string) => `${name}_TestSite`),
+    getCookieConfig: vi.fn((overrides = {}) => ({
+        httpOnly: false,
+        secure: true,
+        sameSite: 'lax' as const,
+        path: '/',
+        ...overrides,
+    })),
+    createCookie: vi.fn((name: string) => ({
+        parse: vi.fn().mockResolvedValue(null),
+        serialize: vi.fn().mockImplementation((val: string) => Promise.resolve(`${name}_TestSite=${val}`)),
+    })),
+}));
+
+vi.mock('@/lib/turnstile/enforce.server', () => ({
+    enforceTurnstile: vi.fn().mockResolvedValue({ allowed: true, cookieValue: null }),
+}));
+
 vi.mock('@/lib/api/auth/standard-login.server', () => ({
     loginRegisteredUser: vi.fn(),
 }));
@@ -155,7 +181,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => 
 // Default: empty prefs ({}), so emailVerificationEnabled is undefined and passwordless is
 // effectively disabled. Existing tests rely on this default to land in 'password' mode.
 // The login route reads prefs through the local `@/lib/login-preferences.server` wrapper,
-// which awaits `getLoginPreferencesLazy` — so that is the export the tests drive.
+// which awaits `getLoginPreferencesLazy` - so that is the export the tests drive.
 vi.mock('@salesforce/storefront-next-runtime/data-store', () => ({
     getLoginPreferencesLazy: vi.fn(() => Promise.resolve({})),
 }));
@@ -975,7 +1001,7 @@ describe('Login Route', () => {
                 createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
             );
 
-            // Home redirect path stays cookie-driven — buildUrlFromContext is not called for the
+            // Home redirect path stays cookie-driven - buildUrlFromContext is not called for the
             // bare `redirect('/')` branch (line 336 of _empty.login.tsx).
             expect((result as Response).headers.get('Location')).toBe('/');
         });
@@ -1499,6 +1525,131 @@ describe('Login Route', () => {
                     userid: 'test@example.com',
                 })
             );
+        });
+
+        it('returns errorCode NOT_AUTHORIZED and status 403 when enforceTurnstile rejects', async () => {
+            const { enforceTurnstile } = await import('@/lib/turnstile/enforce.server');
+            vi.mocked(enforceTurnstile).mockResolvedValueOnce({ allowed: false, cookieValue: null });
+            mockGetAuth.mockReturnValue({ userType: 'guest' });
+
+            const formData = new URLSearchParams();
+            formData.append('loginMode', 'passwordless');
+            formData.append('email', 'test@example.com');
+            formData.append('turnstileToken', 'bad-token');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            // react-router's data() returns a DataWithResponseInit: { type, data, init }.
+            // Use the same cast pattern as the cc-tv cookie helpers above.
+            const r = result as {
+                data?: { success?: boolean; errorCode?: string };
+                init?: { status?: number; headers?: Record<string, string> | Headers };
+            };
+            expect(r.data?.success).toBe(false);
+            expect(r.data?.errorCode).toBe('NOT_AUTHORIZED');
+            expect(r.init?.status).toBe(403);
+
+            // No cc-tv cookie should be written when access is denied
+            const initHeaders = r.init?.headers;
+            const setCookie =
+                initHeaders instanceof Headers
+                    ? initHeaders.get('Set-Cookie')
+                    : (initHeaders as Record<string, string> | undefined)?.['Set-Cookie'];
+            expect(setCookie).toBeUndefined();
+        });
+
+        it('does NOT include errorCode on successful passwordless authorization', async () => {
+            mockGetAuth.mockReturnValue({ userType: 'guest' });
+            mockAuthorizePasswordless.mockResolvedValue(undefined as any);
+
+            const formData = new URLSearchParams();
+            formData.append('loginMode', 'passwordless');
+            formData.append('email', 'test@example.com');
+
+            const mockRequest = new Request('http://localhost:5173/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString(),
+            });
+            const mockContext = { get: vi.fn(), set: vi.fn() };
+            const result = await action(
+                createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+            );
+
+            // Successful response is a plain LoginActionResponse object (not a Response)
+            expect(result).not.toBeInstanceOf(Response);
+            const payload = result as { success: boolean; errorCode?: string };
+            expect(payload.success).toBe(true);
+            expect(payload.errorCode).toBeUndefined();
+        });
+
+        describe('cc-tv cookie', () => {
+            const TEST_COOKIE_VALUE = 'c'.repeat(64);
+
+            function getSetCookie(result: unknown): string | undefined {
+                if (result instanceof Response) return result.headers.get('Set-Cookie') ?? undefined;
+                const r = result as { init?: { headers?: Record<string, string> | Headers } | null };
+                const headers = r?.init?.headers;
+                if (!headers) return undefined;
+                if (headers instanceof Headers) return headers.get('Set-Cookie') ?? undefined;
+                return (headers as Record<string, string>)['Set-Cookie'];
+            }
+
+            it('sets cc-tv_${siteId} cookie when enforceTurnstile returns a fresh cookieValue', async () => {
+                const { enforceTurnstile } = await import('@/lib/turnstile/enforce.server');
+                vi.mocked(enforceTurnstile).mockResolvedValueOnce({ allowed: true, cookieValue: TEST_COOKIE_VALUE });
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockAuthorizePasswordless.mockResolvedValue(undefined as any);
+
+                const formData = new URLSearchParams();
+                formData.append('loginMode', 'passwordless');
+                formData.append('email', 'test@example.com');
+
+                const mockRequest = new Request('http://localhost:5173/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString(),
+                });
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await action(
+                    createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+                );
+
+                expect(getSetCookie(result)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
+            });
+
+            it('does NOT set cc-tv cookie when enforceTurnstile short-circuits (cookieValue null)', async () => {
+                // When the HMAC-bound cookie already covers the current email + site,
+                // enforceTurnstile returns cookieValue: null. No new cookie is emitted.
+                const { enforceTurnstile } = await import('@/lib/turnstile/enforce.server');
+                vi.mocked(enforceTurnstile).mockResolvedValueOnce({ allowed: true, cookieValue: null });
+                mockGetAuth.mockReturnValue({ userType: 'guest' });
+                mockAuthorizePasswordless.mockResolvedValue(undefined as any);
+
+                const formData = new URLSearchParams();
+                formData.append('loginMode', 'passwordless');
+                formData.append('email', 'test@example.com');
+
+                const mockRequest = new Request('http://localhost:5173/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString(),
+                });
+                const mockContext = { get: vi.fn(), set: vi.fn() };
+                const result = await action(
+                    createActionArgs<Route.ActionArgs>(mockRequest, mockContext, { pattern: '/login' })
+                );
+
+                expect(getSetCookie(result)).toBeUndefined();
+            });
         });
     });
 

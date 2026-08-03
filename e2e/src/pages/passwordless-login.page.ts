@@ -36,6 +36,7 @@ class PasswordlessLoginPage {
     locators = {
         loginHeading: locate('h1.text-3xl, h1.text-2xl').as('Login Heading'),
         emailInput: locate('input[type="email"], input[name="email"]').as('Email Input'),
+        passwordInput: locate('input[type="password"], input[name="password"]').as('Password Input'),
         continueButton: locate('button[type="submit"]').as('Continue Button'),
         cookieAcceptButton: locate('button:has-text("Accept"), button:has-text("Accept All"), button[id*="accept"]').as(
             'Cookie Accept Button'
@@ -49,9 +50,22 @@ class PasswordlessLoginPage {
 
     navigate(baseUrl?: string, mode: 'passwordless' | 'password' = 'passwordless'): void {
         const targetUrl = baseUrl || process.env.BASE_URL || 'http://localhost:5173';
-        const modeParam = mode === 'password' ? '?mode=password' : '';
+        // Always pass ?mode= so intent is explicit. Server ignores ?mode=passwordless when
+        // emailVerificationEnabled is off (forces password form) — seed MRT_DATA_STORE_DEFAULTS.
+        const modeParam = mode === 'password' ? '?mode=password' : '?mode=passwordless';
         I.amOnPage(new URL(buildSitePath(`/login${modeParam}`), targetUrl).toString());
         I.waitForElement(this.locators.emailInput, 30);
+    }
+
+    /**
+     * True when the passwordless form is showing (email + Continue, no password field).
+     * False when only email/password auth is available — usually means
+     * emailVerificationEnabled is not seeded (see MRT_DATA_STORE_DEFAULTS).
+     */
+    async isPasswordlessFormVisible(): Promise<boolean> {
+        const passwordCount = await I.grabNumberOfVisibleElements(this.locators.passwordInput);
+        const continueCount = await I.grabNumberOfVisibleElements(this.locators.continueButton);
+        return passwordCount === 0 && continueCount > 0;
     }
 
     validateLoginHeading(): void {
@@ -61,6 +75,24 @@ class PasswordlessLoginPage {
     enterEmail(email: string): void {
         I.waitForElement(this.locators.emailInput, 10);
         I.fillField(this.locators.emailInput, email);
+    }
+
+    /**
+     * Blur the email field so the Turnstile widget mounts (first show is blur, not focus).
+     */
+    async blurEmailField(): Promise<void> {
+        await (I.usePlaywrightTo('blur passwordless login email', async ({ page }) => {
+            const emailInput = await page.locator('input[type="email"]').first();
+            await emailInput.blur();
+        }) as unknown as Promise<void>);
+    }
+
+    /**
+     * Enter a valid email and blur to initialize the Turnstile widget.
+     */
+    async enterEmailAndBlurForTurnstile(email: string): Promise<void> {
+        this.enterEmail(email);
+        await this.blurEmailField();
     }
 
     clickContinue(): void {

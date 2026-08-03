@@ -131,7 +131,8 @@
         "checkoutAsGuest": "Checkout come ospite",
         "resendCode": "Invia di nuovo il codice",
         "resendCodeTimer": "Invia di nuovo tra {{timer}} sec",
-        "resendCodeError": "Impossibile inviare nuovamente il codice. Riprova."
+        "resendCodeError": "Impossibile inviare nuovamente il codice. Riprova.",
+        "verificationFailed": "Non è stato possibile verificare le tue informazioni. Riprova."
     },
     "resetPassword": {
         "title": "Reimposta password",

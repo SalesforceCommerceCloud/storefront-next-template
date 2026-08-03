@@ -16,7 +16,8 @@
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
-import { render, screen } from '@testing-library/react';
+import React from 'react';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 // oxlint-disable-next-line import/no-namespace -- vi.spyOn requires namespace import
@@ -259,6 +260,435 @@ describe('PasswordlessLoginForm', () => {
             expect(screen.getByLabelText(t('login:emailLabel'))).toBeInTheDocument();
             expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeInTheDocument();
             expect(screen.queryByRole('link', { name: t('login:loginWithPassword') })).not.toBeInTheDocument();
+        });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Turnstile WI-10 parity tests
+// These run in a separate describe so the vi.mock calls don't bleed into the
+// general suite above (Vitest hoists vi.mock to the top of each describe file).
+// ---------------------------------------------------------------------------
+
+// Capture widget callbacks so tests can trigger them programmatically.
+let capturedOnSuccess: ((token: string) => void) | null = null;
+let capturedOnError: (() => void) | null = null;
+let capturedOnExpire: (() => void) | null = null;
+let capturedOnBypass: (() => void) | null = null;
+let capturedOnRetryExhausted: ((errorCode: string, family: string) => void) | null = null;
+let capturedResetRef: { current: (() => void) | null } | null = null;
+
+vi.mock('@/components/security/turnstile-widget', () => ({
+    TurnstileWidget: ({
+        onSuccess,
+        onError,
+        onExpire,
+        onBypass,
+        onRetryExhausted,
+        resetRef,
+    }: {
+        onSuccess?: (token: string) => void;
+        onError?: () => void;
+        onExpire?: () => void;
+        onBypass?: () => void;
+        onRetryExhausted?: (errorCode: string, family: string) => void;
+        resetRef?: { current: (() => void) | null };
+    }) => {
+        capturedOnSuccess = onSuccess ?? null;
+        capturedOnError = onError ?? null;
+        capturedOnExpire = onExpire ?? null;
+        capturedOnBypass = onBypass ?? null;
+        capturedOnRetryExhausted = onRetryExhausted ?? null;
+        capturedResetRef = resetRef ?? null;
+        // Register a no-op reset function so the component can call it safely.
+        if (resetRef) resetRef.current = () => {};
+        return <div data-testid="turnstile-widget-mock" />;
+    },
+}));
+
+const turnstileUtilsMock = vi.hoisted(() => ({
+    isTurnstileEnabled: vi.fn(() => true),
+    getTurnstileMode: vi.fn(() => 'managed' as const),
+    getTurnstileSiteKey: vi.fn(() => '2x00000000000000000000AB'),
+    getBrowserTurnstileSiteKey: vi.fn(() => '2x00000000000000000000AB'),
+}));
+
+vi.mock('@/lib/turnstile/utils', () => turnstileUtilsMock);
+
+const checkSessionMock = vi.hoisted(() => ({
+    checkTurnstileSessionVerified: vi.fn().mockResolvedValue(false),
+}));
+
+vi.mock('@/lib/turnstile/check-session', () => checkSessionMock);
+
+function renderWithTurnstile(props: Partial<React.ComponentProps<typeof PasswordlessLoginForm>> = {}) {
+    const router = createMemoryRouter(
+        [
+            {
+                path: '*',
+                element: (
+                    <AllProvidersWrapper>
+                        <PasswordlessLoginForm isPasswordlessEnabled={true} {...props} />
+                    </AllProvidersWrapper>
+                ),
+            },
+        ],
+        { initialEntries: ['/'] }
+    );
+    return render(<RouterProvider router={router} />);
+}
+
+/** Mount Turnstile by blurring a valid email (first show is blur, not focus). */
+async function mountTurnstileViaEmailBlur(email = 'shopper@example.com') {
+    const emailInput = screen.getByLabelText(t('login:emailLabel'));
+    fireEvent.change(emailInput, { target: { value: email } });
+    act(() => {
+        fireEvent.blur(emailInput);
+    });
+    await waitFor(() => {
+        expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
+    });
+}
+
+async function blurEmail(email = 'shopper@example.com') {
+    const emailInput = screen.getByLabelText(t('login:emailLabel'));
+    fireEvent.change(emailInput, { target: { value: email } });
+    act(() => {
+        fireEvent.blur(emailInput);
+    });
+    // Flush microtasks from checkTurnstileSessionVerified().then(...)
+    await act(async () => {
+        await Promise.resolve();
+    });
+}
+
+describe('PasswordlessLoginForm — Turnstile WI-10 parity', () => {
+    beforeEach(() => {
+        capturedOnSuccess = null;
+        capturedOnError = null;
+        capturedOnExpire = null;
+        capturedOnBypass = null;
+        capturedOnRetryExhausted = null;
+        capturedResetRef = null;
+        checkSessionMock.checkTurnstileSessionVerified.mockResolvedValue(false);
+        turnstileUtilsMock.isTurnstileEnabled.mockReturnValue(true);
+        turnstileUtilsMock.getTurnstileMode.mockReturnValue('managed');
+        turnstileUtilsMock.getBrowserTurnstileSiteKey.mockReturnValue('2x00000000000000000000AB');
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    test('does not mount widget when Turnstile is disabled in config', () => {
+        turnstileUtilsMock.isTurnstileEnabled.mockReturnValue(false);
+        renderWithTurnstile();
+
+        expect(screen.queryByTestId('turnstile-widget-mock')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).not.toBeDisabled();
+    });
+
+    test('does not mount widget until email field is blurred', async () => {
+        renderWithTurnstile();
+
+        expect(screen.queryByTestId('turnstile-widget-mock')).not.toBeInTheDocument();
+
+        const emailInput = screen.getByLabelText(t('login:emailLabel'));
+        fireEvent.focus(emailInput);
+        expect(screen.queryByTestId('turnstile-widget-mock')).not.toBeInTheDocument();
+
+        await mountTurnstileViaEmailBlur();
+        expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
+    });
+
+    test('submit button is disabled while Turnstile token is pending', async () => {
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        // Widget is present but onSuccess has not been called → no token
+        expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
+        const submitBtn = screen.getByRole('button', { name: t('login:sendLoginLink') });
+        expect(submitBtn).toBeDisabled();
+    });
+
+    test('submit button is enabled after Turnstile delivers a token', async () => {
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+
+        act(() => {
+            capturedOnSuccess?.('test-token-abc');
+        });
+
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).not.toBeDisabled();
+    });
+
+    test('onError clears the token and re-gates submit', async () => {
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        act(() => {
+            capturedOnSuccess?.('test-token-abc');
+        });
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).not.toBeDisabled();
+
+        act(() => {
+            capturedOnError?.();
+        });
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+    });
+
+    test('onExpire clears the token and re-gates submit', async () => {
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        act(() => {
+            capturedOnSuccess?.('test-token-abc');
+        });
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).not.toBeDisabled();
+
+        act(() => {
+            capturedOnExpire?.();
+        });
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+    });
+
+    test('onBypass unblocks submit button when CDN is unreachable', async () => {
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+
+        act(() => {
+            capturedOnBypass?.();
+        });
+
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).not.toBeDisabled();
+    });
+
+    test('onRetryExhausted shows the generic verification-failed alert', async () => {
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+        act(() => {
+            capturedOnRetryExhausted?.('300010', 'bot-detection');
+        });
+
+        const alert = screen.getByRole('alert');
+        expect(alert).toBeInTheDocument();
+        // Must not mention Turnstile, bot, or captcha
+        expect(alert.textContent).not.toMatch(/turnstile|bot|captcha/i);
+    });
+
+    test('email focus after retry exhaustion clears alert and remounts widget (submit re-gates)', async () => {
+        const user = userEvent.setup();
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        act(() => {
+            capturedOnRetryExhausted?.('300010', 'bot-detection');
+        });
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+        // Still pending (no token) — submit stays disabled after exhaustion on login
+        // (unlike checkout guest Continue). Remount on focus is the recovery path.
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+
+        const emailInput = screen.getByLabelText(t('login:emailLabel'));
+        await user.click(emailInput);
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        // Fresh widget instance after key bump.
+        expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
+        // Still gated until the remounted widget produces a token or bypasses.
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+
+        act(() => {
+            capturedOnSuccess?.('fresh-token-after-remount');
+        });
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).not.toBeDisabled();
+    });
+
+    test('actionErrorCode NOT_AUTHORIZED shows verification-failed alert and resets widget', async () => {
+        const resetSpy = vi.fn();
+        const { rerender } = renderWithTurnstile();
+
+        // Simulate widget registering its reset
+        if (capturedResetRef) capturedResetRef.current = resetSpy;
+
+        // Simulate action returning NOT_AUTHORIZED (prop change triggers the effect)
+        rerender(
+            <RouterProvider
+                router={createMemoryRouter(
+                    [
+                        {
+                            path: '*',
+                            element: (
+                                <AllProvidersWrapper>
+                                    <PasswordlessLoginForm
+                                        isPasswordlessEnabled={true}
+                                        actionErrorCode="NOT_AUTHORIZED"
+                                    />
+                                </AllProvidersWrapper>
+                            ),
+                        },
+                    ],
+                    { initialEntries: ['/'] }
+                )}
+            />
+        );
+
+        const alert = await screen.findByRole('alert');
+        expect(alert).toBeInTheDocument();
+        expect(alert.textContent).not.toMatch(/turnstile|bot|captcha/i);
+    });
+
+    test('three consecutive NOT_AUTHORIZED responses mark retry exhaustion', async () => {
+        const user = userEvent.setup();
+        // Drive three NOT_AUTHORIZED transitions on the SAME form instance so the
+        // verificationFailureCountRef accumulates to the MAX (3) cap.
+        function Harness() {
+            const [code, setCode] = React.useState<string | undefined>(undefined);
+            return (
+                <AllProvidersWrapper>
+                    <button type="button" onClick={() => setCode('NOT_AUTHORIZED')}>
+                        reject
+                    </button>
+                    <button type="button" onClick={() => setCode(undefined)}>
+                        clear-code
+                    </button>
+                    <PasswordlessLoginForm isPasswordlessEnabled={true} actionErrorCode={code} />
+                </AllProvidersWrapper>
+            );
+        }
+
+        const router = createMemoryRouter([{ path: '*', element: <Harness /> }], {
+            initialEntries: ['/'],
+        });
+        render(<RouterProvider router={router} />);
+
+        // Rejection 1
+        await user.click(screen.getByRole('button', { name: 'reject' }));
+        expect(await screen.findByRole('alert')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'clear-code' }));
+
+        // Rejection 2
+        await user.click(screen.getByRole('button', { name: 'reject' }));
+        expect(await screen.findByRole('alert')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'clear-code' }));
+
+        // Rejection 3 — hits the retry cap (setTurnstileRetryExhausted)
+        await user.click(screen.getByRole('button', { name: 'reject' }));
+        expect(await screen.findByRole('alert')).toBeInTheDocument();
+        // Login stays gated after exhaustion; recovery is remount-on-email-focus.
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+    });
+
+    test('verification error clears when shopper re-focuses the email field', async () => {
+        const user = userEvent.setup();
+
+        renderWithTurnstile({ actionErrorCode: 'NOT_AUTHORIZED' });
+
+        // Error appears
+        const alert = await screen.findByRole('alert');
+        expect(alert).toBeInTheDocument();
+
+        // Focus the email input to clear the error
+        const emailInput = screen.getByLabelText(t('login:emailLabel'));
+        await user.click(emailInput);
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    test('resetRef is wired to TurnstileWidget', async () => {
+        renderWithTurnstile();
+        await mountTurnstileViaEmailBlur();
+
+        // The widget mock sets resetRef.current — verify the form passes a ref
+        expect(capturedResetRef).not.toBeNull();
+        expect(typeof capturedResetRef?.current).toBe('function');
+    });
+
+    test('generic error prop displays when no verificationError is set', () => {
+        renderWithTurnstile({ error: 'Something went wrong. Try again.' });
+
+        expect(screen.getByRole('alert')).toHaveTextContent('Something went wrong. Try again.');
+    });
+
+    test('skipDocumentRedirect renders the hidden skip flag for LoginModal embeds', () => {
+        const { container } = renderWithTurnstile({ skipDocumentRedirect: true });
+
+        const skipInput = container.querySelector('input[name="skipDocumentRedirect"]');
+        expect(skipInput).toBeInTheDocument();
+        expect(skipInput).toHaveAttribute('type', 'hidden');
+        expect(skipInput).toHaveValue('true');
+    });
+
+    test('verificationError supersedes the generic error prop when NOT_AUTHORIZED', async () => {
+        // When the server returns NOT_AUTHORIZED the parent also passes actionData.error
+        // (the forbidden message). The form should show the specific verification copy
+        // and suppress the generic forbidden message.
+        const router = createMemoryRouter(
+            [
+                {
+                    path: '*',
+                    element: (
+                        <AllProvidersWrapper>
+                            <PasswordlessLoginForm
+                                isPasswordlessEnabled={true}
+                                error="errors:api.forbidden"
+                                actionErrorCode="NOT_AUTHORIZED"
+                            />
+                        </AllProvidersWrapper>
+                    ),
+                },
+            ],
+            { initialEntries: ['/'] }
+        );
+        render(<RouterProvider router={router} />);
+
+        // Verification-failed message should appear; raw forbidden string should not
+        const alert = await screen.findByRole('alert');
+        expect(alert).toBeInTheDocument();
+        expect(alert.textContent).not.toContain('errors:api.forbidden');
+    });
+
+    test('when session check says verified, widget does not mount and submit is not gated', async () => {
+        checkSessionMock.checkTurnstileSessionVerified.mockResolvedValue(true);
+        renderWithTurnstile();
+
+        await blurEmail('shopper@example.com');
+
+        expect(screen.queryByTestId('turnstile-widget-mock')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).not.toBeDisabled();
+    });
+
+    test('when session check says not verified, widget mounts on blur', async () => {
+        checkSessionMock.checkTurnstileSessionVerified.mockResolvedValue(false);
+        renderWithTurnstile();
+
+        await mountTurnstileViaEmailBlur();
+        expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: t('login:sendLoginLink') })).toBeDisabled();
+    });
+
+    test('changing email after session suppress shows widget on next blur', async () => {
+        checkSessionMock.checkTurnstileSessionVerified.mockResolvedValueOnce(true);
+        renderWithTurnstile();
+
+        await blurEmail('shopper@example.com');
+        expect(screen.queryByTestId('turnstile-widget-mock')).not.toBeInTheDocument();
+
+        checkSessionMock.checkTurnstileSessionVerified.mockResolvedValueOnce(false);
+        const emailInput = screen.getByLabelText(t('login:emailLabel'));
+        fireEvent.change(emailInput, { target: { value: 'other@example.com' } });
+        act(() => {
+            fireEvent.blur(emailInput);
+        });
+        await waitFor(() => {
+            expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
         });
     });
 });

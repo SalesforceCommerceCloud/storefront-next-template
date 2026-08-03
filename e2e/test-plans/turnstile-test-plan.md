@@ -4,210 +4,90 @@ Complete testing guide for Cloudflare Turnstile bot protection.
 
 ## Integration
 
-**Location:** Checkout `ContactInfo` component (`src/components/checkout/components/contact-info.tsx`)
+**Location:** Checkout `ContactInfo` (`src/components/checkout/components/contact-info.tsx`) and login (`src/routes/_empty.login.tsx`)
 
-**Trigger:** Passwordless login when email field loses focus → POST to `/action/authorize-passwordless-email` with `turnstileToken`
+**Trigger:** Passwordless login on email blur → POST `/action/authorize-passwordless-email` with `turnstileToken`
 
-**Note:** Login page has Turnstile available but does not currently use passwordless login.
+## Local E2E suite
 
-## Quick Start
+Single tag: **`@turnstile`** (Feature-level). CI never runs this suite.
 
 ```bash
-# 1. Start dev server
-cd packages/template
-pnpm dev
+# Terminal 1 — packages/template, Turnstile + passwordless prefs in .env (see Required env)
+pnpm dev                 # restart after changing MRT_DATA_STORE_DEFAULTS
 
-# 2. Run E2E tests
-cd e2e
-pnpm e2e --grep "@turnstile"
-
-# Expected: 6 passed in ~23s
+# Terminal 2 — packages/template (or e2e/):
+unset CI                 # Cursor/IDE may export CI=true; refuse real CI
+pnpm e2e:turnstile
 ```
 
-## Test Keys
+- Do **not** set `CI=false` in `e2e/.env` — that string is truthy; Codecept empty-run checks treat it as CI. Leave CI unset (`pnpm e2e:turnstile` also clears local sentinels).
+- Per-test keys: `overrideTurnstileConfig(siteKey, mode, origin)` — not tags.
+- Continue stays disabled until Turnstile yields a token (WI-10); expected, not a freeze.
 
-| Sitekey | Behavior | Mode | Use Case |
-|---------|----------|------|----------|
-| **`1x00000000000000000000BB`** | **Always passes** | **Invisible** | **Default (E2E tests)** |
-| `2x00000000000000000000BB` | Always fails | Invisible | Error handling |
-| `1x00000000000000000000AA` | Always passes | Visible | Debugging |
-| `2x00000000000000000000AB` | Always fails | Visible | Error handling |
-| `3x00000000000000000000FF` | Forces challenge | Visible | Interactive UX |
+## Required env
+
+Set these on the **storefront app** (`packages/template/.env`), not only in `e2e/.env`:
+
+```bash
+PUBLIC__app__security__turnstile__enabled=true
+
+# Server-verification scenarios also need (app + readable by e2e process if you want those scenarios unskipped):
+TURNSTILE_VERIFICATION_ENABLED=true
+TURNSTILE_SECRET_KEYS='{"1x00000000000000000000AA":"1x0000000000000000000000000000000AA","1x00000000000000000000BB":"1x0000000000000000000000000000000AA","2x00000000000000000000AB":"2x0000000000000000000000000000000AA","2x00000000000000000000BB":"2x0000000000000000000000000000000AA","3x00000000000000000000FF":"1x0000000000000000000000000000000AA"}'
+
+# Passwordless / OTP login UI (login-page Turnstile scenarios). Without this, /login
+# only shows email+password. Seeds the local data-store "Enable Email Verification"
+# preference (BM site pref in production). Restart `pnpm dev` after changing.
+MRT_DATA_STORE_DEFAULTS={"RefArchGlobal-login-preferences":{"data":{"emailVerificationEnabled":true}},"RefArch-login-preferences":{"data":{"emailVerificationEnabled":true}}}
+```
+
+Map **all** test site keys in `TURNSTILE_SECRET_KEYS` so per-test site-key overrides still verify server-side.
+
+## Test keys
+
+| Sitekey | Secret | Behavior |
+|---------|--------|----------|
+| `1x00000000000000000000AA` | `1x0000000000000000000000000000000AA` | Always passes |
+| `1x00000000000000000000BB` | `1x0000000000000000000000000000000AA` | Always passes (default local) |
+| `2x00000000000000000000AB` | `2x0000000000000000000000000000000AA` | Always blocks |
+| `2x00000000000000000000BB` | `2x0000000000000000000000000000000AA` | Always blocks |
+| `3x00000000000000000000FF` | `1x0000000000000000000000000000000AA` | Forces interactive challenge |
 
 Source: [Cloudflare Turnstile Testing](https://developers.cloudflare.com/turnstile/troubleshooting/testing/)
 
-## Automated Tests
+## Per-test key selection
 
-**File:** `e2e/src/specs/core/checkout-turnstile.spec.ts`
+Each scenario picks its key via `overrideTurnstileConfig(siteKey, mode, origin)` (injects `window.__APP_CONFIG__` before navigation). No tag-based key filtering.
 
-| Test | Key | Validates |
-|------|-----|-----------|
-| Script loading | `1x00000000000000000000BB` | CDN load, API, widget DOM |
-| Token generation | `1x00000000000000000000BB` | Token in request FormData |
-| Graceful degradation | `1x00000000000000000000BB` | Form works, no errors |
-| Error handling | `2x00000000000000000000BB` | Challenge fails, form works |
-| Visible mode | `1x00000000000000000000AA` | Widget container exists |
-| Interactive challenge | `3x00000000000000000000FF` | Widget container exists |
-
-**Run:**
-```bash
-pnpm e2e --grep "@turnstile"          # All tests
-pnpm e2e --grep "@checkout-ac30"      # AC30 only
-pnpm e2e --grep "@error-handling"     # Error handling
-```
-
-## Manual Testing
-
-**Setup:**
-1. Add product to cart
-2. Navigate to: http://localhost:5173/checkout
-3. Open DevTools (Console + Network tabs)
-
-**Check 1: Script loaded**
-```javascript
-document.querySelector('script[src*="challenges.cloudflare.com"]')
-// Should return: <script> element
-
-window.turnstile
-// Should return: Object with render, reset, remove methods
-```
-
-**Check 2: Widget exists**
-```javascript
-document.querySelector('[data-testid="turnstile-widget"]')
-// Should return: <div> element
-```
-
-**Check 3: Token in request**
-1. Enter email in Contact Info
-2. Tab/click outside field (blur) → triggers passwordless login
-3. Check Network tab for POST to `/action/authorize-passwordless-email`
-4. View Payload → should include `turnstileToken` field
-
-## Test Scenarios
-
-### Scenario 1: Happy Path (Default)
-
-**Config:** Already configured in `config.server.ts`
 ```typescript
-siteKeys: { 'http://localhost:5173': '1x00000000000000000000BB' },
-mode: 'invisible'
+await overrideTurnstileConfig('2x00000000000000000000BB', 'managed', origin);
+await addToCartFlow.executeAndNavigateToCheckout(...);
 ```
 
-**Expected:**
-- No visible UI
-- Token generated in ~1-3 seconds
-- Token included in request
-- Form works smoothly
+## Automated coverage (`e2e/src/specs/core/checkout-turnstile.spec.ts`)
 
-**E2E:** Fully automated (3 tests)
+| Scenario | Key | Validates |
+|----------|-----|-----------|
+| Script/widget load | default `1x…BB` | CDN + DOM |
+| Graceful degradation | any | No error alerts |
+| Visible always-pass | `1x…AA` | Widget container |
+| Interactive challenge UI | `3x…FF` | Widget renders (solve not automated) |
+| Token in request | default `1x…BB` | `turnstileToken` in FormData |
+| Always-block WI-10 | `2x…BB` | Generic alert, no Turnstile/bot/captcha leak |
+| Visible always-block | `2x…AB` | OTP modal not opened |
+| Login always-pass | `1x…BB` | Widget on `/login` |
+| Login always-block | `2x…BB` | WI-10 alert, no signal leak |
+| Cookie suppress — same email | HMAC-seeded `cc-tv_*` | Seed cookie (same HMAC as authorize mint); second blur hides widget + Continue ungated |
+| Cookie suppress — different email | HMAC-seeded `cc-tv_*` | Cookie for email A; blur email B remounts widget |
+| Server verify pass | `1x…BB` + pass secret | Not 403 from Turnstile |
+| Server verify invalid/spent | (see notes in spec) | Informational / unit-backed |
+| Challenge blocks submit | `3x…FF` | No token before solve |
 
-### Scenario 2: Error Handling
+## Interactive challenge limits
 
-**Config:**
-```typescript
-siteKeys: { 'http://localhost:5173': '2x00000000000000000000BB' },
-mode: 'invisible'
-```
+Cloudflare iframes block reliable automation of solving `3x…FF`. Automated tests assert render + pre-solve gating. Human solve paths require `RUN_MANUAL_TURNSTILE=true pnpm e2e:turnstile`.
 
-**Expected:**
-- Console warning: `[Turnstile] Challenge failed`
-- No error UI shown to user
-- Form works without token
-- Passwordless login proceeds
+## Unit tests
 
-**E2E:** Fully automated
-
-**Manual:** Change config, restart dev server, test in browser
-
-### Scenario 3: Visible Mode (Debugging)
-
-**Config:**
-```typescript
-siteKeys: { 'http://localhost:5173': '1x00000000000000000000AA' },
-mode: 'visible'
-```
-
-**Expected:**
-- Visible checkbox: "Verify you are human"
-- User clicks checkbox
-- Token generated after interaction
-
-**Manual:** Change config, restart dev server, verify checkbox appears
-
-### Scenario 4: Interactive Challenge
-
-**Config:**
-```typescript
-siteKeys: { 'http://localhost:5173': '3x00000000000000000000FF' },
-mode: 'visible'
-```
-
-**Expected:**
-- Interactive challenge (puzzle, image selection)
-- User completes challenge
-- Token generated
-
-**Manual:** Change config, restart dev server, complete challenge
-
-## Troubleshooting
-
-### Script Not Loading
-**Cause:** Ad blocker or CSP
-
-**Check:**
-```javascript
-document.querySelector('script[src*="challenges.cloudflare.com"]')
-// Should not be null
-```
-
-**Fix:**
-- Disable ad blocker for localhost
-- Check console for CSP errors
-
-### Token Not Generated
-**Cause:** Widget initialization failed
-
-**Check:**
-```javascript
-window.turnstile  // Should be defined
-```
-
-**Expected:** Console warnings logged, form works without token (graceful degradation)
-
-### Configuration Issues
-**Fix:** Verify `config.server.ts` has correct site key, restart dev server
-
-## Configuration
-
-**Development** (`config.server.ts`):
-```typescript
-security: {
-  turnstile: {
-    siteKeys: { 'http://localhost:5173': '1x00000000000000000000BB' },
-    enabled: true,
-    mode: 'invisible'
-  }
-}
-```
-
-**Production:**
-```typescript
-security: {
-  turnstile: {
-    siteKeys: { 'https://your-store.com': 'YOUR_PRODUCTION_KEY' },
-    enabled: true,
-    mode: 'invisible'
-  }
-}
-```
-
-Get production keys: https://dash.cloudflare.com/?to=/:account/turnstile
-
-## Related Files
-
-- **Feature Spec:** `e2e/feature-specs/checkout/turnstile-protection.spec.md`
-- **E2E Tests:** `e2e/src/specs/core/checkout-turnstile.spec.ts`
-- **Implementation:** `src/components/checkout/components/contact-info.tsx`
-- **Widget:** `src/components/security/turnstile-widget.tsx`
-- **Config:** `config.server.ts`
+Hard 100% target: `src/lib/turnstile/**`. Widget, error-codes, passwordless-login-form, and Turnstile paths in contact-info / login / protected actions are covered by Vitest (see feature-spec WI-7).
