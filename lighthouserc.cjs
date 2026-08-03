@@ -156,9 +156,14 @@ module.exports = {
                         // on main; keep the higher ceiling to absorb both baselines.
                         // Raised 500000 → 502000: mega-menu embedded region wiring grew the cart
                         // shared chunk (CI measured 501930 across 5 runs).
+                        // Raised 502000 → 502500: the shared CarouselSection `centerWhenPartial`
+                        // opt-in (a prop default + one conditional `justify-center-safe` class)
+                        // ships in the cart recommendations carousel chunk (CI measured 502064
+                        // across 5 runs). The prop is irreducible — it is the feature — so absorb
+                        // the ~64B with a small headroom bump rather than dropping the capability.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 502000, aggregationMethod: 'median' },
+                            { maxNumericValue: 502500, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.

@@ -1402,6 +1402,22 @@
             "styleForRealLife": {
                 "title": "Style for Real Life",
                 "description": "At Market Street, we believe fashion should be effortless, authentic, and accessible. Our collections are designed for the modern individual who values quality, versatility, and timeless style.\n\nDiscover pieces that move with you, adapt to your life, and become the foundation of a wardrobe that works—every day, everywhere."
+            },
+            "newArrivals": {
+                "cubes": {
+                    "title": "Cubes",
+                    "description": "Discover our curated collection of sculptural forms designed for the modern space.",
+                    "ctaText": "SHOP NEW ARRIVALS",
+                    "ctaAriaLabel": "Shop new arrivals: cubes",
+                    "imageAlt": "New arrivals collection"
+                },
+                "pyramids": {
+                    "title": "Pyramids",
+                    "description": "Timeless craftsmanship meets contemporary design in our curated collection.",
+                    "ctaText": "SHOP NEW ARRIVALS",
+                    "ctaAriaLabel": "Shop new arrivals: pyramids",
+                    "imageAlt": "New arrivals collection"
+                }
             }
         }
     },
