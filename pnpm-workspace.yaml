@@ -20,8 +20,8 @@ minimumReleaseAge: 2880
 # These Salesforce-published packages are exempt from the quarantine window.
 # (https://pnpm.io/settings#minimumreleaseageexclude)
 minimumReleaseAgeExclude:
-  - '@salesforce/storefront-next-dev@1.2.0-alpha.1'
-  - '@salesforce/storefront-next-runtime@1.2.0-alpha.1'
+  - '@salesforce/storefront-next-dev@1.2.0'
+  - '@salesforce/storefront-next-runtime@1.2.0'
   - '@salesforce/mrt-utilities@0.2.1'
   - '@salesforce/b2c-tooling-sdk@1.19.0'      # transitive via storefront-next-dev; bare entry auto-pinned by prepare-standalone-template.js
   - '@salesforce/b2c-cli@1.19.0'       # template devDependency (not reachable from the SDK dirs the prepare script resolves), so pin explicitly; keep in lockstep with the exact pin in package.json
