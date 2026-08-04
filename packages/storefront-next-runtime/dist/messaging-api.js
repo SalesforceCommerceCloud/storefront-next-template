@@ -186,7 +186,7 @@ function createClientApi({ emitter, id, forwardedKeys = [], logger }) {
 			reconnect: isReconnecting
 		});
 	};
-	const connect = ({ interval = 1e3, timeout = 6e4, prepareClient = () => Promise.resolve(), onHostConnected, onHostDisconnected, onError, usid, isShopperContextEnabled } = {}) => {
+	const connect = ({ interval = 1e3, timeout = 6e4, prepareClient = () => Promise.resolve(), onHostConnected, onHostDisconnected, onError, usid } = {}) => {
 		if (isConnected) disconnect({ isReconnecting: true });
 		const expirationTime = Date.now() + timeout;
 		const { markIsReady, emptyQueue } = messenger.connect();
@@ -216,8 +216,7 @@ function createClientApi({ emitter, id, forwardedKeys = [], logger }) {
 				onHostConnected,
 				onHostDisconnected,
 				onError,
-				usid,
-				isShopperContextEnabled
+				usid
 			}));
 		}));
 		const checkInitialization = () => {
@@ -225,8 +224,7 @@ function createClientApi({ emitter, id, forwardedKeys = [], logger }) {
 			messenger.emit("ClientInitialized", {
 				clientId: id,
 				forwardedKeys,
-				usid,
-				isShopperContextEnabled
+				usid
 			}, { requireRemoteId: false });
 			connectionTimeoutId = setTimeout(() => checkInitialization(), interval);
 		};

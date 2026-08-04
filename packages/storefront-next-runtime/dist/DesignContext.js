@@ -747,7 +747,7 @@ const DesignContext = React.createContext({
 * @param clientId - Id for the client API
 * @returns JSX element wrapping children with design context
 */
-const DesignProvider = ({ children, targetOrigin, clientId, usid, isShopperContextEnabled, clientConnectionTimeout, clientConnectionInterval, clientLogger = noop }) => {
+const DesignProvider = ({ children, targetOrigin, clientId, usid, clientConnectionTimeout, clientConnectionInterval, clientLogger = noop }) => {
 	const { isDesignMode } = usePageDesignerMode();
 	const [isConnected, setIsConnected] = React.useState(false);
 	const [pageDesignerConfig, setPageDesignerConfig] = React.useState(null);
@@ -783,8 +783,7 @@ const DesignProvider = ({ children, targetOrigin, clientId, usid, isShopperConte
 				reconnect();
 			},
 			onError: () => {},
-			usid,
-			isShopperContextEnabled
+			usid
 		});
 		return () => {
 			clientApi.disconnect();
@@ -795,8 +794,7 @@ const DesignProvider = ({ children, targetOrigin, clientId, usid, isShopperConte
 		clientApi,
 		clientConnectionTimeout,
 		clientConnectionInterval,
-		usid,
-		isShopperContextEnabled
+		usid
 	]);
 	const contextValue = React.useMemo(() => ({
 		isDesignMode,

@@ -177,10 +177,6 @@ interface ClientInitializedEvent extends WithBaseEvent {
    * The user session ID.
    */
   usid?: string;
-  /**
-   * Whether the storefront has the Shopper Context feature enabled.
-   */
-  isShopperContextEnabled?: boolean;
 }
 interface ClientReady extends WithBaseEvent {
   eventType: 'ClientReady';
@@ -914,7 +910,6 @@ interface ClientApi extends IsomorphicApi {
     onHostDisconnected?: (reconnect: () => void) => void;
     onError?: (error: Error) => void;
     usid?: string;
-    isShopperContextEnabled?: boolean;
   }): void;
   /**
    * Notifies the host that the client is ready.

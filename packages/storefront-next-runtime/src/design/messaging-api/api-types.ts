@@ -429,7 +429,6 @@ export interface ClientApi extends IsomorphicApi {
         onHostDisconnected?: (reconnect: () => void) => void;
         onError?: (error: Error) => void;
         usid?: string;
-        isShopperContextEnabled?: boolean;
     }): void;
 
     /**

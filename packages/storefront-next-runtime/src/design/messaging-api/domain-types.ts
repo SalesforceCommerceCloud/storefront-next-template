@@ -212,10 +212,6 @@ export interface ClientInitializedEvent extends WithBaseEvent {
      * The user session ID.
      */
     usid?: string;
-    /**
-     * Whether the storefront has the Shopper Context feature enabled.
-     */
-    isShopperContextEnabled?: boolean;
     // Put any client-specific config here
 }
 

@@ -3,7 +3,7 @@ import { i as FrameworkAdapter, n as ComponentModule } from "./types3.js";
 import { g as IsomorphicConfiguration } from "./index.js";
 import { r as RegionDecoratorProps, t as ComponentDecoratorProps } from "./component.types.js";
 import React$1, { JSX, PropsWithChildren } from "react";
-import * as react_jsx_runtime0 from "react/jsx-runtime";
+import * as react_jsx_runtime2 from "react/jsx-runtime";
 
 //#region src/design/react/core/PageDesignerProvider.d.ts
 type PageDesignerContextType = {
@@ -16,7 +16,6 @@ type PageDesignerProviderProps = {
   clientId: string;
   targetOrigin: string;
   usid?: string;
-  isShopperContextEnabled?: boolean;
   clientLogger?: IsomorphicConfiguration['logger'];
   clientConnectionTimeout?: number;
   clientConnectionInterval?: number;
@@ -28,7 +27,6 @@ declare const PageDesignerProvider: {
     targetOrigin,
     clientId,
     usid,
-    isShopperContextEnabled,
     clientLogger,
     clientConnectionTimeout,
     clientConnectionInterval,
@@ -51,7 +49,7 @@ declare function PageDesignerPageMetadataProvider({
   children
 }: React.PropsWithChildren<{
   page: ShopperExperience.schemas['Page'];
-}>): react_jsx_runtime0.JSX.Element;
+}>): react_jsx_runtime2.JSX.Element;
 //#endregion
 //#region src/design/react/core/RegionContext.d.ts
 interface RegionContextType {

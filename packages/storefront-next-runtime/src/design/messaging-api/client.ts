@@ -66,7 +66,6 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
         onHostDisconnected,
         onError,
         usid,
-        isShopperContextEnabled,
     }: {
         interval?: number;
         timeout?: number;
@@ -75,7 +74,6 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
         onHostDisconnected?: (reconnect: () => void) => void;
         onError?: (error: Error) => void;
         usid?: string;
-        isShopperContextEnabled?: boolean;
     } = {}) => {
         if (isConnected) {
             disconnect({ isReconnecting: true });
@@ -121,7 +119,6 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
                         onHostDisconnected,
                         onError,
                         usid,
-                        isShopperContextEnabled,
                     })
                 );
             })
@@ -132,11 +129,7 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
                 throw new Error(`Timed out after waiting ${timeout}ms for host connection`);
             }
 
-            messenger.emit(
-                'ClientInitialized',
-                { clientId: id, forwardedKeys, usid, isShopperContextEnabled },
-                { requireRemoteId: false }
-            );
+            messenger.emit('ClientInitialized', { clientId: id, forwardedKeys, usid }, { requireRemoteId: false });
             connectionTimeoutId = setTimeout(() => checkInitialization(), interval) as unknown as number;
         };
 
