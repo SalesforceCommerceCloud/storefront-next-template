@@ -647,14 +647,24 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
 
         /**
          * WebAuthn / passkey namespace.
-         * Registration works with either a public or private SLAS client. Authentication
-         * (start/finish) requires a clientSecret (private SLAS client) in this client;
+         * Registration and authentication (start/finish) both work with either a public or
+         * private SLAS client — only a private client (clientSecret present) sends the Basic
+         * auth header, while a public client identifies via client_id in the request body;
          * management (get/delete passkey) authenticates with the shopper's access token.
          * Requires the `sfcc.pwdless_login` scope on the SLAS client.
          */
         webAuthn: {
             authorizeRegistration: async (options: WebAuthnAuthorizeRegistrationOptions) => {
                 const { userId, mode, callbackUri, locale } = options;
+
+                // SLAS does not support SMS delivery for WebAuthn passkey authorization — the
+                // authorize endpoint rejects 'sms' with a 400 (PWDLESS_INVALID_MODE). Only
+                // 'email' and 'callback' are valid here. Fail fast with a clear message.
+                if (mode === 'sms') {
+                    throw new Error(
+                        'WebAuthn passkey authorization does not support "sms" mode; use "email" or "callback"'
+                    );
+                }
 
                 if (mode === 'callback' && !callbackUri) {
                     throw new Error('callbackUri is required when mode is "callback"');
@@ -732,15 +742,15 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
             startAuthentication: async (options: WebAuthnAuthenticationStartOptions = {}) => {
                 const { userId } = options;
 
-                if (!clientSecret) {
-                    throw new Error('Client secret is required for WebAuthn operations');
-                }
-
+                // Public or private client — only a private client sends the Basic auth header;
+                // a public client authenticates by client_id in the body alone (matching registration).
                 return shopperLoginClient.startWebauthnAuthentication({
                     params: {
-                        header: {
-                            Authorization: createBasicAuthHeader(clientId, clientSecret),
-                        },
+                        ...(clientSecret && {
+                            header: {
+                                Authorization: createBasicAuthHeader(clientId, clientSecret),
+                            },
+                        }),
                     },
                     headers: FORM_URLENCODED_HEADER,
                     body: {
@@ -754,15 +764,14 @@ export function createAuthHelpers(config: AuthConfig): AuthNamespace {
             finishAuthentication: async (options: WebAuthnAuthenticationFinishOptions): Promise<AuthResponse> => {
                 const { credential, usid } = options;
 
-                if (!clientSecret) {
-                    throw new Error('Client secret is required for WebAuthn operations');
-                }
-
+                // Public or private client — only a private client sends the Basic auth header.
                 const result = await shopperLoginClient.finishWebauthnAuthentication({
                     params: {
-                        header: {
-                            Authorization: createBasicAuthHeader(clientId, clientSecret),
-                        },
+                        ...(clientSecret && {
+                            header: {
+                                Authorization: createBasicAuthHeader(clientId, clientSecret),
+                            },
+                        }),
                     },
                     body: {
                         client_id: clientId,

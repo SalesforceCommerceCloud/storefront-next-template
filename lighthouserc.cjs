@@ -106,12 +106,34 @@ module.exports = {
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
-                        // Product-page script bundle on the cosmetic mirror measures ~449006 bytes
-                        // (deterministic across 5-run medians). Main's 449000 ceiling sits just
-                        // under that observed size, so unrelated branches trip on run-to-run
-                        // variance. Raise to 475000 to give real headroom (~25KB) so the budget
-                        // acts as a regression guard rather than a retry-lottery gate on
-                        // incidental main drift.
+                        // main baseline: product-page script bundle measures ~442183 on main
+                        // (deterministic across 5-run medians); main set the ceiling to 445000
+                        // (~2.8KB headroom) after the prior 442000 sat just under its real size.
+                        // feature/passkeys raises it further to absorb this feature's growth:
+                        //   445000 → 446000: the account.passkeys i18n keys nudged the shared chunk
+                        //   to 445551 on the cosmetic mirror.
+                        //   446000 → 447000: the round-2 review fix extracted bufferToBase64Url into
+                        //   a shared @/lib/auth/webauthn module imported by both the login hook and
+                        //   the registration modal, so the bundler hoists it into the shared route
+                        //   chunk the product page loads (cosmetic mirror measured 446288).
+                        //   447000 → 449000: merging main (Data 360 analytics adapter, ECB content
+                        //   blocks, et al.) grew the shared route chunk by ~1.4KB independently of
+                        //   this feature (cosmetic mirror measured 447721). ~1.3KB headroom above
+                        //   that absorbs main's drift plus run-to-run variance.
+                        //   449000 → 451000: stabilizing the recommender click handler (reading
+                        //   analytics through a ref so useCallback no longer re-creates every render,
+                        //   preserving ProductTile's memo()) added ~0.4KB to the PDP shared chunk the
+                        //   product-recommendations carousel loads (cosmetic mirror measured 449364).
+                        //   ~1.6KB headroom absorbs main's drift plus run-to-run variance.
+                        //   451000 → 453000: mega-menu embedded region wiring grew the PDP shared chunk
+                        //   (CI measured 452830 across 5 runs).
+                        // Separately, main's own line (deferring Google Maps behind address-field
+                        // focus, W-23605076) measured the cosmetic mirror at ~449006 and raised the
+                        // ceiling straight to 475000 (~25KB headroom) to stop unrelated branches
+                        // tripping on run-to-run variance. This back-merge combines both branches'
+                        // bundle growth, so the higher of the two ceilings (475000) is kept as the
+                        // safe interim value — re-measure on main post-merge and tighten if the
+                        // combined bundle sits well under it.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: 475000, aggregationMethod: 'median' },
@@ -139,9 +161,16 @@ module.exports = {
                         // Raised 490000 → 495000: the feature/passkeys baseline grew the cart route
                         // chunk (cosmetic mirror measured 492663). Raised further 495000 → 500000
                         // on main; keep the higher ceiling to absorb both baselines.
+                        // Raised 500000 → 502000: mega-menu embedded region wiring grew the cart
+                        // shared chunk (CI measured 501930 across 5 runs).
+                        // Raised 502000 → 502500: the shared CarouselSection `centerWhenPartial`
+                        // opt-in (a prop default + one conditional `justify-center-safe` class)
+                        // ships in the cart recommendations carousel chunk (CI measured 502064
+                        // across 5 runs). The prop is irreducible — it is the feature — so absorb
+                        // the ~64B with a small headroom bump rather than dropping the capability.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 500000, aggregationMethod: 'median' },
+                            { maxNumericValue: 502500, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.

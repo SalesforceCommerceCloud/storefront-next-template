@@ -2284,19 +2284,17 @@ class CheckoutPage {
         targets: Record<string, string>,
         maxTabs: number = 40
     ): Promise<Record<string, number>> {
-        await (I.usePlaywrightTo('wait for checkout-order-summary-sidebar to be attached', async ({ page }) => {
-            await page
-                .locator('[data-testid="checkout-order-summary-sidebar"]')
-                .first()
-                .waitFor({ state: 'attached', timeout: 20_000 });
-            // The sidebar container ships in the SSR HTML, but its inner OrderSummary
-            // (and the PromoCodeForm accordion trigger inside it) is lazy-loaded behind a
-            // Suspense boundary. Wait for the trigger itself so the tab scan starts once
-            // the sidebar's focusable content is in the DOM.
-            await page
-                .locator('[data-testid="checkout-order-summary-sidebar"] [data-slot="accordion-trigger"]')
-                .first()
-                .waitFor({ state: 'attached', timeout: 20_000 });
+        // Wait for every target to be visible before tabbing. The sidebar's promo-code
+        // accordion trigger renders behind a <Suspense> boundary (OrderSummary), so waiting
+        // only for the static sidebar container starts the Tab loop while the trigger is
+        // still the skeleton fallback — the element never gets focus and its position stays
+        // -1. Waiting on the targets themselves closes that race for any selector set.
+        await (I.usePlaywrightTo('wait for tab-order targets to be visible', async ({ page }) => {
+            await Promise.all(
+                Object.values(targets).map((sel) =>
+                    page.locator(sel).first().waitFor({ state: 'visible', timeout: 20_000 })
+                )
+            );
         }) as unknown as Promise<void>);
 
         const positions = (await I.usePlaywrightTo('capture tab-order positions of key sections', async ({ page }) => {

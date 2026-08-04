@@ -16,10 +16,10 @@
 
 import type { EngagementAdapterConfig } from './types';
 
-export type DataCloudConfig = EngagementAdapterConfig & {
-    /** Data Cloud app source id (from the provisioned Website connector). */
+export type Data360Config = EngagementAdapterConfig & {
+    /** Data 360 app source id (from the provisioned Website connector). */
     appSourceId: string;
-    /** Data Cloud tenant id; forms the `{tenantId}.c360a.salesforce.com` host. */
+    /** Data 360 tenant id; forms the `{tenantId}.c360a.salesforce.com` host. */
     tenantId: string;
     /** SFCC site id — used as `siteId`/`internalOrganizationId` in interactions. */
     siteId: string;
@@ -31,7 +31,7 @@ export type DataCloudConfig = EngagementAdapterConfig & {
 };
 
 /**
- * A single Data Cloud interaction event. The shape is the frozen PWA Kit
+ * A single Data 360 interaction event. The shape is the frozen PWA Kit
  * contract (identity / partyIdentification / userEngagement / catalog events);
  * fields vary per event type so the object is open-ended.
  *
@@ -41,11 +41,11 @@ export type DataCloudConfig = EngagementAdapterConfig & {
  * builders were hand-written on the PWA Kit hook). Add the dep only if the
  * wire schema starts changing out from under us.
  */
-export type DataCloudEvent = Record<string, unknown>;
+export type Data360Event = Record<string, unknown>;
 
-/** The interaction envelope POSTed to Data Cloud. */
-export type DataCloudInteraction = {
-    events: DataCloudEvent[];
+/** The interaction envelope POSTed to Data 360. */
+export type Data360Interaction = {
+    events: Data360Event[];
 };
 
 function isNonBlankString(value: unknown): boolean {
@@ -53,12 +53,12 @@ function isNonBlankString(value: unknown): boolean {
 }
 
 /**
- * Validates the fields required to construct the Data Cloud endpoint URL and
+ * Validates the fields required to construct the Data 360 endpoint URL and
  * interaction identity. `appSourceId` + `tenantId` build the host/path;
  * `siteId` is the `internalOrganizationId` on every party identification event.
  * Returns `{ valid, errors }`; the adapter factory throws on failure.
  */
-export function validateDataCloudConfig(config: Partial<DataCloudConfig>): { valid: boolean; errors: string[] } {
+export function validateData360Config(config: Partial<Data360Config>): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
     if (!isNonBlankString(config.appSourceId)) {
         errors.push(`Missing required field: appSourceId`);

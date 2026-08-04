@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi, describe, test, expect, beforeEach } from 'vitest';
 import { mockAltSiteObject } from '@/test-utils/config';
 import ProductRecommendations, { type RecommenderConfig } from './index';
@@ -84,19 +84,48 @@ vi.mock('@/hooks/recommenders/use-recommenders', () => ({
     })),
 }));
 
-// Mock ProductCarousel
+// Mock ProductCarousel — wires handleProductClick onto each tile so click tracking is testable.
 vi.mock('@/components/product-carousel/carousel', () => ({
-    default: ({ products, title, className }: { products: any[]; title?: string; className?: string }) => (
+    default: ({
+        products,
+        title,
+        className,
+        handleProductClick,
+    }: {
+        products: any[];
+        title?: string;
+        className?: string;
+        handleProductClick?: (product: any) => void;
+    }) => (
         <div data-testid="product-carousel" className={className}>
             <h3>{title}</h3>
             <div data-testid="product-count">{products.length} products</div>
             {products.map((product: any) => (
-                <div key={product.productId} data-testid={`product-${product.productId}`}>
+                <div
+                    key={product.productId}
+                    data-testid={`product-${product.productId}`}
+                    onClick={() => handleProductClick?.(product)}>
                     {product.productName}
                 </div>
             ))}
         </div>
     ),
+}));
+
+// Mock analytics so we can assert the recommender impression + click calls.
+const mockTrackViewRecommender = vi.fn();
+const mockTrackClickProductInRecommender = vi.fn();
+vi.mock('@/hooks/use-analytics', () => ({
+    useAnalytics: vi.fn(() => ({
+        trackViewRecommender: mockTrackViewRecommender,
+        trackClickProductInRecommender: mockTrackClickProductInRecommender,
+    })),
+}));
+
+// Mock the intersection observer — default on-screen so impressions fire; tests override.
+const mockUseIntersectionObserver = vi.fn((..._args: any[]) => true);
+vi.mock('@/hooks/use-intersection-observer', () => ({
+    useIntersectionObserver: (...args: any[]) => mockUseIntersectionObserver(...args),
 }));
 
 // Mock ProductRecommendationSkeleton
@@ -116,6 +145,75 @@ const renderComponent = (component: React.ReactElement) => {
 describe('ProductRecommendations', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockUseIntersectionObserver.mockReturnValue(true);
+    });
+
+    describe('Analytics (FU1)', () => {
+        test('fires trackViewRecommender once when on-screen with resolved recs', async () => {
+            const { useRecommenders } = await import('@/hooks/recommenders/use-recommenders');
+            mockUseRecommenders = useRecommenders as any;
+            mockUseRecommenders.mockReturnValue({
+                isLoading: false,
+                recommendations: mockRecommendations,
+                error: null,
+                getRecommendations: mockGetRecommendations,
+                getZoneRecommendations: mockGetZoneRecommendations,
+            });
+
+            renderComponent(<ProductRecommendations recommender={mockRecommender} />);
+
+            await waitFor(() => {
+                expect(mockTrackViewRecommender).toHaveBeenCalledTimes(1);
+            });
+            expect(mockTrackViewRecommender).toHaveBeenCalledWith({
+                recommenderId: mockRecommendations.recoUUID,
+                recommenderName: mockRecommendations.recommenderName,
+                products: mockRecommendations.recs,
+            });
+        });
+
+        test('does not fire trackViewRecommender when off-screen', async () => {
+            mockUseIntersectionObserver.mockReturnValue(false);
+            const { useRecommenders } = await import('@/hooks/recommenders/use-recommenders');
+            mockUseRecommenders = useRecommenders as any;
+            mockUseRecommenders.mockReturnValue({
+                isLoading: false,
+                recommendations: mockRecommendations,
+                error: null,
+                getRecommendations: mockGetRecommendations,
+                getZoneRecommendations: mockGetZoneRecommendations,
+            });
+
+            renderComponent(<ProductRecommendations recommender={mockRecommender} />);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('product-carousel')).toBeInTheDocument();
+            });
+            expect(mockTrackViewRecommender).not.toHaveBeenCalled();
+        });
+
+        test('fires trackClickProductInRecommender with the clicked product on tile click', async () => {
+            const { useRecommenders } = await import('@/hooks/recommenders/use-recommenders');
+            mockUseRecommenders = useRecommenders as any;
+            mockUseRecommenders.mockReturnValue({
+                isLoading: false,
+                recommendations: mockRecommendations,
+                error: null,
+                getRecommendations: mockGetRecommendations,
+                getZoneRecommendations: mockGetZoneRecommendations,
+            });
+
+            renderComponent(<ProductRecommendations recommender={mockRecommender} />);
+
+            const tile = await screen.findByTestId('product-test-product-1');
+            fireEvent.click(tile);
+
+            expect(mockTrackClickProductInRecommender).toHaveBeenCalledWith({
+                recommenderId: mockRecommendations.recoUUID,
+                recommenderName: mockRecommendations.recommenderName,
+                product: mockRecommendations.recs[0],
+            });
+        });
     });
 
     describe('Basic Rendering', () => {

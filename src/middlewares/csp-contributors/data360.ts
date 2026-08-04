@@ -17,35 +17,35 @@
 import type { CspContributor, CspContribution } from '@salesforce/storefront-next-runtime/security';
 
 /** The adapter's `enabled` flag plus the `tenantId` that forms the ingestion host. */
-type DataCloudCspConfig = { enabled?: boolean; tenantId?: string } | undefined;
+type Data360CspConfig = { enabled?: boolean; tenantId?: string } | undefined;
 
 /**
- * Data Cloud ingestion runs against a per-tenant host `{tenantId}.c360a.salesforce.com`.
+ * Data 360 ingestion runs against a per-tenant host `{tenantId}.c360a.salesforce.com`.
  * The runtime CSP validator (`validateContributors`) rejects wildcard origins, so we
  * emit the exact origin derived from `tenantId` rather than `https://*.c360a.salesforce.com`.
  */
-const dataCloudOrigin = (tenantId: string): string => `https://${tenantId}.c360a.salesforce.com`;
+const data360Origin = (tenantId: string): string => `https://${tenantId}.c360a.salesforce.com`;
 
-/** The trimmed tenantId when Data Cloud is enabled with one, else null (inactive). */
-const activeTenantId = (config: DataCloudCspConfig): string | null => {
+/** The trimmed tenantId when Data 360 is enabled with one, else null (inactive). */
+const activeTenantId = (config: Data360CspConfig): string | null => {
     if (config?.enabled !== true) return null;
     const tenantId = config.tenantId?.trim();
     return tenantId ? tenantId : null;
 };
 
 /**
- * CSP contributor for the Data Cloud engagement adapter's `sendBeacon` calls.
- * Adds `connect-src https://{tenantId}.c360a.salesforce.com` when Data Cloud is
+ * CSP contributor for the Data 360 engagement adapter's `sendBeacon` calls.
+ * Adds `connect-src https://{tenantId}.c360a.salesforce.com` when Data 360 is
  * enabled with a tenantId; contributes nothing otherwise.
  */
-export function createDataCloudCspContributor(config: DataCloudCspConfig): CspContributor {
+export function createData360CspContributor(config: Data360CspConfig): CspContributor {
     return {
-        id: 'dataCloud',
+        id: 'data360',
         isActive: () => activeTenantId(config) !== null,
         contribute: (): CspContribution => {
             const tenantId = activeTenantId(config);
             if (!tenantId) return {};
-            return { 'connect-src': [dataCloudOrigin(tenantId)] };
+            return { 'connect-src': [data360Origin(tenantId)] };
         },
     };
 }

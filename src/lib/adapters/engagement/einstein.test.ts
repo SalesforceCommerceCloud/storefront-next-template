@@ -459,8 +459,8 @@ describe('Einstein Adapter', () => {
                 instanceType: 'sbx',
                 realm: 'realm',
                 recoId: 'test-recommender-id',
-                recoType: 'Test Recommender',
-                products: ['test-product-id'],
+                recommenderName: 'Test Recommender',
+                products: [{ id: 'test-product-id', sku: 'test-product-id' }],
             });
         });
 
@@ -537,7 +537,7 @@ describe('Einstein Adapter', () => {
                 instanceType: 'sbx',
                 realm: 'realm',
                 recoId: 'test-recommender-id',
-                recoType: 'Test Recommender',
+                recommenderName: 'Test Recommender',
                 product: {
                     id: 'test-product-id',
                     sku: 'test-product-id',

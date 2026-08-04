@@ -1,354 +1,354 @@
 {
-  "name": "template-retail-rsc-app",
-  "version": "2026.9.0-dev",
-  "description": "Standalone Salesforce Commerce Cloud storefront (fashion).",
-  "private": true,
-  "type": "module",
-  "storefrontNext": {
-    "templateRelease": "September 2026 (dev)",
-    "templateVersion": "2026.9.0-dev",
-    "minSdkVersion": "1.3.0-dev"
-  },
-  "scripts": {
-    "dev": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && cross-env NODE_OPTIONS=--conditions=dev-data-store sfnext dev",
-    "dev:debug": "cross-env NODE_OPTIONS=\"--inspect --conditions=dev-data-store\" sfnext dev",
-    "dev:log": "cross-env NODE_OPTIONS=--conditions=dev-data-store SFCC_LOG_LEVEL=debug sfnext dev",
-    "build": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && pnpm cartridge:generate && react-router build",
-    "bundlesize": "cross-env BUNDLES_SIZE_CHECK=true pnpm build",
-    "bundlesize:compare": "node scripts/compare-bundlesize.mjs",
-    "start": "cross-env SFNEXT_DATA_STORE_UNAVAILABLE_MODE=fallback sfnext preview",
-    "preview": "pnpm start",
-    "push": "sfnext push --project-directory .",
-    "typecheck": "pnpm config:aggregate-extensions && react-router typegen && cross-env NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit",
-    "lint": "oxlint --type-aware --ignore-pattern \"e2e/**\" --report-unused-disable-directives --max-warnings 0 && pnpm format:check && pnpm --filter ./e2e lint",
-    "lint:fix": "oxlint --type-aware --ignore-pattern \"e2e/**\" --fix && pnpm format && pnpm --filter ./e2e lint:fix",
-    "lint:a11y": "node scripts/lint-a11y.mjs",
-    "a11y:scan-coverage": "node scripts/a11yScanCoverage.js",
-    "format": "biome format --write .",
-    "format:check": "biome format .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "storybook": "storybook dev -p 6006",
-    "storybook:build": "storybook build -o .storybook/storybook-static",
-    "storybook:test": "node scripts/test-storybook.js",
-    "chromatic:core": "node scripts/chromatic-core.js",
-    "cartridge:generate": "sfnext generate-cartridge",
-    "cartridge:validate": "sfnext validate-cartridge",
-    "cartridge:deploy": "sfnext deploy-cartridge",
-    "locales:aggregate-extensions": "sfnext locales aggregate-extensions",
-    "config:aggregate-extensions": "sfnext config aggregate-extensions",
-    "config:inspect": "sfnext config inspect && echo \"Tip: Run \\`pnpm config:push-env\\` to sync local .env overrides to MRT.\"",
-    "config:push-env": "b2c mrt env var push",
-    "lighthouse:ci": "lhci autorun",
-    "extensions:list": "node scripts/list-extension-points.js",
-    "b2c": "b2c",
-    "e2e": "pnpm --filter ./e2e e2e",
-    "e2e:turnstile": "pnpm --filter ./e2e e2e:turnstile",
-    "a11y": "pnpm --filter ./e2e a11y"
-  },
-  "dependencies": {
-    "@hookform/resolvers": "5.2.2",
-    "@icons-pack/react-simple-icons": "13.7.0",
-    "@radix-ui/react-accordion": "1.2.12",
-    "@radix-ui/react-alert-dialog": "1.1.15",
-    "@radix-ui/react-aspect-ratio": "1.1.7",
-    "@radix-ui/react-avatar": "1.1.10",
-    "@radix-ui/react-checkbox": "1.3.3",
-    "@radix-ui/react-collapsible": "1.1.12",
-    "@radix-ui/react-dialog": "1.1.15",
-    "@radix-ui/react-dropdown-menu": "2.1.16",
-    "@radix-ui/react-label": "2.1.7",
-    "@radix-ui/react-navigation-menu": "1.2.14",
-    "@radix-ui/react-popover": "1.1.15",
-    "@radix-ui/react-radio-group": "1.3.8",
-    "@radix-ui/react-separator": "1.1.8",
-    "@radix-ui/react-slot": "1.2.3",
-    "@radix-ui/react-switch": "1.2.2",
-    "@radix-ui/react-tooltip": "1.2.8",
-    "@react-router/node": "7.18.0",
-    "@salesforce/storefront-next-dev": "workspace:*",
-    "@salesforce/storefront-next-runtime": "workspace:*",
-    "@vis.gl/react-google-maps": "1.7.1",
-    "class-variance-authority": "0.7.1",
-    "clsx": "2.1.1",
-    "core-js": "3.45.1",
-    "embla-carousel-react": "8.6.0",
-    "express": "5.1.0",
-    "i18next": "25.5.3",
-    "i18next-browser-languagedetector": "8.2.0",
-    "input-otp": "1.4.2",
-    "isbot": "5.1.31",
-    "jose": "6.1.0",
-    "js-cookie": "3.0.8",
-    "lodash.debounce": "4.0.8",
-    "lucide-react": "0.544.0",
-    "nanoid": "5.1.6",
-    "pino": "10.3.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-hook-form": "7.63.0",
-    "react-i18next": "16.0.0",
-    "react-router": "7.18.0",
-    "reflect-metadata": "0.2.2",
-    "remix-i18next": "7.4.2",
-    "sonner": "2.0.7",
-    "tailwind-merge": "3.3.1",
-    "tailwindcss": "4.1.13",
-    "vaul": "1.1.2",
-    "zod": "4.1.11"
-  },
-  "engines": {
-    "node": ">=24.0.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.5.3",
-    "@chromatic-com/storybook": "4.1.2",
-    "@lhci/cli": "0.15.1",
-    "@react-router/dev": "7.18.0",
-    "@react-router/express": "7.18.0",
-    "@react-router/fs-routes": "7.18.0",
-    "@salesforce/b2c-cli": "1.19.0",
-    "@storybook/addon-a11y": "10.2.19",
-    "@storybook/addon-docs": "10.2.19",
-    "@storybook/addon-vitest": "10.2.19",
-    "@storybook/builder-vite": "10.2.19",
-    "@storybook/react-vite": "10.2.19",
-    "@storybook/test-runner": "0.24.1",
-    "@tailwindcss/vite": "4.1.13",
-    "@testing-library/jest-dom": "6.8.0",
-    "@testing-library/react": "16.3.0",
-    "@testing-library/user-event": "14.6.1",
-    "@types/express": "5.0.6",
-    "@types/js-cookie": "3.0.6",
-    "@types/lodash.debounce": "4.0.9",
-    "@types/node": "24.3.0",
-    "@types/react": "19.1.13",
-    "@types/react-dom": "19.1.9",
-    "@vitejs/plugin-react": "5.0.3",
-    "@vitest/browser": "4.1.8",
-    "@vitest/coverage-v8": "4.1.8",
-    "@vitest/ui": "4.1.8",
-    "chromatic": "^18.0.1",
-    "compression": "1.8.1",
-    "concurrently": "^9.1.2",
-    "cross-env": "10.0.0",
-    "dotenv": "17.2.2",
-    "globals": "16.3.0",
-    "jsdom": "27.4.0",
-    "morgan": "1.11.0",
-    "msw": "2.11.3",
-    "oxlint": "1.73.0",
-    "oxlint-tsgolint": "0.24.0",
-    "pino-pretty": "13.1.3",
-    "playwright": "1.61.1",
-    "rollup-plugin-visualizer": "6.0.4",
-    "serve": "14.2.6",
-    "source-map-support": "0.5.21",
-    "storybook": "10.2.19",
-    "tw-animate-css": "1.4.0",
-    "typescript": "5.9.2",
-    "vite": "7.3.5",
-    "vite-plugin-bundlesize": "0.3.0",
-    "vite-plugin-devtools-json": "1.0.0",
-    "vite-tsconfig-paths": "5.1.4",
-    "vitest": "4.1.8",
-    "vitest-localstorage-mock": "^0.1.2",
-    "wait-on": "^8.0.1"
-  },
-  "volta": {
-    "node": "24.13.0",
-    "pnpm": "10.28.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "happy-dom>@types/node": "^24.0.0",
-      "axios": "1.16.1",
-      "basic-ftp": "^5.3.1",
-      "flatted": "^3.4.2",
-      "shell-quote": "^1.8.4",
-      "esbuild": "0.28.1",
-      "rollup": "4.62.2",
-      "serialize-javascript": "7.0.6",
-      "@xmldom/xmldom": "0.9.10",
-      "http-proxy-middleware": "3.0.6",
-      "fast-uri": "3.1.3",
-      "lodash": "4.18.1",
-      "minimatch": "10.2.5",
-      "picomatch": "4.0.4",
-      "defu": "6.1.7",
-      "tmp": "0.2.7",
-      "tar": "7.5.17",
-      "multer": "2.2.0",
-      "qs": "6.15.3",
-      "postcss": "8.5.16",
-      "js-yaml@4": "4.3.0",
-      "joi@18": "18.2.3",
-      "yaml": "2.9.0",
-      "ajv@6": "6.15.0",
-      "ip-address": "10.2.0",
-      "uuid@11": "11.1.1",
-      "@protobufjs/utf8": "1.1.1",
-      "brace-expansion": "5.0.8",
-      "@babel/core@7": "7.29.7",
-      "diff@5": "5.2.2",
-      "lodash-es": "4.18.1",
-      "joi@17": "17.13.4",
-      "js-yaml@3": "3.15.0",
-      "nanoid@3": "3.3.16",
-      "form-data@4": "4.0.6",
-      "@opentelemetry/core@2": "2.8.0"
+    "name": "template-retail-rsc-app",
+    "version": "2026.9.0-dev",
+    "description": "Standalone Salesforce Commerce Cloud storefront (fashion).",
+    "private": true,
+    "type": "module",
+    "storefrontNext": {
+        "templateRelease": "September 2026 (dev)",
+        "templateVersion": "2026.9.0-dev",
+        "minSdkVersion": "1.3.0-dev"
+    },
+    "scripts": {
+        "dev": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && cross-env NODE_OPTIONS=--conditions=dev-data-store sfnext dev",
+        "dev:debug": "cross-env NODE_OPTIONS=\"--inspect --conditions=dev-data-store\" sfnext dev",
+        "dev:log": "cross-env NODE_OPTIONS=--conditions=dev-data-store SFCC_LOG_LEVEL=debug sfnext dev",
+        "build": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && pnpm cartridge:generate && react-router build",
+        "bundlesize": "cross-env BUNDLES_SIZE_CHECK=true pnpm build",
+        "bundlesize:compare": "node scripts/compare-bundlesize.mjs",
+        "start": "cross-env SFNEXT_DATA_STORE_UNAVAILABLE_MODE=fallback sfnext preview",
+        "preview": "pnpm start",
+        "push": "sfnext push --project-directory .",
+        "typecheck": "pnpm config:aggregate-extensions && react-router typegen && cross-env NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit",
+        "lint": "oxlint --type-aware --ignore-pattern \"e2e/**\" --report-unused-disable-directives --max-warnings 0 && pnpm format:check && pnpm --filter ./e2e lint",
+        "lint:fix": "oxlint --type-aware --ignore-pattern \"e2e/**\" --fix && pnpm format && pnpm --filter ./e2e lint:fix",
+        "lint:a11y": "node scripts/lint-a11y.mjs",
+        "a11y:scan-coverage": "node scripts/a11yScanCoverage.js",
+        "format": "biome format --write .",
+        "format:check": "biome format .",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "storybook": "storybook dev -p 6006",
+        "storybook:build": "storybook build -o .storybook/storybook-static",
+        "storybook:test": "node scripts/test-storybook.js",
+        "chromatic:core": "node scripts/chromatic-core.js",
+        "cartridge:generate": "sfnext generate-cartridge",
+        "cartridge:validate": "sfnext validate-cartridge",
+        "cartridge:deploy": "sfnext deploy-cartridge",
+        "locales:aggregate-extensions": "sfnext locales aggregate-extensions",
+        "config:aggregate-extensions": "sfnext config aggregate-extensions",
+        "config:inspect": "sfnext config inspect && echo \"Tip: Run \\`pnpm config:push-env\\` to sync local .env overrides to MRT.\"",
+        "config:push-env": "b2c mrt env var push",
+        "lighthouse:ci": "lhci autorun",
+        "extensions:list": "node scripts/list-extension-points.js",
+        "b2c": "b2c",
+        "e2e": "pnpm --filter ./e2e e2e",
+        "e2e:turnstile": "pnpm --filter ./e2e e2e:turnstile",
+        "a11y": "pnpm --filter ./e2e a11y"
+    },
+    "dependencies": {
+        "@hookform/resolvers": "5.2.2",
+        "@icons-pack/react-simple-icons": "13.7.0",
+        "@radix-ui/react-accordion": "1.2.12",
+        "@radix-ui/react-alert-dialog": "1.1.15",
+        "@radix-ui/react-aspect-ratio": "1.1.7",
+        "@radix-ui/react-avatar": "1.1.10",
+        "@radix-ui/react-checkbox": "1.3.3",
+        "@radix-ui/react-collapsible": "1.1.12",
+        "@radix-ui/react-dialog": "1.1.15",
+        "@radix-ui/react-dropdown-menu": "2.1.16",
+        "@radix-ui/react-label": "2.1.7",
+        "@radix-ui/react-navigation-menu": "1.2.14",
+        "@radix-ui/react-popover": "1.1.15",
+        "@radix-ui/react-radio-group": "1.3.8",
+        "@radix-ui/react-separator": "1.1.8",
+        "@radix-ui/react-slot": "1.2.3",
+        "@radix-ui/react-switch": "1.2.2",
+        "@radix-ui/react-tooltip": "1.2.8",
+        "@react-router/node": "7.18.0",
+        "@salesforce/storefront-next-dev": "workspace:*",
+        "@salesforce/storefront-next-runtime": "workspace:*",
+        "@vis.gl/react-google-maps": "1.7.1",
+        "class-variance-authority": "0.7.1",
+        "clsx": "2.1.1",
+        "core-js": "3.45.1",
+        "embla-carousel-react": "8.6.0",
+        "express": "5.1.0",
+        "i18next": "25.5.3",
+        "i18next-browser-languagedetector": "8.2.0",
+        "input-otp": "1.4.2",
+        "isbot": "5.1.31",
+        "jose": "6.1.0",
+        "js-cookie": "3.0.8",
+        "lodash.debounce": "4.0.8",
+        "lucide-react": "0.544.0",
+        "nanoid": "5.1.6",
+        "pino": "10.3.1",
+        "react": "19.2.3",
+        "react-dom": "19.2.3",
+        "react-hook-form": "7.63.0",
+        "react-i18next": "16.0.0",
+        "react-router": "7.18.0",
+        "reflect-metadata": "0.2.2",
+        "remix-i18next": "7.4.2",
+        "sonner": "2.0.7",
+        "tailwind-merge": "3.3.1",
+        "tailwindcss": "4.1.13",
+        "vaul": "1.1.2",
+        "zod": "4.1.11"
+    },
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.5.3",
+        "@chromatic-com/storybook": "4.1.2",
+        "@lhci/cli": "0.15.1",
+        "@react-router/dev": "7.18.0",
+        "@react-router/express": "7.18.0",
+        "@react-router/fs-routes": "7.18.0",
+        "@salesforce/b2c-cli": "1.19.0",
+        "@storybook/addon-a11y": "10.2.19",
+        "@storybook/addon-docs": "10.2.19",
+        "@storybook/addon-vitest": "10.2.19",
+        "@storybook/builder-vite": "10.2.19",
+        "@storybook/react-vite": "10.2.19",
+        "@storybook/test-runner": "0.24.1",
+        "@tailwindcss/vite": "4.1.13",
+        "@testing-library/jest-dom": "6.8.0",
+        "@testing-library/react": "16.3.0",
+        "@testing-library/user-event": "14.6.1",
+        "@types/express": "5.0.6",
+        "@types/js-cookie": "3.0.6",
+        "@types/lodash.debounce": "4.0.9",
+        "@types/node": "24.3.0",
+        "@types/react": "19.1.13",
+        "@types/react-dom": "19.1.9",
+        "@vitejs/plugin-react": "5.0.3",
+        "@vitest/browser": "4.1.8",
+        "@vitest/coverage-v8": "4.1.8",
+        "@vitest/ui": "4.1.8",
+        "chromatic": "^18.0.1",
+        "compression": "1.8.1",
+        "concurrently": "^9.1.2",
+        "cross-env": "10.0.0",
+        "dotenv": "17.2.2",
+        "globals": "16.3.0",
+        "jsdom": "27.4.0",
+        "morgan": "1.11.0",
+        "msw": "2.11.3",
+        "oxlint": "1.73.0",
+        "oxlint-tsgolint": "0.24.0",
+        "pino-pretty": "13.1.3",
+        "playwright": "1.61.1",
+        "rollup-plugin-visualizer": "6.0.4",
+        "serve": "14.2.6",
+        "source-map-support": "0.5.21",
+        "storybook": "10.2.19",
+        "tw-animate-css": "1.4.0",
+        "typescript": "5.9.2",
+        "vite": "7.3.5",
+        "vite-plugin-bundlesize": "0.3.0",
+        "vite-plugin-devtools-json": "1.0.0",
+        "vite-tsconfig-paths": "5.1.4",
+        "vitest": "4.1.8",
+        "vitest-localstorage-mock": "^0.1.2",
+        "wait-on": "^8.0.1"
+    },
+    "volta": {
+        "node": "24.13.0",
+        "pnpm": "10.28.0"
+    },
+    "pnpm": {
+        "overrides": {
+            "happy-dom>@types/node": "^24.0.0",
+            "axios": "1.16.1",
+            "basic-ftp": "^5.3.1",
+            "flatted": "^3.4.2",
+            "shell-quote": "^1.8.4",
+            "esbuild": "0.28.1",
+            "rollup": "4.62.2",
+            "serialize-javascript": "7.0.6",
+            "@xmldom/xmldom": "0.9.10",
+            "http-proxy-middleware": "3.0.6",
+            "fast-uri": "3.1.3",
+            "lodash": "4.18.1",
+            "minimatch": "10.2.5",
+            "picomatch": "4.0.4",
+            "defu": "6.1.7",
+            "tmp": "0.2.7",
+            "tar": "7.5.17",
+            "multer": "2.2.0",
+            "qs": "6.15.3",
+            "postcss": "8.5.16",
+            "js-yaml@4": "4.3.0",
+            "joi@18": "18.2.3",
+            "yaml": "2.9.0",
+            "ajv@6": "6.15.0",
+            "ip-address": "10.2.0",
+            "uuid@11": "11.1.1",
+            "@protobufjs/utf8": "1.1.1",
+            "brace-expansion": "5.0.8",
+            "@babel/core@7": "7.29.7",
+            "diff@5": "5.2.2",
+            "lodash-es": "4.18.1",
+            "joi@17": "17.13.4",
+            "js-yaml@3": "3.15.0",
+            "nanoid@3": "3.3.16",
+            "form-data@4": "4.0.6",
+            "@opentelemetry/core@2": "2.8.0"
+        }
+    },
+    "bundlesize": {
+        "server": [
+            {
+                "name": "**/*",
+                "limit": "6.1 mB",
+                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys push it to ~6,011 kB. Bumped from 6 mB to 6.1 mB to admit the overage. Uncompressed. Follow-up: server-bundle diet (cosmetic vertical is the largest) to bring this back under 6 mB."
+            }
+        ],
+        "client": [
+            {
+                "name": "assets/-entry.client.*.js",
+                "limit": "191 kB",
+                "comment": "Client hydration entry (custom src/entry.client.tsx, gates hydrateRoot on i18n readiness). Replaces the @react-router/dev default; same bundle role/size. src-root entries get a literal leading-dash readable name: assets/-entry.client.<hash>.js."
+            },
+            {
+                "name": "assets/\\(package\\)-\\(react-router\\)-\\(dist\\)-\\(development\\)-chunk*.js",
+                "limit": "135 kB"
+            },
+            {
+                "name": "assets/\\(package\\)-\\(zod\\)-\\(v4\\)-\\(classic\\)-schemas.*.js",
+                "limit": "55 kB"
+            },
+            {
+                "name": "assets/\\(components\\)-\\(order-summary\\)-index.*.js",
+                "limit": "65 kB"
+            },
+            {
+                "name": "assets/\\(components\\)-\\(product-items-list\\)-index.*.js",
+                "limit": "55 kB"
+            },
+            {
+                "name": "assets/\\(routes\\)-_app.*.js",
+                "limit": "59 kB",
+                "comment": "App layout route chunk; at 58 kB after dependency updates"
+            },
+            {
+                "name": "assets/\\(routes\\)-_checkout.checkout.*.js",
+                "limit": "100 kB",
+                "comment": "Checkout route chunk; at ~95 kB after eager-importing the four always-mounted step components (ContactInfo, ShippingAddress, ShippingOptions, Payment) to eliminate a 273 ms hydration-time long task and 100+ ms TBT. See W-23528585 spec (docs/internal/specs/W-23528585-checkout-perf-cls-tbt.md, Decision 1) for the eager-vs-lazy tradeoff. Follow-up: route-level modulepreload for the remaining lazy chunks will let this shrink back."
+            },
+            {
+                "name": "assets/\\(package\\)-\\(@radix-ui-*\\)-*.js",
+                "limit": "150 kB",
+                "comment": "Radix UI component packages (individually chunked by Vite). Used across the app including checkout."
+            },
+            {
+                "name": "assets/\\(package\\)-\\(@vis.gl-react-google-maps\\)-*.js",
+                "limit": "550 kB",
+                "comment": "Google Maps React components. Used for address input in checkout and store locator."
+            },
+            {
+                "name": "assets/\\(components\\)-\\(product-view\\)-child-products.*.js",
+                "limit": "90 kB",
+                "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection"
+            },
+            {
+                "name": "assets/\\(components\\)-\\(cart-item-modal\\)-index.*.js",
+                "limit": "85 kB",
+                "comment": "Cart item modal bundles full product editing UI: image gallery, swatches, cart actions (incl. ShareButton → @radix-ui/react-dropdown-menu), and ChildProducts"
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
+                "limit": "88 kB",
+                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), and passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
+                "limit": "88 kB",
+                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",
+                "limit": "84 kB",
+                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Increased for passkey management translations (account.passkeys)."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(ja-JP\\)-index.*.js",
+                "limit": "90 kB",
+                "comment": "Japanese locale chunk. Multi-byte characters and longer formal phrasing inflate the JSON. Baseline ~87 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(fr-FR\\)-index.*.js",
+                "limit": "85 kB",
+                "comment": "French locale chunk. Romance-language verbosity (articles, gendered forms) inflates strings. Baseline ~82 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(de-DE\\)-index.*.js",
+                "limit": "83 kB",
+                "comment": "German locale chunk. Compound words and formal address inflate strings. Baseline ~81 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(es-ES\\)-index.*.js",
+                "limit": "82 kB",
+                "comment": "Spanish locale chunk. Romance-language verbosity inflates strings. Baseline ~80 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(ko-KR\\)-index.*.js",
+                "limit": "81 kB",
+                "comment": "Korean locale chunk. Multi-byte characters inflate the JSON. Baseline ~79 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(pl-PL\\)-index.*.js",
+                "limit": "81 kB",
+                "comment": "Polish locale chunk. Inflectional morphology (multiple plural forms) inflates strings. Baseline ~79 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(pt-PT\\)-index.*.js",
+                "limit": "80 kB",
+                "comment": "Portuguese locale chunk. Romance-language verbosity inflates strings. Baseline ~78 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(nl-NL\\)-index.*.js",
+                "limit": "79 kB",
+                "comment": "Dutch locale chunk. Compound words inflate strings. Baseline ~77 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(fi-FI\\)-index.*.js",
+                "limit": "78 kB",
+                "comment": "Finnish locale chunk. Agglutinative morphology produces long words. Baseline ~76 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(sv-SE\\)-index.*.js",
+                "limit": "78 kB",
+                "comment": "Swedish locale chunk. Compound words inflate strings. Baseline ~76 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-\\(da-DK\\)-index.*.js",
+                "limit": "76 kB",
+                "comment": "Danish locale chunk. Compound words inflate strings. Baseline ~75 kB."
+            },
+            {
+                "name": "assets/\\(locales\\)-*-index.*.js",
+                "limit": "75 kB",
+                "comment": "Default limit for other locale chunks. Update individually if a locale exceeds this."
+            },
+            {
+                "name": "assets/\\(package\\)-\\(fast-deep-equal\\)-*.js",
+                "limit": "480 kB",
+                "comment": "Route entry chunk that includes fast-deep-equal and route deps (e.g. react-hook-form)."
+            },
+            {
+                "name": "assets/\\(package\\)-\\(i18next-browser-languagedetector\\)-*.js",
+                "limit": "55 kB",
+                "comment": "i18next language detector used by i18n. Slightly over 50 kB baseline."
+            },
+            {
+                "name": "**/*",
+                "limit": "50 kB",
+                "comment": "For every built JS chunk that exceeds the baseline limit, you must explicitly approve it above. We must try our best to minimize the bundle size. These are uncompressed numbers (before gzip/brotli)."
+            }
+        ]
     }
-  },
-  "bundlesize": {
-    "server": [
-      {
-        "name": "**/*",
-        "limit": "6.1 mB",
-        "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys push it to ~6,011 kB. Bumped from 6 mB to 6.1 mB to admit the overage. Uncompressed. Follow-up: server-bundle diet (cosmetic vertical is the largest) to bring this back under 6 mB."
-      }
-    ],
-    "client": [
-      {
-        "name": "assets/-entry.client.*.js",
-        "limit": "191 kB",
-        "comment": "Client hydration entry (custom src/entry.client.tsx, gates hydrateRoot on i18n readiness). Replaces the @react-router/dev default; same bundle role/size. src-root entries get a literal leading-dash readable name: assets/-entry.client.<hash>.js."
-      },
-      {
-        "name": "assets/\\(package\\)-\\(react-router\\)-\\(dist\\)-\\(development\\)-chunk*.js",
-        "limit": "135 kB"
-      },
-      {
-        "name": "assets/\\(package\\)-\\(zod\\)-\\(v4\\)-\\(classic\\)-schemas.*.js",
-        "limit": "55 kB"
-      },
-      {
-        "name": "assets/\\(components\\)-\\(order-summary\\)-index.*.js",
-        "limit": "65 kB"
-      },
-      {
-        "name": "assets/\\(components\\)-\\(product-items-list\\)-index.*.js",
-        "limit": "55 kB"
-      },
-      {
-        "name": "assets/\\(routes\\)-_app.*.js",
-        "limit": "59 kB",
-        "comment": "App layout route chunk; at 58 kB after dependency updates"
-      },
-      {
-        "name": "assets/\\(routes\\)-_checkout.checkout.*.js",
-        "limit": "100 kB",
-        "comment": "Checkout route chunk; at ~95 kB after eager-importing the four always-mounted step components (ContactInfo, ShippingAddress, ShippingOptions, Payment) to eliminate a 273 ms hydration-time long task and 100+ ms TBT. See W-23528585 spec (docs/internal/specs/W-23528585-checkout-perf-cls-tbt.md, Decision 1) for the eager-vs-lazy tradeoff. Follow-up: route-level modulepreload for the remaining lazy chunks will let this shrink back."
-      },
-      {
-        "name": "assets/\\(package\\)-\\(@radix-ui-*\\)-*.js",
-        "limit": "150 kB",
-        "comment": "Radix UI component packages (individually chunked by Vite). Used across the app including checkout."
-      },
-      {
-        "name": "assets/\\(package\\)-\\(@vis.gl-react-google-maps\\)-*.js",
-        "limit": "550 kB",
-        "comment": "Google Maps React components. Used for address input in checkout and store locator."
-      },
-      {
-        "name": "assets/\\(components\\)-\\(product-view\\)-child-products.*.js",
-        "limit": "90 kB",
-        "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection"
-      },
-      {
-        "name": "assets/\\(components\\)-\\(cart-item-modal\\)-index.*.js",
-        "limit": "85 kB",
-        "comment": "Cart item modal bundles full product editing UI: image gallery, swatches, cart actions (incl. ShareButton → @radix-ui/react-dropdown-menu), and ChildProducts"
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-        "limit": "88 kB",
-        "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), and passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-        "limit": "88 kB",
-        "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",
-        "limit": "84 kB",
-        "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Increased for passkey management translations (account.passkeys)."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(ja-JP\\)-index.*.js",
-        "limit": "90 kB",
-        "comment": "Japanese locale chunk. Multi-byte characters and longer formal phrasing inflate the JSON. Baseline ~87 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(fr-FR\\)-index.*.js",
-        "limit": "85 kB",
-        "comment": "French locale chunk. Romance-language verbosity (articles, gendered forms) inflates strings. Baseline ~82 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(de-DE\\)-index.*.js",
-        "limit": "83 kB",
-        "comment": "German locale chunk. Compound words and formal address inflate strings. Baseline ~81 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(es-ES\\)-index.*.js",
-        "limit": "82 kB",
-        "comment": "Spanish locale chunk. Romance-language verbosity inflates strings. Baseline ~80 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(ko-KR\\)-index.*.js",
-        "limit": "81 kB",
-        "comment": "Korean locale chunk. Multi-byte characters inflate the JSON. Baseline ~79 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(pl-PL\\)-index.*.js",
-        "limit": "81 kB",
-        "comment": "Polish locale chunk. Inflectional morphology (multiple plural forms) inflates strings. Baseline ~79 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(pt-PT\\)-index.*.js",
-        "limit": "80 kB",
-        "comment": "Portuguese locale chunk. Romance-language verbosity inflates strings. Baseline ~78 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(nl-NL\\)-index.*.js",
-        "limit": "79 kB",
-        "comment": "Dutch locale chunk. Compound words inflate strings. Baseline ~77 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(fi-FI\\)-index.*.js",
-        "limit": "78 kB",
-        "comment": "Finnish locale chunk. Agglutinative morphology produces long words. Baseline ~76 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(sv-SE\\)-index.*.js",
-        "limit": "78 kB",
-        "comment": "Swedish locale chunk. Compound words inflate strings. Baseline ~76 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-\\(da-DK\\)-index.*.js",
-        "limit": "76 kB",
-        "comment": "Danish locale chunk. Compound words inflate strings. Baseline ~75 kB."
-      },
-      {
-        "name": "assets/\\(locales\\)-*-index.*.js",
-        "limit": "75 kB",
-        "comment": "Default limit for other locale chunks. Update individually if a locale exceeds this."
-      },
-      {
-        "name": "assets/\\(package\\)-\\(fast-deep-equal\\)-*.js",
-        "limit": "480 kB",
-        "comment": "Route entry chunk that includes fast-deep-equal and route deps (e.g. react-hook-form)."
-      },
-      {
-        "name": "assets/\\(package\\)-\\(i18next-browser-languagedetector\\)-*.js",
-        "limit": "55 kB",
-        "comment": "i18next language detector used by i18n. Slightly over 50 kB baseline."
-      },
-      {
-        "name": "**/*",
-        "limit": "50 kB",
-        "comment": "For every built JS chunk that exceeds the baseline limit, you must explicitly approve it above. We must try our best to minimize the bundle size. These are uncompressed numbers (before gzip/brotli)."
-      }
-    ]
-  }
 }

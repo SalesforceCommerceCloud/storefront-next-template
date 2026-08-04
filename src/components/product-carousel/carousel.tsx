@@ -50,6 +50,8 @@ export interface ProductCarouselProps {
     className?: string;
     /** Optional Page Designer component for container rendering mode */
     component?: ComponentType;
+    /** Optional click handler forwarded to each product tile (e.g. recommender click tracking) */
+    handleProductClick?: (product: ShopperSearch.schemas['ProductSearchHit']) => void;
 }
 
 /**
@@ -92,6 +94,7 @@ export default function ProductCarousel({
     titleClassName,
     className,
     component,
+    handleProductClick,
 }: ProductCarouselProps): ReactNode {
     const { t } = useTranslation('product');
     const { isDesignMode } = usePageDesignerMode();
@@ -152,6 +155,7 @@ export default function ProductCarousel({
                                         product={product}
                                         imgAspectRatio={productCarouselItemAspectRatio}
                                         className="h-full w-full"
+                                        handleProductClick={handleProductClick}
                                     />
                                 </div>
                             </CarouselItem>

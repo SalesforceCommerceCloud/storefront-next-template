@@ -61,6 +61,7 @@ describe('security defaults', () => {
             "script-src": [
               "'self'",
               "https://challenges.cloudflare.com",
+              "https://maps.googleapis.com",
             ],
             "style-src": [
               "'self'",
@@ -115,6 +116,7 @@ describe('security defaults', () => {
                 "script-src": [
                   "'self'",
                   "https://challenges.cloudflare.com",
+                  "https://maps.googleapis.com",
                 ],
                 "style-src": [
                   "'self'",

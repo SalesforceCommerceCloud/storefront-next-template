@@ -16,8 +16,16 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
+import 'reflect-metadata';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import ResponsiveNavigationMenu from './index';
+import ResponsiveNavigationMenu, {
+    MEGA_MENU_REGION_IDS,
+    MegaMenuMetadata,
+    regionHasContent,
+    resolveMegaMenuRegionId,
+} from './index';
+import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
+import { getRegionDefinitions } from '@/lib/decorators/region-definition';
 import type { ShopperProducts } from '@/scapi';
 
 const mockCategories: ShopperProducts.schemas['Category'] = {
@@ -268,5 +276,76 @@ describe('ResponsiveNavigationMenu Component', () => {
 
             consoleSpy.mockRestore();
         });
+    });
+
+    describe('resolveMegaMenuRegionId', () => {
+        it('maps a declared category id to its region', () => {
+            expect(resolveMegaMenuRegionId('women', true)).toBe('region_women');
+            expect(resolveMegaMenuRegionId('men', true)).toBe('region_men');
+            expect(resolveMegaMenuRegionId('kids', true)).toBe('region_kids');
+        });
+
+        it('returns undefined for a category with no declared region', () => {
+            expect(resolveMegaMenuRegionId('sale', true)).toBeUndefined();
+        });
+
+        it('returns undefined when there is no embedded component', () => {
+            expect(resolveMegaMenuRegionId('women', false)).toBeUndefined();
+        });
+
+        it('returns undefined for an undefined category id', () => {
+            expect(resolveMegaMenuRegionId(undefined, true)).toBeUndefined();
+        });
+
+        it('does not double-prefix a category id that already starts with region_', () => {
+            // A category literally named `region_men` derives `region_region_men`, which is not declared.
+            expect(resolveMegaMenuRegionId('region_men', true)).toBeUndefined();
+        });
+
+        it('derives the region id from the live MEGA_MENU_REGION_IDS set (guards the region_ prefix)', () => {
+            // Every declared region must be reachable from its category id via the region_<id> convention.
+            // If the prefix or derivation ever drifts from the declared ids, this fails.
+            for (const regionId of MEGA_MENU_REGION_IDS) {
+                const categoryId = regionId.replace(/^region_/, '');
+                expect(resolveMegaMenuRegionId(categoryId, true)).toBe(regionId);
+            }
+        });
+    });
+});
+
+describe('regionHasContent', () => {
+    const componentWith = (components: unknown[]): ComponentWithComponentData =>
+        ({
+            id: 'mega-menu',
+            typeId: 'commerce_layouts.mega-menu',
+            regions: [{ id: 'region_women', components }],
+        }) as unknown as ComponentWithComponentData;
+
+    it('is true when the region holds at least one authored component', () => {
+        expect(regionHasContent(componentWith([{ id: 'c1' }]), 'region_women')).toBe(true);
+    });
+
+    it('is false for a declared-but-empty region (so the panel falls through to the banner)', () => {
+        // This is the starter default: regions are declared for authoring but ship empty.
+        expect(regionHasContent(componentWith([]), 'region_women')).toBe(false);
+    });
+
+    it('is false when the region is not present on the resolved component', () => {
+        expect(regionHasContent(componentWith([{ id: 'c1' }]), 'region_men')).toBe(false);
+    });
+
+    it('is false when the component resolved to null', () => {
+        expect(regionHasContent(null, 'region_women')).toBe(false);
+    });
+});
+
+describe('MegaMenuMetadata', () => {
+    it('declares one named region per starter category', () => {
+        const definitions = getRegionDefinitions(MegaMenuMetadata);
+        expect(definitions.map((def) => def.id)).toEqual(['region_women', 'region_men', 'region_kids']);
+    });
+
+    it('exposes the declared region ids as MEGA_MENU_REGION_IDS', () => {
+        expect([...MEGA_MENU_REGION_IDS].sort()).toEqual(['region_kids', 'region_men', 'region_women']);
     });
 });

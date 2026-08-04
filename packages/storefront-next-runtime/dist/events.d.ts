@@ -60,6 +60,10 @@ interface ViewSearchEvent extends BaseEvent {
   searchResults: ShopperSearch.schemas['ProductSearchHit'][];
   sort: string;
   refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
+  /** Paging metadata for global (not page-local) search-result position/page number. */
+  offset?: number;
+  limit?: number;
+  total?: number;
 }
 interface ViewCategoryEvent extends BaseEvent {
   eventType: 'view_category';
@@ -67,6 +71,10 @@ interface ViewCategoryEvent extends BaseEvent {
   searchResults: ShopperSearch.schemas['ProductSearchHit'][];
   sort: string;
   refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
+  /** Paging metadata for global (not page-local) search-result position/page number. */
+  offset?: number;
+  limit?: number;
+  total?: number;
 }
 interface ViewRecommenderEvent extends BaseEvent {
   eventType: 'view_recommender';

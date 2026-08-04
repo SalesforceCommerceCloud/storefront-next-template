@@ -41,6 +41,15 @@ export interface CarouselSectionProps {
      * - 'center': title and subtitle centered, no shop-all link
      */
     titleAlign?: 'left' | 'center';
+    /**
+     * Center the carousel items along the track when they don't fill it, instead of
+     * left-aligning (the default). Uses `justify-center-safe`, which centers when the
+     * items fit but falls back to start-alignment once the track overflows — so Embla's
+     * `align: 'start'` scroll still reaches every item (a plain `justify-center` would
+     * strand the leading item off the scrollable edge). Off by default, so existing
+     * consumers are unchanged.
+     */
+    centerWhenPartial?: boolean;
     /** Optional className for the outer wrapper div */
     className?: string;
     /** Accessible label for the carousel region */
@@ -89,6 +98,7 @@ export function CarouselSection({
     shopAllText,
     titleClassName,
     titleAlign = 'left',
+    centerWhenPartial = false,
     className,
     ariaLabel,
     children,
@@ -133,7 +143,10 @@ export function CarouselSection({
         <div className={cn('section-container py-6', className)}>
             {(title !== undefined || subtitle) && titleSection}
             <Carousel className="w-full py-6" opts={{ align: 'start' }} aria-label={ariaLabel}>
-                <CarouselContent className="-ml-4 items-stretch flex-nowrap">{children}</CarouselContent>
+                <CarouselContent
+                    className={cn('-ml-4 items-stretch flex-nowrap', centerWhenPartial && 'justify-center-safe')}>
+                    {children}
+                </CarouselContent>
                 {/*
                  * The nav buttons straddle the carousel edge on desktop (translated half their width
                  * outside the track). At mobile widths the section-container has only 16px of side

@@ -19,7 +19,11 @@
 */
 const defaultCspDirectives = {
 	"default-src": ["'self'"],
-	"script-src": ["'self'", "https://challenges.cloudflare.com"],
+	"script-src": [
+		"'self'",
+		"https://challenges.cloudflare.com",
+		"https://maps.googleapis.com"
+	],
 	"style-src": ["'self'", "'unsafe-inline'"],
 	"img-src": [
 		"'self'",

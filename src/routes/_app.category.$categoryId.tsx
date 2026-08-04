@@ -513,6 +513,9 @@ export default function CategoryPage({
                                     searchResultCritical.sortingOptions?.[0]?.label ||
                                     '',
                                 refinements: searchResultCritical.selectedRefinements ?? {},
+                                offset: searchResultCritical.offset,
+                                limit,
+                                total: searchResultCritical.total,
                             });
                         }
                     })

@@ -1,0 +1,30 @@
+{
+    "name": "Mega Menu",
+    "description": "Site-wide mega menu with per-category dropdown panel content slots",
+    "group": "Layout",
+    "arch_type": "headless",
+    "embedded": true,
+    "component_id": "mega-menu",
+    "region_definitions": [
+        {
+            "id": "region_women",
+            "name": "Women"
+        },
+        {
+            "id": "region_men",
+            "name": "Men"
+        },
+        {
+            "id": "region_kids",
+            "name": "Kids"
+        }
+    ],
+    "attribute_definition_groups": [
+        {
+            "id": "megaMenu",
+            "name": "Mega Menu",
+            "description": "Site-wide mega menu with per-category dropdown panel content slots",
+            "attribute_definitions": []
+        }
+    ]
+}

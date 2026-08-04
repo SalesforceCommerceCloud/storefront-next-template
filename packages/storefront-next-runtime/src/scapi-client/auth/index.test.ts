@@ -15,7 +15,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createAuthHelpers } from './index';
-import type { AuthConfig, TokenResponse } from './types';
+import type { AuthConfig, PasswordActionMode, TokenResponse } from './types';
 
 // Content-Type header constant (matches the one in index.ts)
 const FORM_URLENCODED_HEADER = { 'Content-Type': 'application/x-www-form-urlencoded' };
@@ -1532,6 +1532,20 @@ describe('createAuthHelpers', () => {
                     auth.webAuthn.authorizeRegistration({ userId: 'user@example.com', mode: 'callback' })
                 ).rejects.toThrow('callbackUri is required when mode is "callback"');
             });
+
+            it('should throw error when mode is sms (unsupported for passkeys)', async () => {
+                const config: AuthConfig = { ...baseConfig, clientSecret: 'test-secret' };
+                const auth = createAuthHelpers(config);
+
+                await expect(
+                    auth.webAuthn.authorizeRegistration({
+                        userId: 'user@example.com',
+                        // Cast: 'sms' is valid for other flows' shared mode type, but not passkeys.
+                        mode: 'sms' as PasswordActionMode,
+                    })
+                ).rejects.toThrow('WebAuthn passkey authorization does not support "sms" mode');
+                expect(mockShopperLoginClient.authorizeWebauthnRegistration).not.toHaveBeenCalled();
+            });
         });
 
         describe('startRegistration', () => {
@@ -1690,12 +1704,20 @@ describe('createAuthHelpers', () => {
                 );
             });
 
-            it('should throw error when clientSecret is not provided', async () => {
-                const auth = createAuthHelpers(baseConfig);
+            it('should omit Authorization header but still send client_id for public client', async () => {
+                mockShopperLoginClient.startWebauthnAuthentication.mockResolvedValue({
+                    data: { challenge: 'mock-challenge' },
+                    response: new Response(),
+                });
 
-                await expect(auth.webAuthn.startAuthentication()).rejects.toThrow(
-                    'Client secret is required for WebAuthn operations'
-                );
+                const auth = createAuthHelpers(baseConfig);
+                await auth.webAuthn.startAuthentication();
+
+                const callArgs = mockShopperLoginClient.startWebauthnAuthentication.mock.calls[0][0];
+                // Public client sends no Basic header — client_id in the body is the only client
+                // identifier, so it must be present or SLAS returns 401.
+                expect(callArgs.params.header).toBeUndefined();
+                expect(callArgs.body.client_id).toBe('test-client-id');
             });
         });
 
@@ -1764,12 +1786,20 @@ describe('createAuthHelpers', () => {
                 );
             });
 
-            it('should throw error when clientSecret is not provided', async () => {
-                const auth = createAuthHelpers(baseConfig);
+            it('should omit Authorization header but still send client_id for public client', async () => {
+                mockShopperLoginClient.finishWebauthnAuthentication.mockResolvedValue({
+                    data: { tokenResponse: mockTokenResponse },
+                    response: new Response(),
+                });
 
-                await expect(auth.webAuthn.finishAuthentication({ credential: mockCredential })).rejects.toThrow(
-                    'Client secret is required for WebAuthn operations'
-                );
+                const auth = createAuthHelpers(baseConfig);
+                await auth.webAuthn.finishAuthentication({ credential: mockCredential });
+
+                const callArgs = mockShopperLoginClient.finishWebauthnAuthentication.mock.calls[0][0];
+                // Public client sends no Basic header — client_id in the body is the only client
+                // identifier, so it must be present or SLAS returns 401.
+                expect(callArgs.params.header).toBeUndefined();
+                expect(callArgs.body.client_id).toBe('test-client-id');
             });
         });
 

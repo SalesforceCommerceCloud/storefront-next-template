@@ -1,19 +1,20 @@
 # Engagement Adapter Pattern Guide
 
-> How the adapter pattern is used for analytics event tracking (Einstein, Active Data).
+> How the adapter pattern is used for analytics event tracking (Einstein, Active Data, Data 360).
 
 ## Overview
 
 The **adapter pattern** decouples analytics components from vendor-specific event APIs. Components call a generic interface; the adapter translates those calls into the vendor's API.
 
-Two adapters ship out of the box:
+Three adapters ship out of the box:
 
 | Adapter | Purpose | Config key |
 |---------|---------|------------|
 | **Einstein** | Analytics event tracking (viewProduct, addToCart, etc.) | `engagement.adapters.einstein` |
 | **Active Data** | Analytics event tracking (dwac beacon) | `engagement.adapters.activeData` |
+| **Data 360** | Salesforce Data 360 — view/impression events only | `engagement.adapters.data360` |
 
-Both implement the `EngagementAdapter` interface and are registered in a shared store.
+All three implement the `EngagementAdapter` interface and are registered in a shared store.
 
 ### Architecture
 
@@ -35,6 +36,8 @@ Both implement the `EngagementAdapter` interface and are registered in a shared 
 │              Vendor Implementations                          │
 │  createEinsteinAdapter → POST to api.cquotient.com          │
 │  createActiveDataAdapter → pixel/beacon requests            │
+│  createData360Adapter → sendBeacon to                       │
+│    {tenantId}.c360a.salesforce.com                          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -48,9 +51,11 @@ src/lib/adapters/
     ├── store.ts                    # addAdapter, getAdapter, getAllAdapters, removeAdapter
     ├── einstein.ts                 # createEinsteinAdapter factory (analytics events only)
     ├── active-data.ts              # createActiveDataAdapter factory
+    ├── data360.ts                  # createData360Adapter factory (view/impression events only)
     ├── register.ts                 # initializeEngagementAdapters (reads config, creates + registers)
     ├── initialize.ts               # ensureAdaptersInitialized (idempotent, lazy-loads register.ts)
     ├── einstein-config.ts          # validateEinsteinConfig helper
+    ├── data360-config.ts           # Data360Config type + validateData360Config helper
     └── utils.ts                    # hasConsent helper
 ```
 
@@ -89,7 +94,7 @@ export async function ensureAdaptersInitialized(appConfig: AppConfig): Promise<v
 }
 ```
 
-The dynamic `import()` means the Einstein/Active Data implementation modules are code-split into a separate chunk.
+The dynamic `import()` means the Einstein/Active Data/Data 360 implementation modules are code-split into a separate chunk.
 
 ### Configuration
 
@@ -105,21 +110,32 @@ engagement: {
             siteId: '<your-site-id>',
             realm: '<realm>',
             isProduction: false,
-            consentCategory: 'C0004',
+            consentCategory: 'analytics',
             eventToggles: { view_product: true, cart_item_add: true, ... },
         },
         activeData: {
             enabled: true,
             host: '<host>',
             siteUUID: '<uuid>',
-            consentCategory: 'C0002',
+            consentCategory: 'analytics',
             eventToggles: { view_product: true, cart_item_add: true, ... },
+        },
+        data360: {
+            enabled: true,
+            appSourceId: '<your-app-source-id>',
+            tenantId: '<your-tenant-id>',
+            siteId: '<your-site-id>',
+            webStoreId: 'sfnext',           // separates Storefront Next traffic from PWA Kit's in a shared DLO
+            consentCategory: 'analytics',
+            eventToggles: { view_product: true, view_category: true, ... },
         },
     },
 },
 ```
 
 If an adapter's `enabled` flag is `false`, it is not registered.
+
+**Data 360 maps only view/impression events** — `view_page`, `view_product`, `view_search`, `view_category`, and `view_recommender`. Cart, checkout, wishlist, and click events have no Data 360 mapping and ship disabled in `eventToggles` (PWA Kit parity).
 
 ---
 

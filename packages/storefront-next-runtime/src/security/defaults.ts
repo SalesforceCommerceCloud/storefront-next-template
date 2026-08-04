@@ -35,7 +35,7 @@ import type { CspDirectives, ResolvedSecurityConfig } from './types.js';
  */
 export const defaultCspDirectives: CspDirectives = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", 'https://challenges.cloudflare.com'],
+    'script-src': ["'self'", 'https://challenges.cloudflare.com', 'https://maps.googleapis.com'],
     // Tailwind v4 + shadcn rely on inline styles. Removing 'unsafe-inline'
     // breaks the design system out of the box.
     'style-src': ["'self'", "'unsafe-inline'"],

@@ -148,7 +148,8 @@ async function getInitializedMediator(appConfig: AppConfig): Promise<EventMediat
 async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
     authPromise: Promise<SessionData | undefined>,
     appConfig: AppConfig,
-    trackingConsent: TrackingConsent | undefined,
+    consentPreferences: ConsentPreferences | undefined,
+    siteInfo: EventSiteInfo | undefined,
     eventType: TEventType,
     eventData: Omit<Parameters<typeof createEvent<TEventType>>[1], 'payload'>
 ): Promise<void> {
@@ -197,13 +198,13 @@ export const useAnalytics = () => {
     }
 
     const trackViewPage = async (data: { url: string }) => {
-        return trackEvent(authPromiseRef.current, appConfig, trackingConsent, 'view_page', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_page', {
             path: data.url,
         });
     };
 
     const trackViewProduct = async (data: { product: ShopperProducts.schemas['Product'] }) => {
-        return trackEvent(authPromiseRef.current, appConfig, trackingConsent, 'view_product', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_product', {
             product: data.product,
         });
     };
@@ -214,7 +215,7 @@ export const useAnalytics = () => {
         sort: string;
         refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, trackingConsent, 'view_search', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_search', {
             searchInputText: data.searchInputText,
             searchResults: data.searchResults,
             sort: data.sort || '',
@@ -226,7 +227,7 @@ export const useAnalytics = () => {
         category: ShopperProducts.schemas['Category'];
         searchResults: ShopperSearch.schemas['ProductSearchHit'][];
     }) => {
-        return trackEvent(authPromiseRef.current, appConfig, trackingConsent, 'view_category', {
+        return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_category', {
             category: data.category,
             searchResults: data.searchResults,
             sort: '',

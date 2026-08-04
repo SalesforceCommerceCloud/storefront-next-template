@@ -15,15 +15,15 @@
  */
 
 /**
- * Data Cloud Adapter Tests
+ * Data 360 Adapter Tests
  *
  * Mirrors the PWA Kit `use-datacloud.test.js` payload assertions: standard
  * identity + partyIdentification events prepended to per-event domain events,
  * base64 `event=` form body, sendBeacon delivery.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createDataCloudAdapter } from './data-cloud';
-import type { DataCloudConfig, DataCloudInteraction } from './data-cloud-config';
+import { createData360Adapter } from './data360';
+import type { Data360Config, Data360Interaction } from './data360-config';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import type { AnalyticsEvent, ConsentPreferences } from '@salesforce/storefront-next-runtime/events';
 import type { EngagementAdapter } from '@/lib/adapters';
@@ -45,7 +45,7 @@ vi.mock('@/lib/logger', () => ({
 const { mockCookiesGet } = vi.hoisted(() => ({ mockCookiesGet: vi.fn(() => undefined as string | undefined) }));
 vi.mock('js-cookie', () => ({ default: { get: mockCookiesGet } }));
 
-type DataCloudAdapter = EngagementAdapter & {
+type Data360Adapter = EngagementAdapter & {
     sendEvent: (event: AnalyticsEvent, siteInfo?: any, consentPreferences?: ConsentPreferences) => Promise<unknown>;
 };
 
@@ -73,13 +73,13 @@ const readBlob = (blob: Blob): Promise<string> =>
         reader.readAsText(blob);
     });
 
-const getInteraction = async (callIndex = 0): Promise<DataCloudInteraction> => {
+const getInteraction = async (callIndex = 0): Promise<Data360Interaction> => {
     const call = mockSendBeacon.mock.calls[callIndex] as unknown as [string, Blob];
     const body = await readBlob(call[1]);
     const base64 = body.replace(/^event=/, '');
     // Mirror the adapter's UTF-8-safe encode: atob → bytes → TextDecoder.
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    return JSON.parse(new TextDecoder().decode(bytes)) as DataCloudInteraction;
+    return JSON.parse(new TextDecoder().decode(bytes)) as Data360Interaction;
 };
 
 const getBeaconUrl = (callIndex = 0): string => {
@@ -87,7 +87,7 @@ const getBeaconUrl = (callIndex = 0): string => {
     return call[0];
 };
 
-const mockConfig: DataCloudConfig = {
+const mockConfig: Data360Config = {
     enabled: true,
     appSourceId: 'app-source-id',
     tenantId: 'test-tenant',
@@ -145,10 +145,10 @@ beforeEach(() => {
     mockCookiesGet.mockReturnValue(undefined);
 });
 
-describe('Data Cloud Adapter', () => {
+describe('Data 360 Adapter', () => {
     describe('endpoint + envelope', () => {
         it('POSTs to the tenant/appSourceId endpoint with a base64 event= body', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/home' } as AnalyticsEvent,
                 undefined,
@@ -163,7 +163,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('view_page', () => {
         it('prepends identity + partyIdentification and adds a page-view userEngagement event', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/plp/shoes' } as AnalyticsEvent,
                 undefined,
@@ -189,7 +189,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('sets isAnonymous 1 for guests', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: guestUser, path: '/home' } as AnalyticsEvent,
                 undefined,
@@ -203,7 +203,7 @@ describe('Data Cloud Adapter', () => {
             // Mirrors the party-block fallback: with no resolved customerId there is no
             // durable identity, so the identity event must not claim isAnonymous 0 while
             // the party block is keyed on the ephemeral usid.
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_page',
@@ -220,7 +220,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('base event identity', () => {
         it('registered: guestId=usid, deviceId=customerId, customerId present', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -234,7 +234,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('prefers the current site from siteInfo over config.siteId (multi-site)', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 { siteId: 'OtherSite', localeId: 'en-US' },
@@ -248,7 +248,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('falls back to config.siteId when siteInfo is absent', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -259,7 +259,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('guest: deviceId falls back to usid, no customerId key', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: guestUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -273,7 +273,7 @@ describe('Data Cloud Adapter', () => {
 
         it('sessionId uses the sid cookie when present (PWA Kit parity)', async () => {
             mockCookiesGet.mockReturnValue('sid-from-cookie');
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -287,7 +287,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('sessionId falls back to usid when the sid cookie is absent', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -299,9 +299,9 @@ describe('Data Cloud Adapter', () => {
 
         it('guest with a gcid: does not leak it as customerId; deviceId stays usid', async () => {
             // Real guest sessions DO carry a customer id (the ephemeral gcid). The
-            // Data Cloud customerId field is meant for the durable registered id only,
+            // Data 360 customerId field is meant for the durable registered id only,
             // so a guest gcid must not be emitted as customerId nor used as deviceId.
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_page',
@@ -319,7 +319,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('partyIdentification', () => {
         it('registered → CC_REGISTERED_CUSTOMER_ID with customerId, no email', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -337,7 +337,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('guest → CC_USID with usid', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: guestUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -350,7 +350,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('guest with a gcid → still CC_USID keyed on usid, not the gcid', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_page',
@@ -367,7 +367,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('registered with missing customerId → falls back to CC_USID (no blank registered id)', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_page',
@@ -388,7 +388,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('never emits a contactPointEmail event', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -401,7 +401,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('view_product', () => {
         it('emits a catalog-object-view-start with webStoreId from config', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_product', payload: registeredUser, product: mockProduct } as AnalyticsEvent,
                 undefined,
@@ -416,7 +416,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('defaults webStoreId to sfnext when config leaves it blank', async () => {
-            const adapter = createDataCloudAdapter({ ...mockConfig, webStoreId: '' }) as DataCloudAdapter;
+            const adapter = createData360Adapter({ ...mockConfig, webStoreId: '' }) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_product', payload: guestUser, product: mockProduct } as AnalyticsEvent,
                 undefined,
@@ -429,7 +429,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('view_category — per-hit fan-out', () => {
         it('emits one catalog-object-impression per search hit with categoryId + search metadata', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_category',
@@ -459,8 +459,52 @@ describe('Data Cloud Adapter', () => {
             expect(domains[0].searchResultTitle).toBe('');
         });
 
+        it('emits global searchResultPosition/PageNumber from offset/limit (FU4)', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_category',
+                    payload: registeredUser,
+                    category: { id: 'cat-123' },
+                    searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
+                    sort: '',
+                    refinements: {},
+                    offset: 24,
+                    limit: 12,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
+            // position = offset + index (global), page = floor(offset/limit)+1
+            expect(domains[0].searchResultPosition).toBe(24);
+            expect(domains[1].searchResultPosition).toBe(25);
+            expect(domains[0].searchResultPageNumber).toBe(3);
+            expect(domains[1].searchResultPageNumber).toBe(3);
+        });
+
+        it('falls back to page-local position/page when paging is absent (no regression)', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_category',
+                    payload: registeredUser,
+                    category: { id: 'cat-123' },
+                    searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
+                    sort: '',
+                    refinements: {},
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
+            expect(domains[0].searchResultPosition).toBe(0);
+            expect(domains[1].searchResultPosition).toBe(1);
+            expect(domains[0].searchResultPageNumber).toBe(1);
+        });
+
         it('sends nothing when the search result list is empty (no identity-only beacon)', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_category',
@@ -479,7 +523,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('view_search — per-hit fan-out', () => {
         it('emits one catalog-object-impression per hit with a searchResultId and no categoryId', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_search',
@@ -501,8 +545,30 @@ describe('Data Cloud Adapter', () => {
             expect(domain.searchResultTitle).toBe('shoes');
         });
 
+        it('emits global searchResultPosition/PageNumber from offset/limit (FU4)', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    payload: registeredUser,
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
+                    sort: '',
+                    refinements: {},
+                    offset: 24,
+                    limit: 12,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
+            expect(domains[0].searchResultPosition).toBe(24);
+            expect(domains[1].searchResultPosition).toBe(25);
+            expect(domains[0].searchResultPageNumber).toBe(3);
+        });
+
         it('encodes a non-Latin1 search query without throwing (UTF-8 safe base64)', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_search',
@@ -523,7 +589,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('view_recommender — per-product fan-out', () => {
         it('emits catalog-object-impression with personalization ids', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_recommender',
@@ -544,7 +610,7 @@ describe('Data Cloud Adapter', () => {
 
     describe('gating', () => {
         it('sends nothing when consent is denied', async () => {
-            const adapter = createDataCloudAdapter({ ...mockConfig, consentCategory: 'analytics' }) as DataCloudAdapter;
+            const adapter = createData360Adapter({ ...mockConfig, consentCategory: 'analytics' }) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: registeredUser, path: '/x' } as AnalyticsEvent,
                 undefined,
@@ -554,7 +620,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('sends nothing when the event toggle is off', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'cart_item_add', payload: registeredUser, cartItems: [] } as AnalyticsEvent,
                 undefined,
@@ -564,10 +630,10 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('sends nothing (does not throw) for an event type with no DC mapping', async () => {
-            const adapter = createDataCloudAdapter({
+            const adapter = createData360Adapter({
                 ...mockConfig,
                 eventToggles: { ...mockConfig.eventToggles, wishlist_viewed: true },
-            }) as DataCloudAdapter;
+            }) as Data360Adapter;
             await expect(
                 adapter.sendEvent(
                     { eventType: 'wishlist_viewed', payload: registeredUser } as AnalyticsEvent,
@@ -581,32 +647,30 @@ describe('Data Cloud Adapter', () => {
 
     describe('configuration validation', () => {
         it('throws when appSourceId is missing', () => {
-            expect(() => createDataCloudAdapter({ ...mockConfig, appSourceId: '' })).toThrow(
-                /Data Cloud adapter configuration is invalid:.*Missing required field: appSourceId/
+            expect(() => createData360Adapter({ ...mockConfig, appSourceId: '' })).toThrow(
+                /Data 360 adapter configuration is invalid:.*Missing required field: appSourceId/
             );
         });
 
         it('throws when tenantId is missing', () => {
-            expect(() => createDataCloudAdapter({ ...mockConfig, tenantId: '' })).toThrow(
+            expect(() => createData360Adapter({ ...mockConfig, tenantId: '' })).toThrow(
                 /Missing required field: tenantId/
             );
         });
 
         it('throws when siteId is missing', () => {
-            expect(() => createDataCloudAdapter({ ...mockConfig, siteId: '' })).toThrow(
-                /Missing required field: siteId/
-            );
+            expect(() => createData360Adapter({ ...mockConfig, siteId: '' })).toThrow(/Missing required field: siteId/);
         });
 
         it('accepts a valid configuration', () => {
-            expect(() => createDataCloudAdapter(mockConfig)).not.toThrow();
+            expect(() => createData360Adapter(mockConfig)).not.toThrow();
         });
     });
 
     describe('delivery failure', () => {
         it('logs a debug message when sendBeacon drops the payload (returns false)', async () => {
             mockSendBeacon.mockReturnValueOnce(false);
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
 
             const result = await adapter.sendEvent(
                 { eventType: 'view_page', path: '/big-plp', payload: guestUser },
@@ -619,7 +683,7 @@ describe('Data Cloud Adapter', () => {
         });
 
         it('does not log when sendBeacon succeeds', async () => {
-            const adapter = createDataCloudAdapter(mockConfig) as DataCloudAdapter;
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
 
             await adapter.sendEvent({ eventType: 'view_page', path: '/', payload: guestUser }, undefined, [
                 'analytics',

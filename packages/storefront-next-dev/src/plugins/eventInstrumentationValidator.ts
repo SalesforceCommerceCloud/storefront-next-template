@@ -51,9 +51,18 @@ async function scanForInstrumentedEvents(projectRoot: string, scanPaths: string[
     const instrumentedEvents = new Set<string>();
 
     // Regex patterns to match trackEvent calls
-    // Pattern 1: trackEvent(..., ..., ..., 'event_type', ...)
-    // The event type is the 4th argument
-    const trackEventPattern = /trackEvent\s*\([^,]+,[^,]+,[^,]+,\s*['"]([^'"]+)['"]/g;
+    // Pattern 1: trackEvent(...leading args..., 'event_type', ...)
+    // The event type is the first string-literal argument, which sits after the
+    // leading non-string args (auth, config, consent, and — in the current hook —
+    // siteInfo). Matching "≥3 non-string args then a string literal" tolerates both
+    // the older 4-arg call shape and the current 5-arg one (siteInfo added).
+    //
+    // SOURCE OF TRUTH: the `trackEvent` helper in the template's `src/hooks/use-analytics.ts`.
+    // If that signature changes (a leading positional arg added/removed, or `eventType` passed
+    // as a non-literal), this regex must change with it — a mismatch makes the scan find zero
+    // events and emit false "never instrumented" warnings. A matching guard comment lives above
+    // that helper's definition.
+    const trackEventPattern = /trackEvent\s*\(\s*(?:[^,'"]+,\s*){3,}['"]([^'"]+)['"]/g;
 
     // Pattern 2: sendViewPageEvent (special case for view_page)
     const sendViewPagePattern = /sendViewPageEvent\s*\(/g;

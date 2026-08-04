@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Suspense, useEffect, useRef, useMemo, type ReactElement, type ReactNode } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useMemo, type ReactElement, type ReactNode } from 'react';
 import { Await } from 'react-router';
 import { useRecommenders, type Product, type Recommendation } from '@/hooks/recommenders/use-recommenders';
+import { useAnalytics } from '@/hooks/use-analytics';
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
+import type { ShopperSearch } from '@/scapi';
 import ProductCarousel from '@/components/product-carousel/carousel';
 import { ProductRecommendationSkeleton } from '@/components/product/skeletons';
 import { useProduct } from '@/providers/product-context';
@@ -307,6 +310,32 @@ function ProductRecommendationsView({
 }: ProductRecommendationsViewProps): ReactElement | null {
     // The title can come either from the static recommender config (client/PD path) or from the server response's
     // `displayMessage` (loader/BFF path). Fail closed when neither is present — we never want a headless carousel.
+    const analytics = useAnalytics();
+    const ref = useRef<HTMLDivElement>(null);
+    // Viewport-gated: fire the impression once when the carousel scrolls into view (PWA Kit parity).
+    const isOnScreen = useIntersectionObserver(ref, { useOnce: true });
+
+    const recommenderId = recommendation?.recoUUID ?? '';
+    const recommenderName = recommendation?.recommenderName ?? recommender?.name ?? '';
+    const productRecs = recommendation?.recs;
+
+    useEffect(() => {
+        if (isOnScreen && productRecs?.length) {
+            void analytics.trackViewRecommender({ recommenderId, recommenderName, products: productRecs });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once per resolved recommender; recoUUID keys the impression
+    }, [isOnScreen, recommendation?.recoUUID]);
+
+    // Keep the click handler stable so the memoized ProductTiles don't re-render on every parent render.
+    // `useAnalytics()` returns a fresh object each render, so read it through a ref instead of a dep.
+    const analyticsRef = useRef(analytics);
+    analyticsRef.current = analytics;
+    const onProductClick = useCallback(
+        (product: ShopperSearch.schemas['ProductSearchHit']) =>
+            void analyticsRef.current.trackClickProductInRecommender({ recommenderId, recommenderName, product }),
+        [recommenderId, recommenderName]
+    );
+
     const title = recommendation?.displayMessage || recommender?.title;
     if (!title) {
         return null;
@@ -314,19 +343,18 @@ function ProductRecommendationsView({
 
     if (isLoading) {
         return (
-            <div>
+            <div ref={ref}>
                 <ProductRecommendationSkeleton title={title} />
             </div>
         );
     }
 
-    const productRecs = recommendation?.recs;
     if (!productRecs || productRecs.length === 0) {
         return null;
     }
 
     return (
-        <div>
+        <div ref={ref}>
             <ProductCarousel
                 products={productRecs}
                 title={title}
@@ -334,6 +362,7 @@ function ProductRecommendationsView({
                 subtitle={subtitle}
                 shopAllText={shopAllText}
                 className={className}
+                handleProductClick={onProductClick}
             />
         </div>
     );

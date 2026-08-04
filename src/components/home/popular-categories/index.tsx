@@ -36,6 +36,11 @@ interface PopularCategoriesProps {
     parentId?: string;
     title?: string;
     subtitle?: string;
+    /**
+     * Center the category cards when they don't fill the track (see
+     * `CarouselSection`'s `centerWhenPartial`). Off by default.
+     */
+    centerWhenPartial?: boolean;
     // Data prop provided by the Page Designer component loader
     data?: ShopperProducts.schemas['Category'][];
     // Page Designer props
@@ -139,12 +144,14 @@ function CategoryGridContent({
     component,
     title,
     subtitle,
+    centerWhenPartial,
 }: {
     data?: ShopperProducts.schemas['Category'][];
     categoriesPromise?: Promise<ShopperProducts.schemas['Category'][]>;
     component?: ComponentType;
     title?: string;
     subtitle?: string;
+    centerWhenPartial?: boolean;
 }) {
     const { t } = useTranslation('home');
     const resolvedTitle = title || t('categoryGrid.title');
@@ -155,6 +162,7 @@ function CategoryGridContent({
         title: resolvedTitle,
         subtitle: resolvedSubtitle,
         titleAlign: 'center' as const,
+        centerWhenPartial,
         ariaLabel,
     };
 
@@ -229,6 +237,7 @@ export default function PopularCategories({
     component,
     title,
     subtitle,
+    centerWhenPartial,
 }: PopularCategoriesProps) {
     return (
         <section className="bg-muted/50">
@@ -238,6 +247,7 @@ export default function PopularCategories({
                 component={component}
                 title={title}
                 subtitle={subtitle}
+                centerWhenPartial={centerWhenPartial}
             />
         </section>
     );

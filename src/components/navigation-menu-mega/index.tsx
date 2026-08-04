@@ -18,9 +18,12 @@ import {
     useContext,
     useState,
     useCallback,
+    Suspense,
     type ComponentPropsWithoutRef,
     type ReactElement,
+    type ReactNode,
 } from 'react';
+import { Await } from 'react-router';
 import { NavLink } from '@/components/link';
 import { useNavigate } from '@/hooks/use-navigate';
 import type { ShopperProducts } from '@/scapi';
@@ -34,6 +37,53 @@ import { NavigationMenuLink } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { useSubCategory } from '@/components/navigation-menu/context';
 import { routes, routeHref } from '@/route-paths';
+import { Component } from '@/lib/decorators/component';
+import { RegionDefinition } from '@/lib/decorators';
+import { getRegionIds } from '@/lib/decorators/region-definition';
+import { EmbeddedComponentRegion } from '@/components/region/embedded-component-region';
+import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
+
+@Component('megaMenu', {
+    name: 'Mega Menu',
+    group: 'Layout',
+    description: 'Site-wide mega menu with per-category dropdown panel content slots',
+    embedded: true,
+    component_id: 'mega-menu',
+})
+@RegionDefinition([
+    // One region per top-level category, keyed by category id via the `region_<id>` convention.
+    // Edit this list to match your catalog's top-level category ids. Must stay an array literal —
+    // the cartridge generator extracts regions via AST and only handles array-literal arguments.
+    { id: 'region_women', name: 'Women' },
+    { id: 'region_men', name: 'Men' },
+    { id: 'region_kids', name: 'Kids' },
+])
+// oxlint-disable-next-line react-refresh/only-export-components
+export class MegaMenuMetadata {}
+
+/**
+ * Declared mega-menu region ids, derived from the `@RegionDefinition` decorator above so the
+ * decorator list is the single source of truth. A top-level category renders its region when
+ * `region_${category.id}` is present in this set.
+ */
+export const MEGA_MENU_REGION_IDS: ReadonlySet<string> = new Set(getRegionIds(MegaMenuMetadata));
+
+/**
+ * Resolves the embedded-component region id for a top-level category, or `undefined` when the
+ * category has no mapped region (no embedded component, no category id, or the derived
+ * `region_${categoryId}` is not declared in {@link MEGA_MENU_REGION_IDS}). Pure and exported so the
+ * per-category mapping can be unit-tested without mounting the lazily-rendered dropdown panel.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function resolveMegaMenuRegionId(
+    categoryId: string | undefined,
+    hasEmbeddedComponent: boolean,
+    regionIds: ReadonlySet<string> = MEGA_MENU_REGION_IDS
+): string | undefined {
+    if (!hasEmbeddedComponent || categoryId === undefined) return undefined;
+    const regionId = `region_${categoryId}`;
+    return regionIds.has(regionId) ? regionId : undefined;
+}
 
 interface MobileMenuContextType {
     isOpen: boolean;
@@ -88,6 +138,79 @@ function CategoryBanner({
             </NavLink>
         </NavigationMenuLink>
     );
+}
+
+/**
+ * True when the resolved embedded component actually holds authored content in `regionId`.
+ * A declared-but-empty region returns false so the panel can fall through to the banner.
+ * Pure and exported so the region-vs-banner precedence can be unit-tested without mounting
+ * the lazily-rendered dropdown.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function regionHasContent(resolved: ComponentWithComponentData | null, regionId: string): boolean {
+    return (resolved?.regions?.find((r) => r.id === regionId)?.components?.length ?? 0) > 0;
+}
+
+/**
+ * Right-column "featured content" for a top-level category's dropdown panel.
+ *
+ * Precedence: a populated embedded region (`region_<category.id>`) wins; otherwise the
+ * legacy `c_headerMenuBanner`; otherwise nothing.
+ *
+ * A *declared but empty* region must NOT win over the banner and must NOT emit a labelled
+ * `<aside>` — a complementary landmark with no content is screen-reader noise (WCAG 1.3.1).
+ * Because the embedded component is streamed from the loader, whether a region actually
+ * holds authored content is only known once the promise resolves, so the populated check
+ * (`regionHasContent`) happens inside Await. Design-mode authoring of these regions runs
+ * through the mini-PD component-preview route (page mode), not this slot, so no design-mode
+ * branch is needed here.
+ */
+function MegaMenuFeaturedSlot({
+    category,
+    regionId,
+    embeddedComponent,
+    label,
+}: {
+    category: ShopperProducts.schemas['Category'];
+    regionId: string | undefined;
+    embeddedComponent: EmbeddedMegaMenuComponent;
+    label: string;
+}): ReactNode {
+    const bannerSlot = hasBanner(category) ? (
+        <aside className="self-stretch" aria-label={label}>
+            <CategoryBanner category={category} />
+        </aside>
+    ) : null;
+
+    // No region mapped for this category (or no embedded component was fetched):
+    // the banner is the only possible featured content.
+    if (!regionId || embeddedComponent === undefined) {
+        return bannerSlot;
+    }
+
+    const renderResolved = (resolved: ComponentWithComponentData | null): ReactNode => {
+        if (!regionHasContent(resolved, regionId)) {
+            return bannerSlot;
+        }
+        return (
+            <aside className="self-stretch" aria-label={label}>
+                <EmbeddedComponentRegion component={resolved} regionId={regionId} />
+            </aside>
+        );
+    };
+
+    if (embeddedComponent instanceof Promise) {
+        // Below-the-fold panel; the promise is fetched at route load and is almost always
+        // resolved before the dropdown opens, so `fallback={null}` avoids a banner→region flash.
+        return (
+            <Suspense fallback={null}>
+                <Await resolve={embeddedComponent} errorElement={bannerSlot}>
+                    {renderResolved}
+                </Await>
+            </Suspense>
+        );
+    }
+    return renderResolved(embeddedComponent);
 }
 
 function hasSubcategories(category: ShopperProducts.schemas['Category']): boolean {
@@ -233,6 +356,19 @@ export function MobileMenuDropdown(): ReactElement | null {
     );
 }
 
+type EmbeddedMegaMenuComponent = ComponentWithComponentData | Promise<ComponentWithComponentData | null> | undefined;
+
+interface ResponsiveNavigationMenuProps extends ComponentPropsWithoutRef<typeof WithCategoryNavigationMenu> {
+    /**
+     * Embedded mega-menu Page Designer component fetched by the route loader via
+     * `fetchComponentWithComponentData({ componentId: 'mega-menu' })`. A top-level category whose
+     * id matches a declared region (`region_${category.id}`, e.g. `region_womens`) renders that
+     * region in its dropdown panel; merchants place content blocks (image, hero, etc.) into those
+     * regions in Page Designer. Categories without a matching region fall back to the header banner.
+     */
+    embeddedComponent?: EmbeddedMegaMenuComponent;
+}
+
 /**
  * ResponsiveNavigationMenu - A unified responsive navigation component
  *
@@ -248,12 +384,14 @@ export function MobileMenuDropdown(): ReactElement | null {
  * @param props - Component props
  * @param props.resolve - Promise resolving to root categories and first-level subcategories
  * @param props.defer - Promise resolving to deeper subcategory data for prefetch
+ * @param props.embeddedComponent - Optional Page Designer 'mega-menu' component data
  * @returns A responsive navigation component with CSS-controlled responsive behavior
  */
 export default function ResponsiveNavigationMenu({
     resolve,
     defer,
-}: ComponentPropsWithoutRef<typeof WithCategoryNavigationMenu>): ReactElement {
+    embeddedComponent,
+}: ResponsiveNavigationMenuProps): ReactElement {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { t } = useTranslation('header');
     const navigate = useNavigate();
@@ -318,6 +456,9 @@ export default function ResponsiveNavigationMenu({
                     categories,
                 };
 
+                const regionIdFor = (categoryId: string | undefined): string | undefined =>
+                    resolveMegaMenuRegionId(categoryId, embeddedComponent !== undefined);
+
                 return (
                     <MobileMenuContext.Provider value={mobileMenuContext}>
                         {/* Mobile: Hamburger button */}
@@ -354,15 +495,19 @@ export default function ResponsiveNavigationMenu({
                                     className:
                                         '!p-0 !left-auto !right-auto !w-full md:!w-full !animate-none !transition-none',
                                 })}
-                                propsContent={({ category }) => ({
-                                    className: cn(
-                                        'section-container pb-6',
-                                        hasBanner(category) &&
-                                            (isVertical(category)
-                                                ? 'grid md:grid-cols-[1fr_.3fr] items-start'
-                                                : 'grid md:grid-cols-[1fr_.6fr] items-start')
-                                    ),
-                                })}
+                                propsContent={({ category }) => {
+                                    const hasRegion = regionIdFor(category.id) !== undefined;
+                                    const showRightColumn = hasRegion || hasBanner(category);
+                                    return {
+                                        className: cn(
+                                            'section-container pb-6',
+                                            showRightColumn &&
+                                                (isVertical(category)
+                                                    ? 'grid md:grid-cols-[1fr_.3fr] items-start'
+                                                    : 'grid md:grid-cols-[1fr_.6fr] items-start')
+                                        ),
+                                    };
+                                }}
                                 propsList={({ parent, categories: subCategories, level }) => {
                                     if (level === 1) {
                                         if (isVertical(parent)) {
@@ -382,13 +527,23 @@ export default function ResponsiveNavigationMenu({
                                 }}
                                 propsElement={getElementProps}
                                 renderSlotListAfter={({ level, parent }) => {
-                                    if (level === 1 && hasBanner(parent)) {
-                                        return (
-                                            <aside className="self-stretch">
-                                                <CategoryBanner category={parent} />
-                                            </aside>
-                                        );
-                                    }
+                                    if (level !== 1 || !parent) return null;
+                                    // The dropdown renders multiple complementary landmarks (one per open
+                                    // category), so each <aside> needs a distinct accessible name for screen
+                                    // reader users to tell them apart (WCAG 1.3.1). Categories with neither a
+                                    // populated region nor a banner render nothing — an empty landmark would
+                                    // only add screen reader noise (handled inside MegaMenuFeaturedSlot).
+                                    return (
+                                        <MegaMenuFeaturedSlot
+                                            category={parent}
+                                            regionId={regionIdFor(parent.id)}
+                                            embeddedComponent={embeddedComponent}
+                                            label={t('featuredContent', {
+                                                category: parent.name,
+                                                defaultValue: `${parent.name} featured content`,
+                                            })}
+                                        />
+                                    );
                                 }}
                             />
                         </div>

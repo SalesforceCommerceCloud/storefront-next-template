@@ -1228,7 +1228,7 @@ async function loadEngagementConfig(projectRoot, configPath) {
 */
 async function scanForInstrumentedEvents(projectRoot, scanPaths) {
 	const instrumentedEvents = /* @__PURE__ */ new Set();
-	const trackEventPattern = /trackEvent\s*\([^,]+,[^,]+,[^,]+,\s*['"]([^'"]+)['"]/g;
+	const trackEventPattern = /trackEvent\s*\(\s*(?:[^,'"]+,\s*){3,}['"]([^'"]+)['"]/g;
 	const sendViewPagePattern = /sendViewPageEvent\s*\(/g;
 	const createEventPattern = /createEvent\s*\(\s*['"]([^'"]+)['"]/g;
 	for (const scanPath of scanPaths) {

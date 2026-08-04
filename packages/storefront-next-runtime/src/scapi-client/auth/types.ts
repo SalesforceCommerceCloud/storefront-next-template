@@ -369,7 +369,9 @@ export interface WebAuthnDeletePasskeyCredentialOptions {
 
 /**
  * WebAuthn / passkey namespace.
- * Requires `sfcc.pwdless_login` scope on the SLAS client and a private client secret.
+ * Works with either a public or private SLAS client — a private client (clientSecret present)
+ * sends the Basic auth header, a public client identifies via client_id in the request body.
+ * Requires the `sfcc.pwdless_login` scope on the SLAS client.
  */
 export interface WebAuthnNamespace {
     /**
@@ -743,7 +745,10 @@ export interface AuthNamespace {
 
     /**
      * WebAuthn / passkey namespace.
-     * Only available when clientSecret is configured (private SLAS client).
+     * Registration and authentication (start/finish) both work with either a public or
+     * private SLAS client — only a private client (clientSecret present) sends the Basic
+     * auth header, while a public client identifies via client_id in the request body;
+     * management (get/delete passkey) authenticates with the shopper's access token.
      * Requires the `sfcc.pwdless_login` scope on the SLAS client.
      *
      * @example
