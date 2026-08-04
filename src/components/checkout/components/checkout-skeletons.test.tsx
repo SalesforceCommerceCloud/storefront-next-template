@@ -115,11 +115,20 @@ describe('Checkout Skeleton Components', () => {
             expect(container.querySelector('.animate-pulse')).not.toBeInTheDocument();
         });
 
-        it('reserves min-height for layout stability', () => {
+        it('shows complete-previous-steps copy like other upcoming checkout steps', () => {
+            render(<PaymentPlaceholder />);
+
+            expect(screen.getByText('Complete previous steps to continue')).toBeInTheDocument();
+        });
+
+        it('stays compact like other upcoming-step empty states (no leftover TBT min-height)', () => {
             const { container } = render(<PaymentPlaceholder />);
             const card = container.querySelector('[data-slot="card"]');
+            const content = container.querySelector('[data-slot="card-content"]');
             if (!card) throw new Error('expected Card element to render');
-            expect(card.className).toContain('min-h-[280px]');
+            if (!content) throw new Error('expected CardContent element to render');
+            expect(card.className).not.toMatch(/min-h-/);
+            expect(content.className).not.toMatch(/min-h-/);
         });
     });
 

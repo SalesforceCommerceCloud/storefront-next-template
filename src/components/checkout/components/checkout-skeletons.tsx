@@ -180,17 +180,20 @@ export function PaymentSkeleton(): ReactElement {
 
 /**
  * Static pre-payment step placeholder (not a Suspense fallback).
- * Keeps the real Payment heading in the outline and reserves height without pulsing.
+ * Keeps the real Payment heading in the outline without pulsing skeletons.
+ * Matches Payment / Shipping upcoming-step empty state (copy + compact height).
  */
 export function PaymentPlaceholder(): ReactElement {
     const { t } = useTranslation('checkout');
 
     return (
-        <Card className="relative gap-4 min-h-[280px]" data-testid="payment-placeholder">
+        <Card className="relative gap-4" data-testid="payment-placeholder">
             <CardHeader className="border-b border-border pb-4">
                 <h2 className="text-2xl font-bold tracking-tight text-card-foreground">{t('payment.title')}</h2>
             </CardHeader>
-            <CardContent aria-hidden="true" className="min-h-[200px]" />
+            <CardContent>
+                <p className="text-sm text-muted-foreground">{t('shippingOptions.completePreviousSteps')}</p>
+            </CardContent>
         </Card>
     );
 }
