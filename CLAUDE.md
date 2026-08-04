@@ -83,6 +83,7 @@ pnpm storybook:test --type=snapshot --update      # Refresh snapshot fixtures
 pnpm storybook:test --type=snapshot --coverage    # Snapshot tests + coverage (auto-generates story tests)
 pnpm storybook:test --type=interaction --static   # Build & serve static bundle, then test (CI mode)
 pnpm storybook:test --type=a11y --static          # Same, for a11y
+pnpm storybook:test --type=interaction --static --reuse-build # Test an existing static bundle
 ```
 
 **Bundle size with treemap:**
