@@ -88,6 +88,7 @@
         "mobileNavigation": "모바일 탐색 메뉴",
         "expandCategory": "{{category}} 펼치기",
         "collapseCategory": "{{category}} 접기",
+        "shopAllCategory": "{{category}} 모두 쇼핑하기",
         "menu": {
             "yourLists": "내 목록",
             "yourAccount": "내 계정",

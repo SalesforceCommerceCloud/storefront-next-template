@@ -25,7 +25,6 @@ import {
 } from 'react';
 import { Await } from 'react-router';
 import { NavLink } from '@/components/link';
-import { useNavigate } from '@/hooks/use-navigate';
 import type { ShopperProducts } from '@/scapi';
 import CategoryNavigationMenu, { WithCategoryNavigationMenu } from '@/components/navigation-menu';
 import { Button } from '@/components/ui/button';
@@ -213,6 +212,27 @@ function MegaMenuFeaturedSlot({
     return renderResolved(embeddedComponent);
 }
 
+function ShopAllCategoryLink({ category }: { category: ShopperProducts.schemas['Category'] }): ReactElement {
+    const { t } = useTranslation('header');
+    return (
+        <NavigationMenuLink asChild>
+            <NavLink
+                to={routeHref(routes.category, { categoryId: category.id })}
+                // When the panel has a featured column it is a 2-col grid whose other
+                // children are the submenu list and the banner/region aside. Span both
+                // columns so this link sits on its own row above them and the list and
+                // banner stay side by side. On panels with no featured column the
+                // container is not a grid, so col-span is inert.
+                className="block md:col-span-2 text-sm font-medium leading-5 underline underline-offset-4 hover:!bg-transparent focus:!bg-transparent hover:!text-header-menu-foreground/60 focus:!text-header-menu-foreground/60 transition-colors">
+                {t('shopAllCategory', {
+                    category: category.name,
+                    defaultValue: `Shop all ${category.name}`,
+                })}
+            </NavLink>
+        </NavigationMenuLink>
+    );
+}
+
 function hasSubcategories(category: ShopperProducts.schemas['Category']): boolean {
     return (
         typeof category.onlineSubCategoriesCount === 'number' &&
@@ -394,56 +414,33 @@ export default function ResponsiveNavigationMenu({
 }: ResponsiveNavigationMenuProps): ReactElement {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { t } = useTranslation('header');
-    const navigate = useNavigate();
 
     const defaultListStyle = {
         width: '100%',
         maxWidth: '100%',
     };
 
-    // Handler for top-level category clicks
-    const handleTopLevelClick = useCallback(
-        (categoryId: string) => {
-            void navigate(routeHref(routes.category, { categoryId }));
-        },
-        [navigate]
-    );
-
     // Element props generator
     const getElementProps = useCallback(
-        ({
-            level,
-            category,
-            isLeaf,
-        }: {
-            level: number;
-            category: ShopperProducts.schemas['Category'];
-            isLeaf?: boolean;
-        }) => {
+        ({ level }: { level: number; category: ShopperProducts.schemas['Category']; isLeaf?: boolean }) => {
             const isSubcategory = level >= 1;
-            const isClickableParent = level === 0 && !isLeaf && category.id;
 
+            // A top-level category that has a submenu renders as a disclosure trigger
+            // (a button with aria-expanded). Activating it opens the submenu for both
+            // mouse and keyboard, so the action always matches the announced role.
+            // We deliberately do not navigate on activation: a control announced as
+            // "expandable" that also changes context on click fails WCAG 3.2.2
+            // (Context changes on input). The category landing page stays reachable
+            // through the panel's links and banner.
             return {
                 className: cn(
                     'text-sm font-medium leading-5',
                     isSubcategory &&
                         'hover:!bg-transparent focus:!bg-transparent hover:!text-header-menu-foreground/60 focus:!text-header-menu-foreground/60 transition-colors'
                 ),
-                ...(isClickableParent && {
-                    // Use onPointerDown instead of onClick for mouse-only navigation.
-                    // This preserves keyboard accessibility: Enter/Space on the trigger
-                    // expands the dropdown (Radix behavior), while mouse clicks navigate
-                    // to the category page. Without this guard, keyboard users would be
-                    // forced to navigate without being able to explore subcategories.
-                    onPointerDown: (e: React.PointerEvent) => {
-                        if (e.pointerType === 'mouse') {
-                            handleTopLevelClick(category.id);
-                        }
-                    },
-                }),
             };
         },
-        [handleTopLevelClick]
+        []
     );
 
     return (
@@ -526,6 +523,15 @@ export default function ResponsiveNavigationMenu({
                                     }
                                 }}
                                 propsElement={getElementProps}
+                                renderSlotListBefore={({ level, parent }) => {
+                                    // The top-level trigger only opens the panel (it never
+                                    // navigates, per WCAG 3.2.2). Give every panel an explicit
+                                    // link to the parent category's landing page so it stays
+                                    // reachable whether or not the category has a banner.
+                                    if (level === 1 && parent) {
+                                        return <ShopAllCategoryLink category={parent} />;
+                                    }
+                                }}
                                 renderSlotListAfter={({ level, parent }) => {
                                     if (level !== 1 || !parent) return null;
                                     // The dropdown renders multiple complementary landmarks (one per open

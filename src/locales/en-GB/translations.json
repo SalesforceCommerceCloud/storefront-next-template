@@ -101,6 +101,7 @@
         "expandCategory": "Expand {{category}}",
         "collapseCategory": "Collapse {{category}}",
         "featuredContent": "{{category}} featured content",
+        "shopAllCategory": "Shop all {{category}}",
         "menu": {
             "yourLists": "Your Lists",
             "yourAccount": "Your Account",

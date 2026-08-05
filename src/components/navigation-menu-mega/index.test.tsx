@@ -64,13 +64,11 @@ const mockCategories: ShopperProducts.schemas['Category'] = {
     ],
 };
 
-// Mock useNavigate before importing component
-const mockNavigate = vi.fn();
-vi.mock('@/hooks/use-navigate', () => ({
-    useNavigate: () => mockNavigate,
-}));
-
 describe('ResponsiveNavigationMenu Component', () => {
+    // No useNavigate mock: the WCAG 3.2.2 guard below asserts against the real
+    // memory-router location, so activating the trigger has to actually move the
+    // router (or not). A stubbed navigate would swallow the call and let that
+    // assertion pass even against the regression it is meant to catch.
     const renderComponent = (props: Partial<React.ComponentProps<typeof ResponsiveNavigationMenu>> = {}) => {
         const router = createMemoryRouter(
             [
@@ -93,7 +91,7 @@ describe('ResponsiveNavigationMenu Component', () => {
             ],
             { initialEntries: ['/'] }
         );
-        return render(<RouterProvider router={router} />);
+        return { ...render(<RouterProvider router={router} />), router };
     };
 
     beforeEach(() => {
@@ -231,33 +229,42 @@ describe('ResponsiveNavigationMenu Component', () => {
         });
     });
 
-    describe('Keyboard Accessibility (Critical)', () => {
-        it('should use onPointerDown for navigation, not onClick', () => {
-            // This test verifies the fix for the accessibility issue where
-            // onClick was preventing keyboard users from expanding dropdowns.
-            // With onPointerDown + mouse guard, keyboard events (Enter/Space)
-            // can expand dropdowns without triggering navigation.
+    describe('Context changes on input (WCAG 3.2.2)', () => {
+        // A top-level category that has a submenu renders as a disclosure trigger
+        // (a button announced with aria-expanded). Activating it must only open the
+        // submenu, never navigate. A control announced as "expandable" that also
+        // changes context on activation fails WCAG 3.2.2. The regression removed here
+        // was a mouse-only onPointerDown handler that navigated, so the guard fires a
+        // real mouse pointer sequence and asserts the router never left the entry URL.
+        it('opens the submenu on mouse activation without changing context', async () => {
+            const { container, router } = renderComponent();
 
-            const { container } = renderComponent();
+            // Top-level branch categories resolve asynchronously and render as
+            // Radix triggers tagged data-has-submenu.
+            let trigger: HTMLElement | null = null;
+            await waitFor(() => {
+                trigger = container.querySelector<HTMLElement>('button[data-has-submenu="true"]');
+                expect(trigger).not.toBeNull();
+            });
 
-            // Component should render without throwing
-            expect(container).toBeInTheDocument();
+            expect(trigger).toHaveAttribute('aria-expanded', 'false');
+            expect(router.state.location.pathname).toBe('/');
 
-            // The actual behavior is tested in Storybook interaction tests,
-            // as JSDOM doesn't fully support PointerEvent with pointerType.
-            // This test documents the expected behavior.
-        });
+            // Drive the same mouse pointer sequence the removed handler responded to
+            // (pointerdown with pointerType "mouse"), then the click that opens the
+            // Radix disclosure.
+            act(() => {
+                fireEvent.pointerDown(trigger as unknown as HTMLElement, { pointerType: 'mouse', button: 0 });
+                fireEvent.pointerUp(trigger as unknown as HTMLElement, { pointerType: 'mouse', button: 0 });
+                fireEvent.click(trigger as unknown as HTMLElement);
+            });
 
-        it('should not call navigate on non-mouse pointer events', () => {
-            const { container } = renderComponent();
-
-            // The onPointerDown handler checks e.pointerType === 'mouse'
-            // Touch and pen events should not trigger navigation
-            // This preserves keyboard accessibility for dropdown expansion
-
-            // Initial state: no navigation should have occurred
-            expect(container).toBeInTheDocument();
-            expect(mockNavigate).not.toHaveBeenCalled();
+            await waitFor(() => {
+                expect(trigger).toHaveAttribute('aria-expanded', 'true');
+            });
+            // The disclosure opened; the router must not have navigated to the
+            // category landing page. Reaching it stays a job for the panel's links.
+            expect(router.state.location.pathname).toBe('/');
         });
     });
 

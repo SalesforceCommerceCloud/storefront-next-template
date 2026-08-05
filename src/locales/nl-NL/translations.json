@@ -86,6 +86,7 @@
         "mobileNavigation": "Mobiel navigatiemenu",
         "expandCategory": "Uitvouwen {{category}}",
         "collapseCategory": "Samenvouwen {{category}}",
+        "shopAllCategory": "Alle {{category}} shoppen",
         "menu": {
             "yourLists": "Je lijsten",
             "yourAccount": "Je account",

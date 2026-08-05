@@ -87,6 +87,7 @@
         "mobileNavigation": "Navigeringsmeny för mobil",
         "expandCategory": "Expandera {{category}}",
         "collapseCategory": "Minimera {{category}}",
+        "shopAllCategory": "Handla alla {{category}}",
         "menu": {
             "yourLists": "Dina listor",
             "yourAccount": "Ditt konto",

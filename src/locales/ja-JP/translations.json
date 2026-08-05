@@ -88,6 +88,7 @@
         "mobileNavigation": "モバイルナビゲーションメニュー",
         "expandCategory": "{{category}} を展開する",
         "collapseCategory": "{{category}} をたたむ",
+        "shopAllCategory": "{{category}}をすべて見る",
         "menu": {
             "yourLists": "マイリスト",
             "yourAccount": "アカウント",

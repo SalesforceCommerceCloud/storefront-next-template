@@ -88,6 +88,7 @@
         "mobileNavigation": "Mobiilinavigointivalikko",
         "expandCategory": "Laajenna {{category}}",
         "collapseCategory": "Sulje {{category}}",
+        "shopAllCategory": "Katso kaikki {{category}}",
         "menu": {
             "yourLists": "Luettelosi",
             "yourAccount": "Tilisi",

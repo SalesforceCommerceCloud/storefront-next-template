@@ -87,6 +87,7 @@
         "mobileNavigation": "Mobiles Navigationsmenü",
         "expandCategory": "{{category}} erweitern",
         "collapseCategory": "{{category}} reduzieren",
+        "shopAllCategory": "Alle {{category}} anzeigen",
         "menu": {
             "yourLists": "Ihre Listen",
             "yourAccount": "Ihr Konto",

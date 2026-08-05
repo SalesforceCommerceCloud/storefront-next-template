@@ -89,6 +89,7 @@
         "mobileNavigation": "Mobil navigasjonsmeny",
         "expandCategory": "Utvid {{category}}",
         "collapseCategory": "Kollaps {{category}}",
+        "shopAllCategory": "Handle alle {{category}}",
         "menu": {
             "yourLists": "Listene dine",
             "yourAccount": "Kontoen din",

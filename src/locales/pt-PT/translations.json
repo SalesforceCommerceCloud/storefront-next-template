@@ -87,6 +87,7 @@
         "mobileNavigation": "Menu de navegação móvel",
         "expandCategory": "Expandir {{category}}",
         "collapseCategory": "Recolher {{category}}",
+        "shopAllCategory": "Ver tudo em {{category}}",
         "menu": {
             "yourLists": "Suas listas",
             "yourAccount": "Sua conta",

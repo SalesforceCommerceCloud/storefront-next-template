@@ -89,6 +89,7 @@
         "mobileNavigation": "移动导航菜单",
         "expandCategory": "展开 {{category}}",
         "collapseCategory": "折叠 {{category}}",
+        "shopAllCategory": "查看全部{{category}}",
         "menu": {
             "yourLists": "您的列表",
             "yourAccount": "您的账户",

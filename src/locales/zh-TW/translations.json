@@ -89,6 +89,7 @@
         "mobileNavigation": "行動導航選單",
         "expandCategory": "展開 {{category}}",
         "collapseCategory": "摺疊 {{category}}",
+        "shopAllCategory": "查看全部 {{category}}",
         "menu": {
             "yourLists": "您的清單",
             "yourAccount": "您的帳戶",
