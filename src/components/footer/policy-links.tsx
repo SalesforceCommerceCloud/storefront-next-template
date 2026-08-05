@@ -16,10 +16,13 @@
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@/components/link';
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { cn } from '@/lib/utils';
 
 export default function PolicyLinks({ className }: { className?: string }): ReactElement {
     const { t } = useTranslation('footer');
+    const { t: tGuestOrderLookup } = useTranslation('guestOrderLookup');
+    const config = useConfig();
     return (
         <div
             className={cn(
@@ -29,6 +32,11 @@ export default function PolicyLinks({ className }: { className?: string }): Reac
             <Link to="/about-us" className="hover:text-foreground transition-colors">
                 {t('links.aboutUs')}
             </Link>
+            {config.guestOrderLookup?.enabled && (
+                <Link to="/order-lookup" className="hover:text-foreground transition-colors">
+                    {tGuestOrderLookup('footerLinkLabel')}
+                </Link>
+            )}
             <Link to="/accessibility" className="hover:text-foreground transition-colors">
                 {t('links.accessibility')}
             </Link>

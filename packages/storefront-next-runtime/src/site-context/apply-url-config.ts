@@ -90,7 +90,10 @@ export function cloneRootIndexRoutes(routes: RouteConfigEntry[]): RouteConfigEnt
                 id: `${route.id}--root-duplicate`,
             });
         } else if (!route.path && route.children) {
-            const indexChild = route.children.find((child) => child.index === true);
+            // Only the pathless homepage index route (no `path`) represents `/`. An index
+            // route with a `path` (e.g. `_app.order-lookup._index` at `order-lookup`) is the
+            // index of its own subpath, not the site root, and must not be duplicated here.
+            const indexChild = route.children.find((child) => child.index === true && !child.path);
             if (indexChild) {
                 duplicates.push({
                     ...route,

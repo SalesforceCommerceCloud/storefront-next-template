@@ -885,13 +885,33 @@ const handleAuthTokenInvalidation = async ({
 
     logger.info('Auth: token invalidation recovery succeeded, redirecting');
 
+    // For action-only routes (no component), redirecting back to request.url leaves
+    // the browser on a blank page. Use the Referer instead so the user lands back on
+    // the page that submitted the action. Fall back to request.url for normal pages.
+    // The Referer header is caller-supplied, so only trust it when it's same-origin
+    // with this request — otherwise a forged Referer could redirect the browser off-site.
+    const requestUrlObj = new URL(request.url);
+    const isActionRoute = requestUrlObj.pathname.includes('/action/');
+    const referer = request.headers.get('referer');
+    const refererUrl = referer ? URL.parse(referer) : null;
+    const isSameOriginReferer = refererUrl !== null && refererUrl.origin === requestUrlObj.origin;
+    const redirectingToReferer = isActionRoute && isSameOriginReferer && referer !== null;
+    const redirectLocation = redirectingToReferer ? referer : request.url;
+
+    // A referer-redirect lands on a page route, which typically has no `action` export.
+    // 307 preserves the original method, so a POST would be replayed there and rejected
+    // with 405. 303 forces the browser to follow up with GET, matching the page's loader.
+    // Falling back to request.url still targets the action route itself, so 307 is kept
+    // there to correctly replay the original POST against fresh auth state.
+    const status = redirectingToReferer ? 303 : 307;
+
     // Restart the request lifecycle with fresh auth cookies.
     return {
         authRecoveryTriggered: true,
         response: new Response(null, {
-            status: 307,
+            status,
             headers: {
-                Location: request.url,
+                Location: redirectLocation,
                 // Observability only: marks recovery redirect in logs/debugging.
                 'x-sfnext-auth-recovery': '1',
             },

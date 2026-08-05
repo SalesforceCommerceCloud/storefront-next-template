@@ -84,7 +84,7 @@ function cloneRootIndexRoutes(routes) {
 		id: `${route.id}--root-duplicate`
 	});
 	else if (!route.path && route.children) {
-		const indexChild = route.children.find((child) => child.index === true);
+		const indexChild = route.children.find((child) => child.index === true && !child.path);
 		if (indexChild) duplicates.push({
 			...route,
 			id: `${route.id}--root-duplicate`,

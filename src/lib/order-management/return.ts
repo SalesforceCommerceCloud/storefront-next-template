@@ -66,7 +66,7 @@ export type ReturnSelection = {
  * Unlike cancel (which requires every item fully cancellable), return supports
  * partial returns — a single returnable item is sufficient.
  */
-export function getReturnableItems(order: OrderLike): ReturnableItem[] {
+export function getReturnableItems(order: Partial<OrderLike>): ReturnableItem[] {
     if (!order?.productItems?.length) {
         return [];
     }

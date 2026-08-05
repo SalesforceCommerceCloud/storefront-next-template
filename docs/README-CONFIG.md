@@ -65,6 +65,7 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | Variable | Used by | Notes |
 |---|---|---|
 | `COMMERCE_API_SLAS_SECRET` | `src/lib/api-clients.server.ts`, `e2e/src/utils/scapi-helper.ts` | Required only with private-client SCAPI auth. |
+| `GUEST_ORDER_LOOKUP_COOKIE_SECRET` | `src/lib/order/session.server.ts` | Signs the guest order lookup state cookie. Required whenever `guestOrderLookup.enabled` is `true` — falls back to `CLIENT_SECRET`, but that's rarely set (only present with private-client SCAPI auth), so set this explicitly. Unset in either var → the feature fails closed with a `CONFIGURATION_ERROR`, not silent breakage. |
 | `MARKETING_CLOUD_CLIENT_ID`, `MARKETING_CLOUD_CLIENT_SECRET`, `MARKETING_CLOUD_AUTH_BASE_URL`, `MARKETING_CLOUD_REST_BASE_URL` | Passwordless login email delivery | Required only when `passwordlessLogin.mode = 'email'` and you ship your own MC tenant. |
 | `SCAPI_PROXY_HOST` | `vite-plugins/env-validation.ts`, `src/middlewares/app-config.server.ts` | Internal-developer-only override (workspace proxy). |
 

@@ -116,6 +116,29 @@ describe('cloneRootIndexRoutes', () => {
 
         expect(result).toHaveLength(0);
     });
+
+    it('should not treat an index route with its own path as the site root', () => {
+        // e.g. `_app.order-lookup._index` is `index: true` with `path: 'order-lookup'` —
+        // it's the index of /order-lookup, not the homepage, and must not be duplicated at /.
+        const routes = [
+            layoutRoute('routes/_app', 'routes/_app.tsx', [
+                route({
+                    id: 'routes/_app.order-lookup._index',
+                    file: 'routes/_app.order-lookup._index.tsx',
+                    path: 'order-lookup',
+                    index: true,
+                }),
+                indexRoute('routes/_app._index', 'routes/_app._index.tsx'),
+            ]),
+        ];
+
+        const result = cloneRootIndexRoutes(routes);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('routes/_app--root-duplicate');
+        expect(result[0].children).toHaveLength(1);
+        expect(result[0].children?.[0].id).toBe('routes/_app._index--root-duplicate');
+    });
 });
 
 describe('partitionRoutes', () => {

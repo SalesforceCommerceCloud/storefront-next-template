@@ -36,7 +36,7 @@ export function canCancelOrder(order: OrderLike, customerId: string | undefined 
  * every item is fully cancellable. Does not check ownership — use
  * {@link canCancelOrder} for the full gate.
  */
-export function isCancellable(order: OrderLike): boolean {
+export function isCancellable(order: Partial<OrderLike>): boolean {
     if (!order?.omsData) {
         return false;
     }

@@ -22,6 +22,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, getSitePrefix, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider, type Site } from '@salesforce/storefront-next-runtime/site-context';
+import type { AppConfig } from '@/types/config';
 import Footer from './index';
 
 // Mock useLocation to control route context
@@ -41,13 +42,13 @@ const mockLocale =
     mockSite.supportedLocales.find((l) => l.id === mockSite.defaultLocale) ?? mockSite.supportedLocales[0];
 
 // Helper function to render component with router context
-const renderWithRouter = (component: React.ReactElement) => {
+const renderWithRouter = (component: React.ReactElement, config: AppConfig = mockConfig) => {
     const router = createMemoryRouter(
         [
             {
                 path: '/',
                 element: (
-                    <ConfigProvider config={mockConfig}>
+                    <ConfigProvider config={config}>
                         <SiteProvider
                             site={mockSite}
                             locale={mockLocale}
@@ -263,5 +264,39 @@ describe('Footer', () => {
 
         // Newsletter should NOT be visible
         expect(screen.queryByRole('heading', { name: t('footer:newsletter.title'), level: 2 })).not.toBeInTheDocument();
+    });
+
+    test('renders guest order lookup link when enabled', () => {
+        const configWithGuestOrderLookup: AppConfig = {
+            ...mockConfig,
+            guestOrderLookup: {
+                ...mockConfig.guestOrderLookup,
+                enabled: true,
+            },
+        };
+
+        renderWithRouter(<Footer />, configWithGuestOrderLookup);
+
+        const guestOrderLookupLinks = screen.getAllByRole('link', {
+            name: t('guestOrderLookup:footerLinkLabel'),
+        });
+        expect(guestOrderLookupLinks).toHaveLength(2); // PolicyLinks renders twice for responsive layout
+        for (const link of guestOrderLookupLinks) {
+            expect(link.getAttribute('href')).toMatch(/\/order-lookup$/);
+        }
+    });
+
+    test('does not render guest order lookup link when disabled', () => {
+        const configWithoutGuestOrderLookup: AppConfig = {
+            ...mockConfig,
+            guestOrderLookup: {
+                ...mockConfig.guestOrderLookup,
+                enabled: false,
+            },
+        };
+
+        renderWithRouter(<Footer />, configWithoutGuestOrderLookup);
+
+        expect(screen.queryByRole('link', { name: t('guestOrderLookup:footerLinkLabel') })).not.toBeInTheDocument();
     });
 });

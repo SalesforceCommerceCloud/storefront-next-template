@@ -203,8 +203,8 @@
         "server": [
             {
                 "name": "**/*",
-                "limit": "6.1 mB",
-                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys push it to ~6,011 kB. Bumped from 6 mB to 6.1 mB to admit the overage. Uncompressed. Follow-up: server-bundle diet (cosmetic vertical is the largest) to bring this back under 6 mB."
+                "limit": "6.2 mB",
+                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Uncompressed. Follow-up: server-bundle diet (cosmetic vertical is the largest) to bring this back under 6 mB."
             }
         ],
         "client": [
@@ -261,13 +261,13 @@
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-                "limit": "88 kB",
-                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), and passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login."
+                "limit": "90 kB",
+                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), and passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login. Built size ~88.8 kB for the cosmetic vertical with the guest-order cancel/return copy."
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-                "limit": "88 kB",
-                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size."
+                "limit": "90 kB",
+                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size. Built size ~89.0 kB for the cosmetic vertical with the guest-order cancel/return copy."
             },
             {
                 "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",

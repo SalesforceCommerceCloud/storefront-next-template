@@ -18,42 +18,14 @@ import type { ActionFunctionArgs } from 'react-router';
 import { getLogger } from '@/lib/logger.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { ApiError } from '@/scapi';
+import { classifyCancelError, type CancelErrorKind } from '@/lib/order-management/cancel-error';
 
-/**
- * The classified outcome of a cancel-order attempt, consumed by the cancel
- * dialog to pick the right recovery affordance.
- *
- * - `invalid_input` — locally-detected malformed form input (missing orderNo),
- *   rejected before the SCAPI call is ever made.
- * - `invalid_reason` (400) — the provided reason code does not match any reason
- *   configured in OMS.
- * - `not_found` (404) — order doesn't exist or caller lacks access.
- * - `not_cancellable` (409) — order is in a state that prevents cancellation
- *   (e.g., already shipped or cancelled).
- * - `transient` — retryable (5xx, network errors, or any unclassified 4xx).
- */
-export type CancelErrorKind = 'invalid_input' | 'invalid_reason' | 'not_found' | 'not_cancellable' | 'transient';
+export type { CancelErrorKind };
 
-/**
- * Map an HTTP status to a {@link CancelErrorKind}.
- *
- * Unlike return-order, which has per-item validation sub-codes, cancel is
- * order-level only: 400 is always `invalid_reason` (the reason code doesn't
- * match OMS config), 404 is `not_found`, 409 is `not_cancellable`, and
- * everything else is `transient`.
- */
-function classifyCancelError(error: unknown): { kind: CancelErrorKind; status: number } {
+/** Classify a thrown cancel-order error, extracting the HTTP status from an {@link ApiError}. */
+function classifyThrownCancelError(error: unknown): { kind: CancelErrorKind; status: number } {
     const status = error instanceof ApiError ? error.status : 500;
-    switch (status) {
-        case 400:
-            return { kind: 'invalid_reason', status: 400 };
-        case 404:
-            return { kind: 'not_found', status: 404 };
-        case 409:
-            return { kind: 'not_cancellable', status: 409 };
-        default:
-            return { kind: 'transient', status };
-    }
+    return { kind: classifyCancelError(status), status };
 }
 
 /**
@@ -99,7 +71,7 @@ export async function action({ request, context }: ActionFunctionArgs): Promise<
         });
         return Response.json({ success: true });
     } catch (error) {
-        const classified = classifyCancelError(error);
+        const classified = classifyThrownCancelError(error);
         logger.error('[OrderManagement] cancel-order: SCAPI cancelOmsOrder failed', {
             orderNo,
             status: classified.status,

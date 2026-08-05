@@ -206,8 +206,10 @@ function generateCoverage() {
                 const storyName = parts[storiesIndex + 1].replace(/\.stories\.tsx$/, '');
 
                 // Build component name: if story is "index.stories.tsx", use the directory name
-                // Otherwise use the story name
-                const componentName = storyName === 'index' ? componentDir : `${componentDir}/${storyName}`;
+                // Otherwise use the story name. When componentDir is empty (story's "stories/"
+                // folder sits directly under the components root), don't prefix with a stray "/".
+                const componentName =
+                    storyName === 'index' ? componentDir : componentDir ? `${componentDir}/${storyName}` : storyName;
 
                 stories.add(componentName);
             }

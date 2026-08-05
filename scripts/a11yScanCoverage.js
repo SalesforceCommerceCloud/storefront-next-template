@@ -124,6 +124,8 @@ const ALLOWLIST = {
     '_app.account.passkeys': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.store-preferences': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.order-confirmation.$orderNo': 'deferred:auto-discovery,requires a placed order, no Scenario yet',
+    '_app.order-lookup._index': 'deferred:auto-discovery,multi-step OTP-gated flow, no Scenario yet',
+    '_app.order-lookup.results': 'deferred:auto-discovery,multi-step OTP-gated flow, no Scenario yet',
     '_app.store-locator': 'deferred:auto-discovery,extension page, no Scenario yet',
     '_empty.forgot-password': 'deferred:auto-discovery,no Scenario yet',
     '_empty.reset-password': 'deferred:auto-discovery,token-gated, no Scenario yet',

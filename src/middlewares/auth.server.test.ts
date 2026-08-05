@@ -2457,6 +2457,178 @@ describe('auth middleware (server)', () => {
             expect(serializeCalls.some(([value]) => value === '1')).toBe(true);
         });
 
+        it('should redirect to request.url for non-action routes on recovery', async () => {
+            const mockTokenResponse = getMockTokenResponse();
+            mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+
+            const now = Math.floor(Date.now() / 1000);
+            const mockAccessToken = buildMockAccessToken({ exp: now + 1800 });
+            mockParseAllCookies.mockReturnValue({ 'cc-nx-g': 'guest-refresh-token', 'cc-at': mockAccessToken });
+
+            const request = new Request('https://example.com/order-lookup', {
+                headers: {
+                    Cookie: `cc-nx-g=guest-refresh-token; cc-at=${mockAccessToken}`,
+                    Referer: 'https://example.com/some-other-page',
+                },
+            });
+
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            mockCreateCookie.mockImplementation(() => ({
+                serialize: vi.fn().mockResolvedValue('Set-Cookie: mock=value'),
+            }));
+
+            const next = vi.fn().mockRejectedValue(createAuthTokenInvalidError());
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                next
+            )) as Response;
+
+            expect(response.status).toBe(307);
+            // Non-action route: use request.url, not the Referer
+            expect(response.headers.get('Location')).toBe('https://example.com/order-lookup');
+        });
+
+        it('should redirect to Referer for action routes on recovery to avoid blank page', async () => {
+            const mockTokenResponse = getMockTokenResponse();
+            mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+
+            const now = Math.floor(Date.now() / 1000);
+            const mockAccessToken = buildMockAccessToken({ exp: now + 1800 });
+            mockParseAllCookies.mockReturnValue({ 'cc-nx-g': 'guest-refresh-token', 'cc-at': mockAccessToken });
+
+            const request = new Request('https://example.com/action/order-lookup-request-code', {
+                method: 'POST',
+                headers: {
+                    Cookie: `cc-nx-g=guest-refresh-token; cc-at=${mockAccessToken}`,
+                    Referer: 'https://example.com/order-lookup',
+                },
+            });
+
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            mockCreateCookie.mockImplementation(() => ({
+                serialize: vi.fn().mockResolvedValue('Set-Cookie: mock=value'),
+            }));
+
+            const next = vi.fn().mockRejectedValue(createAuthTokenInvalidError());
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                next
+            )) as Response;
+
+            // 303, not 307: a 307 would preserve the original POST and replay it against
+            // /order-lookup, which has no action export and would 405. 303 forces the
+            // browser to follow up with GET, matching the page's loader.
+            expect(response.status).toBe(303);
+            // Action route with Referer: redirect to the page that submitted the action,
+            // not to the action URL itself (which has no component and renders a blank page).
+            expect(response.headers.get('Location')).toBe('https://example.com/order-lookup');
+        });
+
+        it('should fall back to request.url for action routes when Referer is cross-origin', async () => {
+            const mockTokenResponse = getMockTokenResponse();
+            mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+
+            const now = Math.floor(Date.now() / 1000);
+            const mockAccessToken = buildMockAccessToken({ exp: now + 1800 });
+            mockParseAllCookies.mockReturnValue({ 'cc-nx-g': 'guest-refresh-token', 'cc-at': mockAccessToken });
+
+            const request = new Request('https://example.com/action/order-lookup-request-code', {
+                method: 'POST',
+                headers: {
+                    Cookie: `cc-nx-g=guest-refresh-token; cc-at=${mockAccessToken}`,
+                    // Attacker-controlled cross-origin Referer must not be trusted as a redirect target.
+                    Referer: 'https://evil.example/phish',
+                },
+            });
+
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            mockCreateCookie.mockImplementation(() => ({
+                serialize: vi.fn().mockResolvedValue('Set-Cookie: mock=value'),
+            }));
+
+            const next = vi.fn().mockRejectedValue(createAuthTokenInvalidError());
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                next
+            )) as Response;
+
+            expect(response.status).toBe(307);
+            // Cross-origin Referer: fall back to request.url rather than redirecting off-site
+            expect(response.headers.get('Location')).toBe('https://example.com/action/order-lookup-request-code');
+        });
+
+        it('should return 405 without the fix: replaying a POST via 307 against a page route with no action', async () => {
+            // Regression guard for the original bug: confirms the fix's redirect target
+            // (a page route) genuinely has no action export, so a 307 there would 405 —
+            // proving 303 (forcing GET) is necessary, not just cosmetic.
+            const orderLookupIndexModule = await import('../routes/_app.order-lookup._index');
+            expect(orderLookupIndexModule).not.toHaveProperty('action');
+        });
+
+        it('should fall back to request.url for action routes when Referer is absent', async () => {
+            const mockTokenResponse = getMockTokenResponse();
+            mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+            mockAuth.loginAsGuest.mockResolvedValue(getMockAuthResponse(mockTokenResponse));
+
+            const now = Math.floor(Date.now() / 1000);
+            const mockAccessToken = buildMockAccessToken({ exp: now + 1800 });
+            mockParseAllCookies.mockReturnValue({ 'cc-nx-g': 'guest-refresh-token', 'cc-at': mockAccessToken });
+
+            const request = new Request('https://example.com/action/order-lookup-request-code', {
+                method: 'POST',
+                headers: {
+                    Cookie: `cc-nx-g=guest-refresh-token; cc-at=${mockAccessToken}`,
+                    // No Referer header
+                },
+            });
+
+            const context = new RouterContextProvider();
+            const originalGet = context.get.bind(context);
+            vi.spyOn(context, 'get').mockImplementation((key) => {
+                if (key === performanceTimerContext) return mockPerformanceTimer;
+                if (key === appConfigContext) return mockConfig;
+                return originalGet(key);
+            });
+            mockCreateCookie.mockImplementation(() => ({
+                serialize: vi.fn().mockResolvedValue('Set-Cookie: mock=value'),
+            }));
+
+            const next = vi.fn().mockRejectedValue(createAuthTokenInvalidError());
+
+            const response = (await authMiddleware(
+                { request, context, params: {}, pattern: '/', url: new URL(request.url) },
+                next
+            )) as Response;
+
+            expect(response.status).toBe(307);
+            // No Referer: fall back to request.url
+            expect(response.headers.get('Location')).toBe('https://example.com/action/order-lookup-request-code');
+        });
+
         it('should clear stale error before recovery refresh', async () => {
             const mockTokenResponse = getMockTokenResponse();
             mockAuth.refreshToken.mockResolvedValue(getMockAuthResponse(mockTokenResponse));

@@ -115,6 +115,8 @@ export const routes = {
     accountPasskeys: '/account/passkeys',
     wishlist: '/wishlist',
     orderConfirmation: '/order-confirmation/:orderNo',
+    orderLookup: '/order-lookup',
+    orderLookupResults: '/order-lookup/results',
     search: '/search',
     aboutUs: '/about-us',
     storeLocator: '/store-locator',

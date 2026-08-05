@@ -119,7 +119,7 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -250,50 +250,46 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -360,7 +356,7 @@ exports[`OrderDetails stories snapshot > CancelledOrder story renders and matche
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -532,7 +528,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -663,50 +659,46 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -773,7 +765,7 @@ exports[`OrderDetails stories snapshot > CompletedStatus story renders and match
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -927,7 +919,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -1058,50 +1050,46 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1168,7 +1156,7 @@ exports[`OrderDetails stories snapshot > Default story renders and matches snaps
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -1311,7 +1299,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
       />
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -1440,36 +1428,32 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                Alice Smith
-                              </p>
-                            </div>
+                          <div>
+                            <p>
+                              Alice Smith
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -1478,7 +1462,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                 </div>
               </div>
               <div
-                class="border-t border-muted-foreground/20"
+                class="border-t border-border"
                 data-shipment-id="ship-b"
               >
                 <div
@@ -1585,36 +1569,32 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                Bob Jones
-                              </p>
-                            </div>
+                          <div>
+                            <p>
+                              Bob Jones
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -1651,7 +1631,7 @@ exports[`OrderDetails stories snapshot > MultipleShipments story renders and mat
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -1823,7 +1803,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -1954,50 +1934,46 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2064,7 +2040,7 @@ exports[`OrderDetails stories snapshot > ReplacedStatus story renders and matche
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -2239,7 +2215,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -2370,50 +2346,46 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2511,7 +2483,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentDropdown story renders and
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -2654,7 +2626,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
       />
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -2785,50 +2757,46 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2862,7 +2830,7 @@ exports[`OrderDetails stories snapshot > TrackShipmentHiddenUnsafeUrl story rend
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -3016,7 +2984,7 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -3147,50 +3115,46 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -3257,7 +3221,7 @@ exports[`OrderDetails stories snapshot > WithCancelButton story renders and matc
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -3445,7 +3409,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -3576,50 +3540,46 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -3686,7 +3646,7 @@ exports[`OrderDetails stories snapshot > WithCancelButtonDisabled story renders 
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -3840,7 +3800,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -3971,50 +3931,46 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -4081,7 +4037,7 @@ exports[`OrderDetails stories snapshot > WithPaymentMethod story renders and mat
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -4262,7 +4218,7 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -4393,50 +4349,46 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -4503,7 +4455,7 @@ exports[`OrderDetails stories snapshot > WithReturnStatus story renders and matc
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal
@@ -4657,7 +4609,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
       </div>
       <div
         aria-hidden="true"
-        class="border-t border-muted-foreground/20"
+        class="border-t border-border"
       />
       <div
         class="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -4795,50 +4747,46 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                   </ul>
                 </div>
                 <div
-                  class="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3"
+                  class="mt-2 p-3"
                 >
                   <div
-                    class="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui p-0 bg-card"
+                    data-card="shipping-address"
+                    data-slot="card"
                   >
                     <div
-                      class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border shadow-ui rounded-ui min-h-[4rem] p-0 bg-card"
-                      data-card="shipping-address"
-                      data-slot="card"
+                      class="p-4"
+                      data-slot="card-content"
                     >
-                      <div
-                        class="p-3"
-                        data-slot="card-content"
+                      <p
+                        class="text-xs font-semibold text-foreground"
                       >
-                        <p
-                          class="text-xs font-semibold text-foreground"
-                        >
-                          Shipping Address
-                        </p>
+                        Shipping Address
+                      </p>
+                      <div
+                        class="mt-2"
+                      >
                         <div
-                          class="mt-2"
+                          class="text-sm font-normal leading-5 text-foreground"
                         >
-                          <div
-                            class="text-sm font-normal leading-5 text-foreground"
-                          >
-                            <div>
-                              <p>
-                                John Snow
-                              </p>
-                            </div>
+                          <div>
                             <p>
-                              2030 Market street 8th st
-                            </p>
-                            <p>
-                              98121, Seattle, WA, US
+                              John Snow
                             </p>
                           </div>
+                          <p>
+                            2030 Market street 8th st
+                          </p>
+                          <p>
+                            98121, Seattle, WA, US
+                          </p>
                         </div>
-                        <p
-                          class="mt-2 text-sm text-muted-foreground"
-                        >
-                          Ground
-                        </p>
                       </div>
+                      <p
+                        class="mt-2 text-sm text-muted-foreground"
+                      >
+                        Ground
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -4905,7 +4853,7 @@ exports[`OrderDetails stories snapshot > WithShippingStatus story renders and ma
                   role="region"
                 >
                   <dl
-                    class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                    class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                   >
                     <dt>
                       Subtotal

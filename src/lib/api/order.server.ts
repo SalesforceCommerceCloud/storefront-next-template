@@ -109,6 +109,63 @@ export async function fetchOmsMetaData(context: LoaderFunctionArgs['context']): 
 }
 
 /**
+ * Fetches product data (images, variations) for a set of product IDs via shopperProducts.getProducts.
+ * Shared by both the authenticated order-details flow (fetchOrderWithProducts) and the guest order
+ * lookup flow (fetchGuestOrderProducts) so the two call sites stay in sync.
+ *
+ * Returns `{}` on error or when `productIds` is empty — callers can always render the page without
+ * product details rather than failing the whole request.
+ *
+ * @param context - React Router loader/action context (for API clients and currency)
+ * @param productIds - Product IDs to fetch (deduplication is the caller's responsibility)
+ */
+async function fetchProductsById(
+    context: LoaderFunctionArgs['context'],
+    productIds: string[]
+): Promise<OrderProductDataById> {
+    if (!productIds.length) {
+        return {};
+    }
+
+    const clients = createApiClients(context);
+    const currency = (context.get(siteContext) as SiteContext).currency;
+
+    try {
+        const { data } = await clients.shopperProducts.getProducts({
+            params: {
+                query: {
+                    ids: productIds,
+                    expand: ['images', 'variations'],
+                    currency,
+                },
+            },
+        });
+
+        const productsById: OrderProductDataById = {};
+        (data?.data ?? []).forEach((product) => {
+            productsById[product.id] = product;
+        });
+        return productsById;
+    } catch {
+        // Return empty object on error - allows the page to render without product details
+        return {};
+    }
+}
+
+/**
+ * Extracts the unique, non-empty product IDs referenced by an order's productItems.
+ */
+function collectProductIds(productItems: { productId?: string }[] | undefined): string[] {
+    return Array.from(
+        new Set(
+            (productItems ?? [])
+                .map((item) => item.productId)
+                .filter((id): id is string => typeof id === 'string' && id.length > 0)
+        )
+    );
+}
+
+/**
  * Fetches an order by number and its product details (images, variations).
  * Uses the same promise chain as the original order-confirmation loader: order first,
  * then products and any dependent work (e.g. BOPIS stores) can run in parallel.
@@ -122,7 +179,6 @@ export function fetchOrderWithProducts(
     orderNo: string
 ): FetchOrderWithProductsResult {
     const clients = createApiClients(context);
-    const currency = (context.get(siteContext) as SiteContext).currency;
 
     const orderPromise = clients.shopperOrders
         .getOrder({
@@ -138,40 +194,9 @@ export function fetchOrderWithProducts(
         })
         .then(({ data }) => data);
 
-    const productsByIdPromise: Promise<OrderProductDataById> = orderPromise.then(async (order) => {
-        const productIds = Array.from(
-            new Set(
-                (order.productItems ?? [])
-                    .map((item) => item.productId)
-                    .filter((id): id is string => typeof id === 'string' && id.length > 0)
-            )
-        );
-
-        if (!productIds.length) {
-            return {};
-        }
-
-        try {
-            const { data } = await clients.shopperProducts.getProducts({
-                params: {
-                    query: {
-                        ids: productIds,
-                        expand: ['images', 'variations'],
-                        currency,
-                    },
-                },
-            });
-
-            const productsById: OrderProductDataById = {};
-            (data?.data ?? []).forEach((product) => {
-                productsById[product.id] = product;
-            });
-            return productsById;
-        } catch {
-            // Return empty object on error - allows the page to render without product details
-            return {};
-        }
-    });
+    const productsByIdPromise: Promise<OrderProductDataById> = orderPromise.then((order) =>
+        fetchProductsById(context, collectProductIds(order.productItems))
+    );
 
     const orderDataPromise = Promise.all([orderPromise, productsByIdPromise]).then(([order, productsById]) => ({
         order,
@@ -179,6 +204,24 @@ export function fetchOrderWithProducts(
     }));
 
     return { orderDataPromise, orderPromise };
+}
+
+/**
+ * Fetches product data (images, variations) for a guest order lookup result.
+ *
+ * Callers MUST pass `productIds` derived from the order AFTER redaction (e.g.
+ * `redactedOrder.productItems`) — never from the raw SCAPI order — so products are never fetched
+ * for line items the merchant's `allowedFields` config has stripped from the redacted response.
+ *
+ * @param context - React Router action context (for API clients and currency)
+ * @param productIds - Product IDs present on the redacted order's productItems
+ * @returns Product data keyed by productId. Returns `{}` on error so the results page still renders.
+ */
+export function fetchGuestOrderProducts(
+    context: LoaderFunctionArgs['context'],
+    productIds: string[]
+): Promise<OrderProductDataById> {
+    return fetchProductsById(context, Array.from(new Set(productIds)));
 }
 
 /**

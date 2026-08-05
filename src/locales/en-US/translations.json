@@ -1971,5 +1971,59 @@
             "listPriceFrom": "List price from {{price}}",
             "listPrice": "List price: {{price}}"
         }
+    },
+    "orderLookup": {
+        "results": {
+            "title": "Verify Your Email",
+            "description": "We've sent a verification code to {{email}}. Please enter it below.",
+            "loading": "Loading your order...",
+            "errors": {
+                "lookupFailed": "Unable to retrieve your order. Please try again later."
+            },
+            "breadcrumb": {
+                "home": "Home",
+                "orderLookup": "Order Lookup"
+            }
+        },
+        "verify": {
+            "codeLabel": "Verification Code",
+            "submitButton": "Verify Code",
+            "cancelButton": "Cancel",
+            "verifying": "Verifying...",
+            "requestNewCode": "Request a new code",
+            "retryVerification": "Retry verification",
+            "attemptsHint": "Having trouble? You can request a new code.",
+            "errors": {
+                "invalidCode": "The code you entered is invalid or has expired. Please try again or request a new code.",
+                "validation": "Please enter a valid 6-digit code.",
+                "rateLimited": "Too many requests. Please try again later.",
+                "rateLimitedWithTime": "Too many requests. Please try again in {{seconds}} seconds.",
+                "attemptsExceeded": "Maximum verification attempts exceeded. Please request a new code.",
+                "scapiUnsupported": "This feature is temporarily unavailable. Please try again later.",
+                "featureDisabled": "Guest order lookup is not available."
+            }
+        }
+    },
+    "guestOrderLookup": {
+        "footerLinkLabel": "Order Lookup",
+        "title": "Order Lookup",
+        "description": "Enter the order number and email used at checkout.",
+        "orderNumberLabel": "Order Number",
+        "emailLabel": "Email Address",
+        "submitRequestCode": "Find My Order",
+        "enterCodeTitle": "Verify Your Email",
+        "enterCodeDescription": "We've sent a verification code to {{email}}. Please enter it below.",
+        "codeLabel": "Verification Code",
+        "submitVerify": "View Order",
+        "resend": "Resend Code",
+        "errorInvalidInput": "Please check your order number and email address.",
+        "errorCodeInvalid": "Invalid verification code. Please try again.",
+        "errorCodeExpired": "Your verification code has expired. Please request a new one.",
+        "errorApiUnavailable": "Unable to process your request. Please try again later.",
+        "errorTurnstileFailed": "Verification failed. Please try again.",
+        "errorScapiUnsupported": "Guest order lookup is not available. Please contact support.",
+        "sessionExpired": "Your session has expired. Please start over.",
+        "cooldownActive": "Please wait {{seconds}} seconds before requesting a new code.",
+        "codeResentHint": "Didn't receive the email? Check your spam folder or wait 15 minutes before requesting a new code."
     }
 }

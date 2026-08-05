@@ -70,9 +70,13 @@ module.exports = {
                             'error',
                             { maxNumericValue: 411000, aggregationMethod: 'median' },
                         ],
+                        // Raised 52000 → 53000: cosmetic mirror measured 52340 after merging
+                        // cancel/return + main into split-commits.
+                        // Raised 53000 → 54000: template measured 53049 (median of 5 runs) after
+                        // removing the email cartridge from split-commits.
                         'resource-summary:document:size': [
                             'error',
-                            { maxNumericValue: 52000, aggregationMethod: 'median' },
+                            { maxNumericValue: 54000, aggregationMethod: 'median' },
                         ],
                     },
                 },
@@ -131,9 +135,9 @@ module.exports = {
                         // focus, W-23605076) measured the cosmetic mirror at ~449006 and raised the
                         // ceiling straight to 475000 (~25KB headroom) to stop unrelated branches
                         // tripping on run-to-run variance. This back-merge combines both branches'
-                        // bundle growth, so the higher of the two ceilings (475000) is kept as the
-                        // safe interim value — re-measure on main post-merge and tighten if the
-                        // combined bundle sits well under it.
+                        // bundle growth (including cancel/return, cosmetic mirror measured 450148);
+                        // 475000 covers all observed sizes — re-measure on main post-merge and tighten
+                        // if the combined bundle sits well under it.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: 475000, aggregationMethod: 'median' },
@@ -158,28 +162,43 @@ module.exports = {
                         // ~2KB overhead from cart-route imports going through `@salesforce/storefront-ui`
                         // instead of inlined `@/components/ui/*`. Mirror output flattens those back to
                         // local imports so customer artifacts re-tighten under the baseline budget.
+                        // Raised again (+2KB, @W-23383562@) because `_app.tsx` now calls
+                        // `useWishlistSession` unconditionally on every route, pulling the wishlist
+                        // provider into the shared shell bundle instead of only the routes that
+                        // mount it directly (cart, wishlist page).
                         // Raised 490000 → 495000: the feature/passkeys baseline grew the cart route
                         // chunk (cosmetic mirror measured 492663). Raised further 495000 → 500000
                         // on main; keep the higher ceiling to absorb both baselines.
-                        // Raised 500000 → 502000: mega-menu embedded region wiring grew the cart
+                        // Raised again (+1KB, @W-23521393@) for the guest order cancel/return i18n
+                        // strings added to the en-GB locale chunk (order cancel keys, order return +
+                        // a11y strings), which this URL's script payload includes.
+                        // Raised 500000 → 501000: cosmetic mirror measured 500094 after merging the
+                        // cancel/return work into split-commits.
+                        // Raised 501000 → 502000: mega-menu embedded region wiring grew the cart
                         // shared chunk (CI measured 501930 across 5 runs).
                         // Raised 502000 → 502500: the shared CarouselSection `centerWhenPartial`
                         // opt-in (a prop default + one conditional `justify-center-safe` class)
                         // ships in the cart recommendations carousel chunk (CI measured 502064
                         // across 5 runs). The prop is irreducible — it is the feature — so absorb
                         // the ~64B with a small headroom bump rather than dropping the capability.
+                        // Raised 502500 → 505000: cosmetic mirror measured 504405 after merging
+                        // cancel/return + main into split-commits.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 502500, aggregationMethod: 'median' },
+                            { maxNumericValue: 505000, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.
                         // The 31000 ceiling was too tight - multiple unrelated PRs hit
                         // 25-40 byte overshoots even on retry. 32000 gives ~1kB headroom
-                        // above the observed variance without loosening the intent.
+                        // above the observed variance without loosening the intent — this also
+                        // comfortably absorbs the `guestOrderLookup` config block (~260 bytes)
+                        // now serialized into every page's `window.__APP_CONFIG__` inline script.
+                        // Raised 32000 → 33000: cosmetic mirror measured 32276-32329 across 5 runs
+                        // after merging split-commits; ~700B headroom above that.
                         'resource-summary:document:size': [
                             'error',
-                            { maxNumericValue: 32000, aggregationMethod: 'median' },
+                            { maxNumericValue: 33000, aggregationMethod: 'median' },
                         ],
                     },
                 },

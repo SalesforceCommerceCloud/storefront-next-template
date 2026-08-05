@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 
 export default function LegalLinks({ className }: { className?: string }): ReactElement {
     const { t } = useTranslation('footer');
+
     return (
         <div className={cn('flex items-center gap-4', className)}>
             <Link to="/privacy" className="hover:text-foreground transition-colors">
