@@ -17,6 +17,7 @@ This package uses Vitest for unit tests, running under Vite.
 ## Environment
 
 - Default environment: jsdom (configured in `vite.config.ts`).
+- Tests run in Vitest worker threads. If a custom test depends on process isolation or cannot run in a worker thread, set `pool: 'forks'` in `vitest.config.ts`.
 
 ## Coverage
 

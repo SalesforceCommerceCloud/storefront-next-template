@@ -37,6 +37,7 @@ export default defineConfig((configEnv) =>
                 ],
                 globals: true,
                 environment: 'jsdom',
+                pool: 'threads',
                 setupFiles: ['./vitest.setup.ts'],
                 include: ['**/*.{test,spec}.{ts,tsx}'],
                 exclude: [...configDefaults.exclude, '.storybook/**/*', 'e2e/**/*'],
