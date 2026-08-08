@@ -20,6 +20,8 @@ import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import CategoryBreadcrumbs from './index';
 import type { ShopperProducts } from '@/scapi';
 
+type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
+
 const renderInRouter = (element: React.ReactElement) => {
     const router = createMemoryRouter([{ path: '*', element: <AllProvidersWrapper>{element}</AllProvidersWrapper> }], {
         initialEntries: ['/'],
@@ -29,7 +31,7 @@ const renderInRouter = (element: React.ReactElement) => {
 
 describe('CategoryBreadcrumbs', () => {
     test('renders breadcrumb navigation with aria-label', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-1',
             name: 'Category 1',
             parentCategoryTree: [
@@ -45,7 +47,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     test('renders home link and category links', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-1',
             name: 'Category 1',
             parentCategoryTree: [
@@ -62,7 +64,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     test('adds aria-current="page" to the last breadcrumb item', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-1',
             name: 'Category 1',
             parentCategoryTree: [
@@ -81,7 +83,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     test('does not add aria-current to non-terminal breadcrumbs', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-1',
             name: 'Category 1',
             parentCategoryTree: [
@@ -100,7 +102,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     test('handles single-level category', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'single',
             name: 'Single',
             parentCategoryTree: [{ id: 'single', name: 'Single' }],
@@ -113,7 +115,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     test('handles category without parentCategoryTree', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'no-tree',
             name: 'No Tree',
         };

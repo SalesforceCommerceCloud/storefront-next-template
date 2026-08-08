@@ -20,13 +20,10 @@ import type { ShopperProducts } from '@/scapi';
 import { ChevronRight } from 'lucide-react';
 import { routes, routeHref } from '@/route-paths';
 
-type PathRecord = Required<ShopperProducts.schemas['Category']>['parentCategoryTree'][0];
+type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
+type PathRecord = NonNullable<PrimaryCategory['parentCategoryTree']>[number];
 
-export default function CategoryBreadcrumbs({
-    category,
-}: {
-    category: ShopperProducts.schemas['Category'];
-}): ReactElement {
+export default function CategoryBreadcrumbs({ category }: { category: PrimaryCategory }): ReactElement {
     const { t } = useTranslation('category');
     const items: PathRecord[] = category.parentCategoryTree ?? [{ id: category.id, name: category.name }];
     return (

@@ -21,14 +21,17 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import type { ShopperProducts } from '@/scapi';
 
 // ---------------------------------------------------------------------------
-// CategoryBreadcrumbs receives a SCAPI Category and renders one link per item
-// in `parentCategoryTree` (plus a Home link). The visible variations are:
+// CategoryBreadcrumbs receives the product's `primary_category` expansion and
+// renders one link per item in `parentCategoryTree` (plus a Home link). The
+// visible variations are:
 //   - the depth of the tree (1 link, a few links, deep enough to wrap)
 //   - the text of the leaf category
 // Both fold into Controls — `depth` selects how many levels render,
 // `leafCategoryName` overrides the final breadcrumb's label so QA can verify
 // long-name wrapping without hand-editing fixtures.
 // ---------------------------------------------------------------------------
+
+type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
 
 type SyntheticArgs = {
     depth: number;
@@ -37,7 +40,7 @@ type SyntheticArgs = {
 
 const PATH = ['Mens', 'Clothing', 'Tops', 'Shirts', 'Casual Shirts', 'Long Sleeve'];
 
-function buildCategory({ depth, leafCategoryName }: SyntheticArgs): ShopperProducts.schemas['Category'] {
+function buildCategory({ depth, leafCategoryName }: SyntheticArgs): PrimaryCategory {
     const clamped = Math.max(1, Math.min(depth, PATH.length));
     const tree = PATH.slice(0, clamped).map((name, idx) => ({
         id: `cat-${idx}-${name.toLowerCase().replace(/\s+/g, '-')}`,
