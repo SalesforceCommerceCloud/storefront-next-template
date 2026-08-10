@@ -21,6 +21,7 @@ import {
     createDataStoreMiddleware,
     createLazyDataStoreMiddleware,
     readLazyDataStoreEntry,
+    type RawPreferenceEnvelope,
 } from '../utils';
 
 export type CustomGlobalPreferences = Record<string, unknown>;
@@ -30,6 +31,11 @@ export const customGlobalPreferencesContext = createDataStoreContext<CustomGloba
 
 const CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE =
     process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === 'throw' ? 'throw' : 'fallback';
+
+const unwrapCustomGlobalPreferences = (envelope: Record<string, unknown>): CustomGlobalPreferences => {
+    const { data } = envelope as RawPreferenceEnvelope;
+    return Array.isArray(data) ? Object.assign({}, ...data) : {};
+};
 
 /**
  * Read custom global preferences from router context.
@@ -82,11 +88,12 @@ export function getCustomGlobalPreferencesLazy(
  * Set `SFNEXT_DATA_STORE_UNAVAILABLE_MODE=throw` in the environment to opt back into
  * fail-fast behavior. The env var is read once at module load.
  */
-export const customGlobalPreferencesMiddleware = createDataStoreMiddleware({
+export const customGlobalPreferencesMiddleware = createDataStoreMiddleware<CustomGlobalPreferences>({
     entryKey: DEFAULT_CUSTOM_GLOBAL_PREFERENCES_KEY,
     context: customGlobalPreferencesContext,
     onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
+    transform: unwrapCustomGlobalPreferences,
 });
 
 /**
@@ -101,4 +108,5 @@ export const customGlobalPreferencesMiddlewareLazy = createLazyDataStoreMiddlewa
     context: customGlobalPreferencesContext,
     onUnavailable: CUSTOM_GLOBAL_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
+    transform: unwrapCustomGlobalPreferences,
 });

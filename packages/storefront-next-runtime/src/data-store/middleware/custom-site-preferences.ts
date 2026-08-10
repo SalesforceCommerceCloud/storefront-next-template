@@ -22,6 +22,7 @@ import {
     createLazyDataStoreMiddleware,
     prefixWithSiteId,
     readLazyDataStoreEntry,
+    type RawPreferenceEnvelope,
 } from '../utils';
 
 export type SitePreferences = Record<string, unknown>;
@@ -32,6 +33,11 @@ export const sitePreferencesContext = createDataStoreContext<SitePreferences>();
 const SITE_PREFERENCES_ENTRY_KEY = prefixWithSiteId('custom-site-preferences');
 const SITE_PREFERENCES_ON_UNAVAILABLE =
     process.env.SFNEXT_DATA_STORE_UNAVAILABLE_MODE === 'throw' ? 'throw' : 'fallback';
+
+const unwrapCustomSitePreferences = (envelope: Record<string, unknown>): SitePreferences => {
+    const { data } = envelope as RawPreferenceEnvelope;
+    return Array.isArray(data) ? Object.assign({}, ...data) : {};
+};
 
 /**
  * Read site preferences from router context.
@@ -86,11 +92,12 @@ export function getSitePreferencesLazy(context: Readonly<RouterContextProvider>)
  * Must run after the site-context middleware (so the site id is available for the entry
  * key) and before any loader that calls {@link getSitePreferences}.
  */
-export const customSitePreferencesMiddleware = createDataStoreMiddleware({
+export const customSitePreferencesMiddleware = createDataStoreMiddleware<SitePreferences>({
     entryKey: SITE_PREFERENCES_ENTRY_KEY,
     context: sitePreferencesContext,
     onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
+    transform: unwrapCustomSitePreferences,
 });
 
 /**
@@ -106,4 +113,5 @@ export const customSitePreferencesMiddlewareLazy = createLazyDataStoreMiddleware
     context: sitePreferencesContext,
     onUnavailable: SITE_PREFERENCES_ON_UNAVAILABLE,
     fallbackValue: {},
+    transform: unwrapCustomSitePreferences,
 });

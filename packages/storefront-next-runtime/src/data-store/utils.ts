@@ -342,6 +342,12 @@ export async function getDataStoreEntry<TValue = unknown>(key: string): Promise<
  * @param suffix - The entry key suffix (e.g., "custom-site-preferences")
  * @returns A function compatible with `DataStoreMiddlewareOptions.entryKey`
  */
+/**
+ * The raw envelope shape returned by the SCAPI `getSiteCustomPreferenceList` endpoint.
+ * Both `customGlobalPreferences` and `customSitePreferences` store data in this format.
+ */
+export type RawPreferenceEnvelope = { data: Array<Record<string, unknown>>; total: number };
+
 export function prefixWithSiteId(suffix: string): (context: Readonly<RouterContextProvider>) => string {
     return (context) => {
         const siteId = context.get(siteContext)?.site?.id;
