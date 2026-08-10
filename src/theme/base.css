@@ -79,11 +79,16 @@
 /* Fashion uses --ui-border-width: 0 (borderless Cards by default).
    Pages where Cards sit on white backgrounds need visible borders for
    delineation. :where() keeps specificity low so per-card className
-   overrides (e.g. [--ui-border-width:0px]) still win. */
+   overrides (e.g. [--ui-border-width:0px]) still win. The cart's desktop
+   Order Summary uses the [data-slot="order-summary"] wrapper (unique to
+   cart), so the border lands on that Card alone and not the product tiles
+   in the cart's recommendation/bonus rails (tiles are also Cards); the
+   mobile summary sits outside the wrapper and stays borderless. */
 :where([data-testid="account-layout"]) [data-slot="card"],
 :where([data-section="auth"]) [data-slot="card"],
 :where([data-section="checkout"]) [data-slot="card"],
-:where([data-section="order-confirmation"]) [data-slot="card"] {
+:where([data-section="order-confirmation"]) [data-slot="card"],
+:where([data-slot="order-summary"]) [data-slot="card"] {
     --ui-border-width: 1px;
 }
 
