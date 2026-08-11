@@ -426,7 +426,9 @@ function ErrorPageContent({
             </header>
 
             {/* Main Content */}
-            <main id="main-content" tabIndex={-1} className="grow pt-8">
+            {/* data-testid lets E2E (a11y scan guard) detect an error-page landing — the SPA
+                ErrorBoundary renders at the requested URL, so URL checks can't tell them apart. */}
+            <main id="main-content" data-testid="error-page" tabIndex={-1} className="grow pt-8">
                 <div className="flex items-center justify-center min-h-[60vh] px-4 py-12">
                     <div className="mx-auto max-w-3xl w-full text-center">
                         {/* Large status code */}
