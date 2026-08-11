@@ -470,10 +470,10 @@ importers:
         version: 4.13.3
       '@oclif/plugin-help':
         specifier: ^6.2.36
-        version: 6.2.56
+        version: 6.2.58
       '@oclif/plugin-not-found':
         specifier: ^3.2.73
-        version: 3.2.92(@types/node@24.3.0)
+        version: 3.2.93(@types/node@24.3.0)
       '@oclif/plugin-plugins':
         specifier: ^5
         version: 5.4.86
@@ -585,7 +585,7 @@ importers:
     devDependencies:
       '@oclif/test':
         specifier: ^4.1.15
-        version: 4.1.21(@oclif/core@4.13.3)
+        version: 4.1.22(@oclif/core@4.13.3)
       '@react-router/dev':
         specifier: 7.18.0
         version: 7.18.0(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(react-router@7.18.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(terser@5.49.2)(tsx@4.23.11)(typescript@5.9.2)(vite@7.3.5(@types/node@24.3.0)(jiti@2.7.0)(lightningcss@1.30.1)(terser@5.49.2)(tsx@4.23.11)(yaml@2.9.0))(yaml@2.9.0)
@@ -2257,16 +2257,16 @@ packages:
     resolution: {integrity: sha512-ZMcQTsHaiCEOZIRZoynUQ+98fyM1Adoqx4LbOgYWRVKXKbavHPCZKm6F+/y0GpWscXVoeGnvJO6GIBsigrqaSA==}
     engines: {node: '>=18.0.0'}
 
-  '@oclif/plugin-help@6.2.56':
-    resolution: {integrity: sha512-0LkCjFGRGY7AaZb5p8gDcSPNkFrn+vNLKvGe1f7j/Z6U9Uy1cV6R2eWVsjuZTGQ3RvBvjquFPwLy1jTgR5l87w==}
+  '@oclif/plugin-help@6.2.58':
+    resolution: {integrity: sha512-DAYMXZrTWRMLTbpX+rT+ibAmKrZ6IVNGn+fgAGjMoeNlqlSY94eJHocgmqChMwsdWp3H3x+jFmPJiYQt/ifr3Q==}
     engines: {node: '>=18.0.0'}
 
   '@oclif/plugin-not-found@3.2.72':
     resolution: {integrity: sha512-CRcqHGdcEL4l5cls5F9FvwKt04LkdG7WyFozOu2vP1/3w34S29zbw8Tx1gAzfBZDDme5ChSaqFXU5qbTLx5yYQ==}
     engines: {node: '>=18.0.0'}
 
-  '@oclif/plugin-not-found@3.2.92':
-    resolution: {integrity: sha512-Fgamrm4o1lgH101mRHNwe6lw8VYZZ+E8frfqHq6hnSZME832/F0zCHv84MlOpw8ec9ub8dztg21OHi2jaMvE/g==}
+  '@oclif/plugin-not-found@3.2.93':
+    resolution: {integrity: sha512-KBizxn+kgTPWLUCo/vDz/oDdEA5Ll5H6x0jJhl05B56yHwgQp46ZxwXmtBsxvvgrmMqJEtFUw2Qrq+nTHWWv4g==}
     engines: {node: '>=18.0.0'}
 
   '@oclif/plugin-plugins@5.4.53':
@@ -2285,8 +2285,8 @@ packages:
     resolution: {integrity: sha512-CAtBcMBjtuYwv2lf1U3tavAAhFtG3lYvrpestPjfIUyGSoc5kJZME1heS8Ao7IxNgp5sHFm1wNoU2vJbHJKLQg==}
     engines: {node: '>=18.0.0'}
 
-  '@oclif/test@4.1.21':
-    resolution: {integrity: sha512-3Hsqv1mo7P/n8qXKJ4nLTYISA3oPzXGZDc4R9ioi5hpK1lQ7UI1ZcLkt0aKJ1qMKrYStzk20IWhcPRT0Vpteyw==}
+  '@oclif/test@4.1.22':
+    resolution: {integrity: sha512-szaFr78p60axV6ECky9U2SMABE0g1JQpV3qyRjuPCt0pyAlgEzXodLnk99coqE1mny2qYlOU440dd37Xd/AQUA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@oclif/core': '>= 3.0.0'
@@ -5601,8 +5601,8 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
-  electron-to-chromium@1.5.402:
-    resolution: {integrity: sha512-/oOpMaPT6Yg+6/1XQhyIPlzgj7Ye9zf+nNM2Uh6OcE2G2oNptWazFa+qB2Pdqqbsc9KnIDzgAntoYN0dbwOXwA==}
+  electron-to-chromium@1.5.403:
+    resolution: {integrity: sha512-MQsYmdaLzvaCX5j+ZZBr5Fm6uCCnPQcRtlvmvRlWqrXy+BH2O4ffXIAScF+JQznQWB9brWp4lSD9Z4yNmaf2BA==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -11788,7 +11788,7 @@ snapshots:
     dependencies:
       '@oclif/core': 4.8.0
 
-  '@oclif/plugin-help@6.2.56':
+  '@oclif/plugin-help@6.2.58':
     dependencies:
       '@oclif/core': 4.13.3
 
@@ -11801,7 +11801,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@oclif/plugin-not-found@3.2.92(@types/node@24.3.0)':
+  '@oclif/plugin-not-found@3.2.93(@types/node@24.3.0)':
     dependencies:
       '@inquirer/prompts': 7.10.1(@types/node@24.3.0)
       '@oclif/core': 4.13.3
@@ -11858,7 +11858,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@oclif/test@4.1.21(@oclif/core@4.13.3)':
+  '@oclif/test@4.1.22(@oclif/core@4.13.3)':
     dependencies:
       '@oclif/core': 4.13.3
       ansis: 3.17.0
@@ -14384,7 +14384,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.13
       caniuse-lite: 1.0.30001809
-      electron-to-chromium: 1.5.402
+      electron-to-chromium: 1.5.403
       node-releases: 2.0.53
       update-browserslist-db: 1.3.0(browserslist@4.28.8)
 
@@ -15316,7 +15316,7 @@ snapshots:
     dependencies:
       jake: 10.9.4
 
-  electron-to-chromium@1.5.402: {}
+  electron-to-chromium@1.5.403: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:

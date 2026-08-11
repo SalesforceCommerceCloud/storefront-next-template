@@ -409,6 +409,10 @@ function ErrorPageContent({
 }) {
     return (
         <>
+            {/* React 19 hoists this to <head>. The error page renders through Layout, but the
+                root `meta` returns [] without loaderData, so <Meta/> emits no <title> on the
+                error path — set one here to satisfy the document-title a11y rule. */}
+            <title>{title}</title>
             <SkipLink />
             {/* Simple Header */}
             <header className="bg-header-background text-header-foreground sticky top-0 z-50">
@@ -458,9 +462,18 @@ function ErrorPageContent({
                         {stack && (
                             <div className="mt-16 border border-border bg-muted/30 text-left">
                                 <div className="flex items-center px-4 py-3 border-b border-border">
-                                    <h2 className="text-sm font-semibold text-foreground">Stack Trace</h2>
+                                    <h2 id="stack-trace-heading" className="text-sm font-semibold text-foreground">
+                                        Stack Trace
+                                    </h2>
                                 </div>
-                                <pre className="p-4 overflow-auto max-h-80 text-xs leading-relaxed text-foreground/90 font-mono">
+                                {/* tabIndex=0 makes the scrollable block keyboard-reachable so
+                                    keyboard-only users can scroll it (scrollable-region-focusable
+                                    a11y rule); aria-labelledby names the region via the heading above. */}
+                                <pre
+                                    aria-labelledby="stack-trace-heading"
+                                    // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- intentional tab stop so keyboard users can scroll the overflowing stack trace
+                                    tabIndex={0}
+                                    className="p-4 overflow-auto max-h-80 text-xs leading-relaxed text-foreground/90 font-mono">
                                     <code>{stack}</code>
                                 </pre>
                                 <div className="px-4 py-3 border-t border-border">

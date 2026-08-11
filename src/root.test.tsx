@@ -447,6 +447,34 @@ describe('root.tsx', () => {
                 expect(stackElement.closest('pre')).toBeInTheDocument();
             });
 
+            // a11y: the error page renders through Layout, but root `meta` returns [] without
+            // loaderData, so <Meta/> emits no <title> on the error path. React 19 hoists this
+            // <title> to <head>; without it, axe's document-title rule fails (as it did on the
+            // 07-31 nightly homepage scan, which hit this error page during a backend flake).
+            it('sets a non-empty <title> so the error page satisfies document-title', () => {
+                const error = new Error('Test error');
+                error.stack = stackText;
+
+                render(<ErrorBoundary error={error} />);
+
+                const title = document.head.querySelector('title');
+                expect(title).toBeInTheDocument();
+                expect(title?.textContent?.trim()).toBe(enGBRouteError.defaultTitle);
+            });
+
+            // a11y: the stack-trace <pre> is scrollable (overflow-auto max-h-80). Without
+            // tabIndex it is not keyboard-reachable, failing axe's scrollable-region-focusable
+            // rule (the second 07-31 finding).
+            it('makes the scrollable stack-trace <pre> keyboard-focusable', () => {
+                const error = new Error('Test error');
+                error.stack = stackText;
+
+                const { getByText } = render(<ErrorBoundary error={error} />);
+
+                const pre = getByText(stackText).closest('pre');
+                expect(pre).toHaveAttribute('tabindex', '0');
+            });
+
             it('should render predefined 404 error message for route errors with 404 status', () => {
                 const error = {
                     status: 404,
