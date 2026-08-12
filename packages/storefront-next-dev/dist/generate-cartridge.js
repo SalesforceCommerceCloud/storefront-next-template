@@ -118,7 +118,8 @@ const SKIP_DIRECTORIES = [
 	"node_modules",
 	".git",
 	".next",
-	"coverage"
+	"coverage",
+	"verticals"
 ];
 const DEFAULT_COMPONENT_GROUP = "storefrontnext_base";
 const ARCH_TYPE_HEADLESS = "headless";

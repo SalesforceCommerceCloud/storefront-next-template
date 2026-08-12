@@ -24,7 +24,7 @@ import { formatDirectoryWithProjectBiome } from '../utils/format-with-project-bi
 // Re-export `filePathToRoute`
 export { filePathToRoute };
 
-const SKIP_DIRECTORIES = ['build', 'dist', 'node_modules', '.git', '.next', 'coverage'];
+const SKIP_DIRECTORIES = ['build', 'dist', 'node_modules', '.git', '.next', 'coverage', 'verticals'];
 
 const DEFAULT_COMPONENT_GROUP = 'storefrontnext_base';
 const ARCH_TYPE_HEADLESS = 'headless';
