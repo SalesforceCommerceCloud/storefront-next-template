@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "今すぐお買い物",
             "defaultImageAlt": "ヒーロー画像",
-            "defaultCtaText": "今すぐお買い物"
+            "defaultCtaText": "今すぐお買い物",
+            "emptyTitle": "ここにタイトルを追加",
+            "emptyButton": "ボタン"
         },
         "previousImage": "前の画像",
         "nextImage": "次の画像"

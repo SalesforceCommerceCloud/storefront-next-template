@@ -24,7 +24,9 @@
         "hero": {
             "defaultTitle": "Handle nå",
             "defaultImageAlt": "Heltebilde",
-            "defaultCtaText": "Handle nå"
+            "defaultCtaText": "Handle nå",
+            "emptyTitle": "Legg til tittelen her",
+            "emptyButton": "Knapp"
         },
         "previousImage": "Forrige bilde",
         "nextImage": "Neste bilde"

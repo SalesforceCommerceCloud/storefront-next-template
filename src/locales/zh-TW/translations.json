@@ -24,7 +24,9 @@
         "hero": {
             "defaultTitle": "立即選購",
             "defaultImageAlt": "主視覺圖像",
-            "defaultCtaText": "立即選購"
+            "defaultCtaText": "立即選購",
+            "emptyTitle": "在此新增標題",
+            "emptyButton": "按鈕"
         },
         "previousImage": "上一張圖像",
         "nextImage": "下一張圖像"

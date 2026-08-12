@@ -21,7 +21,9 @@
         "hero": {
             "defaultTitle": "Nu shoppen",
             "defaultImageAlt": "Hero-afbeelding",
-            "defaultCtaText": "Nu shoppen"
+            "defaultCtaText": "Nu shoppen",
+            "emptyTitle": "Voeg hier je titel toe",
+            "emptyButton": "Knop"
         },
         "previousImage": "Vorige afbeelding",
         "nextImage": "Volgende afbeelding"

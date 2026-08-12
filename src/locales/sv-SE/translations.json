@@ -22,7 +22,9 @@
         "suggestionImageAlt": "Bildförslag",
         "hero": {
             "defaultTitle": "Handla nu",
-            "defaultCtaText": "Handla nu"
+            "defaultCtaText": "Handla nu",
+            "emptyTitle": "Lägg till din rubrik här",
+            "emptyButton": "Knapp"
         },
         "previousImage": "Föregående bild",
         "nextImage": "Nästa bild"

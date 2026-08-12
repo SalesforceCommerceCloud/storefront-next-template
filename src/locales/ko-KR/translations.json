@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "지금 쇼핑하기",
             "defaultImageAlt": "히어로 이미지",
-            "defaultCtaText": "지금 쇼핑하기"
+            "defaultCtaText": "지금 쇼핑하기",
+            "emptyTitle": "여기에 제목 추가",
+            "emptyButton": "버튼"
         },
         "previousImage": "이전 이미지",
         "nextImage": "다음 이미지"

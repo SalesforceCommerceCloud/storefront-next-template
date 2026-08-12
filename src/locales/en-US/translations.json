@@ -27,7 +27,9 @@
         "hero": {
             "defaultTitle": "Shop Now",
             "defaultImageAlt": "Hero Image",
-            "defaultCtaText": "Shop Now"
+            "defaultCtaText": "Shop Now",
+            "emptyTitle": "Add your title here",
+            "emptyButton": "Button"
         },
         "previousImage": "Previous image",
         "nextImage": "Next image",

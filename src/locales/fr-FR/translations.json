@@ -24,7 +24,9 @@
         "hero": {
             "defaultTitle": "Acheter maintenant",
             "defaultImageAlt": "Image de bannière",
-            "defaultCtaText": "Acheter maintenant"
+            "defaultCtaText": "Acheter maintenant",
+            "emptyTitle": "Ajoutez votre titre ici",
+            "emptyButton": "Bouton"
         },
         "previousImage": "Image précédente",
         "nextImage": "Image suivante"

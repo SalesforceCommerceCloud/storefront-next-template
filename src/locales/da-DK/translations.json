@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "Køb nu",
             "defaultImageAlt": "Hero-billede",
-            "defaultCtaText": "Køb nu"
+            "defaultCtaText": "Køb nu",
+            "emptyTitle": "Tilføj din titel her",
+            "emptyButton": "Knap"
         },
         "previousImage": "Forrige billede",
         "nextImage": "Næste billede"

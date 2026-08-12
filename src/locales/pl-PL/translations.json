@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "Kupuj teraz",
             "defaultImageAlt": "Baner główny",
-            "defaultCtaText": "Kupuj teraz"
+            "defaultCtaText": "Kupuj teraz",
+            "emptyTitle": "Dodaj tytuł tutaj",
+            "emptyButton": "Przycisk"
         },
         "previousImage": "Poprzedni obraz",
         "nextImage": "Następny obraz"

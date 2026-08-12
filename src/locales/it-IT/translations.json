@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "Acquista ora",
             "defaultImageAlt": "Immagine hero",
-            "defaultCtaText": "Acquista ora"
+            "defaultCtaText": "Acquista ora",
+            "emptyTitle": "Aggiungi qui il titolo",
+            "emptyButton": "Pulsante"
         },
         "previousImage": "Immagine precedente",
         "nextImage": "Immagine successiva",

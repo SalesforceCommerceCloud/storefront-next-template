@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "Osta nyt",
             "defaultImageAlt": "Hero-kuva",
-            "defaultCtaText": "Osta nyt"
+            "defaultCtaText": "Osta nyt",
+            "emptyTitle": "Lisää otsikko tähän",
+            "emptyButton": "Painike"
         },
         "previousImage": "Edellinen kuva",
         "nextImage": "Seuraava kuva"

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type CSSProperties, type ReactElement, useId } from 'react';
+import { type CSSProperties, type ReactElement, type ReactNode, useId } from 'react';
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { Link } from '@/components/link';
 import { typographyVariants } from '@/components/typography';
 import { DynamicImage } from '@/components/dynamic-image';
@@ -158,6 +160,58 @@ function getCtaLabel(ctaText: string | undefined, ctaLink: string): string {
         return decodeURIComponent(last).replace(/[-_]+/g, ' ');
     }
     return 'Learn more';
+}
+
+/**
+ * Decorative flourish behind the design-mode empty state — the Figma "Empty State" layer: a
+ * wave blob, a ring in the top-right corner, and two thin accent grooves. The paths are the
+ * exact geometry from the design (node 538:26646), reproduced in a single 1492×280 viewBox.
+ *
+ * Hero-only: the wave-blob treatment is unique to the Hero empty state in the design; the other
+ * Page Designer components have their own distinct empty states, so this is inlined here rather
+ * than shared.
+ *
+ * Theme binding (epic global constraint — no hardcoded colors): the design's fixed greys map to
+ * theme tokens. The blob/ring `#C9C9C9` becomes `currentColor` (the wrapper sets
+ * `text-muted-foreground`), and the `#F3F3F3` accent strokes become `var(--muted)` so they read
+ * as grooves cut into the blob against the surface. The whole layer sits at 50% opacity, matching
+ * the design. Purely decorative: `aria-hidden`.
+ */
+function HeroEmptyStateDecoration(): ReactNode {
+    return (
+        <div className="pointer-events-none absolute inset-0 z-0 text-muted-foreground opacity-50" aria-hidden>
+            <svg
+                className="absolute inset-0 h-full w-full"
+                viewBox="0 0 1492 280"
+                fill="none"
+                preserveAspectRatio="none"
+                xmlns="http://www.w3.org/2000/svg">
+                {/* Wave blob (Figma "Vector 1"), anchored to the bottom of the surface. */}
+                <path
+                    transform="translate(0 59)"
+                    d="M280 100.105C178 100.105 0 214.67 0 214.67L1492 221.105C1492 221.105 1181.11 -5.56395 978 0.104573C774.889 5.7731 652.683 192.148 539.66 192.148C444 192.148 401.602 100.105 280 100.105Z"
+                    fill="currentColor"
+                />
+                {/* Ring (Figma "Ellipse 1"), top-right corner. */}
+                <circle cx="1368.5" cy="79.5" r="38.5" stroke="currentColor" strokeWidth="8" />
+                {/* Accent grooves (Figma "Line 2" / "Line 3"), muted surface color reading as cut-outs. */}
+                <path
+                    transform="translate(137 78) rotate(133.56)"
+                    d="M4.00065 4.00065C4.00065 4.00065 74.5081 45.2772 145.611 68.7376C199.427 86.4944 275.206 104.88 275.206 104.88"
+                    stroke="var(--muted)"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                />
+                <path
+                    transform="translate(1068 197) rotate(133.56)"
+                    d="M108.622 41.8136C108.622 41.8136 44.5439 30.3033 4.00047 4.00047"
+                    stroke="var(--muted)"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                />
+            </svg>
+        </div>
+    );
 }
 
 /* v8 ignore start - do not test decorators in unit tests, decorator functionality is tested separately*/
@@ -367,6 +421,8 @@ export default function Hero({
     fillHeight?: boolean;
 }): ReactElement {
     const uid = useId();
+    const { t } = useTranslation('common');
+    const { isDesignMode } = usePageDesignerMode();
     const rawCss = styleOverride?.trim() || undefined;
     const scopedCss = rawCss ? `[data-hero-id="${uid}"] { ${rawCss} }` : undefined;
 
@@ -440,14 +496,49 @@ export default function Hero({
     const ctaHref = (ctaLink ?? '').trim();
     const showCta = ctaHref.length > 0;
 
+    // Empty state (W-23733121 / W-23729775): a freshly-dropped Hero with no configured content.
+    // The instructional placeholder (decorated grey surface + "Add your title here" cue) is a
+    // Page-Designer *authoring* affordance, so it renders only in design mode — on the live
+    // storefront an unconfigured Hero falls through to renderImage(), which shows a plain muted
+    // box rather than an author-facing prompt. Mirrors the ProductCarousel design-mode gate.
+    const isUnconfigured = !imageUrl?.url && !title?.trim() && !subtitle?.trim() && !showCta;
+    const showEmptyState = isUnconfigured && isDesignMode;
+
+    // The empty banner uses the fixed Figma banner height (300px) rather than the configured
+    // Hero height — the placeholder's proportions match the design at that size. When the parent
+    // controls height (fillHeight, e.g. inside a carousel with uniform slide heights) it wins, so
+    // an empty slide matches its configured siblings instead of collapsing to the banner height.
+    const rootHeightClass = showEmptyState ? (fillHeight ? 'h-full' : 'h-[300px]') : heightClass;
+
     return (
         <>
             {scopedCss && (
                 // oxlint-disable-next-line react/no-danger
                 <style dangerouslySetInnerHTML={{ __html: scopedCss }} />
             )}
-            <div data-hero-id={uid} className={cn('relative w-full overflow-hidden', heightClass)}>
-                {renderImage()}
+            <div data-hero-id={uid} className={cn('relative w-full overflow-hidden', rootHeightClass)}>
+                {showEmptyState ? (
+                    // Themed grey surface with the decorative wave flourish and default authoring
+                    // content. Uses bg-muted / text-muted-foreground only (no hardcoded colors) so
+                    // the empty state tracks the active theme. The CTA is rendered as a non-interactive
+                    // <span> (styled like a button) — it is an illustrative placeholder, not a control,
+                    // so it must not be focusable or submit a form.
+                    <div
+                        data-slot="empty-state"
+                        className="absolute inset-0 flex h-full w-full flex-col items-center justify-center gap-4 overflow-hidden bg-muted p-2.5">
+                        <HeroEmptyStateDecoration />
+                        <div className="relative z-10 flex flex-col items-center gap-4 text-center">
+                            <h1 className={cn(TITLE_TYPOGRAPHY_CLASS['Heading 1'], 'text-muted-foreground')}>
+                                {t('hero.emptyTitle')}
+                            </h1>
+                            <Button asChild variant="default" className="p-3 text-sm font-medium leading-5">
+                                <span>{t('hero.emptyButton')}</span>
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    renderImage()
+                )}
 
                 {overlayBackground && (
                     <div className="absolute inset-0 z-[5]" style={{ background: overlayBackground }} aria-hidden />

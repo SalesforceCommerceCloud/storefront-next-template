@@ -58,7 +58,7 @@ exports[`Hero stories snapshot > Default story renders and matches snapshot 1`] 
 exports[`Hero stories snapshot > LongCopy story renders and matches snapshot 1`] = `
 <div
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
-  data-hero-id="_r_4_"
+  data-hero-id="_r_5_"
 >
   <div
     class="absolute inset-0 w-full h-full"
@@ -113,7 +113,7 @@ exports[`Hero stories snapshot > LongCopy story renders and matches snapshot 1`]
 exports[`Hero stories snapshot > PageDesignerStyling story renders and matches snapshot 1`] = `
 <div
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
-  data-hero-id="_r_5_"
+  data-hero-id="_r_6_"
 >
   <div
     class="absolute inset-0 w-full h-full"
@@ -225,7 +225,7 @@ exports[`Hero stories snapshot > Playground story renders and matches snapshot 1
 exports[`Hero stories snapshot > RightBlockCenteredText story renders and matches snapshot 1`] = `
 <div
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
-  data-hero-id="_r_7_"
+  data-hero-id="_r_8_"
 >
   <div
     class="absolute inset-0 w-full h-full"
@@ -279,16 +279,38 @@ exports[`Hero stories snapshot > RightBlockCenteredText story renders and matche
 
 exports[`Hero stories snapshot > StyleOverrideWithDesignTokens story renders and matches snapshot 1`] = `
 <style>
-  [data-hero-id="_r_6_"] { & { outline: 3px solid var(--primary-foreground); outline-offset: -12px; }
+  [data-hero-id="_r_7_"] { & { outline: 3px solid var(--primary-foreground); outline-offset: -12px; }
 & [data-slot="button"] { background-color: transparent; color: var(--primary-foreground); border: 2px solid var(--primary-foreground); }
 & [data-slot="button"]:hover { background-color: var(--primary-foreground); color: var(--primary); transform: scale(1.03); } }
 </style>
 `;
 
+exports[`Hero stories snapshot > UnconfiguredLiveStorefront story renders and matches snapshot 1`] = `
+<div
+  class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
+  data-hero-id="_r_2_"
+>
+  <div
+    class="absolute inset-0 bg-muted"
+  />
+  <div
+    class="absolute inset-0 z-10 flex items-center"
+  >
+    <div
+      class="container mx-auto w-full section-container"
+    >
+      <div
+        class="max-w-2xl mx-auto text-center"
+      />
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Hero stories snapshot > WithoutImage story renders and matches snapshot 1`] = `
 <div
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
-  data-hero-id="_r_3_"
+  data-hero-id="_r_4_"
 >
   <div
     class="absolute inset-0 bg-muted"
@@ -334,7 +356,7 @@ exports[`Hero stories snapshot > WithoutImage story renders and matches snapshot
 exports[`Hero stories snapshot > WithoutSubtitle story renders and matches snapshot 1`] = `
 <div
   class="relative w-full overflow-hidden h-[100vh] md:h-[85vh]"
-  data-hero-id="_r_2_"
+  data-hero-id="_r_3_"
 >
   <div
     class="absolute inset-0 w-full h-full"

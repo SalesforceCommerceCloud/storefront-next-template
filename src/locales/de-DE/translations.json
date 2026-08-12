@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "Jetzt shoppen",
             "defaultImageAlt": "Hero-Bild",
-            "defaultCtaText": "Jetzt shoppen"
+            "defaultCtaText": "Jetzt shoppen",
+            "emptyTitle": "Titel hier hinzufügen",
+            "emptyButton": "Schaltfläche"
         },
         "previousImage": "Vorheriges Bild",
         "nextImage": "Nächstes Bild"

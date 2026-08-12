@@ -23,7 +23,9 @@
         "hero": {
             "defaultTitle": "COMPRAR AHORA",
             "defaultImageAlt": "Imagen principal",
-            "defaultCtaText": "COMPRAR AHORA"
+            "defaultCtaText": "COMPRAR AHORA",
+            "emptyTitle": "Añade tu título aquí",
+            "emptyButton": "Botón"
         },
         "previousImage": "Imagen anterior",
         "nextImage": "Siguiente imagen"
