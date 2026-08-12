@@ -166,31 +166,36 @@ function collectProductIds(productItems: { productId?: string }[] | undefined): 
 }
 
 /**
- * Fetches an order by number and its product details (images, variations).
+ * Fetches an order by number and its product details (images, variations), with optional OMS enrichment.
  * Uses the same promise chain as the original order-confirmation loader: order first,
  * then products and any dependent work (e.g. BOPIS stores) can run in parallel.
  *
  * @param context - React Router loader context (for API clients and currency)
  * @param orderNo - Order number from route params
+ * @param options - Optional retrieval options. OMS enrichment is included by default for existing callers.
  * @returns { orderDataPromise, orderPromise }. Both promises reject if the order is not found (e.g. 404).
  */
 export function fetchOrderWithProducts(
     context: LoaderFunctionArgs['context'],
-    orderNo: string
+    orderNo: string,
+    options?: { includeOms?: boolean }
 ): FetchOrderWithProductsResult {
     const clients = createApiClients(context);
+    const includeOms = options?.includeOms ?? true;
 
     const orderPromise = clients.shopperOrders
         .getOrder({
-            params: {
-                path: { orderNo },
-                // `expand=oms,oms_shipments` loads Order Management enrichment (per-item
-                // `omsData.quantityAvailableToReturn`, fulfillment/shipment data) onto the
-                // order. Without it SCAPI omits `omsData` entirely and the return/cancel
-                // entry points never render. On a non-SOM org the tokens are silently
-                // disregarded (OAS degrade contract), so the ECOM path is unaffected.
-                query: { expand: ['oms', 'oms_shipments'] },
-            },
+            params: includeOms
+                ? {
+                      path: { orderNo },
+                      // `expand=oms,oms_shipments` loads Order Management enrichment (per-item
+                      // `omsData.quantityAvailableToReturn`, fulfillment/shipment data) onto the
+                      // order. Without it SCAPI omits `omsData` entirely and the return/cancel
+                      // entry points never render. On a non-SOM org the tokens are silently
+                      // disregarded (OAS degrade contract), so the ECOM path is unaffected.
+                      query: { expand: ['oms', 'oms_shipments'] },
+                  }
+                : { path: { orderNo } },
         })
         .then(({ data }) => data);
 

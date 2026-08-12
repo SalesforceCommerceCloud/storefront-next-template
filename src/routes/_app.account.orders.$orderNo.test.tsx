@@ -173,6 +173,21 @@ describe('Order Details Route (_app.account.orders.$orderNo)', () => {
             expect(data2.order.orderNo).toBe('CUSTOM-456');
         });
 
+        test('fetches account order data with OMS enrichment', () => {
+            vi.mocked(fetchOrderWithProducts).mockReturnValue({
+                orderDataPromise: Promise.resolve({
+                    order: { ...mockOrder, orderNo: 'ORD-123' },
+                    productsById: mockProductsById,
+                }),
+                orderPromise: Promise.resolve({ ...mockOrder, orderNo: 'ORD-123' }),
+            });
+            const context = {} as any;
+
+            loader({ context, params: { orderNo: 'ORD-123' } } as any);
+
+            expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(context, 'ORD-123', { includeOms: true });
+        });
+
         test('does not fetch OMS metadata itself — that is the parent section loader (org-level)', () => {
             vi.mocked(fetchOrderWithProducts).mockReturnValue({
                 orderDataPromise: Promise.resolve({

@@ -16,7 +16,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { createRoutesStub } from 'react-router';
+import { createMemoryRouter, createRoutesStub, RouterProvider, useLoaderData } from 'react-router';
 import { ApiError, type ShopperOrders, type ShopperProducts, type ShopperStores } from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
@@ -167,6 +167,39 @@ function renderRoute(
     );
 }
 
+function renderRouteWithDeferredError(orderNo: string, error: Error) {
+    let rejectOrderData: (error: Error) => void;
+    const orderData = new Promise<never>((_, reject) => {
+        rejectOrderData = reject;
+    });
+    orderData.catch(() => undefined);
+    const RouteComponent = () => <OrderConfirmationPage loaderData={useLoaderData() as any} />;
+    const router = createMemoryRouter(
+        [
+            {
+                path: '/order-confirmation/:orderNo',
+                Component: RouteComponent,
+                ErrorBoundary,
+                HydrateFallback: () => null,
+                loader: () => {
+                    setTimeout(() => rejectOrderData(error), 0);
+                    return {
+                        orderData,
+                        showPostOrderRegistration: false,
+                    };
+                },
+            },
+        ],
+        { initialEntries: [`/order-confirmation/${orderNo}`] }
+    );
+
+    return render(
+        <AllProvidersWrapper>
+            <RouterProvider router={router} />
+        </AllProvidersWrapper>
+    );
+}
+
 // --- Tests ---
 
 describe('Order Confirmation Route', () => {
@@ -195,7 +228,7 @@ describe('Order Confirmation Route', () => {
             expect(resolved).toHaveProperty('productsById');
         });
 
-        test('calls fetchOrderWithProducts with context and orderNo', async () => {
+        test('fetches confirmation data without OMS enrichment', async () => {
             const orderPromise = Promise.resolve(baseOrder);
             vi.mocked(fetchOrderWithProducts).mockReturnValue({
                 orderDataPromise: orderPromise.then((order) => ({ order, productsById: {} })),
@@ -208,7 +241,9 @@ describe('Order Confirmation Route', () => {
             const mockContext = { get: vi.fn(() => undefined) };
             await loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
 
-            expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(mockContext, 'TEST-ORDER-12345');
+            expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(mockContext, 'TEST-ORDER-12345', {
+                includeOms: false,
+            });
         });
 
         test('tears down basket once the order is confirmed (idempotent safety net)', async () => {
@@ -357,6 +392,26 @@ describe('Order Confirmation Route', () => {
             );
 
             expect(screen.getByText(t('checkout:confirmation.orderPlacedDetailsUnavailable'))).toBeInTheDocument();
+        });
+
+        test('handles a deferred ApiError(404) rejection with the route ErrorBoundary', async () => {
+            renderRouteWithDeferredError('INVALID', createApiError(404));
+
+            expect(await screen.findByText(t('checkout:confirmation.orderNotFound'))).toBeInTheDocument();
+            expect(screen.getByText(t('checkout:confirmation.orderNotFoundDescription'))).toBeInTheDocument();
+            expect(screen.queryByText(/INVALID/)).not.toBeInTheDocument();
+        });
+
+        test('handles a deferred ApiError(500) rejection with the route ErrorBoundary', async () => {
+            renderRouteWithDeferredError('ORD-9001', createApiError(500));
+
+            expect(
+                await screen.findByText(t('checkout:confirmation.orderPlacedDetailsUnavailable'))
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText(t('checkout:confirmation.orderPlacedDetailsUnavailableDescription'))
+            ).toBeInTheDocument();
+            expect(screen.getByText(/ORD-9001/)).toBeInTheDocument();
         });
     });
 

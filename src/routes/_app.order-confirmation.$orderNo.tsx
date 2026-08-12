@@ -114,7 +114,7 @@ export async function loader({ context, params }: Route.LoaderArgs): Promise<Che
     const { orderNo } = params;
     const logger = getLogger(context);
     logger.debug('OrderConfirmation: loader starting', { orderNo });
-    const { orderDataPromise, orderPromise } = fetchOrderWithProducts(context, orderNo);
+    const { orderDataPromise, orderPromise } = fetchOrderWithProducts(context, orderNo, { includeOms: false });
 
     // Idempotent basket teardown safety net. The default action.place-order and the
     // extension-driven place-order-finalize both tear the basket down before sending the
