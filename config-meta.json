@@ -11,10 +11,6 @@
         {
             "name": "Short Code",
             "key": "PUBLIC__app__commerce__api__shortCode"
-        },
-        {
-            "name": "Site ID",
-            "key": "PUBLIC__app__defaultSiteId"
         }
     ]
 }

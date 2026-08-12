@@ -384,6 +384,58 @@ describe('create-storefront', () => {
         );
     });
 
+    // Regression (W-23649139): Site ID must not be an independent create-storefront
+    // answer. defaultSiteId and commerce.sites are one configuration unit — a bare id
+    // typed into a prompt could drift out of the pinned commerce.sites array and abort
+    // startup (app-config.server.ts validates membership). config-meta.json therefore
+    // no longer lists PUBLIC__app__defaultSiteId, so the site unit ships verbatim from
+    // .env.default and the generated .env stays internally consistent.
+    it('does not prompt for Site ID, keeping defaultSiteId within commerce.sites', async () => {
+        const SITES =
+            '[{"id":"MarketStreet","defaultLocale":"en-US","defaultCurrency":"USD","supportedLocales":[{"id":"en-US","preferredCurrency":"USD"}],"supportedCurrencies":["USD"]}]';
+        vi.mocked(fs.existsSync as any).mockImplementation((p: string) => {
+            if (String(p).endsWith('.git')) return false;
+            if (String(p).includes('config.json')) return false;
+            return true;
+        });
+        vi.mocked(fs.readFileSync).mockImplementation((p: any) => {
+            if (String(p).endsWith('config-meta.json')) {
+                // Mirrors the shipped config-meta.json: creds only, no Site ID entry.
+                return JSON.stringify({
+                    configs: [
+                        { name: 'SLAS Client ID', key: 'PUBLIC__app__commerce__api__clientId' },
+                        { name: 'Organization ID', key: 'PUBLIC__app__commerce__api__organizationId' },
+                        { name: 'Short Code', key: 'PUBLIC__app__commerce__api__shortCode' },
+                    ],
+                });
+            }
+            if (String(p).endsWith('.env.default')) {
+                return [
+                    'PUBLIC__app__commerce__api__clientId=default-id',
+                    'PUBLIC__app__defaultSiteId=MarketStreet',
+                    `PUBLIC__app__commerce__sites=${SITES}`,
+                ].join('\n');
+            }
+            return '';
+        });
+
+        await createStorefront({ name: 'my-storefront', template: 'https://example.com/template.git' });
+
+        // The interview never asks for the site.
+        expect(prompts).not.toHaveBeenCalledWith(expect.objectContaining({ name: 'PUBLIC__app__defaultSiteId' }));
+
+        // The generated .env preserves the site unit verbatim: defaultSiteId names an
+        // id present in commerce.sites, so it boots cleanly.
+        const envCall = vi.mocked(fs.writeFileSync).mock.calls.find(([f]) => String(f).endsWith('.env'));
+        expect(envCall).toBeDefined();
+        const envContent = String(envCall?.[1] ?? '');
+        const siteId = envContent.match(/^PUBLIC__app__defaultSiteId=(.+)$/m)?.[1];
+        const sitesLine = envContent.match(/^PUBLIC__app__commerce__sites=(.+)$/m)?.[1];
+        expect(siteId).toBe('MarketStreet');
+        const siteIds = JSON.parse(sitesLine ?? '[]').map((s: { id: string }) => s.id);
+        expect(siteIds).toContain(siteId);
+    });
+
     describe('extension dependencies (using prompts.inject simulation)', () => {
         const extensionConfigWithDependencies = {
             extensions: {
