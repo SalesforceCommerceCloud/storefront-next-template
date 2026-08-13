@@ -336,6 +336,46 @@ export const CustomTitle: Story = {
 };
 
 /**
+ * Left-aligned heading with a "shop all" link and label-below tiles — the exact layout the footwear
+ * activity rail uses. `titleAlign="left"` switches CarouselSection to the left header row (which
+ * surfaces the `shopAllText`/`shopAllUrl` link), and `labelPosition="below"` renders each card's
+ * name beneath its image instead of overlaid.
+ */
+export const LeftAlignedWithShopAll: Story = {
+    args: {
+        data: mockPopularCategories,
+        title: 'Shop by Activity',
+        subtitle: 'Find the shoes built for how you move',
+        titleAlign: 'left',
+        labelPosition: 'below',
+        shopAllText: 'View all activities',
+        shopAllUrl: '/category/activity',
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Left-aligned heading with a "View all" link on the right and label-below tiles — the layout the footwear home uses for its activity rail. Exercises the `titleAlign`, `labelPosition`, `shopAllText`, and `shopAllUrl` pass-through props.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        await expect(canvas.getByText('Shop by Activity')).toBeInTheDocument();
+
+        // The shop-all link renders (and links out) only in the left-aligned layout.
+        const shopAll = canvas.getByRole('link', { name: 'View all activities' });
+        await expect(shopAll).toHaveAttribute('href', expect.stringContaining('/category/activity'));
+
+        // Tiles render with the name beneath the image (label-below layout), not the overlay "Shop Now".
+        const labels = canvasElement.querySelectorAll('[data-slot="category-label"]');
+        await expect(labels.length).toBe(4);
+        await expect(canvas.queryByText(/shop now/i)).not.toBeInTheDocument();
+    },
+};
+
+/**
  * Empty categories array
  */
 export const Empty: Story = {

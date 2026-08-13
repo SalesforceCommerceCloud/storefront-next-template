@@ -167,6 +167,39 @@ export const Default: Story = {
 };
 
 /**
+ * Label-below layout: square image with the category name beneath it (no scrim overlay, no
+ * "Shop Now"). This is the layout the footwear activity rail uses.
+ */
+export const LabelBelow: Story = {
+    args: {
+        data: mockCategory,
+        labelPosition: 'below',
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Category tile with the name rendered as a plain label beneath the image (`labelPosition="below"`) instead of overlaid on it.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Name renders as the below-image label, not a scrim overlay.
+        const label = canvasElement.querySelector('[data-slot="category-label"]');
+        await expect(label).toBeInTheDocument();
+        await expect(label).toHaveTextContent('Mens');
+
+        // The overlay-only "Shop Now" affordance is absent in this layout.
+        await expect(canvas.queryByText(/shop now/i)).not.toBeInTheDocument();
+
+        const link = canvas.getByRole('link', { name: /mens/i });
+        await expect(link).toHaveAttribute('href', `${SITE_PREFIX}/category/mens`);
+    },
+};
+
+/**
  * Category with programmatic category prop
  */
 export const WithCategoryProp: Story = {

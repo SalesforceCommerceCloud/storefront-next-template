@@ -37,10 +37,33 @@ interface PopularCategoriesProps {
     title?: string;
     subtitle?: string;
     /**
+     * Heading alignment, forwarded to `CarouselSection`.
+     * - `'center'` (default): centered title/subtitle, no shop-all link (the classic categories look).
+     * - `'left'`: left-aligned title with an optional shop-all link on the right (see `shopAllUrl`/`shopAllText`).
+     * @default 'center'
+     */
+    titleAlign?: 'left' | 'center';
+    /**
+     * Optional "shop all" link URL, forwarded to `CarouselSection`.
+     * @remarks Only rendered when `titleAlign` is `'left'` (CarouselSection ignores it when centered).
+     */
+    shopAllUrl?: string;
+    /**
+     * Optional label for the "shop all" link, forwarded to `CarouselSection`.
+     * @remarks Only rendered when `titleAlign` is `'left'`.
+     */
+    shopAllText?: string;
+    /**
      * Center the category cards when they don't fill the track (see
      * `CarouselSection`'s `centerWhenPartial`). Off by default.
      */
     centerWhenPartial?: boolean;
+    /**
+     * Where each card's name sits relative to its image, forwarded to `PopularCategory`.
+     * `'overlay'` (default) keeps the name on the image; `'below'` renders it beneath.
+     * @default 'overlay'
+     */
+    labelPosition?: 'overlay' | 'below';
     // Data prop provided by the Page Designer component loader
     data?: ShopperProducts.schemas['Category'][];
     // Page Designer props
@@ -124,11 +147,17 @@ function CategoryCardsSkeleton() {
 /**
  * Renders a single category as a CarouselItem
  */
-function CategoryItem({ category }: { category: ShopperProducts.schemas['Category'] }) {
+function CategoryItem({
+    category,
+    labelPosition,
+}: {
+    category: ShopperProducts.schemas['Category'];
+    labelPosition?: 'overlay' | 'below';
+}) {
     return (
         <CarouselItem className={itemClassName}>
             <div className="w-full max-w-full min-w-0 flex">
-                <PopularCategory category={category} className="h-full w-full" />
+                <PopularCategory category={category} labelPosition={labelPosition} className="h-full w-full" />
             </div>
         </CarouselItem>
     );
@@ -144,14 +173,22 @@ function CategoryGridContent({
     component,
     title,
     subtitle,
+    titleAlign,
+    shopAllUrl,
+    shopAllText,
     centerWhenPartial,
+    labelPosition,
 }: {
     data?: ShopperProducts.schemas['Category'][];
     categoriesPromise?: Promise<ShopperProducts.schemas['Category'][]>;
     component?: ComponentType;
     title?: string;
     subtitle?: string;
+    titleAlign?: 'left' | 'center';
+    shopAllUrl?: string;
+    shopAllText?: string;
     centerWhenPartial?: boolean;
+    labelPosition?: 'overlay' | 'below';
 }) {
     const { t } = useTranslation('home');
     const resolvedTitle = title || t('categoryGrid.title');
@@ -161,7 +198,10 @@ function CategoryGridContent({
     const sectionProps = {
         title: resolvedTitle,
         subtitle: resolvedSubtitle,
-        titleAlign: 'center' as const,
+        // Default to the classic centered look; `titleAlign="left"` opts into a shop-all link.
+        titleAlign: titleAlign ?? 'center',
+        shopAllUrl,
+        shopAllText,
         centerWhenPartial,
         ariaLabel,
     };
@@ -198,7 +238,7 @@ function CategoryGridContent({
         return (
             <CarouselSection {...sectionProps}>
                 {data.map((category) => (
-                    <CategoryItem key={category.id} category={category} />
+                    <CategoryItem key={category.id} category={category} labelPosition={labelPosition} />
                 ))}
             </CarouselSection>
         );
@@ -211,7 +251,7 @@ function CategoryGridContent({
                     {(categories) => (
                         <CarouselSection {...sectionProps}>
                             {categories.map((category: ShopperProducts.schemas['Category']) => (
-                                <CategoryItem key={category.id} category={category} />
+                                <CategoryItem key={category.id} category={category} labelPosition={labelPosition} />
                             ))}
                         </CarouselSection>
                     )}
@@ -237,7 +277,11 @@ export default function PopularCategories({
     component,
     title,
     subtitle,
+    titleAlign,
+    shopAllUrl,
+    shopAllText,
     centerWhenPartial,
+    labelPosition,
 }: PopularCategoriesProps) {
     return (
         <section className="bg-muted/50">
@@ -247,7 +291,11 @@ export default function PopularCategories({
                 component={component}
                 title={title}
                 subtitle={subtitle}
+                titleAlign={titleAlign}
+                shopAllUrl={shopAllUrl}
+                shopAllText={shopAllText}
                 centerWhenPartial={centerWhenPartial}
+                labelPosition={labelPosition}
             />
         </section>
     );

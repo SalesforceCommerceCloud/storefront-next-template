@@ -42,6 +42,14 @@ interface PopularCategoryProps extends Omit<ComponentProps<typeof Link>, 'to'> {
     category?: ShopperProducts.schemas['Category'];
     // Whether to display the category description on the card
     showDescription?: boolean;
+    /**
+     * Where the category name sits relative to the image.
+     * - `'overlay'` (default): name overlaid on the image with a gradient scrim and hover "Shop Now".
+     * - `'below'`: square image with the name as a plain label beneath it (no scrim, no "Shop Now").
+     *   `showDescription` is ignored in this layout.
+     * @default 'overlay'
+     */
+    labelPosition?: 'overlay' | 'below';
     // Page Designer props (passed by Component wrapper, must be extracted to avoid passing to DOM)
     regionId?: string;
     page?: ShopperExperience.schemas['Page'];
@@ -83,6 +91,7 @@ export class PopularCategoryMetadata {
 export default function PopularCategory({
     category,
     showDescription = false,
+    labelPosition = 'overlay',
     // Page Designer props - extracted to avoid passing to DOM
     regionId: _regionId,
     page: _page,
@@ -117,6 +126,40 @@ export default function PopularCategory({
         undefined;
     const transformedCategoryImage = toImageUrl({ src: categoryImageUrl, config }) ?? categoryImageUrl;
     const finalImageUrl: string = transformedCategoryImage || heroImage;
+
+    // 'below' layout: square image with the name as a plain label beneath it (no scrim overlay,
+    // no hover "Shop Now"). Used by the footwear activity rail.
+    if (labelPosition === 'below') {
+        return (
+            <Link
+                to={routeHref(routes.category, { categoryId: finalCategoryId })}
+                className={cn(
+                    'group flex flex-col items-center gap-3',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui',
+                    className
+                )}
+                {...rest}>
+                <div className="relative aspect-square w-full overflow-hidden rounded-ui bg-muted">
+                    {/* Decorative: the adjacent visible label below names the link, so empty alt
+                        avoids the category name being announced twice by assistive technology. */}
+                    <DynamicImage
+                        src={finalImageUrl}
+                        alt=""
+                        className="h-full w-full"
+                        imageProps={{
+                            className:
+                                'h-full w-full object-cover transition-transform duration-300 group-hover:scale-105',
+                        }}
+                        widths={carouselItemImageWidths}
+                        loading="eager"
+                    />
+                </div>
+                <span data-slot="category-label" className="text-sm font-medium text-foreground group-hover:underline">
+                    {finalName}
+                </span>
+            </Link>
+        );
+    }
 
     return (
         <Link

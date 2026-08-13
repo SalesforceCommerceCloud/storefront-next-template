@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import type { ShopperSearch } from '@/scapi';
@@ -21,6 +21,23 @@ import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockAltSiteObject, mockConfig } from '@/test-utils/config';
 import CategoryRefinements from './index';
+
+// `uiConfig` is a build-time static read at module scope (not from ConfigProvider). Mock it with a
+// mutable object so individual tests can flip the `sidebarCategoryRefinement` opt-in. Default matches
+// the canonical baseline (flag absent → cgid excluded from the sidebar) so existing tests are unaffected.
+const mockUiConfig = {
+    pages: {
+        category: {
+            sidebarCategoryRefinement: undefined as { enabled: boolean } | undefined,
+        },
+    },
+};
+
+vi.mock('@/lib/config.ui', () => ({
+    get uiConfig() {
+        return mockUiConfig;
+    },
+}));
 
 const defaultMockSite = mockAltSiteObject;
 
@@ -95,6 +112,11 @@ const createProductSearchResult = (
     refinements,
 });
 
+beforeEach(() => {
+    // Default: opt-in flag absent (canonical baseline — cgid excluded from the sidebar).
+    mockUiConfig.pages.category.sidebarCategoryRefinement = undefined;
+});
+
 describe('CategoryRefinements accessibility headings', () => {
     test('does not render cgid category refinement in side filters', () => {
         const result = createProductSearchResult([
@@ -138,5 +160,64 @@ describe('CategoryRefinements accessibility headings', () => {
         renderComponent({ result });
 
         expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument();
+    });
+});
+
+describe('CategoryRefinements sidebar category facet (opt-in)', () => {
+    beforeEach(() => {
+        // Promote the cgid level into the sidebar (e.g. footwear "Shop by Activity").
+        mockUiConfig.pages.category.sidebarCategoryRefinement = { enabled: true };
+    });
+
+    afterEach(() => {
+        mockUiConfig.pages.category.sidebarCategoryRefinement = undefined;
+    });
+
+    test('renders the cgid refinement as a single-select radio facet when enabled', () => {
+        const result = createProductSearchResult([
+            {
+                attributeId: 'cgid',
+                label: 'Activity',
+                values: [
+                    {
+                        value: 'activity',
+                        label: 'Activity',
+                        hitCount: 60,
+                        values: [
+                            { value: 'running', label: 'Running', hitCount: 42 },
+                            { value: 'trail', label: 'Trail', hitCount: 18 },
+                        ],
+                    },
+                ],
+            },
+        ]);
+
+        // An active cgid refine opens the section by default (hasActiveFilter), so its radios
+        // are visible rather than inside a collapsed panel.
+        renderComponent({ result, refine: ['cgid=running'] });
+
+        // The "Activity" section heading now renders (cgid is kept in the sidebar)...
+        expect(screen.getByRole('heading', { level: 3, name: 'Activity' })).toBeInTheDocument();
+        // ...and the child categories render as single-select radios (hierarchical flattened).
+        expect(screen.getAllByRole('radio')).toHaveLength(2);
+        expect(screen.getByText('Running')).toBeInTheDocument();
+        expect(screen.getByText('Trail')).toBeInTheDocument();
+    });
+
+    test('renders no facet content and does not crash when the cgid refinement has empty values', () => {
+        // AC-5 safety: before the activity catalog is provisioned, cgid may arrive with no values.
+        const result = createProductSearchResult([
+            {
+                attributeId: 'cgid',
+                label: 'Activity',
+                values: [],
+            },
+        ]);
+
+        renderComponent({ result });
+
+        // Empty-values refinements are skipped entirely (no section heading, no radios, no crash).
+        expect(screen.queryByRole('heading', { level: 3, name: 'Activity' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     });
 });

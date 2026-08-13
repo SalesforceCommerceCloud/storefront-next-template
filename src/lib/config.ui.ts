@@ -96,6 +96,20 @@ export interface UIConfig {
              * @default 'load-more'
              */
             pagination: PaginationConfig;
+            /**
+             * Opt-in: keep the category (`cgid`) refinement in the side-panel filters and
+             * render it as a single-select radio group (`cgid` is single-valued per SCAPI),
+             * instead of excluding it (the default,
+             * where category navigation is owned by QuickFilters). When enabled, the category
+             * route also suppresses the QuickFilters chip row so the same category level is not
+             * filterable in two UIs at once. Used by verticals that surface a category level
+             * (e.g. footwear "Shop by Activity") as a sidebar facet.
+             *
+             * @default undefined (cgid excluded from the sidebar — unchanged for all verticals)
+             */
+            sidebarCategoryRefinement?: {
+                enabled: boolean;
+            };
         };
         product: {
             /**

@@ -17,6 +17,8 @@ build/
 .env
 .env.local
 .env.*.local
+# Per-vertical dev env files (may hold instance secrets)
+.env.footwear
 
 # Logs
 npm-debug.log*

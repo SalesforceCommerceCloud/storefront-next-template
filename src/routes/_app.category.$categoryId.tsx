@@ -369,6 +369,11 @@ export default function CategoryPage({
     const categoryLabel = uiConfig.pages.category.showCategoryLabel
         ? searchResultCritical.refinements?.find((r) => r.attributeId === 'cgid')?.label
         : undefined;
+
+    // When a vertical promotes the category (`cgid`) level into the side-panel filters as a grouped
+    // facet (see `sidebarCategoryRefinement`), suppress the QuickFilters chip row so the same level
+    // isn't filterable in two UIs at once. CategoryRefinements keeps `cgid` in the sidebar in that case.
+    const sidebarCategoryFacetEnabled = uiConfig.pages.category.sidebarCategoryRefinement?.enabled ?? false;
     const isProductGridLoading = useMemo(() => {
         if (navigation.state === 'idle' || !navigation.location) {
             return false;
@@ -591,7 +596,9 @@ export default function CategoryPage({
                                 isActive={filtersOpen}
                                 selectedFiltersCount={selectedFiltersCount}
                             />
-                            <QuickFilters category={category} categoryLabel={categoryLabel} />
+                            {!sidebarCategoryFacetEnabled && (
+                                <QuickFilters category={category} categoryLabel={categoryLabel} />
+                            )}
                         </div>
 
                         {/* Category Refinements - toggles visibility on left side */}
@@ -614,7 +621,9 @@ export default function CategoryPage({
                                     isActive={filtersOpen}
                                     selectedFiltersCount={selectedFiltersCount}
                                 />
-                                <QuickFilters category={category} categoryLabel={categoryLabel} />
+                                {!sidebarCategoryFacetEnabled && (
+                                    <QuickFilters category={category} categoryLabel={categoryLabel} />
+                                )}
                             </div>
 
                             <ActiveFilters result={searchResultCritical} />
