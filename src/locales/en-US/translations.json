@@ -1879,6 +1879,9 @@
             "viewAllColors": "View all {{count}} colors for {{productName}}",
             "moreColorsTitle": "+{{count}} more"
         },
+        "sizeAvailableAnnouncement": "Size {{size}}, available",
+        "sizeUnavailableAnnouncement": "Size {{size}}, not available",
+        "widthUnavailableTooltip": "Not available in this size",
         "showingReviews": "Showing {{from}}-{{to}} of {{total}} reviews",
         "filterBy": "Filter by:",
         "withPhotos": "With Photos",
