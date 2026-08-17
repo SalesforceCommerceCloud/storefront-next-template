@@ -120,6 +120,7 @@ const ALLOWLIST = {
     // (W-23461306 scope note): several are auth-, order-, or ops-gated and need
     // generic state/credential wiring before they can scan reliably.
     '_app.about-us': 'deferred:auto-discovery,static content page, no Scenario yet',
+    '_app.size-guide': 'deferred:auto-discovery,vertical-exclusive (footwear) static page, no Scenario yet',
     '_app.account.overview': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.passkeys': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.store-preferences': 'deferred:auto-discovery,auth-gated, no Scenario yet',

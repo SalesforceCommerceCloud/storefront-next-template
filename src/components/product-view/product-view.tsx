@@ -16,7 +16,7 @@
 import { type ReactElement } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import ImageGallery from '@/components/image-gallery';
-import ProductInfo from './product-info';
+import ProductInfo from '@/components/product-view/product-info';
 import ProductCartActions from '@/components/product-cart-actions';
 import ProductViewProvider from '@/providers/product-view';
 import { useProductImages } from '@/hooks/product/use-product-images';
