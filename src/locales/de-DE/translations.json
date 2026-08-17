@@ -27,6 +27,10 @@
             "emptyTitle": "Titel hier hinzufügen",
             "emptyButton": "Schaltfläche"
         },
+        "contentCard": {
+            "emptyTitle": "Titel hier hinzufügen",
+            "emptyDescription": "Beschreibung hier hinzufügen"
+        },
         "previousImage": "Vorheriges Bild",
         "nextImage": "Nächstes Bild"
     },

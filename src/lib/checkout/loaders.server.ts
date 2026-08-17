@@ -151,9 +151,13 @@ export async function fetchShippingMethodsMapForBasket(
     const basketId = basket.basketId;
     const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {};
 
-    // Fetch shipping methods for each shipment that has a shipping address
+    // Fetch shipping methods for each shipment that has a shipping address or already carries a
+    // pre-applied method, so a method applied before an address can render as a summary at entry.
     const fetchPromises = basket.shipments
-        .filter((shipment) => shipment.shipmentId && !isAddressEmpty(shipment.shippingAddress))
+        .filter(
+            (shipment) =>
+                shipment.shipmentId && (!isAddressEmpty(shipment.shippingAddress) || !!shipment.shippingMethod?.id)
+        )
         .map(async (shipment) => {
             try {
                 const methods = await getShippingMethodsForShipment(context, basketId, shipment.shipmentId);

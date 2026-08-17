@@ -27,6 +27,10 @@
             "emptyTitle": "Tilføj din titel her",
             "emptyButton": "Knap"
         },
+        "contentCard": {
+            "emptyTitle": "Tilføj din titel her",
+            "emptyDescription": "Tilføj din beskrivelse her"
+        },
         "previousImage": "Forrige billede",
         "nextImage": "Næste billede"
     },

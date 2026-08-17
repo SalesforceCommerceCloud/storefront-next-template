@@ -124,17 +124,6 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
 </div>
 `;
 
-exports[`ContentCard stories snapshot > EmptyCard story renders and matches snapshot 1`] = `
-<div
-  style="width: 400px;"
->
-  <div
-    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50"
-    data-slot="card"
-  />
-</div>
-`;
-
 exports[`ContentCard stories snapshot > LongCopy story renders and matches snapshot 1`] = `
 <div
   style="width: 400px;"
@@ -357,6 +346,17 @@ exports[`ContentCard stories snapshot > TypographyPresets story renders and matc
       </div>
     </div>
   </div>
+</div>
+`;
+
+exports[`ContentCard stories snapshot > UnconfiguredLiveStorefront story renders and matches snapshot 1`] = `
+<div
+  style="width: 400px;"
+>
+  <div
+    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50"
+    data-slot="card"
+  />
 </div>
 `;
 

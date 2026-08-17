@@ -16,8 +16,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import ContentCard from '../index';
 import { CONTENT_CARD_TYPOGRAPHY_VALUES } from '../typography';
-import { expect, within } from 'storybook/test';
+import { expect, within, waitFor } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 
 type ContentCardArgs = React.ComponentProps<typeof ContentCard> & {
     hasImage?: boolean;
@@ -47,6 +48,7 @@ A flexible card component for displaying authored content with optional image, t
 - Call-to-action button with link
 - Configurable background and border (designer-controlled via Page Designer attributes)
 - CSS override hooks (\`className\`, \`cardFooterClassName\`, \`cardDescriptionClassName\`, \`buttonClassName\`)
+- W-23729786: a freshly-dropped, unconfigured card shows an instructional empty state — a grey image-placeholder surface with the default description/title bottom-left aligned — while authoring in Page Designer design mode — see UnconfiguredDesignMode. On the live storefront (UnconfiguredLiveStorefront) it renders just the empty card shell, with no authoring prompt shown to shoppers.
                 `,
             },
         },
@@ -186,7 +188,7 @@ export const WithoutImage: Story = {
     },
 };
 
-export const EmptyCard: Story = {
+export const UnconfiguredLiveStorefront: Story = {
     args: {
         title: undefined,
         description: undefined,
@@ -197,7 +199,7 @@ export const EmptyCard: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'Coverage for the fully-unauthored case. With no image, no text, and no CTA the component renders just the empty card shell — no card content is emitted.',
+                story: 'W-23729786: a freshly-dropped, unconfigured Content Card as a shopper sees it on the live storefront (not Page Designer design mode). With no image, no text, and no CTA authored, the component renders just the empty card shell — no card content, and no authoring prompt, is emitted. The instructional empty state (a grey placeholder surface with the default description/title) is gated to design mode, so it never leaks to shoppers. See UnconfiguredDesignMode for the design-mode authoring view.',
             },
         },
     },
@@ -205,10 +207,54 @@ export const EmptyCard: Story = {
         const canvas = within(canvasElement);
         await waitForStorybookReady(canvasElement);
 
-        // Nothing authored → no image, no heading, no link.
+        // Nothing authored → no image, no heading, no link, and no authoring prompt.
         await expect(canvas.queryByRole('img')).not.toBeInTheDocument();
         await expect(canvas.queryByRole('heading')).not.toBeInTheDocument();
         await expect(canvas.queryByRole('link')).not.toBeInTheDocument();
+        await expect(canvas.queryByRole('heading', { name: /add your title here/i })).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector('[data-slot="empty-state"]')).toBeNull();
+    },
+};
+
+export const UnconfiguredDesignMode: Story = {
+    args: {
+        title: undefined,
+        description: undefined,
+        imageAlt: '',
+        hasImage: false,
+        hasButton: false,
+    },
+    parameters: {
+        // Design mode renders the real ContentCard inside PageDesignerProvider's lazy Suspense
+        // provider, which resolves in a live browser but suspends to a fallback in the synchronous
+        // snapshot render — so this story is interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729786: a freshly-dropped, unconfigured Content Card as a merchant sees it in Page Designer design mode (`mode="EDIT"`). Renders a preview of the real image-backed card — a grey placeholder surface with the image glyph and the default description/title bottom-left aligned, no CTA — the authoring cue that never leaks to shoppers (see UnconfiguredLiveStorefront for the live view).',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-content-card" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await waitForStorybookReady(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the authoring prompt to appear.
+        await waitFor(async () => {
+            await expect(canvas.getByRole('heading', { name: /add your title here/i })).toBeInTheDocument();
+        });
+        await expect(canvas.getByText(/add your description here/i)).toBeInTheDocument();
+        // The placeholder is copy only — no CTA button or link.
+        await expect(canvas.queryByRole('button')).not.toBeInTheDocument();
+        await expect(canvas.queryByRole('link')).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector('[data-slot="empty-state"]')).not.toBeNull();
     },
 };
 

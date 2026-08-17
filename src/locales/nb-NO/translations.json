@@ -28,6 +28,10 @@
             "emptyTitle": "Legg til tittelen her",
             "emptyButton": "Knapp"
         },
+        "contentCard": {
+            "emptyTitle": "Legg til tittelen her",
+            "emptyDescription": "Legg til beskrivelsen her"
+        },
         "previousImage": "Forrige bilde",
         "nextImage": "Neste bilde"
     },

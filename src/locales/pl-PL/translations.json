@@ -27,6 +27,10 @@
             "emptyTitle": "Dodaj tytuł tutaj",
             "emptyButton": "Przycisk"
         },
+        "contentCard": {
+            "emptyTitle": "Dodaj tytuł tutaj",
+            "emptyDescription": "Dodaj opis tutaj"
+        },
         "previousImage": "Poprzedni obraz",
         "nextImage": "Następny obraz"
     },

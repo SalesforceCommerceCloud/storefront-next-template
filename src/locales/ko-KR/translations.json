@@ -27,6 +27,10 @@
             "emptyTitle": "여기에 제목 추가",
             "emptyButton": "버튼"
         },
+        "contentCard": {
+            "emptyTitle": "여기에 제목 추가",
+            "emptyDescription": "여기에 설명 추가"
+        },
         "previousImage": "이전 이미지",
         "nextImage": "다음 이미지"
     },

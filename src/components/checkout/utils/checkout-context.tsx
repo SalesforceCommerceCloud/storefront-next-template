@@ -80,14 +80,10 @@ export default function CheckoutProvider({ children, customerProfile, shippingDe
                 currentStepRef.current = computedStep;
                 setCurrentStep(computedStep);
             } else if (!isActiveCheckoutFlow) {
-                // Guests before isActiveCheckoutFlow: follow computedStep but never skip past
-                // SHIPPING_OPTIONS. SCAPI auto-sets a shipping method when processing an address
-                // submission, which would cause computedStep to jump to PAYMENT. We stop at
-                // SHIPPING_OPTIONS so the shopper can review and confirm their shipping choice.
-                // currentStepRef (not state) is read here to avoid adding currentStep to deps,
-                // which would turn this effect into a render loop.
+                // Hold guests at SHIPPING_OPTIONS (using `<=`, so one already on the step stays) to
+                // confirm their choice even once an applied method makes computedStep reach PAYMENT.
                 const nextStep =
-                    currentStepRef.current < CHECKOUT_STEPS.SHIPPING_OPTIONS &&
+                    currentStepRef.current <= CHECKOUT_STEPS.SHIPPING_OPTIONS &&
                     computedStep > CHECKOUT_STEPS.SHIPPING_OPTIONS
                         ? CHECKOUT_STEPS.SHIPPING_OPTIONS
                         : computedStep;

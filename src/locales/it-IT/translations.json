@@ -27,6 +27,10 @@
             "emptyTitle": "Aggiungi qui il titolo",
             "emptyButton": "Pulsante"
         },
+        "contentCard": {
+            "emptyTitle": "Aggiungi qui il titolo",
+            "emptyDescription": "Aggiungi qui la descrizione"
+        },
         "previousImage": "Immagine precedente",
         "nextImage": "Immagine successiva",
         "productGrid": {

@@ -27,6 +27,10 @@
             "emptyTitle": "Lisää otsikko tähän",
             "emptyButton": "Painike"
         },
+        "contentCard": {
+            "emptyTitle": "Lisää otsikko tähän",
+            "emptyDescription": "Lisää kuvaus tähän"
+        },
         "previousImage": "Edellinen kuva",
         "nextImage": "Seuraava kuva"
     },

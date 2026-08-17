@@ -26,6 +26,10 @@
             "emptyTitle": "Lägg till din rubrik här",
             "emptyButton": "Knapp"
         },
+        "contentCard": {
+            "emptyTitle": "Lägg till din rubrik här",
+            "emptyDescription": "Lägg till din beskrivning här"
+        },
         "previousImage": "Föregående bild",
         "nextImage": "Nästa bild"
     },

@@ -150,6 +150,82 @@ describe('useShippingOptions', () => {
         expect(result.current.summaryMethod).toBeUndefined();
     });
 
+    describe('confirmed-method predicates (isUpcomingStep / hideChangeForGuest)', () => {
+        // Edit is gated on the delivery shipment carrying both a method and an address (W-23715367).
+        const fullAddress = {
+            firstName: 'John',
+            lastName: 'Doe',
+            address1: '123 Main St',
+            city: 'New York',
+            stateCode: 'NY',
+            postalCode: '10001',
+        };
+        const basketWithMethodAndAddress = (id: string) =>
+            createMockBasket({
+                shipments: [{ shipmentId: 's1', shippingMethod: { id }, shippingAddress: fullAddress }],
+            });
+        const basketWithMethodNoAddress = (id: string) =>
+            createMockBasket({ shipments: [{ shipmentId: 's1', shippingMethod: { id } }] });
+
+        test('a valid applied method with an address marks the stage confirmed (not upcoming) and keeps Edit for a guest', () => {
+            useCustomerProfile.mockReturnValue(null);
+            useBasket.mockReturnValue(basketWithMethodAndAddress('express'));
+            const { result } = renderShippingHook({ isEditing: false });
+            expect(result.current.summaryMethod).toBeDefined();
+            expect(result.current.isUpcomingStep).toBe(false);
+            expect(result.current.hideChangeForGuest).toBe(false);
+        });
+
+        test('an applied-but-unlisted method with an address stays confirmed (Edit available) but shows no summary', () => {
+            useCustomerProfile.mockReturnValue(null);
+            useBasket.mockReturnValue(basketWithMethodAndAddress('unlisted'));
+            const { result } = renderShippingHook({ isEditing: false });
+            expect(result.current.summaryMethod).toBeUndefined();
+            expect(result.current.isUpcomingStep).toBe(false);
+            expect(result.current.hideChangeForGuest).toBe(false);
+        });
+
+        test('a method pre-applied before an address exists keeps the stage upcoming and hides Edit (original bug)', () => {
+            useCustomerProfile.mockReturnValue(null);
+            useBasket.mockReturnValue(basketWithMethodNoAddress('express'));
+            const { result } = renderShippingHook({ isEditing: false });
+            expect(result.current.isUpcomingStep).toBe(true);
+            expect(result.current.hideChangeForGuest).toBe(true);
+        });
+
+        test('no applied method keeps the stage upcoming and hides Edit for a guest', () => {
+            useCustomerProfile.mockReturnValue(null);
+            useBasket.mockReturnValue(createMockBasket());
+            const { result } = renderShippingHook({ isEditing: false });
+            expect(result.current.isUpcomingStep).toBe(true);
+            expect(result.current.hideChangeForGuest).toBe(true);
+        });
+
+        test('a returning customer with an addressed basket keeps Edit even when the applied method is not offerable', () => {
+            // Regression guard: a collapsed section must still expose Edit so the shopper can re-pick.
+            useCustomerProfile.mockReturnValue({ customer: { customerId: 'c1' } });
+            useBasket.mockReturnValue(basketWithMethodAndAddress('unlisted'));
+            const { result } = renderShippingHook({ isEditing: false });
+            expect(result.current.summaryMethod).toBeUndefined();
+            expect(result.current.isUpcomingStep).toBe(false);
+            expect(result.current.hideChangeForGuest).toBe(false);
+        });
+
+        test('the address gate applies to returning customers too: a method with no address stays upcoming', () => {
+            useCustomerProfile.mockReturnValue({ customer: { customerId: 'c1' } });
+            useBasket.mockReturnValue(basketWithMethodNoAddress('express'));
+            const { result } = renderShippingHook({ isEditing: false });
+            expect(result.current.isUpcomingStep).toBe(true);
+        });
+
+        test('editing keeps the stage active (not upcoming) even without a confirmed method', () => {
+            useCustomerProfile.mockReturnValue(null);
+            useBasket.mockReturnValue(createMockBasket());
+            const { result } = renderShippingHook({ isEditing: true });
+            expect(result.current.isUpcomingStep).toBe(false);
+        });
+    });
+
     describe('getDiscountedPrice', () => {
         test('returns base price when no discount exists', () => {
             const { result } = renderShippingHook();
@@ -562,14 +638,123 @@ describe('ShippingOptions Component', () => {
         expect(screen.queryByText('$0.00')).not.toBeInTheDocument();
     });
 
-    test('shows correct prompt for guest vs signed-in user when no method selected', () => {
-        render(<ShippingOptions {...createDefaultProps({ isEditing: false })} />);
+    test('shows the same empty-state prompt for guest and signed-in users when no method selected', () => {
+        const guest = render(<ShippingOptions {...createDefaultProps({ isEditing: false })} />);
         expect(screen.getByText(/complete previous steps to continue/i)).toBeInTheDocument();
+        guest.unmount();
 
         useCustomerProfile.mockReturnValue({ customer: { customerId: 'c1' } } as never);
-        const { unmount } = render(<ShippingOptions {...createDefaultProps({ isEditing: false })} />);
-        expect(screen.getByText(/enter your shipping address to view available shipping methods/i)).toBeInTheDocument();
-        unmount();
+        render(<ShippingOptions {...createDefaultProps({ isEditing: false })} />);
+        expect(screen.getByText(/complete previous steps to continue/i)).toBeInTheDocument();
+    });
+
+    test('shows the summary and an enabled Edit for a valid pre-applied method (guest)', () => {
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [
+                    {
+                        shipmentId: 's1',
+                        shippingMethod: { id: 'express' },
+                        shippingAddress: {
+                            firstName: 'John',
+                            lastName: 'Doe',
+                            address1: '123 Main St',
+                            city: 'New York',
+                            stateCode: 'NY',
+                            postalCode: '10001',
+                        },
+                    },
+                ],
+            })
+        );
+        render(<ShippingOptions {...createDefaultProps({ isEditing: false })} />);
+
+        expect(screen.getByText('$12.99 | Express Shipping')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+    });
+
+    test('hides Edit and shows the empty state for a method pre-applied before an address exists (guest)', () => {
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [{ shipmentId: 's1', shippingMethod: { id: 'express', name: 'Express', price: 12.99 } }],
+            })
+        );
+        render(
+            <ShippingOptions
+                {...createDefaultProps({ isEditing: false, shippingMethods: { applicableShippingMethods: [] } })}
+            />
+        );
+
+        expect(screen.getByText(/complete previous steps to continue/i)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /edit/i })).toBeNull();
+    });
+
+    test('hides Edit on the empty state when an applied method has no offerable methods for the address', () => {
+        // With a stale method + address but zero applicable methods, guard on availability so the
+        // empty-state summary doesn't expose a dead Edit affordance.
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [
+                    {
+                        shipmentId: 's1',
+                        shippingMethod: { id: 'express', name: 'Express', price: 12.99 },
+                        shippingAddress: {
+                            firstName: 'John',
+                            lastName: 'Doe',
+                            address1: '123 Main St',
+                            city: 'Anchorage',
+                            stateCode: 'AK',
+                            postalCode: '99501',
+                        },
+                    },
+                ],
+            })
+        );
+        render(
+            <ShippingOptions
+                {...createDefaultProps({ isEditing: false, shippingMethods: { applicableShippingMethods: [] } })}
+            />
+        );
+
+        expect(screen.getByText(/complete previous steps to continue/i)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /edit/i })).toBeNull();
+    });
+
+    test('keeps Edit when the applied method is unlisted but other methods are available (re-pick)', () => {
+        // Alaska-style: the applied default isn't offerable, but alternatives exist — the shopper must
+        // still be able to open the stage and re-pick, so Edit stays visible.
+        useBasket.mockReturnValue(
+            createMockBasket({
+                shipments: [
+                    {
+                        shipmentId: 's1',
+                        shippingMethod: { id: 'unavailable-default', name: 'Default', price: 5.99 },
+                        shippingAddress: {
+                            firstName: 'John',
+                            lastName: 'Doe',
+                            address1: '123 Main St',
+                            city: 'Anchorage',
+                            stateCode: 'AK',
+                            postalCode: '99501',
+                        },
+                    },
+                ],
+            })
+        );
+        render(
+            <ShippingOptions
+                {...createDefaultProps({
+                    isEditing: false,
+                    shippingMethods: {
+                        applicableShippingMethods: [
+                            { id: 'express', name: 'Express', description: '2-3 days', price: 12.99 },
+                        ],
+                    },
+                })}
+            />
+        );
+
+        expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
     });
 
     test('uses description as primary label and name as secondary label', () => {

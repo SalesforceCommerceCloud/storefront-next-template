@@ -67,7 +67,6 @@ export default function ShippingOptions({
         selectedMethod,
         summaryMethod,
         defaultShippingMethodId,
-        isGuest,
         hideChangeForGuest,
         isUpcomingStep,
         getDiscountedPrice,
@@ -94,7 +93,8 @@ export default function ShippingOptions({
             disabled={false}
             onEdit={onEdit}
             editLabel={t('common.edit')}
-            disableEdit={hideChangeForGuest || isUpcomingStep}
+            // Hide Edit when there are no offerable methods to change.
+            disableEdit={hideChangeForGuest || isUpcomingStep || availableShippingMethods.length === 0}
             showHeaderSeparator
             isLoading={isLoading}>
             <ToggleCardEdit>
@@ -235,9 +235,7 @@ export default function ShippingOptions({
                         })()}
                     </div>
                 ) : (
-                    <p className="text-sm text-muted-foreground">
-                        {isGuest ? t('shippingOptions.completePreviousSteps') : t('shippingOptions.enterAddressFirst')}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t('shippingOptions.completePreviousSteps')}</p>
                 )}
             </ToggleCardSummary>
         </ToggleCard>

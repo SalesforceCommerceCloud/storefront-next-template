@@ -27,6 +27,10 @@
             "emptyTitle": "ここにタイトルを追加",
             "emptyButton": "ボタン"
         },
+        "contentCard": {
+            "emptyTitle": "ここにタイトルを追加",
+            "emptyDescription": "ここに説明を追加"
+        },
         "previousImage": "前の画像",
         "nextImage": "次の画像"
     },

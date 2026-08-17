@@ -451,8 +451,8 @@ describe('shipping progression', () => {
 
         expect(mocks.updateBasket).toHaveBeenCalledWith(responseBasket);
         expect(mocks.exitEditMode).not.toHaveBeenCalled();
-        expect(mocks.goToStep).toHaveBeenCalledOnce();
-        expect(mocks.goToStep).toHaveBeenCalledWith(3);
+        // The price-only recalculation must neither pin the step nor advance it.
+        expect(mocks.goToStep).not.toHaveBeenCalled();
 
         act(() => {
             mocks.basket = responseBasket;
@@ -471,7 +471,7 @@ describe('shipping progression', () => {
         });
 
         expect(mocks.exitEditMode).not.toHaveBeenCalled();
-        expect(mocks.goToStep).toHaveBeenCalledOnce();
+        expect(mocks.goToStep).not.toHaveBeenCalled();
     });
 });
 

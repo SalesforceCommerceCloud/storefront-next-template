@@ -28,6 +28,10 @@
             "emptyTitle": "在此新增標題",
             "emptyButton": "按鈕"
         },
+        "contentCard": {
+            "emptyTitle": "在此新增標題",
+            "emptyDescription": "在此新增描述"
+        },
         "previousImage": "上一張圖像",
         "nextImage": "下一張圖像"
     },

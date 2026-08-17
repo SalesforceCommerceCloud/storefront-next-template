@@ -27,6 +27,10 @@
             "emptyTitle": "Añade tu título aquí",
             "emptyButton": "Botón"
         },
+        "contentCard": {
+            "emptyTitle": "Añade tu título aquí",
+            "emptyDescription": "Añade tu descripción aquí"
+        },
         "previousImage": "Imagen anterior",
         "nextImage": "Siguiente imagen"
     },
