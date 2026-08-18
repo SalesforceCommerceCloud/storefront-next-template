@@ -28,12 +28,15 @@
             "emptyTitle": "在此新增標題",
             "emptyButton": "按鈕"
         },
+        "image": {
+            "emptyTitle": "在此新增標題"
+        },
+        "previousImage": "上一張圖像",
+        "nextImage": "下一張圖像",
         "contentCard": {
             "emptyTitle": "在此新增標題",
             "emptyDescription": "在此新增描述"
-        },
-        "previousImage": "上一張圖像",
-        "nextImage": "下一張圖像"
+        }
     },
     "search": {
         "results": "搜尋結果",

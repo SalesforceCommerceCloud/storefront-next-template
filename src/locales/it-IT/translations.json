@@ -27,14 +27,17 @@
             "emptyTitle": "Aggiungi qui il titolo",
             "emptyButton": "Pulsante"
         },
-        "contentCard": {
-            "emptyTitle": "Aggiungi qui il titolo",
-            "emptyDescription": "Aggiungi qui la descrizione"
+        "image": {
+            "emptyTitle": "Aggiungi qui il titolo"
         },
         "previousImage": "Immagine precedente",
         "nextImage": "Immagine successiva",
         "productGrid": {
             "loadFailed": "Impossibile caricare ulteriori prodotti."
+        },
+        "contentCard": {
+            "emptyTitle": "Aggiungi qui il titolo",
+            "emptyDescription": "Aggiungi qui la descrizione"
         }
     },
     "search": {

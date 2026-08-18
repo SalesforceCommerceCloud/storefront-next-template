@@ -27,12 +27,15 @@
             "emptyTitle": "Añade tu título aquí",
             "emptyButton": "Botón"
         },
+        "image": {
+            "emptyTitle": "Añade tu título aquí"
+        },
+        "previousImage": "Imagen anterior",
+        "nextImage": "Siguiente imagen",
         "contentCard": {
             "emptyTitle": "Añade tu título aquí",
             "emptyDescription": "Añade tu descripción aquí"
-        },
-        "previousImage": "Imagen anterior",
-        "nextImage": "Siguiente imagen"
+        }
     },
     "search": {
         "results": "Resultados de la búsqueda para",

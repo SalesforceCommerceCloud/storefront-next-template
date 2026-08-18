@@ -183,9 +183,15 @@ module.exports = {
                         // the ~64B with a small headroom bump rather than dropping the capability.
                         // Raised 502500 → 505000: cosmetic mirror measured 504405 after merging
                         // cancel/return + main into split-commits.
+                        // Raised 505000 → 506000 (@W-23729798@): the Image design-mode empty state
+                        // adds the `showEmptyState`/`resolveAssetUrl` branch, the placeholder URL
+                        // constant, and its i18n string to the shared DynamicImage module, which the
+                        // cart line-item images pull in (CI measured 505567 across 5 runs). The
+                        // branch is irreducible — it is the feature — so absorb the ~567B rather
+                        // than dropping the authoring affordance.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 505000, aggregationMethod: 'median' },
+                            { maxNumericValue: 506000, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.

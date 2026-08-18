@@ -26,12 +26,15 @@
             "emptyTitle": "Lägg till din rubrik här",
             "emptyButton": "Knapp"
         },
+        "image": {
+            "emptyTitle": "Lägg till din rubrik här"
+        },
+        "previousImage": "Föregående bild",
+        "nextImage": "Nästa bild",
         "contentCard": {
             "emptyTitle": "Lägg till din rubrik här",
             "emptyDescription": "Lägg till din beskrivning här"
-        },
-        "previousImage": "Föregående bild",
-        "nextImage": "Nästa bild"
+        }
     },
     "search": {
         "results": "Sökresultat för",

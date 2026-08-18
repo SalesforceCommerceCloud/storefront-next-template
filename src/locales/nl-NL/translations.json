@@ -25,12 +25,15 @@
             "emptyTitle": "Voeg hier je titel toe",
             "emptyButton": "Knop"
         },
+        "image": {
+            "emptyTitle": "Voeg hier je titel toe"
+        },
+        "previousImage": "Vorige afbeelding",
+        "nextImage": "Volgende afbeelding",
         "contentCard": {
             "emptyTitle": "Voeg hier je titel toe",
             "emptyDescription": "Voeg hier je beschrijving toe"
-        },
-        "previousImage": "Vorige afbeelding",
-        "nextImage": "Volgende afbeelding"
+        }
     },
     "search": {
         "results": "Zoekresultaten voor",

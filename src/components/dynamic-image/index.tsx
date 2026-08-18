@@ -15,9 +15,11 @@
  */
 import { type ElementType, type ImgHTMLAttributes, useMemo } from 'react';
 import { preload } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { cn, isServer } from '@/lib/utils';
+import { cn, isServer, resolveAssetUrl } from '@/lib/utils';
 import {
     type DynamicImageDimensions,
     replaceImageFormat,
@@ -28,6 +30,14 @@ import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
 import type { ComponentType } from '@/components/region';
+
+/**
+ * Public-dir path to the shared authoring placeholder. Referenced by URL (not a module import) so
+ * the SVG stays out of the widely-shared `DynamicImage` bundle — importing it inlines the payload as
+ * a data URI into every shopper page that renders an image. `resolveAssetUrl` prepends the MRT bundle
+ * path when needed. Only fetched on the design-mode empty-state branch, never on the live storefront.
+ */
+const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
 
 interface DynamicImageProps {
     src: string;
@@ -334,6 +344,8 @@ const DynamicImage = ({
     ...rest
 }: DynamicImageProps) => {
     const config = useConfig();
+    const { t } = useTranslation('common');
+    const { isDesignMode } = usePageDesignerMode();
 
     // Page Designer passes image-type attributes as objects — normalize to a plain string.
     // SFCC image objects can use several URL properties depending on source and context.
@@ -345,6 +357,16 @@ const DynamicImage = ({
               ((src as Record<string, unknown>).link as string) ||
               ''
             : (src ?? '');
+
+    // Empty state (W-23729798): a freshly-dropped Image with no configured src. Rather than a
+    // bespoke placeholder branch, we feed the shared image placeholder asset through the
+    // component's *real* render path — so the authoring preview is the actual rendered image (grey
+    // placeholder surface with the picture glyph). This is a Page-Designer *authoring* affordance,
+    // so it only kicks in during design mode; on the live storefront an unconfigured image falls
+    // through to the normal render path (a bare `<img>` with no src), exactly as before. Mirrors
+    // the Content Card's design-mode gate.
+    const showEmptyState = isDesignMode && !resolvedSrc;
+    const effectiveSrc = showEmptyState ? resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC) : resolvedSrc;
 
     // Parse widths/heights if they're strings (from Page Designer)
     const parsedWidths = useMemo(() => parseDimensionsString(widths), [widths]);
@@ -360,8 +382,9 @@ const DynamicImage = ({
         enableDis,
         fallbackFormat,
     } = useMemo(
-        () => resolveDynamicImageAttributes({ src: resolvedSrc, config, widths: parsedWidths, heights: parsedHeights }),
-        [resolvedSrc, config, parsedWidths, parsedHeights]
+        () =>
+            resolveDynamicImageAttributes({ src: effectiveSrc, config, widths: parsedWidths, heights: parsedHeights }),
+        [effectiveSrc, config, parsedWidths, parsedHeights]
     );
     const imageContext = useDynamicImageContext();
 
@@ -375,7 +398,8 @@ const DynamicImage = ({
         className: cn(objectFitClass, imageProps.className),
         loading: effectiveLoading,
         fetchPriority: effectivePriority,
-        alt,
+        // In the empty state the placeholder art is decorative; label it with the authoring cue.
+        alt: showEmptyState ? t('image.emptyTitle') : alt,
         src: enableDis ? replaceImageFormat(responsiveSrc, fallbackFormat, undefined, config) : responsiveSrc,
     };
 
@@ -410,7 +434,10 @@ const DynamicImage = ({
 
     return (
         <>
-            <div className={cn(styleClasses, className)} {...rest}>
+            <div
+                {...(showEmptyState && { 'data-slot': 'empty-state' })}
+                className={cn(styleClasses, className)}
+                {...rest}>
                 {sources.length > 0 ? (
                     <picture>
                         {sources.map(({ type, srcSet, sizes, media }, idx) => (

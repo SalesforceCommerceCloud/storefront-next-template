@@ -32,6 +32,14 @@ vi.mock('@/lib/decorators/attribute-definition', () => ({
     AttributeDefinition: () => () => {},
 }));
 
+// The instructional empty state is gated to Page Designer design mode. Default to false (live
+// storefront) so the bulk of the suite exercises the shopper-facing render; individual empty-state
+// tests flip this to true.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }),
+}));
+
 import { DynamicImage } from './index';
 
 const src =
@@ -85,6 +93,7 @@ describe('Dynamic Image Component', () => {
         mockConfigImages = {
             ...mockConfig.images,
         };
+        mockIsDesignMode = false;
     });
 
     afterEach(() => {
@@ -1260,6 +1269,61 @@ describe('Dynamic Image Component', () => {
             // Whatever DIS-rewriting happens, the image must end up rendering — i.e., the empty absURL
             // didn't short-circuit the fallback chain.
             expect(img).toBeInTheDocument();
+        });
+    });
+
+    describe('Empty state (Page Designer authoring)', () => {
+        test('renders the normal bare <img> (no empty state) on the live storefront with an empty src', () => {
+            const { container } = render(<DynamicImage src="" alt="No image source" />);
+
+            // Live storefront (not design mode) with no src → the existing bare-<img> behavior is
+            // preserved exactly; no authoring placeholder is shown to shoppers.
+            const img = screen.getByRole('img');
+            expect(img).toBeInTheDocument();
+            expect(img.closest('picture')).not.toBeInTheDocument();
+            // No placeholder asset flows through — React omits the empty-string src entirely.
+            expect(img.getAttribute('src')).toBeNull();
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
+        });
+
+        test('renders the shared placeholder image through the real render path in design mode with an empty src', () => {
+            mockIsDesignMode = true;
+            const { container } = render(<DynamicImage src="" alt="" />);
+
+            // W-23729798: in Page Designer design mode, an unconfigured Image feeds the shared
+            // placeholder asset through the normal render path — a real <img> pointing at the
+            // placeholder art, marked as the empty state. The placeholder is referenced by its
+            // public-dir URL (not a bundled module import), so the rendered src is the stable asset
+            // path rather than a data URI or the Vite asset mock.
+            const img = screen.getByRole('img');
+            expect(img.getAttribute('src')).toContain('content-placeholder.svg');
+            expect(container.querySelector('[data-slot="empty-state"]')).toBeInTheDocument();
+        });
+
+        test('the empty state has no interactive controls (illustrative placeholder only)', () => {
+            mockIsDesignMode = true;
+            render(<DynamicImage src="" alt="" />);
+
+            // The placeholder is a plain image — no CTA button or link.
+            expect(screen.queryByRole('button')).not.toBeInTheDocument();
+            expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        });
+
+        test('renders the normal image (no empty state) in design mode when a real src is configured', () => {
+            mockIsDesignMode = true;
+            const { container } = render(<DynamicImage src={src} alt="Test image" />);
+
+            // A configured image is unaffected by design mode — no placeholder leaks in.
+            const img = screen.getByRole('img');
+            expect(img.getAttribute('src')).not.toContain('content-placeholder');
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
+        });
+
+        test('passes through extra HTML attributes to the empty-state wrapper', () => {
+            mockIsDesignMode = true;
+            render(<DynamicImage src="" alt="" {...({ 'data-testid': 'empty-wrapper' } as any)} />);
+
+            expect(screen.getByTestId('empty-wrapper')).toHaveAttribute('data-slot', 'empty-state');
         });
     });
 });

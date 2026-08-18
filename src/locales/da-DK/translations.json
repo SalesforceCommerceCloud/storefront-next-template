@@ -27,12 +27,15 @@
             "emptyTitle": "Tilføj din titel her",
             "emptyButton": "Knap"
         },
+        "image": {
+            "emptyTitle": "Tilføj din titel her"
+        },
+        "previousImage": "Forrige billede",
+        "nextImage": "Næste billede",
         "contentCard": {
             "emptyTitle": "Tilføj din titel her",
             "emptyDescription": "Tilføj din beskrivelse her"
-        },
-        "previousImage": "Forrige billede",
-        "nextImage": "Næste billede"
+        }
     },
     "search": {
         "results": "Søgeresultater for",

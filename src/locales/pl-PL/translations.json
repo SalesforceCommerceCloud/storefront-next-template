@@ -27,12 +27,15 @@
             "emptyTitle": "Dodaj tytuł tutaj",
             "emptyButton": "Przycisk"
         },
+        "image": {
+            "emptyTitle": "Dodaj tytuł tutaj"
+        },
+        "previousImage": "Poprzedni obraz",
+        "nextImage": "Następny obraz",
         "contentCard": {
             "emptyTitle": "Dodaj tytuł tutaj",
             "emptyDescription": "Dodaj opis tutaj"
-        },
-        "previousImage": "Poprzedni obraz",
-        "nextImage": "Następny obraz"
+        }
     },
     "search": {
         "results": "Wyniki wyszukiwania dla",

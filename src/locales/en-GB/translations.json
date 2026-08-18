@@ -28,9 +28,8 @@
             "emptyTitle": "Add your title here",
             "emptyButton": "Button"
         },
-        "contentCard": {
-            "emptyTitle": "Add your title here",
-            "emptyDescription": "Add your description here"
+        "image": {
+            "emptyTitle": "Add your title here"
         },
         "previousImage": "Previous image",
         "nextImage": "Next image",
@@ -43,7 +42,11 @@
             "play": "Play carousel",
             "pause": "Pause carousel"
         },
-        "skipToMainContent": "Skip to main content"
+        "skipToMainContent": "Skip to main content",
+        "contentCard": {
+            "emptyTitle": "Add your title here",
+            "emptyDescription": "Add your description here"
+        }
     },
     "search": {
         "results": "Search Results for",
