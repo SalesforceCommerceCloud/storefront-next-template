@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { type ComponentPropsWithoutRef, type CSSProperties, type ReactNode, forwardRef } from 'react';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { cn } from '@/lib/utils';
 import { Component } from '@/lib/decorators/component';
@@ -23,6 +24,19 @@ import { type ComponentType, Region } from '@/components/region';
 
 // Based on Radix UI Themes Grid component API
 // Reference: https://www.radix-ui.com/themes/docs/components/grid
+
+/**
+ * Class name for a Grid column's design-mode empty-state outline. Applied to the column's `<Region>`
+ * wrapper (not a standalone div) so the outline *is* the region's own droppable surface — the merchant
+ * sees the grid's real column layout (each cell respects the container's `grid-cols-N` + gap) AND can
+ * drop directly onto it. Figma "Fallback" spec: "Show grid column outlines".
+ *
+ * Theme binding (no hardcoded colors): a dashed `border-border` outline over a `bg-muted` fill so it
+ * reads as an empty drop zone and re-skins with the active theme. `w-full` keeps the region full-width
+ * within its grid cell, matching the filled-column region className.
+ */
+const GRID_COLUMN_PLACEHOLDER_CLASS =
+    'min-h-[200px] w-full rounded-lg border-2 border-dashed border-border bg-muted/40';
 
 /* v8 ignore start - do not test decorators in unit tests, decorator functionality is tested separately*/
 @Component('grid', {
@@ -62,7 +76,7 @@ export class GridMetadata {
         description: 'Number of columns in the grid (1-6)',
         type: 'enum',
         values: ['1', '2', '3', '4', '5', '6'],
-        defaultValue: '1',
+        defaultValue: '3',
     })
     columns?: string;
 
@@ -233,7 +247,7 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(
             as: ComponentElement = 'div',
             className,
             display = 'grid',
-            columns = '1',
+            columns = '3',
             flow = 'row',
             p,
             px,
@@ -254,6 +268,8 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(
         },
         ref
     ) => {
+        const { isDesignMode } = usePageDesignerMode();
+
         // Build grid styles
         const gridStyles: CSSProperties = { ...style };
 
@@ -309,6 +325,26 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(
             // Generate region IDs based on column count (column_1, column_2, etc.)
             const regionIds = Array.from({ length: numColumns }, (_, i) => `column_${i + 1}`);
 
+            // Empty state (W-23729804): a freshly-dropped Grid with no content in any of its
+            // active column regions. Per the Figma "Fallback" spec, design mode shows the grid's
+            // column outlines — one dashed placeholder box per column — so the merchant sees the
+            // real column layout (respecting the container's `grid-cols-N` + gap) rather than blank
+            // drop zones. This is a Page-Designer *authoring* affordance, so it renders only in
+            // design mode — on the live storefront empty column regions still render nothing per
+            // column, exactly as before this change. As soon as any column gains content, the
+            // placeholder styling drops and normal region rendering resumes. Mirrors the Hero's,
+            // Content Card's, Announcement Banner's, and Image's design-mode gate.
+            //
+            // The outline is applied to each column's `<Region>` (via className) rather than a
+            // standalone div, so the visible drop zone IS the region's own droppable surface — a
+            // merchant can drop a component straight onto it. Region already renders its droppable
+            // wrapper for empty regions in design mode, so the Regions stay mounted here.
+            const allColumnsEmpty = regionIds.every((id) => {
+                const region = component.regions?.find((r) => r.id === id);
+                return (region?.components?.length ?? 0) === 0;
+            });
+            const showEmptyState = isDesignMode && allColumnsEmpty;
+
             return (
                 <ComponentElement ref={ref} className={classes} style={gridStyles} data-slot="grid" {...props}>
                     {regionIds.map((regionId) => (
@@ -317,7 +353,7 @@ const Grid = forwardRef<HTMLDivElement, GridProps>(
                             regionId={regionId}
                             component={component}
                             errorElement={null}
-                            className="w-full"
+                            className={showEmptyState ? GRID_COLUMN_PLACEHOLDER_CLASS : 'w-full'}
                         />
                     ))}
                 </ComponentElement>

@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, waitFor, within } from 'storybook/test';
+import { waitForStorybookReady } from '@storybook/test-utils';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import type { ComponentType } from '@/components/region';
 import { Grid } from '../index';
 
 function renderItems(count: number, variant: 'muted' | 'card' = 'muted') {
@@ -35,7 +39,7 @@ const meta: Meta<typeof Grid> = {
         docs: {
             description: {
                 component:
-                    'A layout grid based on Radix UI Themes. Supports 1–6 columns plus column gap, max-width, container/vertical alignment, and background styling. Used in Page Designer as `Layout.grid`.',
+                    "A layout grid based on Radix UI Themes. Supports 1–6 columns plus column gap, max-width, container/vertical alignment, and background styling. Used in Page Designer as `Layout.grid`. W-23729804: when every active column region is empty, Page Designer design mode outlines each column's droppable region with a dashed border so the merchant sees the real column layout and can drop straight onto it, see UnconfiguredDesignMode. On the live storefront empty column regions render nothing, with no authoring outline shown to shoppers.",
             },
         },
     },
@@ -151,4 +155,58 @@ export const Featured: Story = {
         className: 'p-8',
     },
     render: (args) => <Grid {...args}>{renderItems(Number(args.columns ?? '4'), 'card')}</Grid>,
+};
+
+// A minimal Page Designer component payload where every active column region has no
+// components — the "freshly dropped, nothing configured yet" authoring state.
+const emptyGridComponent = {
+    id: 'grid1',
+    typeId: 'commerce_layouts.grid',
+    regions: [
+        { id: 'column_1', components: [] },
+        { id: 'column_2', components: [] },
+        { id: 'column_3', components: [] },
+    ],
+} as unknown as ComponentType;
+
+/**
+ * W-23729804: a freshly-dropped Grid with no content in any column, as a merchant sees it in
+ * Page Designer design mode (`mode="EDIT"`). Renders the grid's column outlines — a dashed outline
+ * on each column's droppable region, respecting the container's `grid-cols-N` + gap — so the
+ * merchant sees the real column layout and can drop content straight onto it (Figma "Fallback"
+ * spec). As soon as any column gains content, the outline styling drops and normal per-column
+ * region rendering resumes.
+ */
+export const UnconfiguredDesignMode: Story = {
+    parameters: {
+        // Design mode renders the real Grid inside PageDesignerProvider's lazy Suspense provider,
+        // which resolves in a live browser but suspends to a fallback in this synchronous snapshot
+        // render — so this story is interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729804: a freshly-dropped Grid with no content in any column, as a merchant sees it in Page Designer design mode (`mode="EDIT"`). Renders the grid\'s column outlines — a dashed outline on each column\'s droppable region, respecting the container\'s `grid-cols-N` + gap — so the merchant sees the real column layout and can drop content straight onto it (Figma "Fallback" spec). As soon as any column gains content, the outline styling drops and normal per-column region rendering resumes.',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-grid" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    render: () => <Grid columns="3" component={emptyGridComponent} />,
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the column outlines to appear.
+        // The dashed outline is applied to each column's droppable Region wrapper (not a standalone
+        // div), so the visible drop zones are the real Page Designer targets.
+        await waitFor(async () => {
+            await expect(canvasElement.querySelectorAll('.border-dashed')).toHaveLength(3);
+        });
+        // The outlines are the Regions' own surfaces — no focusable controls.
+        await expect(within(canvasElement).queryByRole('button')).not.toBeInTheDocument();
+    },
 };

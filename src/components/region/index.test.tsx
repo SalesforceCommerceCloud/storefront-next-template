@@ -21,6 +21,7 @@ import type { ShopperExperience } from '@/scapi';
 import type { PageWithComponentData } from '@/lib/page-designer/page-loader.server';
 import {
     useRegionContext,
+    usePageDesignerMode,
     PageDesignerPageMetadataProvider,
 } from '@salesforce/storefront-next-runtime/design/react/core';
 
@@ -53,6 +54,9 @@ describe('Region', () => {
     beforeEach(() => {
         capturedDesignMetadata = null;
         vi.clearAllMocks();
+        // clearAllMocks resets call records but not mockReturnValue overrides, so re-assert the
+        // default here — otherwise a design-mode test would leak isDesignMode:true into later tests.
+        vi.mocked(usePageDesignerMode).mockReturnValue({ isDesignMode: false, isPreviewMode: false });
     });
 
     const mockRegion = {
@@ -196,6 +200,25 @@ describe('Region', () => {
 
         // In non-design mode, empty region renders nothing (empty Fragment)
         expect(screen.queryByTestId(/component-/)).not.toBeInTheDocument();
+        // ...and crucially never registers a drop target on the live storefront.
+        expect(capturedDesignMetadata).toBeNull();
+    });
+
+    it('renders the droppable wrapper for an empty component region in design mode', () => {
+        // W-23729804: an empty *component-mode* region must still render its droppable RegionWrapper
+        // in Page Designer design mode — matching page mode — so it registers as a drop target (e.g.
+        // an empty Grid column). Without forwarding isDesignMode, component mode returned null here.
+        vi.mocked(usePageDesignerMode).mockReturnValue({ isDesignMode: true, isPreviewMode: false });
+        const emptyRegion = { id: 'empty-region', components: [] };
+        const mockComponent = {
+            id: 'test-component',
+            typeId: 'grid',
+            regions: [emptyRegion],
+        } as ComponentType;
+        render(<Region component={mockComponent} regionId="empty-region" className="w-full" />);
+
+        // RegionWrapper was rendered (mock captured its designMetadata) → drop target registered.
+        expect(capturedDesignMetadata).toMatchObject({ id: 'empty-region' });
     });
 
     it('renders errorElement for empty page region when fallbackOnEmpty is set', async () => {

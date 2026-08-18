@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Grid } from './index';
 
@@ -39,7 +39,19 @@ vi.mock('@/components/region', () => ({
     ),
 }));
 
+// The instructional empty state is gated to Page Designer design mode. Default to false (live
+// storefront) so the bulk of the suite exercises the shopper-facing render; individual empty-state
+// tests flip this to true.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }),
+}));
+
 describe('Grid Component', () => {
+    beforeEach(() => {
+        mockIsDesignMode = false;
+    });
+
     describe('Basic Rendering', () => {
         it('should render with children', () => {
             render(
@@ -672,6 +684,114 @@ describe('Grid Component', () => {
                 expect(region.className).not.toContain('grid-cols');
                 expect(region.className).not.toContain('gap-');
             });
+        });
+    });
+
+    describe('Empty state (Page Designer authoring)', () => {
+        const emptyComponent = {
+            id: 'test-grid-empty',
+            typeId: 'grid',
+            regions: [
+                { id: 'column_1', components: [] },
+                { id: 'column_2', components: [] },
+            ],
+        } as any;
+
+        const partiallyFilledComponent = {
+            id: 'test-grid-partial',
+            typeId: 'grid',
+            regions: [
+                { id: 'column_1', components: [] },
+                { id: 'column_2', components: [{ id: 'some-component' }] },
+            ],
+        } as any;
+
+        // The dashed column-outline styling applied to each column's Region in the empty state.
+        const OUTLINE_CLASS = 'border-dashed';
+
+        it('outlines every column Region in design mode when all columns are empty', () => {
+            mockIsDesignMode = true;
+            render(<Grid columns="2" component={emptyComponent} data-testid="grid" />);
+
+            // W-23729804: in Page Designer design mode, a freshly-dropped Grid with no content in
+            // any column shows the grid's column outlines (Figma "Fallback" spec). Crucially, the
+            // outline is applied to each column's *Region* — not a standalone div — so every visible
+            // column stays a real, droppable Page Designer target. The Regions remain mounted.
+            const region1 = screen.getByTestId('region-column_1');
+            const region2 = screen.getByTestId('region-column_2');
+            expect(region1.className).toContain(OUTLINE_CLASS);
+            expect(region2.className).toContain(OUTLINE_CLASS);
+        });
+
+        it('outlines a Region per column for the default column count', () => {
+            mockIsDesignMode = true;
+            // Figma default: Columns = 3. A freshly-dropped Grid with no columns prop configured
+            // shows three outlined column Regions.
+            const threeEmpty = {
+                id: 'test-grid-3',
+                typeId: 'grid',
+                regions: [
+                    { id: 'column_1', components: [] },
+                    { id: 'column_2', components: [] },
+                    { id: 'column_3', components: [] },
+                ],
+            } as any;
+            render(<Grid component={threeEmpty} data-testid="grid" />);
+
+            expect(screen.getByTestId('grid').className).toContain('grid-cols-3');
+            const outlined = screen
+                .getAllByTestId(/^region-column_/)
+                .filter((r) => r.className.includes(OUTLINE_CLASS));
+            expect(outlined).toHaveLength(3);
+        });
+
+        it('the outlined columns are droppable Regions, not decorative controls', () => {
+            mockIsDesignMode = true;
+            render(<Grid columns="2" component={emptyComponent} data-testid="grid" />);
+
+            // The outlines are the Regions' own droppable surfaces — no focusable controls or links.
+            expect(screen.queryByRole('button')).not.toBeInTheDocument();
+            expect(screen.queryByRole('link')).not.toBeInTheDocument();
+            expect(screen.getByTestId('region-column_1')).toBeInTheDocument();
+            expect(screen.getByTestId('region-column_2')).toBeInTheDocument();
+        });
+
+        it('renders normal (non-outlined) regions in design mode when at least one column has content', () => {
+            mockIsDesignMode = true;
+            render(<Grid columns="2" component={partiallyFilledComponent} data-testid="grid" />);
+
+            // A partially-filled grid is unaffected by design mode — no outline styling leaks in, and
+            // both regions render normally so the merchant can keep filling in the rest.
+            const region1 = screen.getByTestId('region-column_1');
+            const region2 = screen.getByTestId('region-column_2');
+            expect(region1.className).not.toContain(OUTLINE_CLASS);
+            expect(region2.className).not.toContain(OUTLINE_CLASS);
+            expect(region1.className).toContain('w-full');
+        });
+
+        it('renders normal (non-outlined) regions on the live storefront with all columns empty', () => {
+            // Critical no-leak case: on the live storefront the Regions still render (they render
+            // nothing per empty column internally), but never carry the authoring outline styling.
+            render(<Grid columns="2" component={emptyComponent} data-testid="grid" />);
+
+            const region1 = screen.getByTestId('region-column_1');
+            const region2 = screen.getByTestId('region-column_2');
+            expect(region1.className).not.toContain(OUTLINE_CLASS);
+            expect(region2.className).not.toContain(OUTLINE_CLASS);
+            expect(region1.className).toContain('w-full');
+        });
+
+        it('standalone mode (children, no component) is unchanged, even if design mode is forced on', () => {
+            mockIsDesignMode = true;
+            render(
+                <Grid data-testid="grid">
+                    <div data-testid="child-content">Child</div>
+                </Grid>
+            );
+
+            const grid = screen.getByTestId('grid');
+            expect(screen.getByTestId('child-content')).toBeInTheDocument();
+            expect(grid.querySelector('[data-testid^="region-column_"]')).not.toBeInTheDocument();
         });
     });
 

@@ -154,7 +154,13 @@ export function Region(props: RegionProps) {
         }
 
         const metadata = props.component.designMetadata?.regionDefinitions?.find((r) => r.id === regionId);
-        return renderRegionContent(region, regionId, metadata, className, rest);
+        // Forward `isDesignMode` so an *empty* nested region still renders its droppable
+        // `RegionWrapper` in Page Designer — matching page mode below. Without this, an empty
+        // component-mode region returned null even in design mode, so it never registered as a drop
+        // target (e.g. a Grid column with no content yet). `errorElement` stays `undefined` here to
+        // preserve the prior live-storefront behavior exactly: an empty component-mode region on the
+        // storefront (`!isDesignMode`) still renders nothing, as before.
+        return renderRegionContent(region, regionId, metadata, className, rest, undefined, isDesignMode);
     }
 
     // PAGE MODE: Rendering a page-level region
