@@ -30,6 +30,9 @@
         },
         "previousImage": "Vorige afbeelding",
         "nextImage": "Volgende afbeelding",
+        "announcementBanner": {
+            "emptyTitle": "Voeg hier je titel toe"
+        },
         "contentCard": {
             "emptyTitle": "Voeg hier je titel toe",
             "emptyDescription": "Voeg hier je beschrijving toe"

@@ -31,6 +31,9 @@
         },
         "previousImage": "Föregående bild",
         "nextImage": "Nästa bild",
+        "announcementBanner": {
+            "emptyTitle": "Lägg till din rubrik här"
+        },
         "contentCard": {
             "emptyTitle": "Lägg till din rubrik här",
             "emptyDescription": "Lägg till din beskrivning här"

@@ -35,6 +35,9 @@
         "productGrid": {
             "loadFailed": "Impossibile caricare ulteriori prodotti."
         },
+        "announcementBanner": {
+            "emptyTitle": "Aggiungi qui il titolo"
+        },
         "contentCard": {
             "emptyTitle": "Aggiungi qui il titolo",
             "emptyDescription": "Aggiungi qui la descrizione"

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, within, waitFor } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import AnnouncementBanner from '../index';
 
 const meta: Meta<typeof AnnouncementBanner> = {
@@ -27,7 +28,7 @@ const meta: Meta<typeof AnnouncementBanner> = {
         docs: {
             description: {
                 component:
-                    'Top-of-page banner used for promotions, system messages, and announcements. Supports token-based color schemes, three height densities, three text alignments, and an optional CTA link.',
+                    'Top-of-page banner used for promotions, system messages, and announcements. Supports token-based color schemes, three height densities, three text alignments, and an optional CTA link. W-23729792: a freshly-dropped, unconfigured banner shows an instructional empty state — a preview of the default banner with the placeholder "Add your text here" — while authoring in Page Designer design mode — see UnconfiguredDesignMode. On the live storefront (UnconfiguredLiveStorefront) it renders nothing, with no authoring prompt shown to shoppers.',
             },
         },
     },
@@ -121,6 +122,64 @@ export const WithCTA: Story = {
         const link = canvas.getByRole('link', { name: 'Shop Now' });
         await expect(link).toBeInTheDocument();
         await expect(link.getAttribute('href')).toContain('/sale');
+    },
+};
+
+export const UnconfiguredLiveStorefront: Story = {
+    args: {
+        message: '',
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'W-23729792: a freshly-dropped, unconfigured Announcement Banner as a shopper sees it on the live storefront (not Page Designer design mode). With no message authored, the component renders nothing — no authoring prompt is emitted. The instructional empty state (a default-styled banner with the placeholder "Add your text here") is gated to design mode, so it never leaks to shoppers. See UnconfiguredDesignMode for the design-mode authoring view.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Nothing authored → no status role, no authoring prompt.
+        await expect(canvas.queryByRole('status')).not.toBeInTheDocument();
+        await expect(canvas.queryByText(/add your text here/i)).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector('[data-slot="empty-state"]')).toBeNull();
+    },
+};
+
+export const UnconfiguredDesignMode: Story = {
+    args: {
+        message: '',
+    },
+    parameters: {
+        // Design mode renders the real AnnouncementBanner inside PageDesignerProvider's lazy Suspense
+        // provider, which resolves in a live browser but suspends to a fallback in the synchronous
+        // snapshot render — so this story is interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729792: a freshly-dropped, unconfigured Announcement Banner as a merchant sees it in Page Designer design mode (`mode="EDIT"`). Renders a preview of the default banner — Primary color scheme, Md height, Center alignment — with the placeholder message "Add your text here" and no CTA, the authoring cue that never leaks to shoppers (see UnconfiguredLiveStorefront for the live view).',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-announcement-banner" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the authoring prompt to appear.
+        await waitFor(async () => {
+            await expect(canvas.getByText(/add your text here/i)).toBeInTheDocument();
+        });
+        // The placeholder is copy only — no CTA button or link.
+        await expect(canvas.queryByRole('button')).not.toBeInTheDocument();
+        await expect(canvas.queryByRole('link')).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector('[data-slot="empty-state"]')).not.toBeNull();
     },
 };
 

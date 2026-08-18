@@ -32,6 +32,9 @@
         },
         "previousImage": "Imagen anterior",
         "nextImage": "Siguiente imagen",
+        "announcementBanner": {
+            "emptyTitle": "Añade tu título aquí"
+        },
         "contentCard": {
             "emptyTitle": "Añade tu título aquí",
             "emptyDescription": "Añade tu descripción aquí"

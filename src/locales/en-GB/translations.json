@@ -43,6 +43,9 @@
             "pause": "Pause carousel"
         },
         "skipToMainContent": "Skip to main content",
+        "announcementBanner": {
+            "emptyTitle": "Add your text here"
+        },
         "contentCard": {
             "emptyTitle": "Add your title here",
             "emptyDescription": "Add your description here"
