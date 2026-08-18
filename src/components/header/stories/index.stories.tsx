@@ -63,14 +63,14 @@ const meta: Meta<HeaderStoryArgs> = {
         docs: {
             description: {
                 component:
-                    'Top application header with brand, search, user actions, store locator, and cart, plus the responsive mega-menu navigation. Toggle **authenticated** in the controls panel to switch between guest (Sign In link) and registered (My Account link) states. The `variant="checkout"` prop renders a stripped-down version (logo + cart only) used on checkout pages — see the `CheckoutVariant` story.',
+                    'Top application header with brand, search, user actions, store locator, and cart, plus the responsive mega-menu navigation. Toggle **authenticated** in the controls panel to switch between guest (Sign In menu button) and registered (My Account menu button) states. The `variant="checkout"` prop renders a stripped-down version (logo + cart only) used on checkout pages — see the `CheckoutVariant` story.',
             },
         },
     },
     argTypes: {
         authenticated: {
             control: 'boolean',
-            description: 'Off → guest session (Sign In link). On → registered session (My Account link).',
+            description: 'Off → guest session (Sign In menu button). On → registered session (My Account menu button).',
         },
     },
     args: {
@@ -96,11 +96,11 @@ export const Default: Story = {
 
         await expect(canvas.getByTestId('header-logo')).toBeInTheDocument();
 
-        if (args.authenticated) {
-            await expect(canvas.getByRole('link', { name: /my account/i })).toBeInTheDocument();
-        } else {
-            await expect(canvas.getByRole('link', { name: 'Sign In' })).toBeInTheDocument();
-        }
+        // W-23325760: the user-actions trigger is a menu-opening <button>, not a navigating
+        // <a>. Its aria-label reflects the auth state (jest-dom matches the value exactly).
+        const trigger = canvas.getByTestId('user-account-trigger');
+        await expect(trigger.tagName).toBe('BUTTON');
+        await expect(trigger).toHaveAttribute('aria-label', args.authenticated ? 'My Account' : 'Sign In');
     },
 };
 

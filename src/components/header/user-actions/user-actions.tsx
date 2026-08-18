@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { type ReactElement, useMemo } from 'react';
-import { Link } from '@/components/link';
 import { User, LogIn } from 'lucide-react';
 import { useAuth } from '@/providers/auth';
 import { Button } from '@/components/ui/button';
@@ -33,23 +32,27 @@ export default function UserActions(): ReactElement {
         return session?.userType === 'registered';
     }, [session]);
 
-    const accountLink = isAuthenticated ? '/account/overview' : '/login';
     const ariaLabel = isAuthenticated ? tAccount('myAccount') : t('signIn');
     const icon = isAuthenticated ? <User className="size-5" /> : <LogIn className="size-5" />;
 
+    // The trigger is a real <button>, not a link. UserMenu wraps it in a PopoverTrigger that
+    // stamps aria-haspopup="dialog", so activating it must only open the menu. A <Link> here
+    // rendered an <a href> that navigated on click/Enter, changing context on activation of a
+    // control that announces itself as a menu opener (WCAG 3.2.2 On Input). The account and
+    // sign-in destinations live inside the popover body.
     const trigger = (
         <Button
             variant="ghost"
+            type="button"
             // Icon-only trigger. The Button size default sets `has-[>svg]:px-3` (12px) for icon
             // children, which sits in the same tailwind-merge group as the compact padding below,
             // so a bare `px-1` here is dead code. Use the `has-[>svg]:` modifier so the compact
             // mobile padding actually wins; without it the header row overflows a 320px viewport
             // and the mobile menu button is pushed off-screen (WCAG 1.4.10 Reflow).
             className="cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
-            asChild>
-            <Link to={accountLink} aria-label={ariaLabel} data-testid="user-account-trigger">
-                {icon}
-            </Link>
+            aria-label={ariaLabel}
+            data-testid="user-account-trigger">
+            {icon}
         </Button>
     );
 

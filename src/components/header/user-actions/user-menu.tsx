@@ -112,11 +112,14 @@ export function UserMenu({ isAuthenticated, trigger }: UserMenuProps): ReactElem
         e.currentTarget.focus();
     };
 
-    // Common Popover props
+    // Common Popover props. Radix renders PopoverContent as role="dialog", so it needs an
+    // accessible name (WCAG 4.1.2 / axe aria-dialog-name); reuse the trigger's label rather
+    // than add a new key. The trigger's aria-haspopup="dialog" already announces the opener.
     const popoverContentProps = {
         className: 'w-64 p-0 overflow-hidden bg-background border-border',
         align: 'end' as const,
         sideOffset: 8,
+        'aria-label': isAuthenticated ? tAccount('myAccount') : t('signIn'),
         onMouseEnter: handleMouseEnter,
         onMouseLeave: handleMouseLeave,
         onOpenAutoFocus: handleOpenAutoFocus,

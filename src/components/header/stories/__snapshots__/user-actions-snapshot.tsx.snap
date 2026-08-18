@@ -6,7 +6,7 @@ exports[`UserActions stories snapshot > Authenticated story renders and matches 
     class="p-8"
   >
     <div>
-      <a
+      <button
         aria-controls="radix-_r_1_"
         aria-expanded="false"
         aria-haspopup="dialog"
@@ -17,7 +17,6 @@ exports[`UserActions stories snapshot > Authenticated story renders and matches 
         data-state="closed"
         data-testid="user-account-trigger"
         data-variant="ghost"
-        href="/account/overview"
         type="button"
       >
         <svg
@@ -42,7 +41,7 @@ exports[`UserActions stories snapshot > Authenticated story renders and matches 
             r="4"
           />
         </svg>
-      </a>
+      </button>
     </div>
   </div>
 </div>
@@ -54,7 +53,7 @@ exports[`UserActions stories snapshot > CachedShellRegisteredHint story renders 
     class="p-8"
   >
     <div>
-      <a
+      <button
         aria-controls="radix-_r_2_"
         aria-expanded="false"
         aria-haspopup="dialog"
@@ -65,7 +64,6 @@ exports[`UserActions stories snapshot > CachedShellRegisteredHint story renders 
         data-state="closed"
         data-testid="user-account-trigger"
         data-variant="ghost"
-        href="/login"
         type="button"
       >
         <svg
@@ -91,7 +89,7 @@ exports[`UserActions stories snapshot > CachedShellRegisteredHint story renders 
             d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
           />
         </svg>
-      </a>
+      </button>
     </div>
   </div>
 </div>
@@ -103,7 +101,7 @@ exports[`UserActions stories snapshot > Guest story renders and matches snapshot
     class="p-8"
   >
     <div>
-      <a
+      <button
         aria-controls="radix-_r_0_"
         aria-expanded="false"
         aria-haspopup="dialog"
@@ -114,7 +112,6 @@ exports[`UserActions stories snapshot > Guest story renders and matches snapshot
         data-state="closed"
         data-testid="user-account-trigger"
         data-variant="ghost"
-        href="/login"
         type="button"
       >
         <svg
@@ -140,7 +137,7 @@ exports[`UserActions stories snapshot > Guest story renders and matches snapshot
             d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
           />
         </svg>
-      </a>
+      </button>
     </div>
   </div>
 </div>

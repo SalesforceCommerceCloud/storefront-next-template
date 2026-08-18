@@ -284,7 +284,17 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                         'absolute inset-0 flex flex-col justify-end p-6 md:p-8',
                                         cardFooterClassName
                                     )}>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10" />
+                                    {/*
+                                     * Scrim for WCAG 1.4.3. Must paint ABOVE the sibling <img>: a negative
+                                     * z-index here pushed it behind the image, darkening nothing (white title
+                                     * and description measured ~1.2:1 over light photos). The title/description
+                                     * block is bottom-anchored but unbounded in height (long descriptions, the
+                                     * Heading 1-6 typography presets), so it can extend anywhere up the card. A
+                                     * gradient that fades to transparent at the top (as popular-category uses)
+                                     * would drop white text below 4.5:1 wherever content reaches that lighter
+                                     * zone. The gradient here is floored at black/60 (never lighter) so contrast
+                                     * stays >=4.5:1 (actually ~5.7:1) at every point text can occupy. */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60" />
                                     {renderContent(true)}
                                 </div>
                             )}

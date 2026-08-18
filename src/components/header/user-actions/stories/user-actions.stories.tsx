@@ -143,18 +143,23 @@ User actions for guest users.
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
+        // The popover body is portaled to document.body, outside canvasElement.
+        const body = within(canvasElement.ownerDocument.body);
 
-        // Check for Sign In icon button/link
-        const signInLink = await canvas.findByRole('link', { name: /sign in/i }, { timeout: 5000 });
-        await expect(signInLink).toBeInTheDocument();
+        // W-23325760: the trigger is a <button> that opens the menu, not a navigating link.
+        const trigger = await canvas.findByTestId('user-account-trigger', {}, { timeout: 5000 });
+        await expect(trigger.tagName).toBe('BUTTON');
+        await expect(trigger).not.toHaveAttribute('href');
+        // No Sign In link is exposed before the menu opens.
+        await expect(canvas.queryByRole('link', { name: /sign in/i })).toBeNull();
+
+        // Hover opens the menu; the Sign In navigation link lives inside the body.
+        await userEvent.hover(trigger);
+        const signInLink = await body.findByRole('link', { name: /sign in/i }, { timeout: 5000 });
         await expect(signInLink).toHaveAttribute('href', `${SITE_PREFIX}/login`);
 
         // Check that logout button is not present
-        const logoutButton = canvas.queryByRole('button', { name: /sign out/i });
-        await expect(logoutButton).toBeNull();
-
-        // Click sign in link
-        await userEvent.click(signInLink);
+        await expect(body.queryByRole('button', { name: /sign out/i })).toBeNull();
     },
 };
 
@@ -180,22 +185,22 @@ User actions for authenticated users.
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
+        const body = within(canvasElement.ownerDocument.body);
 
-        // Check for account icon button/link
-        const accountLink = await canvas.findByRole('link', { name: /my account/i }, { timeout: 5000 });
-        await expect(accountLink).toBeInTheDocument();
-        await expect(accountLink).toHaveAttribute('href', `${SITE_PREFIX}/account/overview`);
+        // W-23325760: the account trigger is a <button> that opens the menu, not a link.
+        const trigger = await canvas.findByTestId('user-account-trigger', {}, { timeout: 5000 });
+        await expect(trigger.tagName).toBe('BUTTON');
+        await expect(trigger).not.toHaveAttribute('href');
+        // jest-dom does an exact string match on the value, so assert the literal label.
+        await expect(trigger).toHaveAttribute('aria-label', 'My Account');
 
-        // Check that logout button is not present (moved to account navigation)
-        const logoutButton = canvas.queryByRole('button', { name: /sign out/i });
-        await expect(logoutButton).toBeNull();
+        // Hover opens the menu; the account navigation links live inside the body.
+        await userEvent.hover(trigger);
+        const overviewLink = await body.findByRole('link', { name: /overview/i }, { timeout: 5000 });
+        await expect(overviewLink).toHaveAttribute('href', `${SITE_PREFIX}/account/overview`);
 
-        // Check that Sign In link is not present
-        const signInLink = canvas.queryByRole('link', { name: /sign in/i });
-        await expect(signInLink).toBeNull();
-
-        // Click account link
-        await userEvent.click(accountLink);
+        // Sign In is not offered to an authenticated user.
+        await expect(body.queryByRole('link', { name: /sign in/i })).toBeNull();
     },
 };
 
@@ -227,13 +232,19 @@ export const CachedShellRegisteredHint: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
+        const body = within(canvasElement.ownerDocument.body);
 
-        // The hint cookie wins over the baked-in guest value: the account link is shown.
-        const accountLink = await canvas.findByRole('link', { name: /my account/i }, { timeout: 5000 });
-        await expect(accountLink).toBeInTheDocument();
-        await expect(accountLink).toHaveAttribute('href', `${SITE_PREFIX}/account/overview`);
+        // The hint cookie wins over the baked-in guest value: the account trigger is shown.
+        const trigger = await canvas.findByTestId('user-account-trigger', {}, { timeout: 5000 });
+        // jest-dom does an exact string match on the value, so assert the literal label.
+        await expect(trigger).toHaveAttribute('aria-label', 'My Account');
+
+        // Hover opens the menu; the account overview link confirms the registered branch.
+        await userEvent.hover(trigger);
+        const overviewLink = await body.findByRole('link', { name: /overview/i }, { timeout: 5000 });
+        await expect(overviewLink).toHaveAttribute('href', `${SITE_PREFIX}/account/overview`);
 
         // The neutral guest Sign In link must no longer be present.
-        await expect(canvas.queryByRole('link', { name: /sign in/i })).toBeNull();
+        await expect(body.queryByRole('link', { name: /sign in/i })).toBeNull();
     },
 };

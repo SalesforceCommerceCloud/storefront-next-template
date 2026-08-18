@@ -130,6 +130,29 @@ describe('AuthorizedPickupPeople', () => {
             expect(screen.getByText('Email is required.')).toBeInTheDocument();
         });
 
+        // W-23325757: the relationship error must be programmatically linked to the <select>
+        // itself. It previously sat inside FormControl wrapping an extra <div>, so Radix's Slot
+        // forwarded aria-describedby/aria-invalid onto the div, not the control, leaving a screen
+        // reader unaware of the error on the field (WCAG 1.3.1). FormNativeSelect wires them onto
+        // the <select>. Guard so it cannot silently regress again.
+        test('links the relationship error to the select via aria-describedby/aria-invalid', async () => {
+            const user = userEvent.setup();
+            renderComponent();
+            await user.click(screen.getByRole('button', { name: /Add Person/i }));
+
+            await user.click(screen.getByRole('button', { name: 'Save' }));
+
+            const select = screen.getByRole('combobox');
+            expect(select).toHaveAttribute('aria-invalid', 'true');
+
+            const describedBy = select.getAttribute('aria-describedby');
+            expect(describedBy).toBeTruthy();
+
+            const errorMessage = document.getElementById(describedBy as string);
+            expect(errorMessage).not.toBeNull();
+            expect(errorMessage).toHaveTextContent(/relationship/i);
+        });
+
         test('keeps modal open and shows validation when email is invalid', async () => {
             const user = userEvent.setup();
             renderComponent();

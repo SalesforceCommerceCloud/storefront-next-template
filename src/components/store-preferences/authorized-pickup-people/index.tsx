@@ -34,9 +34,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { NativeSelectOption } from '@/components/ui/native-select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormNativeSelect } from '@/components/form-fields';
 import { accountDestructiveButtonClasses, accountDestructiveIconHoverClasses } from '@/lib/account-action-styles';
 
 const AUTHORIZED_PERSON_FORM_NS = 'account' as const;
@@ -408,35 +409,35 @@ export default function AuthorizedPickupPeople(): ReactElement {
                                 control={form.control}
                                 name="relationship"
                                 render={({ field }) => (
-                                    <FormItem className="w-full">
+                                    <FormItem className="w-full [&_[data-slot=native-select-wrapper]]:w-full">
                                         <FormLabel>
                                             {t('storePreferences.authorizedPickupPeople.modal.relationship')}
                                         </FormLabel>
-                                        <FormControl>
-                                            <div className="w-full [&_[data-slot=native-select-wrapper]]:w-full">
-                                                <NativeSelect
-                                                    aria-label={t(
-                                                        'storePreferences.authorizedPickupPeople.modal.relationship'
+                                        {/*
+                                         * FormNativeSelect wires id/aria-describedby/aria-invalid straight onto the
+                                         * <select>. FormControl's Slot forwards those to its immediate child, which
+                                         * here would be the width wrapper <div>, not the control, leaving the error
+                                         * message unlinked from the select (WCAG 1.3.1 Info and Relationships).
+                                         */}
+                                        <FormNativeSelect
+                                            aria-label={t('storePreferences.authorizedPickupPeople.modal.relationship')}
+                                            value={field.value}
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            onBlur={field.onBlur}
+                                            ref={field.ref}>
+                                            <NativeSelectOption value="">
+                                                {t(
+                                                    'storePreferences.authorizedPickupPeople.modal.relationshipPlaceholder'
+                                                )}
+                                            </NativeSelectOption>
+                                            {RELATIONSHIP_KEYS.map((key) => (
+                                                <NativeSelectOption key={key} value={key}>
+                                                    {t(
+                                                        `storePreferences.authorizedPickupPeople.relationships.${key}` as 'storePreferences.authorizedPickupPeople.relationships.spouse'
                                                     )}
-                                                    value={field.value}
-                                                    onChange={(e) => field.onChange(e.target.value)}
-                                                    onBlur={field.onBlur}
-                                                    ref={field.ref}>
-                                                    <NativeSelectOption value="">
-                                                        {t(
-                                                            'storePreferences.authorizedPickupPeople.modal.relationshipPlaceholder'
-                                                        )}
-                                                    </NativeSelectOption>
-                                                    {RELATIONSHIP_KEYS.map((key) => (
-                                                        <NativeSelectOption key={key} value={key}>
-                                                            {t(
-                                                                `storePreferences.authorizedPickupPeople.relationships.${key}` as 'storePreferences.authorizedPickupPeople.relationships.spouse'
-                                                            )}
-                                                        </NativeSelectOption>
-                                                    ))}
-                                                </NativeSelect>
-                                            </div>
-                                        </FormControl>
+                                                </NativeSelectOption>
+                                            ))}
+                                        </FormNativeSelect>
                                         <FormMessage className="text-account-action-destructive" />
                                     </FormItem>
                                 )}

@@ -254,4 +254,52 @@ describe('ContentCard', () => {
         image = screen.getByAltText('Test image');
         expect(image).toHaveAttribute('loading', 'lazy');
     });
+
+    describe('image scrim contrast (WCAG 1.4.3)', () => {
+        // Relative luminance / contrast ratio per WCAG 2.x, applied to a solid black
+        // scrim of the given opacity composited over a worst-case white (#FFFFFF)
+        // image, with white (#FFFFFF) text on top.
+        const srgbToLinear = (channel: number) =>
+            channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+        const contrastOfWhiteTextOverBlackScrim = (scrimOpacity: number) => {
+            const compositedChannel = 1 - scrimOpacity; // white image blended with a black scrim
+            const backgroundLuminance = srgbToLinear(compositedChannel);
+            const textLuminance = 1; // white text
+            return (textLuminance + 0.05) / (backgroundLuminance + 0.05);
+        };
+
+        test('lightest point of the scrim gradient still yields >=4.5:1 for white text over a white image', () => {
+            // The scrim's className encodes its opacity stops directly (from-black/90
+            // via-black/75 to-black/60). The lightest stop, black/60, is the worst case
+            // since the title/description block is unbounded in height (long copy or a
+            // large Heading typography preset can push content up to that zone).
+            expect(contrastOfWhiteTextOverBlackScrim(0.6)).toBeGreaterThanOrEqual(4.5);
+        });
+
+        test('renders long copy with the largest typography preset legibly over a white image', () => {
+            const longDescription =
+                'A long, normal-size description that can extend the content block well above the ' +
+                'bottom of the card, into the lighter part of the scrim gradient, to stress-test contrast.';
+
+            const { container } = renderWithRouter(
+                <ContentCard
+                    title="Largest Heading Preset"
+                    titleTypography="Heading 1"
+                    description={longDescription}
+                    descriptionTypography="Heading 1"
+                    imageUrl={{ url: 'https://example.com/white-image.jpg' }}
+                    imageAlt="White background image"
+                />
+            );
+
+            expect(screen.getByRole('heading', { name: 'Largest Heading Preset' })).toBeInTheDocument();
+            expect(screen.getByText(longDescription)).toBeInTheDocument();
+
+            const scrim = container.querySelector('.bg-gradient-to-t');
+            expect(scrim?.className).toContain('from-black/90');
+            expect(scrim?.className).toContain('via-black/75');
+            expect(scrim?.className).toContain('to-black/60');
+            expect(scrim?.className).not.toContain('to-transparent');
+        });
+    });
 });
