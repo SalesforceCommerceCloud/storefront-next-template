@@ -13,12 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { readdirSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, mergeConfig, configDefaults, coverageConfigDefaults } from 'vitest/config';
 import viteConfig from './vite.config';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// A vertical's test files import their own vertical-relative `@/*` modules
+// (e.g. `@/components/size-guide-drawer`), which only resolve under that
+// vertical's OWN path mapping (see vite-plugins/vertical-resolvers.ts). The
+// blanket `include` glob below collects every vertical's test files
+// regardless of the active `VERTICAL` env var, so running under a different
+// vertical hits the same "Failed to resolve import" error tsc would hit
+// without the matching tsconfig exclude (see generate-vertical-tsconfig.mjs).
+// Exclude every OTHER vertical's directory wholesale from collection.
+// The mirrored, single-vertical customer package has no `src/verticals/`
+// directory at all, so this is a no-op there.
+const activeVertical = process.env.VERTICAL ?? 'fashion';
+const verticalsDir = resolve(__dirname, 'src/verticals');
+const hasVerticalsDir = (() => {
+    try {
+        return statSync(verticalsDir).isDirectory();
+    } catch {
+        return false;
+    }
+})();
+const otherVerticalTestGlobs = hasVerticalsDir
+    ? readdirSync(verticalsDir, { withFileTypes: true })
+          .filter((entry) => entry.isDirectory() && entry.name !== activeVertical)
+          .map((entry) => `src/verticals/${entry.name}/**`)
+    : [];
 
 export default defineConfig((configEnv) =>
     mergeConfig(
@@ -40,7 +66,7 @@ export default defineConfig((configEnv) =>
                 pool: 'threads',
                 setupFiles: ['./vitest.setup.ts'],
                 include: ['**/*.{test,spec}.{ts,tsx}'],
-                exclude: [...configDefaults.exclude, '.storybook/**/*', 'e2e/**/*'],
+                exclude: [...configDefaults.exclude, '.storybook/**/*', 'e2e/**/*', ...otherVerticalTestGlobs],
                 // Windows CI runners are noticeably slower than macOS/Linux for tests with
                 // Suspense/lazy chunks. Bump the per-test timeout to absorb that variance
                 // without forcing every flaky test to opt in individually.
