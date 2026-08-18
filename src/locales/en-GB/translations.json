@@ -1288,7 +1288,8 @@
                 "hasNumber": "At least one number",
                 "hasSpecial": "At least one special character",
                 "statusMet": "Requirement met",
-                "statusNotMet": "Requirement not met"
+                "statusNotMet": "Requirement not met",
+                "summary": "{{met}} of {{total}} requirements met"
             }
         },
         "common": {
@@ -1363,24 +1364,28 @@
                 "title": "The New Season",
                 "subtitle": "A new collection shaped by contrast, proportion, and modern attitude. Introducing key pieces for the season ahead.",
                 "ctaText": "Discover the Collection",
+                "ctaAriaLabel": "Discover the Collection: The New Season",
                 "imageAlt": "Women's Slacks Jackets and Purses"
             },
             "slide2": {
                 "title": "The Modern Wardrobe",
                 "subtitle": "Elevated silhouettes, refined textures, and a bold approach to everyday dressing. Designed to move with you.",
                 "ctaText": "Shop the Look",
+                "ctaAriaLabel": "Shop the Look: The Modern Wardrobe",
                 "imageAlt": "Women's White Linen Dress"
             },
             "slide3": {
                 "title": "After Hours",
                 "subtitle": "Statement pieces and refined layers designed for nights out, late moments, and everything in between.",
                 "ctaText": "Explore the Collection",
+                "ctaAriaLabel": "Explore the Collection: After Hours",
                 "imageAlt": "Women's Black Suit"
             },
             "slide4": {
                 "title": "New Perspectives",
                 "subtitle": "A curated drop of standout pieces that redefine contemporary fashion. Confident. Expressive. Uncompromising.",
                 "ctaText": "Shop Now",
+                "ctaAriaLabel": "Shop Now: New Perspectives",
                 "imageAlt": "Women's Grey Dress"
             }
         },

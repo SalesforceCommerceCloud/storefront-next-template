@@ -291,7 +291,9 @@ export function StarRating({
                         onMouseEnter={onRatingLinkClick}
                         aria-label={ratingLinkAriaLabel}
                         className={cn(
-                            'cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui',
+                            // -m-1.5/p-1.5 expand the hit area to the WCAG 2.5.8 24x24px minimum without
+                            // shifting layout: the extra padding is offset by the matching negative margin.
+                            'inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui',
                             ratingLinkClassName
                         )}>
                         {ratingLinkText}

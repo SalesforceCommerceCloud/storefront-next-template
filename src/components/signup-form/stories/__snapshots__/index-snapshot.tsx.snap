@@ -15,7 +15,7 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
           Name
         </legend>
         <div
-          class="grid grid-cols-1 gap-4 md:grid-cols-2"
+          class="grid grid-cols-1 gap-4"
         >
           <div>
             <label
@@ -130,6 +130,13 @@ exports[`SignupForm stories snapshot > ConfirmPasswordMismatch story renders and
             role="heading"
           >
             Password Requirements
+          </p>
+          <p
+            aria-live="polite"
+            class="sr-only"
+            role="status"
+          >
+            0 of 5 requirements met
           </p>
           <ul
             class="space-y-1.5"
@@ -361,7 +368,7 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
           Name
         </legend>
         <div
-          class="grid grid-cols-1 gap-4 md:grid-cols-2"
+          class="grid grid-cols-1 gap-4"
         >
           <div>
             <label
@@ -476,6 +483,13 @@ exports[`SignupForm stories snapshot > Default story renders and matches snapsho
             role="heading"
           >
             Password Requirements
+          </p>
+          <p
+            aria-live="polite"
+            class="sr-only"
+            role="status"
+          >
+            0 of 5 requirements met
           </p>
           <ul
             class="space-y-1.5"
@@ -707,7 +721,7 @@ exports[`SignupForm stories snapshot > PasswordlessMode story renders and matche
           Name
         </legend>
         <div
-          class="grid grid-cols-1 gap-4 md:grid-cols-2"
+          class="grid grid-cols-1 gap-4"
         >
           <div>
             <label
@@ -864,7 +878,7 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
           Name
         </legend>
         <div
-          class="grid grid-cols-1 gap-4 md:grid-cols-2"
+          class="grid grid-cols-1 gap-4"
         >
           <div>
             <label
@@ -979,6 +993,13 @@ exports[`SignupForm stories snapshot > WithError story renders and matches snaps
             role="heading"
           >
             Password Requirements
+          </p>
+          <p
+            aria-live="polite"
+            class="sr-only"
+            role="status"
+          >
+            0 of 5 requirements met
           </p>
           <ul
             class="space-y-1.5"

@@ -291,6 +291,16 @@ export class HeroMetadata {
     ctaLink?: string;
 
     @AttributeDefinition({
+        id: 'ctaAriaLabel',
+        name: 'CTA Accessible Name',
+        description:
+            'Accessible name for the CTA link, read by screen readers instead of the visible button text. Use when the button text is generic (e.g. "Shop Now") and does not by itself describe the link\'s destination. Leave blank to use the title and button text together.',
+        type: 'text',
+        required: false,
+    })
+    ctaAriaLabel?: string;
+
+    @AttributeDefinition({
         id: 'buttonStyle',
         name: 'Button Style',
         type: 'enum',
@@ -383,6 +393,7 @@ export default function Hero({
     priority = 'high',
     loading = 'eager',
     fillHeight = false,
+    ctaAriaLabel,
 }: {
     title?: string;
     titleTypography?: string;
@@ -408,6 +419,13 @@ export default function Hero({
      * Not a Page-Designer attribute — set by the parent (e.g. the carousel), never a merchant.
      */
     priority?: 'high' | 'low' | 'auto';
+    /**
+     * Accessible name for the CTA link, overriding the visible ctaText. Page-Designer authorable
+     * (WCAG 2.4.4). When a merchant leaves this blank, Hero derives a default by combining the
+     * visible CTA text with the title, so repeated CTAs (e.g. "Shop Now" on every carousel slide)
+     * still get distinct accessible names as long as each slide's title differs.
+     */
+    ctaAriaLabel?: string;
     /**
      * Image loading strategy. Defaults to 'eager' (standalone Hero is above the fold). The
      * carousel passes 'lazy' for non-first slides. Not a Page-Designer attribute.
@@ -496,6 +514,13 @@ export default function Hero({
     const ctaHref = (ctaLink ?? '').trim();
     const showCta = ctaHref.length > 0;
 
+    // Default accessible name when the merchant hasn't authored one: combine the visible CTA
+    // text with the title, so repeated CTAs across slides with generic text (e.g. "Shop Now")
+    // still get distinct accessible names as long as each slide's title differs. WCAG 2.4.4/4.1.2.
+    const trimmedTitle = title?.trim();
+    const effectiveCtaAriaLabel =
+        ctaAriaLabel?.trim() || (trimmedTitle ? `${getCtaLabel(ctaText, ctaHref)}: ${trimmedTitle}` : undefined);
+
     // Empty state (W-23733121 / W-23729775): a freshly-dropped Hero with no configured content.
     // The instructional placeholder (decorated grey surface + "Add your title here" cue) is a
     // Page-Designer *authoring* affordance, so it renders only in design mode — on the live
@@ -577,7 +602,9 @@ export default function Hero({
                                         asChild
                                         variant={buttonVariant}
                                         className="text-sm font-medium leading-5 text-primary-foreground p-3 sm:p-4 md:p-5 lg:p-6">
-                                        <Link to={ctaHref}>{getCtaLabel(ctaText, ctaHref)}</Link>
+                                        <Link to={ctaHref} aria-label={effectiveCtaAriaLabel}>
+                                            {getCtaLabel(ctaText, ctaHref)}
+                                        </Link>
                                     </Button>
                                 </div>
                             )}

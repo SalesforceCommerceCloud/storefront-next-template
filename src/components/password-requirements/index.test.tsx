@@ -269,4 +269,31 @@ describe('PasswordRequirement', () => {
             expect(met.length + notMet.length).toBe(5);
         });
     });
+
+    // The per-item status text above only reaches a screen reader user who navigates into the
+    // list. This live region proactively announces the running count as the password changes,
+    // without requiring focus to move (WCAG 4.1.3).
+    describe('live status summary', () => {
+        it('exposes a polite status region reporting the met count', () => {
+            render(<PasswordRequirement password="" />);
+
+            const status = screen.getByRole('status');
+            expect(status).toHaveAttribute('aria-live', 'polite');
+            expect(status).toHaveTextContent('0 of 5 requirements met');
+        });
+
+        it('updates the announced count as requirements are satisfied', () => {
+            render(<PasswordRequirement password="lowercase123" />);
+
+            const status = screen.getByRole('status');
+            expect(status).toHaveTextContent('3 of 5 requirements met');
+        });
+
+        it('reports all requirements met for a fully valid password', () => {
+            render(<PasswordRequirement password="ValidPass123!" />);
+
+            const status = screen.getByRole('status');
+            expect(status).toHaveTextContent('5 of 5 requirements met');
+        });
+    });
 });

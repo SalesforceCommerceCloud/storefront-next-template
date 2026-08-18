@@ -88,11 +88,11 @@ export function GuestOrderDetails({ order, productsById, actions, headingRef }: 
                                                     data-shipment-id={sid}
                                                     className={idx > 0 ? 'border-t border-border' : ''}>
                                                     <div className="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2">
-                                                        <p className="text-sm min-w-0 font-medium">
+                                                        <h3 className="text-sm min-w-0 font-medium">
                                                             {t('orders.shipmentNumber', {
                                                                 n: String(idx + 1),
                                                             })}
-                                                        </p>
+                                                        </h3>
                                                         <ShipmentShippingStatusBadge
                                                             shippingStatus={shipment.shippingStatus}
                                                             t={t}
@@ -116,9 +116,9 @@ export function GuestOrderDetails({ order, productsById, actions, headingRef }: 
                                                                 className="rounded-ui p-0 bg-card [--ui-border-width:1px]"
                                                                 data-card="shipping-address">
                                                                 <CardContent className="p-4">
-                                                                    <p className="text-xs font-semibold text-foreground">
+                                                                    <h4 className="text-xs font-semibold text-foreground">
                                                                         {t('orders.shippingAddress')}
-                                                                    </p>
+                                                                    </h4>
                                                                     <div className="mt-2">
                                                                         <ShippingAddressDisplay
                                                                             address={shipment.shippingAddress}

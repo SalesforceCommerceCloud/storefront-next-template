@@ -65,6 +65,11 @@ describe('HeroMetadata - PD default alignment', () => {
         expect(metadata.fields.ctaLink?.defaultValue).toBeUndefined();
     });
 
+    test('ctaAriaLabel is authorable with no defaultValue', () => {
+        expect(metadata.fields.ctaAriaLabel).toBeDefined();
+        expect(metadata.fields.ctaAriaLabel?.defaultValue).toBeUndefined();
+    });
+
     test('buttonStyle defaults to Primary', () => {
         expect(metadata.fields.buttonStyle?.defaultValue).toBe('Primary');
     });

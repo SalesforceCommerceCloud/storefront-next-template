@@ -33,7 +33,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
         <div
           class="mb-2 md:mb-4 flex items-start gap-2 min-w-0"
         >
-          <h2
+          <h4
             class="text-left text-xl font-semibold leading-7 tracking-[-0.5px] text-card-foreground min-w-0 flex-1"
           >
             <a
@@ -44,7 +44,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
             >
               Sweater
             </a>
-          </h2>
+          </h4>
         </div>
         <div>
           <ul
@@ -162,7 +162,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
         <div
           class="mb-2 md:mb-4 flex items-start gap-2 min-w-0"
         >
-          <h2
+          <h4
             class="text-left text-xl font-semibold leading-7 tracking-[-0.5px] text-card-foreground min-w-0 flex-1"
           >
             <a
@@ -173,7 +173,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
             >
               Product One
             </a>
-          </h2>
+          </h4>
         </div>
         <div />
         <p
@@ -245,7 +245,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
         <div
           class="mb-2 md:mb-4 flex items-start gap-2 min-w-0"
         >
-          <h2
+          <h4
             class="text-left text-xl font-semibold leading-7 tracking-[-0.5px] text-card-foreground min-w-0 flex-1"
           >
             <a
@@ -256,7 +256,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
             >
               Product Two
             </a>
-          </h2>
+          </h4>
         </div>
         <div />
         <p

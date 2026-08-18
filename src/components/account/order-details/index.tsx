@@ -686,9 +686,9 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                                                             className="rounded-ui p-0 bg-card"
                                                             data-card="shipping-address">
                                                             <CardContent className="p-4">
-                                                                <p className="text-xs font-semibold text-foreground">
+                                                                <h4 className="text-xs font-semibold text-foreground">
                                                                     {t('orders.shippingAddress')}
-                                                                </p>
+                                                                </h4>
                                                                 <div className="mt-2">
                                                                     <ShippingAddressDisplay
                                                                         address={shipment.shippingAddress}

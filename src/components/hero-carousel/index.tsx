@@ -135,6 +135,11 @@ export interface HeroSlide {
     imageAlt?: string;
     ctaText?: string;
     ctaLink?: string;
+    /**
+     * Accessible name for the CTA link, overriding the visible ctaText. Use when ctaText is
+     * generic (e.g. "Shop Now") and does not by itself describe the link's destination. WCAG 2.4.4.
+     */
+    ctaAriaLabel?: string;
     overlayPosition?: string;
     overlayAlignment?: string;
 }
@@ -573,7 +578,9 @@ const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; pr
                             <Button
                                 asChild
                                 className="h-auto px-8 py-4 text-sm font-medium leading-5 text-primary-foreground">
-                                <Link to={slide.ctaLink || '#'}>{slide.ctaText || 'Learn More'}</Link>
+                                <Link to={slide.ctaLink || '#'} aria-label={slide.ctaAriaLabel}>
+                                    {slide.ctaText || 'Learn More'}
+                                </Link>
                             </Button>
                         </div>
                     </div>

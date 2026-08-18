@@ -1141,6 +1141,38 @@ describe('AccountDetails', () => {
         });
     });
 
+    describe('Focus management', () => {
+        test('returns focus to the section title after canceling profile edit', async () => {
+            await renderAccountDetails(mockCustomer);
+
+            await enterEditMode();
+
+            act(() => {
+                capturedProfileFormProps?.onCancel();
+            });
+
+            await waitFor(() => {
+                expect(document.activeElement).toBe(
+                    screen.getByRole('heading', { level: 2, name: 'Personal Information' })
+                );
+            });
+        });
+
+        test('returns focus to the section title after canceling email edit', async () => {
+            await renderAccountDetails(mockCustomer);
+
+            const emailFormProps = await enterEmailEditMode();
+
+            act(() => {
+                emailFormProps.onCancel();
+            });
+
+            await waitFor(() => {
+                expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Email Address' }));
+            });
+        });
+    });
+
     describe('Heading structure', () => {
         test('uses h2 for section titles', async () => {
             await renderAccountDetails(mockCustomer);
@@ -1149,7 +1181,7 @@ describe('AccountDetails', () => {
             // Password sections, so it is not skipped from heading navigation.
             expect(screen.getByRole('heading', { level: 2, name: 'Personal Information' })).toBeInTheDocument();
             expect(screen.getByRole('heading', { level: 2, name: 'Email Address' })).toBeInTheDocument();
-            expect(screen.getByRole('heading', { level: 2, name: 'Password' })).toBeInTheDocument();
+            expect(screen.getByRole('heading', { level: 2, name: 'Password & Security' })).toBeInTheDocument();
         });
     });
 });

@@ -141,4 +141,23 @@ describe('OrderSummary mobile heading helpers', () => {
         expect(trigger).toHaveAttribute('aria-expanded', 'true');
         expect(screen.getByTestId('mobile-content')).toBeInTheDocument();
     });
+
+    // A caller (Cart) pins this accordion to the viewport with a fixed-position wrapper. Without
+    // a bounded, scrollable content region, expanded content can be clipped by the viewport edge
+    // at narrow widths / high zoom with no way to reach it (WCAG 1.4.10).
+    test('OrderSummaryMobileAccordion applies contentClassName to the expanded content region', () => {
+        render(
+            <AllProvidersWrapper>
+                <OrderSummaryMobileAccordion
+                    basket={basket as OrderSummaryBasket}
+                    defaultExpanded={true}
+                    contentClassName="max-h-[40vh] overflow-y-auto">
+                    <div data-testid="mobile-content">Mobile summary content</div>
+                </OrderSummaryMobileAccordion>
+            </AllProvidersWrapper>
+        );
+
+        const content = screen.getByTestId('mobile-content').parentElement;
+        expect(content).toHaveClass('max-h-[40vh]', 'overflow-y-auto');
+    });
 });

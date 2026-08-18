@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { lazy, type ReactElement, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, type ReactElement, type Ref, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Await, useFetcher, useLoaderData, useOutletContext, useRevalidator } from 'react-router';
 /** @sfdc-extension-line SFDC_EXT_CUSTOMER_PREFERENCES */
 import type { Route } from './+types/_app.account._index';
@@ -96,6 +96,8 @@ function AccountDetailsContent({
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
     const profileFormRef = useRef<HTMLDivElement | null>(null);
+    const profileTitleRef = useRef<HTMLDivElement | null>(null);
+    const prevIsEditingProfileRef = useRef(isEditingProfile);
     // Optimistic profile values shown after save until the server customer prop refreshes.
     const [profileOverride, setProfileOverride] = useState<Partial<Customer> | null>(null);
 
@@ -115,14 +117,19 @@ function AccountDetailsContent({
     }, [customer]);
 
     useEffect(() => {
-        if (isEditingProfile) {
+        if (isEditingProfile && !prevIsEditingProfileRef.current) {
             requestAnimationFrame(() => {
                 const el = profileFormRef.current?.querySelector<HTMLElement>(
                     'input:not([type="hidden"]), textarea, select'
                 );
                 el?.focus();
             });
+        } else if (!isEditingProfile && prevIsEditingProfileRef.current) {
+            requestAnimationFrame(() => {
+                profileTitleRef.current?.focus();
+            });
         }
+        prevIsEditingProfileRef.current = isEditingProfile;
     }, [isEditingProfile]);
 
     const { addToast } = useToast();
@@ -672,7 +679,11 @@ function AccountDetailsContent({
             <Card data-testid="profile-card" className="bg-card border-border">
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2 border-b border-border pb-4">
                     <div className="space-y-1.5 min-w-0">
-                        <CardTitle as="h2" className="text-base font-semibold">
+                        <CardTitle
+                            ref={profileTitleRef as unknown as Ref<HTMLDivElement>}
+                            as="h2"
+                            tabIndex={-1}
+                            className="text-base font-semibold">
                             {t('profile.title')}
                         </CardTitle>
                         <CardDescription className="text-muted-foreground">{t('profile.description')}</CardDescription>
@@ -794,6 +805,7 @@ function AccountDetailsContent({
                 id="email"
                 data-testid="sf-toggle-card-email"
                 title={t('email.title')}
+                titleAs="h2"
                 description={t('email.description')}
                 editing={isEditingEmail}
                 showHeaderSeparator
@@ -803,7 +815,7 @@ function AccountDetailsContent({
                         className="flex flex-wrap items-center justify-between gap-3"
                         data-testid="sf-toggle-card-email-content">
                         <div className="space-y-2 min-w-0">
-                            <h2 className="text-sm font-medium text-foreground">{t('email.title')}</h2>
+                            <p className="text-sm font-medium text-foreground">{t('email.title')}</p>
                             <div className="flex flex-wrap items-center gap-2">
                                 <p className="text-sm text-foreground break-all" data-testid="email-value">
                                     {userInfo.email || t('profile.notProvided')}
@@ -862,6 +874,7 @@ function AccountDetailsContent({
                 id="password"
                 data-testid="sf-toggle-card-password"
                 title={t('password.title')}
+                titleAs="h2"
                 description={t('password.description')}
                 editing={isEditingPassword}
                 showHeaderSeparator

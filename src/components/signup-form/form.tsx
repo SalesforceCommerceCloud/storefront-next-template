@@ -50,7 +50,7 @@ export function SignupForm({ error, isPasswordless = false }: SignupFormProps) {
             <div className="space-y-6">
                 <fieldset>
                     <legend className="sr-only">{t('form.nameFieldsLegend')}</legend>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4">
                         <div>
                             <label htmlFor="firstName" className="block text-sm font-medium text-foreground">
                                 {t('form.firstNameLabel')}

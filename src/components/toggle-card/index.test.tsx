@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { describe, test, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToggleCard, ToggleCardEdit, type ToggleCardProps, ToggleCardSummary } from '@/components/toggle-card';
 
@@ -84,6 +84,34 @@ describe('ToggleCard', () => {
         const titleEl = screen.getByText('Card Title');
         // Title should not have focus - focus should go to form inputs instead
         expect(titleEl).not.toHaveFocus();
+    });
+
+    test('returns focus to the title when switching out of editing', async () => {
+        const { rerender } = render(
+            <ToggleCard id="card7" title="Card Title" editing>
+                <ToggleCardSummary>
+                    <div>Summary Content</div>
+                </ToggleCardSummary>
+                <ToggleCardEdit>
+                    <div>Edit Content</div>
+                </ToggleCardEdit>
+            </ToggleCard>
+        );
+
+        rerender(
+            <ToggleCard id="card7" title="Card Title" editing={false}>
+                <ToggleCardSummary>
+                    <div>Summary Content</div>
+                </ToggleCardSummary>
+                <ToggleCardEdit>
+                    <div>Edit Content</div>
+                </ToggleCardEdit>
+            </ToggleCard>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Card Title')).toHaveFocus();
+        });
     });
 
     test('shows loading overlay when isLoading=true and hides when false', () => {

@@ -209,7 +209,7 @@ describe('CategoryBanner', () => {
 
             renderBanner();
 
-            const img = screen.getByRole('img', { hidden: true });
+            const img = document.querySelector('img') as HTMLImageElement;
             expect(img).toHaveAttribute('src', 'https://dis.example.com/dw/image/v2/banner.png');
         });
 
@@ -224,7 +224,7 @@ describe('CategoryBanner', () => {
 
             renderBanner();
 
-            const img = screen.getByRole('img', { hidden: true });
+            const img = document.querySelector('img') as HTMLImageElement;
             expect(img).toHaveAttribute('src', 'https://mrt-host/on/demandware.static/category.png');
         });
 
@@ -241,7 +241,7 @@ describe('CategoryBanner', () => {
             renderBanner();
 
             expect(mockToImageUrl).toHaveBeenCalledWith(expect.objectContaining({ src: rawUrl }));
-            const img = screen.getByRole('img', { hidden: true });
+            const img = document.querySelector('img') as HTMLImageElement;
             expect(img).toHaveAttribute('src', disUrl);
         });
 
@@ -253,14 +253,14 @@ describe('CategoryBanner', () => {
 
             renderBanner();
 
-            expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument();
+            expect(document.querySelector('img')).not.toBeInTheDocument();
         });
 
         test('renders bg-muted when loader data is absent', () => {
             mockUseRouteLoaderData.mockReturnValue(undefined);
             renderBanner();
 
-            expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument();
+            expect(document.querySelector('img')).not.toBeInTheDocument();
         });
 
         test('falls back to bg-muted when image fails to load', () => {
@@ -274,10 +274,10 @@ describe('CategoryBanner', () => {
 
             renderBanner();
 
-            const img = screen.getByRole('img', { hidden: true });
+            const img = document.querySelector('img') as HTMLImageElement;
             fireEvent.error(img);
 
-            expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument();
+            expect(document.querySelector('img')).not.toBeInTheDocument();
         });
 
         test('resets image error state when category changes', () => {
@@ -297,9 +297,9 @@ describe('CategoryBanner', () => {
                 />
             );
 
-            const img = screen.getByRole('img', { hidden: true });
+            const img = document.querySelector('img') as HTMLImageElement;
             fireEvent.error(img);
-            expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument();
+            expect(document.querySelector('img')).not.toBeInTheDocument();
 
             mockUseRouteLoaderData.mockReturnValue({
                 category: {
@@ -317,7 +317,7 @@ describe('CategoryBanner', () => {
                 />
             );
 
-            expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
+            expect(document.querySelector('img')).toBeInTheDocument();
         });
     });
 
@@ -397,7 +397,7 @@ describe('CategoryBanner', () => {
     });
 
     describe('accessibility', () => {
-        test('image has aria-hidden to exclude it from accessibility tree', () => {
+        test('decorative background image is hidden from assistive technologies (category name is announced separately)', () => {
             mockUseRouteLoaderData.mockReturnValue({
                 category: {
                     ...mockCategory,
@@ -407,26 +407,26 @@ describe('CategoryBanner', () => {
             });
             renderBanner();
 
-            const img = screen.getByRole('img', { hidden: true });
-            expect(img).toHaveAttribute('aria-hidden', 'true');
+            expect(screen.queryByRole('img')).not.toBeInTheDocument();
+            expect(screen.queryByRole('img', { name: 'Men' })).not.toBeInTheDocument();
         });
 
-        test('root category label has aria-hidden', () => {
+        test('root category label is exposed to assistive technologies', () => {
             mockUseRouteLoaderData.mockReturnValue({
                 category: mockSubCategory,
                 searchResultCritical: mockSearchResult,
             });
             renderBanner();
 
-            const rootLabel = screen.getByText('Men').closest('[aria-hidden="true"]');
-            expect(rootLabel).toBeInTheDocument();
+            const rootLabel = screen.getByText('Men');
+            expect(rootLabel.closest('[aria-hidden="true"]')).not.toBeInTheDocument();
         });
 
-        test('category name paragraph has aria-hidden', () => {
+        test('category name is exposed to assistive technologies', () => {
             renderBanner();
 
-            const categoryName = screen.getByText('Men', { selector: '[aria-hidden="true"]' });
-            expect(categoryName).toBeInTheDocument();
+            const categoryName = screen.getByText('Men');
+            expect(categoryName).not.toHaveAttribute('aria-hidden');
         });
 
         test('product count container has aria-live="polite"', () => {

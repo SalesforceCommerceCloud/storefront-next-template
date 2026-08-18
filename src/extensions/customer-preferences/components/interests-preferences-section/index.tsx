@@ -93,6 +93,7 @@ export function InterestsPreferencesSection({ initialData }: InterestsPreference
     const [isInterestsDialogOpen, setIsInterestsDialogOpen] = useState(false);
     const [activeTabId, setActiveTabId] = useState<string>(interestCategories[0]?.id ?? '');
     const [activeMultiSelectId, setActiveMultiSelectId] = useState<string | null>(null);
+    const tabButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
     const isSaving = fetcher.state !== 'idle';
 
@@ -179,6 +180,37 @@ export function InterestsPreferencesSection({ initialData }: InterestsPreference
 
     const handleCloseInterestsDialog = useCallback(() => setIsInterestsDialogOpen(false), []);
 
+    const focusTab = useCallback((categoryId: string) => {
+        setActiveTabId(categoryId);
+        tabButtonRefs.current[categoryId]?.focus();
+    }, []);
+
+    const handleTabKeyDown = useCallback(
+        (event: React.KeyboardEvent<HTMLButtonElement>) => {
+            const currentIndex = interestCategories.findIndex((c) => c.id === activeTabId);
+            if (currentIndex === -1) {
+                return;
+            }
+
+            let nextIndex: number | null = null;
+            if (event.key === 'ArrowRight') {
+                nextIndex = (currentIndex + 1) % interestCategories.length;
+            } else if (event.key === 'ArrowLeft') {
+                nextIndex = (currentIndex - 1 + interestCategories.length) % interestCategories.length;
+            } else if (event.key === 'Home') {
+                nextIndex = 0;
+            } else if (event.key === 'End') {
+                nextIndex = interestCategories.length - 1;
+            }
+
+            if (nextIndex !== null) {
+                event.preventDefault();
+                focusTab(interestCategories[nextIndex].id);
+            }
+        },
+        [activeTabId, interestCategories, focusTab]
+    );
+
     const handleToggleInterestInDialog = useCallback((interestId: string, checked: boolean) => {
         setPendingInterests((prev) => (checked ? [...prev, interestId] : prev.filter((id) => id !== interestId)));
     }, []);
@@ -241,7 +273,9 @@ export function InterestsPreferencesSection({ initialData }: InterestsPreference
             <Card data-testid="interests-preferences-section" className="bg-card border-border">
                 <CardHeader className="flex flex-row items-start justify-between border-b border-border pb-4">
                     <div className="space-y-1.5">
-                        <CardTitle className="text-base font-semibold">{t('interestsPreferences.title')}</CardTitle>
+                        <CardTitle as="h2" className="text-base font-semibold">
+                            {t('interestsPreferences.title')}
+                        </CardTitle>
                         <CardDescription className="text-muted-foreground">
                             {t('interestsPreferences.description')}
                         </CardDescription>
@@ -568,13 +602,22 @@ export function InterestsPreferencesSection({ initialData }: InterestsPreference
                     </DialogHeader>
 
                     <div className="border-b border-muted-foreground/20">
-                        <div className="flex gap-1 overflow-x-auto">
+                        <div className="flex gap-1 overflow-x-auto" role="tablist" aria-label={t('interests.title')}>
                             {interestCategories.map((category) => (
                                 <button
                                     key={category.id}
+                                    ref={(el) => {
+                                        tabButtonRefs.current[category.id] = el;
+                                    }}
                                     type="button"
+                                    id={`interests-tab-${category.id}`}
+                                    role="tab"
+                                    aria-selected={activeTabId === category.id}
+                                    aria-controls="interests-tabpanel"
+                                    tabIndex={activeTabId === category.id ? 0 : -1}
                                     data-testid={`interests-tab-${category.id}`}
                                     onClick={() => setActiveTabId(category.id)}
+                                    onKeyDown={handleTabKeyDown}
                                     className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors ${
                                         activeTabId === category.id
                                             ? 'border-b-2 border-primary text-foreground'
@@ -586,7 +629,11 @@ export function InterestsPreferencesSection({ initialData }: InterestsPreference
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto py-2">
+                    <div
+                        className="flex-1 overflow-y-auto py-2"
+                        id="interests-tabpanel"
+                        role="tabpanel"
+                        aria-labelledby={`interests-tab-${activeTabId}`}>
                         {activeCategory && (
                             <div className="flex flex-col gap-3">
                                 {activeCategory.options.map((interest) => {

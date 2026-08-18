@@ -204,8 +204,10 @@ describe('GuestOrderDetails', () => {
 
         renderGuestOrderDetails({ order, productsById });
 
-        expect(screen.getByText(/shipping address/i)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 4, name: /shipping address/i })).toBeInTheDocument();
         expect(screen.getByText('John Doe')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 3, name: /shipment 1/i })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 4, name: 'Test Product' })).toBeInTheDocument();
     });
 
     it('does not render payment method when absent', () => {

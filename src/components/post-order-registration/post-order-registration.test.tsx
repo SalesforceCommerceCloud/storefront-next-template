@@ -136,7 +136,7 @@ describe('PostOrderRegistration', () => {
 
         // The polite live region must exist (empty) before success so the later message is
         // written into an existing node and gets announced, rather than mounting pre-filled.
-        const liveRegion = screen.getByRole('status');
+        const liveRegion = screen.getByTestId('post-order-registration-status');
         expect(liveRegion).toBeInTheDocument();
         expect(liveRegion).toHaveTextContent('');
     });
@@ -154,7 +154,7 @@ describe('PostOrderRegistration', () => {
             </AllProvidersWrapper>
         );
 
-        const liveRegion = screen.getByRole('status');
+        const liveRegion = screen.getByTestId('post-order-registration-status');
         expect(liveRegion).toHaveTextContent(/account created/i);
         expect(liveRegion).toHaveTextContent(/guest@example\.com/i);
     });

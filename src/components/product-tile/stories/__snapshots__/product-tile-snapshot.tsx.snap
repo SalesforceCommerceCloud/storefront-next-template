@@ -262,7 +262,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -585,7 +585,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -939,7 +939,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -1224,7 +1224,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)

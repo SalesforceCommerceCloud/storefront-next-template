@@ -213,6 +213,42 @@ describe('Hero Component', () => {
             expect(screen.queryByRole('link')).not.toBeInTheDocument();
         });
 
+        test('overrides the CTA accessible name with ctaAriaLabel while keeping the visible ctaText', () => {
+            renderHero({
+                ctaText: 'Shop Now',
+                ctaLink: '/go',
+                ctaAriaLabel: 'Shop Now: New Perspectives',
+            });
+            const link = screen.getByRole('link', { name: 'Shop Now: New Perspectives' });
+            expect(link).toHaveTextContent('Shop Now');
+        });
+
+        test('derives a default accessible name from title and ctaText when ctaAriaLabel is not authored', () => {
+            renderHero({
+                title: 'New Perspectives',
+                ctaText: 'Shop Now',
+                ctaLink: '/go',
+            });
+            const link = screen.getByRole('link', { name: 'Shop Now: New Perspectives' });
+            expect(link).toHaveTextContent('Shop Now');
+        });
+
+        test('gives identical ctaText distinct accessible names across different titles (no ctaAriaLabel authored)', () => {
+            const { unmount } = renderHero({ title: 'Slide One', ctaText: 'Shop Now', ctaLink: '/a' });
+            const firstLink = screen.getByRole('link', { name: 'Shop Now: Slide One' });
+            expect(firstLink).toBeInTheDocument();
+            unmount();
+
+            renderHero({ title: 'Slide Two', ctaText: 'Shop Now', ctaLink: '/b' });
+            expect(screen.getByRole('link', { name: 'Shop Now: Slide Two' })).toBeInTheDocument();
+        });
+
+        test('falls back to the visible CTA text alone when neither ctaAriaLabel nor title is set', () => {
+            renderHero({ ctaText: 'Shop Now', ctaLink: '/go' });
+            const link = screen.getByRole('link', { name: 'Shop Now' });
+            expect(link).toHaveTextContent('Shop Now');
+        });
+
         test('applies titleColor when hex is valid', () => {
             renderHero({ title: 'T', titleColor: '#aabbcc' });
             expect(screen.getByRole('heading', { level: 1 })).toHaveStyle({ color: '#aabbcc' });

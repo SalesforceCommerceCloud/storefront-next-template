@@ -265,7 +265,7 @@ describe('OrderDetails', () => {
     test('renders Shipment 1 header', () => {
         renderOrderDetails();
         const shipmentLabel = t('account:orders.shipmentNumber', { n: '1' });
-        expect(screen.getByText(shipmentLabel)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 3, name: shipmentLabel })).toBeInTheDocument();
     });
 
     test('renders product name from order items', () => {
@@ -365,7 +365,9 @@ describe('OrderDetails', () => {
         expect(screen.getByText('1234567890')).toBeInTheDocument();
         expect(document.querySelector('[data-card="tracking-number"]')).toBeInTheDocument();
 
-        expect(screen.getByText(t('account:orders.shippingAddress'))).toBeInTheDocument();
+        expect(
+            screen.getByRole('heading', { level: 4, name: t('account:orders.shippingAddress') })
+        ).toBeInTheDocument();
         expect(document.querySelector('[data-card="shipping-address"]')).toBeInTheDocument();
         expect(screen.getAllByText(/John Snow/).length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(/2030 Market street 8th st/)).toBeInTheDocument();

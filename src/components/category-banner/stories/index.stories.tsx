@@ -84,8 +84,9 @@ count, and an optional background image sourced from the category's SCAPI data.
 - \`bg-muted\` placeholder when no image is available
 
 ### Accessibility
-The decorative image, category name and breadcrumb are \`aria-hidden\`. Only the product
-count is exposed to assistive technology via an \`aria-live="polite"\` region.
+The banner image, category name, and root category label are all exposed to
+assistive technology (the image via a descriptive \`alt\`). The product count is
+also exposed via an \`aria-live="polite"\` region so it announces on filter changes.
                 `,
             },
         },

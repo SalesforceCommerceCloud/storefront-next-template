@@ -112,14 +112,19 @@ export function ProductItemVariantImage({
  * @param props - Component props
  * @param props.productItem - Product data containing name and ID information
  * @param props.showBonusBadge - When true (default), renders the "Bonus Product" badge for bonus line items
+ * @param props.headingLevel - Heading element to render the name as (default 'h2'). Callers nesting this
+ * under their own heading hierarchy (e.g. Order Details' h2/h3 shipment structure) should pass the level
+ * that keeps headings sequential.
  * @returns JSX element with product name link
  */
 export function ProductItemVariantName({
     productItem,
     showBonusBadge = true,
+    headingLevel = 'h2',
 }: {
     productItem: EnrichedProductItem;
     showBonusBadge?: boolean;
+    headingLevel?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 }): ReactElement {
     const { t: tCart } = useTranslation('cart');
     const { t: tProduct } = useTranslation('product');
@@ -140,6 +145,7 @@ export function ProductItemVariantName({
             )}
             <Typography
                 variant="h2"
+                as={headingLevel}
                 className="text-xl font-semibold leading-7 tracking-[-0.5px] text-card-foreground min-w-0 flex-1">
                 <Link
                     to={createProductUrl(productId)}

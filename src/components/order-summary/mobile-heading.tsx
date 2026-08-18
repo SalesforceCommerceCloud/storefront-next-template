@@ -19,6 +19,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { getOrderSummaryMobileHeading, type OrderSummaryBasket } from './mobile-heading-utils';
 import { formatCurrency } from '@/lib/currency';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
+import { cn } from '@/lib/utils';
 
 interface OrderSummaryMobileAccordionProps {
     basket: OrderSummaryBasket;
@@ -29,6 +30,13 @@ interface OrderSummaryMobileAccordionProps {
     isEstimate?: boolean;
     // Keep summary content as children so parent routes retain lazy-loading boundaries.
     children: ReactNode;
+    /**
+     * Extra classes for the expanded accordion body. Callers that pin this accordion to the
+     * viewport (e.g. a `fixed` mobile footer) should pass a bounded max-height plus
+     * `overflow-y-auto` here, so expanded content stays reachable by scrolling instead of being
+     * clipped by the viewport edge at narrow widths / high zoom (WCAG 1.4.10).
+     */
+    contentClassName?: string;
 }
 
 /**
@@ -52,6 +60,7 @@ export function OrderSummaryMobileAccordion({
     showPrice = false,
     isEstimate = true,
     children,
+    contentClassName,
 }: OrderSummaryMobileAccordionProps): ReactElement {
     const { t, i18n } = useTranslation('cart');
     const { currency } = useSite();
@@ -79,7 +88,9 @@ export function OrderSummaryMobileAccordion({
                         )}
                     </span>
                 </AccordionTrigger>
-                <AccordionContent className="p-0 pt-4 border-t border-border">{children}</AccordionContent>
+                <AccordionContent className={cn('p-0 pt-4 border-t border-border', contentClassName)}>
+                    {children}
+                </AccordionContent>
             </AccordionItem>
         </Accordion>
     );

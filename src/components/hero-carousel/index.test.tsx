@@ -182,6 +182,24 @@ describe('HeroCarousel', () => {
             expect(screen.getByText('No slides available')).toBeInTheDocument();
         });
 
+        test('overrides the CTA accessible name with ctaAriaLabel while keeping the visible ctaText', () => {
+            const slidesWithAriaLabel: HeroSlide[] = [
+                {
+                    id: '1',
+                    title: 'First Slide',
+                    imageUrl: '/image1.jpg',
+                    imageAlt: 'First image',
+                    ctaText: 'Shop Now',
+                    ctaLink: '/shop',
+                    ctaAriaLabel: 'Shop Now: New Perspectives',
+                },
+            ];
+            renderWithRouter(<HeroCarousel slides={slidesWithAriaLabel} />);
+
+            const link = screen.getByRole('link', { name: 'Shop Now: New Perspectives' });
+            expect(link).toHaveTextContent('Shop Now');
+        });
+
         test('handles slides without optional content', () => {
             renderWithRouter(<HeroCarousel slides={mockSlides} />);
 

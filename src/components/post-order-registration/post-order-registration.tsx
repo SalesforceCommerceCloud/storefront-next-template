@@ -91,7 +91,7 @@ export function PostOrderRegistration({
     // existing region and assistive tech announces it. A status node that first mounts already
     // populated (the earlier early-return placement) generally stays silent.
     const liveRegion = (
-        <div role="status" className="sr-only">
+        <div role="status" data-testid="post-order-registration-status" className="sr-only">
             {registrationSuccess ? (
                 <>
                     {t('confirmation.postOrderRegistration.successTitle')}{' '}

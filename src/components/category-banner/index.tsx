@@ -73,8 +73,7 @@ export default function CategoryBanner() {
                 {hasImage ? (
                     <img
                         src={imageSrc}
-                        alt={categoryName || ''}
-                        aria-hidden="true"
+                        alt=""
                         fetchPriority="high"
                         className="w-full h-full object-cover"
                         onError={handleImageError}
@@ -95,16 +94,14 @@ export default function CategoryBanner() {
                 <div className="section-container w-full pb-8 md:pb-10">
                     <div className="max-w-2xl">
                         {rootCategoryName && (
-                            <div className="inline-block mb-4" aria-hidden="true">
+                            <div className="inline-block mb-4">
                                 <span className="text-xs md:text-sm text-white/80 uppercase tracking-widest font-medium">
                                     {rootCategoryName}
                                 </span>
                             </div>
                         )}
                         {categoryName && (
-                            <p
-                                aria-hidden="true"
-                                className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-primary-foreground mb-4 tracking-tight leading-tight">
+                            <p className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-primary-foreground mb-4 tracking-tight leading-tight">
                                 {categoryName}
                             </p>
                         )}
