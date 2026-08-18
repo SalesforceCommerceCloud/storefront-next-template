@@ -418,7 +418,7 @@ function ErrorPageContent({
             <header className="bg-header-background text-header-foreground sticky top-0 z-50">
                 <div className="section-container">
                     <div className="flex items-center gap-x-4 lg:gap-x-6 h-16">
-                        <a href={homepageUrl} className="flex-shrink-0 flex items-center">
+                        <a href={homepageUrl} className="flex-shrink-0 flex items-center" data-testid="header-logo">
                             <Logo className="h-3 lg:h-4 w-auto [filter:var(--header-logo-filter)]" />
                         </a>
                     </div>

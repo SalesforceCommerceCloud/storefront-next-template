@@ -475,6 +475,19 @@ describe('root.tsx', () => {
                 expect(pre).toHaveAttribute('tabindex', '0');
             });
 
+            // Verticals that resize the logo (e.g. footwear's stacked wordmark) target it via
+            // `[data-testid='header-logo'] img` in their theme CSS. The error page renders its
+            // own header markup rather than the shared one, so it needs the same test id or a
+            // vertical's logo-sizing override silently misses this page.
+            it('marks the logo link with the header-logo test id used by vertical theme overrides', () => {
+                const error = new Error('Test error');
+                error.stack = stackText;
+
+                const { getByTestId } = render(<ErrorBoundary error={error} />);
+
+                expect(getByTestId('header-logo').tagName).toBe('A');
+            });
+
             it('should render predefined 404 error message for route errors with 404 status', () => {
                 const error = {
                     status: 404,
