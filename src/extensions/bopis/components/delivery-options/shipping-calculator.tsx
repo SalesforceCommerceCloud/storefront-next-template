@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
-import { type ReactElement, useState, useEffect } from 'react';
+import { type ReactElement, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFetcher } from 'react-router';
 import { AlertCircle, Check } from 'lucide-react';
@@ -43,11 +43,24 @@ export default function ShippingCalculator({ onCalculate, productId }: ShippingC
     const estimate = matched?.success ? matched.estimate : null;
     const errorMsg = matched && !matched.success ? matched.error : null;
 
+    const resultRef = useRef<HTMLDivElement>(null);
+    const errorRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         if (matched?.success) {
             onCalculate(matched.zipcode, matched.estimate.days);
         }
     }, [matched, onCalculate]);
+
+    // Move focus to the result so keyboard/AT users land on the outcome of "Calculate"
+    // instead of staying on the button while the page content below shifts (WCAG 2.4.3).
+    useEffect(() => {
+        if (estimate) {
+            resultRef.current?.focus();
+        } else if (errorMsg) {
+            errorRef.current?.focus();
+        }
+    }, [estimate, errorMsg]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value.replace(/\D/g, '').slice(0, 5);
@@ -128,7 +141,10 @@ export default function ShippingCalculator({ onCalculate, productId }: ShippingC
                 )}
 
                 {errorMsg && (
-                    <div className="bg-destructive/10 border border-destructive/20 rounded-ui p-3">
+                    <div
+                        ref={errorRef}
+                        tabIndex={-1}
+                        className="bg-destructive/10 border border-destructive/20 rounded-ui p-3 outline-none focus-visible:ring-ring focus-visible:ring-[3px]">
                         <div className="flex items-start gap-2">
                             <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
@@ -148,10 +164,12 @@ export default function ShippingCalculator({ onCalculate, productId }: ShippingC
 
                 {estimate && (
                     <div
+                        ref={resultRef}
                         id="delivery-result"
                         role="status"
                         aria-live="polite"
-                        className="bg-success/10 border border-success/20 rounded-ui p-3">
+                        tabIndex={-1}
+                        className="bg-success/10 border border-success/20 rounded-ui p-3 outline-none focus-visible:ring-ring focus-visible:ring-[3px]">
                         <div className="flex items-start gap-2">
                             <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                             <div className="flex-1 space-y-1">

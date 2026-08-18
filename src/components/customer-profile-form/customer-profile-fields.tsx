@@ -185,6 +185,7 @@ export function CustomerProfileFields({
                                         {...field}
                                     />
                                 </FormControl>
+                                <FormDescription>{t('profile.dateOfBirthDescription')}</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}

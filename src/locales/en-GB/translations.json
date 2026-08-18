@@ -1223,7 +1223,8 @@
                 "phoneInvalid": "Enter a valid phone number.",
                 "birthdayFuture": "Date of birth cannot be in the future."
             },
-            "phoneDescription": "Enter phone number including area code"
+            "phoneDescription": "Enter phone number including area code",
+            "dateOfBirthDescription": "Format: day, month, year"
         },
         "email": {
             "title": "Email Address",

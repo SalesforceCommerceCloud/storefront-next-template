@@ -182,6 +182,7 @@ exports[`CustomerProfileFields stories snapshot > Playground story renders and m
               Date of Birth
             </label>
             <input
+              aria-describedby="_r_4_-form-item-description"
               aria-invalid="false"
               autocomplete="bday"
               class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-border focus:ring-2 focus:ring-ring focus:border-transparent"
@@ -191,6 +192,13 @@ exports[`CustomerProfileFields stories snapshot > Playground story renders and m
               type="date"
               value=""
             />
+            <p
+              class="text-muted-foreground text-sm"
+              data-slot="form-description"
+              id="_r_4_-form-item-description"
+            >
+              Format: day, month, year
+            </p>
           </div>
         </div>
       </fieldset>
@@ -394,6 +402,7 @@ exports[`CustomerProfileFields stories snapshot > Submitting story renders and m
               Date of Birth
             </label>
             <input
+              aria-describedby="_r_9_-form-item-description"
               aria-invalid="false"
               autocomplete="bday"
               class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-border focus:ring-2 focus:ring-ring focus:border-transparent"
@@ -403,6 +412,13 @@ exports[`CustomerProfileFields stories snapshot > Submitting story renders and m
               type="date"
               value="1990-05-15"
             />
+            <p
+              class="text-muted-foreground text-sm"
+              data-slot="form-description"
+              id="_r_9_-form-item-description"
+            >
+              Format: day, month, year
+            </p>
           </div>
         </div>
       </fieldset>
@@ -607,6 +623,7 @@ exports[`CustomerProfileFields stories snapshot > WithValidationErrors story ren
               Date of Birth
             </label>
             <input
+              aria-describedby="_r_e_-form-item-description"
               aria-invalid="false"
               autocomplete="bday"
               class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 h-9 w-full min-w-0 rounded-ui border bg-transparent px-3 py-1 text-base shadow-ui transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border-border focus:ring-2 focus:ring-ring focus:border-transparent"
@@ -616,6 +633,13 @@ exports[`CustomerProfileFields stories snapshot > WithValidationErrors story ren
               type="date"
               value=""
             />
+            <p
+              class="text-muted-foreground text-sm"
+              data-slot="form-description"
+              id="_r_e_-form-item-description"
+            >
+              Format: day, month, year
+            </p>
           </div>
         </div>
       </fieldset>
