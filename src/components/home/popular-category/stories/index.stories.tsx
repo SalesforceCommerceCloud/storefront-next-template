@@ -246,8 +246,9 @@ export const WithoutImage: Story = {
         const canvas = within(canvasElement);
 
         await expect(canvas.getByText('Mens')).toBeInTheDocument();
-        // Image should still be present (fallback)
-        const image = canvas.getByRole('img');
+        // Image should still be present (fallback). Decorative alt="" drops the
+        // accessible 'img' role, so query the element directly instead of by role.
+        const image = canvasElement.querySelector('img');
         await expect(image).toBeInTheDocument();
     },
 };
@@ -303,6 +304,7 @@ export const InteractionTest: Story = {
         await userEvent.hover(card);
 
         await expect(canvas.getByText('Mens')).toBeInTheDocument();
-        await expect(canvas.getByRole('img')).toBeInTheDocument();
+        // Decorative alt="" drops the accessible 'img' role; query directly instead.
+        await expect(canvasElement.querySelector('img')).toBeInTheDocument();
     },
 };

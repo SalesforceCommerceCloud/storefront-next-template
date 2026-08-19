@@ -166,9 +166,9 @@ describe('PopularCategory', () => {
     });
 
     test('uses category image when available', () => {
-        renderComponent(<PopularCategory data={mockCategory} />);
+        const { container } = renderComponent(<PopularCategory data={mockCategory} />);
 
-        const image = screen.getByRole('img');
+        const image = container.querySelector('img');
         expect(image).toHaveAttribute('src', '/images/new-arrivals.jpg');
     });
 
@@ -178,17 +178,17 @@ describe('PopularCategory', () => {
             image: undefined,
         };
 
-        renderComponent(<PopularCategory data={categoryWithoutImage} />);
+        const { container } = renderComponent(<PopularCategory data={categoryWithoutImage} />);
 
-        const image = screen.getByRole('img');
+        const image = container.querySelector('img');
         expect(image).toHaveAttribute('src', '/images/new-arrivals-banner.jpg');
     });
 
-    test('uses category name as image alt text', () => {
-        renderComponent(<PopularCategory data={mockCategory} />);
+    test('sets image alt to empty (decorative — the overlaid heading names the tile)', () => {
+        const { container } = renderComponent(<PopularCategory data={mockCategory} />);
 
-        const image = screen.getByRole('img');
-        expect(image).toHaveAttribute('alt', 'New Arrivals');
+        const image = container.querySelector('img');
+        expect(image).toHaveAttribute('alt', '');
     });
 
     test('generates correct category link', () => {
@@ -232,10 +232,10 @@ describe('PopularCategory', () => {
             c_slotBannerImage: undefined,
         };
 
-        renderComponent(<PopularCategory data={categoryNoImages} />);
+        const { container } = renderComponent(<PopularCategory data={categoryNoImages} />);
 
         // Should use fallback hero image
-        const image = screen.getByRole('img');
+        const image = container.querySelector('img');
         expect(image).toBeInTheDocument();
     });
 

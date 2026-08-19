@@ -84,7 +84,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                                 type="image/webp"
                               />
                               <img
-                                alt="Jewelry"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -166,7 +166,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                                 type="image/webp"
                               />
                               <img
-                                alt="Clothing"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -248,7 +248,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                                 type="image/webp"
                               />
                               <img
-                                alt="Electronics"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -330,7 +330,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                                 type="image/webp"
                               />
                               <img
-                                alt="Home & Living"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1116,7 +1116,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 type="image/webp"
                               />
                               <img
-                                alt="Jewelry"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1198,7 +1198,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 type="image/webp"
                               />
                               <img
-                                alt="Clothing"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1280,7 +1280,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 type="image/webp"
                               />
                               <img
-                                alt="Electronics"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1362,7 +1362,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 type="image/webp"
                               />
                               <img
-                                alt="Home & Living"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1444,7 +1444,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 type="image/webp"
                               />
                               <img
-                                alt="Sports & Outdoors"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1526,7 +1526,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                                 type="image/webp"
                               />
                               <img
-                                alt="Beauty & Health"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1735,7 +1735,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                                 type="image/webp"
                               />
                               <img
-                                alt="Jewelry"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1817,7 +1817,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                                 type="image/webp"
                               />
                               <img
-                                alt="Clothing"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1899,7 +1899,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                                 type="image/webp"
                               />
                               <img
-                                alt="Electronics"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -1981,7 +1981,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                                 type="image/webp"
                               />
                               <img
-                                alt="Home & Living"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -2178,7 +2178,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                                 type="image/webp"
                               />
                               <img
-                                alt="Jewelry"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -2260,7 +2260,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                                 type="image/webp"
                               />
                               <img
-                                alt="Clothing"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -2342,7 +2342,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                                 type="image/webp"
                               />
                               <img
-                                alt="Electronics"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -2424,7 +2424,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                                 type="image/webp"
                               />
                               <img
-                                alt="Home & Living"
+                                alt=""
                                 class="w-full h-full object-cover"
                                 fetchpriority="auto"
                                 loading="eager"
@@ -2603,7 +2603,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="w-full h-full"
                           >
                             <img
-                              alt="Category One"
+                              alt=""
                               class="w-full h-full object-cover"
                               fetchpriority="auto"
                               loading="eager"
@@ -2666,7 +2666,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="w-full h-full"
                           >
                             <img
-                              alt="Category Two"
+                              alt=""
                               class="w-full h-full object-cover"
                               fetchpriority="auto"
                               loading="eager"
@@ -2729,7 +2729,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="w-full h-full"
                           >
                             <img
-                              alt="Category Three"
+                              alt=""
                               class="w-full h-full object-cover"
                               fetchpriority="auto"
                               loading="eager"
@@ -2792,7 +2792,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                             class="w-full h-full"
                           >
                             <img
-                              alt="Category Four"
+                              alt=""
                               class="w-full h-full object-cover"
                               fetchpriority="auto"
                               loading="eager"

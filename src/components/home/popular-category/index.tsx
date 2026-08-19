@@ -172,9 +172,11 @@ export default function PopularCategory({
             <div className="group relative overflow-hidden bg-muted h-full">
                 <div className="aspect-square overflow-hidden">
                     <div className="relative w-full h-full transition-transform duration-500 group-hover:scale-105">
+                        {/* Decorative: the overlaid heading below names the link, so empty alt avoids
+                            the category name being announced twice by assistive technology. */}
                         <DynamicImage
                             src={finalImageUrl}
-                            alt={finalName}
+                            alt=""
                             className="w-full h-full"
                             imageProps={{ className: 'w-full h-full object-cover' }}
                             widths={carouselItemImageWidths}
