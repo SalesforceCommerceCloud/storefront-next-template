@@ -482,7 +482,7 @@ describe('shopper-context.server', () => {
             expect(mockLogger.error).toHaveBeenCalledWith('ShopperContext: middleware failed', {
                 error: expect.any(Error),
                 usid: 'test-usid',
-                url: url.toString(),
+                url: new URL(url.toString()).pathname,
             });
         });
 
@@ -499,7 +499,7 @@ describe('shopper-context.server', () => {
             expect(mockLogger.error).toHaveBeenCalledWith('ShopperContext: middleware failed', {
                 error: expect.any(Error),
                 usid: 'test-usid',
-                url: mockRequest.url,
+                url: new URL(mockRequest.url).pathname,
             });
         });
 
@@ -521,7 +521,7 @@ describe('shopper-context.server', () => {
             expect(mockLogger.error).toHaveBeenCalledWith('ShopperContext: middleware failed', {
                 error: expect.any(Error),
                 usid: 'test-usid',
-                url: url.toString(),
+                url: new URL(url.toString()).pathname,
             });
             expect(result).toBe(mockResponse);
 

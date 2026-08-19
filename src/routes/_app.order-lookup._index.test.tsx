@@ -221,13 +221,14 @@ describe('OrderLookupEntryPage component', () => {
         expect(screen.getByTestId('initial-email')).toHaveTextContent('test@example.com');
     });
 
-    it('navigates to results page with URL-encoded params on code sent', () => {
+    it('navigates to /order-lookup/verify/:orderNo without email in the URL on code sent', () => {
         renderPage();
 
         const mockCodeSentButton = screen.getByRole('button', { name: 'Mock Code Sent' });
         mockCodeSentButton.click();
 
-        expect(mockNavigate).toHaveBeenCalledWith('/order-lookup/results?order=12345&email=test%40example.com');
+        // Email is stored in the signed cookie by the server action — never in the URL.
+        expect(mockNavigate).toHaveBeenCalledWith('/order-lookup/verify/12345');
     });
 
     it('replaces RequestCodeForm with a spinner immediately on code sent, before navigation resolves', () => {

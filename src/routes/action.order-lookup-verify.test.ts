@@ -499,6 +499,7 @@ describe('action.order-lookup-verify', () => {
             siteId: 'RefArch',
             orderNumberHash: 'hashed-order',
             issuedAt: expect.any(Number),
+            email: 'user@example.com',
             verified: true,
             verifiedCode: '123456',
             attempts: 0,

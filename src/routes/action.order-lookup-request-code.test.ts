@@ -497,6 +497,28 @@ describe('action.order-lookup-request-code', () => {
         expect(setCookieHeaders.some((h) => h.startsWith(`glo_order_${orderHash}=`))).toBe(true);
     });
 
+    it('stores the email in the glo_order cookie payload so the results page never needs it in the URL', async () => {
+        mockRequestOrderAccessCode.mockResolvedValue({ ok: true });
+
+        const orderNumber = 'ORDER12345';
+        const orderHash = hashOrderNumber(orderNumber);
+        const email = 'shopper@example.com';
+
+        const request = createRequest({ orderNumber, email });
+        const result = await action({ request, context: createContext(), params: {} } as any);
+        const wrapped = result as { data: any; init: ResponseInit };
+        const setCookieHeaders = new Headers(wrapped.init.headers).getSetCookie();
+
+        const orderStateCookieHeader = setCookieHeaders.find((h) => h.startsWith(`glo_order_${orderHash}=`));
+        expect(orderStateCookieHeader).toBeDefined();
+
+        // Decode the signed cookie payload and verify email is present
+        const cookieValue = (orderStateCookieHeader ?? '').split(`glo_order_${orderHash}=`)[1].split(';')[0];
+        const payloadBase64 = cookieValue.split('.')[0];
+        const payload = JSON.parse(Buffer.from(payloadBase64, 'base64url').toString('utf-8'));
+        expect(payload.email).toBe(email);
+    });
+
     it('maps SCAPI rate limit to RATE_LIMITED response', async () => {
         mockRequestOrderAccessCode.mockResolvedValue({
             code: 'REQUEST_CODE_FAILED',

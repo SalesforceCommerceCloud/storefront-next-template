@@ -37,6 +37,10 @@ vi.mock('@/lib/maintenance', async (importOriginal) => {
     };
 });
 
+vi.mock('@/lib/url.server', () => ({
+    buildUrlFromContext: vi.fn((path: string) => path),
+}));
+
 // Mock the redirect function from react-router
 vi.mock('react-router', async (importOriginal) => {
     const actual = (await importOriginal()) as any;
@@ -416,6 +420,113 @@ describe('maintenanceMiddleware', () => {
             // When maintenance is not active and there's a returnTo, should redirect
             // Note: This test verifies the structure, actual behavior depends on maintenance.promise resolution
             expect(result.status).toBe(200);
+        });
+
+        test('rejects absolute returnTo URL to prevent open redirect', async () => {
+            mockMaintenancePromise = Promise.resolve(true);
+            mockNext.mockResolvedValue(createMockResponse(200));
+
+            const maliciousRequest = createMockRequest('http://localhost:3000/maintenance?returnTo=https://evil.com');
+
+            try {
+                await maintenanceMiddleware(
+                    {
+                        context: mockContext,
+                        params: {},
+                        request: maliciousRequest,
+                        url: new URL(maliciousRequest.url),
+                        pattern: 'maintenance',
+                    },
+                    mockNext
+                );
+                expect.fail('Expected a redirect');
+            } catch (error) {
+                if (error instanceof Response) {
+                    const location = error.headers.get('Location');
+                    expect(location).not.toContain('evil.com');
+                    expect(location).toBe('/');
+                }
+            }
+        });
+
+        test('rejects protocol-relative returnTo URL to prevent open redirect', async () => {
+            mockMaintenancePromise = Promise.resolve(true);
+            mockNext.mockResolvedValue(createMockResponse(200));
+
+            const maliciousRequest = createMockRequest('http://localhost:3000/maintenance?returnTo=//evil.com');
+
+            try {
+                await maintenanceMiddleware(
+                    {
+                        context: mockContext,
+                        params: {},
+                        request: maliciousRequest,
+                        url: new URL(maliciousRequest.url),
+                        pattern: 'maintenance',
+                    },
+                    mockNext
+                );
+                expect.fail('Expected a redirect');
+            } catch (error) {
+                if (error instanceof Response) {
+                    const location = error.headers.get('Location');
+                    expect(location).not.toContain('evil.com');
+                    expect(location).toBe('/');
+                }
+            }
+        });
+
+        test('rejects backslash-based returnTo URL to prevent open redirect bypass', async () => {
+            mockMaintenancePromise = Promise.resolve(true);
+            mockNext.mockResolvedValue(createMockResponse(200));
+
+            const maliciousRequest = createMockRequest('http://localhost:3000/maintenance?returnTo=/\\evil.com');
+
+            try {
+                await maintenanceMiddleware(
+                    {
+                        context: mockContext,
+                        params: {},
+                        request: maliciousRequest,
+                        url: new URL(maliciousRequest.url),
+                        pattern: 'maintenance',
+                    },
+                    mockNext
+                );
+                expect.fail('Expected a redirect');
+            } catch (error) {
+                if (error instanceof Response) {
+                    const location = error.headers.get('Location');
+                    expect(location).not.toContain('evil.com');
+                    expect(location).toBe('/');
+                }
+            }
+        });
+
+        test('allows safe relative returnTo URL', async () => {
+            mockMaintenancePromise = Promise.resolve(true);
+            mockNext.mockResolvedValue(createMockResponse(200));
+
+            const safeRequest = createMockRequest('http://localhost:3000/maintenance?returnTo=%2Fproduct%2F123');
+
+            try {
+                await maintenanceMiddleware(
+                    {
+                        context: mockContext,
+                        params: {},
+                        request: safeRequest,
+                        url: new URL(safeRequest.url),
+                        pattern: 'maintenance',
+                    },
+                    mockNext
+                );
+                expect.fail('Expected a redirect');
+            } catch (error) {
+                if (error instanceof Response) {
+                    const location = error.headers.get('Location');
+                    expect(location).toBe('/product/123');
+                }
+            }
         });
 
         test('does not redirect when maintenance page accessed directly (no returnTo)', async () => {

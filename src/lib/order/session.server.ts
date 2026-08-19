@@ -18,14 +18,15 @@
  * Guest Order Lookup per-order state cookie signing and verification.
  *
  * Uses HMAC-SHA-256 to sign the whole per-order state payload (siteId, order number hash,
- * verification status, the verified OTP, and the failed-attempt counter) so a single cookie
- * can carry everything the guest order lookup flow needs to know about one order, without the
- * server persisting anything.
+ * verification status, the verified OTP, the failed-attempt counter, and the shopper email)
+ * so a single cookie can carry everything the guest order lookup flow needs to know about one
+ * order, without the server persisting anything. Storing email in the signed cookie — rather
+ * than as a URL query parameter — keeps it out of server access logs, browser history, and
+ * Referer headers sent to third-party scripts.
  *
  * The signing/verification functions here are generic over the cookie value — callers store the
  * signed state under a per-order cookie name (`glo_order_<orderHash>`, see
- * action.order-lookup-request-code.ts, action.order-lookup-verify.ts, and
- * action.order-lookup-results-fetch.ts) so looking up multiple orders in the same browser
+ * action.order-lookup-request-code.ts and action.order-lookup-verify.ts) so looking up multiple orders in the same browser
  * session keeps each order's state independently valid. The payload's `orderNumberHash` field
  * still exists as defense-in-depth (checked alongside the cookie name at each call site) — even
  * though the cookie name already enforces scoping, it guards against a signed state value being
@@ -46,6 +47,7 @@ export type GuestOrderState = {
     siteId: string;
     orderNumberHash: string; // sha256(orderNumber), base64url — never plaintext
     issuedAt: number; // unix ms — when the cookie was created/refreshed (code requested or verified)
+    email?: string; // shopper email — persisted here so the results page never needs it in the URL; optional for backward compatibility with cookies written before this field was added
     verified: boolean; // true once access-code verify succeeds
     verifiedCode: string | null; // the raw access code, only set once verified === true
     attempts: number; // failed access-code verification attempts

@@ -53,6 +53,7 @@ describe('guest-order-lookup-order-state', () => {
 
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-123'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -71,6 +72,7 @@ describe('guest-order-lookup-order-state', () => {
 
             const payload: GuestOrderState = {
                 siteId: 'SiteGenesis',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-456'),
                 issuedAt: Date.now(),
                 verified: true,
@@ -93,6 +95,7 @@ describe('guest-order-lookup-order-state', () => {
         test('detects payload tampering', () => {
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-789'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -115,6 +118,7 @@ describe('guest-order-lookup-order-state', () => {
         test('detects signature tampering', () => {
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-789'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -159,6 +163,7 @@ describe('guest-order-lookup-order-state', () => {
         test('rejects when expectedSiteId differs from payload siteId', () => {
             const payload: GuestOrderState = {
                 siteId: 'SiteA',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-001'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -176,6 +181,7 @@ describe('guest-order-lookup-order-state', () => {
         test('accepts when expectedSiteId matches payload siteId', () => {
             const payload: GuestOrderState = {
                 siteId: 'SiteA',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-001'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -197,6 +203,7 @@ describe('guest-order-lookup-order-state', () => {
         test('rejects expired state', () => {
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-EXPIRED'),
                 issuedAt: Date.now() - 7200 * 1000, // 2 hours ago
                 verified: false,
@@ -214,6 +221,7 @@ describe('guest-order-lookup-order-state', () => {
         test('accepts non-expired state', () => {
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-VALID'),
                 issuedAt: Date.now() - 1800 * 1000, // 30 minutes ago
                 verified: false,
@@ -233,6 +241,7 @@ describe('guest-order-lookup-order-state', () => {
             const now = Date.now();
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-BOUNDARY'),
                 issuedAt: now - ttlSeconds * 1000,
                 verified: false,
@@ -257,6 +266,7 @@ describe('guest-order-lookup-order-state', () => {
             const ttlSeconds = 3600;
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-PAST'),
                 issuedAt: Date.now() - (ttlSeconds * 1000 + 1),
                 verified: false,
@@ -277,6 +287,7 @@ describe('guest-order-lookup-order-state', () => {
 
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-NO-SECRET'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -294,6 +305,7 @@ describe('guest-order-lookup-order-state', () => {
             process.env.GUEST_ORDER_LOOKUP_COOKIE_SECRET = 'test-secret-32-chars-minimum!!';
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-123'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -318,6 +330,7 @@ describe('guest-order-lookup-order-state', () => {
 
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-FALLBACK'),
                 issuedAt: Date.now(),
                 verified: false,
@@ -337,6 +350,7 @@ describe('guest-order-lookup-order-state', () => {
 
             const payload: GuestOrderState = {
                 siteId: 'RefArch',
+                email: 'shopper@example.com',
                 orderNumberHash: hashOrderNumber('ORDER-PREFER'),
                 issuedAt: Date.now(),
                 verified: false,

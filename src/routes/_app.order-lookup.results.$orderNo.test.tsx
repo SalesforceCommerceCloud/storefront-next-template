@@ -15,13 +15,17 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loader, shouldRevalidate } from './_app.order-lookup.results';
+import { loader, shouldRevalidate } from './_app.order-lookup.results.$orderNo';
 
 type LoaderContext = Parameters<typeof loader>[0]['context'];
 type LoaderArgs = Parameters<typeof loader>[0];
 
-function callLoader(args: { request: Request; context: LoaderContext }) {
-    return loader({ request: args.request, context: args.context } as unknown as LoaderArgs);
+function callLoader(args: { request: Request; context: LoaderContext; params?: Record<string, string> }) {
+    return loader({
+        request: args.request,
+        context: args.context,
+        params: args.params ?? { orderNo: 'ORDER12345' },
+    } as unknown as LoaderArgs);
 }
 
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
@@ -63,8 +67,9 @@ vi.mock('@/lib/order/fetch-order.server', () => ({
 const { getConfig } = await import('@salesforce/storefront-next-runtime/config');
 const { verifyOrderState } = await import('@/lib/order/session.server');
 
-describe('_app.order-lookup.results loader', () => {
+describe('_app.order-lookup.results.$orderNo loader', () => {
     let mockContext: LoaderContext;
+    // No email or order number in the URL — orderNo is a path segment, email comes from cookie
     let mockRequest: Request;
 
     beforeEach(() => {
@@ -72,7 +77,7 @@ describe('_app.order-lookup.results loader', () => {
         mockParse.mockReset();
         mockFetchGuestOrderResult.mockReset();
         mockContext = { siteId: 'RefArch', localeId: 'en_US', get: vi.fn() } as unknown as LoaderContext;
-        mockRequest = new Request('https://example.com/order-lookup/results?order=ORDER12345&email=test@example.com');
+        mockRequest = new Request('https://example.com/order-lookup/results/ORDER12345');
     });
 
     it('should return 404 when feature is disabled', async () => {
@@ -110,8 +115,7 @@ describe('_app.order-lookup.results loader', () => {
             guestOrderLookup: { enabled: true },
         } as never);
 
-        // Cookie is present but invalid (bad signature/expired/etc.) → no access, redirect.
-        mockParse.mockResolvedValueOnce('invalid-order-state'); // glo_order_<hash> — present but invalid
+        mockParse.mockResolvedValueOnce('invalid-order-state');
         vi.mocked(verifyOrderState).mockReturnValue(null);
 
         await expect(callLoader({ request: mockRequest, context: mockContext })).rejects.toThrow();
@@ -123,19 +127,49 @@ describe('_app.order-lookup.results loader', () => {
         }
     });
 
-    it('should return no-cache headers when the order state is valid', async () => {
+    it('should redirect to /order-lookup/verify/:orderNo when the cookie is present but unverified', async () => {
         vi.mocked(getConfig).mockReturnValue({
             guestOrderLookup: { enabled: true },
         } as never);
 
-        // Cookie is present and valid, unverified is still enough for access to the page.
-        mockParse.mockResolvedValueOnce('valid-order-state'); // glo_order_<hash> — present
+        mockParse.mockResolvedValue('valid-order-state');
         vi.mocked(verifyOrderState).mockReturnValue({
             siteId: 'RefArch',
-            orderNumberHash: 'hashed-ORDER12345', // matches the current order (see hashOrderNumber mock)
+            orderNumberHash: 'hashed-ORDER12345',
             issuedAt: Date.now(),
+            email: 'shopper@example.com',
             verified: false,
             verifiedCode: null,
+            attempts: 0,
+        });
+
+        let caught: unknown;
+        try {
+            await callLoader({ request: mockRequest, context: mockContext });
+        } catch (error) {
+            caught = error;
+        }
+
+        expect(caught).toHaveProperty('status', 302);
+        expect((caught as Response).headers.get('Location')).toContain('/order-lookup/verify/ORDER12345');
+    });
+
+    it('should return no-cache headers when the order state is verified', async () => {
+        vi.mocked(getConfig).mockReturnValue({
+            guestOrderLookup: { enabled: true, allowedFields: [] },
+        } as never);
+        const { hashOrderNumber } = await import('@/lib/order/session.server');
+
+        mockFetchGuestOrderResult.mockResolvedValue({ ok: true, order: { orderNo: 'ORDER12345' }, productsById: {} });
+        vi.mocked(hashOrderNumber).mockReturnValue('hashed-ORDER12345');
+        mockParse.mockResolvedValueOnce('valid-order-state');
+        vi.mocked(verifyOrderState).mockReturnValue({
+            siteId: 'RefArch',
+            orderNumberHash: 'hashed-ORDER12345',
+            issuedAt: Date.now(),
+            email: 'shopper@example.com',
+            verified: true,
+            verifiedCode: '123456',
             attempts: 0,
         });
 
@@ -150,16 +184,20 @@ describe('_app.order-lookup.results loader', () => {
 
     it('should verify the order state with correct siteId and TTL', async () => {
         vi.mocked(getConfig).mockReturnValue({
-            guestOrderLookup: { enabled: true },
+            guestOrderLookup: { enabled: true, allowedFields: [] },
         } as never);
+        const { hashOrderNumber } = await import('@/lib/order/session.server');
 
-        mockParse.mockResolvedValueOnce('valid-order-state'); // glo_order_<hash> — present
+        mockFetchGuestOrderResult.mockResolvedValue({ ok: true, order: { orderNo: 'ORDER12345' }, productsById: {} });
+        vi.mocked(hashOrderNumber).mockReturnValue('hashed-ORDER12345');
+        mockParse.mockResolvedValueOnce('valid-order-state');
         vi.mocked(verifyOrderState).mockReturnValue({
             siteId: 'RefArch',
-            orderNumberHash: 'hashed-ORDER12345', // matches the current order (see hashOrderNumber mock)
+            orderNumberHash: 'hashed-ORDER12345',
             issuedAt: Date.now(),
-            verified: false,
-            verifiedCode: null,
+            email: 'shopper@example.com',
+            verified: true,
+            verifiedCode: '123456',
             attempts: 0,
         });
 
@@ -168,32 +206,30 @@ describe('_app.order-lookup.results loader', () => {
         expect(verifyOrderState).toHaveBeenCalledWith('valid-order-state', 'RefArch', 900);
     });
 
-    it('should allow rendering when the order-state cookie is present but unverified (grants OTP-form access only)', async () => {
+    it('should return email from the signed cookie — never from the URL', async () => {
         vi.mocked(getConfig).mockReturnValue({
-            guestOrderLookup: { enabled: true },
+            guestOrderLookup: { enabled: true, allowedFields: [] },
         } as never);
-        const request = new Request(
-            'https://example.com/order-lookup/results?order=ORDER123456&email=test@example.com'
-        );
+        const { hashOrderNumber } = await import('@/lib/order/session.server');
 
+        mockFetchGuestOrderResult.mockResolvedValue({ ok: true, order: { orderNo: 'ORDER12345' }, productsById: {} });
+        vi.mocked(hashOrderNumber).mockReturnValue('hashed-ORDER12345');
         mockParse.mockResolvedValueOnce('valid-order-state');
         vi.mocked(verifyOrderState).mockReturnValue({
             siteId: 'RefArch',
-            orderNumberHash: 'hashed-ORDER123456',
+            orderNumberHash: 'hashed-ORDER12345',
             issuedAt: Date.now(),
-            verified: false,
-            verifiedCode: null,
+            email: 'cookie@example.com',
+            verified: true,
+            verifiedCode: '123456',
             attempts: 0,
         });
 
-        const result = await callLoader({ request, context: mockContext });
-        const wrapped = result as { init: ResponseInit; data: { result: unknown } };
-        const headers = new Headers(wrapped.init.headers);
+        const result = await callLoader({ request: mockRequest, context: mockContext });
+        const wrapped = result as { data: { email: string } };
 
-        expect(headers.get('Cache-Control')).toBe('no-store, no-cache, must-revalidate');
-        // Unverified: access to the page is granted, but no fetch result for auto-display.
-        expect(wrapped.data.result).toBeNull();
-        expect(mockFetchGuestOrderResult).not.toHaveBeenCalled();
+        // Email comes from the cookie, not from a URL query parameter
+        expect(wrapped.data.email).toBe('cookie@example.com');
     });
 
     it('should not fetch the order when the state payload orderNumberHash does not match the requested order (defense-in-depth)', async () => {
@@ -202,16 +238,13 @@ describe('_app.order-lookup.results loader', () => {
         } as never);
         const { hashOrderNumber } = await import('@/lib/order/session.server');
 
-        // The cookie is read under the current order's own cookie name (glo_order_<hash>),
-        // but its signed payload claims a different orderNumberHash — e.g. a cookie value copied
-        // to the wrong per-order cookie name. Access is still granted (cookie is validly signed),
-        // but the order fetch is denied because of the hash mismatch.
         vi.mocked(hashOrderNumber).mockReturnValue('hash-of-order-a');
         mockParse.mockResolvedValueOnce('valid-state-for-b');
         vi.mocked(verifyOrderState).mockReturnValue({
             siteId: 'RefArch',
             orderNumberHash: 'hash-of-order-b', // mismatched payload
             issuedAt: Date.now(),
+            email: 'shopper@example.com',
             verified: true,
             verifiedCode: '654321',
             attempts: 0,
@@ -232,14 +265,13 @@ describe('_app.order-lookup.results loader', () => {
 
         mockFetchGuestOrderResult.mockResolvedValue({ ok: true, order: { orderNo: 'ORDER12345' }, productsById: {} });
 
-        // Order A's cookie (glo_order_<hash-of-order-a>) is independent of whatever happened to
-        // order B's cookie — verifying order B never touches order A's cookie name.
         vi.mocked(hashOrderNumber).mockReturnValue('hash-of-order-a');
-        mockParse.mockResolvedValueOnce('valid-state-for-a'); // glo_order_<hash-of-order-a> — present
+        mockParse.mockResolvedValueOnce('valid-state-for-a');
         vi.mocked(verifyOrderState).mockReturnValue({
             siteId: 'RefArch',
             orderNumberHash: 'hash-of-order-a',
             issuedAt: Date.now(),
+            email: 'shopper@example.com',
             verified: true,
             verifiedCode: '123456',
             attempts: 0,
@@ -263,11 +295,12 @@ describe('_app.order-lookup.results loader', () => {
         mockFetchGuestOrderResult.mockResolvedValue({ ok: true, order: { orderNo: 'ORDER12345' }, productsById: {} });
 
         vi.mocked(hashOrderNumber).mockReturnValue('hash-of-order-a');
-        mockParse.mockResolvedValueOnce('valid-state-for-a'); // glo_order_<hash> — present
+        mockParse.mockResolvedValueOnce('valid-state-for-a');
         vi.mocked(verifyOrderState).mockReturnValue({
             siteId: 'RefArch',
-            orderNumberHash: 'hash-of-order-a', // matches current order
+            orderNumberHash: 'hash-of-order-a',
             issuedAt: Date.now(),
+            email: 'shopper@example.com',
             verified: true,
             verifiedCode: '123456',
             attempts: 0,
@@ -280,6 +313,34 @@ describe('_app.order-lookup.results loader', () => {
         expect(wrapped.data.result?.order).toEqual({ orderNo: 'ORDER12345' });
         // The verified access code is passed to the server-side fetch, never returned to the client.
         expect(mockFetchGuestOrderResult).toHaveBeenCalledWith(expect.objectContaining({ code: '123456' }));
+    });
+
+    it('should use email from the cookie when auto-fetching the verified order', async () => {
+        vi.mocked(getConfig).mockReturnValue({
+            guestOrderLookup: { enabled: true, allowedFields: [] },
+        } as never);
+        const { hashOrderNumber } = await import('@/lib/order/session.server');
+
+        mockFetchGuestOrderResult.mockResolvedValue({ ok: true, order: { orderNo: 'ORDER12345' }, productsById: {} });
+
+        vi.mocked(hashOrderNumber).mockReturnValue('hash-of-order-a');
+        mockParse.mockResolvedValueOnce('valid-state-for-a');
+        vi.mocked(verifyOrderState).mockReturnValue({
+            siteId: 'RefArch',
+            orderNumberHash: 'hash-of-order-a',
+            issuedAt: Date.now(),
+            email: 'cookie-email@example.com',
+            verified: true,
+            verifiedCode: '123456',
+            attempts: 0,
+        });
+
+        await callLoader({ request: mockRequest, context: mockContext });
+
+        // Email must come from the cookie, never from a URL parameter
+        expect(mockFetchGuestOrderResult).toHaveBeenCalledWith(
+            expect.objectContaining({ email: 'cookie-email@example.com' })
+        );
     });
 
     it('should never expose the raw access code in the loader response', async () => {
@@ -296,6 +357,7 @@ describe('_app.order-lookup.results loader', () => {
             siteId: 'RefArch',
             orderNumberHash: 'hash-of-order-a',
             issuedAt: Date.now(),
+            email: 'shopper@example.com',
             verified: true,
             verifiedCode: '123456',
             attempts: 0,
@@ -307,7 +369,7 @@ describe('_app.order-lookup.results loader', () => {
     });
 });
 
-describe('_app.order-lookup.results shouldRevalidate', () => {
+describe('_app.order-lookup.results.$orderNo shouldRevalidate', () => {
     it('should return false to prevent loader re-execution', () => {
         expect(shouldRevalidate()).toBe(false);
     });

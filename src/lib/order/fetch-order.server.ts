@@ -45,11 +45,9 @@ export type FetchGuestOrderResult = FetchGuestOrderSuccess | FetchGuestOrderErro
 
 /**
  * Calls SCAPI's guest order lookup, redacts the result to `allowedFields`, and fetches product
- * data for the redacted `productItems` only. Shared between the verify-code action
- * (`action.order-lookup-results-fetch.ts`, manual OTP entry) and the results loader
- * (`_app.order-lookup.results.tsx`, auto-fetch for an already-verified order-state cookie) so
- * both paths apply identical redaction and error-mapping rules — and so the access code, once
- * verified, is only ever handed to SCAPI server-side and never round-tripped back to the client.
+ * data for the redacted `productItems` only. Used by the results loader
+ * (`_app.order-lookup.results.$orderNo.tsx`) to auto-fetch an already-verified order — the access
+ * code is only ever handed to SCAPI server-side and never round-tripped back to the client.
  */
 export async function fetchGuestOrderResult({
     orderNumber,

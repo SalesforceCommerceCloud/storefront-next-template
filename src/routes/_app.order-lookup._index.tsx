@@ -65,7 +65,7 @@ export function loader({ context }: Route.LoaderArgs) {
 
 /**
  * Guest Order Lookup entry page.
- * Renders RequestCodeForm. On code sent, navigates to /order-lookup/results?order=<n>&email=<e>.
+ * Renders RequestCodeForm. On code sent, navigates to /order-lookup/verify/:orderNo.
  */
 export default function OrderLookupEntryPage(): ReactElement {
     const { t } = useTranslation();
@@ -88,12 +88,12 @@ export default function OrderLookupEntryPage(): ReactElement {
     const initialOrderNumber = searchParams.get('order') || '';
     const initialEmail = searchParams.get('email') || '';
 
-    const handleCodeSent = ({ email, orderNumber }: { email: string; orderNumber: string }) => {
+    const handleCodeSent = ({ orderNumber }: { email: string; orderNumber: string }) => {
         setIsNavigatingToResults(true);
-        // Navigate to results page with encoded params
-        const resultsUrl = `/order-lookup/results?order=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`;
+        // Email is stored in the signed glo_order_<hash> cookie by the server action — never in the URL.
+        const verifyUrl = `/order-lookup/verify/${encodeURIComponent(orderNumber)}`;
         // eslint-disable-next-line @typescript-eslint/no-floating-promises -- navigate result intentionally not awaited
-        navigate(resultsUrl);
+        navigate(verifyUrl);
     };
 
     return (

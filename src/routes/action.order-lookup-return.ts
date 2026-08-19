@@ -118,7 +118,7 @@ export async function action({
     const orderHash = hashOrderNumber(validatedOrderNumber);
 
     // Verify the per-order state cookie (`glo_order_<orderHash>`) — mirrors the same defense used
-    // by action.order-lookup-results-fetch.ts.
+    // by the results loader.
     const orderStateCookie = createCookie<string>(
         `${ORDER_STATE_COOKIE_PREFIX}${orderHash}`,
         getCookieConfig({ httpOnly: true, path: '/' }, context),

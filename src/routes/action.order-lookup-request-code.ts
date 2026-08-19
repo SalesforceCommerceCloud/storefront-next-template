@@ -327,13 +327,14 @@ export async function action({
             const cooldownSetCookieHeader = await cooldownResponseCookie.serialize(Date.now().toString());
 
             // Create/refresh the per-order state cookie. Its mere presence — even unverified —
-            // grants the browser access to the code-entry UI on /order-lookup/results for this
+            // grants the browser access to the code-entry UI on /order-lookup/results/:orderNo for this
             // order. Actual data access still requires `verified: true`, set only after
             // successful OTP verification (see action.order-lookup-verify.ts).
             const newOrderState: GuestOrderState = {
                 siteId,
                 orderNumberHash: orderHash,
                 issuedAt: Date.now(),
+                email: validatedEmail,
                 verified: false,
                 verifiedCode: null,
                 attempts: 0,
