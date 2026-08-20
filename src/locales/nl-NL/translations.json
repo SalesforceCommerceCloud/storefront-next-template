@@ -39,6 +39,9 @@
         "contentCard": {
             "emptyTitle": "Voeg hier je titel toe",
             "emptyDescription": "Voeg hier je beschrijving toe"
+        },
+        "productTile": {
+            "emptyTitle": "Product"
         }
     },
     "search": {

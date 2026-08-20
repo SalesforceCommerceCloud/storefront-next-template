@@ -309,18 +309,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
 exports[`ProductTile stories snapshot > NoProduct story renders and matches snapshot 1`] = `
 <div
   class="w-64"
->
-  <div
-    class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui product-card group w-full min-w-0 max-w-full overflow-hidden gap-0 py-0"
-    data-slot="card"
-  >
-    <div
-      class="p-4 text-sm text-muted-foreground"
-    >
-      Select a product
-    </div>
-  </div>
-</div>
+/>
 `;
 
 exports[`ProductTile stories snapshot > OutOfStock story renders and matches snapshot 1`] = `

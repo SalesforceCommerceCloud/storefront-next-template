@@ -24,8 +24,11 @@ import {
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import DynamicImageProvider from '@/providers/dynamic-image';
 import { ProductTileProvider } from '../context';
+import { expect, waitFor, within } from 'storybook/test';
+import { waitForStorybookReady } from '@storybook/test-utils';
 
 const mockSite = mockSiteObject;
 
@@ -368,12 +371,55 @@ export const Playground: StoryWithSynthetic = {
 };
 
 /**
- * Empty state — the "Select a product" placeholder fallback rendered when no
- * product fixture is supplied (e.g. an unconfigured Page Designer slot).
+ * No product on the live storefront — an unconfigured tile renders nothing.
+ * The empty-state placeholder is a Page-Designer authoring affordance only
+ * (see UnconfiguredDesignMode); on the live storefront the tile returns null
+ * so nothing ever leaks to shoppers.
  */
 export const NoProduct: Story = {
     args: {
         product: undefined,
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        // Outside design mode a product-less tile renders nothing.
+        expect(canvasElement.querySelector('.product-card')).toBeNull();
+    },
+};
+
+/**
+ * W-23908487: a freshly-dropped, unconfigured Product Tile as a merchant sees it in Page Designer
+ * design mode (`mode="EDIT"`). Renders the tile's real card shape (placeholder image surface +
+ * default "Product" heading, star rating, and zero price) so the authoring preview reads as a
+ * fully-populated tile. On the live storefront an unconfigured tile renders nothing (see NoProduct).
+ */
+export const UnconfiguredDesignMode: Story = {
+    args: {
+        product: undefined,
+    },
+    parameters: {
+        // Design mode renders inside PageDesignerProvider's lazy Suspense provider, which resolves in
+        // a live browser but suspends to a fallback in a synchronous snapshot render — so this story is
+        // interaction-only and opts out of snapshotting.
+        snapshot: false,
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-product-tile" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        // The lazy DesignProvider resolves asynchronously — wait for the placeholder tile to appear.
+        await waitFor(async () => {
+            await expect(canvas.getByRole('heading', { name: 'Product' })).toBeInTheDocument();
+        });
+        // The placeholder mirrors a configured tile: an empty (0-of-5) star rating and a
+        // currency-formatted zero price sit below the default title.
+        await expect(canvas.getByRole('group', { name: /0 out of 5/i })).toBeInTheDocument();
     },
 };
 

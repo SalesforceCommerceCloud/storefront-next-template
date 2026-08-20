@@ -44,6 +44,9 @@
         "contentCard": {
             "emptyTitle": "Aggiungi qui il titolo",
             "emptyDescription": "Aggiungi qui la descrizione"
+        },
+        "productTile": {
+            "emptyTitle": "Prodotto"
         }
     },
     "search": {

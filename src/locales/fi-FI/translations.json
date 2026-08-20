@@ -41,6 +41,9 @@
         "contentCard": {
             "emptyTitle": "Lisää otsikko tähän",
             "emptyDescription": "Lisää kuvaus tähän"
+        },
+        "productTile": {
+            "emptyTitle": "Tuote"
         }
     },
     "search": {

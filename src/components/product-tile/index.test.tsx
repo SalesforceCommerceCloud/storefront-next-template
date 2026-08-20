@@ -22,6 +22,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { ProductTile } from './index';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { mockConfig } from '@/test-utils/config';
+import type { AppConfig } from '@/types/config';
 import { masterProduct } from '@/components/__mocks__/master-variant-product';
 
 // Mock only the network boundary. `useScapiFetcher` is what the CartItemModal
@@ -43,6 +45,14 @@ const loadSpy = vi.fn();
 vi.mock('@/providers/wishlist', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/providers/wishlist')>();
     return { ...actual, useWishlistLoader: () => loadSpy };
+});
+
+// Drives the Page Designer design-mode gate on the no-product empty state. Partial mock (not a full
+// mock) so `createReactAdapter` and the other real exports the runtime needs stay intact.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/design/react/core')>();
+    return { ...actual, usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }) };
 });
 
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
@@ -107,13 +117,16 @@ const mockSingleVariantProduct: ShopperSearch.schemas['ProductSearchHit'] = {
     ],
 };
 
-const renderTile = (props: Partial<React.ComponentProps<typeof ProductTile>> = {}) => {
+const renderTile = (
+    props: Partial<React.ComponentProps<typeof ProductTile>> = {},
+    wrapperProps: { config?: AppConfig; currency?: string } = {}
+) => {
     const router = createMemoryRouter(
         [
             {
                 path: '/test',
                 element: (
-                    <AllProvidersWrapper>
+                    <AllProvidersWrapper {...wrapperProps}>
                         <ProductTile product={mockSingleVariantProduct} {...props} />
                     </AllProvidersWrapper>
                 ),
@@ -430,5 +443,54 @@ describe('ProductTile — quick-add pre-selection', () => {
         expect(within(dialog).getByRole('radio', { name: /Charcoal/ })).toBeChecked();
         expect(within(dialog).getByRole('radio', { name: /^36$/ })).toBeChecked();
         expect(within(dialog).getByRole('radio', { name: /Short/ })).toBeChecked();
+    });
+});
+
+describe('ProductTile — no-product empty state', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockIsDesignMode = false;
+    });
+
+    afterEach(() => {
+        mockIsDesignMode = false;
+    });
+
+    test('renders nothing on the live storefront when no product is supplied', () => {
+        const { container } = renderTile({ product: undefined });
+        // The tile must not leak any placeholder to shoppers — no card, no "Select a product" text.
+        expect(container.querySelector('.product-card')).toBeNull();
+        expect(screen.queryByText(/select a product/i)).not.toBeInTheDocument();
+    });
+
+    test('renders a placeholder tile with the default title, rating, and price in Page Designer design mode', () => {
+        mockIsDesignMode = true;
+        renderTile({ product: undefined });
+        // A real-shaped placeholder tile (image surface + "Product" heading + star rating + zero
+        // price) stands in for the unconfigured tile so the authoring preview reads as a
+        // fully-populated tile rather than a bare title.
+        expect(screen.getByRole('heading', { name: 'Product' })).toBeInTheDocument();
+        // Star rating placeholder: the StarRating group is announced with an empty (0-of-5) rating.
+        expect(screen.getByRole('group', { name: /0 out of 5/i })).toBeInTheDocument();
+        // Price placeholder: the zero price is currency-formatted (USD in the test wrapper), never a
+        // hardcoded "$0.00" literal.
+        expect(screen.getByText('$0.00')).toBeInTheDocument();
+        expect(screen.queryByText(/select a product/i)).not.toBeInTheDocument();
+    });
+
+    test('omits the placeholder price (no Intl crash) when neither the site nor config resolves a currency', () => {
+        mockIsDesignMode = true;
+        // An authoring preview not yet wired to a site: no site currency and no configured site to
+        // fall back to. An empty-string currency would reach `Intl.NumberFormat` and throw
+        // `RangeError: Invalid currency code`, crashing the preview — the placeholder must instead
+        // render without a price row. The title and rating still render.
+        const configWithoutCurrency: AppConfig = {
+            ...mockConfig,
+            commerce: { ...mockConfig.commerce, sites: [] },
+        };
+        renderTile({ product: undefined }, { config: configWithoutCurrency, currency: '' });
+        expect(screen.getByRole('heading', { name: 'Product' })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: /0 out of 5/i })).toBeInTheDocument();
+        expect(screen.queryByText(/\$?0\.00/)).not.toBeInTheDocument();
     });
 });

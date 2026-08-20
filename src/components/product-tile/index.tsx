@@ -25,11 +25,15 @@ import {
     Suspense,
 } from 'react';
 import { Link } from '@/components/link';
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 
 import type { ShopperSearch } from '@/scapi';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 
-import { cn } from '@/lib/utils';
+import { cn, resolveAssetUrl } from '@/lib/utils';
+import { DynamicImage } from '@/components/dynamic-image';
+import { carouselItemImageWidths } from '@/components/carousel-section';
 import {
     createProductUrl,
     getDecoratedVariationAttributes,
@@ -48,6 +52,7 @@ import { RegionDefinition } from '@/lib/decorators/region-definition';
 import type { ComponentType } from '@/components/region';
 import { ProductImageContainer } from '@/components/product-image';
 import ProductPrice from '@/components/product-price';
+import CurrentPrice from '@/components/product-price/current-price';
 import { StarRating } from '@/components/product-ratings/star-rating';
 import { UITarget } from '@/targets/ui-target';
 import { Card } from '@/components/ui/card';
@@ -57,6 +62,15 @@ const LazySwatches = lazy(() => import('./swatches').then((m) => ({ default: m.P
 
 const PRODUCT_TILE_SELECTABLE_ATTRIBUTE_ID = 'color';
 const PRODUCT_TILE_MAX_SWATCHES = 3;
+
+/**
+ * Public-dir path to the shared authoring placeholder. Referenced by URL (not a module import) so
+ * the 906-byte SVG is never inlined as a data URI into the Product Tile's shopper bundle — a
+ * top-level `import … from '/images/…svg'` would inline it and regress the Lighthouse bundle-size
+ * budget (Product Tile ships in the above-the-fold Product Carousel / Product Recommendations
+ * chunks). Only ever resolved on the design-mode empty-state path.
+ */
+const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
 
 /* v8 ignore start - do not test decorators in unit tests, decorator functionality is tested separately*/
 @Component('productTile', {
@@ -324,6 +338,8 @@ const ProductTile = memo(
             const product = (data as ShopperSearch.schemas['ProductSearchHit'] | undefined) || productProp;
 
             const { config, t, currency, getBadges } = useProductTileContext();
+            const { t: tCommon } = useTranslation('common');
+            const { isDesignMode } = usePageDesignerMode();
 
             const productData = useMemo(() => {
                 if (!product) return null;
@@ -426,6 +442,23 @@ const ProductTile = memo(
             });
 
             if (!product) {
+                // Empty state (W-23908487): a freshly-dropped Product Tile with no product selected
+                // yet. Rather than a bespoke text placeholder, we render the tile's *real* card shape
+                // (square image surface + product-name heading) with the shared placeholder image and
+                // a default "Product" title, so the authoring preview reads as an actual tile and
+                // cannot drift from a configured one. This is a Page-Designer *authoring* affordance:
+                // it only kicks in during design mode; on the live storefront an unconfigured tile
+                // renders nothing, closing the previous "Select a product" leak to shoppers. Mirrors
+                // the Content Card's and Category Card's design-mode gate.
+                if (!isDesignMode) {
+                    return null;
+                }
+                // Resolve a currency for the placeholder price from the site context, falling back to
+                // the first configured site's default. Both can be absent in an authoring preview that
+                // isn't wired to a site yet — an empty-string currency would reach `Intl.NumberFormat`
+                // and throw `RangeError: Invalid currency code`, crashing the preview. When neither
+                // source resolves we simply omit the price row rather than render a broken one.
+                const placeholderCurrency = currency ?? config.commerce.sites?.[0]?.defaultCurrency;
                 return (
                     <Card
                         ref={ref}
@@ -434,8 +467,46 @@ const ProductTile = memo(
                             pageDesignerStyles,
                             className
                         )}
+                        data-slot="empty-state"
                         {...props}>
-                        <div className="p-4 text-sm text-muted-foreground">{t('selectProduct')}</div>
+                        {/* Image area — mirrors the configured tile's square image surface. */}
+                        <div className="product-image relative">
+                            <div className="relative w-full aspect-square overflow-hidden bg-muted">
+                                <DynamicImage
+                                    src={resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC)}
+                                    // Decorative: the default "Product" title is rendered as a heading
+                                    // below, so an alt would make a screen reader read it twice.
+                                    alt=""
+                                    className="w-full h-full"
+                                    imageProps={{ className: 'w-full h-full object-cover' }}
+                                    widths={carouselItemImageWidths}
+                                    loading="eager"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Info section — mirrors the configured tile's product name, star rating, and
+                            price rows (skipping the data-driven store/category/SKU lines), so the
+                            authoring preview reads as a fully-populated tile rather than a bare title.
+                            Reuses the real `StarRating` and `CurrentPrice` so the placeholder cannot
+                            drift from a configured tile: black stars (`text-foreground`, matching real
+                            tiles) at an empty 0/0 rating, and a currency-formatted zero price (never a
+                            hardcoded "$0.00") via the same formatter the live price uses. */}
+                        <div className="relative p-4">
+                            <h3 className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
+                                {tCommon('productTile.emptyTitle')}
+                            </h3>
+                            <div className="mb-2">
+                                <StarRating rating={0} reviewCount={0} starSize="sm" starClassName="text-foreground" />
+                            </div>
+                            {placeholderCurrency && (
+                                <CurrentPrice
+                                    price={0}
+                                    currency={placeholderCurrency}
+                                    className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
+                                />
+                            )}
+                        </div>
                     </Card>
                 );
             }

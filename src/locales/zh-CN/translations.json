@@ -42,6 +42,9 @@
         "contentCard": {
             "emptyTitle": "在此添加标题",
             "emptyDescription": "在此添加描述"
+        },
+        "productTile": {
+            "emptyTitle": "产品"
         }
     },
     "search": {

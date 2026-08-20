@@ -189,9 +189,15 @@ module.exports = {
                         // cart line-item images pull in (CI measured 505567 across 5 runs). The
                         // branch is irreducible — it is the feature — so absorb the ~567B rather
                         // than dropping the authoring affordance.
+                        // Raised 506000 → 508000 (@W-23908487@): the Product Tile design-mode empty
+                        // state adds the no-product placeholder branch (placeholder card, currency
+                        // guard, star-rating group) to the shared ProductTile module, which the cart
+                        // recommendations carousel chunk pulls in (CI measured 506687, zero variance
+                        // across 5 runs). The branch is irreducible — it is the feature — so absorb
+                        // the ~687B rather than dropping the authoring affordance.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 506000, aggregationMethod: 'median' },
+                            { maxNumericValue: 508000, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.

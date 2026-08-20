@@ -52,6 +52,9 @@
         "contentCard": {
             "emptyTitle": "Add your title here",
             "emptyDescription": "Add your description here"
+        },
+        "productTile": {
+            "emptyTitle": "Product"
         }
     },
     "search": {

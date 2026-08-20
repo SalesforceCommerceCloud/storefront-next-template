@@ -40,6 +40,9 @@
         "contentCard": {
             "emptyTitle": "Lägg till din rubrik här",
             "emptyDescription": "Lägg till din beskrivning här"
+        },
+        "productTile": {
+            "emptyTitle": "Produkt"
         }
     },
     "search": {

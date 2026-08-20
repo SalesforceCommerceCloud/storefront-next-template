@@ -41,6 +41,9 @@
         "contentCard": {
             "emptyTitle": "Tilføj din titel her",
             "emptyDescription": "Tilføj din beskrivelse her"
+        },
+        "productTile": {
+            "emptyTitle": "Produkt"
         }
     },
     "search": {

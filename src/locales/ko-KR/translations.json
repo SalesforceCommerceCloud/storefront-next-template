@@ -41,6 +41,9 @@
         "contentCard": {
             "emptyTitle": "여기에 제목 추가",
             "emptyDescription": "여기에 설명 추가"
+        },
+        "productTile": {
+            "emptyTitle": "제품"
         }
     },
     "search": {
