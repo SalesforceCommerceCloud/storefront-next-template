@@ -74,20 +74,27 @@ const mockProductSearchResult: ShopperSearch.schemas['ProductSearchResult'] = {
     limit: 10,
 };
 
-// Mock the ProductTile component
+// Mock the ProductTile component. When no product is supplied (the design-mode empty state), the
+// real tile renders its own placeholder; the mock mirrors that with a stable test id so the carousel
+// empty-state test can count placeholder tiles.
 vi.mock('@/components/product-tile', () => ({
     ProductTile: ({
         product,
         className,
     }: {
-        product: ShopperSearch.schemas['ProductSearchHit'];
+        product?: ShopperSearch.schemas['ProductSearchHit'];
         className?: string;
-    }) => (
-        <div data-testid={`product-tile-${product.productId}`} className={className}>
-            <h3>{product.productName}</h3>
-            <p>${product.price}</p>
-        </div>
-    ),
+    }) =>
+        product ? (
+            <div data-testid={`product-tile-${product.productId}`} className={className}>
+                <h3>{product.productName}</h3>
+                <p>${product.price}</p>
+            </div>
+        ) : (
+            <div data-testid="product-tile-placeholder" className={className}>
+                <h3>Product</h3>
+            </div>
+        ),
     ProductTileProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
@@ -244,12 +251,15 @@ describe('ProductCarousel', () => {
             expect(container).toBeEmptyDOMElement();
         });
 
-        test('renders "Select a product" in Page Designer design mode when products are empty', () => {
+        test('renders placeholder product tiles in Page Designer design mode when products are empty', () => {
             mockIsDesignMode = true;
             renderComponent(<ProductCarousel products={[]} title="Featured Products" />);
 
-            expect(screen.getByText('Select a product')).toBeInTheDocument();
-            expect(screen.queryByTestId('carousel')).not.toBeInTheDocument();
+            // The empty state feeds placeholder ProductTiles through the real carousel render path;
+            // each renders its own design-mode empty state rather than a bespoke text prompt.
+            expect(screen.getByTestId('carousel')).toBeInTheDocument();
+            expect(screen.getAllByTestId('product-tile-placeholder')).toHaveLength(8);
+            expect(screen.queryByText('Select a product')).not.toBeInTheDocument();
         });
 
         test('renders component region items when products are empty', () => {

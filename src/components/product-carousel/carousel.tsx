@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 import { type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 import type { ShopperSearch } from '@/scapi';
 import { CarouselItem } from '@/components/ui/carousel';
 import { ProductTile, ProductTileProvider } from '@/components/product-tile';
 import DynamicImageProvider from '@/providers/dynamic-image';
 import withSuspense from '@/components/with-suspense';
 import ProductCarouselSkeleton from './skeleton';
-import { cn } from '@/lib/utils';
 import type { ComponentType } from '@/components/region';
 import { Component } from '@/components/region/component';
 import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
@@ -32,6 +30,17 @@ const productCarouselItemAspectRatio = 0.8;
 
 // Stable reference so the DynamicImageProvider value never changes between renders.
 const dynamicImageProviderValue = { widths: carouselItemImageWidths };
+
+const carouselItemClassName = 'w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex';
+
+/**
+ * Number of placeholder Product Tiles rendered in the Page Designer design-mode empty state
+ * (W-23729825) so a freshly-dropped, unconfigured Product Carousel reads as a real carousel row
+ * rather than an empty section. Enough to fill the track past the viewport edge at wide breakpoints,
+ * so the row reads as a scrollable carousel rather than a short, centered cluster. Product
+ * Recommendations feeds an empty `ProductCarousel`, so it inherits this count too.
+ */
+const EMPTY_STATE_PLACEHOLDER_COUNT = 8;
 
 export interface ProductCarouselProps {
     /** Array of product search hits to display in the carousel */
@@ -96,25 +105,49 @@ export default function ProductCarousel({
     component,
     handleProductClick,
 }: ProductCarouselProps): ReactNode {
-    const { t } = useTranslation('product');
     const { isDesignMode } = usePageDesignerMode();
     const productsRegion = component?.regions?.find((region) => region.id === 'products');
     const regionComponents = productsRegion?.components ?? [];
     const resolvedTitle = title || ''; // put empty string as the title since dont currently have i18n for these default values.
 
-    // When there are no products and no region components, only show the prompt in
-    // Page Designer design mode (to guide the content author). On the live storefront
-    // render nothing to avoid showing a confusing placeholder to shoppers.
-    if ((!products || products.length === 0) && regionComponents.length === 0) {
+    const hasProducts = !!products && products.length > 0;
+    const hasRegionComponents = regionComponents.length > 0;
+
+    // Empty state (W-23729825): a freshly-dropped, unconfigured Product Carousel with no products and
+    // no region components yet. Rather than a bespoke text placeholder, we feed empty `ProductTile`
+    // children through the *real* CarouselSection render path — each renders its own design-mode empty
+    // state (placeholder image + default "Product" title). This keeps the authoring preview identical
+    // to a configured carousel and cannot drift from it. Page-Designer *authoring* affordance only: on
+    // the live storefront an unconfigured carousel still renders nothing, exactly as before. Mirrors
+    // the Categories Carousel's design-mode gate.
+    if (!hasProducts && !hasRegionComponents) {
         if (!isDesignMode) {
             return null;
         }
         return (
-            <div className={cn('section-container py-6', className)}>
-                <div role="status" aria-live="polite">
-                    {t('selectProduct')}
-                </div>
-            </div>
+            <CarouselSection
+                title={resolvedTitle}
+                subtitle={subtitle}
+                shopAllUrl={shopAllUrl}
+                shopAllText={shopAllText}
+                titleClassName={titleClassName}
+                className={className}
+                ariaLabel={`${resolvedTitle} carousel`}>
+                <ProductTileProvider>
+                    <DynamicImageProvider value={dynamicImageProviderValue}>
+                        {Array.from({ length: EMPTY_STATE_PLACEHOLDER_COUNT }, (_, i) => (
+                            <CarouselItem key={i} className={carouselItemClassName}>
+                                <div className="w-full max-w-full min-w-0 flex">
+                                    <ProductTile
+                                        imgAspectRatio={productCarouselItemAspectRatio}
+                                        className="h-full w-full"
+                                    />
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </DynamicImageProvider>
+                </ProductTileProvider>
+            </CarouselSection>
         );
     }
 
@@ -127,12 +160,12 @@ export default function ProductCarousel({
             titleClassName={titleClassName}
             className={className}
             ariaLabel={`${resolvedTitle} carousel`}>
-            {regionComponents.length > 0 && productsRegion ? (
+            {hasRegionComponents && productsRegion ? (
                 regionComponents.map((comp) => {
                     const typedComp = comp as ComponentType;
                     const key = typedComp.contentLinkUuid ?? typedComp.id;
                     return (
-                        <CarouselItem key={key} className="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex">
+                        <CarouselItem key={key} className={carouselItemClassName}>
                             <div className="w-full max-w-full min-w-0 flex">
                                 <Component
                                     component={typedComp}
@@ -147,9 +180,7 @@ export default function ProductCarousel({
                 <ProductTileProvider>
                     <DynamicImageProvider value={dynamicImageProviderValue}>
                         {products.map((product) => (
-                            <CarouselItem
-                                key={product.productId}
-                                className="w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex">
+                            <CarouselItem key={product.productId} className={carouselItemClassName}>
                                 <div className="w-full max-w-full min-w-0 flex">
                                     <ProductTile
                                         product={product}

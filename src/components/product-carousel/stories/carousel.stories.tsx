@@ -18,12 +18,13 @@ import ProductCarousel, { ProductCarouselWithSuspense } from '../carousel';
 import { mockStandardProductHit } from '../../__mocks__/product-search-hit-data';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
-import { expect, within } from 'storybook/test';
+import { expect, waitFor, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
 import DynamicImageProvider from '@/providers/dynamic-image';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 
 const mockSite = mockSiteObject;
 
@@ -139,8 +140,49 @@ export const Empty: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        // In non-design mode (Storybook), an empty carousel renders nothing
-        await expect(canvas.queryByText('Select a product')).not.toBeInTheDocument();
+        // On the live storefront (non-design mode) an unconfigured carousel renders nothing.
+        await expect(canvas.queryByRole('heading', { name: 'Product' })).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * W-23729825: a freshly-dropped, unconfigured Product Carousel as a merchant sees it in Page Designer
+ * design mode (`mode="EDIT"`). Feeds empty `ProductTile` children through the real CarouselSection
+ * render path, so each renders its own placeholder tile (image + default "Product" title). On the
+ * live storefront an unconfigured carousel renders nothing (see the Empty story).
+ */
+export const UnconfiguredDesignMode: Story = {
+    args: {
+        products: [],
+    },
+    parameters: {
+        // Design mode renders inside PageDesignerProvider's lazy Suspense provider, which resolves in
+        // a live browser but suspends to a fallback in a synchronous snapshot render — so this story is
+        // interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729825: a freshly-dropped, unconfigured Product Carousel as a merchant sees it in Page Designer design mode. Feeds empty Product Tile children through the real carousel render path so each renders its own placeholder. On the live storefront an unconfigured carousel renders nothing.',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-product-carousel" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the placeholder tiles to appear.
+        await waitFor(async () => {
+            await expect(canvas.getAllByRole('heading', { name: 'Product' }).length).toBeGreaterThan(0);
+        });
+        const placeholders = canvas.getAllByRole('heading', { name: 'Product' });
+        await expect(placeholders.length).toBe(8);
     },
 };
 
