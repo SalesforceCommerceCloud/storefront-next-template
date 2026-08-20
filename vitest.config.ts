@@ -63,7 +63,9 @@ export default defineConfig((configEnv) =>
                 ],
                 globals: true,
                 environment: 'jsdom',
-                pool: 'threads',
+                // Windows CI has repeatedly segfaulted (exit 139) under the threads pool since
+                // it was enabled (@W-23736599) — forks give each test file process isolation.
+                pool: process.platform === 'win32' ? 'forks' : 'threads',
                 setupFiles: ['./vitest.setup.ts'],
                 include: ['**/*.{test,spec}.{ts,tsx}'],
                 exclude: [...configDefaults.exclude, '.storybook/**/*', 'e2e/**/*', ...otherVerticalTestGlobs],

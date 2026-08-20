@@ -165,6 +165,10 @@ describe('mrt/ssr', () => {
             void get(mockEvent, mockContext, mockCallback);
 
             expect(mockContext.callbackWaitsForEmptyEventLoop).toBe(false);
+
+            await vi.waitFor(() => {
+                expect(mockCallback).toHaveBeenCalled();
+            });
         });
 
         it('should maintain AWS Lambda callback signature (not async)', async () => {
@@ -175,6 +179,10 @@ describe('mrt/ssr', () => {
             const result = get(mockEvent, mockContext, mockCallback);
 
             expect(result).toBeUndefined();
+
+            await vi.waitFor(() => {
+                expect(mockCallback).toHaveBeenCalled();
+            });
         });
     });
 
@@ -294,6 +302,10 @@ describe('mrt/ssr', () => {
             const returnValue = get(mockEvent, mockContext, mockCallback);
 
             expect(returnValue).toBeUndefined();
+
+            await vi.waitFor(() => {
+                expect(mockCallback).toHaveBeenCalled();
+            });
         });
 
         it('should set callbackWaitsForEmptyEventLoop to false immediately', async () => {
@@ -306,6 +318,10 @@ describe('mrt/ssr', () => {
 
             // Should be set to false synchronously, before any async operations
             expect(mockContext.callbackWaitsForEmptyEventLoop).toBe(false);
+
+            await vi.waitFor(() => {
+                expect(mockCallback).toHaveBeenCalled();
+            });
         });
     });
 });
