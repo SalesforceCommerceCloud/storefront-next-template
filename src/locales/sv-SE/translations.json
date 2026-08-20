@@ -43,6 +43,9 @@
         },
         "productTile": {
             "emptyTitle": "Produkt"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Produktrekommendationer"
         }
     },
     "search": {

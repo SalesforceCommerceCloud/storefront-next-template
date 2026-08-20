@@ -47,6 +47,9 @@
         },
         "productTile": {
             "emptyTitle": "Prodotto"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Prodotti consigliati"
         }
     },
     "search": {

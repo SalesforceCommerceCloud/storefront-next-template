@@ -15,6 +15,8 @@
  */
 import { Suspense, useCallback, useEffect, useRef, useMemo, type ReactElement, type ReactNode } from 'react';
 import { Await } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { useRecommenders, type Product, type Recommendation } from '@/hooks/recommenders/use-recommenders';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
@@ -311,6 +313,8 @@ function ProductRecommendationsView({
     // The title can come either from the static recommender config (client/PD path) or from the server response's
     // `displayMessage` (loader/BFF path). Fail closed when neither is present — we never want a headless carousel.
     const analytics = useAnalytics();
+    const { t } = useTranslation('common');
+    const { isDesignMode } = usePageDesignerMode();
     const ref = useRef<HTMLDivElement>(null);
     // Viewport-gated: fire the impression once when the carousel scrolls into view (PWA Kit parity).
     const isOnScreen = useIntersectionObserver(ref, { useOnce: true });
@@ -337,6 +341,30 @@ function ProductRecommendationsView({
     );
 
     const title = recommendation?.displayMessage || recommender?.title;
+    const hasRecs = !!productRecs && productRecs.length > 0;
+
+    // Empty state (W-23729817): a freshly-dropped, unconfigured Product Recommendations component —
+    // no recommender selected yet, so no title and no recs. Rather than a bespoke placeholder, we feed
+    // an empty `ProductCarousel` (which renders its own row of placeholder Product Tiles) through the
+    // *real* render path, with a default heading, so the authoring preview reads as a real recs
+    // carousel and cannot drift from a configured one. Page-Designer *authoring* affordance only: on
+    // the live storefront a component with no title / no recs still renders nothing (see the gates
+    // below), so shoppers never see an empty carousel. Mirrors the Product/Categories Carousel gate.
+    if (isDesignMode && !isLoading && !hasRecs) {
+        return (
+            <div ref={ref}>
+                <ProductCarousel
+                    products={[]}
+                    title={title || t('productRecommendations.emptyTitle')}
+                    titleClassName={titleClassName}
+                    subtitle={subtitle}
+                    shopAllText={shopAllText}
+                    className={className}
+                />
+            </div>
+        );
+    }
+
     if (!title) {
         return null;
     }
@@ -349,7 +377,7 @@ function ProductRecommendationsView({
         );
     }
 
-    if (!productRecs || productRecs.length === 0) {
+    if (!hasRecs) {
         return null;
     }
 

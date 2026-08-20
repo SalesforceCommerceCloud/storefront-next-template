@@ -45,6 +45,9 @@
         },
         "productTile": {
             "emptyTitle": "产品"
+        },
+        "productRecommendations": {
+            "emptyTitle": "产品推荐"
         }
     },
     "search": {

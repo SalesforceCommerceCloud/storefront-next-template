@@ -44,6 +44,9 @@
         },
         "productTile": {
             "emptyTitle": "商品"
+        },
+        "productRecommendations": {
+            "emptyTitle": "おすすめ商品"
         }
     },
     "search": {

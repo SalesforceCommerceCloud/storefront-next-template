@@ -44,6 +44,9 @@
         },
         "productTile": {
             "emptyTitle": "Tuote"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Tuotesuositukset"
         }
     },
     "search": {

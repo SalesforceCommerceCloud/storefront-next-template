@@ -45,6 +45,9 @@
         },
         "productTile": {
             "emptyTitle": "產品"
+        },
+        "productRecommendations": {
+            "emptyTitle": "產品推薦"
         }
     },
     "search": {
