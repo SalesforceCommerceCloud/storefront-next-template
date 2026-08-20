@@ -57,9 +57,12 @@ describe('PopularCategories loader', () => {
         expect(result).toEqual(mockCategories);
     });
 
-    test('defaults parentId to root when not set in componentData', async () => {
-        mockFetchCategories.mockResolvedValue([]);
-
+    // A freshly-dropped Categories Carousel in Page Designer has no parentId configured yet. The
+    // loader must resolve to undefined rather than defaulting to 'root' — always fetching root
+    // categories would populate `data`, so the component would render real categories and its
+    // design-mode empty state (empty Category Card placeholders) would be unreachable. Resolving to
+    // undefined lets the component fall through to that empty state. Mirrors the Product Carousel loader.
+    test('resolves to undefined without fetching when parentId is not set in componentData', async () => {
         const componentData: ShopperExperience.schemas['Component'] = {
             id: 'component-1',
             typeId: 'odyssey_base.popularCategories',
@@ -67,23 +70,19 @@ describe('PopularCategories loader', () => {
             regions: [],
         };
 
-        await loader({ componentData, context: mockContext });
-
-        expect(mockFetchCategories).toHaveBeenCalledWith(mockContext, 'root', 1);
+        await expect(loader({ componentData, context: mockContext })).resolves.toBeUndefined();
+        expect(mockFetchCategories).not.toHaveBeenCalled();
     });
 
-    test('defaults parentId to root when componentData has no data property', async () => {
-        mockFetchCategories.mockResolvedValue([]);
-
+    test('resolves to undefined without fetching when componentData has no data property', async () => {
         const componentData: ShopperExperience.schemas['Component'] = {
             id: 'component-1',
             typeId: 'odyssey_base.popularCategories',
             regions: [],
         };
 
-        await loader({ componentData, context: mockContext });
-
-        expect(mockFetchCategories).toHaveBeenCalledWith(mockContext, 'root', 1);
+        await expect(loader({ componentData, context: mockContext })).resolves.toBeUndefined();
+        expect(mockFetchCategories).not.toHaveBeenCalled();
     });
 
     test('always fetches with depth level 1', async () => {

@@ -1409,7 +1409,9 @@
             "title": "Style for Real Life",
             "description": "At Market Street, we believe fashion should be effortless, authentic, and accessible. Our collections are designed for the modern individual who values quality, versatility, and timeless style.",
             "shopNowButton": "Shop Now",
-            "loadFailed": "Unable to load categories."
+            "loadFailed": "Unable to load categories.",
+            "emptyTitle": "Add your title here",
+            "emptyRegionLabel": "Categories carousel"
         },
         "featuredContent": {
             "women": {

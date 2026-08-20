@@ -1153,7 +1153,9 @@
         "categoryGrid": {
             "title": "Estilo para a vida real",
             "description": "Na Market Street, acreditamos que a moda deve ser fácil, autêntica e acessível. Nossas coleções são projetadas para a pessoa moderna que valoriza a qualidade, a versatilidade e o estilo atemporal.",
-            "shopNowButton": "Comprar agora"
+            "shopNowButton": "Comprar agora",
+            "emptyTitle": "Adicione o seu título aqui",
+            "emptyRegionLabel": "Carrossel de categorias"
         },
         "featuredContent": {
             "women": {

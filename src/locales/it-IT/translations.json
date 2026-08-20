@@ -1269,7 +1269,9 @@
             "title": "Stile per la vita reale",
             "description": "Noi di Market Street crediamo che la moda debba essere semplice, autentica e accessibile. Le nostre collezioni sono progettate per le persone moderne che apprezzano la qualità, la versatilità e lo stile senza tempo.",
             "shopNowButton": "Acquista ora",
-            "loadFailed": "Impossibile caricare le categorie."
+            "loadFailed": "Impossibile caricare le categorie.",
+            "emptyTitle": "Aggiungi qui il titolo",
+            "emptyRegionLabel": "Sequenza categorie"
         },
         "featuredContent": {
             "women": {

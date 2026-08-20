@@ -17,8 +17,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import PopularCategories from '../index';
 import { action } from 'storybook/actions';
 import { useEffect, useRef, type ReactNode, type ReactElement } from 'react';
-import { expect, within, userEvent } from 'storybook/test';
+import { expect, waitFor, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import { mockPopularCategories, mockCategoriesNoImages, mockManyCategoriesCategories } from '../__mocks__/categories';
 
 /**
@@ -397,6 +398,50 @@ export const Empty: Story = {
         await expect(canvas.queryByText('Style for Real Life')).not.toBeInTheDocument();
         const shopNowButtons = canvas.queryAllByText(/shop now/i);
         await expect(shopNowButtons.length).toBe(0);
+    },
+};
+
+/**
+ * W-23729836: a freshly-dropped, unconfigured Categories Carousel as a merchant sees it in Page
+ * Designer design mode (`mode="EDIT"`). Feeds empty `PopularCategory` (Category Card) children
+ * through the real CarouselSection render path, so each renders its own placeholder card (image +
+ * default "Category" title). On the live storefront an unconfigured carousel renders nothing (see
+ * the SkeletonState/Empty stories).
+ */
+export const UnconfiguredDesignMode: Story = {
+    args: {},
+    parameters: {
+        // Design mode renders inside PageDesignerProvider's lazy Suspense provider, which resolves in
+        // a live browser but suspends to a fallback in a synchronous snapshot render — so this story is
+        // interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729836: a freshly-dropped, unconfigured Categories Carousel as a merchant sees it in Page Designer design mode. Feeds empty Category Card children through the real carousel render path so each renders its own placeholder. On the live storefront an unconfigured carousel renders nothing.',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-popular-categories" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the placeholder cards to appear.
+        await waitFor(async () => {
+            await expect(canvas.getAllByRole('heading', { name: 'Category' }).length).toBeGreaterThan(0);
+        });
+        // The carousel renders through the real path: the neutral authoring heading ("Add your title
+        // here" — NOT the brand copy "Style for Real Life") plus placeholder Category Cards.
+        await expect(canvas.getByText('Add your title here')).toBeInTheDocument();
+        await expect(canvas.queryByText('Style for Real Life')).not.toBeInTheDocument();
+        const placeholders = canvas.getAllByRole('heading', { name: 'Category' });
+        await expect(placeholders.length).toBe(8);
     },
 };
 

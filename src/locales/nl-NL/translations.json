@@ -1146,7 +1146,9 @@
         "categoryGrid": {
             "title": "Stijl voor het echte leven",
             "description": "Bij Market Street vinden we dat mode moeiteloos, authentiek en toegankelijk moet zijn. Onze collecties zijn ontworpen voor de moderne mens die waarde hecht aan kwaliteit, veelzijdigheid en een tijdloze stijl.",
-            "shopNowButton": "Nu shoppen"
+            "shopNowButton": "Nu shoppen",
+            "emptyTitle": "Voeg hier je titel toe",
+            "emptyRegionLabel": "Categorieëncarrousel"
         },
         "featuredContent": {
             "women": {

@@ -1148,7 +1148,9 @@
         "categoryGrid": {
             "title": "Stilvoll durch den Alltag",
             "description": "Bei Market Street sind wir der Meinung, dass Mode unkompliziert, authentisch und zugänglich sein sollte. Unsere Kollektionen sind für moderne Menschen geschaffen, die Wert auf Qualität, Vielseitigkeit und zeitlosen Stil legen.",
-            "shopNowButton": "Jetzt shoppen"
+            "shopNowButton": "Jetzt shoppen",
+            "emptyTitle": "Titel hier hinzufügen",
+            "emptyRegionLabel": "Kategorie-Karussell"
         },
         "featuredContent": {
             "women": {

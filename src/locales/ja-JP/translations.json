@@ -1153,7 +1153,9 @@
         "categoryGrid": {
             "title": "日常に寄り添うスタイル",
             "description": "Market Street では、ファッションは気負わず、自分らしく、誰もが楽しめるものであるべきだと考えています。私たちのコレクションは、品質、多用途性、そして時代を超えて愛されるスタイルを大切にする現代的な一人ひとりのためにデザインされています。",
-            "shopNowButton": "今すぐお買い物"
+            "shopNowButton": "今すぐお買い物",
+            "emptyTitle": "ここにタイトルを追加",
+            "emptyRegionLabel": "カテゴリカルーセル"
         },
         "featuredContent": {
             "women": {

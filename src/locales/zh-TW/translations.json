@@ -1151,7 +1151,9 @@
         "categoryGrid": {
             "title": "真實生活風格",
             "description": "在 Market Street，我們相信時尚應該是輕鬆、真實且易於接觸的。我們的系列產品專為重視品質、多功能用途及經典風格的現代個人而設計。",
-            "shopNowButton": "立即選購"
+            "shopNowButton": "立即選購",
+            "emptyTitle": "在此新增標題",
+            "emptyRegionLabel": "類別輪播"
         },
         "featuredContent": {
             "women": {

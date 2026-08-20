@@ -1152,7 +1152,9 @@
         "categoryGrid": {
             "title": "Stil för livet",
             "description": "Market Street anser att mode ska vara enkelt, äkta och tillgängligt. Våra kollektioner är designade för den moderna individen som värdesätter kvalitet, mångsidighet och tidlös stil.",
-            "shopNowButton": "Handla nu"
+            "shopNowButton": "Handla nu",
+            "emptyTitle": "Lägg till din rubrik här",
+            "emptyRegionLabel": "Kategorikarusell"
         },
         "featuredContent": {
             "women": {

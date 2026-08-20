@@ -1149,7 +1149,9 @@
         "categoryGrid": {
             "title": "Stil til det virkelige liv",
             "description": "Hos Market Street mener vi, at mode skal være ubesværet, autentisk og tilgængelig. Vores kollektioner er designet til det moderne menneske, der værdsætter kvalitet, alsidighed og tidløs stil.",
-            "shopNowButton": "Køb nu"
+            "shopNowButton": "Køb nu",
+            "emptyTitle": "Tilføj din titel her",
+            "emptyRegionLabel": "Kategorikarrusel"
         },
         "featuredContent": {
             "women": {

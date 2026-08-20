@@ -1149,7 +1149,9 @@
         "categoryGrid": {
             "title": "실생활에 어울리는 스타일",
             "description": "Market Street는 패션이 수월하고 진정성 있고 접근하기 쉬워야 한다고 믿습니다. Market Street의 컬렉션은 품질, 다재다능함, 시대를 초월한 스타일을 중시하는 현대인에게 어울리도록 디자인되었습니다.",
-            "shopNowButton": "지금 쇼핑하기"
+            "shopNowButton": "지금 쇼핑하기",
+            "emptyTitle": "여기에 제목 추가",
+            "emptyRegionLabel": "카테고리 캐러셀"
         },
         "featuredContent": {
             "women": {

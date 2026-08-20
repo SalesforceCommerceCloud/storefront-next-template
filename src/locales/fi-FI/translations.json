@@ -1151,7 +1151,9 @@
         "categoryGrid": {
             "title": "Tyyliä tosielämään",
             "description": "Me Market Streetillä uskomme, että muodin pitäisi olla vaivatonta, aitoa ja helposti lähestyttävää. Mallistomme on suunniteltu modernille ihmiselle, joka arvostaa laatua, monipuolisuutta ja ajatonta tyyliä.",
-            "shopNowButton": "Osta nyt"
+            "shopNowButton": "Osta nyt",
+            "emptyTitle": "Lisää otsikko tähän",
+            "emptyRegionLabel": "Kategoriakaruselli"
         },
         "featuredContent": {
             "women": {

@@ -22,6 +22,7 @@ import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators';
 import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import type { NormalizedApiError } from '@/lib/api/normalized-api-error';
 // oxlint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
@@ -111,6 +112,14 @@ export class PopularCategoriesMetadata {
 
 const itemClassName = 'w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex';
 
+/**
+ * Number of placeholder Category Cards rendered in the Page Designer design-mode empty state
+ * (W-23729836) so a freshly-dropped, unconfigured Categories Carousel reads as a real carousel row
+ * rather than an empty section. Enough to fill the track past the viewport edge at wide breakpoints,
+ * so the row reads as a scrollable carousel rather than a short, centered cluster.
+ */
+const EMPTY_STATE_PLACEHOLDER_COUNT = 8;
+
 function CategoriesError() {
     const error = useAsyncError() as NormalizedApiError;
     const { t } = useTranslation('home');
@@ -191,6 +200,7 @@ function CategoryGridContent({
     labelPosition?: 'overlay' | 'below';
 }) {
     const { t } = useTranslation('home');
+    const { isDesignMode } = usePageDesignerMode();
     const resolvedTitle = title || t('categoryGrid.title');
     const resolvedSubtitle = subtitle || t('categoryGrid.description');
     const ariaLabel = resolvedTitle;
@@ -204,6 +214,24 @@ function CategoryGridContent({
         shopAllText,
         centerWhenPartial,
         ariaLabel,
+    };
+
+    // Empty-state heading: a neutral authoring placeholder, never the brand copy. The live carousel
+    // is titled with the merchant's default (`categoryGrid.title` = "Style for Real Life") and its
+    // marketing subtitle; leaking those into an *unconfigured* card reads as real content. A
+    // merchant-set title still wins, otherwise we show the generic "Add your title here" heading
+    // (shared wording with the Content Card empty state), left-aligned and with no subtitle.
+    const emptyStateTitle = title || t('categoryGrid.emptyTitle');
+    const emptyStateSectionProps = {
+        title: emptyStateTitle,
+        subtitle,
+        titleAlign: 'left' as const,
+        centerWhenPartial,
+        // Accessible name for the region: the visible heading is a bare edit prompt ("Add your title
+        // here"), so labelling the landmark with it would announce the region as an editing hint
+        // rather than its purpose (WCAG 2.4.6). Use the merchant's title when set, otherwise a
+        // descriptive "Categories carousel" — the heading stays the neutral placeholder either way.
+        ariaLabel: title || t('categoryGrid.emptyRegionLabel'),
     };
 
     // Determine if we should use Page Designer components or fallback categories
@@ -257,6 +285,26 @@ function CategoryGridContent({
                     )}
                 </Await>
             </Suspense>
+        );
+    }
+
+    // Empty state (W-23729836): a freshly-dropped, unconfigured Categories Carousel with no cards yet.
+    // Rather than a bespoke placeholder, we feed empty `PopularCategory` (Category Card) children
+    // through the *real* CarouselSection render path — each renders its own design-mode empty state
+    // (placeholder image + default "Category" title). This keeps the authoring preview identical to a
+    // configured carousel and cannot drift from it. Page-Designer *authoring* affordance only: on the
+    // live storefront an unconfigured carousel still renders nothing, exactly as before.
+    if (isDesignMode) {
+        return (
+            <CarouselSection {...emptyStateSectionProps}>
+                {Array.from({ length: EMPTY_STATE_PLACEHOLDER_COUNT }, (_, i) => (
+                    <CarouselItem key={i} className={itemClassName}>
+                        <div className="w-full max-w-full min-w-0 flex">
+                            <PopularCategory labelPosition={labelPosition} className="h-full w-full" />
+                        </div>
+                    </CarouselItem>
+                ))}
+            </CarouselSection>
         );
     }
 
