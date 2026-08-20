@@ -35,6 +35,9 @@
         "productGrid": {
             "loadFailed": "Impossibile caricare ulteriori prodotti."
         },
+        "popularCategory": {
+            "emptyTitle": "Categoria"
+        },
         "announcementBanner": {
             "emptyTitle": "Aggiungi qui il titolo"
         },

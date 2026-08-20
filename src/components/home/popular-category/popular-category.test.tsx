@@ -42,11 +42,19 @@ vi.mock('react-i18next', () => ({
         t: (key: string) => {
             const translations: Record<string, string> = {
                 'categoryGrid.shopNowButton': 'Shop Now',
+                'popularCategory.emptyTitle': 'Category',
             };
             return translations[key] || key;
         },
         i18n: { language: mockSiteObject.defaultLocale },
     }),
+}));
+
+// Mock Page Designer mode — default to non-design (live storefront). Individual tests flip
+// mockIsDesignMode to exercise the authoring empty state.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }),
 }));
 
 const mockCategory: ShopperProducts.schemas['Category'] = {
@@ -88,6 +96,7 @@ const renderComponent = (component: React.ReactElement) => {
 describe('PopularCategory', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockIsDesignMode = false;
     });
 
     test('renders category with data prop (from loader)', () => {
@@ -251,5 +260,36 @@ describe('PopularCategory', () => {
 
         // Component returns null since null is not an object
         expect(container.firstChild).toBeNull();
+    });
+
+    describe('Empty state (Page Designer authoring)', () => {
+        test('renders placeholder card with default "Category" title in design mode', () => {
+            mockIsDesignMode = true;
+
+            renderComponent(<PopularCategory />);
+
+            // Feeds the placeholder image + default title through the real render path.
+            expect(screen.getByRole('heading', { name: 'Category' })).toBeInTheDocument();
+            expect(screen.getByRole('link', { name: /category/i })).toBeInTheDocument();
+        });
+
+        test('placeholder image is decorative (empty alt) so the title is not read twice', () => {
+            mockIsDesignMode = true;
+
+            const { container } = renderComponent(<PopularCategory />);
+
+            const image = container.querySelector('img');
+            expect(image).toBeInTheDocument();
+            expect(image).toHaveAttribute('alt', '');
+        });
+
+        test('renders nothing when unconfigured on the live storefront (not design mode)', () => {
+            mockIsDesignMode = false;
+
+            const { container } = renderComponent(<PopularCategory />);
+
+            // The authoring placeholder must never leak to shoppers.
+            expect(container.firstChild).toBeNull();
+        });
     });
 });

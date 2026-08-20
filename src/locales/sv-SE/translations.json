@@ -31,6 +31,9 @@
         },
         "previousImage": "Föregående bild",
         "nextImage": "Nästa bild",
+        "popularCategory": {
+            "emptyTitle": "Kategori"
+        },
         "announcementBanner": {
             "emptyTitle": "Lägg till din rubrik här"
         },

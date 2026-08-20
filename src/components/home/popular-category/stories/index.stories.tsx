@@ -17,8 +17,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import PopularCategory from '../index';
 import { action } from 'storybook/actions';
 import { useEffect, useRef, type ReactNode, type ReactElement } from 'react';
-import { expect, within, userEvent } from 'storybook/test';
+import { expect, waitFor, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady, SITE_PREFIX } from '@storybook/test-utils';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import type { ShopperProducts } from '@/scapi';
 import { mockCategories, mockCategory as mockCategoryTies } from '@/components/__mocks__/mock-data';
 
@@ -271,6 +272,46 @@ export const Fallback: Story = {
 
         // Component returns null when no data is provided
         await expect(canvas.queryByRole('link')).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * W-23729812: a freshly-dropped Category Card with no category selected yet, as a merchant sees it
+ * in Page Designer design mode (`mode="EDIT"`). Feeds the shared image placeholder and a default
+ * "Category" title through the card's real render path, so the authoring preview is the actual card
+ * layout rather than a bespoke box. On the live storefront an unconfigured card renders nothing (see
+ * the Fallback story).
+ */
+export const UnconfiguredDesignMode: Story = {
+    args: {},
+    parameters: {
+        // Design mode renders the card inside PageDesignerProvider's lazy Suspense provider, which
+        // resolves in a live browser but suspends to a fallback in a synchronous snapshot render — so
+        // this story is interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729812: a freshly-dropped Category Card with no category selected, as a merchant sees it in Page Designer design mode. Feeds the shared placeholder image + a default "Category" title through the real card render path. On the live storefront an unconfigured card renders nothing.',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-popular-category" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the placeholder card to appear.
+        await waitFor(async () => {
+            await expect(canvas.getByText('Category')).toBeInTheDocument();
+        });
+        // The card renders through the real path: a link plus the placeholder image.
+        await expect(canvas.getByRole('link', { name: /category/i })).toBeInTheDocument();
     },
 };
 

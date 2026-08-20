@@ -32,6 +32,9 @@
         },
         "previousImage": "Imagen anterior",
         "nextImage": "Siguiente imagen",
+        "popularCategory": {
+            "emptyTitle": "Categoría"
+        },
         "announcementBanner": {
             "emptyTitle": "Añade tu título aquí"
         },

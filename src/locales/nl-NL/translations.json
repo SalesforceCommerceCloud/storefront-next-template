@@ -30,6 +30,9 @@
         },
         "previousImage": "Vorige afbeelding",
         "nextImage": "Volgende afbeelding",
+        "popularCategory": {
+            "emptyTitle": "Categorie"
+        },
         "announcementBanner": {
             "emptyTitle": "Voeg hier je titel toe"
         },

@@ -32,6 +32,9 @@
         },
         "previousImage": "Edellinen kuva",
         "nextImage": "Seuraava kuva",
+        "popularCategory": {
+            "emptyTitle": "Kategoria"
+        },
         "announcementBanner": {
             "emptyTitle": "Lisää otsikko tähän"
         },

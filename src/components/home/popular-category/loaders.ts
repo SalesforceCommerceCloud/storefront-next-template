@@ -20,7 +20,7 @@ import type { ShopperProducts, ShopperExperience } from '@/scapi';
 const dataLoader = (args: {
     componentData: unknown;
     context: LoaderFunctionArgs['context'];
-}): Promise<ShopperProducts.schemas['Category']> => {
+}): Promise<ShopperProducts.schemas['Category'] | undefined> => {
     const { componentData, context: routeContext } = args;
 
     // Type cast to component structure
@@ -31,7 +31,13 @@ const dataLoader = (args: {
     const categoryId = (comp.data as { category?: string })?.category;
 
     if (!categoryId || typeof categoryId !== 'string') {
-        throw new Error('Category ID is required for PopularCategory component');
+        // No category configured yet (e.g. a freshly-dropped Category Card in Page Designer).
+        // Resolve to undefined instead of throwing: a thrown loader rejects the PD component-data
+        // promise, which the region <Await> swaps for a null error fallback — so the card never
+        // mounts and its design-mode empty state (index.tsx) never runs ("doesn't even show up as
+        // an item"). Resolving lets the component render its design-mode empty state and render
+        // null on the live storefront, matching the no-loader siblings (Content Card, Hero).
+        return Promise.resolve(undefined);
     }
 
     // Fetch the full category object

@@ -33,6 +33,9 @@
         },
         "previousImage": "上一张图片",
         "nextImage": "下一张图片",
+        "popularCategory": {
+            "emptyTitle": "类别"
+        },
         "announcementBanner": {
             "emptyTitle": "在此添加标题"
         },

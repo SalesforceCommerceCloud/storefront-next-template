@@ -32,6 +32,9 @@
         },
         "previousImage": "前の画像",
         "nextImage": "次の画像",
+        "popularCategory": {
+            "emptyTitle": "カテゴリ"
+        },
         "announcementBanner": {
             "emptyTitle": "ここにタイトルを追加"
         },

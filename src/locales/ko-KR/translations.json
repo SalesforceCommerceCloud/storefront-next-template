@@ -32,6 +32,9 @@
         },
         "previousImage": "이전 이미지",
         "nextImage": "다음 이미지",
+        "popularCategory": {
+            "emptyTitle": "카테고리"
+        },
         "announcementBanner": {
             "emptyTitle": "여기에 제목 추가"
         },

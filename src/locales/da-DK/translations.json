@@ -32,6 +32,9 @@
         },
         "previousImage": "Forrige billede",
         "nextImage": "Næste billede",
+        "popularCategory": {
+            "emptyTitle": "Kategori"
+        },
         "announcementBanner": {
             "emptyTitle": "Tilføj din titel her"
         },
