@@ -127,6 +127,12 @@
         "types": "./dist/security-react.d.ts",
         "default": "./dist/security-react.js"
       }
+    },
+    "./otel": {
+      "import": {
+        "types": "./dist/otel.d.ts",
+        "default": "./dist/otel.js"
+      }
     }
   },
   "files": [
@@ -157,6 +163,7 @@
   "author": "cc-pwa-kit@salesforce.com",
   "license": "Apache-2.0",
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
     "@salesforce/mrt-utilities": "0.2.1",
     "jiti": "^2.6.1",
     "openapi-fetch": "0.15.0",

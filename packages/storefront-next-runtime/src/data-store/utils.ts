@@ -15,6 +15,7 @@
  */
 
 import { type MiddlewareFunction, type RouterContextProvider, createContext } from 'react-router';
+import { type Span, SpanStatusCode, type Tracer } from '@opentelemetry/api';
 import {
     DataStore,
     DataStoreNotFoundError,
@@ -23,7 +24,23 @@ import {
 } from '@salesforce/mrt-utilities/data-store';
 import { siteContext } from '../site-context';
 import { type DataStoreLogger, getDataStoreLogger } from './logger-context';
+import { getDataStoreTracer } from './tracer-context';
 import { readDataStoreCache, writeDataStoreCache } from './entry-cache';
+
+/**
+ * Span name for a single data-store entry resolution through {@link loadDataStoreEntry}.
+ *
+ * Static and low-cardinality (in the `sfnext.*` operation namespace shared by the other
+ * platform spans) so traces aggregate by operation. The span wraps the whole funnel — the
+ * L1 cache check plus the underlying fetch — so its duration is the end-to-end cost a caller
+ * pays to resolve an entry, and a cache hit is visible as a fast span with `data_store.cached`.
+ *
+ * The span deliberately carries NO storage-backend detail (no DynamoDB, table name, operation,
+ * or raw error): traces may be customer-visible, and the underlying `DataStore.getEntry` already
+ * collapses backend failures into a generic {@link DataStoreServiceError} before they reach here.
+ * Only backend-neutral outcome signals (`cached` / `resolved`) and a generic error status are set.
+ */
+const LOAD_ENTRY_SPAN_NAME = 'sfnext.data_store.load';
 
 export type DataStoreContextKey<T> = ReturnType<typeof createContext<T | null>>;
 
@@ -238,11 +255,89 @@ async function loadDataStoreEntry<T>(args: {
     onUnavailable: 'throw' | 'fallback';
     fallbackValue: T | ((context: Readonly<RouterContextProvider>) => T) | undefined;
 }): Promise<LoadResult<T>> {
+    const tracer = getDataStoreTracer(args.context);
+
+    // No tracer injected (local scripts, tests, hosts without OTel wired): run untraced with
+    // zero overhead. Mirrors the `traced()` disabled path in the dev layer's instrumentation.
+    if (!tracer) {
+        return resolveDataStoreEntry(args);
+    }
+
+    return traceDataStoreLoad(tracer, (span) => resolveDataStoreEntry(args, span));
+}
+
+/**
+ * Wrap {@link resolveDataStoreEntry} in an OpenTelemetry span. The span records only
+ * backend-neutral outcome signals and a generic error status (see {@link LOAD_ENTRY_SPAN_NAME}).
+ * Tracing must never change the funnel's behavior: the underlying result (or thrown error) is
+ * always propagated unchanged, and any tracing failure is swallowed.
+ */
+async function traceDataStoreLoad<T>(
+    tracer: Tracer,
+    run: (span: Span) => Promise<LoadResult<T>>
+): Promise<LoadResult<T>> {
+    return tracer.startActiveSpan(LOAD_ENTRY_SPAN_NAME, async (span) => {
+        try {
+            const result = await run(span);
+            annotateLoadOutcome(span, result);
+            return result;
+        } catch (error) {
+            // The funnel only throws on genuine failures — a miss returns { state: 'missing' }
+            // without throwing. Mark the span failed with a generic message only: no backend
+            // detail and no raw error recorded, since traces may be customer-visible (the
+            // specifics stay in the internal error log emitted by mrt-utilities).
+            span.setStatus({ code: SpanStatusCode.ERROR, message: 'Data store request failed.' });
+            throw error;
+        } finally {
+            span.end();
+        }
+    });
+}
+
+/**
+ * Stamp backend-neutral outcome attributes for a resolved load. `data_store.resolved` reflects
+ * whether an entry was served (a real value or a configured fallback); `data_store.cached`
+ * distinguishes an L1 cache hit from a fetch.
+ * These aid local debugging — on Managed Runtime the log→trace bridge's attribute allow-list
+ * drops non-standard keys, so the durable signal there is the span itself (name, duration,
+ * status). Wrapped defensively so instrumentation never breaks the request.
+ */
+function annotateLoadOutcome(span: Span, result: LoadResult<unknown>): void {
+    try {
+        span.setAttribute('data_store.resolved', result.state === 'value' || result.state === 'fallback');
+    } catch {
+        // Instrumentation must never break the request pipeline.
+    }
+}
+
+/**
+ * The fetch + transform pipeline, extracted from {@link loadDataStoreEntry} so it can run with
+ * or without a surrounding span. This is the body that consults the L1 cache and resolves the
+ * three error paths (unavailable / not-found / service-error).
+ */
+async function resolveDataStoreEntry<T>(
+    args: {
+        entryKey: string;
+        context: Readonly<RouterContextProvider>;
+        transform: (value: Record<string, unknown>) => T;
+        onUnavailable: 'throw' | 'fallback';
+        fallbackValue: T | ((context: Readonly<RouterContextProvider>) => T) | undefined;
+    },
+    span?: Span
+): Promise<LoadResult<T>> {
     const { entryKey, context, transform, onUnavailable, fallbackValue } = args;
     const logger = getDataStoreLogger(context);
 
     try {
         const cached = readDataStoreCache(entryKey, logger);
+        // Whether this resolution was served from the L1 cache vs. an underlying fetch. Set
+        // before the value/miss branch so the attribute is present even when the entry is
+        // absent. See annotateLoadOutcome for why attributes are best-effort on MRT.
+        try {
+            span?.setAttribute('data_store.cached', Boolean(cached));
+        } catch {
+            // Instrumentation must never break the request pipeline.
+        }
         const entry = cached ?? (await getDataStoreEntry(entryKey));
 
         if (!entry?.value || typeof entry.value !== 'object') {

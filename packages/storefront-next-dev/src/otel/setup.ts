@@ -134,7 +134,18 @@ export const SERVICE_NAME = 'storefront-next';
  * Getting the tracer directly from the provider bypasses the global registry
  * entirely, guaranteeing the tracer uses our configured span processors.
  */
-let cachedTracer: Tracer | null = null;
+// The tracer is cached on `globalThis`, not in a module-scoped `let`, so it can be
+// shared with code that never imports this module. `initTelemetry()` (called by the
+// platform instrumentation at server bootstrap) builds and registers the single
+// NodeTracerProvider and publishes its tracer here; the runtime package reads the same
+// slot via `@salesforce/storefront-next-runtime/otel` `getPlatformTracer()` to hand the
+// tracer to its data-store span seam. The two packages cannot share a module (the
+// dependency direction is dev → runtime), so they share the tracer through the global
+// symbol registry: `Symbol.for()` resolves to the same symbol everywhere. The runtime
+// side MUST use this exact key. This also collapses any accidental second module
+// instance of setup.ts (e.g. across Vite SSR module-runner boundaries) onto one tracer
+// rather than a competing provider — the same pattern used by UNDICI_REGISTERED_KEY below.
+const TRACER_KEY = Symbol.for('sfnext.otel.tracer');
 
 // In the Vite SSR module runner, setup.ts may be loaded by two different module
 // instances (the Express server and the SSR bundle) — each with its own
@@ -144,6 +155,7 @@ let cachedTracer: Tracer | null = null;
 const UNDICI_REGISTERED_KEY = Symbol.for('sfnext.otel.undici_registered');
 
 export function initTelemetry(): Tracer | null {
+    const cachedTracer = (globalThis as Record<symbol, Tracer | undefined>)[TRACER_KEY];
     if (cachedTracer) return cachedTracer;
     try {
         const provider = new NodeTracerProvider({
@@ -220,8 +232,9 @@ export function initTelemetry(): Tracer | null {
             });
         }
 
-        cachedTracer = provider.getTracer(SERVICE_NAME);
-        return cachedTracer;
+        const tracer = provider.getTracer(SERVICE_NAME);
+        (globalThis as Record<symbol, Tracer | undefined>)[TRACER_KEY] = tracer;
+        return tracer;
     } catch (error) {
         logger.error('[otel] Failed to initialize OpenTelemetry:', error);
         return null;

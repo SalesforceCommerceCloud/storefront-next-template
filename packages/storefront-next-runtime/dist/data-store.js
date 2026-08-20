@@ -2,6 +2,7 @@ import "./env2.js";
 import { i as siteContext } from "./site-context2.js";
 import "./apply-url-config.js";
 import { createContext } from "react-router";
+import { SpanStatusCode } from "@opentelemetry/api";
 import { DataStore, DataStore as DataStore$1, DataStoreNotFoundError, DataStoreNotFoundError as DataStoreNotFoundError$1, DataStoreServiceError, DataStoreServiceError as DataStoreServiceError$1, DataStoreUnavailableError, DataStoreUnavailableError as DataStoreUnavailableError$1 } from "@salesforce/mrt-utilities/data-store";
 
 //#region src/data-store/logger-context.ts
@@ -59,6 +60,36 @@ const dataStoreLoggerContext = createContext(null);
 */
 function getDataStoreLogger(context) {
 	return context.get(dataStoreLoggerContext) ?? consoleLogger;
+}
+
+//#endregion
+//#region src/data-store/tracer-context.ts
+/**
+* Router context the SDK reads to obtain the request's OpenTelemetry tracer.
+*
+* Hosts (e.g. the storefront template) populate this from the dev layer's
+* provider-held tracer (`initTelemetry()`) in their logging/telemetry middleware.
+* When unset — local scripts, tests, or any host that has not wired tracing —
+* {@link getDataStoreTracer} returns `null` and the data-store funnel runs
+* untraced with no overhead.
+*
+* The tracer must come from the provider directly rather than the global
+* `trace.getTracer()` API: on Managed Runtime the global tracer registry is an
+* unreliable no-op (a dual `@opentelemetry/api` bundle splits the registry), so
+* the dev layer holds the real tracer and the host passes it through here.
+*
+* Defaults to `null` (not `undefined`) because React Router's `context.get()`
+* throws when `defaultValue === undefined`.
+*/
+const dataStoreTracerContext = createContext(null);
+/**
+* Read the data-store tracer from router context, or `null` when nothing has
+* been injected. Callers treat `null` as "tracing disabled" and run the work
+* directly. Use this from inside SDK middleware/loaders that have access to a
+* {@link RouterContextProvider}.
+*/
+function getDataStoreTracer(context) {
+	return context.get(dataStoreTracerContext);
 }
 
 //#endregion
@@ -283,6 +314,20 @@ function maybeLogStats(state, logger) {
 //#endregion
 //#region src/data-store/utils.ts
 /**
+* Span name for a single data-store entry resolution through {@link loadDataStoreEntry}.
+*
+* Static and low-cardinality (in the `sfnext.*` operation namespace shared by the other
+* platform spans) so traces aggregate by operation. The span wraps the whole funnel — the
+* L1 cache check plus the underlying fetch — so its duration is the end-to-end cost a caller
+* pays to resolve an entry, and a cache hit is visible as a fast span with `data_store.cached`.
+*
+* The span deliberately carries NO storage-backend detail (no DynamoDB, table name, operation,
+* or raw error): traces may be customer-visible, and the underlying `DataStore.getEntry` already
+* collapses backend failures into a generic {@link DataStoreServiceError} before they reach here.
+* Only backend-neutral outcome signals (`cached` / `resolved`) and a generic error status are set.
+*/
+const LOAD_ENTRY_SPAN_NAME = "sfnext.data_store.load";
+/**
 * Creates a typed React Router context for data store entries.
 *
 * Initializes the context with `null` so middleware can populate it during requests.
@@ -404,10 +449,59 @@ async function readLazyDataStoreEntry(context, contextKey) {
 * (not-found, unavailable, service error) is never stored and transient failures don't persist for the TTL.
 */
 async function loadDataStoreEntry(args) {
+	const tracer = getDataStoreTracer(args.context);
+	if (!tracer) return resolveDataStoreEntry(args);
+	return traceDataStoreLoad(tracer, (span) => resolveDataStoreEntry(args, span));
+}
+/**
+* Wrap {@link resolveDataStoreEntry} in an OpenTelemetry span. The span records only
+* backend-neutral outcome signals and a generic error status (see {@link LOAD_ENTRY_SPAN_NAME}).
+* Tracing must never change the funnel's behavior: the underlying result (or thrown error) is
+* always propagated unchanged, and any tracing failure is swallowed.
+*/
+async function traceDataStoreLoad(tracer, run) {
+	return tracer.startActiveSpan(LOAD_ENTRY_SPAN_NAME, async (span) => {
+		try {
+			const result = await run(span);
+			annotateLoadOutcome(span, result);
+			return result;
+		} catch (error) {
+			span.setStatus({
+				code: SpanStatusCode.ERROR,
+				message: "Data store request failed."
+			});
+			throw error;
+		} finally {
+			span.end();
+		}
+	});
+}
+/**
+* Stamp backend-neutral outcome attributes for a resolved load. `data_store.resolved` reflects
+* whether an entry was served (a real value or a configured fallback); `data_store.cached`
+* distinguishes an L1 cache hit from a fetch.
+* These aid local debugging — on Managed Runtime the log→trace bridge's attribute allow-list
+* drops non-standard keys, so the durable signal there is the span itself (name, duration,
+* status). Wrapped defensively so instrumentation never breaks the request.
+*/
+function annotateLoadOutcome(span, result) {
+	try {
+		span.setAttribute("data_store.resolved", result.state === "value" || result.state === "fallback");
+	} catch {}
+}
+/**
+* The fetch + transform pipeline, extracted from {@link loadDataStoreEntry} so it can run with
+* or without a surrounding span. This is the body that consults the L1 cache and resolves the
+* three error paths (unavailable / not-found / service-error).
+*/
+async function resolveDataStoreEntry(args, span) {
 	const { entryKey, context, transform, onUnavailable, fallbackValue } = args;
 	const logger = getDataStoreLogger(context);
 	try {
 		const cached = readDataStoreCache(entryKey, logger);
+		try {
+			span?.setAttribute("data_store.cached", Boolean(cached));
+		} catch {}
 		const entry = cached ?? await getDataStoreEntry(entryKey);
 		if (!entry?.value || typeof entry.value !== "object") {
 			logger.debug(`Data store entry '${entryKey}' not found or invalid.`, { entryKey });
@@ -922,5 +1016,5 @@ const dataStoreMiddlewareLazy = [
 ];
 
 //#endregion
-export { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, sitesMiddlewareLazy };
+export { DataStore, DataStoreNotFoundError, DataStoreServiceError, DataStoreUnavailableError, createDataStoreContext, createDataStoreMiddleware, createLazyDataStoreMiddleware, dataStoreLoggerContext, dataStoreMiddleware, dataStoreMiddlewareLazy, dataStoreTracerContext, getCustomGlobalPreferences, getCustomGlobalPreferencesLazy, getDataStoreEntry, getDataStoreLogger, getDataStoreTracer, getGcpApiKey, getGcpApiKeyLazy, getGcpPreferences, getGcpPreferencesLazy, getLoginPreferences, getLoginPreferencesLazy, getSitePreferences, getSitePreferencesLazy, getSitesFromDataStoreLazy, readLazyDataStoreEntry, sitesMiddlewareLazy };
 //# sourceMappingURL=data-store.js.map

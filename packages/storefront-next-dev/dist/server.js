@@ -457,9 +457,10 @@ const SERVICE_NAME = "storefront-next";
 * Getting the tracer directly from the provider bypasses the global registry
 * entirely, guaranteeing the tracer uses our configured span processors.
 */
-let cachedTracer = null;
+const TRACER_KEY = Symbol.for("sfnext.otel.tracer");
 const UNDICI_REGISTERED_KEY = Symbol.for("sfnext.otel.undici_registered");
 function initTelemetry() {
+	const cachedTracer = globalThis[TRACER_KEY];
 	if (cachedTracer) return cachedTracer;
 	try {
 		const provider = new NodeTracerProvider({
@@ -485,8 +486,9 @@ function initTelemetry() {
 				} })]
 			});
 		}
-		cachedTracer = provider.getTracer(SERVICE_NAME);
-		return cachedTracer;
+		const tracer = provider.getTracer(SERVICE_NAME);
+		globalThis[TRACER_KEY] = tracer;
+		return tracer;
 	} catch (error) {
 		logger.error("[otel] Failed to initialize OpenTelemetry:", error);
 		return null;

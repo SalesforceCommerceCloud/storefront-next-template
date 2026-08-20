@@ -28,6 +28,7 @@ export default defineConfig([
             workspace: 'src/workspace/index.ts',
             i18n: 'src/i18n/index.ts',
             security: 'src/security/index.ts',
+            otel: 'src/otel/index.ts',
         },
         platform: 'neutral',
         target: 'node24',

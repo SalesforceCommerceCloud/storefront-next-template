@@ -35,13 +35,16 @@ describe('SERVICE_NAME', () => {
 describe('initTelemetry', () => {
     const stubTracer = {} as unknown as SDKTracer;
 
-    // Reset the module registry before each test so that the module-level
-    // `cachedTracer` starts fresh — no test-only reset function needed.
+    // Reset the module registry before each test. The cached tracer lives on a
+    // process-global symbol slot (so the platform instrumentation and the data-store
+    // seam share one tracer across module instances) — vi.resetModules() does NOT
+    // clear it, so delete it explicitly to start each test fresh.
     beforeEach(() => {
         vi.restoreAllMocks();
         vi.resetModules();
-        // Clean up the process-global undici registration flag
+        // Clean up the process-global undici registration flag and the cached tracer
         delete (globalThis as Record<symbol, boolean>)[Symbol.for('sfnext.otel.undici_registered')];
+        delete (globalThis as Record<symbol, unknown>)[Symbol.for('sfnext.otel.tracer')];
     });
 
     function spyOnProvider() {

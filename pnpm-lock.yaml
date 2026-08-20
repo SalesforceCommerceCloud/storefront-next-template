@@ -688,6 +688,9 @@ importers:
 
   packages/storefront-next-runtime:
     dependencies:
+      '@opentelemetry/api':
+        specifier: ^1.9.0
+        version: 1.9.1
       '@salesforce/mrt-utilities':
         specifier: 0.2.1
         version: 0.2.1(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.3.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)

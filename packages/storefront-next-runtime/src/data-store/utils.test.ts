@@ -24,7 +24,9 @@ import {
     prefixWithSiteId,
     readLazyDataStoreEntry,
 } from './utils';
+import type { Tracer } from '@opentelemetry/api';
 import { type DataStoreLogger, dataStoreLoggerContext } from './logger-context';
+import { dataStoreTracerContext } from './tracer-context';
 import { getSitePreferences, sitePreferencesContext } from './middleware/custom-site-preferences';
 import { siteContext } from '../site-context';
 
@@ -889,5 +891,164 @@ describe('built-in data-store middlewares', () => {
             )
         ).rejects.toThrow(`Data store request failed for 'icelandfoodsuk-custom-site-preferences'.`);
         expect(next).not.toHaveBeenCalled();
+    });
+});
+
+// A minimal recording span/tracer that captures what instrumentation writes, so tests can
+// assert span name, outcome attributes, and status without a full OpenTelemetry SDK.
+type RecordedSpan = {
+    name: string;
+    attributes: Record<string, unknown>;
+    status?: { code: number; message?: string };
+    exceptions: unknown[];
+    ended: boolean;
+};
+
+const SPAN_STATUS_ERROR = 2; // SpanStatusCode.ERROR
+
+function installRecordingTracer(context: RouterContextProvider): RecordedSpan[] {
+    const spans: RecordedSpan[] = [];
+    const tracer = {
+        startActiveSpan(name: string, fn: (span: unknown) => unknown) {
+            const rec: RecordedSpan = { name, attributes: {}, exceptions: [], ended: false };
+            spans.push(rec);
+            const span = {
+                setAttribute(key: string, value: unknown) {
+                    rec.attributes[key] = value;
+                },
+                setStatus(status: { code: number; message?: string }) {
+                    rec.status = status;
+                },
+                recordException(err: unknown) {
+                    rec.exceptions.push(err);
+                },
+                end() {
+                    rec.ended = true;
+                },
+            };
+            return fn(span);
+        },
+    };
+    context.set(dataStoreTracerContext, tracer as unknown as Tracer);
+    return spans;
+}
+
+/** No span attribute may name or hint at the storage backend — traces may be customer-visible. */
+function assertNoBackendLeak(span: RecordedSpan): void {
+    expect(span.exceptions).toHaveLength(0);
+    const serialized = JSON.stringify({ name: span.name, attributes: span.attributes, status: span.status });
+    expect(serialized.toLowerCase()).not.toContain('dynamo');
+    expect(serialized).not.toContain('DataAccessLayer');
+    expect(serialized).not.toContain('TableName');
+}
+
+describe('data-store fetch span', () => {
+    let context: RouterContextProvider;
+    let next: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+        process.env.AWS_REGION = 'us-east-1';
+        process.env.MOBIFY_PROPERTY_ID = 'prop-1';
+        process.env.DEPLOY_TARGET = 'production';
+
+        const store = new Map<unknown, unknown>();
+        context = {
+            set: (ctx: unknown, value: unknown) => store.set(ctx, value),
+            get: (ctx: unknown) => (store.has(ctx) ? store.get(ctx) : null),
+        } as unknown as RouterContextProvider;
+
+        next = vi.fn().mockResolvedValue(new Response('ok'));
+    });
+
+    afterEach(() => {
+        delete process.env.AWS_REGION;
+        delete process.env.MOBIFY_PROPERTY_ID;
+        delete process.env.DEPLOY_TARGET;
+        DataStore._testDocumentClient = null;
+        DataStore._testLogMRTError = null;
+    });
+
+    async function runMiddleware() {
+        const middleware = createDataStoreMiddleware({
+            entryKey: 'site-preferences',
+            context: sitePreferencesContext,
+            onUnavailable: 'throw',
+        });
+        return middleware(
+            {
+                request: new Request('https://example.com'),
+                context,
+                params: {},
+                pattern: '',
+                url: new URL(new Request('https://example.com').url),
+            },
+            next as MiddlewareNext
+        );
+    }
+
+    it('emits a resolved span on a successful fetch with backend-neutral attributes only', async () => {
+        const spans = installRecordingTracer(context);
+        DataStore._testDocumentClient = {
+            send: vi.fn().mockResolvedValue({ Item: { value: { enabled: true } } }),
+        } as unknown as typeof DataStore._testDocumentClient;
+
+        await runMiddleware();
+
+        expect(spans).toHaveLength(1);
+        const span = spans[0];
+        expect(span.name).toBe('sfnext.data_store.load');
+        expect(span.ended).toBe(true);
+        expect(span.attributes['data_store.resolved']).toBe(true);
+        expect(span.attributes['data_store.cached']).toBe(false);
+        expect(span.status).toBeUndefined();
+        assertNoBackendLeak(span);
+    });
+
+    it('marks the span unresolved (no error status) when the entry is missing', async () => {
+        const spans = installRecordingTracer(context);
+        DataStore._testDocumentClient = {
+            send: vi.fn().mockResolvedValue({}),
+        } as unknown as typeof DataStore._testDocumentClient;
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+        await runMiddleware();
+
+        expect(spans).toHaveLength(1);
+        const span = spans[0];
+        expect(span.attributes['data_store.resolved']).toBe(false);
+        // A miss is not a failure — no ERROR status.
+        expect(span.status).toBeUndefined();
+        assertNoBackendLeak(span);
+        warnSpy.mockRestore();
+    });
+
+    it('marks the span failed with a generic status when the fetch errors (onUnavailable=throw)', async () => {
+        const spans = installRecordingTracer(context);
+        DataStore._testDocumentClient = {
+            send: vi.fn().mockRejectedValue(new Error('underlying ddb failure')),
+        } as unknown as typeof DataStore._testDocumentClient;
+        DataStore._testLogMRTError = vi.fn();
+
+        await expect(runMiddleware()).rejects.toThrow();
+
+        expect(spans).toHaveLength(1);
+        const span = spans[0];
+        expect(span.ended).toBe(true);
+        expect(span.status?.code).toBe(SPAN_STATUS_ERROR);
+        expect(span.status?.message).toBe('Data store request failed.');
+        // No raw SDK error recorded on the span — the backend detail stays in the internal log.
+        assertNoBackendLeak(span);
+    });
+
+    it('runs untraced (no span) when no tracer is injected', async () => {
+        // No installRecordingTracer call: dataStoreTracerContext stays null.
+        DataStore._testDocumentClient = {
+            send: vi.fn().mockResolvedValue({ Item: { value: { enabled: true } } }),
+        } as unknown as typeof DataStore._testDocumentClient;
+
+        await runMiddleware();
+
+        expect(context.get(sitePreferencesContext)).toEqual({ enabled: true });
+        expect(next).toHaveBeenCalledOnce();
     });
 });
