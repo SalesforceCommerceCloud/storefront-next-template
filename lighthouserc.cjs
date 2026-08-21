@@ -195,6 +195,13 @@ module.exports = {
                         // recommendations carousel chunk pulls in (CI measured 506687, zero variance
                         // across 5 runs). The branch is irreducible — it is the feature — so absorb
                         // the ~687B rather than dropping the authoring affordance.
+                        // Also absorbed within this 508000 ceiling (@W-23325668@): the cart mobile
+                        // summary panel reserves its measured height as real content bottom padding
+                        // via a ResizeObserver that mirrors the live panel height into a CSS custom
+                        // property, with save/restore of the documentElement scroll-padding, so the
+                        // final cart action stays visible and focusable under the fixed panel at 400%
+                        // zoom. That wiring adds ~91B on top of the Product Tile median (combined
+                        // ~506778), which 508000 still clears with headroom.
                         // (@W-23729831@ Hero Carousel: no further raise — its empty state ships only in
                         // the homepage chunk, not cart; the 508000 ceiling already absorbs the ~506201
                         // main baseline drift this branch previously observed.)

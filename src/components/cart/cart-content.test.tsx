@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import type { Recommendation } from '@/hooks/recommenders/use-recommenders';
@@ -161,6 +162,10 @@ describe('CartContent', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         bonusModalRenders.length = 0;
+        // The spacer wiring writes to the shared <html> element; reset it between tests so a
+        // saved/restored value from one test can't leak into the next.
+        document.documentElement.style.removeProperty('scroll-padding-bottom');
+        document.documentElement.style.removeProperty('--cart-mobile-summary-spacer');
     });
 
     const mockBasket = {
@@ -297,6 +302,100 @@ describe('CartContent', () => {
         // Verify product items are rendered (they have individual test IDs)
         expect(screen.getByTestId('sf-product-item-product-1')).toBeInTheDocument();
         expect(screen.getByTestId('sf-product-item-product-2')).toBeInTheDocument();
+    });
+
+    test('mirrors the mobile summary panel height into both scroll-padding-bottom and the --cart-mobile-summary-spacer custom property', () => {
+        const { unmount } = renderCartContent({
+            basket: mockBasket,
+            productsByItemId: mockProductMap,
+            bonusProductsById: mockBonusProductsById,
+            promotions: mockPromotionMap,
+        });
+
+        const rootStyle = document.documentElement.style;
+        // jsdom doesn't compute real layout, so offsetHeight is always 0 here — what this test
+        // guards is that both properties are wired to the SAME live value (one ResizeObserver
+        // source), not that either holds a specific pixel number.
+        expect(rootStyle.getPropertyValue('--cart-mobile-summary-spacer')).not.toBe('');
+        expect(rootStyle.scrollPaddingBottom).toBe(rootStyle.getPropertyValue('--cart-mobile-summary-spacer'));
+
+        unmount();
+
+        expect(rootStyle.scrollPaddingBottom).toBe('');
+        expect(rootStyle.getPropertyValue('--cart-mobile-summary-spacer')).toBe('');
+    });
+
+    test('restores the documentElement prior scroll-padding-bottom on unmount instead of clearing a shared value', () => {
+        // Another owner may have set an inline scroll-padding-bottom on the shared <html> element
+        // before the cart mounted. The cart must hand that value back on unmount, not blow it away.
+        const rootStyle = document.documentElement.style;
+        rootStyle.scrollPaddingBottom = '42px';
+
+        const { unmount } = renderCartContent({
+            basket: mockBasket,
+            productsByItemId: mockProductMap,
+            bonusProductsById: mockBonusProductsById,
+        });
+
+        // While mounted the cart owns the value (0px in jsdom, which has no layout).
+        expect(rootStyle.scrollPaddingBottom).toBe('0px');
+
+        unmount();
+
+        // The prior owner's value is restored, not cleared to empty.
+        expect(rootStyle.scrollPaddingBottom).toBe('42px');
+
+        rootStyle.removeProperty('scroll-padding-bottom');
+    });
+
+    test('wires the spacer when a cart that started empty later fills (observer lifecycle follows the panel node)', () => {
+        // The fixed mobile summary panel only renders for a non-empty cart. A mount-once effect
+        // would bail on the first empty render and never set up when the cart later fills; the
+        // ref-callback wiring must attach whenever the panel node mounts.
+        const rootStyle = document.documentElement.style;
+
+        function FillableCart() {
+            const [filled, setFilled] = useState(false);
+            return (
+                <>
+                    <button type="button" data-testid="fill-cart" onClick={() => setFilled(true)}>
+                        fill
+                    </button>
+                    <CartContent
+                        basket={filled ? mockBasket : { ...mockBasket, productItems: [] }}
+                        productsByItemId={mockProductMap}
+                        bonusProductsById={mockBonusProductsById}
+                        ruleBasedBonusProductsPromise={EMPTY_RULE_BASED_BONUS_PRODUCTS}
+                    />
+                </>
+            );
+        }
+
+        const router = createMemoryRouter(
+            [
+                {
+                    path: '/cart',
+                    element: (
+                        <AllProvidersWrapper>
+                            <FillableCart />
+                        </AllProvidersWrapper>
+                    ),
+                },
+            ],
+            { initialEntries: ['/cart'] }
+        );
+        render(<RouterProvider router={router} />);
+
+        // Empty cart: the panel is absent, so the spacer is not wired.
+        expect(screen.getByTestId('sf-cart-empty')).toBeInTheDocument();
+        expect(rootStyle.getPropertyValue('--cart-mobile-summary-spacer')).toBe('');
+
+        // Fill the cart in the same mounted instance — the panel mounts and the ref callback wires up.
+        fireEvent.click(screen.getByTestId('fill-cart'));
+
+        expect(screen.getByTestId('sf-cart-container')).toBeInTheDocument();
+        expect(rootStyle.getPropertyValue('--cart-mobile-summary-spacer')).not.toBe('');
+        expect(rootStyle.scrollPaddingBottom).toBe(rootStyle.getPropertyValue('--cart-mobile-summary-spacer'));
     });
 
     test('handles missing promotionMap prop gracefully', () => {

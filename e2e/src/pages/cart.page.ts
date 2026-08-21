@@ -92,6 +92,12 @@ class CartPage {
         promoCodeRemoveButton: locate('[data-testid="applied-coupons"] button[aria-label^="Remove"]').as(
             'Promo Code Remove Button'
         ),
+
+        // Mobile order-summary panel — position: fixed at narrow widths, hidden at md and up.
+        mobileSummaryPanel: locate('[data-testid="sf-cart-mobile-summary-panel"]').as('Mobile Summary Panel'),
+        mobileSummaryAccordionTrigger: locate('[data-testid="sf-cart-mobile-summary-panel"] button')
+            .first()
+            .as('Mobile Summary Accordion Trigger'),
     };
 
     /**
@@ -248,6 +254,325 @@ class CartPage {
             I.click(this.locators.promoCodeAccordionTrigger);
         }
         I.seeElement(this.locators.promoCodeInput);
+    }
+
+    /**
+     * Expand the mobile order-summary accordion (the fixed-bottom panel's trigger) if collapsed.
+     */
+    async expandMobileSummaryAccordion(): Promise<void> {
+        const expanded = await I.grabAttributeFrom(this.locators.mobileSummaryAccordionTrigger, 'data-state');
+        if (expanded !== 'open') {
+            I.click(this.locators.mobileSummaryAccordionTrigger);
+        }
+    }
+
+    /**
+     * Read the mobile summary panel's live height and the cart container's real computed
+     * bottom padding. cart-content.tsx mirrors one into the other via a ResizeObserver
+     * (`--cart-mobile-summary-spacer`) so cart content always has genuine layout space under
+     * the fixed panel - this is what a regression in that wiring would desync.
+     *
+     * Polls briefly for the two values to agree before reading, since they are only guaranteed
+     * synchronized at the instant the ResizeObserver callback fires (e.g. right after an
+     * accordion-expand click, before the panel's transition settles). Falls through to a final
+     * read on timeout so a genuine desync still produces a readable assertion failure instead of
+     * an opaque Playwright timeout.
+     */
+    async getMobileSummarySpacerSync(): Promise<{ panelHeightPx: number; containerPaddingBottomPx: number }> {
+        return await (I.usePlaywrightTo(
+            'measure mobile summary panel height vs container padding',
+            async ({ page }) => {
+                const read = () =>
+                    page.evaluate(() => {
+                        const panel = document.querySelector('[data-testid="sf-cart-mobile-summary-panel"]');
+                        const container = document.querySelector('[data-testid="sf-cart-container"]');
+                        return {
+                            panelHeightPx: panel ? (panel as HTMLElement).offsetHeight : -1,
+                            containerPaddingBottomPx: container
+                                ? parseFloat(getComputedStyle(container).paddingBottom)
+                                : -1,
+                        };
+                    });
+
+                await page
+                    .waitForFunction(
+                        () => {
+                            const panel = document.querySelector('[data-testid="sf-cart-mobile-summary-panel"]');
+                            const container = document.querySelector('[data-testid="sf-cart-container"]');
+                            if (!panel || !container) return false;
+                            const panelHeight = (panel as HTMLElement).offsetHeight;
+                            const paddingBottom = parseFloat(getComputedStyle(container).paddingBottom);
+                            return panelHeight > 0 && panelHeight === paddingBottom;
+                        },
+                        undefined,
+                        { timeout: 2000 }
+                    )
+                    .catch(() => {
+                        /* settle didn't converge in time; fall through to a final read so a real desync fails loudly */
+                    });
+
+                return read();
+            }
+        ) as unknown as Promise<{ panelHeightPx: number; containerPaddingBottomPx: number }>);
+    }
+
+    /**
+     * Prove the TRUE last focusable control in the final cart line item - the last cart action a
+     * keyboard user actually reaches - stays fully usable under the fixed mobile summary panel at
+     * high zoom / narrow width (WCAG 2.4.11 Focus Not Obscured).
+     *
+     * Targeting the last Remove button is not enough: `ProductItem` renders the secondary actions
+     * (Remove / Edit / Add to wishlist) BEFORE the quantity picker and `lineItemExtra` (the gift
+     * checkbox and its "Learn more" control), so a later control can still be obscured while the
+     * Remove-button assertion passes. This enumerates every visible focusable control in the last
+     * line item and targets the last one in DOM (tab) order, marking it with a temporary attribute so
+     * it can be recognised mid-traversal regardless of whether it carries a testid. Stronger than a
+     * bounding-box overlap check, it:
+     *   1. reaches the control by REAL Tab traversal (`page.keyboard.press('Tab')`), not a
+     *      programmatic `.focus()`, so tab order and native focus scroll-into-view (which respects
+     *      `scroll-padding-bottom`) are exercised exactly as a keyboard user experiences them;
+     *   2. asserts the focused control is fully inside the viewport (top >= 0 && bottom <= innerHeight),
+     *      i.e. not scrolled off-screen behind the panel or below the fold;
+     *   3. asserts it sits fully above the fixed panel (control bottom <= panel top);
+     *   4. asserts it clears any header pinned across the top of the viewport (control top >= the
+     *      bottom of a fixed/sticky header) - the lift must not park it behind the header instead.
+     *      Canonical drops its header to `static` at short heights so this is trivially clear there;
+     *      cosmetic keeps a fixed header, so this is the assertion that catches header overlap;
+     *   5. pointer hit-tests the control centre (`elementFromPoint`) and confirms the topmost element
+     *      there is the control (or a descendant) - i.e. the panel does not overlay it.
+     *
+     * `isRemoveButton` is reported so a caller can assert the target is a control AFTER the Remove
+     * button (i.e. the coverage gap is genuinely closed), and `controlLabel` aids diagnostics.
+     */
+    async tabToLastFocusableCartControlAndCheckUsable(maxTabs: number = 300): Promise<{
+        found: boolean;
+        isRemoveButton: boolean;
+        controlLabel: string;
+        reachedByTab: boolean;
+        tabCount: number;
+        fullyInViewport: boolean;
+        abovePanel: boolean;
+        clearOfTopChrome: boolean;
+        pointerHitsControl: boolean;
+    }> {
+        return await (I.usePlaywrightTo('tab to last focusable cart control and check usability', async ({ page }) => {
+            const MARK = 'data-a11y-last-focusable';
+            // Enumerate the visible focusable controls in the last line item and mark the last one.
+            const target = await page.evaluate((mark: string) => {
+                const items = Array.from(document.querySelectorAll('[data-testid^="sf-product-item-"]'));
+                const lastItem = items[items.length - 1] as HTMLElement | undefined;
+                if (!lastItem) {
+                    return { found: false, isRemoveButton: false, controlLabel: '' };
+                }
+                const focusableSelector =
+                    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+                const focusables = Array.from(lastItem.querySelectorAll(focusableSelector))
+                    // The [tabindex] branch can match non-HTML elements (e.g. focusable SVG), which
+                    // have no offsetParent — narrow to HTMLElement before measuring visibility.
+                    .filter((el): el is HTMLElement => el instanceof HTMLElement)
+                    // Keep only rendered controls (offsetParent is null for display:none subtrees).
+                    .filter((el) => el.offsetParent !== null || el.getClientRects().length > 0);
+                const last = focusables[focusables.length - 1];
+                if (!last) {
+                    return { found: false, isRemoveButton: false, controlLabel: '' };
+                }
+                last.setAttribute(mark, '1');
+                const testid = last.getAttribute('data-testid') ?? '';
+                const controlLabel =
+                    testid ||
+                    last.getAttribute('aria-label') ||
+                    (last.textContent ?? '').trim().slice(0, 40) ||
+                    last.tagName;
+                return { found: true, isRemoveButton: testid.includes('remove-item-'), controlLabel };
+            }, MARK);
+
+            if (!target.found) {
+                return {
+                    found: false,
+                    isRemoveButton: false,
+                    controlLabel: '',
+                    reachedByTab: false,
+                    tabCount: 0,
+                    fullyInViewport: false,
+                    abovePanel: false,
+                    clearOfTopChrome: false,
+                    pointerHitsControl: false,
+                };
+            }
+
+            // Start from the top with focus cleared so Tab traversal is deterministic and doesn't
+            // inherit focus from a prior interaction (e.g. the accordion-expand click).
+            await page.evaluate(() => {
+                (document.activeElement as HTMLElement | null)?.blur?.();
+                window.scrollTo(0, 0);
+            });
+
+            let reachedByTab = false;
+            let tabCount = 0;
+            for (let i = 0; i < maxTabs; i++) {
+                await page.keyboard.press('Tab');
+                tabCount++;
+                const onTarget = await page.evaluate(
+                    (mark: string) => document.activeElement?.hasAttribute?.(mark) === true,
+                    MARK
+                );
+                if (onTarget) {
+                    reachedByTab = true;
+                    break;
+                }
+            }
+
+            // Measure the focused control vs the panel and any pinned header, and pointer hit-test it.
+            const measured = await page.evaluate((mark: string) => {
+                const el = document.querySelector(`[${mark}]`) as HTMLElement | null;
+                const panel = document.querySelector('[data-testid="sf-cart-mobile-summary-panel"]');
+                if (!el || !panel) {
+                    return {
+                        fullyInViewport: false,
+                        abovePanel: false,
+                        clearOfTopChrome: false,
+                        pointerHitsControl: false,
+                    };
+                }
+                const b = el.getBoundingClientRect();
+                const p = panel.getBoundingClientRect();
+                const vh = window.innerHeight;
+                const fullyInViewport = b.top >= 0 && b.bottom <= vh && b.height > 0;
+                const abovePanel = b.bottom <= p.top;
+                // Bottom edge of any fixed/sticky header pinned across the top of the viewport.
+                let chromeBottom = 0;
+                for (const header of Array.from(document.querySelectorAll('header'))) {
+                    const position = getComputedStyle(header).position;
+                    if (position !== 'fixed' && position !== 'sticky') {
+                        continue;
+                    }
+                    const hr = header.getBoundingClientRect();
+                    if (hr.top <= 0 && hr.bottom > chromeBottom) {
+                        chromeBottom = hr.bottom;
+                    }
+                }
+                const clearOfTopChrome = b.top >= chromeBottom;
+                const cx = b.left + b.width / 2;
+                const cy = b.top + b.height / 2;
+                const hit = document.elementFromPoint(cx, cy);
+                const pointerHitsControl = !!hit && (hit === el || el.contains(hit));
+                return { fullyInViewport, abovePanel, clearOfTopChrome, pointerHitsControl };
+            }, MARK);
+
+            // Remove the marker so it can't affect later assertions.
+            await page.evaluate((mark: string) => {
+                document.querySelector(`[${mark}]`)?.removeAttribute(mark);
+            }, MARK);
+
+            return {
+                found: true,
+                isRemoveButton: target.isRemoveButton,
+                controlLabel: target.controlLabel,
+                reachedByTab,
+                tabCount,
+                ...measured,
+            };
+        }) as unknown as Promise<{
+            found: boolean;
+            isRemoveButton: boolean;
+            controlLabel: string;
+            reachedByTab: boolean;
+            tabCount: number;
+            fullyInViewport: boolean;
+            abovePanel: boolean;
+            clearOfTopChrome: boolean;
+            pointerHitsControl: boolean;
+        }>);
+    }
+
+    /**
+     * Regression probe for the scoping of the panel's focus-clearance lift (WCAG 2.4.11 fix).
+     *
+     * cart-content.tsx keeps a keyboard-focused control clear of the fixed summary panel with a
+     * document-level `focusin` handler that scrolls the page when the focused element's lower edge
+     * overlaps the panel's top. That handler must be scoped to controls inside the cart's scrolling
+     * container (`sf-cart-container`): a fixed or portaled overlay rendered at the app root (a
+     * consent banner, a dialog/menu React portals to `document.body`) reports its focus at the
+     * document too, and if it overlaps the panel the unscoped handler would scroll the cart behind
+     * it for no reason (the overlay is pinned to the viewport, so scrolling never clears the
+     * overlap - it just moves the cart while the overlay stays put).
+     *
+     * To exercise that exact class deterministically, this appends a `position: fixed` control to
+     * `document.body` (outside the cart container) positioned over the panel band, focuses it, and
+     * reports the page scroll offset before and after. It also confirms the structural invariant the
+     * scoping relies on: the panel lives inside `sf-cart-container` while the injected control (like
+     * any root-level overlay) does not. `hadOverflow` is reported so a "no scroll" result is only
+     * meaningful when the page could in fact have scrolled. The injected control is removed before
+     * returning so it cannot affect later assertions.
+     */
+    async focusOverlappingRootOverlayAndMeasureScroll(): Promise<{
+        panelPresent: boolean;
+        panelInsideCart: boolean;
+        overlayInsideCart: boolean;
+        overlayOverlapsPanel: boolean;
+        overlayFocused: boolean;
+        hadOverflow: boolean;
+        scrollBefore: number;
+        scrollAfter: number;
+    }> {
+        return await (I.usePlaywrightTo('focus overlapping root overlay and measure scroll', async ({ page }) => {
+            return await page.evaluate(async () => {
+                const panel = document.querySelector(
+                    '[data-testid="sf-cart-mobile-summary-panel"]'
+                ) as HTMLElement | null;
+                const cart = document.querySelector('[data-testid="sf-cart-container"]');
+
+                // Give the page room to scroll so a spurious lift would actually move it.
+                window.scrollTo(0, 0);
+                const panelPresent = !!panel;
+                const panelInsideCart = !!(panel && cart && cart.contains(panel));
+                const hadOverflow = document.documentElement.scrollHeight > window.innerHeight;
+
+                // A stand-in for a fixed/portaled overlay: pinned to the viewport bottom (so it
+                // overlaps the fixed panel's top edge) and appended at the document root, outside
+                // the cart container - exactly the shape the unscoped handler wrongly acted on.
+                const overlay = document.createElement('button');
+                overlay.textContent = 'root-overlay-probe';
+                overlay.setAttribute('data-testid', 'sf-root-overlay-probe');
+                overlay.style.cssText = 'position:fixed;left:0;bottom:0;width:120px;height:44px;z-index:99999;';
+                document.body.appendChild(overlay);
+
+                const overlayInsideCart = !!(cart && cart.contains(overlay));
+                const overlayOverlapsPanel = !!(
+                    panel && overlay.getBoundingClientRect().bottom - panel.getBoundingClientRect().top > 0
+                );
+
+                const scrollBefore = window.scrollY;
+                overlay.focus();
+                const overlayFocused = document.activeElement === overlay;
+                // The focusin handler and its window.scrollBy run synchronously on focus; wait one
+                // frame anyway so any queued scroll is reflected before we read.
+                await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+                const scrollAfter = window.scrollY;
+
+                overlay.remove();
+
+                return {
+                    panelPresent,
+                    panelInsideCart,
+                    overlayInsideCart,
+                    overlayOverlapsPanel,
+                    overlayFocused,
+                    hadOverflow,
+                    scrollBefore,
+                    scrollAfter,
+                };
+            });
+        }) as unknown as Promise<{
+            panelPresent: boolean;
+            panelInsideCart: boolean;
+            overlayInsideCart: boolean;
+            overlayOverlapsPanel: boolean;
+            overlayFocused: boolean;
+            hadOverflow: boolean;
+            scrollBefore: number;
+            scrollAfter: number;
+        }>);
     }
 
     /**

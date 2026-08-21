@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState, useLayoutEffect, useMemo, lazy, Suspense, type ReactElement, type ReactNode } from 'react';
+import {
+    useState,
+    useCallback,
+    useLayoutEffect,
+    useMemo,
+    lazy,
+    Suspense,
+    type ReactElement,
+    type ReactNode,
+} from 'react';
 
 // Commerce SDK
 import type { ShopperBasketsV2, ShopperProducts, ShopperPromotions, ShopperSearch } from '@/scapi';
@@ -150,6 +159,130 @@ export default function CartContent({
         }
     }, [basket, updateBasket]);
 
+    // The mobile order-summary panel below is `position: fixed`, so it can grow (e.g. when its
+    // accordion expands) and visually cover cart line items beneath it at narrow widths (WCAG
+    // 1.4.10 reflow, 2.4.11 focus obscured). Three cooperating mechanisms keep an underlying cart
+    // control reachable:
+    //   - The panel itself is height-capped (`max-h-[calc(100dvh-4rem)]`) and scrolls internally
+    //     (`overflow-y-auto overscroll-contain`), so however far its accordion expands it can never
+    //     fill the whole viewport at 400% zoom — at least a 4rem band always stays above it.
+    //   - `--cart-mobile-summary-spacer`, the panel's live (capped) height, is consumed as real
+    //     bottom padding on the scrollable content below (see `sf-cart-container`), so there is
+    //     always genuine layout space to scroll content out from under the panel. This is what
+    //     prevents overlap for pointer/zoom users; scroll-padding alone only affects focus-scroll
+    //     targeting, not layout.
+    //   - `scroll-padding-bottom` (same technique this codebase already uses for the sticky header
+    //     via `scroll-padding-top`) plus a `focusin` handler (see below) keep keyboard focus clear
+    //     of the panel. scroll-padding is only a targeting hint — the browser skips it entirely for
+    //     a control it deems already visible in the raw viewport — so the handler is what actually
+    //     guarantees a focused control is lifted fully above the panel.
+    //
+    // The spacer + focusin wiring is driven by a ref callback (not a mount-once effect) so its
+    // lifecycle follows the panel DOM node: the panel is only rendered for a non-empty cart, so if
+    // the cart starts empty and later fills (e.g. revalidation after an add), the callback runs when
+    // the node mounts and wires everything then. A `[]`-dependency effect would have bailed on the
+    // first empty render and never re-run. On detach we restore the root's prior inline values
+    // instead of clearing them, so we never stomp a `scroll-padding-bottom` another owner set on the
+    // shared <html> element.
+    const syncMobileSummarySpacer = useCallback((panel: HTMLDivElement | null) => {
+        if (!panel) {
+            return;
+        }
+        const root = document.documentElement;
+        const priorScrollPaddingBottom = root.style.scrollPaddingBottom;
+        const priorSpacer = root.style.getPropertyValue('--cart-mobile-summary-spacer');
+        const syncPanelHeight = () => {
+            const height = `${panel.offsetHeight}px`;
+            root.style.scrollPaddingBottom = height;
+            root.style.setProperty('--cart-mobile-summary-spacer', height);
+        };
+        syncPanelHeight();
+        const observer = new ResizeObserver(syncPanelHeight);
+        observer.observe(panel);
+
+        // The fixed panel obscures only the cart's own scrolling content, so focus corrections are
+        // scoped to that region — the scrollable cart container the panel is nested inside. The
+        // listener is attached to `document` (focus can land anywhere), but other fixed or portaled
+        // UI at these narrow widths also reports focus here: the fixed tracking-consent dialog and
+        // dialogs/menus React portals to `document.body`. Their bottom edge can overlap the panel
+        // too, but they are pinned to the viewport — scrolling the page would move the cart behind
+        // them while they stayed put, never clearing the (unrelated) overlap. Restricting the lift
+        // to controls inside `sf-cart-container` ignores every out-of-cart overlay.
+        const cartContent = panel.closest('[data-testid="sf-cart-container"]');
+
+        // Bottom edge of any header pinned across the top of the viewport, so the lift below never
+        // parks a control behind it. A control shoved up behind the header is as obscured as one left
+        // behind the panel (WCAG 2.4.11). Verticals differ here: the canonical header goes `static` at
+        // the short heights 400% zoom produces (dropping out of the way), while the cosmetic header
+        // stays `fixed`/`sticky` at the top — so this measures the live header rather than assuming a
+        // vertical. Returns 0 when no header is pinned (e.g. canonical at short height), making the
+        // clamp a no-op there.
+        const topChromeBottom = () => {
+            let bottom = 0;
+            for (const header of document.querySelectorAll('header')) {
+                const position = getComputedStyle(header).position;
+                if (position !== 'fixed' && position !== 'sticky') {
+                    continue;
+                }
+                const rect = header.getBoundingClientRect();
+                if (rect.top <= 0 && rect.bottom > bottom) {
+                    bottom = rect.bottom;
+                }
+            }
+            return bottom;
+        };
+
+        // Native focus scrolling (even with the scroll-padding-bottom above) does not reliably lift
+        // a focused control clear of the fixed panel: the browser treats a control as "visible" when
+        // it is anywhere inside the raw viewport, so one whose lower edge sits behind the panel is
+        // left partially obscured (WCAG 2.4.11). When focus lands on a cart control below the panel's
+        // top edge, nudge the page up just enough that the control sits fully above the panel with a
+        // small buffer. No-ops when the panel isn't displayed (md+ desktop, `offsetHeight === 0`),
+        // when the focused control is inside the panel itself (its own trigger/checkout controls), or
+        // when it is outside the cart content (a fixed/portaled overlay — see above).
+        const FOCUS_CLEARANCE_BUFFER_PX = 8;
+        const keepFocusClearOfPanel = (event: FocusEvent) => {
+            const target = event.target as HTMLElement | null;
+            if (!target || panel.offsetHeight === 0 || panel.contains(target)) {
+                return;
+            }
+            if (!cartContent || !cartContent.contains(target)) {
+                return;
+            }
+            const targetRect = target.getBoundingClientRect();
+            const overlap = targetRect.bottom - panel.getBoundingClientRect().top;
+            if (overlap <= 0) {
+                return;
+            }
+            // Cap the lift at the header's bottom edge: never scroll the control's top above a pinned
+            // header. When the band between the header and the panel is shorter than the control, lift
+            // only as far as the header allows — the control's top then rests just below the header,
+            // keeping it partially visible (2.4.11 asks that it be not *entirely* hidden) rather than
+            // pushing it out of sight behind the header.
+            const maxLift = Math.max(0, targetRect.top - topChromeBottom());
+            const lift = Math.min(overlap + FOCUS_CLEARANCE_BUFFER_PX, maxLift);
+            if (lift > 0) {
+                window.scrollBy({ top: lift });
+            }
+        };
+        document.addEventListener('focusin', keepFocusClearOfPanel);
+
+        return () => {
+            observer.disconnect();
+            document.removeEventListener('focusin', keepFocusClearOfPanel);
+            if (priorScrollPaddingBottom) {
+                root.style.scrollPaddingBottom = priorScrollPaddingBottom;
+            } else {
+                root.style.removeProperty('scroll-padding-bottom');
+            }
+            if (priorSpacer) {
+                root.style.setProperty('--cart-mobile-summary-spacer', priorSpacer);
+            } else {
+                root.style.removeProperty('--cart-mobile-summary-spacer');
+            }
+        };
+    }, []);
+
     // Check if cart is empty using the basket prop from loader data
     if (!basket?.productItems?.length) {
         return <CartEmpty />;
@@ -251,7 +384,9 @@ export default function CartContent({
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     return (
-        <div className="flex-1 min-h-screen bg-background mb-10 md:mb-10 pb-32 md:pb-0" data-testid="sf-cart-container">
+        <div
+            className="flex-1 min-h-screen bg-background mb-10 md:mb-10 pb-[var(--cart-mobile-summary-spacer,8rem)] md:pb-0"
+            data-testid="sf-cart-container">
             <div className="section-container">
                 <Typography variant="h1" as="h1" className="mb-6">
                     {pageHeading}
@@ -259,7 +394,10 @@ export default function CartContent({
 
                 {/* Mobile Order Summary - visible only on mobile */}
                 <div className="md:hidden mb-3">
-                    <div className="bg-background border-t border-border fixed bottom-0 left-0 right-0 z-50">
+                    <div
+                        ref={syncMobileSummarySpacer}
+                        data-testid="sf-cart-mobile-summary-panel"
+                        className="bg-background border-t border-border fixed bottom-0 left-0 right-0 z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain">
                         <OrderSummaryMobileAccordion
                             basket={basket}
                             defaultExpanded={false}
