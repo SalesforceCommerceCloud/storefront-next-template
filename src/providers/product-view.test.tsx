@@ -28,6 +28,13 @@ vi.mock('@/hooks/product/use-current-variant', () => ({
     useCurrentVariant: () => undefined,
 }));
 
+// The provider also merges URL-derived selections with a client-side override before deriving
+// currentVariant (see product-view.tsx). Stub this too so the assertions here — about the
+// provider's context value, not the hook's internals — don't need a Router context.
+vi.mock('@/hooks/product/use-selected-variations', () => ({
+    useSelectedVariations: () => ({}),
+}));
+
 const product = { id: 'p1', type: { item: true } } as ShopperProducts.schemas['Product'];
 
 describe('ProductViewProvider', () => {

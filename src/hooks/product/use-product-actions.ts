@@ -37,6 +37,7 @@ import {
     getEffectiveInventory,
     isInStock as isProductInStock,
 } from '@/lib/product/inventory-utils';
+import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 interface ProductSelectionValues {
     product: ShopperProducts.schemas['Product'];
     variant?: ShopperProducts.schemas['Variant'];
@@ -59,6 +60,16 @@ interface UseProductActionsProps {
      * bonus products, or bundle children that are charged at the parent bundle price.
      */
     allowMissingPrice?: boolean;
+    /**
+     * Fetch the selected SKU's authoritative inventory (site + per-store) when the current variant
+     * was resolved client-side from `product.variants[]` and carries no own `inventory` object.
+     *
+     * Only the footwear PDP sets this (via `ProductViewProvider`), where size/width resolve without
+     * a navigation, so the loader never re-fetches the selected SKU and `product` stays the master.
+     * Every other surface either navigates (loader re-fetches the exact SKU) or hydrates the variant
+     * itself (Quick Add), so this defaults to `false` and adds no extra request there.
+     */
+    hydrateVariantInventory?: boolean;
 }
 
 /**
@@ -105,6 +116,7 @@ export function useProductActions({
     itemId,
     skipInventoryValidation = false,
     allowMissingPrice = false,
+    hydrateVariantInventory = false,
 }: UseProductActionsProps) {
     const { t } = useTranslation();
     const location = useLocation();
@@ -165,10 +177,76 @@ export function useProductActions({
     }, [isPickupSelected, basketPickupStore, pickupContext?.pickupBasketItems, productId, product.id]);
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
+    // Selected-SKU inventory hydration.
+    //
+    // Footwear resolves size/width entirely client-side from `product.variants[]` (no navigation,
+    // so the loader never re-fetches the selected SKU). Those variant summaries carry a per-SKU
+    // `orderable` flag but no own `inventory` object, and `product` stays the master -- whose
+    // site/store inventory is a different SKU's signal. To validate the *selected* SKU for both
+    // delivery quantity and per-store pickup, fetch its authoritative availability on demand. This
+    // only runs when `hydrateVariantInventory` is set (footwear PDP); every other surface either
+    // navigates or hydrates the variant itself, so it stays inert (no extra request) there.
+    const needsVariantHydration =
+        hydrateVariantInventory &&
+        currentVariant != null &&
+        currentVariant.productId !== product.id &&
+        (currentVariant as { inventory?: ShopperProducts.schemas['Inventory'] }).inventory == null;
+
+    const variantInventoryFetcher = useScapiFetcher('shopperProducts', 'getProduct', {
+        params: {
+            path: { id: currentVariant?.productId ?? product.id },
+            query: {
+                expand: ['availability'],
+                // @sfdc-extension-line SFDC_EXT_BOPIS
+                ...(storeInventoryId ? { inventoryIds: [storeInventoryId] } : {}),
+            },
+        },
+    });
+
+    // Load, and reload whenever the selected SKU or the pickup store changes (each combination is a
+    // distinct fetcher resource key). Gated on `!errors` so a sticky failure doesn't loop SCAPI.
+    useEffect(() => {
+        if (
+            needsVariantHydration &&
+            variantInventoryFetcher.state === 'idle' &&
+            !variantInventoryFetcher.errors &&
+            variantInventoryFetcher.data?.id !== currentVariant?.productId
+        ) {
+            void variantInventoryFetcher.load();
+        }
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        needsVariantHydration,
+        currentVariant?.productId,
+        variantInventoryFetcher.state,
+        variantInventoryFetcher.errors,
+        variantInventoryFetcher.data?.id,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        storeInventoryId,
+    ]);
+
+    // The fetched product IS the selected SKU, so its `inventory` (site) and `inventories`
+    // (per-store) are authoritative for the current selection. Use it in place of the master
+    // `product` for all availability math below. Until it resolves, availability is pending.
+    const hydratedSkuProduct =
+        needsVariantHydration &&
+        variantInventoryFetcher.success &&
+        variantInventoryFetcher.data?.id === currentVariant?.productId
+            ? variantInventoryFetcher.data
+            : undefined;
+    // A failed fetch is terminal, not pending: clear the loading gate so a transient SCAPI error
+    // can't leave the button permanently disabled (which would reintroduce the very "permanently
+    // unavailable" state this hydration removes). On failure the master/variant branch below falls
+    // back to the variant summary's own `orderable` flag for delivery and blocks pickup, since store
+    // inventory couldn't be confirmed. The cart-item-add server action stays the authoritative check.
+    const variantHydrationFailed = needsVariantHydration && variantInventoryFetcher.errors != null;
+    const isVariantInventoryLoading = needsVariantHydration && hydratedSkuProduct == null && !variantHydrationFailed;
+    const inventoryProduct = hydratedSkuProduct ?? product;
+
     // Inventory and stock calculations - considers delivery option, store/site inventory, and variant
     const actualStockLevel = useMemo(() => {
         return getEffectiveStockLevel({
-            product,
+            product: inventoryProduct,
             // @sfdc-extension-line SFDC_EXT_BOPIS
             isPickup: isPickupSelected,
             // @sfdc-extension-line SFDC_EXT_BOPIS
@@ -176,7 +254,7 @@ export function useProductActions({
             variant: currentVariant,
         });
     }, [
-        product,
+        inventoryProduct,
         currentVariant,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         isPickupSelected,
@@ -190,7 +268,7 @@ export function useProductActions({
 
     const isInStock = useMemo(() => {
         return isProductInStock({
-            product,
+            product: inventoryProduct,
             // @sfdc-extension-line SFDC_EXT_BOPIS
             isPickup: isPickupSelected,
             // @sfdc-extension-line SFDC_EXT_BOPIS
@@ -199,7 +277,7 @@ export function useProductActions({
             variant: currentVariant,
         });
     }, [
-        product,
+        inventoryProduct,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         isPickupSelected,
         // @sfdc-extension-line SFDC_EXT_BOPIS
@@ -238,7 +316,7 @@ export function useProductActions({
     // This considers the selected delivery option (pickup vs delivery)
     const effectiveInventory = useMemo(() => {
         return getEffectiveInventory({
-            product,
+            product: inventoryProduct,
             // @sfdc-extension-line SFDC_EXT_BOPIS
             isPickup: isPickupSelected,
             // @sfdc-extension-line SFDC_EXT_BOPIS
@@ -246,7 +324,7 @@ export function useProductActions({
             variant: currentVariant,
         });
     }, [
-        product,
+        inventoryProduct,
         // @sfdc-extension-line SFDC_EXT_BOPIS
         isPickupSelected,
         // @sfdc-extension-line SFDC_EXT_BOPIS
@@ -304,6 +382,11 @@ export function useProductActions({
             return true;
         }
 
+        // Block while the selected SKU's authoritative inventory is still being fetched (footwear
+        // client-side selection). Prevents validating quantity/orderability against the master's
+        // inventory in the gap between selecting a SKU and its inventory arriving.
+        if (isVariantInventoryLoading) return false;
+
         // Quantity must be valid
         // For bonus products with maxQuantity, use that instead of actualStockLevel
         const maxAllowed = maxQuantity !== undefined ? maxQuantity : actualStockLevel;
@@ -323,7 +406,41 @@ export function useProductActions({
             // Master products cannot be added to cart without a variant selection
             if (!currentVariant) return false;
 
-            // Variant must be orderable from effective inventory (store or site)
+            // A variant resolved client-side from `product.variants[]` carries a per-SKU `orderable`
+            // flag but no own `inventory` object. Without authoritative SKU inventory, blindly using
+            // getEffectiveInventory would fall back to the MASTER's inventory -- a different SKU's
+            // signal that could validate an unavailable size/width (or a pickup store where the SKU
+            // isn't stocked) against parent stock.
+            const variantHasOwnInventory =
+                (currentVariant as { inventory?: ShopperProducts.schemas['Inventory'] }).inventory != null;
+
+            if (!variantHasOwnInventory) {
+                // `effectiveInventory` is authoritative for the selected SKU in two cases:
+                //  1. `product` already IS this SKU -- other verticals navigate on selection, so the
+                //     loader re-fetched the exact SKU (with per-store inventory for pickup).
+                //  2. Footwear resolved the SKU client-side and `inventoryProduct` is the hydrated
+                //     selected-SKU product (see above), so `effectiveInventory` reflects the SKU's
+                //     site/store inventory. (The pending window is already handled by the
+                //     `isVariantInventoryLoading` guard above.)
+                const productIsResolvedSku = product.id === currentVariant.productId;
+                if (productIsResolvedSku || hydratedSkuProduct != null) {
+                    return effectiveInventory?.orderable === true;
+                }
+
+                // No authoritative SKU inventory available (hydration disabled, or a delivery-only
+                // selection whose fetch hasn't populated yet):
+                // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                // Pickup availability is per-store and per-SKU; the master's store inventory is the
+                // wrong SKU, so block rather than confirm against it.
+                if (isPickupSelected) return false;
+                // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+                // Delivery: the variant summary's own `orderable` flag is SCAPI's authoritative
+                // per-SKU signal. The quantity gate above uses the hydrated stock level.
+                return currentVariant.orderable === true;
+            }
+
+            // Variant carries its own inventory: validate against effective inventory (store or site).
             return effectiveInventory?.orderable === true;
         }
 
@@ -359,6 +476,11 @@ export function useProductActions({
         isProductASet,
         isProductABundle,
         skipInventoryValidation,
+        isVariantInventoryLoading,
+        hydratedSkuProduct,
+        product.id,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        isPickupSelected,
     ]);
 
     // Handle successful cart updates
@@ -1032,6 +1154,33 @@ export function useProductActions({
         isMasterOrVariantProduct,
         /** Actual available stock level for the product */
         stockLevel: actualStockLevel,
+        /**
+         * True while the selected SKU's authoritative inventory is being fetched after a
+         * client-side (no-navigation) size/width selection. Consumers should treat availability as
+         * pending -- keep the add button disabled and inventory status unknown -- until it clears.
+         * Always false on surfaces that don't opt into hydration (`hydrateVariantInventory`).
+         */
+        isVariantInventoryLoading,
+        /**
+         * The selected variant enriched with the hydrated SKU's authoritative `inventory` (site) and
+         * `inventories` (per-store), or `undefined` when hydration is off/pending. Footwear's
+         * ProductInfo feeds this into DeliveryOptions/InventoryMessage so they reflect the selected
+         * SKU/store availability instead of the master's.
+         */
+        hydratedVariant: hydratedSkuProduct
+            ? ({
+                  ...(currentVariant as ShopperProducts.schemas['Variant']),
+                  inventory: hydratedSkuProduct.inventory,
+                  inventories: (
+                      hydratedSkuProduct as {
+                          inventories?: ShopperProducts.schemas['Inventory'][];
+                      }
+                  ).inventories,
+              } as ShopperProducts.schemas['Variant'] & {
+                  inventory?: ShopperProducts.schemas['Inventory'];
+                  inventories?: ShopperProducts.schemas['Inventory'][];
+              })
+            : undefined,
 
         // Actions
         /** Adds the current product/variant to cart using the selected quantity. No parameters needed - the hook manages all state internally. */

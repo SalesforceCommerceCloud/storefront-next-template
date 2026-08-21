@@ -62,6 +62,20 @@ const { cartItemFetcher, bundleItemFetcher } = vi.hoisted(() => ({
     bundleItemFetcher: { data: null as unknown, state: 'idle', submit: vi.fn() },
 }));
 
+// Controllable selected-SKU hydration fetcher. useProductActions calls useScapiFetcher('shopperProducts',
+// 'getProduct') to fetch the client-resolved SKU's authoritative inventory when `hydrateVariantInventory`
+// is set (footwear). Tests flip these fields to simulate pending / available / unavailable / failed
+// hydration. Non-hydration tests never trip `needsVariantHydration`, so this object goes unread there.
+const { variantInventoryFetcher } = vi.hoisted(() => ({
+    variantInventoryFetcher: {
+        state: 'idle' as string,
+        success: false,
+        data: undefined as unknown,
+        errors: undefined as unknown,
+        load: vi.fn(() => Promise.resolve()),
+    },
+}));
+
 vi.mock('@/components/toast', () => ({
     useToast: () => ({
         addToast: mockAddToast,
@@ -75,6 +89,21 @@ vi.mock('@/hooks/use-item-fetcher', () => ({
 
 vi.mock('@/hooks/product/use-current-variant', () => ({
     useCurrentVariant: () => null,
+}));
+
+vi.mock('@/hooks/use-scapi-fetcher', () => ({
+    // Only the selected-SKU hydration path (getProduct) reads the controllable stub; any other
+    // useScapiFetcher use resolves to an inert idle fetcher matching an un-fired request.
+    useScapiFetcher: (_client: string, method: string) =>
+        method === 'getProduct'
+            ? variantInventoryFetcher
+            : {
+                  load: vi.fn(() => Promise.resolve()),
+                  state: 'idle',
+                  success: false,
+                  data: undefined,
+                  errors: undefined,
+              },
 }));
 
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
@@ -193,6 +222,12 @@ describe('useProductActions', () => {
         bundleItemFetcher.data = null;
         bundleItemFetcher.state = 'idle';
         bundleItemFetcher.submit = vi.fn();
+        // Reset the hydration fetcher to "pending" so each hydration test opts into its own state.
+        variantInventoryFetcher.state = 'idle';
+        variantInventoryFetcher.success = false;
+        variantInventoryFetcher.data = undefined;
+        variantInventoryFetcher.errors = undefined;
+        variantInventoryFetcher.load = vi.fn(() => Promise.resolve());
     });
 
     afterEach(() => {
@@ -492,6 +527,290 @@ describe('useProductActions', () => {
 
             expect(result.current.canAddToCart).toBe(false);
         });
+
+        test('prevents adding a master/variant whose selected SKU is unavailable, even when the master inventory is orderable', () => {
+            // A variant resolved client-side from product.variants[] carries a per-SKU `orderable`
+            // flag but no own `inventory`. getEffectiveInventory then falls back to the MASTER's
+            // aggregate inventory -- a different SKU's signal. Gate on the variant's own orderable
+            // flag so an unavailable size/width can't be added on the strength of master stock.
+            const unavailableVariant: ShopperProducts.schemas['Variant'] = {
+                productId: 'master-oos-v1',
+                price: 29.99,
+                orderable: false,
+                variationValues: { size: '040' },
+            };
+            const product: ShopperProducts.schemas['Product'] = {
+                id: 'master-oos',
+                name: 'Master Product',
+                type: { master: true },
+                price: 29.99,
+                variants: [unavailableVariant],
+                inventory: { id: 'inventory-123', ats: 996, orderable: true },
+            };
+
+            const { result } = renderHook(() => useProductActions({ product, currentVariant: unavailableVariant }), {
+                wrapper: ({ children }) => wrapper({ children, basket: mockBasket }),
+            });
+
+            expect(result.current.canAddToCart).toBe(false);
+        });
+
+        test('allows adding a master/variant when the resolved variant is orderable and carries no per-SKU inventory', () => {
+            // Guard for the fix above: the variant's own orderable flag (not the master fallback) is
+            // authoritative, so an orderable size/width with no per-SKU inventory stays addable.
+            const orderableVariant: ShopperProducts.schemas['Variant'] = {
+                productId: 'master-ok-v1',
+                price: 29.99,
+                orderable: true,
+                variationValues: { size: '040' },
+            };
+            const product: ShopperProducts.schemas['Product'] = {
+                id: 'master-ok',
+                name: 'Master Product',
+                type: { master: true },
+                price: 29.99,
+                variants: [orderableVariant],
+                inventory: { id: 'inventory-123', ats: 996, orderable: true },
+            };
+
+            const { result } = renderHook(() => useProductActions({ product, currentVariant: orderableVariant }), {
+                wrapper: ({ children }) => wrapper({ children, basket: mockBasket }),
+            });
+
+            expect(result.current.canAddToCart).toBe(true);
+        });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test('prevents pickup add for a master/variant whose selected SKU has no store inventory, even when the master store inventory is orderable', () => {
+            // Pickup availability is per-store and per-SKU. A client-resolved variant summary carries
+            // no store inventory, so validating against the MASTER's store inventory would confirm the
+            // wrong SKU. Treat the selected SKU as unknown -> block until authoritative store data loads.
+            const selectedVariant: ShopperProducts.schemas['Variant'] = {
+                productId: 'master-pickup-v1',
+                price: 29.99,
+                orderable: true,
+                variationValues: { size: '040' },
+            };
+            const product: ShopperProducts.schemas['Product'] = {
+                id: 'master-pickup',
+                name: 'Master Product',
+                type: { master: true },
+                price: 29.99,
+                variants: [selectedVariant],
+                inventory: { id: 'site-inventory', ats: 996, orderable: true },
+                inventories: [{ id: 'store-inventory', ats: 5, stockLevel: 5, orderable: true }],
+            };
+
+            const { result } = renderHook(() => useProductActions({ product, currentVariant: selectedVariant }), {
+                wrapper: ({ children }) => wrapper({ children, basket: mockBasket }),
+            });
+
+            // Delivery: the orderable variant is addable via its own per-SKU orderable flag.
+            expect(result.current.canAddToCart).toBe(true);
+
+            // Switch to pickup for the master id; the selected SKU's store availability is unknown.
+            act(() => {
+                result.current.addItem?.('master-pickup', 'store-inventory', 'store-1');
+            });
+
+            expect(result.current.canAddToCart).toBe(false);
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    });
+
+    describe('selected-SKU inventory hydration (footwear client-side size/width selection)', () => {
+        const FOOTWEAR_SKU = '640188017041M';
+
+        // Footwear resolves size/width from product.variants[] without navigating, so the selected
+        // variant summary carries a per-SKU `orderable` flag but no own `inventory`, and `product` stays
+        // the master. Its aggregate inventory is intentionally healthy here: a test that passed only by
+        // reading the master (instead of the hydrated selected SKU) would wrongly succeed -- exactly the
+        // defect Daniel flagged. So each assertion below is meaningful only because the master is stocked.
+        const createFootwearMaster = (): ShopperProducts.schemas['Product'] => ({
+            id: 'footwear-master',
+            name: 'Footwear Master',
+            type: { master: true },
+            price: 29.99,
+            inventory: { id: 'site-inventory', ats: 996, orderable: true },
+            // @sfdc-extension-line SFDC_EXT_BOPIS
+            inventories: [{ id: 'store-inventory', ats: 996, stockLevel: 996, orderable: true }],
+            variants: [
+                {
+                    productId: FOOTWEAR_SKU,
+                    price: 29.99,
+                    orderable: true,
+                    variationValues: { size: '040', width: 'S' },
+                },
+            ],
+        });
+
+        // Bare client-resolved variant: per-SKU orderable flag, no own inventory object.
+        const createBareVariant = (): ShopperProducts.schemas['Variant'] => ({
+            productId: FOOTWEAR_SKU,
+            price: 29.99,
+            orderable: true,
+            variationValues: { size: '040', width: 'S' },
+        });
+
+        // ---- Finding B: delivery quantity validates against the SELECTED SKU's ATS, not the master's.
+        test('delivery: blocks a quantity above the selected SKU ATS even when master ATS is high', () => {
+            variantInventoryFetcher.success = true;
+            variantInventoryFetcher.data = {
+                id: FOOTWEAR_SKU,
+                inventory: { id: 'sku-site', ats: 1, stockLevel: 1, orderable: true },
+            };
+
+            const { result } = renderHook(
+                () =>
+                    useProductActions({
+                        product: createFootwearMaster(), // master ats 996
+                        currentVariant: createBareVariant(),
+                        initialQuantity: 10,
+                        hydrateVariantInventory: true,
+                    }),
+                { wrapper: ({ children }) => wrapper({ children, basket: mockBasket }) }
+            );
+
+            // The gate reads the hydrated SKU's ATS of 1, not the master's 996. `orderable` alone can't
+            // validate a quantity of 10; only authoritative per-SKU stock can. Pre-fix this passed.
+            expect(result.current.stockLevel).toBe(1);
+            expect(result.current.canAddToCart).toBe(false);
+        });
+
+        test('delivery: allows a quantity within the selected SKU ATS', () => {
+            variantInventoryFetcher.success = true;
+            variantInventoryFetcher.data = {
+                id: FOOTWEAR_SKU,
+                inventory: { id: 'sku-site', ats: 3, stockLevel: 3, orderable: true },
+            };
+
+            const { result } = renderHook(
+                () =>
+                    useProductActions({
+                        product: createFootwearMaster(),
+                        currentVariant: createBareVariant(),
+                        initialQuantity: 2,
+                        hydrateVariantInventory: true,
+                    }),
+                { wrapper: ({ children }) => wrapper({ children, basket: mockBasket }) }
+            );
+
+            expect(result.current.stockLevel).toBe(3);
+            expect(result.current.canAddToCart).toBe(true);
+        });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        // ---- Finding A: pickup states. The button stays disabled while hydration is pending; once it
+        // resolves, availability follows the SELECTED SKU's per-store inventory, never the master's.
+        test('pickup: keeps Add to Cart disabled while the selected SKU inventory is still pending', () => {
+            // success:false, data:undefined (beforeEach default) => hydration is in flight.
+            const { result } = renderHook(
+                () =>
+                    useProductActions({
+                        product: createFootwearMaster(),
+                        currentVariant: createBareVariant(),
+                        hydrateVariantInventory: true,
+                    }),
+                { wrapper: ({ children }) => wrapper({ children, basket: mockBasket }) }
+            );
+
+            act(() => {
+                result.current.addItem?.('footwear-master', 'store-inventory', 'store-1');
+            });
+
+            expect(result.current.isVariantInventoryLoading).toBe(true);
+            expect(result.current.canAddToCart).toBe(false);
+        });
+
+        test('pickup: allows Add to Cart once the selected SKU is orderable at the chosen store', () => {
+            variantInventoryFetcher.success = true;
+            variantInventoryFetcher.data = {
+                id: FOOTWEAR_SKU,
+                inventory: { id: 'sku-site', ats: 5, stockLevel: 5, orderable: true },
+                inventories: [{ id: 'store-inventory', ats: 5, stockLevel: 5, orderable: true }],
+            };
+
+            const { result } = renderHook(
+                () =>
+                    useProductActions({
+                        product: createFootwearMaster(),
+                        currentVariant: createBareVariant(),
+                        hydrateVariantInventory: true,
+                    }),
+                { wrapper: ({ children }) => wrapper({ children, basket: mockBasket }) }
+            );
+
+            act(() => {
+                result.current.addItem?.('footwear-master', 'store-inventory', 'store-1');
+            });
+
+            expect(result.current.isVariantInventoryLoading).toBe(false);
+            expect(result.current.canAddToCart).toBe(true);
+        });
+
+        test('pickup: blocks Add to Cart when the selected SKU is unavailable at the chosen store, even though the master store inventory is orderable', () => {
+            // Master store inventory is orderable with stock 996 (createFootwearMaster). If the gate read
+            // the master's store inventory it would allow pickup. The hydrated SKU is out of stock at the
+            // store, so pickup must be blocked -- proving it reads the SKU's per-store inventory.
+            variantInventoryFetcher.success = true;
+            variantInventoryFetcher.data = {
+                id: FOOTWEAR_SKU,
+                inventory: { id: 'sku-site', ats: 50, stockLevel: 50, orderable: true }, // fine for delivery
+                inventories: [{ id: 'store-inventory', ats: 0, stockLevel: 0, orderable: false }],
+            };
+
+            const { result } = renderHook(
+                () =>
+                    useProductActions({
+                        product: createFootwearMaster(),
+                        currentVariant: createBareVariant(),
+                        hydrateVariantInventory: true,
+                    }),
+                { wrapper: ({ children }) => wrapper({ children, basket: mockBasket }) }
+            );
+
+            // Delivery is fine (SKU site inventory orderable)...
+            expect(result.current.canAddToCart).toBe(true);
+
+            // ...but pickup at the store where the SKU is out of stock is blocked.
+            act(() => {
+                result.current.addItem?.('footwear-master', 'store-inventory', 'store-1');
+            });
+
+            expect(result.current.canAddToCart).toBe(false);
+        });
+
+        test('pickup: does not regress the canonical path where product already IS the resolved SKU with orderable store inventory', () => {
+            // Other verticals navigate on selection, so the loader re-fetched the exact SKU and `product`
+            // IS that SKU (carrying its own per-store inventory); no hydration runs. The narrowed gate
+            // must still allow pickup here -- the earlier blunt `if (isPickupSelected) return false`
+            // (before the `product.id === currentVariant.productId` discriminator) broke this canonical path.
+            const resolvedSku: ShopperProducts.schemas['Product'] = {
+                id: FOOTWEAR_SKU,
+                name: 'Resolved SKU',
+                type: { variant: true },
+                price: 29.99,
+                inventory: { id: 'site-inventory', ats: 5, orderable: true },
+                inventories: [{ id: 'store-inventory', ats: 5, stockLevel: 5, orderable: true }],
+            };
+            const resolvedVariant: ShopperProducts.schemas['Variant'] = {
+                productId: FOOTWEAR_SKU,
+                price: 29.99,
+                orderable: true,
+            };
+
+            const { result } = renderHook(
+                () => useProductActions({ product: resolvedSku, currentVariant: resolvedVariant }),
+                { wrapper: ({ children }) => wrapper({ children, basket: mockBasket }) }
+            );
+
+            act(() => {
+                result.current.addItem?.(FOOTWEAR_SKU, 'store-inventory', 'store-1');
+            });
+
+            expect(result.current.canAddToCart).toBe(true);
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     });
 
     describe('handleProductBundleAddToCart', () => {

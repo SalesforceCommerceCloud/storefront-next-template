@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { createContext, useContext, type PropsWithChildren } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import { useProductActions } from '@/hooks/product/use-product-actions';
 import { useCurrentVariant } from '@/hooks/product/use-current-variant';
+import { useSelectedVariations } from '@/hooks/product/use-selected-variations';
 
 interface ProductViewContextValue extends ReturnType<typeof useProductActions> {
     product: ShopperProducts.schemas['Product'];
@@ -30,6 +31,16 @@ interface ProductViewContextValue extends ReturnType<typeof useProductActions> {
      * editable even if its catalog price is currently missing for the active currency).
      */
     allowMissingPrice: boolean;
+    /**
+     * Client-side variant-attribute selection (e.g. footwear size/width) that resolves to a
+     * variant without a URL navigation. The single source both ProductInfo (display) and
+     * ProductCartActions (canAddToCart / add-to-cart target) read, so they can't disagree about
+     * which variant the shopper picked.
+     */
+    selectionsOverride: Record<string, string>;
+    setSelectionsOverride: (
+        updater: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)
+    ) => void;
 }
 
 const ProductViewContext = createContext<ProductViewContextValue | null>(null);
@@ -79,9 +90,27 @@ const ProductViewProvider = ({
     currentVariant: providedCurrentVariant,
     allowMissingPrice = false,
 }: PropsWithChildren<ProductViewProviderProps>) => {
+    const [selectionsOverride, setSelectionsOverride] = useState<Record<string, string>>({});
+    useEffect(() => {
+        setSelectionsOverride({});
+    }, [product.id]);
+
+    // Merge the client-side override on top of URL-derived selections (mirrors ProductInfo's own
+    // selectedVariationValues merge) so an attribute the override doesn't cover -- e.g. color,
+    // which still navigates via <Swatch href> -- keeps resolving from the URL.
+    const urlSelections = useSelectedVariations({ product });
+    const hasSelectionsOverride = Object.keys(selectionsOverride).length > 0;
+    const mergedSelections = useMemo(
+        () => ({ ...urlSelections, ...selectionsOverride }),
+        [urlSelections, selectionsOverride]
+    );
+
     // Use provided variant if available (e.g., from controlled modal state),
-    // otherwise derive from URL for PDP use case
-    const urlBasedCurrentVariant = useCurrentVariant({ product });
+    // otherwise derive from URL/override for PDP use case
+    const urlBasedCurrentVariant = useCurrentVariant({
+        product,
+        selectionsOverride: hasSelectionsOverride ? mergedSelections : undefined,
+    });
     const currentVariant = providedCurrentVariant || urlBasedCurrentVariant;
 
     const productActionsData = useProductActions({
@@ -91,6 +120,13 @@ const ProductViewProvider = ({
         maxQuantity,
         itemId,
         allowMissingPrice,
+        // When a client-side size/width override is active, the selection resolved a variant without
+        // a navigation, so the loader never re-fetched the selected SKU and `product` is still the
+        // master. Have the hook hydrate that SKU's authoritative inventory so canAddToCart and
+        // quantity validate against the real SKU (and its per-store pickup inventory), not the
+        // master. Only footwear writes `selectionsOverride`, so this stays false -- and adds no
+        // extra fetch -- for every other vertical and for controlled modal flows.
+        hydrateVariantInventory: hasSelectionsOverride,
     });
 
     return (
@@ -100,6 +136,8 @@ const ProductViewProvider = ({
                 mode,
                 // Mirror the hook's price-gate bypass conditions so display tracks gate.
                 allowMissingPrice: allowMissingPrice || Boolean(itemId),
+                selectionsOverride,
+                setSelectionsOverride,
                 ...productActionsData,
             }}>
             {children}
