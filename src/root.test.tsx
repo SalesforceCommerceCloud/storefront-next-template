@@ -230,7 +230,7 @@ describe('root.tsx', () => {
     });
 
     describe('Layout Component', () => {
-        it('should render html structure with meta tags', () => {
+        it('should render html structure with meta tags', async () => {
             const Stub = createRoutesStub([
                 {
                     path: '/',
@@ -244,7 +244,11 @@ describe('root.tsx', () => {
 
             const html = document.querySelector('html');
             expect(html).toBeInTheDocument();
-            expect(html).toHaveAttribute('lang', 'en-US');
+            // The client i18next instance assigns `.language` on a deferred macrotask
+            // (initAsync), so `<html lang>` is populated asynchronously. Wait for it
+            // rather than asserting synchronously, which races the deferred tick under
+            // CPU contention and intermittently reads the `'en'` fallback.
+            await waitFor(() => expect(html).toHaveAttribute('lang', 'en-US'));
 
             const charset = document.head.querySelector('meta[charset="utf-8"]');
             const viewport = document.head.querySelector('meta[name="viewport"]');
