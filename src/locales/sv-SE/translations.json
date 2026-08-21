@@ -26,6 +26,9 @@
             "emptyTitle": "Lägg till din rubrik här",
             "emptyButton": "Knapp"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "Lägg till din rubrik här"
         },

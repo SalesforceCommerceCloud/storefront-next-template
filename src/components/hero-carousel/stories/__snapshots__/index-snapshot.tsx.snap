@@ -363,17 +363,7 @@ exports[`HeroCarousel stories snapshot > Default story renders and matches snaps
 </div>
 `;
 
-exports[`HeroCarousel stories snapshot > EmptySlides story renders and matches snapshot 1`] = `
-<div
-  class="relative w-full flex items-center justify-center bg-muted h-[400px] md:h-[500px] lg:h-[600px]"
->
-  <p
-    class="text-muted-foreground text-sm"
-  >
-    No slides available
-  </p>
-</div>
-`;
+exports[`HeroCarousel stories snapshot > EmptySlides story renders and matches snapshot 1`] = `null`;
 
 exports[`HeroCarousel stories snapshot > LongCopy story renders and matches snapshot 1`] = `
 <div

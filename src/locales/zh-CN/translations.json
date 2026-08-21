@@ -28,6 +28,9 @@
             "emptyTitle": "在此添加标题",
             "emptyButton": "按钮"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "在此添加标题"
         },

@@ -26,7 +26,8 @@ import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import withSuspense from '@/components/with-suspense';
 import HeroCarouselSkeleton from './skeleton';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
-import heroImage from '/images/hero-01.webp';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
+import { typographyVariants } from '@/components/typography';
 import { normalizeOverlayPosition, normalizeOverlayAlignment, overlayPositionLayout } from '@/components/hero/utils';
 import type { ComponentType } from '@/components/region';
 import { Component as RegionComponent } from '@/components/region/component';
@@ -97,35 +98,11 @@ type Image = {
     };
 };
 
-const heroSlides: HeroSlide[] = [
-    {
-        id: 'slide-1',
-        title: 'Adventure Awaits',
-        subtitle: 'Gear up for your next outdoor expedition with premium equipment',
-        imageUrl: heroImage,
-        imageAlt: 'Outdoor adventure gear',
-        ctaText: 'Shop Now',
-        ctaLink: '/category/mens-clothing-shorts',
-    },
-    {
-        id: 'slide-2',
-        title: 'Built for the Wild',
-        subtitle: 'Durable, weather-resistant gear for every terrain and season',
-        imageUrl: heroImage,
-        imageAlt: 'Outdoor equipment for all seasons',
-        ctaText: 'Explore Collection',
-        ctaLink: '/category/mens-clothing-shorts',
-    },
-    {
-        id: 'slide-3',
-        title: 'Your Journey Starts Here',
-        subtitle: 'From mountain peaks to forest trails, we have everything you need',
-        imageUrl: heroImage,
-        imageAlt: 'Hiking and camping equipment',
-        ctaText: 'Discover Gear',
-        ctaLink: '/category/mens-clothing-shorts',
-    },
-];
+/** Stable empty-array reference so the `slides` default never changes identity between renders. */
+const NO_SLIDES: HeroSlide[] = [];
+
+/** `Heading 2` preset (shared Typography scale) for the empty-state "No banners yet" cue. */
+const EMPTY_LABEL_CLASS = typographyVariants({ variant: 'h2', align: 'center' });
 
 export interface HeroSlide {
     id: string;
@@ -158,7 +135,7 @@ interface HeroCarouselProps {
 }
 
 export function HeroCarouselPlain({
-    slides: propSlides = heroSlides,
+    slides: propSlides = NO_SLIDES,
     autoPlay = heroCarouselDefaults.autoPlay,
     image,
     autoPlayInterval = heroCarouselDefaults.autoPlayInterval,
@@ -166,7 +143,7 @@ export function HeroCarouselPlain({
     showNavigation = heroCarouselDefaults.showNavigation,
     overlay = heroCarouselDefaults.overlay,
     component,
-}: HeroCarouselProps): ReactElement {
+}: HeroCarouselProps): ReactElement | null {
     // Production (Page Designer) path: render each slide by delegating to the real Hero
     // component through the <Component> registry, so every authored Hero attribute (typography,
     // colors, button style, focal point, styleOverride, …) is honored — instead of flattening a
@@ -183,6 +160,7 @@ export function HeroCarouselPlain({
     const usingRegion = regionComponents.length > 0;
     const slides = propSlides;
     const { t } = useTranslation('common');
+    const { isDesignMode } = usePageDesignerMode();
 
     // Unified per-slide metadata (id + title) for dot indicators and the aria-live announcement,
     // independent of which render path is active.
@@ -291,17 +269,20 @@ export function HeroCarouselPlain({
         [api, slideCount]
     );
 
-    const emptyState = useMemo(
-        () => (
-            <div className="relative w-full flex items-center justify-center bg-muted h-[400px] md:h-[500px] lg:h-[600px]">
-                <p className="text-muted-foreground text-sm">No slides available</p>
-            </div>
-        ),
-        []
-    );
-
+    // Empty state (W-23729831): a freshly-dropped, unconfigured Hero Carousel with no authored
+    // slides yet. Renders the carousel's own design-mode placeholder — a muted surface reading
+    // "No banners yet", flanked by decorative prev/next arrows and dot indicators — so the merchant
+    // sees the carousel's shape before adding Hero slides. The carousel deliberately renders NONE of
+    // the registered `Hero` component here: importing `Hero` (a Page Designer component) dragged its
+    // registration side effects into the carousel's evaluation and could hang the whole PD region on
+    // MRT when an unconfigured carousel was dropped in. Page-Designer *authoring* affordance only: on
+    // the live storefront an unconfigured carousel renders nothing, so shoppers never see a
+    // placeholder. Mirrors the Product/Categories carousel gates.
     if (slideCount === 0) {
-        return emptyState;
+        if (!isDesignMode) {
+            return null;
+        }
+        return <HeroCarouselEmptyState label={t('heroCarousel.emptyLabel')} />;
     }
 
     return (
@@ -515,6 +496,53 @@ const NavigationButton = React.memo(
 );
 
 NavigationButton.displayName = 'NavigationButton';
+
+/**
+ * Design-mode empty state (W-23729831): the placeholder a merchant sees when an unconfigured Hero
+ * Carousel is dropped into a Page Designer region. A muted surface previewing the carousel's shape —
+ * a centered "No banners yet" cue framed by decorative prev/next arrows and dot indicators, so the
+ * authoring affordance reads as a carousel before any Hero slides are added.
+ *
+ * The carousel renders NONE of the registered `Hero` Page Designer component here — importing `Hero`
+ * dragged its registration side effects into the carousel's module evaluation and could hang the
+ * whole PD region on MRT when an unconfigured carousel was dropped in.
+ *
+ * Theme-bound only (`bg-muted` / `text-muted-foreground` / `bg-background`, no hardcoded colors) so
+ * it tracks the active theme. Arrows and dots are purely illustrative (`aria-hidden`,
+ * non-interactive): there are no slides to navigate. Callers gate this to design mode — it is never
+ * shown to live-storefront shoppers.
+ */
+function HeroCarouselEmptyState({ label }: { label: string }): ReactElement {
+    return (
+        <div data-slot="hero-carousel" className="relative w-full">
+            <div
+                data-slot="empty-state"
+                className="relative flex h-[400px] md:h-[500px] lg:h-[600px] w-full items-center justify-center overflow-hidden rounded-ui bg-muted">
+                {/* Decorative arrows, shown greyed-out/disabled — an illustrative carousel affordance,
+                    not controls (there are no slides to navigate yet). */}
+                <span
+                    aria-hidden
+                    className="absolute left-4 top-1/2 flex w-12 h-12 -translate-y-1/2 items-center justify-center rounded-ui bg-background opacity-50 shadow-sm">
+                    <ChevronLeft className="w-6 h-6 text-muted-foreground" strokeWidth={2} />
+                </span>
+                <h2 className={cn(EMPTY_LABEL_CLASS, 'text-muted-foreground')}>{label}</h2>
+                <span
+                    aria-hidden
+                    className="absolute right-4 top-1/2 flex w-12 h-12 -translate-y-1/2 items-center justify-center rounded-ui bg-background opacity-50 shadow-sm">
+                    <ChevronRight className="w-6 h-6 text-muted-foreground" strokeWidth={2} />
+                </span>
+                {/* Decorative dot indicators inside the surface, floated above the bottom edge
+                    (matching the configured carousel's `bottom-6` dots) so they aren't clipped by
+                    the Page Designer region boundary. */}
+                <div aria-hidden className="absolute bottom-6 inset-x-0 flex justify-center gap-2">
+                    {Array.from({ length: 3 }, (_, i) => (
+                        <span key={i} className="w-2 h-2 rounded-ui bg-muted-foreground/40" />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
 
 const HeroSlideContent = React.memo(({ slide, priority }: { slide: HeroSlide; priority: boolean }): ReactElement => {
     const position = normalizeOverlayPosition(slide.overlayPosition);

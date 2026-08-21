@@ -145,10 +145,13 @@ describe('HeroCarousel', () => {
         expect(carousel).toHaveAttribute('tabIndex', '0');
     });
 
-    test('renders empty state when no slides provided', () => {
+    test('renders nothing on the live storefront when no slides provided', () => {
+        // Outside a PageDesignerProvider `usePageDesignerMode` defaults to design mode off, so an
+        // unconfigured carousel renders nothing rather than a placeholder (W-23729831 leak fix).
         renderInRouter(<HeroCarouselPlain slides={[]} />);
 
-        expect(screen.getByText('No slides available')).toBeInTheDocument();
+        expect(screen.queryByRole('region', { name: /hero carousel/i })).not.toBeInTheDocument();
+        expect(screen.queryByText(/no slides available/i)).not.toBeInTheDocument();
     });
 
     test('pause/play button is keyboard accessible', () => {

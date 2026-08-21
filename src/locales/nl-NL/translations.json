@@ -25,6 +25,9 @@
             "emptyTitle": "Voeg hier je titel toe",
             "emptyButton": "Knop"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "Voeg hier je titel toe"
         },

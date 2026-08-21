@@ -27,6 +27,9 @@
             "emptyTitle": "Titel hier hinzufügen",
             "emptyButton": "Schaltfläche"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "Titel hier hinzufügen"
         },

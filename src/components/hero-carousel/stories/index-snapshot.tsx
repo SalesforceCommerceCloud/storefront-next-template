@@ -102,6 +102,11 @@ afterEach(() => {
 
 describe('HeroCarousel stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
+        // Stories whose primary render is gated on async resolution the synchronous snapshot harness
+        // can't await (e.g. the design-mode empty state inside PageDesignerProvider's lazy Suspense)
+        // opt out via `parameters.snapshot === false` — the same guard the product-recommendations
+        // harness uses.
+        if (Story?.parameters?.snapshot === false) continue;
         test(`${storyName} story renders and matches snapshot`, () => {
             // <DynamicImage> reads DIS config via useConfig(), so the slide images need a real ConfigProvider.
             const { container } = render(

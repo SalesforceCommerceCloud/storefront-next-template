@@ -27,6 +27,9 @@
             "emptyTitle": "Aggiungi qui il titolo",
             "emptyButton": "Pulsante"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "Aggiungi qui il titolo"
         },

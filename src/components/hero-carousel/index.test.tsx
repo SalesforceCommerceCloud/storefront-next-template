@@ -110,6 +110,18 @@ vi.mock('@/components/ui/button', () => ({
         asChild ? children : <button className={className}>{children}</button>,
 }));
 
+// Togglable Page Designer mode. Defaults to design mode OFF (live storefront); the empty-state
+// suite flips it on to exercise the design-mode placeholder branch.
+const mockUsePageDesignerMode = vi.fn(() => ({ isDesignMode: false }));
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => mockUsePageDesignerMode(),
+}));
+
+// The design-mode empty state is the carousel's own "No banners yet" surface — it renders none of
+// the registered `Hero` Page Designer component, so the carousel test exercises it through the real
+// render path with real i18n (via AllProvidersWrapper) and no Hero/DynamicImage/registry plumbing.
+// That decoupling from the registered `Hero` is the whole point (it was hanging the PD region on MRT).
+
 // Mock the region <Component> wrapper so the region-delegation path can be exercised without a
 // populated Page Designer registry. The mock echoes the merged `data` the carousel injects into
 // each slide, so tests can assert overlay/priority/loading/fillHeight are threaded through.
@@ -152,6 +164,8 @@ describe('HeroCarousel', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         (isServer as Mock).mockReturnValue(false);
+        // Default to the live storefront (design mode off); the empty-state suite opts in per test.
+        mockUsePageDesignerMode.mockReturnValue({ isDesignMode: false });
         vi.useFakeTimers();
     });
 
@@ -176,10 +190,14 @@ describe('HeroCarousel', () => {
             expect(learnMoreLinks[1]).toHaveAttribute('href', '/');
         });
 
-        test('renders empty state when no slides provided', () => {
-            renderWithRouter(<HeroCarousel slides={[]} />);
+        test('renders nothing on the live storefront when no slides provided', () => {
+            // Design mode is off by default — an unconfigured carousel must render nothing so
+            // shoppers never see a placeholder (W-23729831 leak fix).
+            const { container } = renderWithRouter(<HeroCarousel slides={[]} />);
 
-            expect(screen.getByText('No slides available')).toBeInTheDocument();
+            expect(screen.queryByTestId('carousel')).not.toBeInTheDocument();
+            expect(screen.queryByRole('region', { name: /hero carousel/i })).not.toBeInTheDocument();
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
         });
 
         test('overrides the CTA accessible name with ctaAriaLabel while keeping the visible ctaText', () => {
@@ -543,6 +561,52 @@ describe('HeroCarousel', () => {
             // No delegated components; the prop-driven HeroSlideContent path renders instead.
             expect(screen.queryByTestId('region-component')).not.toBeInTheDocument();
             expect(screen.getByText('First Slide')).toBeInTheDocument();
+        });
+    });
+
+    describe('Design-mode empty state (W-23729831)', () => {
+        // A Page Designer component whose `slides` region holds no authored heroes.
+        const emptySlidesComponent = () =>
+            ({
+                id: 'pd-hero-carousel',
+                typeId: 'Layout.heroCarousel',
+                regions: [{ id: 'slides', components: [] }],
+            }) as unknown as Parameters<typeof HeroCarousel>[0]['component'];
+
+        test('renders the carousel "No banners yet" empty-state surface in design mode', () => {
+            mockUsePageDesignerMode.mockReturnValue({ isDesignMode: true });
+            const { container } = renderWithRouter(<HeroCarousel slides={[]} />);
+
+            // The carousel renders its own placeholder — a single muted surface with the "No banners
+            // yet" authoring cue — not the registered Hero, and not the bespoke "No slides available"
+            // text or nothing.
+            const surfaces = container.querySelectorAll('[data-slot="empty-state"]');
+            expect(surfaces).toHaveLength(1);
+            expect(screen.getByRole('heading', { name: 'No banners yet' })).toBeInTheDocument();
+            // Decorative arrows frame the cue (aria-hidden, non-interactive — no nav buttons/tabs).
+            expect(screen.getByTestId('chevron-left')).toBeInTheDocument();
+            expect(screen.getByTestId('chevron-right')).toBeInTheDocument();
+            expect(screen.queryByRole('button')).not.toBeInTheDocument();
+            expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+        });
+
+        test('shows the placeholder in design mode when the slides region is empty', () => {
+            mockUsePageDesignerMode.mockReturnValue({ isDesignMode: true });
+            const { container } = renderWithRouter(<HeroCarousel component={emptySlidesComponent()} />);
+
+            // Empty region + design mode → the carousel's "No banners yet" surface, not the
+            // live-storefront null, and no delegated Hero components.
+            expect(container.querySelector('[data-slot="empty-state"]')).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'No banners yet' })).toBeInTheDocument();
+            expect(screen.queryByTestId('region-component')).not.toBeInTheDocument();
+        });
+
+        test('renders nothing when the slides region is empty on the live storefront', () => {
+            // Design mode off (default) — an unconfigured PD carousel must render nothing.
+            const { container } = renderWithRouter(<HeroCarousel component={emptySlidesComponent()} />);
+
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('carousel')).not.toBeInTheDocument();
         });
     });
 });

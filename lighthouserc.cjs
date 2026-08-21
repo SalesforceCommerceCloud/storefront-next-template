@@ -195,6 +195,9 @@ module.exports = {
                         // recommendations carousel chunk pulls in (CI measured 506687, zero variance
                         // across 5 runs). The branch is irreducible — it is the feature — so absorb
                         // the ~687B rather than dropping the authoring affordance.
+                        // (@W-23729831@ Hero Carousel: no further raise — its empty state ships only in
+                        // the homepage chunk, not cart; the 508000 ceiling already absorbs the ~506201
+                        // main baseline drift this branch previously observed.)
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: 508000, aggregationMethod: 'median' },

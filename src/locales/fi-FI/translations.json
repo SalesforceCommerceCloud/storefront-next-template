@@ -27,6 +27,9 @@
             "emptyTitle": "Lisää otsikko tähän",
             "emptyButton": "Painike"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "Lisää otsikko tähän"
         },

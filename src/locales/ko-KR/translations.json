@@ -27,6 +27,9 @@
             "emptyTitle": "여기에 제목 추가",
             "emptyButton": "버튼"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "여기에 제목 추가"
         },

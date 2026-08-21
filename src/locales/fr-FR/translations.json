@@ -28,6 +28,9 @@
             "emptyTitle": "Ajoutez votre titre ici",
             "emptyButton": "Bouton"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "Ajoutez votre titre ici"
         },

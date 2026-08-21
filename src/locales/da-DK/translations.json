@@ -27,6 +27,9 @@
             "emptyTitle": "Tilføj din titel her",
             "emptyButton": "Knap"
         },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
         "image": {
             "emptyTitle": "Tilføj din titel her"
         },
