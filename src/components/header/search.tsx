@@ -235,8 +235,16 @@ export default function SearchBar(): ReactElement {
                         Therefore, we go with traditional div to get control over styling for search result area*/}
                     {showSuggestions && (
                         <div
-                            className="fixed left-0 right-0 z-50 border-b shadow-[0px_1px_12px_rgba(0,0,0,0.25)] max-h-[min(70vh,32rem)] overflow-y-auto bg-popover text-popover-foreground"
-                            style={{ top: 'var(--header-height)' }}
+                            className="fixed left-0 right-0 z-50 border-b shadow-[0px_1px_12px_rgba(0,0,0,0.25)] overflow-y-auto bg-popover text-popover-foreground"
+                            // Cap the panel to the space between the header and the viewport bottom, not a
+                            // flat 70vh. Because the panel is anchored at top: var(--header-height), a flat
+                            // 70vh let header-height + 70vh overrun the viewport when the header is tall
+                            // (e.g. the two-row mobile header at 400% zoom), pushing suggestions below the
+                            // fold where the panel's own scroll could not reach them (WCAG 2.4.11).
+                            style={{
+                                top: 'var(--header-height)',
+                                maxHeight: 'min(70vh, 32rem, calc(100dvh - var(--header-height)))',
+                            }}
                             role="dialog"
                             aria-label={t('searchSuggestions')}>
                             <Suggestions
