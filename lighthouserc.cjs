@@ -205,6 +205,10 @@ module.exports = {
                         // (@W-23729831@ Hero Carousel: no further raise — its empty state ships only in
                         // the homepage chunk, not cart; the 508000 ceiling already absorbs the ~506201
                         // main baseline drift this branch previously observed.)
+                        // Footwear PDP work (@W-23751953@) also lands a generic `thumbnailLabel`
+                        // accessible-name fallback in this shared chunk via the canonical
+                        // ImageGallery (~83B). It fits under this same 508000 ceiling; the
+                        // lighthouse-cosmetic CI run on the merged branch confirms the combined median.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: 508000, aggregationMethod: 'median' },

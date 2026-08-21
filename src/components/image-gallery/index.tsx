@@ -39,6 +39,13 @@ export interface GalleryImage {
     src: string;
     alt?: string;
     thumbSrc?: string;
+    /**
+     * Optional descriptive name for this image's view (e.g. a specific angle), surfaced as the
+     * thumbnail selector button's accessible name so a screen-reader user can choose a view before
+     * activating it. When omitted, the button falls back to the generic "product image N of M" name,
+     * so callers that don't supply per-view names are unaffected.
+     */
+    thumbnailLabel?: string;
 }
 
 interface ImageGalleryWidths {
@@ -236,6 +243,15 @@ export default function ImageGallery({
 
     const imageAltFallback = productName || tProduct('imageAlt') || 'Product Image';
 
+    // Accessible name for a thumbnail button. A per-thumbnail label (e.g. a detected view like "Side
+    // view") is prepended to — not substituted for — the positional "image N of M": two thumbnails
+    // that resolve to the same label would otherwise share an identical name and a screen-reader user
+    // would lose track of which slide is which.
+    const thumbnailAccessibleName = (thumbnailLabel: string | undefined, index: number) =>
+        thumbnailLabel
+            ? tCommon('thumbnailImageLabeled', { label: thumbnailLabel, current: index + 1, total: images.length })
+            : tCommon('thumbnailImage', { current: index + 1, total: images.length });
+
     return (
         <UITarget targetId="sfcc.pdp.products.gallery">
             <div className="space-y-4">
@@ -272,7 +288,7 @@ export default function ImageGallery({
                                 onPointerEnter={handleThumbnailIntent}
                                 onFocus={handleThumbnailIntent}
                                 data-index={index}
-                                aria-label={tCommon('thumbnailImage', { current: index + 1, total: images.length })}
+                                aria-label={thumbnailAccessibleName(image.thumbnailLabel, index)}
                                 // The selected thumbnail is the current item within a single-select set, not an
                                 // independently toggleable control, so aria-current ("current" in a set) fits better
                                 // than aria-pressed ("toggle button, pressed"). Mirrors the swatch / pagination
@@ -331,7 +347,7 @@ export default function ImageGallery({
                                     onPointerEnter={handleThumbnailIntent}
                                     onFocus={handleThumbnailIntent}
                                     data-index={index}
-                                    aria-label={tCommon('thumbnailImage', { current: index + 1, total: images.length })}
+                                    aria-label={thumbnailAccessibleName(image.thumbnailLabel, index)}
                                     // See the grid layout above: aria-current, not aria-pressed, for the selected slide.
                                     aria-current={selectedImageIndex === index ? 'true' : undefined}
                                     className={cn(

@@ -39,6 +39,8 @@ void i18next.init({
                 noImageAvailable: 'No Image Available',
                 previousImage: 'Previous Image',
                 nextImage: 'Next Image',
+                thumbnailImage: 'Product image {{current}} of {{total}}',
+                thumbnailImageLabeled: '{{label}}, product image {{current}} of {{total}}',
             },
             product: {
                 imageAlt: 'Product Image',
@@ -153,6 +155,23 @@ describe('ImageGallery - off-screen image preloading', () => {
 
         expect(screen.getAllByAltText('Image 1').length).toBeGreaterThan(0);
         expect(screen.getAllByRole('button').length).toBe(mockImages.length);
+    });
+
+    it('prepends a supplied thumbnailLabel to the positional button name, falling back to the generic count name', () => {
+        // A caller (e.g. the footwear PDP) can name a specific view per image; that name is prepended to
+        // the positional "product image N of M" so a screen-reader user can choose a view before
+        // activating it while still keeping track of which slide is which. Two images resolving to the
+        // same label would otherwise share an identical name. Images without a label keep the generic name.
+        const labeledImages: GalleryImage[] = [
+            { src: disSrc('image1'), alt: 'Image 1', thumbnailLabel: 'Front view' },
+            { src: disSrc('image2'), alt: 'Image 2' },
+        ];
+
+        render(<ImageGallery images={labeledImages} />, { wrapper });
+
+        expect(screen.getByRole('button', { name: 'Front view, product image 1 of 2' })).toBeInTheDocument();
+        // The unlabeled image falls back to the generic count-based name (no thumbnailLabel supplied).
+        expect(screen.getByRole('button', { name: 'Product image 2 of 2' })).toBeInTheDocument();
     });
 
     it('caps eager preloads to EAGER_PRELOAD_LIMIT (4) regardless of how many off-screen images exist', async () => {

@@ -37,6 +37,7 @@
         "previousImage": "Previous image",
         "nextImage": "Next image",
         "thumbnailImage": "Product image {{current}} of {{total}}",
+        "thumbnailImageLabeled": "{{label}}, product image {{current}} of {{total}}",
         "productGrid": {
             "loadFailed": "Unable to load additional products."
         },

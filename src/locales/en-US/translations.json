@@ -40,6 +40,7 @@
         "previousImage": "Previous image",
         "nextImage": "Next image",
         "thumbnailImage": "Product image {{current}} of {{total}}",
+        "thumbnailImageLabeled": "{{label}}, product image {{current}} of {{total}}",
         "quickCategoryFilters": "Quick category filters",
         "carousel": {
             "play": "Play carousel",
