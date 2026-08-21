@@ -29,6 +29,23 @@ const EXPLODED_PARAMS = ['refine'];
 const GROUPED_PARAMS = ['refine'];
 
 /**
+ * Characters SCAPI treats as reserved inside a resource identifier value and expects to be
+ * double-encoded: comma (its id-list separator) and percent (its escape char).
+ * See https://developer.salesforce.com/docs/commerce/commerce-api/guide/url-encode.html
+ *
+ * openapi-fetch percent-encodes each value exactly once and joins multiple ids with a raw
+ * comma. SCAPI decodes a comma-joined list once and only then splits on comma, so a comma or
+ * percent that belongs to an id's value has to be encoded a second time here to survive that
+ * decode intact. We encode "%" before "," so the "%" introduced for a comma is not re-encoded;
+ * openapi-fetch's own encodeURIComponent pass then produces the final %252C / %2525 sequences.
+ * The comma openapi-fetch inserts between list elements is left untouched and stays the
+ * single-encoded separator SCAPI expects.
+ */
+function encodeScapiReservedChars(value: unknown): string {
+    return String(value).replace(/%/g, '%25').replace(/,/g, '%2C');
+}
+
+/**
  * Groups refinement-style parameters by attribute ID
  * e.g., ['c_color=Black', 'c_color=Green', 'price=(0..20)']
  *    => ['c_color=Black|Green', 'price=(0..20)']
@@ -87,6 +104,12 @@ export function defaultQuerySerializer(queryParams: Record<string, unknown>): st
         // Apply grouping for parameters that need it
         if (GROUPED_PARAMS.includes(name) && Array.isArray(value)) {
             processedValue = groupByAttribute(value as string[]);
+        }
+
+        // Double-encode SCAPI reserved chars in each id/value so the raw comma separator
+        // openapi-fetch inserts between array elements stays the only comma SCAPI splits on.
+        if (Array.isArray(processedValue)) {
+            processedValue = processedValue.map(encodeScapiReservedChars);
         }
 
         const serializer = EXPLODED_PARAMS.includes(name) ? explodedSerializer : defaultSerializer;

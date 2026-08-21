@@ -207,6 +207,41 @@ describe('defaultQuerySerializer', () => {
         });
     });
 
+    describe('SCAPI reserved characters (comma, percent) in id values', () => {
+        // https://developer.salesforce.com/docs/commerce/commerce-api/guide/url-encode.html
+        // SCAPI decodes a comma-joined id list once, then splits on comma, then decodes each id.
+        // A comma or percent belonging to an id's value must therefore be double-encoded so it
+        // survives that first decode without being read as the list separator.
+        it('should double-encode a comma inside an id, keeping the list separator single-encoded', () => {
+            const result = defaultQuerySerializer({ ids: ['Flour,1KG', 'Sugar'] });
+            expect(result).toBe('ids=Flour%252C1KG,Sugar');
+        });
+
+        it('should double-encode a percent inside an id', () => {
+            const result = defaultQuerySerializer({ ids: ['1%Milk', 'Sugar'] });
+            expect(result).toBe('ids=1%2525Milk,Sugar');
+        });
+
+        it('should double-encode both reserved chars across a multi-id list', () => {
+            const result = defaultQuerySerializer({ ids: ['Flour,1KG', '1%Milk'] });
+            expect(result).toBe('ids=Flour%252C1KG,1%2525Milk');
+        });
+
+        it('should round-trip through SCAPI decode-then-split back to the original ids', () => {
+            const wire = defaultQuerySerializer({ ids: ['Flour,1KG', '1%Milk'] }).replace('ids=', '');
+            // Model SCAPI: URL-decode once, split on comma, URL-decode each id.
+            const decoded = decodeURIComponent(wire)
+                .split(',')
+                .map((id) => decodeURIComponent(id));
+            expect(decoded).toEqual(['Flour,1KG', '1%Milk']);
+        });
+
+        it('should leave plain comma-joined tokens single-encoded (comma is the separator)', () => {
+            const result = defaultQuerySerializer({ expand: ['promotions', 'variations', 'prices'] });
+            expect(result).toBe('expand=promotions,variations,prices');
+        });
+    });
+
     describe('special characters and encoding', () => {
         it('should properly encode special characters in query values', () => {
             const result = defaultQuerySerializer({
