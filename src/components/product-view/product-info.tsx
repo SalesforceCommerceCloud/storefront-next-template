@@ -452,15 +452,21 @@ export default function ProductInfo({
 
             {/* @sfdc-extension-block-start SFDC_EXT_BOPIS */}
             {/* Delivery Options - For individual products */}
-            {/* Hide for non-pickup items when opened from cart page */}
-            {!isOutOfStock && (mode !== 'edit' || basketPickupStore) && !(isProductABundle || isProductASet) && (
-                <DeliveryOptions
-                    product={productForDeliveryOptions}
-                    quantity={quantity}
-                    basketPickupStore={basketPickupStore}
-                    className="mt-6"
-                />
-            )}
+            {/* Hide for non-pickup items when opened from cart page. Also hidden while the selected
+                variant's inventory is still resolving: the delivery/pickup checks read store
+                availability, so rendering them mid-load would flash stale "Deliver to"/"Free pickup"
+                status for the previously selected SKU. */}
+            {!isVariantInventoryLoading &&
+                !isOutOfStock &&
+                (mode !== 'edit' || basketPickupStore) &&
+                !(isProductABundle || isProductASet) && (
+                    <DeliveryOptions
+                        product={productForDeliveryOptions}
+                        quantity={quantity}
+                        basketPickupStore={basketPickupStore}
+                        className="mt-6"
+                    />
+                )}
             {/* @sfdc-extension-block-end SFDC_EXT_BOPIS */}
 
             {/* Quantity Selector - for non-set/bundle when not edit mode, or when showQuantityInEditMode in edit mode */}

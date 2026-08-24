@@ -97,5 +97,33 @@ describe('ProductInfo - BOPIS', () => {
             expect(screen.queryByText(/Deliver to/i)).not.toBeInTheDocument();
             expect(screen.queryByText(/Free pickup in/i)).not.toBeInTheDocument();
         });
+
+        test('should not render DeliveryOptions while selected variant inventory loads', () => {
+            const simpleProduct = {
+                ...mockProduct,
+                variationAttributes: [],
+            };
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '/product/:productId',
+                        element: (
+                            <AllProvidersWrapper>
+                                <ProductViewProvider product={simpleProduct} isVariantInventoryLoading>
+                                    <ProductInfo product={simpleProduct} isVariantInventoryLoading />
+                                </ProductViewProvider>
+                            </AllProvidersWrapper>
+                        ),
+                    },
+                ],
+                {
+                    initialEntries: ['/product/test-product'],
+                }
+            );
+            render(<RouterProvider router={router} />);
+
+            expect(screen.queryByText(/Deliver to/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/Free pickup in/i)).not.toBeInTheDocument();
+        });
     });
 });

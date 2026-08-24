@@ -863,6 +863,40 @@ describe('inventory-utils', () => {
                     })
                 ).toBe(false);
             });
+
+            it('uses selected variant store inventory for pickup', () => {
+                const variant = {
+                    orderable: true,
+                    productId: '640188016716M',
+                    inventories: [
+                        {
+                            id: 'store-inventory',
+                            stockLevel: 0,
+                            orderable: false,
+                        },
+                    ],
+                } as ShopperProducts.schemas['Variant'] & { inventories?: ShopperProducts.schemas['Inventory'][] };
+                const productWithStoreInventory = {
+                    ...mockProduct,
+                    inventories: [
+                        {
+                            id: 'store-inventory',
+                            stockLevel: 10,
+                            orderable: true,
+                        },
+                    ],
+                };
+
+                expect(
+                    isInStock({
+                        product: productWithStoreInventory,
+                        isPickup: true,
+                        storeInventoryId: 'store-inventory',
+                        quantity: 1,
+                        variant,
+                    })
+                ).toBe(false);
+            });
         });
 
         describe('for product sets', () => {

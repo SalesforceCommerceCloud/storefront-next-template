@@ -71,6 +71,7 @@ export default function ProductCartActions({
         mode,
         isAddingToOrUpdatingCart,
         canAddToCart,
+        isVariantInventoryLoading,
         currentVariant,
         isMasterOrVariantProduct,
         handleAddToCart,
@@ -156,7 +157,7 @@ export default function ProductCartActions({
                     <div className="grid grid-cols-2 gap-3">
                         <Button
                             onClick={() => void onAddOrUpdateToCart()}
-                            disabled={!canAddToCart || isAddingToOrUpdatingCart}
+                            disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
                             className="w-full"
                             size="lg">
                             {isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
@@ -164,7 +165,7 @@ export default function ProductCartActions({
                         <UITarget targetId="sfcc.quickAdd.payments.expressCheckout">
                             <Button
                                 onClick={onBuyNow}
-                                disabled={!canAddToCart}
+                                disabled={!canAddToCart || isVariantInventoryLoading}
                                 variant="outline"
                                 className="w-full"
                                 size="lg">
@@ -180,7 +181,7 @@ export default function ProductCartActions({
                         data-testid="add-to-cart"
                         data-slot="add-to-cart-button"
                         onClick={() => void onAddOrUpdateToCart()}
-                        disabled={!canAddToCart || isAddingToOrUpdatingCart}
+                        disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
                         className="w-full text-base font-semibold leading-6"
                         size="lg">
                         {isEditMode ? t('updateCart') : isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
@@ -199,7 +200,7 @@ export default function ProductCartActions({
                                     layout="vertical"
                                     separatorPosition="top"
                                     separatorText={t('expressPayments.separatorBuyWith')}
-                                    disabled={!canAddToCart}
+                                    disabled={!canAddToCart || isVariantInventoryLoading}
                                 />
                             </Suspense>
                         </UITarget>

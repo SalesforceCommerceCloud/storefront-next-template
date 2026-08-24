@@ -24,6 +24,14 @@ interface ProductViewContextValue extends ReturnType<typeof useProductActions> {
     product: ShopperProducts.schemas['Product'];
     mode: 'add' | 'edit';
     /**
+     * True while the selected variant's authoritative inventory is still resolving. Two flows set
+     * it: the provider hydrates the SKU itself for the client-side size/width path
+     * (`useProductActions`), and a controlled caller (footwear colorway overlay) that runs its own
+     * fetch passes the flag in. ProductCartActions reads this to keep Add to Cart disabled until
+     * the real availability is known.
+     */
+    isVariantInventoryLoading: boolean;
+    /**
      * Mirrors the same conditions the hook uses to bypass the price gate, so price display
      * (ProductInfo → ProductPrice) matches the add/update gate. True when either the explicit
      * `allowMissingPrice` prop is set OR the surface is editing an in-basket line (`itemId`),
@@ -53,6 +61,14 @@ interface ProductViewProviderProps {
     itemId?: string;
     /** Optional: Pass a currentVariant directly (e.g., from controlled modal state) instead of deriving from URL */
     currentVariant?: ShopperProducts.schemas['Variant'];
+    /**
+     * Variation selection driven by a controlled caller (footwear colorway overlay) rather than the
+     * shared client-side override. Exposed to consumers via context; the caller owns variant
+     * resolution and inventory hydration itself, so the provider does not hydrate for it.
+     */
+    selectionsOverride?: Record<string, string>;
+    /** Set by a controlled caller that runs its own selected-variant inventory fetch. */
+    isVariantInventoryLoading?: boolean;
     /**
      * Allow adding to cart even when the product has no price for the active currency. Use for
      * intentionally-free items priced elsewhere (e.g. promotional bonus products). Defaults to false.
@@ -88,18 +104,30 @@ const ProductViewProvider = ({
     maxQuantity,
     itemId,
     currentVariant: providedCurrentVariant,
+    selectionsOverride: providedSelectionsOverride,
+    isVariantInventoryLoading: providedIsVariantInventoryLoading = false,
     allowMissingPrice = false,
 }: PropsWithChildren<ProductViewProviderProps>) => {
-    const [selectionsOverride, setSelectionsOverride] = useState<Record<string, string>>({});
+    // Client-side size/width override written by an uncontrolled ProductInfo. Reset whenever the
+    // product changes so a stale pick can't leak across a client-side PDP-to-PDP navigation that
+    // doesn't remount the provider.
+    const [localSelectionsOverride, setLocalSelectionsOverride] = useState<Record<string, string>>({});
     useEffect(() => {
-        setSelectionsOverride({});
+        setLocalSelectionsOverride({});
     }, [product.id]);
 
-    // Merge the client-side override on top of URL-derived selections (mirrors ProductInfo's own
-    // selectedVariationValues merge) so an attribute the override doesn't cover -- e.g. color,
-    // which still navigates via <Swatch href> -- keeps resolving from the URL.
-    const urlSelections = useSelectedVariations({ product });
+    // A controlled caller (footwear colorway overlay) can drive selection itself; otherwise the
+    // selection is the shared client-side override that uncontrolled ProductInfo writes.
+    const selectionsOverride = providedSelectionsOverride ?? localSelectionsOverride;
     const hasSelectionsOverride = Object.keys(selectionsOverride).length > 0;
+    // Only the provider's own client-side override drives hydration. When a caller supplies
+    // selection (and its own resolved variant), it owns hydration -- don't fire a second fetch.
+    const hasLocalOverride = Object.keys(localSelectionsOverride).length > 0;
+
+    // Merge the client-side override on top of URL-derived selections (mirrors ProductInfo's own
+    // selectedVariationValues merge) so an attribute the override doesn't cover keeps resolving
+    // from the URL.
+    const urlSelections = useSelectedVariations({ product });
     const mergedSelections = useMemo(
         () => ({ ...urlSelections, ...selectionsOverride }),
         [urlSelections, selectionsOverride]
@@ -125,20 +153,25 @@ const ProductViewProvider = ({
         // master. Have the hook hydrate that SKU's authoritative inventory so canAddToCart and
         // quantity validate against the real SKU (and its per-store pickup inventory), not the
         // master. Only footwear writes `selectionsOverride`, so this stays false -- and adds no
-        // extra fetch -- for every other vertical and for controlled modal flows.
-        hydrateVariantInventory: hasSelectionsOverride,
+        // extra fetch -- for every other vertical and for controlled colorway/modal flows.
+        hydrateVariantInventory: hasLocalOverride,
     });
+
+    // Loading is true when a controlled caller says so (its own fetch) or the provider's own
+    // client-side hydration fetch is still pending.
+    const isVariantInventoryLoading = providedIsVariantInventoryLoading || productActionsData.isVariantInventoryLoading;
 
     return (
         <ProductViewContext.Provider
             value={{
+                ...productActionsData,
                 product,
                 mode,
+                isVariantInventoryLoading,
                 // Mirror the hook's price-gate bypass conditions so display tracks gate.
                 allowMissingPrice: allowMissingPrice || Boolean(itemId),
                 selectionsOverride,
-                setSelectionsOverride,
-                ...productActionsData,
+                setSelectionsOverride: setLocalSelectionsOverride,
             }}>
             {children}
         </ProductViewContext.Provider>

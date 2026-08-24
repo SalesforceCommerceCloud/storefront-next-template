@@ -35,7 +35,7 @@ export interface ChildProductSelection {
  * @returns Store-specific inventory data, or null if not found, product is undefined, inventoryId is undefined, or product.inventories is undefined/empty
  */
 export function getStoreInventoryById(
-    product: ShopperProducts.schemas['Product'] | undefined,
+    product: { inventories?: ShopperProducts.schemas['Inventory'][] } | undefined | null,
     inventoryId: string | undefined
 ): ShopperProducts.schemas['Inventory'] | null {
     if (!inventoryId || !product?.inventories) {
@@ -155,8 +155,13 @@ export function getEffectiveInventory({
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     if (isPickup && storeInventoryId) {
-        // Store inventory: use product.inventories array
-        return getStoreInventoryById(product, storeInventoryId);
+        // A locally selected PDP variant can carry newer store availability than its master product.
+        const variantInventories = (variant as unknown as { inventories?: ShopperProducts.schemas['Inventory'][] })
+            ?.inventories;
+        return (
+            getStoreInventoryById({ inventories: variantInventories }, storeInventoryId) ??
+            getStoreInventoryById(product, storeInventoryId)
+        );
     }
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -270,7 +275,9 @@ export function isInStock({
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     if (isPickup && storeInventoryId) {
-        return !isStoreOutOfStock(product, storeInventoryId, quantity);
+        const inventory = getEffectiveInventory({ product, isPickup, storeInventoryId, variant });
+        const stockLevel = inventory?.stockLevel ?? 0;
+        return Boolean(inventory?.orderable && stockLevel >= quantity);
     }
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 

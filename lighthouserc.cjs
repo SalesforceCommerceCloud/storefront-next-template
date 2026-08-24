@@ -209,9 +209,18 @@ module.exports = {
                         // accessible-name fallback in this shared chunk via the canonical
                         // ImageGallery (~83B). It fits under this same 508000 ceiling; the
                         // lighthouse-cosmetic CI run on the merged branch confirms the combined median.
+                        // Raised 508000 → 509000 (@W-23751957@): the footwear colorway overlay needs
+                        // the selected variant's authoritative inventory before purchase, so the
+                        // canonical ProductViewProvider now threads an `isVariantInventoryLoading`
+                        // flag and ProductCartActions gates Add to Cart / Buy Now / express payments
+                        // on it. That wiring ships in the shared chunk the cart recommendations
+                        // carousel pulls in (cosmetic mirror measured 508054, zero variance across 5
+                        // runs). The gate is irreducible — it is the fix that stops purchasing a SKU
+                        // whose inventory has not resolved — so absorb the ~54B with headroom rather
+                        // than dropping it.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 508000, aggregationMethod: 'median' },
+                            { maxNumericValue: 509000, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.
