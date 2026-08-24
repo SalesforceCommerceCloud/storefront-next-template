@@ -349,6 +349,29 @@ describe('Order Confirmation Route', () => {
             expect(screen.getByText(t('checkout:confirmation.actions.continueShopping'))).toBeInTheDocument();
         });
 
+        // The error state replaces the whole route, so its title is the page's primary
+        // heading and must be a real heading rather than a bare <div>, otherwise this
+        // render has no entry in the heading outline. Regression guard for W-23325709.
+        test('exposes the error-state page title as a heading', () => {
+            const Stub = createRoutesStub([
+                {
+                    path: '/order-confirmation/:orderNo',
+                    Component: () => {
+                        throw createApiError(404);
+                    },
+                    ErrorBoundary,
+                },
+            ]);
+
+            render(
+                <AllProvidersWrapper>
+                    <Stub initialEntries={['/order-confirmation/INVALID']} />
+                </AllProvidersWrapper>
+            );
+
+            expect(screen.getByRole('heading', { name: t('checkout:confirmation.orderNotFound') })).toBeInTheDocument();
+        });
+
         test('renders order-placed-but-details-unavailable messaging on 5xx, with the orderNo surfaced', () => {
             const Stub = createRoutesStub([
                 {
@@ -722,6 +745,21 @@ describe('Order Confirmation Route', () => {
             expect(
                 screen.queryByRole('heading', { name: t('checkout:confirmation.summaryLabels.arriving') })
             ).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Newsletter section markup', () => {
+        // The newsletter card is a section with its own title, like the store-pickup and order-summary
+        // cards, so its title must be a heading rather than a plain paragraph — otherwise the card has
+        // no entry in the heading outline a screen-reader user navigates by. Regression guard for W-23325709.
+        test('exposes the newsletter title as a heading', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                expect(
+                    screen.getByRole('heading', { name: t('checkout:confirmation.newsletter.title') })
+                ).toBeInTheDocument();
+            });
         });
     });
 

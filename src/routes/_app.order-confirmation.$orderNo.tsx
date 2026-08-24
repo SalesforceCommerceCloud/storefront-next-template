@@ -193,7 +193,9 @@ export function ErrorBoundary() {
             <div className="max-w-4xl mx-auto section-container py-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-center">{title}</CardTitle>
+                        <CardTitle as="h1" className="text-center">
+                            {title}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="text-center space-y-4">
                         <Typography variant="p" className="text-muted-foreground">
@@ -606,7 +608,9 @@ function OrderConfirmationContent({
                 <Card className="border border-border/70">
                     <CardContent className="space-y-4 p-6">
                         <div>
-                            <p className="font-medium text-foreground">{t('confirmation.newsletter.title')}</p>
+                            <CardTitle as="h2" className="font-medium text-foreground">
+                                {t('confirmation.newsletter.title')}
+                            </CardTitle>
                             <p className="text-sm text-muted-foreground">{t('confirmation.newsletter.subtitle')}</p>
                         </div>
                         {/* This is a static placeholder form. Integrators should handle submit events here
