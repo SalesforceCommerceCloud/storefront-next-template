@@ -24,6 +24,7 @@ Each package's `lint` script chains OxLint and the Biome format check, so `pnpm 
 |------|------|-------|
 | `.oxlintrc.json` (repo root) | OxLint | All lint rules + `jsPlugins` (custom rules) + `ignorePatterns` |
 | `packages/template/.oxlintrc.json` | OxLint | Template overrides (extends root) |
+| `packages/template/scripts/internal/oxlint-vertical-imports.json` | OxLint | Non-type-aware guard for vertical overlay imports |
 | `biome.json` (repo root) | Biome | Root formatter config (`root: true`) |
 | `packages/template/biome.json` | Biome | Template formatter config (`root: false`, `extends: "//"`) |
 | `packages/template/e2e/biome.json` | Biome | Standalone (`root: true`) — e2e's formatting scope differs |
@@ -42,11 +43,12 @@ OxLint's type-aware rules run via `oxlint-tsgolint` (the `--type-aware` flag). T
 
 ## Custom lint rules
 
-Custom rules live in [`lint-plugins/`](../../../lint-plugins/) at the repo root and load via `jsPlugins` in `.oxlintrc.json` under the `custom` namespace:
+Repository-wide custom rules live in [`lint-plugins/`](../../../lint-plugins/) and template-only rules live in [`packages/template/lint-plugins/`](../lint-plugins/). They load through `jsPlugins` under the `custom` and `template` namespaces:
 
 - `custom/color-linter` — enforce design tokens over hard-coded colors (see [README-UI-STYLING.md](./README-UI-STYLING.md))
 - `custom/header-format` — enforce the Apache 2.0 copyright header on every TS/JS file
-- `custom/no-internal-mvt-comments` — block internal multi-vertical comment markers from leaking into customer code (dropped by the mirror; monorepo-only)
+- `template/no-internal-mvt-comments`: block internal multi-vertical comment markers from leaking into customer code (dropped by the mirror; monorepo-only)
+- `template/no-vertical-qualified-imports`: require flat `@/...` imports in vertical overlays so generated storefronts do not retain monorepo-only paths (monorepo-only)
 
 Their unit tests (`lint-plugins/__tests__/`) run via `pnpm test:lint-plugins` (root `vitest.config.ts`) and are gated in CI by the **Lint Plugin Tests** job.
 
