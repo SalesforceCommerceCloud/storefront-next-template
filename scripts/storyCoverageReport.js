@@ -48,6 +48,8 @@ const EXCLUDED_COMPONENTS = new Set([
     'icons/mastercard-icon',
     'icons/visa-icon',
     'product-carousel/index',
+    // Page Designer/Suspense wrapper — `grid.tsx` has the visual merchandising-grid story.
+    'product-merchandising-grid/index',
     'product-cart-actions/index',
     'product-image/index',
     'product-item-skeleton/index',

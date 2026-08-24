@@ -23,7 +23,7 @@ import { registry } from '@/lib/page-designer/registry';
  *
  * DO NOT EDIT THIS FUNCTION MANUALLY - it will be overwritten on next build.
  *
- * Components registered: Content.announcementBanner, Content.contentCard, Content.hero, Content.pdImage, Content.popularCategory, Content.productRecommendations, Content.productTile, Layout.grid, Layout.header, Layout.heroCarousel, Layout.megaMenu, Layout.popularCategories, Layout.productCarousel
+ * Components registered: Content.announcementBanner, Content.contentCard, Content.hero, Content.pdImage, Content.popularCategory, Content.productRecommendations, Content.productTile, Layout.grid, Layout.header, Layout.heroCarousel, Layout.megaMenu, Layout.popularCategories, Layout.productCarousel, Layout.productMerchandisingGrid
  */
 export function initializeRegistry(targetRegistry = registry): void {
     targetRegistry.registerImporter(
@@ -62,6 +62,11 @@ export function initializeRegistry(targetRegistry = registry): void {
         loader: 'loader',
         fallback: 'fallback',
     });
+    targetRegistry.registerImporter(
+        'Layout.productMerchandisingGrid',
+        () => import('../../components/product-merchandising-grid/index'),
+        { loader: 'loader', fallback: 'fallback' }
+    );
 }
 
 // STATIC_REGISTRY_END

@@ -1,0 +1,60 @@
+{
+    "name": "Product Merchandising Grid",
+    "description": "Displays either a bounded category assortment or an authored collection of product tiles in a responsive grid.",
+    "group": "Layout",
+    "arch_type": "headless",
+    "region_definitions": [
+        {
+            "id": "products",
+            "name": "Products",
+            "description": "Add Product Tile components to curate this grid. This region is ignored when a category is selected.",
+            "component_type_inclusions": [
+                {
+                    "type_id": "Content.productTile"
+                }
+            ],
+            "max_components": 24
+        }
+    ],
+    "attribute_definition_groups": [
+        {
+            "id": "productMerchandisingGrid",
+            "name": "Product Merchandising Grid",
+            "description": "Displays either a bounded category assortment or an authored collection of product tiles in a responsive grid.",
+            "attribute_definitions": [
+                {
+                    "id": "title",
+                    "name": "Title",
+                    "type": "string",
+                    "required": false,
+                    "description": "Field: title",
+                    "default_value": ""
+                },
+                {
+                    "id": "categoryId",
+                    "name": "Category",
+                    "type": "category",
+                    "required": false,
+                    "description": "Select a category to populate the product grid automatically. When set, the manual product-tile region is ignored."
+                },
+                {
+                    "id": "columns",
+                    "name": "Columns",
+                    "type": "enum",
+                    "required": false,
+                    "description": "Number of product columns at desktop widths.",
+                    "values": ["2", "3", "4"],
+                    "default_value": "4"
+                },
+                {
+                    "id": "rows",
+                    "name": "Rows",
+                    "type": "integer",
+                    "required": false,
+                    "description": "Number of merchandising rows to display at desktop widths.",
+                    "default_value": 2
+                }
+            ]
+        }
+    ]
+}
