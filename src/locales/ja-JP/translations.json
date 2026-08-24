@@ -337,7 +337,7 @@
         "itemCount_other": "買い物カゴ ({{count}} 点)",
         "empty": {
             "title": "買い物カゴは空です。",
-            "registeredMessage": "買い物を続けて、買い物カゴに商品を追加してください。",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "保存済み商品を表示するにはサインインするか、買い物を続けてください。",
             "continueShopping": "買い物を続ける",
             "signIn": "サインイン"

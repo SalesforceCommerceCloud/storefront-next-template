@@ -337,7 +337,7 @@
         "itemCount_other": "Ostoskori ({{count}} tuotetta)",
         "empty": {
             "title": "Ostoskorisi on tyhjä.",
-            "registeredMessage": "Jatka ostoksia lisätäksesi tuotteita ostoskoriin.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Kirjaudu sisään hakeaksesi tallennetut tuotteet tai jatka ostoksia.",
             "continueShopping": "Jatka ostoksia",
             "signIn": "Kirjaudu sisään"

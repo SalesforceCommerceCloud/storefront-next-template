@@ -338,7 +338,7 @@
         "itemCount_other": "Kurv ({{count}} varer)",
         "empty": {
             "title": "Kurven er tom.",
-            "registeredMessage": "Fortsett å handle for å legge til varer i kurven.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Logg på for å hente lagrede varer eller fortsette å handle.",
             "continueShopping": "Fortsett å handle",
             "signIn": "Logg på"

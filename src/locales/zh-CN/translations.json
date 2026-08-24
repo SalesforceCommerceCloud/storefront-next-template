@@ -338,7 +338,7 @@
         "itemCount_other": "购物车 （{{count}} 件商品）",
         "empty": {
             "title": "购物车内没有商品。",
-            "registeredMessage": "继续购物并将商品添加到购物车。",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "登录以检索您保存的商品或继续购物。",
             "continueShopping": "继续购物",
             "signIn": "登录"

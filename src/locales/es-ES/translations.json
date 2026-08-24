@@ -337,7 +337,7 @@
         "itemCount_other": "Carrito ({{count}} artículos)",
         "empty": {
             "title": "Tu carrito está vacío.",
-            "registeredMessage": "Continúa comprando para agregar artículos a tu carrito.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Regístrate para recuperar tus artículos guardados o continuar comprando.",
             "continueShopping": "Continuar comprando",
             "signIn": "Registrarse"

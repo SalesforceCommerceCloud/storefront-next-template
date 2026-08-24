@@ -335,7 +335,7 @@
         "itemCount_other": "Winkelwagen ({{count}} artikelen)",
         "empty": {
             "title": "Je winkelwagen is leeg.",
-            "registeredMessage": "Ga door met shoppen om artikelen aan je winkelwagen toe te voegen.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Meld je aan om je opgeslagen artikelen terug te halen of om door te gaan met shoppen.",
             "continueShopping": "Doorgaan met shoppen",
             "signIn": "Aanmelden"

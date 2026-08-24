@@ -336,7 +336,7 @@
         "itemCount_other": "Kundvagn ({{count}} artiklar)",
         "empty": {
             "title": "Din kundvagn är tom.",
-            "registeredMessage": "Fortsätt handla för att lägga till artiklar i din kundvagn.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Logga in för att hämta dina sparade artiklar eller fortsätt handla.",
             "continueShopping": "Fortsätt handla",
             "signIn": "Logga in"

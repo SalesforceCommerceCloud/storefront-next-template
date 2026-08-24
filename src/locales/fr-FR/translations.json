@@ -338,7 +338,7 @@
         "itemCount_other": "Panier ({{count}} articles)",
         "empty": {
             "title": "Votre panier est vide.",
-            "registeredMessage": "Poursuivez votre visite pour ajouter des articles à votre panier.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Connectez-vous pour récupérer vos articles enregistrés ou poursuivre vos achats.",
             "continueShopping": "Continuer les achats",
             "signIn": "Se connecter"

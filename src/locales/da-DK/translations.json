@@ -337,7 +337,7 @@
         "itemCount_other": "Kurv ({{count}} varer)",
         "empty": {
             "title": "Din kurv er tom.",
-            "registeredMessage": "Fortsæt med at handle for at lægge varer i din kurv.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Log ind for at hente dine gemte varer eller fortsætte med at handle.",
             "continueShopping": "Fortsæt med at handle",
             "signIn": "Log ind"

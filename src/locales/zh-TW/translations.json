@@ -338,7 +338,7 @@
         "itemCount_other": "購物車 ({{count}} 個項目)",
         "empty": {
             "title": "您的購物車是空的。",
-            "registeredMessage": "繼續選購，並將商品新增至購物車。",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "登入來存取您所儲存的項目，或繼續選購。",
             "continueShopping": "繼續選購",
             "signIn": "登入"

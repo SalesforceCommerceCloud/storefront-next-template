@@ -337,7 +337,7 @@
         "itemCount_other": "카트({{count}}개 품목)",
         "empty": {
             "title": "카트가 비어 있습니다.",
-            "registeredMessage": "계속 쇼핑하면서 카트에 항목을 추가합니다.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "로그인하여 저장된 항목을 검색하거나 쇼핑을 계속하십시오.",
             "continueShopping": "계속 쇼핑하기",
             "signIn": "로그인"

@@ -339,7 +339,7 @@
         "itemCount_other": "Koszyk (artykuły:{{count}})",
         "empty": {
             "title": "Twój koszyk jest pusty.",
-            "registeredMessage": "Kontynuuj zakupy, aby dodać artykuły do koszyka.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Zaloguj się, aby odzyskać zapisane artykuły, lub kontynuuj zakupy.",
             "continueShopping": "Kontynuuj zakupy",
             "signIn": "Zaloguj się"

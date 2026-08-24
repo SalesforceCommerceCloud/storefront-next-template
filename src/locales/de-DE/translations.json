@@ -336,7 +336,7 @@
         "itemCount_other": "Warenkorb ({{count}} Artikel)",
         "empty": {
             "title": "Ihr Warenkorb ist leer.",
-            "registeredMessage": "Setzen Sie Ihren Einkauf fort, um Ihrem Warenkorb Artikel hinzuzufügen.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Melden Sie sich an, um Ihre gespeicherten Artikel abzurufen oder mit dem Einkauf fortzufahren.",
             "continueShopping": "Weiter einkaufen",
             "signIn": "Anmelden"

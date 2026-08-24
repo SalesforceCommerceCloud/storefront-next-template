@@ -363,7 +363,7 @@
         },
         "empty": {
             "title": "Your cart is empty.",
-            "registeredMessage": "Continue shopping to add items to your cart.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Sign in to retrieve your saved items or continue shopping.",
             "continueShopping": "Continue Shopping",
             "signIn": "Sign In"

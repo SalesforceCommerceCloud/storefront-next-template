@@ -346,7 +346,7 @@
         "itemCount_other": "Carrello ({{count}} articoli)",
         "empty": {
             "title": "Il tuo carrello è vuoto.",
-            "registeredMessage": "Continua con lo shopping per aggiungere articoli al carrello.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Accedi per recuperare gli articoli salvati o continuare con lo shopping.",
             "continueShopping": "Continua lo shopping",
             "signIn": "Accedi"
