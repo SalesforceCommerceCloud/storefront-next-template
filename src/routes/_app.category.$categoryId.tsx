@@ -476,13 +476,24 @@ export default function CategoryPage({
     const lastSearchParamsRef = useRef<string>(getSearchWithoutClientOnlyParams(location.search));
 
     useEffect(() => {
-        // Move focus to results heading after refinement or sort changes
+        // After a refinement or sort change settles, only re-home focus if the control the shopper
+        // operated was removed by the update. Clearing filters ("Clear all" / a "Clear filter" chip)
+        // unmounts the control that had focus, dropping it to <body> and losing the user's place; in
+        // that case send focus to the results heading so keyboard and screen-reader users keep a
+        // predictable position (W-23325659). When the operated control persists — e.g. a facet button
+        // the shopper just toggled, kept mounted via the panel's optimistic state — leave focus on it.
+        // Moving focus to the results heading on every refinement stole focus from the facet the
+        // shopper was operating, an unexpected change of context (WCAG 3.2.2). (W-23492546)
         const meaningfulSearch = getSearchWithoutClientOnlyParams(location.search);
         if (navigation.state === 'idle' && lastSearchParamsRef.current !== meaningfulSearch) {
             lastSearchParamsRef.current = meaningfulSearch;
-            // Allow the DOM to update before moving focus
+            // Wait for the DOM to settle, then re-home focus only if it was dropped to the document.
             requestAnimationFrame(() => {
-                resultsHeadingRef.current?.focus();
+                const active = document.activeElement;
+                const focusLost = !active || active === document.body || active === document.documentElement;
+                if (focusLost) {
+                    resultsHeadingRef.current?.focus();
+                }
             });
         }
     }, [navigation.state, location.search]);
