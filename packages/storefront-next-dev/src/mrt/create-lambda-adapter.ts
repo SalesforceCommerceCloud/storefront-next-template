@@ -38,6 +38,73 @@ import { ServerlessRequest } from '@h4ad/serverless-adapter';
  */
 const REQUEST_HEADERS_TO_COPY = ['x-correlation-id'] as const;
 
+// Node's Brotli default is quality 11, which is optimized for offline compression
+// and can consume seconds of Lambda CPU for large streamed HTML responses.
+const DEFAULT_BROTLI_QUALITY = 6;
+const DEFAULT_BROTLI_FLUSH_THRESHOLD_BYTES = 32 * 1024;
+
+/**
+ * Resolves the Brotli compression quality from the MRT_BROTLI_COMPRESSION_QUALITY
+ * environment variable, falling back to DEFAULT_BROTLI_QUALITY. Values that are not
+ * integers within the valid Brotli quality range (0-11) are ignored.
+ *
+ * @returns The Brotli quality level to use.
+ */
+function resolveBrotliQuality(): number {
+    const raw = process.env.MRT_BROTLI_COMPRESSION_QUALITY;
+    if (raw === undefined || raw.trim() === '') {
+        return DEFAULT_BROTLI_QUALITY;
+    }
+
+    const parsed = Number(raw);
+    if (
+        Number.isInteger(parsed) &&
+        parsed >= zlib.constants.BROTLI_MIN_QUALITY &&
+        parsed <= zlib.constants.BROTLI_MAX_QUALITY
+    ) {
+        return parsed;
+    }
+
+    return DEFAULT_BROTLI_QUALITY;
+}
+
+/**
+ * Resolves the Brotli flush threshold (in bytes) from the MRT_BROTLI_FLUSH_THRESHOLD_BYTES
+ * environment variable, falling back to DEFAULT_BROTLI_FLUSH_THRESHOLD_BYTES.
+ * Values that are not positive integers are ignored.
+ *
+ * @returns The number of uncompressed bytes to buffer before forcing a Brotli flush.
+ */
+function resolveBrotliFlushThresholdBytes(): number {
+    const raw = process.env.MRT_BROTLI_FLUSH_THRESHOLD_BYTES;
+    if (raw === undefined || raw.trim() === '') {
+        return DEFAULT_BROTLI_FLUSH_THRESHOLD_BYTES;
+    }
+
+    const parsed = Number(raw);
+    if (Number.isInteger(parsed) && parsed > 0) {
+        return parsed;
+    }
+
+    return DEFAULT_BROTLI_FLUSH_THRESHOLD_BYTES;
+}
+
+/**
+ * Resolves whether periodic Brotli flushing ("chunking") is enabled from the
+ * MRT_BROTLI_CHUNKING_ENABLED environment variable. Defaults to enabled; set the
+ * variable to "false" to disable it and let Brotli buffer output until the response ends.
+ *
+ * @returns true if periodic Brotli flushing should be performed.
+ */
+function isBrotliChunkingEnabled(): boolean {
+    const raw = process.env.MRT_BROTLI_CHUNKING_ENABLED;
+    if (!raw) {
+        return true;
+    }
+
+    return raw.toLowerCase() !== 'false';
+}
+
 // Check if zstd compression is available (Node.js v24.0.0+)
 let createZstdCompress: ((options?: ZstdOptions) => ZstdCompress) | undefined;
 try {
@@ -332,7 +399,7 @@ function isCompressible(contentType: string | undefined): boolean {
     return !!compressible(contentType);
 }
 
-const isNullOrUndefined = (value: unknown): boolean => value == null;
+const isNullOrUndefined = (value: unknown): value is null | undefined => value == null;
 
 /**
  * Determines the best encoding based on Accept-Encoding header using the negotiator package
@@ -383,8 +450,22 @@ function getBestEncoding(
 function createCompressionStream(encoding: string, compressionConfig?: CompressionConfig): CompressionStream {
     const options = compressionConfig?.options || undefined;
     switch (encoding) {
-        case 'br':
-            return zlib.createBrotliCompress(options as BrotliOptions);
+        case 'br': {
+            const brotliOptions = options as BrotliOptions | undefined;
+            const qualityParameter = zlib.constants.BROTLI_PARAM_QUALITY;
+
+            if (brotliOptions?.params?.[qualityParameter] !== undefined) {
+                return zlib.createBrotliCompress(brotliOptions);
+            }
+
+            return zlib.createBrotliCompress({
+                ...brotliOptions,
+                params: {
+                    ...brotliOptions?.params,
+                    [qualityParameter]: resolveBrotliQuality(),
+                },
+            });
+        }
         case 'zstd':
             if (!createZstdCompress) {
                 throw new Error('zstd compression is not available in this Node.js version (requires v24.0.0+)');
@@ -440,6 +521,9 @@ export function createExpressResponse(
     let compressionStream: CompressionStream | null = null;
     let shouldCompress = false;
     let compressionInitialized = false;
+    let uncompressedBytesSinceBrotliFlush = 0;
+    const brotliFlushThresholdBytes = resolveBrotliFlushThresholdBytes();
+    const brotliChunkingEnabled = isBrotliChunkingEnabled();
 
     // Helper function to check if stream is still writable
     const isStreamOpen = (): boolean => {
@@ -508,6 +592,19 @@ export function createExpressResponse(
             if (shouldCompress && compressionStream && compressionStream.writable) {
                 // Write to compression stream, which will compress and pipe to httpResponseStream
                 compressionStream.write(chunk);
+                if (
+                    brotliChunkingEnabled &&
+                    selectedEncoding === 'br' &&
+                    typeof compressionStream.flush === 'function'
+                ) {
+                    uncompressedBytesSinceBrotliFlush +=
+                        typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.byteLength;
+
+                    if (uncompressedBytesSinceBrotliFlush >= brotliFlushThresholdBytes) {
+                        compressionStream.flush(zlib.constants.BROTLI_OPERATION_FLUSH);
+                        uncompressedBytesSinceBrotliFlush = 0;
+                    }
+                }
             } else if (httpResponseStream && httpResponseStream.writable) {
                 // No compression, write directly to httpResponseStream
                 httpResponseStream.write(chunk);
