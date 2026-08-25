@@ -153,6 +153,19 @@ describe('Hero Component', () => {
             expect(screen.getByText('Custom Subtitle')).toBeInTheDocument();
         });
 
+        test('renders the title at the requested semantic heading level', () => {
+            renderHero({ title: 'Section title', headingLevel: 2 });
+
+            expect(screen.getByRole('heading', { level: 2, name: 'Section title' })).toBeInTheDocument();
+            expect(screen.queryByRole('heading', { level: 1, name: 'Section title' })).not.toBeInTheDocument();
+        });
+
+        test('falls back to h1 when the heading level is outside the supported range', () => {
+            renderHero({ title: 'Section title', headingLevel: 7 as never });
+
+            expect(screen.getByRole('heading', { level: 1, name: 'Section title' })).toBeInTheDocument();
+        });
+
         test('renders image with empty alt when imageAlt is not provided', () => {
             renderHero({ imageUrl: { url: '/test.jpg' } });
 

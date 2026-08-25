@@ -207,6 +207,22 @@ describe('PopularCategory', () => {
         expect(link).toHaveAttribute('href', `${getSitePrefix()}/category/newarrivals`);
     });
 
+    test('can fill a parent grid cell without changing the default square media layout', () => {
+        const { container } = renderComponent(<PopularCategory data={mockCategory} mediaAspectRatio="fill" />);
+
+        expect(container.querySelector('[data-slot="category-media"]')).toHaveClass('h-full');
+        expect(container.querySelector('[data-slot="category-media"]')).not.toHaveClass('aspect-square');
+    });
+
+    test('can fill a parent grid cell when its label is below the media', () => {
+        const { container } = renderComponent(
+            <PopularCategory data={mockCategory} labelPosition="below" mediaAspectRatio="fill" />
+        );
+
+        expect(container.querySelector('[data-slot="category-media"]')).toHaveClass('flex-1', 'min-h-0');
+        expect(container.querySelector('[data-slot="category-media"]')).not.toHaveClass('aspect-square');
+    });
+
     test('handles category with empty id', () => {
         const categoryWithEmptyId = {
             ...mockCategory,

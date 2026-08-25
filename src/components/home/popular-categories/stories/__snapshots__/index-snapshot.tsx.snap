@@ -57,7 +57,8 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -139,7 +140,8 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -221,7 +223,8 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -303,7 +306,8 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -633,7 +637,8 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/category/:categoryId"
                   >
                     <div
-                      class="relative aspect-square w-full overflow-hidden rounded-ui bg-muted"
+                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      data-slot="category-media"
                     >
                       <div
                         class="h-full w-full"
@@ -689,7 +694,8 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/category/:categoryId"
                   >
                     <div
-                      class="relative aspect-square w-full overflow-hidden rounded-ui bg-muted"
+                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      data-slot="category-media"
                     >
                       <div
                         class="h-full w-full"
@@ -745,7 +751,8 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/category/:categoryId"
                   >
                     <div
-                      class="relative aspect-square w-full overflow-hidden rounded-ui bg-muted"
+                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      data-slot="category-media"
                     >
                       <div
                         class="h-full w-full"
@@ -801,7 +808,8 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                     href="/RefArchGlobal/en-GB/category/:categoryId"
                   >
                     <div
-                      class="relative aspect-square w-full overflow-hidden rounded-ui bg-muted"
+                      class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
+                      data-slot="category-media"
                     >
                       <div
                         class="h-full w-full"
@@ -1089,7 +1097,8 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1171,7 +1180,8 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1253,7 +1263,8 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1335,7 +1346,8 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1417,7 +1429,8 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1499,7 +1512,8 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1708,7 +1722,8 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1790,7 +1805,8 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1872,7 +1888,8 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -1954,7 +1971,8 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2151,7 +2169,8 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2233,7 +2252,8 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2315,7 +2335,8 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2397,7 +2418,8 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2594,7 +2616,8 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2657,7 +2680,8 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2720,7 +2744,8 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"
@@ -2783,7 +2808,8 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                       class="group relative overflow-hidden bg-muted h-full"
                     >
                       <div
-                        class="aspect-square overflow-hidden"
+                        class="overflow-hidden aspect-square"
+                        data-slot="category-media"
                       >
                         <div
                           class="relative w-full h-full transition-transform duration-500 group-hover:scale-105"

@@ -40,6 +40,8 @@ const HERO_TYPOGRAPHY_VALUES = [
 ] as const;
 
 type HeroTypography = (typeof HERO_TYPOGRAPHY_VALUES)[number];
+type HeroHeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
+type HeroHeadingTag = `h${HeroHeadingLevel}`;
 
 const BUTTON_STYLE_VALUES = ['Primary', 'Secondary', 'Tertiary'] as const;
 type ButtonStyle = (typeof BUTTON_STYLE_VALUES)[number];
@@ -148,6 +150,10 @@ function normalizeHeroOverlay(value: string | undefined): HeroOverlay {
         return value as HeroOverlay;
     }
     return 'None';
+}
+
+function normalizeHeroHeadingLevel(value: number): HeroHeadingLevel {
+    return Number.isInteger(value) && value >= 1 && value <= 6 ? (value as HeroHeadingLevel) : 1;
 }
 
 function getCtaLabel(ctaText: string | undefined, ctaLink: string): string {
@@ -393,6 +399,7 @@ export default function Hero({
     priority = 'high',
     loading = 'eager',
     fillHeight = false,
+    headingLevel = 1,
     ctaAriaLabel,
 }: {
     title?: string;
@@ -437,6 +444,12 @@ export default function Hero({
      * Page-Designer attribute.
      */
     fillHeight?: boolean;
+    /**
+     * Semantic level for the title heading. Defaults to h1 for standalone and Page Designer
+     * heroes; route compositions can use a lower level when the page already provides its h1.
+     * Not a Page-Designer attribute.
+     */
+    headingLevel?: HeroHeadingLevel;
 }): ReactElement {
     const uid = useId();
     const { t } = useTranslation('common');
@@ -488,6 +501,7 @@ export default function Hero({
 
     const titleStyle: CSSProperties | undefined = titleHex ? { color: titleHex } : undefined;
     const subtitleStyle: CSSProperties | undefined = subtitleHex ? { color: subtitleHex } : undefined;
+    const TitleHeading = `h${normalizeHeroHeadingLevel(headingLevel)}` as HeroHeadingTag;
 
     const overlayRowClass = cn(
         vertical === 'start' && 'items-start',
@@ -573,7 +587,7 @@ export default function Hero({
                     <div className="container mx-auto w-full section-container">
                         <div className={cn(contentBlockClass, textAlignClass)}>
                             {title && (
-                                <h1
+                                <TitleHeading
                                     className={cn(
                                         TITLE_TYPOGRAPHY_CLASS[titleTypo],
                                         'mb-3 sm:mb-4 md:mb-6',
@@ -581,7 +595,7 @@ export default function Hero({
                                     )}
                                     style={titleStyle}>
                                     {title}
-                                </h1>
+                                </TitleHeading>
                             )}
 
                             {subtitle && (

@@ -59,6 +59,12 @@ interface PopularCategoryProps extends Omit<ComponentProps<typeof Link>, 'to'> {
      * @default 'overlay'
      */
     labelPosition?: 'overlay' | 'below';
+    /**
+     * `'square'` preserves the default card media frame. `'fill'` lets a parent
+     * layout, such as a category mosaic, own the tile's aspect ratio.
+     * @default 'square'
+     */
+    mediaAspectRatio?: 'square' | 'fill';
     // Page Designer props (passed by Component wrapper, must be extracted to avoid passing to DOM)
     regionId?: string;
     page?: ShopperExperience.schemas['Page'];
@@ -101,6 +107,7 @@ export default function PopularCategory({
     category,
     showDescription = false,
     labelPosition = 'overlay',
+    mediaAspectRatio = 'square',
     // Page Designer props - extracted to avoid passing to DOM
     regionId: _regionId,
     page: _page,
@@ -162,7 +169,12 @@ export default function PopularCategory({
                     className
                 )}
                 {...rest}>
-                <div className="relative aspect-square w-full overflow-hidden rounded-ui bg-muted">
+                <div
+                    data-slot="category-media"
+                    className={cn(
+                        'relative w-full overflow-hidden rounded-ui bg-muted',
+                        mediaAspectRatio === 'square' ? 'aspect-square' : 'flex-1 min-h-0'
+                    )}>
                     {/* Decorative: the adjacent visible label below names the link, so empty alt
                         avoids the category name being announced twice by assistive technology. */}
                     <DynamicImage
@@ -193,7 +205,9 @@ export default function PopularCategory({
             )}
             {...rest}>
             <div className="group relative overflow-hidden bg-muted h-full">
-                <div className="aspect-square overflow-hidden">
+                <div
+                    data-slot="category-media"
+                    className={cn('overflow-hidden', mediaAspectRatio === 'square' ? 'aspect-square' : 'h-full')}>
                     <div className="relative w-full h-full transition-transform duration-500 group-hover:scale-105">
                         {/* Decorative: the overlaid heading below names the link, so empty alt avoids
                             the category name being announced twice by assistive technology. */}
