@@ -28,6 +28,8 @@ import { CartItemModal } from './index';
 
 // Mock data
 import { variantProduct } from '@/components/__mocks__/master-variant-product';
+import { bundleProd } from '@/components/__mocks__/bundle-product';
+import { setProduct } from '@/components/__mocks__/set-product';
 
 // Utils
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
@@ -43,6 +45,10 @@ vi.mock('@/components/image-gallery', () => ({
         capturedImageGalleryProps.last = props;
         return <div data-testid="image-gallery" />;
     },
+}));
+
+vi.mock('@/components/product-view/child-products', () => ({
+    default: () => <div data-testid="child-products" />,
 }));
 
 // Mock useScapiFetcher to prevent actual API calls
@@ -230,6 +236,22 @@ describe('CartItemModal — add mode', () => {
         expect(screen.getByText(t('editItem:loadingProduct'))).toBeInTheDocument();
     });
 
+    test('uses the bounded Quick Add layout while product details are loading', () => {
+        mockUseScapiFetcher.mockReturnValue({
+            load: mockLoad,
+            data: null,
+            state: 'loading' as const,
+            success: false,
+        });
+        renderCartItemModal({ open: true, onOpenChange: vi.fn(), productId: 'test-product', onBuyNow: vi.fn() });
+
+        const dialog = screen.getByRole('dialog');
+
+        expect(dialog).toHaveClass('flex', 'flex-col', 'gap-0', 'overflow-hidden', 'p-0');
+        expect(dialog.querySelector('[data-slot="quick-add-details"]')).not.toBeInTheDocument();
+        expect(dialog.querySelector('[data-slot="quick-add-actions"]')).not.toBeInTheDocument();
+    });
+
     test('renders error state with retry button when fetcher fails', () => {
         mockUseScapiFetcher.mockReturnValue({
             load: mockLoad,
@@ -256,5 +278,81 @@ describe('CartItemModal — add mode', () => {
             await user.click(buyNowBtn);
             expect(onBuyNow).toHaveBeenCalled();
         }
+    });
+
+    test('keeps compact Quick Add actions outside the keyboard-focusable product details', async () => {
+        const user = userEvent.setup();
+        renderCartItemModal({
+            open: true,
+            onOpenChange: vi.fn(),
+            productId: variantProduct.id ?? '',
+            onBuyNow: vi.fn(),
+        });
+
+        const dialog = screen.getByRole('dialog');
+        const details = dialog.querySelector('[data-slot="quick-add-details"]');
+        const actions = dialog.querySelector('[data-slot="quick-add-actions"]');
+
+        expect(details).toHaveClass('flex-1', 'min-h-0', 'overflow-y-auto');
+        expect(details).toHaveAttribute('role', 'region');
+        expect(details).toHaveAttribute('aria-label', t('editItem:quickAddTitle'));
+        expect(details).toHaveAttribute('tabindex', '0');
+        expect(details).toHaveClass('focus-visible:ring-2', 'focus-visible:ring-ring');
+        expect(actions).toHaveClass('shrink-0', 'border-t', 'bg-background', 'pt-0', 'pb-4');
+        expect(actions).not.toHaveClass('py-4');
+        expect(details).not.toContain(actions);
+
+        for (let tabPresses = 0; tabPresses < 10 && document.activeElement !== details; tabPresses += 1) {
+            await user.tab();
+        }
+        expect(details).toHaveFocus();
+    });
+
+    test('keeps standard add actions in the existing scrollable dialog layout', () => {
+        renderCartItemModal({ open: true, onOpenChange: vi.fn(), productId: variantProduct.id ?? '' });
+
+        const dialog = screen.getByRole('dialog');
+        const actionGroup = dialog.querySelector('hr')?.parentElement;
+
+        expect(dialog.querySelector('[data-slot="quick-add-details"]')).not.toBeInTheDocument();
+        expect(dialog.querySelector('[data-slot="quick-add-actions"]')).not.toBeInTheDocument();
+        expect(actionGroup).toHaveClass('flex', 'flex-col', 'gap-4');
+    });
+
+    test.each([
+        ['product set', setProduct],
+        ['product bundle', bundleProd],
+    ])('keeps $0 Quick Add actions in the existing scrollable dialog layout', (_productType, product) => {
+        mockUseScapiFetcher.mockReturnValue({
+            load: mockLoad,
+            data: product,
+            state: 'idle' as const,
+            success: true,
+        });
+        renderCartItemModal({ open: true, onOpenChange: vi.fn(), productId: product.id ?? '', onBuyNow: vi.fn() });
+
+        const dialog = screen.getByRole('dialog');
+
+        expect(dialog).not.toHaveClass('flex', 'flex-col', 'gap-0', 'overflow-hidden', 'p-0');
+        expect(dialog.querySelector('[data-slot="quick-add-details"]')).not.toBeInTheDocument();
+        expect(dialog.querySelector('[data-slot="quick-add-actions"]')).not.toBeInTheDocument();
+        expect(screen.getByTestId('child-products')).toBeInTheDocument();
+    });
+
+    test('keeps cart edit actions in the existing scrollable dialog layout', () => {
+        renderCartItemModal({
+            open: true,
+            onOpenChange: vi.fn(),
+            product: variantProduct,
+            initialQuantity: 1,
+            itemId: 'test-item-id',
+        });
+
+        const dialog = screen.getByRole('dialog');
+        const actionGroup = dialog.querySelector('hr')?.parentElement;
+
+        expect(dialog.querySelector('[data-slot="quick-add-details"]')).not.toBeInTheDocument();
+        expect(dialog.querySelector('[data-slot="quick-add-actions"]')).not.toBeInTheDocument();
+        expect(actionGroup).toHaveClass('flex', 'flex-col', 'gap-4');
     });
 });

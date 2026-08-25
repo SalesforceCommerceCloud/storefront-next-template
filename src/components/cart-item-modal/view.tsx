@@ -97,11 +97,16 @@ export function CartItemModalView({
     const handleViewDetailsClick = useCallback(() => {
         onOpenChange?.(false);
     }, [onOpenChange]);
+    const hasFixedQuickAddActions = mode === 'add' && Boolean(onBuyNow) && !isProductASet && !isProductABundle;
 
     return (
         <Dialog open={open} onOpenChange={handleDialogOpenChange}>
             <DialogContent
-                className="max-h-[calc(100dvh-var(--header-height,0px)-1.5rem)] overflow-y-auto p-4 sm:p-5 md:p-6 sm:max-w-4xl"
+                className={
+                    hasFixedQuickAddActions
+                        ? 'flex max-h-[calc(100dvh-var(--header-height,0px)-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl'
+                        : 'max-h-[calc(100dvh-var(--header-height,0px)-1.5rem)] overflow-y-auto p-4 sm:p-5 md:p-6 sm:max-w-4xl'
+                }
                 showCloseButton>
                 <DialogHeader className="sr-only">
                     <DialogTitle>{dialogTitle}</DialogTitle>
@@ -134,51 +139,70 @@ export function CartItemModalView({
                                     initialQuantity={initialQuantity}
                                     itemId={itemId}
                                     currentVariant={matchingVariant}>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                                        <div className="order-1">
-                                            <ImageGallery
-                                                key={currentProduct.id}
-                                                images={galleryImages}
-                                                eager={!isProductASet && !isProductABundle}
-                                                showNavigationArrows
-                                                horizontalThumbnails
-                                                productName={currentProduct.name}
-                                                widths={GALLERY_WIDTHS}
-                                            />
-                                        </div>
-                                        <div className="order-2 flex flex-col self-start">
-                                            <ProductInfo
-                                                product={currentProduct}
-                                                swatchMode="controlled"
-                                                onAttributeChange={onAttributeChange}
-                                                variationValues={variationValues}
-                                                currentVariantOverride={matchingVariant}
-                                                isVariantInventoryLoading={isVariantInventoryLoading}
-                                                variantStyle="full"
-                                                hideActionIcons
-                                                // @sfdc-extension-line SFDC_EXT_RATINGS_REVIEWS
-                                                disableRatingInteraction={mode === 'add'}
-                                                headerAction={
-                                                    mode === 'add' && viewDetailsHref ? (
-                                                        <Link
-                                                            to={viewDetailsHref}
-                                                            className="text-sm font-semibold underline"
-                                                            onClick={handleViewDetailsClick}>
-                                                            {t('account:orders.viewDetails')}
-                                                        </Link>
-                                                    ) : undefined
-                                                }
-                                                showQuantityInEditMode={mode === 'edit'}
-                                            />
+                                    <div
+                                        data-slot={hasFixedQuickAddActions ? 'quick-add-details' : undefined}
+                                        role={hasFixedQuickAddActions ? 'region' : undefined}
+                                        aria-label={hasFixedQuickAddActions ? dialogTitle : undefined}
+                                        className={
+                                            hasFixedQuickAddActions
+                                                ? 'flex-1 min-h-0 overflow-y-auto p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5 md:p-6'
+                                                : undefined
+                                        }
+                                        tabIndex={hasFixedQuickAddActions ? 0 : undefined}>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                                            <div className="order-1">
+                                                <ImageGallery
+                                                    key={currentProduct.id}
+                                                    images={galleryImages}
+                                                    eager={!isProductASet && !isProductABundle}
+                                                    showNavigationArrows
+                                                    horizontalThumbnails
+                                                    productName={currentProduct.name}
+                                                    widths={GALLERY_WIDTHS}
+                                                />
+                                            </div>
+                                            <div className="order-2 flex flex-col self-start">
+                                                <ProductInfo
+                                                    product={currentProduct}
+                                                    swatchMode="controlled"
+                                                    onAttributeChange={onAttributeChange}
+                                                    variationValues={variationValues}
+                                                    currentVariantOverride={matchingVariant}
+                                                    isVariantInventoryLoading={isVariantInventoryLoading}
+                                                    variantStyle="full"
+                                                    hideActionIcons
+                                                    // @sfdc-extension-line SFDC_EXT_RATINGS_REVIEWS
+                                                    disableRatingInteraction={mode === 'add'}
+                                                    headerAction={
+                                                        mode === 'add' && viewDetailsHref ? (
+                                                            <Link
+                                                                to={viewDetailsHref}
+                                                                className="text-sm font-semibold underline"
+                                                                onClick={handleViewDetailsClick}>
+                                                                {t('account:orders.viewDetails')}
+                                                            </Link>
+                                                        ) : undefined
+                                                    }
+                                                    showQuantityInEditMode={mode === 'edit'}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <hr className="border-border border-t-2" />
-                                    <ProductCartActions
-                                        product={currentProduct}
-                                        onBeforeCartAction={onBeforeCartAction}
-                                        onCartSuccess={mode === 'add' ? onBeforeCartAction : undefined}
-                                        onBuyNow={mode === 'add' ? onBuyNow : undefined}
-                                    />
+                                    <div
+                                        data-slot={hasFixedQuickAddActions ? 'quick-add-actions' : undefined}
+                                        className={
+                                            hasFixedQuickAddActions
+                                                ? 'shrink-0 border-t bg-background px-4 pt-0 pb-4 sm:px-5 md:px-6'
+                                                : 'flex flex-col gap-4'
+                                        }>
+                                        {!hasFixedQuickAddActions && <hr className="border-border border-t-2" />}
+                                        <ProductCartActions
+                                            product={currentProduct}
+                                            onBeforeCartAction={onBeforeCartAction}
+                                            onCartSuccess={mode === 'add' ? onBeforeCartAction : undefined}
+                                            onBuyNow={mode === 'add' ? onBuyNow : undefined}
+                                        />
+                                    </div>
                                 </ProductViewProvider>
                                 {/* Both branches render inside the cart modal — selectionSource="local" so child
                                         swatch clicks stay in component state and don't pollute the cart URL or
