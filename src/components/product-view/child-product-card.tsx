@@ -18,6 +18,7 @@ import ProductQuantityPicker from '@/components/product-quantity-picker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SwatchGroup, Swatch } from '@/components/swatch-group';
+import { DynamicImage } from '@/components/dynamic-image';
 import { useCurrentVariant } from '@/hooks/product/use-current-variant';
 import { useSelectedVariations } from '@/hooks/product/use-selected-variations';
 import { useVariationAttributes } from '@/hooks/product/use-variation-attributes';
@@ -300,16 +301,42 @@ export default function ChildProductCard({
                     local state only. No URL writes, no route revalidation. */}
                 {variationAttributes.map(({ id, name, selectedValue, values }) => {
                     const swatches = values.map((value) => {
-                        const { href, name: valueName, image, value: swatchValue, orderable } = value;
-                        const content = image ? (
-                            <div
-                                data-slot="swatch-dot"
-                                className="w-full h-full bg-cover bg-center bg-no-repeat"
-                                style={{ backgroundImage: `url(${image.link})` }}
-                                aria-label={image.alt || valueName}
-                            />
-                        ) : (
-                            <span className="text-xs font-medium">{valueName}</span>
+                        const { href, name: valueName, image, value: swatchValue, orderable, description } = value;
+                        // Color keeps its dot treatment; any other axis with swatch imagery renders a
+                        // DIS-optimized <DynamicImage> tile (replacing the raw, non-DIS background link),
+                        // and axes without swatch imagery fall back to text.
+                        const isColorAxis = id === 'color';
+                        const swatchShape = isColorAxis ? 'color' : image ? 'image' : 'label';
+                        const content = (
+                            <>
+                                {image && isColorAxis ? (
+                                    <div
+                                        data-slot="swatch-dot"
+                                        className="w-full h-full bg-cover bg-center bg-no-repeat"
+                                        style={{ backgroundImage: `url(${image.link})` }}
+                                        aria-label={image.alt || valueName}
+                                    />
+                                ) : image ? (
+                                    <DynamicImage
+                                        src={image.disBaseLink || image.link || ''}
+                                        alt={image.alt || valueName}
+                                        widths={[48, 64, 96]}
+                                        className="absolute inset-0 h-full w-full"
+                                        imageProps={{ className: 'h-full w-full object-cover' }}
+                                    />
+                                ) : (
+                                    <span className="text-xs font-medium">{valueName}</span>
+                                )}
+                                {/* Localized per-option description from SCAPI (e.g. a price delta
+                                    "+US$200"), rendered verbatim inline. Absent → nothing extra. */}
+                                {description && (
+                                    <span
+                                        data-slot="swatch-description"
+                                        className="ml-1 text-[length:var(--swatch-description-size,0.75rem)] text-muted-foreground">
+                                        {description}
+                                    </span>
+                                )}
+                            </>
                         );
 
                         return (
@@ -319,7 +346,7 @@ export default function ChildProductCard({
                                 disabled={!orderable}
                                 value={swatchValue}
                                 name={valueName}
-                                shape={id === 'color' ? 'color' : 'label'}
+                                shape={swatchShape}
                                 outOfStockSuffix={t('outOfStockSuffix')}>
                                 {content}
                             </Swatch>

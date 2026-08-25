@@ -218,9 +218,18 @@ module.exports = {
                         // runs). The gate is irreducible — it is the fix that stops purchasing a SKU
                         // whose inventory has not resolved — so absorb the ~54B with headroom rather
                         // than dropping it.
+                        // Raised 509000 → 513000 (@W-23917154@): the furniture PDP feature adds canonical
+                        // image-swatch rendering (swatch-group image tiles + the `custom-swatch-images`
+                        // resolver), ProductCartActions `additionalItems` product-set batching, and the
+                        // ProductTile inline quick-add placement. None touch the cart route directly, but
+                        // they ship in the shared chunk the cart recommendations carousel and the
+                        // bundle/set child-product-card swatches pull in (cosmetic mirror measured 511669
+                        // across 5 runs; fashion + foundations stay under 509000). The additions are the
+                        // feature surface — absorb the ~2.7KB with headroom rather than code-splitting
+                        // canonical PDP affordances out of the shared shell.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 509000, aggregationMethod: 'median' },
+                            { maxNumericValue: 513000, aggregationMethod: 'median' },
                         ],
                         // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.

@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 import CollapsibleSection from '@/components/collapsible-section';
 import { resolvePdpSections, type PdpSection } from '@/extensions/product-content/lib/pdp-sections';
 import { useProductContentData } from '@/extensions/product-content/context/product-content-data-context';
-import type { HtmlContent } from '@/extensions/product-content/lib/api/product-content.server';
+import type { SectionContent } from '@/components/html-fragment/types';
 
 const ProductAdapterSection = lazy(() => import('@/extensions/product-content/components/product-adapter-section'));
 
@@ -49,7 +49,7 @@ function CollapsibleSectionShells({ sections }: { sections: PdpSection[] }) {
     return (
         <>
             {sections.map((section) => (
-                <CollapsibleSection key={section.apiMethod} label={t(section.labelKey)}>
+                <CollapsibleSection key={section.labelKey} label={t(section.labelKey)}>
                     <ProductAdapterSection content={null} />
                 </CollapsibleSection>
             ))}
@@ -57,12 +57,18 @@ function CollapsibleSectionShells({ sections }: { sections: PdpSection[] }) {
     );
 }
 
-function ResolvedCollapsibles({ sections, contents }: { sections: PdpSection[]; contents: Array<HtmlContent | null> }) {
+function ResolvedCollapsibles({
+    sections,
+    contents,
+}: {
+    sections: PdpSection[];
+    contents: Array<SectionContent | null>;
+}) {
     const { t } = useTranslation('product');
     return (
         <>
             {sections.map((section, index) => (
-                <CollapsibleSection key={section.apiMethod} label={t(section.labelKey)}>
+                <CollapsibleSection key={section.labelKey} label={t(section.labelKey)}>
                     <ProductAdapterSection content={contents[index] ?? null} />
                 </CollapsibleSection>
             ))}

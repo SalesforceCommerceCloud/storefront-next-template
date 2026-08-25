@@ -277,6 +277,12 @@ export interface ProductTileProps extends ComponentProps<'div'> {
     showPickupAvailable?: boolean;
     /** Custom quick add button label */
     quickAddLabel?: string;
+    /**
+     * Where the Quick-Add button renders. `'overlay'` (default) keeps the current absolute,
+     * hover/focus-revealed control over the image; `'inline'` renders it in-flow at the bottom of the
+     * tile's info section (always visible, full-width). Backward-safe — omitting it keeps the overlay.
+     */
+    quickAddPlacement?: 'overlay' | 'inline';
     /** Top-level navigation category name shown below swatches (e.g. "Men", "Women") */
     topCategoryName?: string;
     /** Accepted for API compatibility; has no effect */
@@ -313,6 +319,7 @@ const ProductTile = memo(
                 imgAspectRatio,
                 showPickupAvailable = false,
                 quickAddLabel,
+                quickAddPlacement = 'overlay',
                 topCategoryName,
                 showNavigationArrows: _showNavigationArrows,
                 // Page Designer styling props
@@ -609,16 +616,20 @@ const ProductTile = memo(
 
                             {/* Quick Add button — `invisible` at rest for the same reason as the
                                 wishlist button above: an opacity-0 control stays in the a11y tree and
-                                tab order, so it is announced on every resting tile (WCAG 1.3.1). */}
-                            <div className="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20">
-                                <QuickAddButton
-                                    productId={product.productId ?? ''}
-                                    productName={productName}
-                                    selectedColorValue={selectedAttributeValue}
-                                    initialVariantSelections={initialVariantSelections}
-                                    label={quickAddLabel ?? t('quickAdd')}
-                                />
-                            </div>
+                                tab order, so it is announced on every resting tile (WCAG 1.3.1).
+                                Rendered here only for the default overlay placement; the `inline`
+                                placement renders it in-flow at the bottom of the info section below. */}
+                            {quickAddPlacement === 'overlay' && (
+                                <div className="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20">
+                                    <QuickAddButton
+                                        productId={product.productId ?? ''}
+                                        productName={productName}
+                                        selectedColorValue={selectedAttributeValue}
+                                        initialVariantSelections={initialVariantSelections}
+                                        label={quickAddLabel ?? t('quickAdd')}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -716,6 +727,20 @@ const ProductTile = memo(
                         </div>
                         <UITarget targetId="sfcc.productCard.loyalty.points" />
                         <UITarget targetId="sfcc.productCard.bnpl.message" />
+
+                        {/* Inline Quick-Add — always-visible, full-width button at the bottom of the
+                            tile (opt-in via quickAddPlacement="inline"; the overlay above is skipped). */}
+                        {quickAddPlacement === 'inline' && (
+                            <div className="mt-3">
+                                <QuickAddButton
+                                    productId={product.productId ?? ''}
+                                    productName={productName}
+                                    selectedColorValue={selectedAttributeValue}
+                                    initialVariantSelections={initialVariantSelections}
+                                    label={quickAddLabel ?? t('quickAdd')}
+                                />
+                            </div>
+                        )}
                     </div>
                 </Card>
             );

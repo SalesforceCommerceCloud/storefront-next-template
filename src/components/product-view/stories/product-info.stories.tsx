@@ -126,6 +126,59 @@ const defaultImageGroups: ShopperProducts.schemas['Product']['imageGroups'] = [
     },
 ];
 
+// Furniture-style fixture: a `fabric` axis whose values each ship a viewType='swatch' image
+// group. Exercises the data-driven image-swatch path on a NON-color axis — the canonical PDP
+// renders these as <DynamicImage> tiles with no vertical-specific overlay.
+const fabricVariationAttributes: ShopperProducts.schemas['Product']['variationAttributes'] = [
+    {
+        id: 'fabric',
+        name: 'Fabric',
+        values: [
+            // `description` is the SCAPI-shipped, locale-resolved per-option hint (a price delta here).
+            // Linen is the base fabric (no delta); velvet/leather cost more.
+            { value: 'linen', name: 'Linen', orderable: true },
+            { value: 'velvet', name: 'Velvet', orderable: true, description: '+US$200' },
+            { value: 'leather', name: 'Leather', orderable: true, description: '+US$450' },
+        ],
+    },
+];
+
+const fabricImageGroups: ShopperProducts.schemas['Product']['imageGroups'] = [
+    {
+        viewType: 'swatch',
+        variationAttributes: [{ id: 'fabric', values: [{ value: 'linen', name: 'Linen' }] }],
+        images: [
+            {
+                link: 'https://placehold.co/72x72/e4d5b7/333333?text=Linen',
+                disBaseLink: 'https://placehold.co/72x72/e4d5b7/333333?text=Linen',
+                alt: 'Linen fabric swatch',
+            },
+        ],
+    },
+    {
+        viewType: 'swatch',
+        variationAttributes: [{ id: 'fabric', values: [{ value: 'velvet', name: 'Velvet' }] }],
+        images: [
+            {
+                link: 'https://placehold.co/72x72/6b2d5c/ffffff?text=Velvet',
+                disBaseLink: 'https://placehold.co/72x72/6b2d5c/ffffff?text=Velvet',
+                alt: 'Velvet fabric swatch',
+            },
+        ],
+    },
+    {
+        viewType: 'swatch',
+        variationAttributes: [{ id: 'fabric', values: [{ value: 'leather', name: 'Leather' }] }],
+        images: [
+            {
+                link: 'https://placehold.co/72x72/6b4423/ffffff?text=Leather',
+                disBaseLink: 'https://placehold.co/72x72/6b4423/ffffff?text=Leather',
+                alt: 'Leather fabric swatch',
+            },
+        ],
+    },
+];
+
 // Helper function to create mock product. Accepts synthetic args (inventoryStatus,
 // hasVariations, etc.) so the Playground story can drive fixture shape from
 // the Controls panel. Keeps the legacy `overrides` escape hatch for dedicated
@@ -538,5 +591,47 @@ export const FocusOrderActionIcons: Story = {
                 wishlistBtn.compareDocumentPosition(firstSwatch) & Node.DOCUMENT_POSITION_FOLLOWING;
             await expect(wishlistBeforeSwatch).toBeTruthy();
         }
+    },
+};
+
+/**
+ * Image swatches on a NON-color axis. The `fabric` attribute ships per-value swatch imagery
+ * (viewType='swatch' image groups keyed to `fabric`), so the canonical PDP renders each value as
+ * a `<DynamicImage>` tile instead of a text label — data-driven, with no color-axis special-casing
+ * and no vertical overlay. Backward-safe: axes without swatch imagery (and every existing
+ * color/label story) render exactly as before.
+ *
+ * Declared last so it doesn't perturb the `useId` counter of the color/label stories above, keeping
+ * their snapshots byte-identical.
+ */
+export const ImageSwatchesOnNonColorAxis: Story = {
+    args: {
+        product: createMockProduct(
+            { productName: 'Modular Fabric Sofa' },
+            {
+                variationAttributes: fabricVariationAttributes,
+                imageGroups: fabricImageGroups,
+            }
+        ),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // Each fabric value renders as an image tile (shape='image'), carrying its swatch <img>.
+        const linenSwatch = canvas.getByRole('radio', { name: /linen/i });
+        await expect(linenSwatch).toHaveAttribute('data-swatch-type', 'image');
+        await expect(within(linenSwatch).getByRole('img', { name: 'Linen fabric swatch' })).toBeInTheDocument();
+
+        const velvetSwatch = canvas.getByRole('radio', { name: /velvet/i });
+        await expect(velvetSwatch).toHaveAttribute('data-swatch-type', 'image');
+
+        // Velvet ships a price-delta description → muted hint rendered verbatim (no currency logic).
+        const velvetHint = velvetSwatch.querySelector('[data-slot="swatch-description"]');
+        await expect(velvetHint).toBeInTheDocument();
+        await expect(velvetHint).toHaveTextContent('+US$200');
+
+        // Linen has no description → no hint element (backward-safe).
+        await expect(linenSwatch.querySelector('[data-slot="swatch-description"]')).not.toBeInTheDocument();
     },
 };

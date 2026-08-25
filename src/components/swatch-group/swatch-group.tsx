@@ -27,7 +27,7 @@ interface SwatchChild {
         handleSelect?: (value: string) => void;
         selected?: boolean;
         isFocusable?: boolean;
-        shape?: 'color' | 'label';
+        shape?: 'color' | 'label' | 'image';
         disabled?: boolean;
     };
 }
@@ -46,6 +46,11 @@ interface SwatchGroupProps {
     value?: string;
     /** Callback function called when a swatch is selected. */
     handleChange?: (value: string) => void;
+    /**
+     * When true, suppress the internal `{label}: {displayName}` header — the caller supplies the header
+     * elsewhere (e.g. a CollapsibleSection summary). The radiogroup stays labeled via `aria-label`.
+     */
+    hideHeader?: boolean;
     /** Additional CSS classes to apply to the container */
     className?: string;
 }
@@ -81,6 +86,7 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
     label = '',
     value,
     handleChange = noop,
+    hideHeader = false,
     className,
 }) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -152,9 +158,12 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
 
     const labelClasses = 'flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground';
 
-    // Check if this is a square swatch group (size, material, etc.)
-    const isSquareSwatchGroup =
-        (React.Children.toArray(children)[0] as React.ReactElement<SwatchChild['props']>)?.props?.shape === 'label';
+    // Check if this is a square swatch group (size, material, image tiles, etc.). Both text
+    // `label` tiles and `image` tiles use the wrapped, boxed tile layout; only the color pill
+    // group uses the inline pill layout.
+    const firstChildShape = (React.Children.toArray(children)[0] as React.ReactElement<SwatchChild['props']>)?.props
+        ?.shape;
+    const isSquareSwatchGroup = firstChildShape === 'label' || firstChildShape === 'image';
 
     const swatchesWrapperClasses = isSquareSwatchGroup
         ? 'inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1'
@@ -208,8 +217,9 @@ export const SwatchGroup: React.FC<SwatchGroupProps> = ({
             <div
                 className={isSquareSwatchGroup ? 'inline-flex flex-col gap-3' : 'flex flex-col gap-3'}
                 role="radiogroup"
-                aria-labelledby={label ? labelId : undefined}>
-                {label && (
+                aria-labelledby={!hideHeader && label ? labelId : undefined}
+                aria-label={hideHeader ? label : undefined}>
+                {!hideHeader && label && (
                     <div id={labelId} className={labelClasses}>
                         <span>{label}:</span>
                         {displayName && <span>{displayName}</span>}

@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-import { type ReactElement, type ReactNode, useMemo, useState } from 'react';
+import { type ReactElement, type ReactNode, useMemo, useRef, useState } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import ProductQuantityPicker from '@/components/product-quantity-picker';
-import { SwatchGroup, Swatch } from '@/components/swatch-group';
+import { SwatchGroup, Swatch, GroupedSwatchGroup, splitGroupedSwatchName } from '@/components/swatch-group';
+import { uiConfig } from '@/lib/config.ui';
 import { useVariationAttributes } from '@/hooks/product/use-variation-attributes';
 import { useOptionalProductView } from '@/providers/product-view';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { toImageUrl } from '@/lib/images/dynamic-image';
+import { DynamicImage } from '@/components/dynamic-image';
+import CollapsibleSection from '@/components/collapsible-section';
+import { SwatchSectionSummary } from '@/components/product-view/swatch-section-summary';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import ProductPrice from '../product-price';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
@@ -52,6 +56,12 @@ type ProductInfoBaseProps = {
     hideActionIcons?: boolean;
     /** Optional action content rendered inline with title in full variant style */
     headerAction?: ReactNode;
+    /** Optional content rendered directly below the variation-attribute selectors (before delivery/quantity). */
+    afterVariations?: ReactNode;
+    /** Suppress the built-in delivery-options block (e.g. when a vertical renders its own grouped fulfillment section). */
+    hideDeliveryOptions?: boolean;
+    /** Show the quantity picker (default true). Set false to render quantity elsewhere (e.g. inline with Add-to-Cart). */
+    showQuantityPicker?: boolean;
     // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
     /** Disable rating summary interactions (hover popover and review links) */
     disableRatingInteraction?: boolean;
@@ -126,10 +136,22 @@ export default function ProductInfo({
     isVariantInventoryLoading = false,
     hideActionIcons = false,
     headerAction,
+    afterVariations,
+    hideDeliveryOptions = false,
+    showQuantityPicker = true,
     // @sfdc-extension-line SFDC_EXT_RATINGS_REVIEWS
     disableRatingInteraction = false,
 }: ProductInfoProps): ReactElement {
     const config = useConfig();
+    // Axes that render as a grouped/tabbed (categorized) swatch selector. Gated per-vertical via the
+    // @/lib/config.ui seam (undefined ⇒ no axis grouped ⇒ every axis renders as today).
+    const groupedSwatchAxes = uiConfig.pages.product.groupedSwatchAxes ?? [];
+    // Axes whose image swatches render as larger "option cards" (thumb + name + price in one bordered
+    // card). Same @/lib/config.ui seam (undefined ⇒ no axis ⇒ compact image tiles as today).
+    const imageCardAxes = uiConfig.pages.product.imageCardAxes ?? [];
+    // When true, each swatch section is wrapped in a <CollapsibleSection> whose summary shows the
+    // selected value's thumbnail + label + name; the section collapses after a value is selected.
+    const collapsibleSwatchSections = uiConfig.pages.product.collapsibleSwatchSections ?? false;
     const isProductASet = isProductSet(product);
     const isProductABundle = isProductBundle(product);
     // Use variation attributes hook for URL-aware swatches
@@ -187,8 +209,20 @@ export default function ProductInfo({
 
     const { t } = useTranslation('product');
 
+    // Armed when the shopper picks a swatch value in controlled mode. In collapsible-swatch mode a
+    // selection remounts the section collapsed (via a changed key), so the just-clicked swatch leaves
+    // the DOM; this lets the remounted CollapsibleSection restore focus to its summary instead of
+    // dropping focus to <body>. (Uncontrolled/URL mode navigates, so route-level focus handling applies
+    // and this stays false.)
+    const swatchInteractionRef = useRef(false);
+    const selectAttribute = (attributeId: string, value: string) => {
+        swatchInteractionRef.current = true;
+        onAttributeChange?.(attributeId, value);
+    };
+
     const isCompactStyle = variantStyle === 'compact';
-    const showQuantity = !isProductASet && !isProductABundle && (mode !== 'edit' || showQuantityInEditMode);
+    const showQuantity =
+        showQuantityPicker && !isProductASet && !isProductABundle && (mode !== 'edit' || showQuantityInEditMode);
 
     // In compact mode, sort variation attributes by priority order
     const COMPACT_ATTRIBUTE_ORDER = ['size', 'color'];
@@ -366,97 +400,305 @@ export default function ProductInfo({
             {!isCompactStyle && <UITarget targetId="sfcc.pdp.loyalty.points" />}
 
             {/* Swatch Groups for Product Variations */}
-            {sortedVariationAttributes.map(({ id, name, selectedValue, values }) => {
-                // In controlled mode, derive display name from variationValues state
-                const controlledValue = variationValues?.[id];
-                const controlledDisplayName = controlledValue
-                    ? values.find((v) => v.value === controlledValue)?.name || ''
-                    : '';
+            {(() => {
+                // Furniture groups its collapsible swatch cards in a spaced container
+                // (data-slot="swatch-container", space-y-3); other verticals render the sections inline
+                // (direct grid children) exactly as before — no wrapper is emitted for them.
+                const swatchSections = sortedVariationAttributes.map(({ id, name, selectedValue, values }) => {
+                    // In controlled mode, derive display name from variationValues state
+                    const controlledValue = variationValues?.[id];
+                    const controlledDisplayName = controlledValue
+                        ? values.find((v) => v.value === controlledValue)?.name || ''
+                        : '';
 
-                // When hideVariantSelection is true, only show the selected swatch (read-only)
-                const swatchesToShow = hideVariantSelection
-                    ? values.filter((v) => v.value === selectedValue?.value)
-                    : values;
+                    // Optional per-section collapsible (furniture): wrap a rendered swatch section in a
+                    // CollapsibleSection whose summary shows the selected value's thumbnail + attribute label
+                    // + name. The `key` includes the selected value so a selection change REMOUNTS the section
+                    // collapsed (`defaultOpen={!selectedValueId}`) — i.e. it collapses to the summary after a
+                    // value is picked, with no controlled-open plumbing. Disabled ⇒ the section renders as today.
+                    const shouldCollapse = collapsibleSwatchSections && !hideVariantSelection;
+                    const selectedValueId = swatchMode === 'uncontrolled' ? selectedValue?.value : controlledValue;
+                    const selectedObj = values.find((v) => v.value === selectedValueId);
+                    const collapsibleWrap = (content: ReactNode) =>
+                        shouldCollapse ? (
+                            <CollapsibleSection
+                                key={`${id}-${selectedValueId ?? ''}`}
+                                defaultOpen={!selectedValueId}
+                                // After a selection remounts this section collapsed, restore focus to the
+                                // summary (the clicked swatch is gone). Only armed by a controlled selection.
+                                focusSummaryOnMount={swatchInteractionRef.current}
+                                // Card look (both states): rounded, bordered, padded — vs the canonical
+                                // border-b list default. Furniture-scoped (only passed when collapsing), so
+                                // other CollapsibleSection usages are unaffected. `[&>summary]/[&>div]` add the
+                                // horizontal padding the default leaves to its parent; `[&[open]>summary:hover]`
+                                // suppresses the summary hover fill while expanded (hover only as a
+                                // re-open affordance when collapsed, matching the reference).
+                                className="overflow-hidden rounded-ui border border-border open:border-primary/60 [&>summary]:px-4 [&>div]:px-4 [&[open]>summary:hover]:bg-transparent"
+                                summary={
+                                    <SwatchSectionSummary
+                                        label={name}
+                                        selectedName={selectedObj?.name}
+                                        image={selectedObj?.image}
+                                    />
+                                }>
+                                {content}
+                            </CollapsibleSection>
+                        ) : (
+                            content
+                        );
 
-                const swatches = swatchesToShow.map((value) => {
-                    const { href, name: valueName, image, value: swatchValue, orderable } = value;
-                    const isOrderableInCurrentSelection =
-                        swatchMode === 'controlled'
-                            ? isControlledVariantValueOrderable({
-                                  variants: product.variants,
-                                  currentSelection: variationValues ?? {},
-                                  attributeId: id,
-                                  attributeValue: swatchValue,
-                              })
-                            : (orderable ?? true);
-                    const swatchImageUrl = (image && toImageUrl({ image, config })) || '';
-                    const content = image ? (
-                        <>
-                            <span
-                                data-slot="swatch-dot"
-                                className="bg-cover bg-center bg-no-repeat"
-                                style={{
-                                    width: 'var(--swatch-color-dot, 100%)',
-                                    height: 'var(--swatch-color-dot, 100%)',
-                                    backgroundColor: valueName?.toLowerCase(),
-                                    backgroundImage: swatchImageUrl ? `url(${swatchImageUrl})` : undefined,
-                                    border: 'var(--swatch-color-dot-border, none)',
-                                }}
-                                aria-label={image.alt || valueName}
+                    // Categorized axis (e.g. furniture "fabric"): render the grouped/tabbed selector.
+                    // Skipped in the read-only hideVariantSelection mode, which falls through to the
+                    // single-swatch path below. Every non-listed axis renders unchanged.
+                    if (groupedSwatchAxes.includes(id) && !hideVariantSelection) {
+                        const groupedValue = swatchMode === 'uncontrolled' ? selectedValue?.value : controlledValue;
+                        const selectedName = values.find((v) => v.value === groupedValue)?.name;
+                        const groupedValues = values.map((value) => ({
+                            name: value.name,
+                            value: value.value,
+                            href: value.href,
+                            image: value.image,
+                            description: value.description,
+                            orderable:
+                                swatchMode === 'controlled'
+                                    ? isControlledVariantValueOrderable({
+                                          variants: product.variants,
+                                          currentSelection: variationValues ?? {},
+                                          attributeId: id,
+                                          attributeValue: value.value,
+                                      })
+                                    : (value.orderable ?? true),
+                        }));
+                        return collapsibleWrap(
+                            <GroupedSwatchGroup
+                                key={id}
+                                label={name}
+                                displayName={selectedName ? splitGroupedSwatchName(selectedName).label : ''}
+                                value={groupedValue}
+                                values={groupedValues}
+                                handleChange={
+                                    swatchMode === 'controlled' ? (value) => selectAttribute(id, value) : undefined
+                                }
+                                useHref={swatchMode === 'uncontrolled'}
+                                allLabel={t('swatchFilterAll')}
+                                outOfStockSuffix={t('outOfStockSuffix')}
+                                hideHeader={shouldCollapse}
                             />
-                            <span
-                                data-slot="swatch-text"
-                                className="text-xs font-medium capitalize ml-1"
-                                style={{ display: 'var(--swatch-color-label)' }}>
-                                {valueName}
-                            </span>
-                        </>
-                    ) : (
-                        <span className="text-xs font-medium">{valueName}</span>
-                    );
+                        );
+                    }
 
-                    return (
-                        <Swatch
-                            key={swatchValue}
-                            href={swatchMode === 'uncontrolled' ? href : undefined}
-                            // Disable when not orderable (out of stock)
-                            disabled={!isOrderableInCurrentSelection}
-                            value={swatchValue}
-                            name={valueName}
-                            shape={id === 'color' ? 'color' : 'label'}
-                            labeled
-                            outOfStockSuffix={t('outOfStockSuffix')}>
-                            {content}
-                        </Swatch>
+                    // Axes listed in `imageCardAxes` (e.g. furniture "size" / "legStyle"): render larger
+                    // "option cards" — a 4:3 image thumb stacked above the option name + price, all inside
+                    // one bordered, padded card — matching the reference's option cards and staying visually
+                    // distinct from the small square fabric swatches. Config-gated + data-gated: only fires
+                    // for a listed axis that actually ships swatch imagery, so every other axis
+                    // (fashion/cosmetic/footwear sizes) keeps its compact single-swatch row. Skipped in
+                    // read-only mode, which falls through to the compact path below.
+                    const isImageCardAxis =
+                        imageCardAxes.includes(id) && !hideVariantSelection && values.some((v) => v.image);
+                    if (isImageCardAxis) {
+                        const cardValue = swatchMode === 'uncontrolled' ? selectedValue?.value : controlledValue;
+                        const selectedCardName = values.find((v) => v.value === cardValue)?.name;
+                        return collapsibleWrap(
+                            <div key={id} data-slot="option-card-group" className="flex flex-col gap-3">
+                                {!shouldCollapse && (
+                                    <div className="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground">
+                                        <span>{name}:</span>
+                                        {selectedCardName && <span>{selectedCardName}</span>}
+                                    </div>
+                                )}
+                                <div
+                                    role="radiogroup"
+                                    aria-label={name}
+                                    className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+                                    data-slot="option-card-container">
+                                    {values.map((value) => {
+                                        const selected = value.value === cardValue;
+                                        const orderableNow =
+                                            swatchMode === 'controlled'
+                                                ? isControlledVariantValueOrderable({
+                                                      variants: product.variants,
+                                                      currentSelection: variationValues ?? {},
+                                                      attributeId: id,
+                                                      attributeValue: value.value,
+                                                  })
+                                                : (value.orderable ?? true);
+                                        return (
+                                            <Swatch
+                                                key={value.value}
+                                                href={swatchMode === 'uncontrolled' ? value.href : undefined}
+                                                handleSelect={
+                                                    swatchMode === 'controlled'
+                                                        ? (v) => selectAttribute(id, v)
+                                                        : undefined
+                                                }
+                                                disabled={!orderableNow}
+                                                value={value.value}
+                                                name={value.name}
+                                                selected={selected}
+                                                isFocusable
+                                                shape="imageCard"
+                                                outOfStockSuffix={t('outOfStockSuffix')}>
+                                                {value.image && (
+                                                    <span
+                                                        data-slot="option-card-thumb"
+                                                        className="relative mb-2 aspect-[4/3] w-full overflow-hidden rounded-ui border border-border bg-muted">
+                                                        <DynamicImage
+                                                            src={value.image.disBaseLink || value.image.link || ''}
+                                                            alt={value.image.alt || value.name}
+                                                            widths={[96, 128, 192]}
+                                                            className="absolute inset-0 h-full w-full"
+                                                            imageProps={{ className: 'h-full w-full object-cover' }}
+                                                        />
+                                                    </span>
+                                                )}
+                                                <span
+                                                    data-slot="swatch-short-label"
+                                                    className="font-medium text-foreground">
+                                                    {value.name}
+                                                </span>
+                                                {value.description && (
+                                                    <span
+                                                        data-slot="swatch-description"
+                                                        className="text-[length:var(--swatch-description-size,0.75rem)] text-muted-foreground">
+                                                        {value.description}
+                                                    </span>
+                                                )}
+                                            </Swatch>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    // When hideVariantSelection is true, only show the selected swatch (read-only)
+                    const swatchesToShow = hideVariantSelection
+                        ? values.filter((v) => v.value === selectedValue?.value)
+                        : values;
+
+                    const swatches = swatchesToShow.map((value) => {
+                        const { href, name: valueName, image, value: swatchValue, orderable, description } = value;
+                        const isOrderableInCurrentSelection =
+                            swatchMode === 'controlled'
+                                ? isControlledVariantValueOrderable({
+                                      variants: product.variants,
+                                      currentSelection: variationValues ?? {},
+                                      attributeId: id,
+                                      attributeValue: swatchValue,
+                                  })
+                                : (orderable ?? true);
+                        // The color axis keeps its pill-with-dot treatment (backgroundColor + optional
+                        // swatch image). Any OTHER axis that ships swatch imagery renders the image as a
+                        // DIS-optimized <DynamicImage> tile; axes with no swatch image fall back to text.
+                        const isColorAxis = id === 'color';
+                        const swatchShape = isColorAxis ? 'color' : image ? 'image' : 'label';
+                        const swatchImageUrl = (image && toImageUrl({ image, config })) || '';
+                        const content = (
+                            <>
+                                {image && isColorAxis ? (
+                                    <>
+                                        <span
+                                            data-slot="swatch-dot"
+                                            className="bg-cover bg-center bg-no-repeat"
+                                            style={{
+                                                width: 'var(--swatch-color-dot, 100%)',
+                                                height: 'var(--swatch-color-dot, 100%)',
+                                                backgroundColor: valueName?.toLowerCase(),
+                                                backgroundImage: swatchImageUrl ? `url(${swatchImageUrl})` : undefined,
+                                                border: 'var(--swatch-color-dot-border, none)',
+                                            }}
+                                            aria-label={image.alt || valueName}
+                                        />
+                                        <span
+                                            data-slot="swatch-text"
+                                            className="text-xs font-medium capitalize ml-1"
+                                            style={{ display: 'var(--swatch-color-label)' }}>
+                                            {valueName}
+                                        </span>
+                                    </>
+                                ) : image ? (
+                                    <DynamicImage
+                                        src={image.disBaseLink || image.link || ''}
+                                        alt={image.alt || valueName}
+                                        widths={[48, 64, 96]}
+                                        className="absolute inset-0 h-full w-full"
+                                        imageProps={{ className: 'h-full w-full object-cover' }}
+                                    />
+                                ) : (
+                                    <span className="text-xs font-medium">{valueName}</span>
+                                )}
+                                {/* Localized per-option description from SCAPI (e.g. a price delta "+US$200"),
+                                rendered verbatim inline — no currency logic here. Absent → nothing extra. */}
+                                {description && (
+                                    <span
+                                        data-slot="swatch-description"
+                                        className="ml-1 text-[length:var(--swatch-description-size,0.75rem)] text-muted-foreground">
+                                        {description}
+                                    </span>
+                                )}
+                            </>
+                        );
+
+                        return (
+                            <Swatch
+                                key={swatchValue}
+                                href={swatchMode === 'uncontrolled' ? href : undefined}
+                                // Disable when not orderable (out of stock)
+                                disabled={!isOrderableInCurrentSelection}
+                                value={swatchValue}
+                                name={valueName}
+                                shape={swatchShape}
+                                labeled
+                                outOfStockSuffix={t('outOfStockSuffix')}>
+                                {content}
+                            </Swatch>
+                        );
+                    });
+                    return collapsibleWrap(
+                        <SwatchGroup
+                            key={id}
+                            value={swatchMode === 'uncontrolled' ? selectedValue?.value : controlledValue}
+                            displayName={
+                                swatchMode === 'controlled' ? controlledDisplayName : selectedValue?.name || ''
+                            }
+                            label={name}
+                            // Inside a collapsible the section summary shows the label, so suppress the
+                            // group's own header to avoid a duplicate label.
+                            hideHeader={shouldCollapse}
+                            handleChange={
+                                // Disable handleChange when hideVariantSelection is true
+                                hideVariantSelection
+                                    ? undefined
+                                    : swatchMode === 'controlled'
+                                      ? (value) => selectAttribute(id, value)
+                                      : undefined
+                            }>
+                            {swatches}
+                        </SwatchGroup>
                     );
                 });
-                return (
-                    <SwatchGroup
-                        key={id}
-                        value={swatchMode === 'uncontrolled' ? selectedValue?.value : controlledValue}
-                        displayName={swatchMode === 'controlled' ? controlledDisplayName : selectedValue?.name || ''}
-                        label={name}
-                        handleChange={
-                            // Disable handleChange when hideVariantSelection is true
-                            hideVariantSelection
-                                ? undefined
-                                : swatchMode === 'controlled'
-                                  ? (value) => onAttributeChange?.(id, value)
-                                  : undefined
-                        }>
-                        {swatches}
-                    </SwatchGroup>
+                return collapsibleSwatchSections && !hideVariantSelection ? (
+                    <div data-slot="swatch-container" className="space-y-3">
+                        {swatchSections}
+                    </div>
+                ) : (
+                    swatchSections
                 );
-            })}
+            })()}
+            {/* Optional content directly below the variation selectors (e.g. furniture "Your Configuration"). */}
+            {afterVariations}
             {!isCompactStyle && <UITarget targetId="sfcc.pdp.products.visualization" />}
 
             {/* @sfdc-extension-block-start SFDC_EXT_BOPIS */}
             {/* Delivery Options - For individual products */}
-            {/* Hide for non-pickup items when opened from cart page. Also hidden while the selected
-                variant's inventory is still resolving: the delivery/pickup checks read store
-                availability, so rendering them mid-load would flash stale "Deliver to"/"Free pickup"
-                status for the previously selected SKU. */}
-            {!isVariantInventoryLoading &&
+            {/* Hide for non-pickup items when opened from cart page, or when a vertical renders its
+                own grouped fulfillment section. Also hidden while the selected variant's inventory is
+                still resolving: the delivery/pickup checks read store availability, so rendering them
+                mid-load would flash stale "Deliver to"/"Free pickup" status for the previously
+                selected SKU. */}
+            {!hideDeliveryOptions &&
+                !isVariantInventoryLoading &&
                 !isOutOfStock &&
                 (mode !== 'edit' || basketPickupStore) &&
                 !(isProductABundle || isProductASet) && (

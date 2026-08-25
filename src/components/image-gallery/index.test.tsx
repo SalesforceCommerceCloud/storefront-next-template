@@ -451,3 +451,33 @@ describe('ImageGallery - off-screen preload widths', () => {
         expect(previewedSrcSets).not.toMatch(/\bsw=680\b/);
     });
 });
+
+describe('ImageGallery — mosaic layout', () => {
+    const makeMosaic = (n: number): GalleryImage[] =>
+        Array.from({ length: n }, (_, i) => ({ src: disSrc(`m${i}`), alt: `Mosaic ${i}` }));
+
+    it('renders a mosaic grid capped at MOSAIC_MAX (6) tiles', () => {
+        render(<ImageGallery images={makeMosaic(7)} layout="mosaic" productName="Sofa" />, { wrapper });
+        const grid = document.querySelector('[data-gallery-mosaic]');
+        expect(grid).toBeInTheDocument();
+        expect(grid?.children.length).toBe(6);
+    });
+
+    it('spans full-width tiles at every third index and a trailing orphan', () => {
+        render(<ImageGallery images={makeMosaic(5)} layout="mosaic" productName="Sofa" />, { wrapper });
+        const tiles = Array.from(document.querySelectorAll('[data-gallery-mosaic] > div'));
+        expect(tiles).toHaveLength(5);
+        // isFull at i%3===0 (0, 3) plus the trailing orphan at index 4 (last, i%3===1).
+        const fullIndexes = tiles.flatMap((t, i) => (t.className.includes('col-span-2') ? [i] : []));
+        expect(fullIndexes).toEqual([0, 3, 4]);
+    });
+
+    it('renders fewer rows for a short image set without an orphan span', () => {
+        render(<ImageGallery images={makeMosaic(3)} layout="mosaic" productName="Sofa" />, { wrapper });
+        const tiles = Array.from(document.querySelectorAll('[data-gallery-mosaic] > div'));
+        expect(tiles).toHaveLength(3);
+        // Only index 0 is full (i%3===0); index 2 is not a pair-start orphan (i%3===2).
+        const fullIndexes = tiles.flatMap((t, i) => (t.className.includes('col-span-2') ? [i] : []));
+        expect(fullIndexes).toEqual([0]);
+    });
+});

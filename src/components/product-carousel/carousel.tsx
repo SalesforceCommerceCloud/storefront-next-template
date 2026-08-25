@@ -61,6 +61,17 @@ export interface ProductCarouselProps {
     component?: ComponentType;
     /** Optional click handler forwarded to each product tile (e.g. recommender click tracking) */
     handleProductClick?: (product: ShopperSearch.schemas['ProductSearchHit']) => void;
+    /**
+     * Product image aspect ratio for each tile. Defaults to the carousel's portrait `0.8`; pass `1`
+     * for square tiles. Forwarded to `ProductTile`'s `imgAspectRatio`. Generic + backward-safe.
+     */
+    imgAspectRatio?: number;
+    /** Optional override for the per-item width/spacing classes. Defaults to the shared carousel item class. */
+    itemClassName?: string;
+    /** Quick-Add placement forwarded to each tile: `'overlay'` (default) or `'inline'` (bottom of tile). */
+    quickAddPlacement?: 'overlay' | 'inline';
+    /** Optional label override for the tile's Quick-Add CTA (e.g. "Add to Cart"). Forwarded to `ProductTile`. */
+    quickAddLabel?: string;
 }
 
 /**
@@ -104,6 +115,10 @@ export default function ProductCarousel({
     className,
     component,
     handleProductClick,
+    imgAspectRatio = productCarouselItemAspectRatio,
+    itemClassName = carouselItemClassName,
+    quickAddPlacement,
+    quickAddLabel,
 }: ProductCarouselProps): ReactNode {
     const { isDesignMode } = usePageDesignerMode();
     const productsRegion = component?.regions?.find((region) => region.id === 'products');
@@ -136,12 +151,9 @@ export default function ProductCarousel({
                 <ProductTileProvider>
                     <DynamicImageProvider value={dynamicImageProviderValue}>
                         {Array.from({ length: EMPTY_STATE_PLACEHOLDER_COUNT }, (_, i) => (
-                            <CarouselItem key={i} className={carouselItemClassName}>
+                            <CarouselItem key={i} className={itemClassName}>
                                 <div className="w-full max-w-full min-w-0 flex">
-                                    <ProductTile
-                                        imgAspectRatio={productCarouselItemAspectRatio}
-                                        className="h-full w-full"
-                                    />
+                                    <ProductTile imgAspectRatio={imgAspectRatio} className="h-full w-full" />
                                 </div>
                             </CarouselItem>
                         ))}
@@ -165,7 +177,7 @@ export default function ProductCarousel({
                     const typedComp = comp as ComponentType;
                     const key = typedComp.contentLinkUuid ?? typedComp.id;
                     return (
-                        <CarouselItem key={key} className={carouselItemClassName}>
+                        <CarouselItem key={key} className={itemClassName}>
                             <div className="w-full max-w-full min-w-0 flex">
                                 <Component
                                     component={typedComp}
@@ -180,11 +192,13 @@ export default function ProductCarousel({
                 <ProductTileProvider>
                     <DynamicImageProvider value={dynamicImageProviderValue}>
                         {products.map((product) => (
-                            <CarouselItem key={product.productId} className={carouselItemClassName}>
+                            <CarouselItem key={product.productId} className={itemClassName}>
                                 <div className="w-full max-w-full min-w-0 flex">
                                     <ProductTile
                                         product={product}
-                                        imgAspectRatio={productCarouselItemAspectRatio}
+                                        imgAspectRatio={imgAspectRatio}
+                                        quickAddPlacement={quickAddPlacement}
+                                        quickAddLabel={quickAddLabel}
                                         className="h-full w-full"
                                         handleProductClick={handleProductClick}
                                     />

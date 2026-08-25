@@ -104,6 +104,14 @@ export interface ProductRecommendationsProps {
     shopAllText?: string;
     /** Optional className to apply to the carousel wrapper */
     className?: string;
+    /** Optional product image aspect ratio per tile (default 0.8 portrait; pass 1 for square). Forwarded to ProductCarousel. */
+    imgAspectRatio?: number;
+    /** Optional override for the per-item width/spacing classes. Forwarded to ProductCarousel. */
+    itemClassName?: string;
+    /** Optional Quick-Add placement per tile: 'overlay' (default) or 'inline' (bottom of tile). Forwarded to ProductCarousel. */
+    quickAddPlacement?: 'overlay' | 'inline';
+    /** Optional label override for each tile's Quick-Add CTA (e.g. "Add to Cart"). Forwarded to ProductCarousel. */
+    quickAddLabel?: string;
     /**
      * Pre-fetched recommendation Promise (typically from a route loader).
      * When provided, the component skips the client-side `useRecommenders`
@@ -149,6 +157,10 @@ export default function ProductRecommendations(props: ProductRecommendationsProp
                             subtitle={props.subtitle}
                             shopAllText={props.shopAllText}
                             className={props.className}
+                            imgAspectRatio={props.imgAspectRatio}
+                            itemClassName={props.itemClassName}
+                            quickAddPlacement={props.quickAddPlacement}
+                            quickAddLabel={props.quickAddLabel}
                         />
                     )}
                 </Await>
@@ -188,6 +200,10 @@ function ProductRecommendationsClientData({
     subtitle,
     shopAllText,
     className,
+    imgAspectRatio,
+    itemClassName,
+    quickAddPlacement,
+    quickAddLabel,
 }: Omit<ProductRecommendationsProps, 'data' | 'fallback' | 'recommender'> & {
     recommender: RecommenderConfig | null;
 }): ReactElement | null {
@@ -291,6 +307,10 @@ function ProductRecommendationsClientData({
             subtitle={subtitle}
             shopAllText={shopAllText}
             className={className}
+            imgAspectRatio={imgAspectRatio}
+            itemClassName={itemClassName}
+            quickAddPlacement={quickAddPlacement}
+            quickAddLabel={quickAddLabel}
         />
     );
 }
@@ -299,7 +319,17 @@ type ProductRecommendationsViewProps = {
     recommender: RecommenderConfig | null;
     recommendation: Recommendation | undefined;
     isLoading: boolean;
-} & Pick<ProductRecommendationsProps, 'titleClassName' | 'subtitle' | 'shopAllText' | 'className'>;
+} & Pick<
+    ProductRecommendationsProps,
+    | 'titleClassName'
+    | 'subtitle'
+    | 'shopAllText'
+    | 'className'
+    | 'imgAspectRatio'
+    | 'itemClassName'
+    | 'quickAddPlacement'
+    | 'quickAddLabel'
+>;
 
 function ProductRecommendationsView({
     recommender,
@@ -309,6 +339,10 @@ function ProductRecommendationsView({
     subtitle,
     shopAllText,
     className,
+    imgAspectRatio,
+    itemClassName,
+    quickAddPlacement,
+    quickAddLabel,
 }: ProductRecommendationsViewProps): ReactElement | null {
     // The title can come either from the static recommender config (client/PD path) or from the server response's
     // `displayMessage` (loader/BFF path). Fail closed when neither is present — we never want a headless carousel.
@@ -391,6 +425,10 @@ function ProductRecommendationsView({
                 shopAllText={shopAllText}
                 className={className}
                 handleProductClick={onProductClick}
+                imgAspectRatio={imgAspectRatio}
+                itemClassName={itemClassName}
+                quickAddPlacement={quickAddPlacement}
+                quickAddLabel={quickAddLabel}
             />
         </div>
     );

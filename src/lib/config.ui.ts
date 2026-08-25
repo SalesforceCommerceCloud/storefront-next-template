@@ -123,6 +123,50 @@ export interface UIConfig {
              * @default false
              */
             showRatingAverage: boolean;
+            /**
+             * Variation-attribute ids that render as a grouped/tabbed selector on the PDP.
+             * For a listed axis, each value's localized display name is treated as
+             * "Label, Family" (comma-separated): the part before the first comma is the
+             * SHORT label shown on the swatch, the part after it is the family. The PDP
+             * then renders a family filter row (`["All", ...families]`) above the swatch
+             * set and shows only the selected family's swatches. Image swatches still use
+             * the `image` tile shape when the value carries a swatch image.
+             *
+             * Every axis NOT listed here renders exactly as today (full display name, no
+             * split, no filter row), so this is backward-safe for every other axis and
+             * vertical.
+             *
+             * @default undefined (no axis is grouped)
+             */
+            groupedSwatchAxes?: string[];
+            /**
+             * Variation-attribute ids whose image swatches render as larger "option cards" on the
+             * PDP — a 4:3 image thumb stacked above the option name + price hint, all inside one
+             * bordered, padded card (vs. the compact inline image tile). Only takes effect for a
+             * listed axis that actually ships swatch imagery; every axis NOT listed keeps the compact
+             * tile, so this is backward-safe for every other axis and vertical.
+             *
+             * @default undefined (no axis renders as option cards)
+             */
+            imageCardAxes?: string[];
+            /**
+             * When true, each variation-attribute swatch section on the PDP is wrapped in a
+             * `<CollapsibleSection>` whose collapsed summary shows the selected value's thumbnail +
+             * attribute label + selected value name. The section collapses after a value is selected
+             * (remount on selection change). Off ⇒ sections render inline/expanded as today.
+             *
+             * @default false
+             */
+            collapsibleSwatchSections?: boolean;
+            /**
+             * PDP product-image gallery layout. `'stacked'` (default) = hero image + thumbnail
+             * selector. `'mosaic'` = a flat 2-column grid of all images (index 0 + every `index % 3 === 0`
+             * span both columns) — read by `product-view.tsx` and passed to `<ImageGallery layout>`.
+             * Only affects the PDP gallery; non-PDP `ImageGallery` callers are unchanged.
+             *
+             * @default 'stacked'
+             */
+            galleryLayout?: 'stacked' | 'mosaic';
         };
     };
 }

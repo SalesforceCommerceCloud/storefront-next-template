@@ -22,6 +22,7 @@ import ProductViewProvider from '@/providers/product-view';
 import { useProductImages } from '@/hooks/product/use-product-images';
 import { useSelectedVariations } from '@/hooks/product/use-selected-variations';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
+import { uiConfig } from '@/lib/config.ui';
 import CollapsibleHtmlSection from '@/components/collapsible-section/collapsible-html-section';
 import { useTranslation } from 'react-i18next';
 import { UITarget } from '@/targets/ui-target';
@@ -59,6 +60,10 @@ export default function ProductView({ product }: ProductViewProps): ReactElement
 
     const { t } = useTranslation('product');
 
+    // Furniture opts into the mosaic PDP gallery via config; every other vertical stays 'stacked'
+    // (hero + thumbnails). Read here (the PDP caller) so non-PDP ImageGallery usages are unaffected.
+    const galleryLayout = uiConfig.pages.product.galleryLayout ?? 'stacked';
+
     return (
         <ProductViewProvider product={product} mode="add">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-12">
@@ -71,6 +76,7 @@ export default function ProductView({ product }: ProductViewProps): ReactElement
                         showNavigationArrows
                         navigationArrowSize="lg"
                         productName={product.name}
+                        layout={galleryLayout}
                     />
                     <UITarget targetId="sfcc.pdp.agent.productHelper" />
                     {product.longDescription && product.longDescription !== product.shortDescription && (

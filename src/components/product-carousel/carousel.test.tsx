@@ -81,17 +81,25 @@ vi.mock('@/components/product-tile', () => ({
     ProductTile: ({
         product,
         className,
+        imgAspectRatio,
+        quickAddPlacement,
     }: {
         product?: ShopperSearch.schemas['ProductSearchHit'];
         className?: string;
+        imgAspectRatio?: number;
+        quickAddPlacement?: string;
     }) =>
         product ? (
-            <div data-testid={`product-tile-${product.productId}`} className={className}>
+            <div
+                data-testid={`product-tile-${product.productId}`}
+                className={className}
+                data-aspect={imgAspectRatio}
+                data-placement={quickAddPlacement}>
                 <h3>{product.productName}</h3>
                 <p>${product.price}</p>
             </div>
         ) : (
-            <div data-testid="product-tile-placeholder" className={className}>
+            <div data-testid="product-tile-placeholder" className={className} data-aspect={imgAspectRatio}>
                 <h3>Product</h3>
             </div>
         ),
@@ -300,6 +308,31 @@ describe('ProductCarousel', () => {
 
             const items = screen.getAllByTestId('carousel-item');
             expect(items).toHaveLength(mockProducts.length);
+        });
+
+        test('defaults tiles to the portrait 0.8 aspect ratio', () => {
+            renderComponent(<ProductCarousel products={mockProducts} />);
+            expect(screen.getByTestId('product-tile-test-product-1')).toHaveAttribute('data-aspect', '0.8');
+        });
+
+        test('forwards imgAspectRatio to the tiles (e.g. 1 for square)', () => {
+            renderComponent(<ProductCarousel products={mockProducts} imgAspectRatio={1} />);
+            expect(screen.getByTestId('product-tile-test-product-1')).toHaveAttribute('data-aspect', '1');
+        });
+
+        test('applies an itemClassName override to the carousel items', () => {
+            renderComponent(<ProductCarousel products={mockProducts} itemClassName="w-[200px] custom-item" />);
+            expect(screen.getAllByTestId('carousel-item')[0]).toHaveClass('custom-item');
+        });
+
+        test('does not force a quickAddPlacement by default (tile keeps its own default)', () => {
+            renderComponent(<ProductCarousel products={mockProducts} />);
+            expect(screen.getByTestId('product-tile-test-product-1')).not.toHaveAttribute('data-placement');
+        });
+
+        test('forwards quickAddPlacement to the tiles', () => {
+            renderComponent(<ProductCarousel products={mockProducts} quickAddPlacement="inline" />);
+            expect(screen.getByTestId('product-tile-test-product-1')).toHaveAttribute('data-placement', 'inline');
         });
     });
 });

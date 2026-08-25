@@ -205,6 +205,18 @@ describe('ProductTile — rendering', () => {
         renderTile({ quickAddLabel: 'Fast Add' });
         expect(screen.getByRole('button', { name: /fast add/i })).toBeInTheDocument();
     });
+
+    test('places the quick-add as an absolute overlay over the image by default', () => {
+        renderTile();
+        // Default 'overlay' placement: the button lives in the absolutely-positioned hover overlay.
+        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).not.toBeNull();
+    });
+
+    test('places the quick-add inline at the tile bottom when quickAddPlacement="inline"', () => {
+        renderTile({ quickAddPlacement: 'inline' });
+        // Inline placement: the button is in-flow in the info section, not the absolute overlay.
+        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).toBeNull();
+    });
 });
 
 describe('ProductTile — lazy wishlist load on tile intent', () => {

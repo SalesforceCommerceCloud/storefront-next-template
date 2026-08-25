@@ -62,4 +62,23 @@ describe('ProductAdapterSection', () => {
         expect(screen.getByText('Material')).toBeInTheDocument();
         expect(screen.getByText('Leather')).toBeInTheDocument();
     });
+
+    it('dispatches spec-table content to the SpecTable renderer', () => {
+        render(
+            <ProductAdapterSection
+                content={{
+                    contentType: 'spec-table',
+                    rows: [{ label: 'Width', values: { imperial: '84 in', metric: '213 cm' } }],
+                    views: [
+                        { id: 'imperial', label: 'Imperial' },
+                        { id: 'metric', label: 'Metric' },
+                    ],
+                    defaultViewId: 'imperial',
+                }}
+            />
+        );
+        expect(document.querySelector('[data-slot="spec-table"]')).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: 'Imperial' })).toBeInTheDocument();
+        expect(screen.getByText('84 in')).toBeInTheDocument();
+    });
 });

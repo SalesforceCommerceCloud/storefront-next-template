@@ -1835,6 +1835,7 @@
         "backOrder": "Available for back order",
         "outOfStockLabel": "Out of stock",
         "outOfStockSuffix": "(out of stock)",
+        "swatchFilterAll": "All",
         "inventory": {
             "srPrefix": {
                 "inStock": "Available: ",
@@ -1926,6 +1927,8 @@
         "materials": "Materials",
         "usageInstructions": "Usage Instructions",
         "specifications": "Specifications",
+        "dimensions": "Dimensions",
+        "assembly": "Assembly",
         "careInstructions": "Care Instructions",
         "careInstructionsComingSoon": "Care instructions coming soon.",
         "productSet": "Product Set",
@@ -1997,6 +2000,24 @@
         "addingToWishlistLog": "Adding to wishlist:",
         "failedToAddProductToCartError": "Failed to add product to cart:",
         "failedToAddProductToWishlistError": "Failed to add product to wishlist:",
+        "furnitureSpec": {
+            "width": "Width",
+            "depth": "Depth",
+            "height": "Height",
+            "seatHeight": "Seat Height",
+            "armHeight": "Arm Height",
+            "weight": "Weight",
+            "assemblyRequired": "Assembly Required",
+            "difficulty": "Difficulty",
+            "assemblyTime": "Assembly Time",
+            "tools": "Tools",
+            "frame": "Frame",
+            "fill": "Fill",
+            "upholstery": "Upholstery",
+            "yes": "Yes",
+            "no": "No",
+            "minutes": "{{count}} min"
+        },
         "price": {
             "unavailable": "Price unavailable",
             "currentPriceFrom": "Current price from {{price}}",

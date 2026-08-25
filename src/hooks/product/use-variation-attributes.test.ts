@@ -59,7 +59,7 @@ const createMockProduct = (
 const createMockVariationAttribute = (
     id: string,
     name: string,
-    values: Array<{ name: string; value: string; orderable?: boolean }>
+    values: Array<{ name: string; value: string; orderable?: boolean; description?: string }>
 ): ShopperProducts.schemas['VariationAttribute'] => {
     return {
         id,
@@ -242,6 +242,7 @@ describe('useVariationAttributes', () => {
 
             const mockImageGroup = {
                 viewType: 'swatch',
+                variationAttributes: [{ id: 'color', values: [{ value: 'RED' }] }],
                 images: [mockImage],
             } as ShopperProducts.schemas['ImageGroup'];
 
@@ -265,7 +266,64 @@ describe('useVariationAttributes', () => {
             expect(result.current[0].values[0].image).toBe(mockImage);
         });
 
-        it('should not find swatch images for non-color attributes', () => {
+        it('should find swatch images for ANY axis that ships swatch imagery (e.g. size)', () => {
+            const mockImage = {
+                link: 'https://example.com/size-swatch.jpg',
+                alt: 'Large size swatch',
+            } as ShopperProducts.schemas['Image'];
+
+            // A swatch group that declares the `size` axis — a data-driven, non-color image swatch.
+            const mockImageGroup = {
+                viewType: 'swatch',
+                variationAttributes: [{ id: 'size', values: [{ value: 'L' }] }],
+                images: [mockImage],
+            } as ShopperProducts.schemas['ImageGroup'];
+
+            const product = createMockProduct(
+                [createMockVariationAttribute('size', 'Size', [{ name: 'Large', value: 'L' }])],
+                undefined,
+                [mockImageGroup]
+            );
+
+            vi.mocked(findImageGroupBy).mockReturnValue(mockImageGroup);
+
+            const { result } = renderHook(() => useVariationAttributes({ product }));
+
+            // Lookup is keyed by the attribute id, not hardcoded to `color`.
+            expect(findImageGroupBy).toHaveBeenCalledWith(
+                [mockImageGroup],
+                expect.objectContaining({
+                    viewType: 'swatch',
+                    selectedVariationAttributes: { size: 'L' },
+                })
+            );
+            expect(result.current[0].values[0].image).toBe(mockImage);
+        });
+
+        it('should ignore a swatch group that does not declare the requested axis (backward-safe)', () => {
+            // Simulates findImageGroupBy's vacuous match: a `size` lookup on a color-only catalog
+            // returns the FIRST (color) swatch group. The axis guard must reject it so the size
+            // value renders as text rather than borrowing a color swatch image.
+            const colorSwatchGroup = {
+                viewType: 'swatch',
+                variationAttributes: [{ id: 'color', values: [{ value: 'RED' }] }],
+                images: [{ link: 'https://example.com/color-swatch.jpg', alt: 'Red swatch' }],
+            } as ShopperProducts.schemas['ImageGroup'];
+
+            const product = createMockProduct(
+                [createMockVariationAttribute('size', 'Size', [{ name: 'Large', value: 'L' }])],
+                undefined,
+                [colorSwatchGroup]
+            );
+
+            vi.mocked(findImageGroupBy).mockReturnValue(colorSwatchGroup);
+
+            const { result } = renderHook(() => useVariationAttributes({ product }));
+
+            expect(result.current[0].values[0].image).toBeUndefined();
+        });
+
+        it('should not attempt a swatch lookup when the product has no image groups', () => {
             const product = createMockProduct([
                 createMockVariationAttribute('size', 'Size', [{ name: 'Large', value: 'L' }]),
             ]);
@@ -336,6 +394,94 @@ describe('useVariationAttributes', () => {
 
             // Size L should be orderable because there's a variant with color=RED and size=L
             expect(result.current[1].values[0].orderable).toBe(true);
+        });
+    });
+
+    describe('custom swatch images (c_swatchImages)', () => {
+        it('synthesizes an image from c_swatchImages for an axis SCAPI does not natively decorate', () => {
+            const product = {
+                ...createMockProduct([
+                    createMockVariationAttribute('size', 'Size', [
+                        { name: 'Loveseat', value: 'loveseat' },
+                        { name: 'Sectional', value: 'sectional' },
+                    ]),
+                ]),
+                c_swatchImages: JSON.stringify({
+                    size: {
+                        loveseat: 'images/products/size-loveseat.webp',
+                        sectional: 'images/products/size-sectional.webp',
+                    },
+                }),
+            } as unknown as ShopperProducts.schemas['Product'];
+
+            // No native swatch image for size.
+            vi.mocked(findImageGroupBy).mockReturnValue(undefined);
+
+            const { result } = renderHook(() => useVariationAttributes({ product }));
+
+            // Bare catalog path resolves to the vertical public-overlay URL.
+            expect(result.current[0].values[0].image?.link).toBe('/images/size-loveseat.webp');
+            expect(result.current[0].values[0].image?.disBaseLink).toBe('/images/size-loveseat.webp');
+            expect(result.current[0].values[0].image?.alt).toBe('Loveseat');
+            expect(result.current[0].values[1].image?.link).toBe('/images/size-sectional.webp');
+        });
+
+        it('prefers a native swatch image over c_swatchImages when both exist', () => {
+            const nativeImage = {
+                link: 'https://example.com/native.jpg',
+                alt: 'native',
+            } as ShopperProducts.schemas['Image'];
+            const nativeGroup = {
+                viewType: 'swatch',
+                variationAttributes: [{ id: 'fabric', values: [{ value: 'velvet' }] }],
+                images: [nativeImage],
+            } as ShopperProducts.schemas['ImageGroup'];
+
+            const product = {
+                ...createMockProduct(
+                    [createMockVariationAttribute('fabric', 'Fabric', [{ name: 'Velvet', value: 'velvet' }])],
+                    undefined,
+                    [nativeGroup]
+                ),
+                c_swatchImages: JSON.stringify({ fabric: { velvet: 'images/products/velvet.webp' } }),
+            } as unknown as ShopperProducts.schemas['Product'];
+
+            vi.mocked(findImageGroupBy).mockReturnValue(nativeGroup);
+
+            const { result } = renderHook(() => useVariationAttributes({ product }));
+
+            expect(result.current[0].values[0].image).toBe(nativeImage);
+        });
+
+        it('leaves image undefined when neither a native swatch nor c_swatchImages entry exists', () => {
+            const product = {
+                ...createMockProduct([
+                    createMockVariationAttribute('legStyle', 'Leg Style', [{ name: 'Tapered', value: 'tapered' }]),
+                ]),
+                c_swatchImages: JSON.stringify({ size: { loveseat: 'images/products/size-loveseat.webp' } }),
+            } as unknown as ShopperProducts.schemas['Product'];
+
+            vi.mocked(findImageGroupBy).mockReturnValue(undefined);
+
+            const { result } = renderHook(() => useVariationAttributes({ product }));
+
+            expect(result.current[0].values[0].image).toBeUndefined();
+        });
+    });
+
+    describe('per-value description (localized option hint)', () => {
+        it('passes the SCAPI value description through to each value, undefined when absent', () => {
+            const product = createMockProduct([
+                createMockVariationAttribute('fabric', 'Fabric', [
+                    { name: 'Linen', value: 'linen' },
+                    { name: 'Velvet', value: 'velvet', description: '+US$200' },
+                ]),
+            ]);
+
+            const { result } = renderHook(() => useVariationAttributes({ product }));
+
+            expect(result.current[0].values[0].description).toBeUndefined();
+            expect(result.current[0].values[1].description).toBe('+US$200');
         });
     });
 

@@ -21,14 +21,26 @@ import { Spinner } from '@/components/spinner';
 import { CollapsibleLoadingContext } from './collapsible-loading-context';
 
 export interface CollapsibleSectionProps {
-    /** The label rendered inside the summary row */
-    label: string;
+    /** The label rendered inside the summary row. Optional when `summary` is provided. */
+    label?: string;
     /** Optional content rendered after the label (e.g. AI badge) */
     labelSupplement?: ReactNode;
+    /**
+     * Optional arbitrary JSX for the summary row, REPLACING the default `label`/`labelSupplement`
+     * span (the chevron/spinner still render on the right). Use this when the collapsed header needs
+     * richer content than a string — e.g. a selected-value thumbnail + title.
+     */
+    summary?: ReactNode;
     /** Content revealed when the section is open */
     children: ReactNode;
     /** Whether the section starts open. Defaults to false. */
     defaultOpen?: boolean;
+    /**
+     * When true, move focus to the section's `<summary>` on mount. Used when the section is remounted
+     * collapsed after an in-place selection (e.g. a collapsible swatch section) so keyboard/AT focus
+     * isn't dropped to `<body>` when the just-interacted control leaves the DOM. Default false.
+     */
+    focusSummaryOnMount?: boolean;
     /** Additional classes forwarded to the outer <details> element */
     className?: string;
 }
@@ -53,8 +65,10 @@ export interface CollapsibleSectionProps {
 export default function CollapsibleSection({
     label,
     labelSupplement,
+    summary,
     children,
     defaultOpen = false,
+    focusSummaryOnMount = false,
     className,
 }: CollapsibleSectionProps): ReactElement {
     // Whether the section is visually open (controls the open attribute).
@@ -71,6 +85,8 @@ export default function CollapsibleSection({
     // React flushes children's effects before parents', so by the time the
     // parent effect reads the ref, the child has already written to it.
     const isLoadingRef = useRef(false);
+    // Summary node, used to restore focus on mount when `focusSummaryOnMount` is set.
+    const summaryRef = useRef<HTMLElement>(null);
 
     const loadingContextValue = useMemo(
         () => ({
@@ -94,6 +110,16 @@ export default function CollapsibleSection({
         }
     }, [pendingOpen, isLoading]); // isLoading re-triggers this effect when the child finishes loading
 
+    // On mount, optionally take focus to the summary. Used when a parent remounts this section
+    // (via a changed key) after an in-place selection, so focus isn't orphaned on <body>.
+    useEffect(() => {
+        if (focusSummaryOnMount) {
+            summaryRef.current?.focus();
+        }
+        // Mount-only: the parent controls this via a fresh key, so we intentionally don't re-run.
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleSummaryClick = (e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault();
         if (isOpen) {
@@ -108,12 +134,15 @@ export default function CollapsibleSection({
         <CollapsibleLoadingContext value={loadingContextValue}>
             <details className={cn('group border-b border-border', className)} open={isOpen || undefined}>
                 <summary
+                    ref={summaryRef}
                     className="flex items-center justify-between gap-4 py-4 text-base font-medium text-foreground cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground transition-colors"
                     onClick={handleSummaryClick}>
-                    <span className="flex items-center gap-2">
-                        {label}
-                        {labelSupplement}
-                    </span>
+                    {summary ?? (
+                        <span className="flex items-center gap-2">
+                            {label}
+                            {labelSupplement}
+                        </span>
+                    )}
                     {isLoading || pendingOpen ? (
                         <Spinner size="sm" />
                     ) : (
