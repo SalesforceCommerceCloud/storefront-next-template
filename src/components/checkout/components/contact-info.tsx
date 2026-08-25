@@ -46,7 +46,8 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { TurnstileWidget } from '@/components/security/turnstile-widget';
 import { getBrowserTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
 import { checkTurnstileSessionVerified } from '@/lib/turnstile/check-session';
-import { resourceRoutes } from '@/route-paths';
+import { Link } from '@/components/link';
+import { routes, resourceRoutes } from '@/route-paths';
 
 const OtpModal = lazy(() => import('@/components/login/otp-modal'));
 const LoginModal = lazy(() => import('@/components/login/login-modal'));
@@ -847,9 +848,9 @@ export default function ContactInfo({
                             !suppressRegisteredEmailLoginHints && (
                                 <Typography variant="small" className="text-accent-foreground">
                                     {t('contactInfo.loginSuggestion')}
-                                    <a href="/login" className="underline hover:no-underline">
+                                    <Link to={routes.login} className="underline hover:no-underline">
                                         {t('contactInfo.loginSuggestionLink')}
-                                    </a>
+                                    </Link>
                                 </Typography>
                             )}
                         {loginSuggestion.isCurrentUser && (

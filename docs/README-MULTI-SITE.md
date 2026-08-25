@@ -378,7 +378,10 @@ import { Link, NavLink } from '@/components/link';
 
 Special cases:
 - External URLs (`http://`, `//`) are passed through unchanged
-- Non-string `to` values (objects) are passed through unchanged
+- Object `to` values with rooted pathnames are site-prefixed
+- Search-only strings and pathname-less objects with `search` resolve against the current route
+  before configured URL context is applied
+- Empty, hash-only, and relative object targets retain React Router's native resolution
 
 ### useNavigate
 

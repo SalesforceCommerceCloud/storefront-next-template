@@ -307,9 +307,10 @@ describe('legacyRoutesMiddleware', () => {
             expect(window.location.href).toBe('');
         });
 
-        test('still redirects a real legacy page navigation that strips to "/"', () => {
+        test('still redirects a real legacy page navigation that matches as "/"', () => {
             // Sanity: the guard is scoped to data/resource endpoints only — a genuine prefixed
-            // home navigation (/global/en-GB) still strips to '/' and routes to legacy.
+            // home navigation (/global/en-GB) still matches '/' and routes to legacy with its
+            // site and locale prefix intact.
             const request = new Request('https://example.com/global/en-GB');
 
             void legacyRoutesMiddleware(
@@ -318,7 +319,7 @@ describe('legacyRoutesMiddleware', () => {
             );
 
             expect(mockNext).not.toHaveBeenCalled();
-            expect(window.location.href).toBe('https://example.com/');
+            expect(window.location.href).toBe('https://example.com/global/en-GB');
         });
 
         test.each([
@@ -630,7 +631,7 @@ describe('legacyRoutesMiddleware', () => {
         });
     });
 
-    describe('multisite prefix stripping', () => {
+    describe('multisite prefix matching', () => {
         beforeEach(() => {
             vi.stubGlobal('window', { location: { href: '' } } as Window & typeof globalThis);
 
@@ -650,10 +651,37 @@ describe('legacyRoutesMiddleware', () => {
             });
         });
 
-        test('should redirect when multisite-prefixed URL matches a bare legacy route', () => {
-            const siteRef = getSiteRef();
-            const locale = mockSiteObject.defaultLocale;
-            const request = new Request(`https://example.com/${siteRef}/${locale}/checkout`);
+        test.each([
+            { prefix: '/:siteId', path: '/global/checkout', expected: 'https://example.com/global/checkout' },
+            { prefix: '/:localeId', path: '/en-GB/checkout', expected: 'https://example.com/en-GB/checkout' },
+            {
+                prefix: '/:siteId/:localeId',
+                path: '/global/en-GB/checkout',
+                expected: 'https://example.com/global/en-GB/checkout',
+            },
+            {
+                prefix: '/:siteId/:localeId',
+                path: '/global/en-GB/product/123.html?source=cart#reviews',
+                expected: 'https://example.com/global/en-GB/product/123.html?source=cart#reviews',
+                legacyRoutes: [{ pattern: '/product/:id', suffix: '.html' }],
+            },
+        ])('redirects $path after matching its stripped functional path', ({
+            prefix,
+            path,
+            expected,
+            legacyRoutes,
+        }) => {
+            vi.spyOn(mockContext, 'get').mockImplementation((contextKey: any) => {
+                if (contextKey === appConfigContext) {
+                    return {
+                        hybrid: { enabled: true, legacyRoutes: legacyRoutes ?? ['/checkout'] },
+                        url: { prefix },
+                    } as unknown as AppConfig;
+                }
+                return undefined;
+            });
+
+            const request = new Request(`https://example.com${path}`);
 
             void legacyRoutesMiddleware(
                 { request, context: mockContext, params: {}, pattern: '', url: new URL(request.url) },
@@ -661,37 +689,7 @@ describe('legacyRoutesMiddleware', () => {
             );
 
             expect(mockNext).not.toHaveBeenCalled();
-            // Navigation target must be the stripped pathname so the legacy backend (or local
-            // hybrid proxy) can apply its own prefix without doubling up on storefront-next's.
-            expect(window.location.href).toBe('https://example.com/checkout');
-        });
-
-        test('should redirect for parameterized legacy routes with multisite prefix', () => {
-            const siteRef = getSiteRef();
-            const locale = mockSiteObject.defaultLocale;
-            const request = new Request(`https://example.com/${siteRef}/${locale}/product/123`);
-
-            void legacyRoutesMiddleware(
-                { request, context: mockContext, params: {}, pattern: '', url: new URL(request.url) },
-                mockNext
-            );
-
-            expect(mockNext).not.toHaveBeenCalled();
-            expect(window.location.href).toBe('https://example.com/product/123');
-        });
-
-        test('should preserve query params and hash when stripping prefix', () => {
-            const siteRef = getSiteRef();
-            const locale = mockSiteObject.defaultLocale;
-            const request = new Request(`https://example.com/${siteRef}/${locale}/checkout?step=2&item=abc#payment`);
-
-            void legacyRoutesMiddleware(
-                { request, context: mockContext, params: {}, pattern: '', url: new URL(request.url) },
-                mockNext
-            );
-
-            expect(mockNext).not.toHaveBeenCalled();
-            expect(window.location.href).toBe('https://example.com/checkout?step=2&item=abc#payment');
+            expect(window.location.href).toBe(expected);
         });
 
         test('should not redirect for non-legacy multisite routes', async () => {
@@ -705,36 +703,6 @@ describe('legacyRoutesMiddleware', () => {
             );
 
             expect(mockNext).toHaveBeenCalledOnce();
-        });
-
-        test('strips the site/locale prefix and then appends the suffix on the stripped path', () => {
-            // The production hybrid scenario: a multisite-prefixed PDP URL hitting a suffixed
-            // legacy route. The prefix is stripped first, then '.html' is appended to the bare
-            // path — so the legacy backend receives /product/123.html with no doubled prefix.
-            vi.spyOn(mockContext, 'get').mockImplementation((contextKey: any) => {
-                if (contextKey === appConfigContext) {
-                    return {
-                        hybrid: {
-                            enabled: true,
-                            legacyRoutes: [{ pattern: '/product/:id', suffix: '.html' }],
-                        },
-                        url: { prefix: '/:siteId/:localeId' },
-                    } as unknown as AppConfig;
-                }
-                return undefined;
-            });
-
-            const siteRef = getSiteRef();
-            const locale = mockSiteObject.defaultLocale;
-            const request = new Request(`https://example.com/${siteRef}/${locale}/product/123?source=cart`);
-
-            void legacyRoutesMiddleware(
-                { request, context: mockContext, params: {}, pattern: '', url: new URL(request.url) },
-                mockNext
-            );
-
-            expect(mockNext).not.toHaveBeenCalled();
-            expect(window.location.href).toBe('https://example.com/product/123.html?source=cart');
         });
     });
 

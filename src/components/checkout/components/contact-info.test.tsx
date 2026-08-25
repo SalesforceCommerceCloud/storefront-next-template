@@ -20,6 +20,7 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import ContactInfo from './contact-info';
 import { resourceRoutes } from '@/route-paths';
+import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
 // Use real react-hook-form for integration tests
 vi.mock('@/providers/basket', () => ({ useBasket: vi.fn() }));
@@ -87,7 +88,11 @@ vi.mock('@salesforce/storefront-next-runtime/config', async () => {
     );
     return {
         ...actual,
-        useConfig: () => ({ auth: { otpLength: 6 }, features: { passkey: { enabled: false, mode: 'email' } } }),
+        useConfig: () => ({
+            url: { prefix: '/:siteId/:localeId' },
+            auth: { otpLength: 6 },
+            features: { passkey: { enabled: false, mode: 'email' } },
+        }),
     };
 });
 
@@ -119,7 +124,7 @@ function renderWithRouter(ui: React.ReactElement) {
         [
             {
                 path: '/',
-                element: ui,
+                element: <AllProvidersWrapper>{ui}</AllProvidersWrapper>,
             },
             {
                 path: resourceRoutes.authorizePasswordlessEmail,
@@ -440,6 +445,7 @@ describe('ContactInfo Integration Tests', () => {
             await waitFor(() => {
                 expect(screen.getByText(/have an account/i)).toBeInTheDocument();
             });
+            expect(screen.getByRole('link', { name: /sign in/i })).toHaveAttribute('href', '/global/en-GB/login');
         });
 
         test('hides login suggestion when no account found', async () => {
