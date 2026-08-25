@@ -462,7 +462,6 @@ export function buildTargetRegistry(
             seen.set(entry.order, entry.handlerName);
         }
     }
-
     return { componentRegistry, contextProviders, actionHookRegistry };
 }
 

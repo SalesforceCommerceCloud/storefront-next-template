@@ -120,16 +120,16 @@ export default function MiniCartItem({
         componentName: 'mini-cart-item',
     });
 
-    let stockLevel = product.inventory?.ats;
-    // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    if (isPickup) {
-        stockLevel = getEffectiveStockLevel({
-            product: product as unknown as ShopperProducts.schemas['Product'],
-            isPickup: true,
-            storeInventoryId: product.inventoryId,
-        });
-    }
-    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const stockLevel =
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        isPickup
+            ? getEffectiveStockLevel({
+                  product: product as unknown as ShopperProducts.schemas['Product'],
+                  isPickup: true,
+                  storeInventoryId: product.inventoryId,
+              })
+            : // @sfdc-extension-block-end SFDC_EXT_BOPIS
+              product.inventory?.ats;
     const { quantity, stockValidationError, stockMax, handleQuantityChange } = useCartQuantityUpdate({
         itemId: product.itemId || '',
         initialValue: product.quantity || 1,

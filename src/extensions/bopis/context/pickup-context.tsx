@@ -163,6 +163,10 @@ const PickupProvider = ({ children, basket, initialPickupStores }: PropsWithChil
 
     const addItem = useCallback((productId: string, inventoryId: string, storeId: string) => {
         setPickupBasketItems((prev) => {
+            const existingItem = prev.get(productId);
+            if (existingItem?.inventoryId === inventoryId && existingItem.storeId === storeId) {
+                return prev;
+            }
             const newMap = new Map(prev);
             newMap.set(productId, { inventoryId, storeId });
             return newMap;
@@ -171,6 +175,7 @@ const PickupProvider = ({ children, basket, initialPickupStores }: PropsWithChil
 
     const removeItem = useCallback((productId: string) => {
         setPickupBasketItems((prev) => {
+            if (!prev.has(productId)) return prev;
             const newMap = new Map(prev);
             newMap.delete(productId);
             return newMap;
@@ -178,7 +183,7 @@ const PickupProvider = ({ children, basket, initialPickupStores }: PropsWithChil
     }, []);
 
     const clearItems = useCallback(() => {
-        setPickupBasketItems(new Map());
+        setPickupBasketItems((prev) => (prev.size === 0 ? prev : new Map()));
     }, []);
 
     return (

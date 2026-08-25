@@ -42,6 +42,7 @@ import { getPublicOrigin } from '@/utils/schema-url';
 import { buildCanonicalUrl } from '@/utils/canonical-url';
 import { getLogger } from '@/lib/logger.server';
 import { UITarget } from '@/targets/ui-target';
+import ProductViewProvider from '@/providers/product-view';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { selectedStoreContext } from '@/extensions/store-locator/middlewares/selected-store.server';
 import PickupProvider from '@/extensions/bopis/context/pickup-context';
@@ -78,10 +79,6 @@ import { resolvePdpSections } from '@/extensions/product-content/lib/pdp-section
 import { ProductContentDataProvider } from '@/extensions/product-content/context/product-content-data-context';
 // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
 // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-import {
-    getEstimatedDelivery,
-    type EstimatedDeliveryData,
-} from '@/extensions/shipping-delivery/lib/api/shipping-delivery.server';
 import { ShippingDeliveryProvider } from '@/extensions/shipping-delivery/context/shipping-delivery-context';
 // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
@@ -125,9 +122,6 @@ export type ProductPageData = {
     returnsWarranty: Promise<ReturnsAndWarrantyData>;
     pdpCollapsibles: Promise<Array<SectionContent | null>>;
     // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
-    // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-    estimatedDelivery: Promise<EstimatedDeliveryData>;
-    // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 };
 
 /**
@@ -147,7 +141,10 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
     const requestUrl = new URL(request.url);
     const { searchParams } = requestUrl;
     const variantPid = searchParams.get('pid');
-    logger.debug('Product: loader starting', { productId, variantPid: variantPid || undefined });
+    logger.debug('Product: loader starting', {
+        productId,
+        variantPid: variantPid || undefined,
+    });
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const selectedStoreInfo = context.get(selectedStoreContext);
@@ -170,7 +167,6 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
     // needs the product ID and drives above-the-fold star display + SEO.
     const reviewsSummaryPromise = getReviewsSummary(productLookupId);
     // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
-
     let product: ShopperProducts.schemas['Product'] | null;
     try {
         product = await fetchProductById(context, productLookupId, {
@@ -273,9 +269,6 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
             )
         ),
         // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
-        // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-        estimatedDelivery: getEstimatedDelivery(productLookupId),
-        // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
     };
 }
 
@@ -353,21 +346,29 @@ function ProductContent({
                                 image: primaryImage,
                             }}
                         />
-                        <div className="space-y-8">
-                            {isProductASet || isProductABundle ? (
-                                <>
+                        <ProductViewProvider
+                            product={product}
+                            mode="add"
+                            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                            clearDeferredPickupSelection
+                            // @sfdc-extension-block-end SFDC_EXT_BOPIS
+                        >
+                            <div className="space-y-8">
+                                {isProductASet || isProductABundle ? (
+                                    <>
+                                        <ProductView product={product} />
+                                        <ChildProducts parentProduct={product} />
+                                    </>
+                                ) : (
                                     <ProductView product={product} />
-                                    <ChildProducts parentProduct={product} />
-                                </>
-                            ) : (
-                                <ProductView product={product} />
-                            )}
+                                )}
 
-                            {/* @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS */}
-                            <UITarget targetId="sfcc.pdp.reviews.section" />
-                            {/* @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS */}
-                            <UITarget targetId="sfcc.pdp.reviews.qna" />
-                        </div>
+                                {/* @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS */}
+                                <UITarget targetId="sfcc.pdp.reviews.section" />
+                                {/* @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS */}
+                                <UITarget targetId="sfcc.pdp.reviews.qna" />
+                            </div>
+                        </ProductViewProvider>
                         {/* @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS */}
                     </WriteReviewFormProvider>
                 </ProductReviewsProvider>
@@ -456,9 +457,7 @@ function ProductDetailView({ loaderData }: { loaderData: ProductPageData }) {
     // @sfdc-extension-block-end SFDC_EXT_BNPL
     // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
     finalContent = (
-        <ShippingDeliveryProvider estimatedDeliveryPromise={loaderData.estimatedDelivery}>
-            {finalContent}
-        </ShippingDeliveryProvider>
+        <ShippingDeliveryProvider productId={loaderData.product.id}>{finalContent}</ShippingDeliveryProvider>
     );
     // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 

@@ -15,126 +15,133 @@
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
 
-// --- Types ---
+import type { LoaderFunctionArgs } from 'react-router';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { createApiClients } from '@/lib/api-clients.server';
+import { fetchProductById } from '@/lib/api/products.server';
+import type { ShopperDeliveryEstimates, ShopperProducts } from '@/scapi';
+import { getCountryCodeFromLocale } from '@/lib/shipping-estimate/postal-code-formats';
+import type { ShippingEstimate, ShippingEstimateOption } from '@/lib/shipping-estimate/types';
 
-export interface ShippingOption {
-    name: string;
-    deliveryTime: string;
-    cost?: number;
-    condition?: string;
-}
+const PICKUP_SHIPPING_METHOD_ID = '005';
 
-export interface EstimatedDeliveryData {
-    title: string;
-    estimatedDelivery: {
-        options: Array<{ name: string; deliveryTime: string }>;
-        note: string;
-    };
-    shippingOptions: ShippingOption[];
-    internationalShipping: {
-        heading: string;
-        points: string[];
-        note?: string;
-    };
-    orderTracking: {
-        heading: string;
-        points: string[];
-    };
-}
+export type { ShippingEstimate };
 
-export interface ShippingEstimate {
-    delivery_date: string;
-    cost: number;
-    days: number;
-}
-
-// --- Mock Data ---
-
-const MOCK_ESTIMATED_DELIVERY_DATA: EstimatedDeliveryData = {
-    title: 'Fulfillment & Shipping',
-    estimatedDelivery: {
-        options: [
-            { name: 'Standard Shipping', deliveryTime: '5-7 business days' },
-            { name: 'Express Shipping', deliveryTime: '2-3 business days' },
-            { name: 'Overnight Shipping', deliveryTime: 'Next business day' },
-        ],
-        note: 'Delivery estimates are calculated from the date your order ships. Processing time is typically 1-2 business days.',
-    },
-    shippingOptions: [
-        {
-            name: 'Standard Shipping',
-            deliveryTime: '5-7 business days',
-            cost: 5.99,
-            condition: 'Free on orders over $50',
-        },
-        {
-            name: 'Express Shipping',
-            deliveryTime: '2-3 business days',
-            cost: 12.99,
-            condition: 'Free on orders over $100',
-        },
-        {
-            name: 'Overnight Shipping',
-            deliveryTime: 'Next business day',
-            cost: 24.99,
-            condition: 'Orders placed before 2 PM EST',
-        },
-    ],
-    internationalShipping: {
-        heading: 'International Shipping',
-        points: [
-            'We ship to over 50 countries worldwide. International shipping rates and delivery times vary by destination.',
-            'Customs & Duties: International orders may be subject to customs fees and import duties, which are the responsibility of the customer.',
-        ],
-        note: 'For specific international shipping rates, please continue to checkout and enter your shipping address.',
-    },
-    orderTracking: {
-        heading: 'Order Tracking',
-        points: [
-            "Once your order ships, you'll receive a confirmation email with tracking information. You can track your order status in real-time through our website or mobile app.",
-            'Need Help? Contact our customer service team if you have questions about your shipment or delivery.',
-        ],
-    },
+type DeliveryWindow = ShopperDeliveryEstimates.schemas['DeliveryWindow'];
+type ScapiShippingOption = ShopperDeliveryEstimates.schemas['ShippingOption'];
+type DeliveryEstimatesResult = ShopperDeliveryEstimates.schemas['DeliveryEstimatesResult'];
+type ProductShippingMethod = NonNullable<ShopperProducts.schemas['Product']['shippingMethods']>[number] & {
+    c_storePickupEnabled?: boolean;
 };
 
-// --- API Functions ---
-
 /**
- * Fetches estimated delivery data for a product.
- * Replace this function body with calls to your shipping provider API.
+ * Returns the first merchant-authored delivery-method description available for a product.
+ * The product API provides localized catalog descriptions but cannot calculate a
+ * destination-specific date, so this is only used for selected Delivery Estimates failures.
  */
-export function getEstimatedDelivery(_productId?: string): Promise<EstimatedDeliveryData> {
-    return Promise.resolve(MOCK_ESTIMATED_DELIVERY_DATA);
+export async function getFallbackDeliveryDescription(
+    context: LoaderFunctionArgs['context'],
+    productId: string
+): Promise<string | undefined> {
+    try {
+        const product = await fetchProductById(context, productId, { expand: ['shipping_methods'] });
+        return product?.shippingMethods
+            ?.find((method) => !isPickupShippingMethod(method) && method.description?.trim())
+            ?.description?.trim();
+    } catch {
+        // The delivery-estimate response remains an unavailable result when catalog fallback lookup fails.
+        return undefined;
+    }
+}
+
+function isPickupShippingMethod(method: ProductShippingMethod): boolean {
+    return method.c_storePickupEnabled === true || method.id === PICKUP_SHIPPING_METHOD_ID;
+}
+
+function toShippingEstimateOption(
+    option: ScapiShippingOption & { deliveryWindow: DeliveryWindow }
+): ShippingEstimateOption {
+    return {
+        shippingMethodId: option.shippingMethodId,
+        ...(option.name ? { name: option.name } : {}),
+        ...(option.description ? { description: option.description } : {}),
+        ...(option.carrier ? { carrier: option.carrier } : {}),
+        ...(option.price !== undefined ? { price: option.price } : {}),
+        ...(option.currency ? { currency: option.currency } : {}),
+        deliveryWindow: option.deliveryWindow,
+        ...(option.orderCutoffAt ? { orderCutoffAt: option.orderCutoffAt } : {}),
+    };
+}
+
+export function getEstimateCountryCode(context: LoaderFunctionArgs['context']): string {
+    const localeId = context.get(siteContext)?.locale.id;
+    return getCountryCodeFromLocale(localeId) ?? 'US';
+}
+
+// --- SCAPI Client ---
+
+async function fetchDeliveryEstimates(
+    context: LoaderFunctionArgs['context'],
+    productId: string,
+    postalCode: string,
+    countryCode = getEstimateCountryCode(context)
+): Promise<DeliveryEstimatesResult> {
+    const clients = createApiClients(context);
+    const { data } = await clients.shopperDeliveryEstimates.getDeliveryEstimates({
+        params: {
+            query: { productIds: [productId], postalCode, countryCode },
+        },
+    });
+    return data;
 }
 
 /**
- * Fetches shipping estimate for a product + zip code combination.
- * Replace this function body with calls to your shipping provider API.
- *
- * Mock implementation returns 3-5 day delivery estimates based on zipcode.
- * - Deterministic delivery estimates based on zipcode
- * - Error simulation for testing (zipcode 99999 always fails)
+ * Fetches a shipping estimate for a product + ZIP code combination.
+ * Called from the resource route when a shopper enters their ZIP code.
+ * Returns null when SCAPI succeeds but has no deliverable options.
+ * Throws on missing/invalid ZIP or upstream failures.
  */
-export function getShippingEstimates(_productId: string, zipcode: string): Promise<ShippingEstimate> {
+export async function getShippingEstimates(
+    context: LoaderFunctionArgs['context'],
+    productId: string,
+    zipcode: string,
+    countryCode?: string
+): Promise<ShippingEstimate | null> {
     if (!zipcode) {
-        return Promise.reject(new Error('ZIP code is required'));
+        throw new Error('ZIP code is required');
     }
 
-    if (zipcode === '99999') {
-        return Promise.reject(new Error('Delivery not available to this zipcode'));
+    const result = await fetchDeliveryEstimates(context, productId, zipcode, countryCode);
+    const productEstimate = result.productDeliveryEstimates.find((estimate) => estimate.productId === productId);
+
+    if (!productEstimate || productEstimate.shippingOptions.length === 0) {
+        return null;
     }
 
-    const seed = parseInt(zipcode.slice(-2)) || 1;
-    const days = (seed % 3) + 3;
-    const date = new Date();
-    date.setDate(date.getDate() + days);
+    const deliverableOptions = productEstimate.shippingOptions.filter(
+        (o): o is ScapiShippingOption & { deliveryWindow: DeliveryWindow } => !!o.deliveryWindow
+    );
 
-    const lastDigit = parseInt(zipcode.slice(-1)) || 0;
-    const cost = lastDigit % 2 === 0 ? 0 : 5.99;
+    if (deliverableOptions.length === 0) {
+        return null;
+    }
 
-    return Promise.resolve({
-        delivery_date: date.toISOString().split('T')[0],
-        cost,
-        days,
+    const shippingOptions = deliverableOptions.map(toShippingEstimateOption).sort((a, b) => {
+        if (a.price !== undefined && b.price !== undefined) {
+            const priceDiff = a.price - b.price;
+            if (priceDiff !== 0) return priceDiff;
+        } else if (a.price !== undefined) {
+            return -1;
+        } else if (b.price !== undefined) {
+            return 1;
+        }
+
+        return new Date(a.deliveryWindow.endAt).getTime() - new Date(b.deliveryWindow.endAt).getTime();
     });
+
+    return {
+        shippingOptions,
+        // The PDP summary represents the default option, not the span of every available method.
+        deliveryWindow: shippingOptions[0].deliveryWindow,
+    };
 }

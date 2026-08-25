@@ -21,6 +21,8 @@ import { getAddressKey } from '@/lib/address/address-utils';
  * Return type for multi-shipment distribution analysis functions.
  */
 export type MultiShipmentDistribution = {
+    /** `true` if there are any delivery items */
+    hasDeliveryItems: boolean;
     /** `true` if there are more than one product items (productItems.length > 1) */
     enableMultiAddress: boolean;
     /** `true` if there are more than one unique delivery addresses */
@@ -74,6 +76,7 @@ export function getMultiShipmentDistribution(basket?: ShopperBasketsV2.schemas['
     // Early return if basket is invalid
     if (!basket?.shipments || !basket.productItems) {
         return {
+            hasDeliveryItems: false,
             enableMultiAddress: false,
             hasMultipleDeliveryAddresses: false,
             hasUnaddressedDeliveryItems: false,
@@ -94,7 +97,7 @@ export function getMultiShipmentDistribution(basket?: ShopperBasketsV2.schemas['
     // Always exclude empty shipments from all flags except hasEmptyShipments
     // Empty shipments should not affect delivery distribution calculations
     const deliveryShipments = basket.shipments.filter((shipment) => {
-        if (!shipment.shipmentId) return false;
+        if (!shipment.shipmentId || shipment.c_fromStoreId) return false;
         // Only include shipments that have at least one item assigned
         return (shipmentItemCounts.get(shipment.shipmentId) || 0) > 0;
     });
@@ -129,6 +132,7 @@ export function getMultiShipmentDistribution(basket?: ShopperBasketsV2.schemas['
     });
 
     return {
+        hasDeliveryItems: deliveryShipments.length > 0,
         enableMultiAddress,
         hasMultipleDeliveryAddresses,
         hasUnaddressedDeliveryItems,

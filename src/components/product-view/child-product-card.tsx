@@ -29,8 +29,6 @@ import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import type { ShopperProducts } from '@/scapi';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { isProductSet, isStandardProduct } from '@/lib/product/product-utils';
-// @sfdc-extension-line SFDC_EXT_BOPIS
-import DeliveryOptions from '@/extensions/bopis/components/delivery-options/delivery-options';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -386,11 +384,6 @@ export default function ChildProductCard({
                         <span className="text-muted-foreground">{t('selectOptionsAbove')}</span>
                     )}
                 </div>
-
-                {/* @sfdc-extension-block-start SFDC_EXT_BOPIS */}
-                {/* Delivery Options - Only for Product Sets (not Bundles) */}
-                {isParentProductASet && <DeliveryOptions product={product} quantity={quantity} className="mt-6" />}
-                {/* @sfdc-extension-block-end SFDC_EXT_BOPIS */}
 
                 {/* Individual Add to Cart Button */}
                 {isParentProductASet && (

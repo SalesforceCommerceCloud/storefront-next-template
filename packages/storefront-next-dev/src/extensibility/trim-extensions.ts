@@ -23,7 +23,7 @@ import path from 'path';
 import type ExtensionConfig from './extension-config';
 import { isSupportedFileExtension } from './path-util';
 import { logger } from '../logger';
-import { formatWithProjectBiome } from '../utils/format-with-project-biome';
+import { formatFilesWithBundledBiome } from '../utils/format-with-project-biome';
 
 type ExtensionsSelection = Record<string, boolean>;
 
@@ -55,7 +55,8 @@ export default async function trimExtensions(
         return;
     }
 
-    const processDirectory = (dir: string): void => {
+    const processDirectory = (dir: string): string[] => {
+        const modifiedFiles: string[] = [];
         const files = fs.readdirSync(dir);
         files.forEach((file) => {
             const filePath = path.join(dir, file);
@@ -63,24 +64,33 @@ export default async function trimExtensions(
 
             if (!filePath.includes('node_modules')) {
                 if (stats.isDirectory()) {
-                    processDirectory(filePath);
+                    modifiedFiles.push(...processDirectory(filePath));
                 } else if (isSupportedFileExtension(file)) {
-                    processFile(filePath, extensions);
+                    if (processFile(filePath, extensions)) {
+                        modifiedFiles.push(filePath);
+                    }
                 }
             }
         });
+        return modifiedFiles;
     };
 
-    processDirectory(directory);
+    const modifiedFiles = processDirectory(directory);
     if (extensionConfig?.extensions) {
         // Rewrite config.json BEFORE deleting any folders. `updateExtensionConfig` reads and
         // rewrites config.json; if it threw after the folders were already removed, the project
         // would be left half-trimmed — folders gone but config.json still listing the removed
         // extensions. Doing the (only) throwing step first means a failure aborts before
         // anything destructive; the two steps are independent.
-        updateExtensionConfig(directory, extensions);
+        modifiedFiles.push(updateExtensionConfig(directory, extensions));
         deleteExtensionFolders(directory, extensions, extensionConfig);
     }
+    formatFilesWithBundledBiome(
+        directory,
+        // Disabled extension folders are deleted after their files are trimmed. Do not pass
+        // those now-missing paths to Biome along with the files that remain in the project.
+        modifiedFiles.filter((filePath) => fs.existsSync(filePath))
+    );
     const endTime = Date.now();
     logger.debug(`Trim extensions took ${endTime - startTime}ms`);
 }
@@ -90,7 +100,7 @@ export default async function trimExtensions(
  * @param projectDirectory - The project directory
  * @param extensionSelections - The selected extensions
  */
-function updateExtensionConfig(projectDirectory: string, extensionSelections: ExtensionsSelection) {
+function updateExtensionConfig(projectDirectory: string, extensionSelections: ExtensionsSelection): string {
     const extensionConfigPath = path.join(projectDirectory, 'src', 'extensions', 'config.json');
     const extensionConfig = JSON.parse(fs.readFileSync(extensionConfigPath, 'utf8'));
     Object.keys(extensionConfig.extensions).forEach((extensionKey: string) => {
@@ -98,13 +108,11 @@ function updateExtensionConfig(projectDirectory: string, extensionSelections: Ex
             delete extensionConfig.extensions[extensionKey];
         }
     });
-    // `JSON.stringify(…, null, 4)` always expands short arrays (e.g. a one-element
-    // `dependencies`) onto multiple lines and omits a trailing newline, so the written
-    // file is rewritten by the project's own `biome format` / `pnpm lint:fix`. Run it
-    // through the project's Biome (same pattern as the static-registry plugin) so the
-    // generated config.json is format-clean in the artifact a customer receives (W-23074938).
+    // Format this alongside the trimmed source files below. Keeping the content write separate
+    // from formatting lets the SDK use its pinned Biome instead of executing a project's binary.
     const json = JSON.stringify({ extensions: extensionConfig.extensions }, null, 4);
-    fs.writeFileSync(extensionConfigPath, formatWithProjectBiome(json, extensionConfigPath), 'utf8');
+    fs.writeFileSync(extensionConfigPath, json, 'utf8');
+    return extensionConfigPath;
 }
 
 /**
@@ -112,7 +120,7 @@ function updateExtensionConfig(projectDirectory: string, extensionSelections: Ex
  * @param filePath - The file path to process
  * @param extensions - The extension selections
  */
-function processFile(filePath: string, extensions: ExtensionsSelection): void {
+function processFile(filePath: string, extensions: ExtensionsSelection): boolean {
     const source = fs.readFileSync(filePath, 'utf-8');
 
     // If the file is guarded by a file-level marker and the extension is disabled, remove the file entirely
@@ -131,7 +139,7 @@ function processFile(filePath: string, extensions: ExtensionsSelection): void {
                 logger.error(`Error deleting file ${filePath}: ${error.message}`);
                 throw e;
             }
-            return;
+            return false;
         }
     }
 
@@ -158,7 +166,7 @@ function processFile(filePath: string, extensions: ExtensionsSelection): void {
                 const matchingExtension = Object.keys(extensions).find((extension) => line.includes(extension));
                 if (matchingExtension) {
                     blockMarkers.push({ extension: matchingExtension, line: i });
-                    skippingBlock = extensions[matchingExtension] === false;
+                    skippingBlock = blockMarkers.some(({ extension }) => extensions[extension] === false);
                 } else {
                     logger.warn(`Unknown marker found in ${filePath} at line ${i}: \n${line}`);
                 }
@@ -177,9 +185,12 @@ function processFile(filePath: string, extensions: ExtensionsSelection): void {
                             `Block marker mismatch in ${filePath}, expected end marker for ${startMarker.extension} but got ${extension} at line ${i}:\n${lines[i]}`
                         );
                     }
-                    if (extensions[extension] === false) {
-                        // Skip the entire block (marker lines are already skipped by skippingBlock)
-                        skippingBlock = false;
+                    const closedDisabledBlock = extensions[startMarker.extension] === false;
+                    skippingBlock = blockMarkers.some(
+                        ({ extension: blockExtension }) => extensions[blockExtension] === false
+                    );
+                    if (closedDisabledBlock || skippingBlock) {
+                        // Do not let a nested block change whether its disabled parent is skipped.
                         i++;
                         continue;
                     }
@@ -203,6 +214,7 @@ function processFile(filePath: string, extensions: ExtensionsSelection): void {
             try {
                 fs.writeFileSync(filePath, newSource);
                 logger.debug(`Updated file ${filePath}`);
+                return true;
             } catch (e: unknown) {
                 const error = e as Error;
                 logger.error(`Error updating file ${filePath}: ${error.message}`);
@@ -210,6 +222,7 @@ function processFile(filePath: string, extensions: ExtensionsSelection): void {
             }
         }
     }
+    return false;
 }
 
 /**

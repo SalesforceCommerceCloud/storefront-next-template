@@ -139,7 +139,7 @@ describe('ProductView', () => {
 
             // Swatches should be visible
             expect(screen.getByLabelText('Charcoal')).toBeInTheDocument();
-            expect(screen.getByLabelText('36')).toBeInTheDocument();
+            expect(screen.getByLabelText(/^(?:Size )?36(?:, available)?$/i)).toBeInTheDocument();
             expect(screen.getByLabelText('Short')).toBeInTheDocument();
 
             // Quantity picker should be visible
@@ -332,7 +332,7 @@ describe('ProductView', () => {
 
             // Should have variation swatches
             expect(screen.getByLabelText('Charcoal')).toBeInTheDocument();
-            expect(screen.getByLabelText('36')).toBeInTheDocument();
+            expect(screen.getByLabelText(/^(?:Size )?36(?:, available)?$/i)).toBeInTheDocument();
             expect(screen.getByLabelText('Short')).toBeInTheDocument();
         });
 

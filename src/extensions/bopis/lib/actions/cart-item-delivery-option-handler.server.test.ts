@@ -19,15 +19,19 @@ import type { RouterContextProvider } from 'react-router';
 import { handleCartItemDeliveryOptionChange } from './cart-item-delivery-option-handler.server';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
-import { findOrCreateDeliveryShipment } from '@/extensions/multiship/lib/api/basket.server';
+import { findOrCreateDeliveryShipment } from '@/lib/cart/shipments.server';
 import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
+import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { expectStatus } from '@/lib/test-utils/expect-status';
 import type { CartItemUpdateData } from '@/lib/cart/basket-schemas';
 
 vi.mock('@/middlewares/basket.server');
 vi.mock('@/lib/api-clients.server');
-vi.mock('@/extensions/multiship/lib/api/basket.server');
+vi.mock('@/lib/cart/shipments.server');
 vi.mock('@/extensions/bopis/lib/api/shipment.server');
+vi.mock('@/extensions/bopis/lib/api/stores.server', () => ({
+    getStoreInventoryId: vi.fn(() => Promise.resolve('inv-1')),
+}));
 vi.mock('@/lib/logger.server', () => ({
     getLogger: vi.fn(() => ({
         error: vi.fn(),
@@ -63,6 +67,7 @@ describe('handleCartItemDeliveryOptionChange', () => {
         vi.mocked(createApiClients).mockReturnValue(mockClients as never);
         vi.mocked(findOrCreatePickupShipment).mockResolvedValue({ shipmentId: 'ship-pickup' } as never);
         vi.mocked(findOrCreateDeliveryShipment).mockResolvedValue({ shipmentId: 'ship-delivery' } as never);
+        vi.mocked(getStoreInventoryId).mockResolvedValue('inv-1');
         mockClients.shopperBasketsV2.getBasket.mockResolvedValue({ data: refetchedBasket });
     });
 
@@ -78,6 +83,23 @@ describe('handleCartItemDeliveryOptionChange', () => {
         expect(result).toBeNull();
         expect(mockClients.shopperProducts.getProducts).not.toHaveBeenCalled();
         expect(mockClients.shopperBasketsV2.updateItemInBasket).not.toHaveBeenCalled();
+    });
+
+    test('rejects an unknown cart item before it can create or retarget a shipment', async () => {
+        const result = await run({
+            itemId: 'missing-item',
+            deliveryOption: 'pickup',
+            storeId: 'store-9',
+            inventoryId: 'inv-1',
+        });
+
+        if (!result) throw new Error('expected an invalid-item response, received null');
+        expectStatus(result, 404);
+        expect(result.data.error?.code).toBe('NOT_FOUND');
+        expect(mockClients.shopperProducts.getProducts).not.toHaveBeenCalled();
+        expect(mockClients.shopperBasketsV2.updateItemInBasket).not.toHaveBeenCalled();
+        expect(findOrCreatePickupShipment).not.toHaveBeenCalled();
+        expect(findOrCreateDeliveryShipment).not.toHaveBeenCalled();
     });
 
     test('rejects a pickup swap to a store that stocks fewer units than the line quantity', async () => {
@@ -113,6 +135,31 @@ describe('handleCartItemDeliveryOptionChange', () => {
             })
         );
         expect(mockClients.shopperBasketsV2.updateItemInBasket).not.toHaveBeenCalled();
+        expect(findOrCreatePickupShipment).not.toHaveBeenCalled();
+    });
+
+    test('rejects a pickup swap without both store and inventory IDs', async () => {
+        const result = await run({ deliveryOption: 'pickup', storeId: 'store-9' });
+
+        if (!result) throw new Error('expected a required-field response, received null');
+        expectStatus(result, 400);
+        expect(result.data.error?.code).toBe('REQUIRED_FIELD');
+        expect(mockClients.shopperProducts.getProducts).not.toHaveBeenCalled();
+        expect(mockClients.shopperBasketsV2.updateItemInBasket).not.toHaveBeenCalled();
+        expect(findOrCreatePickupShipment).not.toHaveBeenCalled();
+    });
+
+    test('rejects a pickup swap whose store and inventory IDs do not match', async () => {
+        vi.mocked(getStoreInventoryId).mockResolvedValue('inv-other');
+
+        const result = await run({ deliveryOption: 'pickup', storeId: 'store-9', inventoryId: 'inv-1' });
+
+        if (!result) throw new Error('expected an invalid-input response, received null');
+        expectStatus(result, 400);
+        expect(result.data.error?.code).toBe('INVALID_INPUT');
+        expect(mockClients.shopperProducts.getProducts).not.toHaveBeenCalled();
+        expect(mockClients.shopperBasketsV2.updateItemInBasket).not.toHaveBeenCalled();
+        expect(findOrCreatePickupShipment).not.toHaveBeenCalled();
     });
 
     test('allows a pickup swap within store stock even when site stock is exhausted', async () => {
@@ -150,6 +197,7 @@ describe('handleCartItemDeliveryOptionChange', () => {
             })
         );
         expect(mockClients.shopperBasketsV2.updateItemInBasket).not.toHaveBeenCalled();
+        expect(findOrCreateDeliveryShipment).not.toHaveBeenCalled();
     });
 
     test('allows a delivery swap within site stock', async () => {

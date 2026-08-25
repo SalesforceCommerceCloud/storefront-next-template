@@ -219,14 +219,14 @@ Config updates:
 |-------|---------|
 | **Status** | Stub — no backend integration |
 | **Location** | `src/extensions/shipping-delivery/` |
-| **Surfaces** | Product detail page (PDP estimated delivery card + "Learn More" modal), BOPIS delivery options (zip-code shipping estimator) |
-| **Extension** | `SFDC_EXT_SHIPPING_DELIVERY` (named "(Demo) Shipping & Delivery" in `src/extensions/config.json`) |
+| **Surfaces** | Product detail page (PDP delivery estimator) |
+| **Extension** | `SFDC_EXT_SHIPPING_DELIVERY` |
 
 **Current behavior:**
-The estimated delivery card and the BOPIS shipping calculator are fully functional but backed by mock fixtures in `lib/api/shipping-delivery.server.ts`. The fixtures return the same delivery estimate regardless of product or zip code.
+The estimator requests product and postal-code-specific delivery options through Shopper Delivery Estimates. If no estimate is available, it can display the merchant-authored Shopper Products shipping-method description.
 
-**To productionize:**
-Replace the bodies of `getEstimatedDelivery` and `getShippingEstimates` in `src/extensions/shipping-delivery/lib/api/shipping-delivery.server.ts` with calls into your shipping provider (ShipEngine, EasyPost, carrier APIs, etc.). The PDP loader, resource route, and UI components do not need to change. Drop the `(Demo)` prefix from the extension name in `src/extensions/config.json` once a real provider is wired up.
+**To customize:**
+Change the configured `sfcc.pdp.estimatedDelivery` target to the detailed or summary wrapper, or replace it with a merchant-specific component.
 
 **To remove:**
 Uninstall the extension by stripping the `@sfdc-extension-*` markers from core files and deleting the extension folder.
@@ -235,8 +235,7 @@ Files to delete:
 - `src/extensions/shipping-delivery/` (entire folder)
 
 Parent components to update (remove the marker block):
-- `src/routes/_app.product.$productId.tsx` — the `estimatedDelivery` loader Promise and the `ShippingDeliveryProvider` wrapper
-- `src/components/product-view/product-view.tsx` — the `<UITarget targetId="sfcc.pdp.estimatedDelivery" />` block
+- `src/routes/_app.product.$productId.tsx` — the `ShippingDeliveryProvider` wrapper
 
 Config updates:
 - Remove `SFDC_EXT_SHIPPING_DELIVERY` from `src/extensions/config.json`

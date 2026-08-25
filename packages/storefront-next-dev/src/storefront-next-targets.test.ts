@@ -58,6 +58,12 @@ describe('storefrontNextTargets', () => {
         expect(targetNames).not.toContain('storefront-next-workspace');
     });
 
+    it('should not install a fulfillment contributors plugin', () => {
+        const targetNames = storefrontNextTargets().map((target) => target.name);
+
+        expect(targetNames).not.toContain('storefront-next:fulfillment-contributors');
+    });
+
     it('should not include readableChunkFileNames when readableChunkNames is false', () => {
         const targets = storefrontNextTargets({ readableChunkNames: false });
         expect(targets.length).toBe(BASE_PLUGIN_COUNT);

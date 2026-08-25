@@ -14,21 +14,30 @@
             "deliverToZip": "Consegna a {{zipCode}}",
             "deliveryInDays": "Consegna in {{days}} giorni lavorativi",
             "estimatedDeliveryInDays": "Consegna stimata: {{days}} giorni lavorativi",
-            "enterZipPrompt": "Inserisci il CAP per vedere la stima di consegna",
+            "enterZipPrompt": "Inserisci il tuo codice postale per vedere la stima di consegna",
             "pickupUnavailable": "Ritiro non disponibile",
             "tryAnotherStore": "Prova un altro negozio",
             "calculatorTitle": "Calcola spedizione",
-            "calculatorInstructionMessage": "Inserisci un CAP di 5 cifre per vedere le stime di consegna.",
-            "zipPlaceholder": "Inserisci CAP",
-            "zipAriaLabel": "CAP",
+            "calculatorInstructionMessage": "Inserisci il tuo {{term}} (es. {{example}}) per vedere le stime di consegna.",
+            "zipPlaceholder": "Inserisci il tuo {{term}}",
+            "zipAriaLabel": "{{term}}",
             "calculateButton": "Calcola",
             "calculateAriaLabel": "Calcola stima di consegna",
-            "invalidZipCode": "Inserisci un CAP valido di 5 cifre.",
+            "invalidZipCode": "Inserisci un {{term}} valido (es. {{example}}).",
             "free": "Gratuita",
             "calculating": "Calcolando...",
             "errorFetchingEstimates": "Non siamo riusciti a ottenere le stime di consegna al momento. Riprova.",
             "retry": "Riprova",
-            "shippingCost": "Costo di spedizione:"
+            "shippingCost": "Costo di spedizione:",
+            "calculatorInstructionMessageNoExample": "Inserisci il tuo {{term}} per vedere le stime di consegna.",
+            "invalidPostalCodeNoExample": "Inserisci un {{term}} valido.",
+            "postalTerms": {
+                "zip": "CAP",
+                "postalCode": "codice postale",
+                "postcode": "CAP",
+                "cap": "CAP",
+                "eircode": "Eircode"
+            }
         }
     },
     "storeInventoryFilter": {

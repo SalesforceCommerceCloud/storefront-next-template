@@ -1434,14 +1434,6 @@
         "returnsAndWarrantyDescription": "退貨和保固詳細資料",
         "close": "關閉"
     },
-    "estimatedDelivery": {
-        "cardTitle": "預計送達時間",
-        "cardDescription": "可選運送選項",
-        "learnMore": "瞭解更多",
-        "sectionHeading": "預計送達時間",
-        "shippingOptionsHeading": "運送選項和費率",
-        "free": "免費"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "請修正以下內容：",
@@ -1504,6 +1496,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "配送方式",
+            "deliveryDescription": "輸入郵遞區號以查看送達估計"
+        },
         "recommendations": {
             "youMightAlsoLike": "您可能也喜歡",
             "completeTheLook": "完善外觀",

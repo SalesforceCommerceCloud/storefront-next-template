@@ -14,90 +14,55 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
-
 import type React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { EstimatedDeliveryModalContent } from './estimated-delivery-modal-content';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
-import { mockConfig, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider, type Site } from '@salesforce/storefront-next-runtime/site-context';
-import type { EstimatedDeliveryData } from '@/extensions/shipping-delivery/lib/api/shipping-delivery.server';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
+import type { ShippingEstimateOption } from '@/lib/shipping-estimate/types';
+import { EstimatedDeliveryModalContent } from './estimated-delivery-modal-content';
 
 const mockSite: Site = mockSiteObject;
-
 const mockLocale =
-    mockSite.supportedLocales.find((l) => l.id === mockSite.defaultLocale) ?? mockSite.supportedLocales[0];
-
-const mockData: EstimatedDeliveryData = {
-    title: 'Fulfillment & Shipping',
-    estimatedDelivery: {
-        options: [
-            { name: 'Standard Shipping', deliveryTime: '5-7 business days' },
-            { name: 'Express Shipping', deliveryTime: '2-3 business days' },
-        ],
-        note: 'Delivery times may vary.',
+    mockSite.supportedLocales.find((locale) => locale.id === mockSite.defaultLocale) ?? mockSite.supportedLocales[0];
+const shippingOptions: ShippingEstimateOption[] = [
+    {
+        shippingMethodId: 'ground',
+        name: 'Ground',
+        price: 0,
+        currency: 'USD',
+        deliveryWindow: { startAt: '2027-01-02T00:00:00Z', endAt: '2027-01-05T00:00:00Z' },
     },
-    shippingOptions: [
-        { name: 'Standard', deliveryTime: '5-7 business days', cost: 0, condition: 'Orders over $50' },
-        { name: 'Express', deliveryTime: '2-3 business days', cost: 9.99 },
-    ],
-    internationalShipping: {
-        heading: 'International Shipping',
-        points: ['We ship worldwide.'],
-        note: 'Enter address at checkout for rates.',
+    {
+        shippingMethodId: 'express',
+        name: 'Express',
+        description: 'Fast delivery',
+        price: 9.99,
+        currency: 'USD',
+        deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
     },
-    orderTracking: {
-        heading: 'Order Tracking',
-        points: ['Track your order online.'],
-    },
-};
+];
 
 const renderWithConfig = (ui: React.ReactElement) =>
     render(
         <ConfigProvider config={mockConfig}>
-            <SiteProvider
-                site={mockSite}
-                locale={mockLocale}
-                language={mockSiteObject.defaultLocale}
-                currency={mockSiteObject.defaultCurrency}>
+            <SiteProvider site={mockSite} locale={mockLocale} language={mockSiteObject.defaultLocale} currency="USD">
                 {ui}
             </SiteProvider>
         </ConfigProvider>
     );
 
 describe('EstimatedDeliveryModalContent', () => {
-    it('renders all sections', () => {
-        renderWithConfig(<EstimatedDeliveryModalContent deliveryData={mockData} currency="USD" />);
+    it('renders each calculated delivery option with its delivery window and price', () => {
+        renderWithConfig(<EstimatedDeliveryModalContent shippingOptions={shippingOptions} />);
 
-        expect(screen.getByText(/Standard Shipping/)).toBeInTheDocument();
-        expect(screen.getByText(/Express Shipping/)).toBeInTheDocument();
-        expect(screen.getByText('International Shipping')).toBeInTheDocument();
-        expect(screen.getByText('Order Tracking')).toBeInTheDocument();
-    });
-
-    it('renders free label for zero-cost shipping', () => {
-        renderWithConfig(<EstimatedDeliveryModalContent deliveryData={mockData} currency="USD" />);
-
+        expect(screen.getByRole('heading', { name: 'Shipping Options' })).toBeInTheDocument();
+        expect(screen.getByText('Ground')).toBeInTheDocument();
+        expect(screen.getByText('Express')).toBeInTheDocument();
         expect(screen.getByText('Free')).toBeInTheDocument();
-    });
-
-    it('renders formatted cost for paid shipping', () => {
-        renderWithConfig(<EstimatedDeliveryModalContent deliveryData={mockData} currency="USD" />);
-
         expect(screen.getByText('$9.99')).toBeInTheDocument();
-    });
-
-    it('renders notes when provided', () => {
-        renderWithConfig(<EstimatedDeliveryModalContent deliveryData={mockData} currency="USD" />);
-
-        expect(screen.getByText('Delivery times may vary.')).toBeInTheDocument();
-        expect(screen.getByText('Enter address at checkout for rates.')).toBeInTheDocument();
-    });
-
-    it('renders condition text for shipping options', () => {
-        renderWithConfig(<EstimatedDeliveryModalContent deliveryData={mockData} currency="USD" />);
-
-        expect(screen.getByText('Orders over $50')).toBeInTheDocument();
+        expect(screen.getByText('Fast delivery')).toBeInTheDocument();
+        expect(screen.getAllByText(/Jan/)).toHaveLength(2);
     });
 });

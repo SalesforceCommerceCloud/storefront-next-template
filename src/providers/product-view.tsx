@@ -19,6 +19,7 @@ import type { ShopperProducts } from '@/scapi';
 import { useProductActions } from '@/hooks/product/use-product-actions';
 import { useCurrentVariant } from '@/hooks/product/use-current-variant';
 import { useSelectedVariations } from '@/hooks/product/use-selected-variations';
+import type { SelectedFulfillmentOption } from '@/components/fulfillment/types';
 
 interface ProductViewContextValue extends ReturnType<typeof useProductActions> {
     product: ShopperProducts.schemas['Product'];
@@ -56,6 +57,10 @@ const ProductViewContext = createContext<ProductViewContextValue | null>(null);
 interface ProductViewProviderProps {
     product: ShopperProducts.schemas['Product'];
     mode?: 'add' | 'edit';
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    /** Clears transient BOPIS state when a PDP deferred item hides fulfillment choices. */
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    clearDeferredPickupSelection?: boolean;
     initialQuantity?: number;
     maxQuantity?: number;
     itemId?: string;
@@ -74,6 +79,7 @@ interface ProductViewProviderProps {
      * intentionally-free items priced elsewhere (e.g. promotional bonus products). Defaults to false.
      */
     allowMissingPrice?: boolean;
+    initialFulfillmentSelection?: SelectedFulfillmentOption;
 }
 
 /**
@@ -100,6 +106,8 @@ const ProductViewProvider = ({
     children,
     product,
     mode = 'add',
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    clearDeferredPickupSelection,
     initialQuantity,
     maxQuantity,
     itemId,
@@ -107,6 +115,7 @@ const ProductViewProvider = ({
     selectionsOverride: providedSelectionsOverride,
     isVariantInventoryLoading: providedIsVariantInventoryLoading = false,
     allowMissingPrice = false,
+    initialFulfillmentSelection,
 }: PropsWithChildren<ProductViewProviderProps>) => {
     // Client-side size/width override written by an uncontrolled ProductInfo. Reset whenever the
     // product changes so a stale pick can't leak across a client-side PDP-to-PDP navigation that
@@ -143,6 +152,10 @@ const ProductViewProvider = ({
 
     const productActionsData = useProductActions({
         product,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        mode,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        clearDeferredPickupSelection,
         currentVariant,
         initialQuantity,
         maxQuantity,
@@ -152,9 +165,10 @@ const ProductViewProvider = ({
         // a navigation, so the loader never re-fetched the selected SKU and `product` is still the
         // master. Have the hook hydrate that SKU's authoritative inventory so canAddToCart and
         // quantity validate against the real SKU (and its per-store pickup inventory), not the
-        // master. Only footwear writes `selectionsOverride`, so this stays false -- and adds no
+        // master. Only footwear writes the local override, so this stays false -- and adds no
         // extra fetch -- for every other vertical and for controlled colorway/modal flows.
         hydrateVariantInventory: hasLocalOverride,
+        initialFulfillmentSelection,
     });
 
     // Loading is true when a controlled caller says so (its own fetch) or the provider's own

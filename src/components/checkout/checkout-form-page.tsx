@@ -50,8 +50,16 @@ import { clearCheckoutCorrelationId, getOrCreateCheckoutCorrelationId } from '@/
 import { Spinner } from '@/components/spinner';
 import { getCheckoutDisplayError, isUnauthorizedError } from './utils/checkout-display-error';
 import { SessionExpiredBanner } from './components/session-expired-banner';
-import { CHECKOUT_STEPS, type CheckoutStep } from './utils/checkout-context-types';
-import { handlePickupContinueAction, hasValidShippingMethodForEveryShipment } from './utils/checkout-utils';
+import {
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    CHECKOUT_STEPS,
+    type CheckoutStep,
+} from './utils/checkout-context-types';
+import {
+    hasValidShippingMethodForEveryShipment,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    handlePickupContinueAction,
+} from './utils/checkout-utils';
 import { isAddressEmpty } from '@/lib/address/address-utils';
 import { OrderSummaryMobileAccordion } from '@/components/order-summary/mobile-heading';
 import { isOrderTotalEstimated } from '@/components/order-summary/mobile-heading-utils';
@@ -86,6 +94,7 @@ import {
     OrderSummarySkeleton,
     PaymentPlaceholder,
     PaymentSkeleton,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
     PickupSkeleton,
     ShippingAddressSkeleton,
     ShippingOptionsSkeleton,
@@ -352,7 +361,11 @@ export default function CheckoutFormPage({
         setHideCreateAccountAfterSkippedPasswordlessOtp(false);
     }, []);
 
-    let showAddressAndOptions = true;
+    const showAddressAndOptionsState = { value: true };
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    showAddressAndOptionsState.value = shipmentDistribution.hasDeliveryItems;
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const showAddressAndOptions = showAddressAndOptionsState.value;
 
     // Determine shipping methods: prefer action response over loader data (avoids flash when advancing to shipping step).
     // Loader data is a streamed promise now (see `shippingMethodsMapPromise`); read the resolved value out of state.
@@ -362,24 +375,35 @@ export default function CheckoutFormPage({
     // `undefined` while the loader promise is still in flight (first paint), otherwise the resolved map
     // (possibly `{}` when no methods came back). Callers that must distinguish "loading" from "empty"
     // check `shippingMethodsResolved` below.
-    let shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> | undefined =
-        actionShippingMethods && Object.keys(actionShippingMethods).length > 0
-            ? actionShippingMethods
-            : resolvedShippingMethodsMap;
+    const shippingMethodsState: {
+        value: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> | undefined;
+    } = {
+        value:
+            actionShippingMethods && Object.keys(actionShippingMethods).length > 0
+                ? actionShippingMethods
+                : resolvedShippingMethodsMap,
+    };
     const shippingMethodsResolved =
         (actionShippingMethods && Object.keys(actionShippingMethods).length > 0) ||
         resolvedShippingMethodsMap !== undefined;
 
     // @sfdc-extension-block-start SFDC_EXT_MULTISHIP
-    let isDeliveryProductItem = (_item: ShopperBasketsV2.schemas['ProductItem']) => true;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    const bopisIsDeliveryProductItem = shipmentDistribution.isDeliveryProductItem;
+    const isDeliveryProductItem =
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        bopisIsDeliveryProductItem ||
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+        ((_item: ShopperBasketsV2.schemas['ProductItem']) => true);
     // @sfdc-extension-block-end SFDC_EXT_MULTISHIP
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    shippingMethodsMap = shippingMethodsMap ? filterDeliveryShippingMethods(shippingMethodsMap) : undefined;
+    shippingMethodsState.value = shippingMethodsState.value
+        ? filterDeliveryShippingMethods(shippingMethodsState.value)
+        : undefined;
     const hasPickupItems = shipmentDistribution.hasPickupItems;
-    showAddressAndOptions = shipmentDistribution.hasDeliveryItems;
-    isDeliveryProductItem = shipmentDistribution.isDeliveryProductItem;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const shippingMethodsMap = shippingMethodsState.value;
 
     // Keep ref in sync so useCheckoutActions can block advance before rendering the next step.
     // Only reflect "no methods" after the promise has actually resolved — while pending, treat as

@@ -20,6 +20,43 @@ import { getMultiShipmentDistribution } from './checkout-distribution';
 
 describe('getMultiShipmentDistribution', () => {
     describe('edge cases', () => {
+        it('excludes pickup shipments from delivery distribution', () => {
+            const basket: ShopperBasketsV2.schemas['Basket'] = {
+                basketId: 'basket-1',
+                shipments: [
+                    { shipmentId: 'pickup-shipment', c_fromStoreId: 'store-1' },
+                    {
+                        shipmentId: 'delivery-shipment',
+                        shippingAddress: {
+                            firstName: 'John',
+                            lastName: 'Doe',
+                            address1: '123 Main St',
+                            city: 'San Francisco',
+                            stateCode: 'CA',
+                            postalCode: '94102',
+                            countryCode: 'US',
+                        },
+                        shippingMethod: { id: 'standard', name: 'Standard Shipping' },
+                    },
+                ],
+                productItems: [
+                    { productId: 'pickup-product', quantity: 1, itemId: 'pickup-item', shipmentId: 'pickup-shipment' },
+                    {
+                        productId: 'delivery-product',
+                        quantity: 1,
+                        itemId: 'delivery-item',
+                        shipmentId: 'delivery-shipment',
+                    },
+                ],
+            };
+
+            const result = getMultiShipmentDistribution(basket);
+
+            expect(result.deliveryShipments).toEqual([expect.objectContaining({ shipmentId: 'delivery-shipment' })]);
+            expect(result.hasUnaddressedDeliveryItems).toBe(false);
+            expect(result.needsShippingMethods).toBe(false);
+        });
+
         it('returns all false flags when basket is undefined', () => {
             const result = getMultiShipmentDistribution(undefined);
             expect(result).toEqual({
@@ -28,6 +65,7 @@ describe('getMultiShipmentDistribution', () => {
                 hasUnaddressedDeliveryItems: false,
                 needsShippingMethods: false,
                 hasEmptyShipments: false,
+                hasDeliveryItems: false,
                 deliveryShipments: [],
             });
         });
@@ -50,6 +88,7 @@ describe('getMultiShipmentDistribution', () => {
                 hasUnaddressedDeliveryItems: false,
                 needsShippingMethods: false,
                 hasEmptyShipments: false,
+                hasDeliveryItems: false,
                 deliveryShipments: [],
             });
         });
@@ -70,6 +109,7 @@ describe('getMultiShipmentDistribution', () => {
                 hasUnaddressedDeliveryItems: false,
                 needsShippingMethods: false,
                 hasEmptyShipments: true,
+                hasDeliveryItems: false,
                 deliveryShipments: [],
             });
         });

@@ -1371,14 +1371,6 @@
         "returnsAndWarrantyDescription": "Information om returer och garantier",
         "close": "Stäng"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Beräknad leverans",
-        "cardDescription": "Tillgängliga fraktalternativ",
-        "learnMore": "Läs mer",
-        "sectionHeading": "Beräknad leverans",
-        "shippingOptionsHeading": "Fraktalternativ och priser",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Korrigera följande:",
@@ -1441,6 +1433,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Leveransmetod",
+            "deliveryDescription": "Ange postnummer för att se leveransuppskattning"
+        },
         "recommendations": {
             "youMightAlsoLike": "Du kanske också gillar",
             "completeTheLook": "Fullända looken",

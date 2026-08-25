@@ -1433,14 +1433,6 @@
         "returnsAndWarrantyDescription": "返品および保証の詳細",
         "close": "閉じる"
     },
-    "estimatedDelivery": {
-        "cardTitle": "お届け予定",
-        "cardDescription": "利用可能な配送オプション",
-        "learnMore": "詳しく見る",
-        "sectionHeading": "お届け予定",
-        "shippingOptionsHeading": "配送オプションと料金",
-        "free": "無料"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "以下を修正してください。",
@@ -1503,6 +1495,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "受け取り方法",
+            "deliveryDescription": "郵便番号を入力してお届け予定を確認"
+        },
         "recommendations": {
             "youMightAlsoLike": "こちらもどうぞ",
             "completeTheLook": "ルックを完成",

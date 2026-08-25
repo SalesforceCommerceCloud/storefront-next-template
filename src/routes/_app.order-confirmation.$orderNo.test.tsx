@@ -17,12 +17,21 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, createRoutesStub, RouterProvider, useLoaderData } from 'react-router';
-import { ApiError, type ShopperOrders, type ShopperProducts, type ShopperStores } from '@/scapi';
+import {
+    ApiError,
+    type ShopperOrders,
+    type ShopperProducts,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    type ShopperStores,
+} from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import OrderConfirmationPage, { loader, ErrorBoundary } from './_app.order-confirmation.$orderNo';
 
 const { t } = getTranslation();
+
+// @sfdc-extension-line SFDC_EXT_BOPIS
+type Store = ShopperStores.schemas['Store'];
 
 // --- Server-side mocks (these cannot run in jsdom) ---
 
@@ -125,7 +134,7 @@ const baseOrder: ShopperOrders.schemas['Order'] = {
 };
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
-const mockStore: ShopperStores.schemas['Store'] = {
+const mockStore: Store = {
     id: 'store-123',
     name: 'Test Store',
     address1: '456 Store Ave',
@@ -136,7 +145,7 @@ const mockStore: ShopperStores.schemas['Store'] = {
     email: 'store@example.com',
 };
 
-const mockStoresByStoreId = new Map<string, ShopperStores.schemas['Store']>([['store-123', mockStore]]);
+const mockStoresByStoreId = new Map<string, Store>([['store-123', mockStore]]);
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
 // --- Helpers ---
@@ -153,6 +162,7 @@ function renderRoute(
                 orderData: Promise.resolve({
                     order,
                     productsById,
+                    // @sfdc-extension-line SFDC_EXT_BOPIS
                     storesByStoreId: new Map(),
                 }),
                 showPostOrderRegistration: false,
@@ -282,6 +292,7 @@ describe('Order Confirmation Route', () => {
 
             const mockContext = { get: vi.fn(() => undefined) };
             const result = await loader({ context: mockContext, params: { orderNo: 'INVALID' } } as any);
+            const resultOrderData = result.orderData.catch(() => undefined);
             // Loader's combinedPromise also rejects; in production <Await> handles it,
             // here we attach an explicit catch so the test runner doesn't see it as
             // unhandled.
@@ -291,6 +302,7 @@ describe('Order Confirmation Route', () => {
             // the loader has had its chance to react. Awaiting the promise itself is the
             // observable signal we want, not an opaque microtask count.
             await orderPromise.catch(() => undefined);
+            await resultOrderData;
 
             expect(vi.mocked(destroyBasket)).not.toHaveBeenCalled();
         });
@@ -804,7 +816,12 @@ describe('Order Confirmation Route', () => {
             expect(region).toHaveTextContent('');
 
             // Let the deferred promise settle so the test doesn't leak a pending microtask.
-            resolveOrder({ order: baseOrder, productsById: {}, storesByStoreId: new Map() });
+            resolveOrder({
+                order: baseOrder,
+                productsById: {},
+                // @sfdc-extension-line SFDC_EXT_BOPIS
+                storesByStoreId: new Map(),
+            });
         });
 
         test('announces the order-confirmed status once the order resolves', async () => {

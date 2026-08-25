@@ -16,7 +16,7 @@
 
 import { spawnSync } from 'child_process';
 import { createRequire } from 'module';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../logger';
 
@@ -110,6 +110,45 @@ export function formatDirectoryWithProjectBiome(directory: string): void {
     }
 
     logger.debug(`✅ Formatted generated files in ${directory} with Biome`);
+}
+
+/**
+ * Format only files changed by generation with the SDK-bundled Biome.
+ *
+ * Extension trimming can touch customer-owned source files, so formatting the project root would
+ * rewrite unrelated files. The SDK's pinned Biome keeps this automatic path independent of any
+ * target-project executable while the target project's biome.json still determines formatting.
+ *
+ * @param directory - Project root containing the Biome configuration.
+ * @param filePaths - Absolute paths of files changed by generation.
+ */
+export function formatFilesWithBundledBiome(directory: string, filePaths: string[]): void {
+    if (filePaths.length === 0) {
+        return;
+    }
+
+    const biomeBin = resolveBiomeBin(HERE);
+    if (!biomeBin) {
+        logger.warn(`⚠️  Biome could not be resolved; generated files in ${directory} were left unformatted.`);
+        return;
+    }
+
+    const result = spawnSync(
+        process.execPath,
+        [biomeBin, 'format', '--write', ...filePaths.map((filePath) => relative(directory, filePath))],
+        {
+            cwd: directory,
+            encoding: 'utf8',
+        }
+    );
+
+    if (result.status !== 0) {
+        const detail = result.stderr?.trim() || `exit code ${result.status}`;
+        logger.warn(`⚠️  Some generated files in ${directory} could not be formatted by Biome: ${detail}`);
+        return;
+    }
+
+    logger.debug(`✅ Formatted ${filePaths.length} generated files in ${directory} with Biome`);
 }
 
 /**

@@ -26,10 +26,8 @@ const logger = createLogger();
 interface UseBulkChildProductInventoryProps {
     /** Child product selections containing products and variants to fetch inventory for */
     childSelections: ChildProductSelection[];
-    // @sfdc-extension-block-start SFDC_EXT_BOPIS
     /** Inventory ID of the selected store (optional - fetches both site and store inventory) */
-    inventoryId: string | undefined;
-    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    inventoryId?: string;
 }
 
 /**
@@ -67,11 +65,8 @@ export function useBulkChildProductInventory({
     // Start with null to indicate no enrichment has occurred yet
     const [enrichedSelections, setEnrichedSelections] = useState<ChildProductSelection[] | null>(null);
 
-    // Track the last enriched product IDs and inventoryId to prevent re-enriching the same data
-    // We track both because changing inventoryId should trigger re-enrichment with new store inventory
-    const lastEnrichedProductIdsRef = useRef<string | null>(null);
-    // @sfdc-extension-line SFDC_EXT_BOPIS
-    const lastEnrichedInventoryIdRef = useRef<string | undefined>(undefined);
+    // Track the last enriched request to prevent re-enriching the same products for the same inventory.
+    const lastEnrichedRequestRef = useRef<string | null>(null);
 
     // Extract all selected variant/product IDs to fetch
     const productIds = useMemo(() => {
@@ -85,6 +80,12 @@ export function useBulkChildProductInventory({
         // Return comma-separated IDs for bulk fetch, or undefined if no IDs
         return ids.length > 0 ? ids.join(',') : undefined;
     }, [childSelections]);
+    const enrichmentRequestKey = JSON.stringify([
+        productIds,
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        inventoryId ?? null,
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    ]);
 
     // Bulk fetch all child variants/products in one API call.
     //
@@ -128,12 +129,8 @@ export function useBulkChildProductInventory({
                 return;
             }
 
-            // Check if we've already enriched this exact set of product IDs and inventoryId
-            // We check both because changing inventoryId should trigger re-enrichment with new store inventory
-            if (
-                lastEnrichedProductIdsRef.current === productIds &&
-                lastEnrichedInventoryIdRef.current === inventoryId
-            ) {
+            // Check if we've already enriched this exact set of products for this inventory.
+            if (lastEnrichedRequestRef.current === enrichmentRequestKey) {
                 // Already enriched this data, skip to avoid infinite loop
                 return;
             }
@@ -213,9 +210,7 @@ export function useBulkChildProductInventory({
             });
 
             setEnrichedSelections(newEnrichedSelections);
-            lastEnrichedProductIdsRef.current = productIds;
-            // @sfdc-extension-line SFDC_EXT_BOPIS
-            lastEnrichedInventoryIdRef.current = inventoryId;
+            lastEnrichedRequestRef.current = enrichmentRequestKey;
         },
         onError: (errors) => {
             if (errors && errors.length > 0) {

@@ -136,22 +136,27 @@ export async function loader({ context, params }: Route.LoaderArgs): Promise<Che
     const { emailVerificationEnabled } = await getLoginPreferences(context);
     const showPostOrderRegistration = !userIsRegistered && !emailVerificationEnabled;
 
-    // @sfdc-extension-line SFDC_EXT_BOPIS
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const storesByStoreIdPromise = orderPromise.then((order) => fetchStoresForOrder(context, order));
-
+    // Attach immediately so an order failure cannot leave this parallel promise unhandled.
+    storesByStoreIdPromise.catch(() => undefined);
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
     const combinedPromise = Promise.all([
         orderDataPromise,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
         storesByStoreIdPromise,
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     ]).then(
         ([
             orderData,
-            // @sfdc-extension-line SFDC_EXT_BOPIS
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
             storesByStoreId,
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         ]) => ({
             ...orderData,
-            // @sfdc-extension-line SFDC_EXT_BOPIS
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
             storesByStoreId,
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         })
     );
 
@@ -243,17 +248,18 @@ function OrderConfirmationContent({
     const registerFetcher = useFetcher<typeof postOrderRegisterAction>({ key: 'post-order-register' });
     const registrationSuccess = registerFetcher.data?.success === true;
 
-    let deliveryShipments = order.shipments;
+    const deliveryShipmentsState = { value: order.shipments ?? [] };
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // note: this BOPIS implementation assumes at most 1 pickup store is used for the order
     const { t: tBopis } = useTranslation('extBopis');
-    deliveryShipments = getOrderDeliveryShipments(order);
+    deliveryShipmentsState.value = getOrderDeliveryShipments(order);
     const store = getPickupStoreFromMap(
         getOrderPickupShipment(order)?.c_fromStoreId as string | undefined,
         storesByStoreId
     );
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const deliveryShipments = deliveryShipmentsState.value;
 
     const customerName =
         order.customerInfo?.firstName || order.billingAddress?.firstName || t('confirmation.hero.defaultName');

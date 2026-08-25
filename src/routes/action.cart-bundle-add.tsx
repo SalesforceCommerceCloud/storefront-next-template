@@ -20,6 +20,7 @@ import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
+import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { validateDeliveryOptionCompatibility } from '@/extensions/bopis/lib/product-actions';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -52,14 +53,23 @@ export const action = createBasketAction(
                 bundleItem: JSON.parse(bundleItemRaw) as {
                     productId: string;
                     quantity: number;
-                    inventoryId?: string;
+                    inventoryId?: string | null;
                     storeId?: string | null;
                 },
                 childSelections: JSON.parse(childSelectionsRaw) as ProductSelectionValues[],
             };
         },
     },
-    async ({ input, basketId, basket, context, clients, logger }) => {
+    async ({
+        input,
+        basketId,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        basket,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        context,
+        clients,
+        logger,
+    }) => {
         if (!input) {
             logger.warn('CartBundleAdd: missing bundle data in form data');
             return data(
@@ -82,10 +92,29 @@ export const action = createBasketAction(
             childCount: childSelections.length,
         });
 
-        let shipmentId = 'me';
+        const fulfillment = {
+            shipmentId: 'me',
+            inventoryId: undefined as string | undefined,
+        };
 
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        const deliveryValidation = validateDeliveryOptionCompatibility(basket, bundleItem.storeId, context);
+        const storeId = bundleItem.storeId?.trim();
+        const requestedInventoryId = bundleItem.inventoryId?.trim();
+        const hasPickupIdentifiers = bundleItem.storeId != null || bundleItem.inventoryId != null;
+        if (hasPickupIdentifiers && (!storeId || !requestedInventoryId)) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.INVALID_INPUT,
+                        message: 'Bundle pickup fulfillment requires both storeId and inventoryId',
+                    }),
+                },
+                { status: 400 }
+            );
+        }
+
+        const deliveryValidation = validateDeliveryOptionCompatibility(basket, storeId, context);
         if (!deliveryValidation.valid) {
             return data(
                 {
@@ -98,9 +127,25 @@ export const action = createBasketAction(
                 { status: 409 }
             );
         }
-        if (bundleItem.storeId && bundleItem.inventoryId) {
-            const pickupShipment = await findOrCreatePickupShipment(basket, context, bundleItem.storeId);
-            shipmentId = pickupShipment.shipmentId;
+        if (storeId && requestedInventoryId) {
+            const storeInventoryId = await getStoreInventoryId(context, storeId);
+            if (!storeInventoryId || storeInventoryId !== requestedInventoryId) {
+                return data(
+                    {
+                        success: false,
+                        error: createActionError({
+                            code: ErrorCode.INVALID_INPUT,
+                            message: 'Pickup store and inventory do not match',
+                        }),
+                    },
+                    { status: 400 }
+                );
+            }
+            fulfillment.inventoryId = storeInventoryId;
+        }
+        if (storeId && fulfillment.inventoryId) {
+            const pickupShipment = await findOrCreatePickupShipment(basket, context, storeId);
+            fulfillment.shipmentId = pickupShipment.shipmentId;
         }
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -120,8 +165,9 @@ export const action = createBasketAction(
                 {
                     productId: bundleItem.productId,
                     quantity: bundleItem.quantity,
-                    ...(bundleItem.inventoryId ? { inventoryId: bundleItem.inventoryId } : {}),
-                    shipmentId,
+                    // @sfdc-extension-line SFDC_EXT_BOPIS
+                    ...(fulfillment.inventoryId ? { inventoryId: fulfillment.inventoryId } : {}),
+                    shipmentId: fulfillment.shipmentId,
                     bundledProductItems,
                 },
             ],
@@ -152,8 +198,9 @@ export const action = createBasketAction(
                         itemId: bundledItem.itemId,
                         productId: selectedProductId || bundledItem.productId,
                         quantity: matchingSelection?.quantity || bundledItem.quantity,
-                        ...(bundleItem.inventoryId ? { inventoryId: bundleItem.inventoryId } : {}),
-                        shipmentId,
+                        // @sfdc-extension-line SFDC_EXT_BOPIS
+                        ...(fulfillment.inventoryId ? { inventoryId: fulfillment.inventoryId } : {}),
+                        shipmentId: fulfillment.shipmentId,
                     };
                 });
 

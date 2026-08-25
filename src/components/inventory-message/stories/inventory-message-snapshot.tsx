@@ -56,7 +56,7 @@ vi.mock('@/components/toast', () => ({
 
 import { composeStories } from '@storybook/react-vite';
 
-import * as InventoryMessageStories from './index.stories';
+import * as InventoryMessageStories from '@/components/inventory-message/stories/index.stories';
 import { render, cleanup } from '@testing-library/react';
 
 const composed = composeStories(InventoryMessageStories);

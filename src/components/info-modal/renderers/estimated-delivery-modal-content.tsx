@@ -16,126 +16,57 @@
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency } from '@/lib/currency';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { Typography } from '@/components/typography';
-// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-import type { EstimatedDeliveryData } from '@/extensions/shipping-delivery/lib/api/shipping-delivery.server';
-// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+import { formatCurrency } from '@/lib/currency';
+import { formatDeliveryWindow } from '@/lib/date-utils';
+import type { ShippingEstimateOption } from '@/lib/shipping-estimate/types';
 
-/**
- * Renders estimated delivery / fulfillment & shipping modal content.
- * Layout: Estimated Delivery options table, Shipping Options (rates), International Shipping, Order Tracking.
- */
+/** Renders every deliverable shipping method returned for the shopper's destination. */
 export function EstimatedDeliveryModalContent({
-    deliveryData,
-    currency,
+    shippingOptions,
 }: {
-    deliveryData: EstimatedDeliveryData;
-    currency: string;
+    shippingOptions: ShippingEstimateOption[];
 }): ReactElement {
-    const { t } = useTranslation('estimatedDelivery');
-    const { site: currentSite } = useSite();
-    const locale = currentSite.defaultLocale;
-    const { estimatedDelivery, shippingOptions, internationalShipping, orderTracking } = deliveryData;
+    const { t } = useTranslation('extShippingDelivery');
+    const { language, currency } = useSite();
 
     return (
-        <>
-            {/* Estimated Delivery Options */}
-            {estimatedDelivery.options.length > 0 && (
-                <div>
-                    <Typography variant="h5" as="h3" className="mb-3 font-medium">
-                        {t('sectionHeading')}
-                    </Typography>
-                    <div className="space-y-2 text-sm text-muted-foreground">
-                        {estimatedDelivery.options.map((option) => (
-                            <Typography key={option.name} as="p" variant="muted" className="text-sm">
-                                <Typography as="span" className="font-medium text-foreground">
-                                    {option.name}:
-                                </Typography>{' '}
-                                {option.deliveryTime}
-                            </Typography>
-                        ))}
-                        {estimatedDelivery.note && (
-                            <Typography as="p" variant="muted" className="mt-2 text-xs">
-                                {estimatedDelivery.note}
-                            </Typography>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Shipping Options with Rates */}
-            {shippingOptions.length > 0 && (
-                <div>
-                    <Typography variant="h5" as="h3" className="mb-3 font-medium">
-                        {t('shippingOptionsHeading')}
-                    </Typography>
-                    <div className="space-y-3">
-                        {shippingOptions.map((option) => (
-                            <div key={option.name} className="rounded-ui border border-border p-4">
-                                <div className="mb-2 flex items-start justify-between">
-                                    <div>
-                                        <Typography as="p" className="font-medium text-foreground">
-                                            {option.name}
-                                        </Typography>
-                                        <Typography as="p" variant="muted" className="text-sm">
-                                            {option.deliveryTime}
-                                        </Typography>
-                                    </div>
-                                    <Typography as="span" className="text-sm font-semibold text-foreground">
-                                        {option.cost != null && option.cost > 0
-                                            ? formatCurrency(option.cost, locale, currency)
-                                            : t('free')}
-                                    </Typography>
-                                </div>
-                                {option.condition && (
-                                    <Typography as="p" variant="muted" className="text-xs">
-                                        {option.condition}
+        <div>
+            <Typography variant="h5" as="h3" className="mb-3 font-medium">
+                {t('shippingOptionsOnlyHeading')}
+            </Typography>
+            <div className="space-y-3">
+                {shippingOptions.map((option) => {
+                    const deliveryWindow = formatDeliveryWindow(option.deliveryWindow, language);
+                    return (
+                        <div key={option.shippingMethodId} className="rounded-ui border border-border p-4">
+                            <div className="flex items-start justify-between gap-4">
+                                <Typography as="p" className="font-medium text-foreground">
+                                    {option.name ?? option.carrier ?? option.shippingMethodId}
+                                </Typography>
+                                {option.price !== undefined && (
+                                    <Typography as="span" className="shrink-0 text-sm font-semibold text-foreground">
+                                        {option.price === 0
+                                            ? t('free')
+                                            : formatCurrency(option.price, language, option.currency ?? currency)}
                                     </Typography>
                                 )}
                             </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* International Shipping */}
-            <div>
-                <Typography variant="h5" as="h3" className="mb-3 font-medium">
-                    {internationalShipping.heading}
-                </Typography>
-                {internationalShipping.points.length > 0 && (
-                    <div className="space-y-2 text-sm text-foreground">
-                        {internationalShipping.points.map((point) => (
-                            <Typography key={point} as="p" className="text-sm leading-relaxed text-foreground">
-                                {point}
-                            </Typography>
-                        ))}
-                        {internationalShipping.note && (
-                            <Typography as="p" variant="muted" className="mt-2 text-xs">
-                                {internationalShipping.note}
-                            </Typography>
-                        )}
-                    </div>
-                )}
+                            {deliveryWindow && (
+                                <Typography as="p" variant="muted" className="text-sm">
+                                    {deliveryWindow}
+                                </Typography>
+                            )}
+                            {option.description && (
+                                <Typography as="p" variant="muted" className="mt-2 text-xs">
+                                    {option.description}
+                                </Typography>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
-
-            {/* Order Tracking */}
-            <div>
-                <Typography variant="h5" as="h3" className="mb-3 font-medium">
-                    {orderTracking.heading}
-                </Typography>
-                {orderTracking.points.length > 0 && (
-                    <div className="space-y-2 text-sm text-foreground">
-                        {orderTracking.points.map((point) => (
-                            <Typography key={point} as="p" className="text-sm leading-relaxed text-foreground">
-                                {point}
-                            </Typography>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </>
+        </div>
     );
 }

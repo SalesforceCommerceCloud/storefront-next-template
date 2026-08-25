@@ -1405,14 +1405,6 @@
         "returnsAndWarrantyDescription": "Szczegóły zwrotów i gwarancji",
         "close": "Zamknij"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Szacowana dostawa",
-        "cardDescription": "Dostępne opcje wysyłki",
-        "learnMore": "Dowiedz się więcej",
-        "sectionHeading": "Szacowana dostawa",
-        "shippingOptionsHeading": "Opcje wysyłki i opłaty",
-        "free": "Bezpłatna"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Popraw następujące błędy:",
@@ -1477,6 +1469,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Metoda dostawy",
+            "deliveryDescription": "Wpisz swój kod pocztowy, aby zobaczyć szacowaną dostawę"
+        },
         "recommendations": {
             "youMightAlsoLike": "Inne produkty, które mogą Ci się spodobać",
             "completeTheLook": "Uzupełnij stylizację",

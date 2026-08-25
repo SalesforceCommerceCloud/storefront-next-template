@@ -283,5 +283,38 @@ describe('action.cart-item-update', () => {
         expect(result.data.success).toBe(true);
         expect(mockClients.shopperBasketsV2.updateItemInBasket).toHaveBeenCalledTimes(1);
     });
+
+    test('uses site availability when inventoryId is present on a non-pickup shipment', async () => {
+        vi.mocked(getBasket).mockResolvedValue({
+            current: {
+                basketId: 'test-basket-123',
+                productItems: [
+                    {
+                        itemId: 'item-1',
+                        productId: 'p-1',
+                        quantity: 1,
+                        shipmentId: 'ship-delivery',
+                        inventoryId: 'inv-1',
+                    },
+                ],
+                shipments: [{ shipmentId: 'ship-delivery' }],
+            },
+            snapshot: null,
+        } as any);
+        mockClients.shopperProducts.getProducts.mockResolvedValue({
+            data: { data: [{ id: 'p-1', inventory: { ats: 2, orderable: true } }] },
+        });
+
+        const result = await runUpdate({ itemId: 'item-1', quantity: '3' });
+
+        expectStatus(result, 422);
+        expect(mockClients.shopperProducts.getProducts).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    query: expect.not.objectContaining({ inventoryIds: expect.anything() }),
+                }),
+            })
+        );
+    });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 });

@@ -106,15 +106,17 @@ const handleUninstall = async (extensionConfig, options) => {
 			consoleLog(` • ${depExtension?.name || depKey} (depends on ${dependsOnName})`, "info");
 		});
 		consoleLog("\n", "info");
-		const { confirmUninstall } = await prompts({
-			type: "confirm",
-			name: "confirmUninstall",
-			message: `Uninstall all ${extensionsToUninstall.length} extensions?`,
-			initial: true
-		});
-		if (!confirmUninstall) {
-			consoleLog("Uninstallation aborted.", "info");
-			return;
+		if (!options.yes) {
+			const { confirmUninstall } = await prompts({
+				type: "confirm",
+				name: "confirmUninstall",
+				message: `Uninstall all ${extensionsToUninstall.length} extensions?`,
+				initial: true
+			});
+			if (!confirmUninstall) {
+				consoleLog("Uninstallation aborted.", "info");
+				return;
+			}
 		}
 	}
 	extensionsToUninstall.forEach((ext) => {

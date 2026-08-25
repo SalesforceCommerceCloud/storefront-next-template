@@ -339,16 +339,16 @@ function ProductItem({
     const isAutoBonusProduct = isBonusProduct && !isChoiceBasedBonusProduct;
 
     // Determine stock level: site-level ATS by default, store-specific for pickup items
-    let stockLevel = productItem?.inventory?.ats;
-    // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    if (isPickup && productItem) {
-        stockLevel = getEffectiveStockLevel({
-            product: productItem as unknown as ShopperProducts.schemas['Product'],
-            isPickup: true,
-            storeInventoryId: productItem.inventoryId,
-        });
-    }
-    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const stockLevel =
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        isPickup && productItem
+            ? getEffectiveStockLevel({
+                  product: productItem as unknown as ShopperProducts.schemas['Product'],
+                  isPickup: true,
+                  storeInventoryId: productItem.inventoryId,
+              })
+            : // @sfdc-extension-block-end SFDC_EXT_BOPIS
+              productItem?.inventory?.ats;
 
     if (!productItem || typeof productItem !== 'object') {
         return <div data-testid="product-item-error">Product data not available</div>;

@@ -69,6 +69,15 @@ describe('validateDeliveryOptionCompatibility', () => {
             errorMessage: t('extBopis:cart.addToCartValidation.changeStoreError'),
         });
     });
+
+    it('ignores the store on an empty pickup shipment when choosing a new pickup store', () => {
+        const basket = createMockBasketWithPickupItems(undefined, {
+            shipments: [{ shipmentId: 'empty-pickup', c_fromStoreId: 'store-123' }],
+            productItems: [{ itemId: 'delivery-item', productId: 'product-1', shipmentId: 'delivery-shipment' }],
+        });
+
+        expect(validateDeliveryOptionCompatibility(basket, 'store-456')).toEqual({ valid: true });
+    });
 });
 
 describe('isSelectedDeliveryOptionValid', () => {

@@ -1369,14 +1369,6 @@
         "returnsAndWarrantyDescription": "Oplysninger om returnering og garanti",
         "close": "Luk"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Anslået levering",
-        "cardDescription": "Tilgængelige forsendelsesmuligheder",
-        "learnMore": "Få mere at vide",
-        "sectionHeading": "Anslået levering",
-        "shippingOptionsHeading": "Forsendelsesmuligheder og priser",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Ret følgende:",
@@ -1439,6 +1431,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Leveringsmetode",
+            "deliveryDescription": "Indtast dit postnummer for at se leveringsestimat"
+        },
         "recommendations": {
             "youMightAlsoLike": "Du vil måske også synes om",
             "completeTheLook": "Fuldend looket",

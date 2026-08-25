@@ -79,11 +79,18 @@ vi.mock('react-router', async (importOriginal) => {
     };
 });
 
-// Mock useStoreLocator
-vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
-    useStoreLocator: () => ({
+// BOPIS contributors use selector-based store access. Keep the selected values
+// stable so the contributor registration effects do not re-register on render.
+const { storeLocatorState } = vi.hoisted(() => ({
+    storeLocatorState: {
+        isOpen: false,
+        open: () => {},
         selectedStoreInfo: null,
-    }),
+    },
+}));
+
+vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    useStoreLocator: (selector: (state: typeof storeLocatorState) => unknown) => selector(storeLocatorState),
 }));
 
 const composed = composeStories(ChildProductsStories);

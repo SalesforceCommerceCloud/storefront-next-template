@@ -539,8 +539,9 @@ describe('target-utils', () => {
 
         it('should not warn when order values are distinct', () => {
             const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+            const extensionConfig = fs.readJsonSync(extensionConfigPath);
+            fs.writeJsonSync(extensionConfigPath, extensionConfig);
 
-            // Default config has orders 0, 1, 2 — all distinct
             buildTargetRegistry(join(extensionsRoot, 'src'));
 
             expect(warnSpy).not.toHaveBeenCalled();

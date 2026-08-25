@@ -2,7 +2,7 @@
     "components": [
         {
             "targetId": "sfcc.pdp.estimatedDelivery",
-            "path": "extensions/shipping-delivery/components/target/estimated-delivery-target.tsx",
+            "path": "extensions/shipping-delivery/components/target/delivery-estimate-summary-target.tsx",
             "order": 0
         }
     ]

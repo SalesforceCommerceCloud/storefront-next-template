@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Lieferung (voraussichtlich)",
+    "shippingOptionsOnlyHeading": "Versandoptionen",
+    "free": "Kostenlos",
+    "deliverTo": "Lieferung an <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Lieferziel ändern",
+    "changeDestinationAriaLabel": "Lieferziel ändern: {{postalCode}}",
+    "arrivalMessage": "Ankunft {{deliveryWindow}}",
+    "shippingCost": "Versandkosten:",
+    "postalTerms": {
+        "zip": "PLZ",
+        "postalCode": "PLZ",
+        "postcode": "PLZ",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "{{term}} eingeben",
+    "postalCodePlaceholderExample": "{{term}} eingeben (z. B. {{example}})",
+    "postalCodeInstructions": "Geben Sie Ihre {{term}} (z. B. {{example}}) ein, um die Lieferschätzungen anzuzeigen.",
+    "postalCodeInstructionsNoExample": "Geben Sie Ihre {{term}} ein, um die Lieferschätzungen anzuzeigen.",
+    "postalCodeInvalid": "Bitte geben Sie eine gültige {{term}} ein (z. B. {{example}}).",
+    "postalCodeInvalidNoExample": "Bitte geben Sie eine gültige {{term}} ein.",
+    "deliveryDatesUnavailable": "Liefertermine nicht verfügbar. Optionen und Kosten finden Sie an der Kasse.",
+    "moreDeliveryOptions": "Weitere Lieferoptionen",
+    "seeAllDeliveryOptions": "Alle Lieferoptionen anzeigen",
+    "openingDeliveryOptions": "Lieferoptionen werden geöffnet...",
+    "calculateButton": "Berechnen",
+    "calculateAriaLabel": "Lieferschätzung berechnen",
+    "calculating": "Berechnung läuft..."
+}

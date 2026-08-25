@@ -21,7 +21,7 @@ import type { WriteReviewFormData, ReviewItem } from '@/extensions/ratings-revie
 import type { ReturnsAndWarrantyData } from '@/extensions/product-content/lib/api/product-content.server';
 // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
 // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-import type { EstimatedDeliveryData } from '@/extensions/shipping-delivery/lib/api/shipping-delivery.server';
+import type { ShippingEstimateOption } from '@/lib/shipping-estimate/types';
 // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
 /**
@@ -98,11 +98,12 @@ export interface StarRatingDistributionModalData extends InfoModalDataBase {
 // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
 
 // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-/** Data for estimated delivery / fulfillment & shipping modal */
+/** Data for destination-specific delivery options. */
 export interface EstimatedDeliveryModalData extends InfoModalDataBase {
     type: 'estimated-delivery';
-    deliveryData: EstimatedDeliveryData;
+    shippingOptions: ShippingEstimateOption[];
 }
+
 // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
 // @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
@@ -133,6 +134,10 @@ export type InfoModalData =
 export interface InfoModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    /** Called before Dialog restores focus after closing. */
+    onCloseAutoFocus?: (event: Event) => void;
+    /** Called before Dialog moves focus after opening. */
+    onOpenAutoFocus?: (event: Event) => void;
     /** Modal data - structured data from adapter */
     data?: InfoModalData;
     /** Optional custom className for the dialog content */

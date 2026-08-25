@@ -1390,14 +1390,6 @@
         "returnsAndWarrantyDescription": "Devoluções e detalhes da garantia",
         "close": "Fechar"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Previsão de entrega",
-        "cardDescription": "Opções de envio disponíveis",
-        "learnMore": "Saiba mais",
-        "sectionHeading": "Previsão de entrega",
-        "shippingOptionsHeading": "Opções de frete e taxas",
-        "free": "Gratuito"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Corrija o seguinte:",
@@ -1461,6 +1453,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Método de entrega",
+            "deliveryDescription": "Introduza o seu código postal para ver a estimativa de entrega"
+        },
         "recommendations": {
             "youMightAlsoLike": "Talvez você também queira",
             "completeTheLook": "Completar o look",

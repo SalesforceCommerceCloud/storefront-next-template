@@ -1429,14 +1429,6 @@
         "returnsAndWarrantyDescription": "반품 및 보증 세부 정보",
         "close": "닫기"
     },
-    "estimatedDelivery": {
-        "cardTitle": "예상 배송",
-        "cardDescription": "사용 가능한 배송 옵션",
-        "learnMore": "자세히 알아보기",
-        "sectionHeading": "예상 배송",
-        "shippingOptionsHeading": "배송 옵션 및 요금",
-        "free": "무료"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "다음 문제를 해결하십시오.",
@@ -1499,6 +1491,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "수령 방법",
+            "deliveryDescription": "우편번호을(를) 입력하여 배송 예상을 확인하세요"
+        },
         "recommendations": {
             "youMightAlsoLike": "추천 상품",
             "completeTheLook": "룩 완성",

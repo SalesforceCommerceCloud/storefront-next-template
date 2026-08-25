@@ -29,6 +29,7 @@ import { SwatchSectionSummary } from '@/components/product-view/swatch-section-s
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import ProductPrice from '../product-price';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
+import { getInventoryForResolvedSelection, hasDeferredAvailability } from '@/lib/product/inventory-utils';
 import InventoryMessage, { InventoryStatus } from '../inventory-message';
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 import { ProductRatingSummary } from './product-rating-summary';
@@ -38,8 +39,7 @@ import { useTranslation } from 'react-i18next';
 import { WishlistButton } from '@/components/buttons/wishlist-button';
 import { ShareButton } from '@/components/buttons/share-button';
 import { UITarget } from '@/targets/ui-target';
-// @sfdc-extension-line SFDC_EXT_BOPIS
-import DeliveryOptions from '@/extensions/bopis/components/delivery-options/delivery-options';
+import DeliveryOptions from '@/components/fulfillment/delivery-options';
 
 type ProductInfoBaseProps = {
     product: ShopperProducts.schemas['Product'];
@@ -181,6 +181,7 @@ export default function ProductInfo({
         } as ShopperProducts.schemas['Product'];
     }, [product, currentVariant]);
     const productForDeliveryOptions = useMemo(() => {
+        if (isVariantInventoryLoading) return { ...product, inventories: undefined };
         if (!currentVariant) return product;
         const variantWithInventory = currentVariant as ShopperProducts.schemas['Variant'] & {
             inventory?: ShopperProducts.schemas['Inventory'];
@@ -193,7 +194,12 @@ export default function ProductInfo({
             inventory: variantWithInventory.inventory ?? product.inventory,
             inventories: variantWithInventory.inventories ?? product.inventories,
         };
-    }, [product, currentVariant]);
+    }, [product, currentVariant, isVariantInventoryLoading]);
+    const inventoryForResolvedSelection = getInventoryForResolvedSelection(product, currentVariant);
+    const deliveryAvailabilityIsUnknown =
+        inventoryForResolvedSelection == null ||
+        (typeof inventoryForResolvedSelection.ats !== 'number' && inventoryForResolvedSelection.orderable !== false);
+    const hasDeferredAvailabilityForSelection = hasDeferredAvailability(inventoryForResolvedSelection);
     // Get currency from context (automatically derived from locale)
     const { currency } = useSite();
     const productView = useOptionalProductView();
@@ -206,6 +212,7 @@ export default function ProductInfo({
     const mode = productView?.mode ?? 'add';
     // @sfdc-extension-line SFDC_EXT_BOPIS
     const basketPickupStore = productView?.basketPickupStore;
+    const showFulfillmentOptions = mode !== 'edit';
 
     const { t } = useTranslation('product');
 
@@ -690,26 +697,23 @@ export default function ProductInfo({
             {afterVariations}
             {!isCompactStyle && <UITarget targetId="sfcc.pdp.products.visualization" />}
 
-            {/* @sfdc-extension-block-start SFDC_EXT_BOPIS */}
-            {/* Delivery Options - For individual products */}
-            {/* Hide for non-pickup items when opened from cart page, or when a vertical renders its
-                own grouped fulfillment section. Also hidden while the selected variant's inventory is
-                still resolving: the delivery/pickup checks read store availability, so rendering them
-                mid-load would flash stale "Deliver to"/"Free pickup" status for the previously
-                selected SKU. */}
-            {!hideDeliveryOptions &&
-                !isVariantInventoryLoading &&
-                !isOutOfStock &&
-                (mode !== 'edit' || basketPickupStore) &&
-                !(isProductABundle || isProductASet) && (
-                    <DeliveryOptions
-                        product={productForDeliveryOptions}
-                        quantity={quantity}
-                        basketPickupStore={basketPickupStore}
-                        className="mt-6"
-                    />
-                )}
-            {/* @sfdc-extension-block-end SFDC_EXT_BOPIS */}
+            {/* Cart item fulfillment changes use the cart-specific control. Furniture supplies its
+                own grouped fulfillment block via hideDeliveryOptions. */}
+            {!hideDeliveryOptions && showFulfillmentOptions && !(isProductABundle || isProductASet) && (
+                <DeliveryOptions
+                    product={productForDeliveryOptions}
+                    quantity={quantity}
+                    deliveryAvailable={deliveryAvailabilityIsUnknown ? true : undefined}
+                    // @sfdc-extension-line SFDC_EXT_BOPIS
+                    pickupLocation={basketPickupStore}
+                    onSelectionChange={productView?.setFulfillmentSelection}
+                    className="mt-6"
+                />
+            )}
+
+            {/* @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY */}
+            {!hasDeferredAvailabilityForSelection && <UITarget targetId="sfcc.pdp.estimatedDelivery" />}
+            {/* @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY */}
 
             {/* Quantity Selector - for non-set/bundle when not edit mode, or when showQuantityInEditMode in edit mode */}
             {showQuantity && (

@@ -46,6 +46,10 @@ export interface AggregateExtensionLocalesOptions {
     projectDirectory?: string;
     /** Override directory paths — used in tests. Takes precedence over projectDirectory. */
     dirs?: Dirs;
+    /** Only include extensions selected for the generated storefront. */
+    selectedExtensions?: Record<string, boolean>;
+    /** Map extension folder names to their config keys for trim markers. */
+    extensionKeys?: Record<string, string>;
     silent?: boolean;
 }
 
@@ -127,7 +131,8 @@ export async function discoverLocales(dirs: { SRC_DIR: string; EXTENSIONS_DIR: s
 /** Find all extensions (NOT main app) that have a `translations.json` for the given locale. */
 export async function findExtensionsWithLocale(
     locale: string,
-    extensionsDir: string
+    extensionsDir: string,
+    selectedExtensions?: Record<string, boolean>
 ): Promise<Array<{ name: string; path: string }>> {
     const extensions: Array<{ name: string; path: string }> = [];
 
@@ -141,6 +146,8 @@ export async function findExtensionsWithLocale(
                 entry.name === GENERATED_EXTENSION_DIRS.config
             )
                 continue;
+
+            if (selectedExtensions && selectedExtensions[entry.name] !== true) continue;
 
             const translationPath = join(extensionsDir, entry.name, 'locales', locale, 'translations.json');
             if (existsSync(translationPath)) {
@@ -158,7 +165,10 @@ export async function findExtensionsWithLocale(
 }
 
 /** Generate the locale index file content that re-exports extension translations under `extPascalCase` namespaces. */
-export function generateLocaleFile(extensions: Array<{ name: string; path: string }>): string {
+export function generateLocaleFile(
+    extensions: Array<{ name: string; path: string }>,
+    extensionKeys?: Record<string, string>
+): string {
     const licenseLines = APACHE_LICENSE_HEADER.split('\n');
     const licenseHeader = `/**\n${licenseLines.map((line) => (line ? ` * ${line}` : ' *')).join('\n')}\n */`;
 
@@ -176,7 +186,8 @@ export function generateLocaleFile(extensions: Array<{ name: string; path: strin
     const imports = extensions
         .map((ext) => {
             const varName = `${toCamelCase(ext.name)}Translations`;
-            return `import ${varName} from '${ext.path}';`;
+            const marker = extensionKeys?.[ext.name] ? `// @sfdc-extension-line ${extensionKeys[ext.name]}\n` : '';
+            return `${marker}import ${varName} from '${ext.path}';`;
         })
         .join('\n');
 
@@ -184,7 +195,8 @@ export function generateLocaleFile(extensions: Array<{ name: string; path: strin
         .map((ext) => {
             const namespace = `ext${toPascalCase(ext.name)}`;
             const varName = `${toCamelCase(ext.name)}Translations`;
-            return `    ${namespace}: ${varName},`;
+            const marker = extensionKeys?.[ext.name] ? `    // @sfdc-extension-line ${extensionKeys[ext.name]}\n` : '';
+            return `${marker}    ${namespace}: ${varName},`;
         })
         .join('\n');
 
@@ -204,7 +216,7 @@ ${exports}
 export async function aggregateExtensionLocales(
     options: AggregateExtensionLocalesOptions = {}
 ): Promise<AggregateResult> {
-    const { projectDirectory = process.cwd(), silent = false } = options;
+    const { projectDirectory = process.cwd(), silent = false, selectedExtensions, extensionKeys } = options;
     const dirs = options.dirs ?? getDefaultDirs(projectDirectory);
     const { OUTPUT_DIR, EXTENSIONS_DIR } = dirs;
 
@@ -228,8 +240,8 @@ export async function aggregateExtensionLocales(
 
         const results: AggregateResult['locales'] = [];
         for (const locale of locales) {
-            const extensions = await findExtensionsWithLocale(locale, EXTENSIONS_DIR);
-            const content = generateLocaleFile(extensions);
+            const extensions = await findExtensionsWithLocale(locale, EXTENSIONS_DIR, selectedExtensions);
+            const content = generateLocaleFile(extensions, extensionKeys);
 
             const outputPath = join(OUTPUT_DIR, locale);
             await mkdir(outputPath, { recursive: true });

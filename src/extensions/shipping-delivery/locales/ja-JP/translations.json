@@ -1,0 +1,30 @@
+{
+    "cardTitle": "お届け予定",
+    "shippingOptionsOnlyHeading": "配送オプション",
+    "free": "無料",
+    "deliverTo": "<postalCode>{{postalCode}}</postalCode> へお届け",
+    "changeDestination": "配送先を変更",
+    "changeDestinationAriaLabel": "配送先を変更: {{postalCode}}",
+    "arrivalMessage": "{{deliveryWindow}}に到着予定",
+    "shippingCost": "配送料:",
+    "postalTerms": {
+        "zip": "郵便番号",
+        "postalCode": "郵便番号",
+        "postcode": "郵便番号",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "{{term}}を入力",
+    "postalCodePlaceholderExample": "{{term}}を入力(例: {{example}})",
+    "postalCodeInstructions": "{{term}}(例: {{example}})を入力してお届け予定を確認してください。",
+    "postalCodeInstructionsNoExample": "{{term}}を入力してお届け予定を確認してください。",
+    "postalCodeInvalid": "有効な{{term}}を入力してください(例: {{example}})。",
+    "postalCodeInvalidNoExample": "有効な{{term}}を入力してください。",
+    "deliveryDatesUnavailable": "配送予定を確認できません。オプションと料金はチェックアウトでご確認ください。",
+    "moreDeliveryOptions": "その他の配送オプション",
+    "seeAllDeliveryOptions": "すべての配送オプションを見る",
+    "openingDeliveryOptions": "配送オプションを開いています...",
+    "calculateButton": "計算する",
+    "calculateAriaLabel": "配送予定を計算",
+    "calculating": "計算中..."
+}

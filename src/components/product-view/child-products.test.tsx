@@ -31,13 +31,28 @@ vi.mock('@/hooks/product/use-product-actions', () => ({
     useProductActions: vi.fn(),
 }));
 
+vi.mock('@/providers/product-view', () => ({
+    useOptionalProductView: vi.fn(),
+}));
+
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     useStoreLocator: vi.fn(),
 }));
 
-vi.mock('@/extensions/bopis/components/delivery-options/delivery-options', () => ({
-    default: () => <div data-testid="delivery-options">Delivery Options</div>,
+vi.mock('@/components/fulfillment/delivery-options', () => ({
+    default: ({ onSelectionChange }: any) => (
+        <button
+            data-testid="delivery-options"
+            onClick={() =>
+                onSelectionChange?.({
+                    optionId: 'pickup',
+                    metadata: { storeId: 'store-123', inventoryId: 'inventory-store-123' },
+                })
+            }>
+            Delivery Options
+        </button>
+    ),
 }));
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -149,6 +164,7 @@ describe('ChildProducts', () => {
 
         const { useProductSetsBundles } = await import('@/hooks/product/use-product-sets-bundles');
         const { useProductActions } = await import('@/hooks/product/use-product-actions');
+        const { useOptionalProductView } = await import('@/providers/product-view');
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         const { useStoreLocator } = await import('@/extensions/store-locator/providers/store-locator');
 
@@ -162,6 +178,7 @@ describe('ChildProducts', () => {
             handleUpdateBundle: mockHandleUpdateBundle,
             basketPickupStore: undefined,
         } as any);
+        vi.mocked(useOptionalProductView).mockReturnValue(null);
 
         // Default mock - can be overridden in individual tests
         vi.mocked(useProductSetsBundles).mockReturnValue(createDefaultSetsBundlesMock());
@@ -354,6 +371,61 @@ describe('ChildProducts', () => {
                 ]);
             });
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test('passes the parent fulfillment selection when adding every set item', async () => {
+            const setProduct = createSetProduct();
+            const user = userEvent.setup();
+            const { useProductSetsBundles } = await import('@/hooks/product/use-product-sets-bundles');
+            vi.mocked(useProductSetsBundles).mockReturnValue(
+                createDefaultSetsBundlesMock({
+                    childProductSelection: {
+                        'child-1': { product: { id: 'child-1' }, quantity: 1 },
+                        'child-2': { product: { id: 'child-2' }, quantity: 1 },
+                    },
+                    areAllChildProductsSelected: true,
+                    selectedChildProductCount: 2,
+                })
+            );
+            mockHandleChildProductValidation.mockReturnValue(true);
+
+            renderChildProducts({ parentProduct: setProduct });
+            await user.click(screen.getByTestId('delivery-options'));
+            await user.click(screen.getByRole('button', { name: /add set to cart/i }));
+
+            expect(mockHandleProductSetAddToCart).toHaveBeenCalledWith(expect.any(Array), {
+                optionId: 'pickup',
+                metadata: { storeId: 'store-123', inventoryId: 'inventory-store-123' },
+            });
+        });
+
+        test('uses the PDP fulfillment selection when adding a set', async () => {
+            const setProduct = createSetProduct();
+            const user = userEvent.setup();
+            const { useProductSetsBundles } = await import('@/hooks/product/use-product-sets-bundles');
+            const { useOptionalProductView } = await import('@/providers/product-view');
+            vi.mocked(useProductSetsBundles).mockReturnValue(
+                createDefaultSetsBundlesMock({
+                    childProductSelection: {
+                        'child-1': { product: { id: 'child-1' }, quantity: 1 },
+                        'child-2': { product: { id: 'child-2' }, quantity: 1 },
+                    },
+                    areAllChildProductsSelected: true,
+                    selectedChildProductCount: 2,
+                })
+            );
+            vi.mocked(useOptionalProductView).mockReturnValue({
+                fulfillmentSelection: { optionId: 'delivery' },
+                setFulfillmentSelection: vi.fn(),
+            } as never);
+            mockHandleChildProductValidation.mockReturnValue(true);
+
+            renderChildProducts({ parentProduct: setProduct });
+            await user.click(screen.getByRole('button', { name: /add set to cart/i }));
+
+            expect(mockHandleProductSetAddToCart).toHaveBeenCalledWith(expect.any(Array), { optionId: 'delivery' });
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     });
 
     describe('product bundle behavior', () => {
@@ -455,6 +527,67 @@ describe('ChildProducts', () => {
                 ]);
             });
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test('passes the parent fulfillment selection when adding a bundle', async () => {
+            const bundleProduct = createBundleProduct();
+            const user = userEvent.setup();
+            const { useProductSetsBundles } = await import('@/hooks/product/use-product-sets-bundles');
+            vi.mocked(useProductSetsBundles).mockReturnValue(
+                createDefaultSetsBundlesMock({
+                    childProductSelection: {
+                        'child-1': { product: { id: 'child-1' }, quantity: 1 },
+                        'child-2': { product: { id: 'child-2' }, quantity: 1 },
+                    },
+                    selectedBundleQuantity: 2,
+                    areAllChildProductsSelected: true,
+                    selectedChildProductCount: 2,
+                    productWithCalculatedInventory: { id: 'bundle-123' },
+                })
+            );
+            mockHandleChildProductValidation.mockReturnValue(true);
+
+            renderChildProducts({ parentProduct: bundleProduct });
+            await user.click(screen.getByTestId('delivery-options'));
+            await user.click(screen.getByRole('button', { name: /add bundle to cart/i }));
+
+            expect(mockHandleProductBundleAddToCart).toHaveBeenCalledWith(2, expect.any(Array), {
+                optionId: 'pickup',
+                metadata: { storeId: 'store-123', inventoryId: 'inventory-store-123' },
+            });
+        });
+
+        test('uses the PDP fulfillment selection when adding a bundle', async () => {
+            const bundleProduct = createBundleProduct();
+            const user = userEvent.setup();
+            const { useProductSetsBundles } = await import('@/hooks/product/use-product-sets-bundles');
+            const { useOptionalProductView } = await import('@/providers/product-view');
+            vi.mocked(useProductSetsBundles).mockReturnValue(
+                createDefaultSetsBundlesMock({
+                    childProductSelection: {
+                        'child-1': { product: { id: 'child-1' }, quantity: 1 },
+                        'child-2': { product: { id: 'child-2' }, quantity: 1 },
+                    },
+                    selectedBundleQuantity: 2,
+                    areAllChildProductsSelected: true,
+                    selectedChildProductCount: 2,
+                    productWithCalculatedInventory: { id: 'bundle-123' },
+                })
+            );
+            vi.mocked(useOptionalProductView).mockReturnValue({
+                fulfillmentSelection: { optionId: 'delivery' },
+                setFulfillmentSelection: vi.fn(),
+            } as never);
+            mockHandleChildProductValidation.mockReturnValue(true);
+
+            renderChildProducts({ parentProduct: bundleProduct });
+            await user.click(screen.getByRole('button', { name: /add bundle to cart/i }));
+
+            expect(mockHandleProductBundleAddToCart).toHaveBeenCalledWith(2, expect.any(Array), {
+                optionId: 'delivery',
+            });
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         test('calls handleUpdateBundle when updating bundle', async () => {
             const bundleProduct = createBundleProduct();

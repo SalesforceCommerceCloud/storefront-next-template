@@ -1,5 +1,5 @@
 import { t as logger } from "./logger.js";
-import { n as formatWithProjectBiome } from "./format-with-project-biome.js";
+import { n as formatFilesWithBundledBiome } from "./format-with-project-biome.js";
 import path from "path";
 import fs from "fs";
 
@@ -31,20 +31,25 @@ async function trimExtensions(directory, selectedExtensions, extensionConfig) {
 		return;
 	}
 	const processDirectory = (dir) => {
+		const modifiedFiles$1 = [];
 		fs.readdirSync(dir).forEach((file) => {
 			const filePath = path.join(dir, file);
 			const stats = fs.statSync(filePath);
 			if (!filePath.includes("node_modules")) {
-				if (stats.isDirectory()) processDirectory(filePath);
-				else if (isSupportedFileExtension(file)) processFile(filePath, extensions);
+				if (stats.isDirectory()) modifiedFiles$1.push(...processDirectory(filePath));
+				else if (isSupportedFileExtension(file)) {
+					if (processFile(filePath, extensions)) modifiedFiles$1.push(filePath);
+				}
 			}
 		});
+		return modifiedFiles$1;
 	};
-	processDirectory(directory);
+	const modifiedFiles = processDirectory(directory);
 	if (extensionConfig?.extensions) {
-		updateExtensionConfig(directory, extensions);
+		modifiedFiles.push(updateExtensionConfig(directory, extensions));
 		deleteExtensionFolders(directory, extensions, extensionConfig);
 	}
+	formatFilesWithBundledBiome(directory, modifiedFiles.filter((filePath) => fs.existsSync(filePath)));
 	const endTime = Date.now();
 	logger.debug(`Trim extensions took ${endTime - startTime}ms`);
 }
@@ -60,7 +65,8 @@ function updateExtensionConfig(projectDirectory, extensionSelections) {
 		if (!extensionSelections[extensionKey]) delete extensionConfig.extensions[extensionKey];
 	});
 	const json = JSON.stringify({ extensions: extensionConfig.extensions }, null, 4);
-	fs.writeFileSync(extensionConfigPath, formatWithProjectBiome(json, extensionConfigPath), "utf8");
+	fs.writeFileSync(extensionConfigPath, json, "utf8");
+	return extensionConfigPath;
 }
 /**
 * Process a file to trim extension-specific code based on markers.
@@ -82,7 +88,7 @@ function processFile(filePath, extensions) {
 				logger.error(`Error deleting file ${filePath}: ${error.message}`);
 				throw e;
 			}
-			return;
+			return false;
 		}
 	}
 	const extKeys = Object.keys(extensions);
@@ -107,7 +113,7 @@ function processFile(filePath, extensions) {
 						extension: matchingExtension,
 						line: i
 					});
-					skippingBlock = extensions[matchingExtension] === false;
+					skippingBlock = blockMarkers.some(({ extension }) => extensions[extension] === false);
 				} else logger.warn(`Unknown marker found in ${filePath} at line ${i}: \n${line}`);
 			} else if (line.includes(BLOCK_MARKER_END)) {
 				if (Object.keys(extensions).find((extension) => line.includes(extension))) {
@@ -115,8 +121,9 @@ function processFile(filePath, extensions) {
 					if (blockMarkers.length === 0) throw new Error(`Block marker mismatch in ${filePath}, encountered end marker ${extension} without a matching start marker at line ${i}:\n${lines[i]}`);
 					const startMarker = blockMarkers.pop();
 					if (!extension || startMarker.extension !== extension) throw new Error(`Block marker mismatch in ${filePath}, expected end marker for ${startMarker.extension} but got ${extension} at line ${i}:\n${lines[i]}`);
-					if (extensions[extension] === false) {
-						skippingBlock = false;
+					const closedDisabledBlock = extensions[startMarker.extension] === false;
+					skippingBlock = blockMarkers.some(({ extension: blockExtension }) => extensions[blockExtension] === false);
+					if (closedDisabledBlock || skippingBlock) {
 						i++;
 						continue;
 					}
@@ -130,12 +137,14 @@ function processFile(filePath, extensions) {
 		if (newSource !== source) try {
 			fs.writeFileSync(filePath, newSource);
 			logger.debug(`Updated file ${filePath}`);
+			return true;
 		} catch (e) {
 			const error = e;
 			logger.error(`Error updating file ${filePath}: ${error.message}`);
 			throw e;
 		}
 	}
+	return false;
 }
 /**
 * Delete extension folders for disabled extensions.

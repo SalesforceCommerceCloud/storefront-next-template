@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within, userEvent } from 'storybook/test';
+import { expect, fn, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
-import { action } from 'storybook/actions';
 import PickupOrDeliveryDropdown from '../pickup-or-delivery-dropdown';
 import { DELIVERY_OPTIONS, type DeliveryOption } from '@/extensions/bopis/constants';
 
@@ -61,14 +60,14 @@ export const Default: Story = {
         value: DELIVERY_OPTIONS.DELIVERY as DeliveryOption,
         isPickupDisabled: false,
         isDeliveryDisabled: false,
-        onChange: action('onChange'),
+        onChange: fn(),
     },
     parameters: {
         docs: {
             description: { story: 'Delivery selected, both options enabled.' },
         },
     },
-    play: async ({ canvasElement }) => {
+    play: async ({ canvasElement, args }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
@@ -79,12 +78,12 @@ export const Default: Story = {
 
         const documentBody = within(document.body);
         const shipToAddress = await documentBody.findByRole(
-            'menuitem',
+            'menuitemradio',
             { name: /ship to address/i },
             { timeout: 5000 }
         );
         const storePickup = await documentBody.findByRole(
-            'menuitem',
+            'menuitemradio',
             { name: /pick up in store|store pickup/i },
             {
                 timeout: 5000,
@@ -92,8 +91,10 @@ export const Default: Story = {
         );
         await expect(shipToAddress).toBeInTheDocument();
         await expect(storePickup).toBeInTheDocument();
+        await expect(shipToAddress).toHaveAttribute('aria-checked', 'true');
 
         await userEvent.click(storePickup);
+        await expect(args.onChange).toHaveBeenCalledWith(DELIVERY_OPTIONS.PICKUP);
     },
 };
 
@@ -102,14 +103,14 @@ export const PickupSelected: Story = {
         value: DELIVERY_OPTIONS.PICKUP as DeliveryOption,
         isPickupDisabled: false,
         isDeliveryDisabled: false,
-        onChange: action('onChange'),
+        onChange: fn(),
     },
     parameters: {
         docs: {
             description: { story: 'Pickup selected, both options enabled.' },
         },
     },
-    play: async ({ canvasElement }) => {
+    play: async ({ canvasElement, args }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
@@ -121,12 +122,12 @@ export const PickupSelected: Story = {
 
         const documentBody = within(document.body);
         const shipToAddress = await documentBody.findByRole(
-            'menuitem',
+            'menuitemradio',
             { name: /ship to address/i },
             { timeout: 5000 }
         );
         const storePickup = await documentBody.findByRole(
-            'menuitem',
+            'menuitemradio',
             { name: /pick up in store|store pickup/i },
             {
                 timeout: 5000,
@@ -134,8 +135,10 @@ export const PickupSelected: Story = {
         );
         await expect(shipToAddress).toBeInTheDocument();
         await expect(storePickup).toBeInTheDocument();
+        await expect(storePickup).toHaveAttribute('aria-checked', 'true');
 
         await userEvent.click(shipToAddress);
+        await expect(args.onChange).toHaveBeenCalledWith(DELIVERY_OPTIONS.DELIVERY);
     },
 };
 
@@ -144,7 +147,7 @@ export const CustomClass: Story = {
         value: DELIVERY_OPTIONS.DELIVERY as DeliveryOption,
         isPickupDisabled: false,
         isDeliveryDisabled: false,
-        onChange: action('onChange'),
+        onChange: fn(),
     },
     parameters: {
         docs: {
@@ -166,12 +169,12 @@ export const CustomClass: Story = {
 
         const documentBody = within(document.body);
         const shipToAddress = await documentBody.findByRole(
-            'menuitem',
+            'menuitemradio',
             { name: /ship to address/i },
             { timeout: 5000 }
         );
         const storePickup = await documentBody.findByRole(
-            'menuitem',
+            'menuitemradio',
             { name: /pick up in store|store pickup/i },
             {
                 timeout: 5000,

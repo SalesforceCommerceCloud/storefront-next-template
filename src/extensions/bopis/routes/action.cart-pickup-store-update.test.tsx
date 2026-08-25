@@ -22,6 +22,7 @@ import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { updateShipmentForPickup } from '@/extensions/bopis/lib/api/shipment.server';
 import { isStoreOutOfStock } from '@/lib/product/inventory-utils';
 import { getPickupShipment, getPickupProductItemsForStore } from '@/extensions/bopis/lib/basket-utils';
+import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
@@ -30,6 +31,9 @@ vi.mock('@/middlewares/basket.server');
 vi.mock('@/extensions/bopis/lib/api/shipment.server');
 vi.mock('@/lib/product/inventory-utils');
 vi.mock('@/extensions/bopis/lib/basket-utils');
+vi.mock('@/extensions/bopis/lib/api/stores.server', () => ({
+    getStoreInventoryId: vi.fn(),
+}));
 vi.mock('@/lib/api-clients.server');
 vi.mock('@/lib/utils', () => ({
     extractResponseError: vi.fn((error) => ({
@@ -167,6 +171,7 @@ describe('action.cart-pickup-store-update', () => {
                 .map((s) => s.shipmentId);
             return basket.productItems.filter((item) => item.shipmentId && shipmentIds.includes(item.shipmentId));
         });
+        vi.mocked(getStoreInventoryId).mockResolvedValue(mockInventoryId);
         vi.mocked(createApiClients).mockReturnValue(mockApiClients as any);
         mockShopperBasketsV2.getBasket.mockResolvedValue({
             data: mockUpdatedBasket,
@@ -259,6 +264,20 @@ describe('action.cart-pickup-store-update', () => {
             const json = response.data;
             expect(json.success).toBe(false);
             expect(json.error?.message).toBe('No pickup shipment found. Cannot change pickup store.');
+            expect(updateShipmentForPickup).not.toHaveBeenCalled();
+        });
+
+        test('returns error when store and inventory IDs do not match', async () => {
+            vi.mocked(getStoreInventoryId).mockResolvedValue('different-inventory');
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.cartPickupStoreUpdate}`, 'PATCH', {
+                storeId: mockStoreId,
+                inventoryId: mockInventoryId,
+            });
+
+            const response = await action({ request, context: mockContext, params: {} });
+            expectStatus(response, 400);
+            expect(response.data.error?.message).toBe('Pickup store and inventory do not match');
             expect(updateShipmentForPickup).not.toHaveBeenCalled();
         });
 

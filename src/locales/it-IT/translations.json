@@ -1502,14 +1502,6 @@
         "returnsAndWarrantyDescription": "Resi e dettagli sulla garanzia",
         "close": "Chiudi"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Consegna stimata",
-        "cardDescription": "Opzioni di spedizione disponibili",
-        "learnMore": "Scopri di più",
-        "sectionHeading": "Consegna stimata",
-        "shippingOptionsHeading": "Tariffe e opzioni di spedizione",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Risolvi i seguenti problemi:",
@@ -1597,6 +1589,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Consegna",
+            "method": "Metodo di consegna",
+            "deliveryDescription": "Inserisci il tuo codice postale per vedere la stima di consegna"
+        },
         "recommendations": {
             "youMightAlsoLike": "Potrebbe interessarti anche",
             "completeTheLook": "Completa il look",

@@ -110,22 +110,23 @@ export function validateCartInventory(
         }
 
         // Determine if this is a pickup item (defaults to false when BOPIS is disabled)
-        let isPickup = false;
-        let storeId: string | undefined = undefined;
-        let storeInventoryId: string | undefined = undefined;
+        const fulfillment = {
+            isPickup: false,
+            storeId: undefined as string | undefined,
+            storeInventoryId: undefined as string | undefined,
+        };
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        isPickup = Boolean(item.shipmentId && pickupShipments.has(item.shipmentId));
-        storeId = item.shipmentId ? pickupShipments.get(item.shipmentId) : undefined;
-        storeInventoryId = isPickup ? item.inventoryId : undefined;
+        fulfillment.isPickup = Boolean(item.shipmentId && pickupShipments.has(item.shipmentId));
+        fulfillment.storeId = item.shipmentId ? pickupShipments.get(item.shipmentId) : undefined;
+        fulfillment.storeInventoryId = fulfillment.isPickup ? item.inventoryId : undefined;
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         // Check if item is in stock for requested quantity
         const inStock = isInStock({
             product,
+            isPickup: fulfillment.isPickup,
             // @sfdc-extension-line SFDC_EXT_BOPIS
-            isPickup,
-            // @sfdc-extension-line SFDC_EXT_BOPIS
-            storeInventoryId,
+            storeInventoryId: fulfillment.storeInventoryId,
             quantity: item.quantity,
             variant: null,
         });
@@ -134,10 +135,9 @@ export function validateCartInventory(
             // Get available stock level
             const availableStock = getEffectiveStockLevel({
                 product,
+                isPickup: fulfillment.isPickup,
                 // @sfdc-extension-line SFDC_EXT_BOPIS
-                isPickup,
-                // @sfdc-extension-line SFDC_EXT_BOPIS
-                storeInventoryId,
+                storeInventoryId: fulfillment.storeInventoryId,
                 variant: null,
             });
 
@@ -147,9 +147,9 @@ export function validateCartInventory(
                 productName: item.productName || product.name || 'Unknown Product',
                 requestedQuantity: item.quantity,
                 availableStock,
-                isPickup, // Always included (false when BOPIS is disabled)
+                isPickup: fulfillment.isPickup,
                 // @sfdc-extension-line SFDC_EXT_BOPIS
-                storeId,
+                storeId: fulfillment.storeId,
             });
         }
     });

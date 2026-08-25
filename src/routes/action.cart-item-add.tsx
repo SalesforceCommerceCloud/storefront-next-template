@@ -19,6 +19,7 @@ import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
+import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { validateDeliveryOptionCompatibility } from '@/extensions/bopis/lib/product-actions';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -32,11 +33,25 @@ export const action = createBasketAction(
         parse: (fd) => {
             const raw = fd.get('productItem') as string | null;
             return raw
-                ? (JSON.parse(raw) as { productId: string; quantity: number; inventoryId?: string; storeId?: string })
+                ? (JSON.parse(raw) as {
+                      productId: string;
+                      quantity: number;
+                      inventoryId?: string | null;
+                      storeId?: string | null;
+                  })
                 : null;
         },
     },
-    async ({ input, basketId, basket, context, clients, logger }) => {
+    async ({
+        input,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        basket,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        context,
+        basketId,
+        clients,
+        logger,
+    }) => {
         if (!input) {
             logger.warn('CartItemAdd: missing productItem in form data');
             return data(
@@ -56,10 +71,28 @@ export const action = createBasketAction(
             quantity: input.quantity,
         });
 
-        let shipmentId = 'me';
+        const fulfillment = {
+            shipmentId: 'me',
+            inventoryId: undefined as string | undefined,
+        };
 
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        const deliveryValidation = validateDeliveryOptionCompatibility(basket, input.storeId, context);
+        const storeId = input.storeId?.trim();
+        const requestedInventoryId = input.inventoryId?.trim();
+        const hasPickupIdentifiers = input.storeId != null || input.inventoryId != null;
+        if (hasPickupIdentifiers && (!storeId || !requestedInventoryId)) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.INVALID_INPUT,
+                        message: 'Pickup fulfillment requires both storeId and inventoryId',
+                    }),
+                },
+                { status: 400 }
+            );
+        }
+        const deliveryValidation = validateDeliveryOptionCompatibility(basket, storeId, context);
         if (!deliveryValidation.valid) {
             return data(
                 {
@@ -72,17 +105,32 @@ export const action = createBasketAction(
                 { status: 409 }
             );
         }
-        if (input.storeId && input.inventoryId) {
-            const pickupShipment = await findOrCreatePickupShipment(basket, context, input.storeId);
-            shipmentId = pickupShipment.shipmentId;
+        if (storeId && requestedInventoryId) {
+            fulfillment.inventoryId = await getStoreInventoryId(context, storeId);
+            if (!fulfillment.inventoryId || fulfillment.inventoryId !== requestedInventoryId) {
+                return data(
+                    {
+                        success: false,
+                        error: createActionError({
+                            code: ErrorCode.INVALID_INPUT,
+                            message: 'Pickup store and inventory do not match',
+                        }),
+                    },
+                    { status: 400 }
+                );
+            }
+        }
+        if (storeId && fulfillment.inventoryId) {
+            const pickupShipment = await findOrCreatePickupShipment(basket, context, storeId);
+            fulfillment.shipmentId = pickupShipment.shipmentId;
         }
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         const payload = {
             productId: input.productId,
             quantity: input.quantity,
-            ...(input.inventoryId ? { inventoryId: input.inventoryId } : {}),
-            shipmentId,
+            ...(fulfillment.inventoryId ? { inventoryId: fulfillment.inventoryId } : {}),
+            shipmentId: fulfillment.shipmentId,
         };
         const { data: updatedBasket } = await clients.shopperBasketsV2.addItemToBasket({
             params: { path: { basketId } },

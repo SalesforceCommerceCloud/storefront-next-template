@@ -94,6 +94,21 @@ describe('PickupProvider', () => {
             }
         });
 
+        it('preserves the map when the product already has the same pickup details', () => {
+            const { result } = renderHook(() => usePickup(), { wrapper });
+
+            act(() => {
+                result.current?.addItem('product-1', 'inventory-A', 'store-1');
+            });
+            const mapAfterAdd = result.current?.pickupBasketItems;
+
+            act(() => {
+                result.current?.addItem('product-1', 'inventory-A', 'store-1');
+            });
+
+            expect(result.current?.pickupBasketItems).toBe(mapAfterAdd);
+        });
+
         it('adds multiple products correctly', () => {
             const { result } = renderHook(() => usePickup(), { wrapper });
 
@@ -161,6 +176,17 @@ describe('PickupProvider', () => {
             }
         });
 
+        it('preserves the map when the product does not exist', () => {
+            const { result } = renderHook(() => usePickup(), { wrapper });
+            const initialMap = result.current?.pickupBasketItems;
+
+            act(() => {
+                result.current?.removeItem('product-1');
+            });
+
+            expect(result.current?.pickupBasketItems).toBe(initialMap);
+        });
+
         it('removes only the specified product', () => {
             const { result } = renderHook(() => usePickup(), { wrapper });
 
@@ -213,6 +239,7 @@ describe('PickupProvider', () => {
 
         it('is safe to call on an empty map', () => {
             const { result } = renderHook(() => usePickup(), { wrapper });
+            const initialMap = result.current?.pickupBasketItems;
 
             if (result.current) {
                 expect(result.current.pickupBasketItems.size).toBe(0);
@@ -227,6 +254,7 @@ describe('PickupProvider', () => {
             if (result.current) {
                 expect(result.current.pickupBasketItems.size).toBe(0);
             }
+            expect(result.current?.pickupBasketItems).toBe(initialMap);
         });
     });
 

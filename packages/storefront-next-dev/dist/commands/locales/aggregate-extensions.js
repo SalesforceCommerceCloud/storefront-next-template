@@ -3,7 +3,7 @@ import "../../logger2.js";
 import { r as commonFlags } from "../../flags.js";
 import { t as GENERATED_EXTENSION_DIRS } from "../../constants.js";
 import { Command, Flags } from "@oclif/core";
-import { existsSync } from "node:fs";
+import fs, { existsSync } from "node:fs";
 import { join } from "node:path";
 import { mkdir, readdir, writeFile } from "fs/promises";
 
@@ -67,12 +67,13 @@ async function discoverLocales(dirs) {
 	return locales;
 }
 /** Find all extensions (NOT main app) that have a `translations.json` for the given locale. */
-async function findExtensionsWithLocale(locale, extensionsDir) {
+async function findExtensionsWithLocale(locale, extensionsDir, selectedExtensions) {
 	const extensions = [];
 	try {
 		const extensionEntries = await readdir(extensionsDir, { withFileTypes: true });
 		for (const entry of extensionEntries) {
 			if (!entry.isDirectory() || entry.name === GENERATED_EXTENSION_DIRS.locales || entry.name === GENERATED_EXTENSION_DIRS.config) continue;
+			if (selectedExtensions && selectedExtensions[entry.name] !== true) continue;
 			if (existsSync(join(extensionsDir, entry.name, "locales", locale, "translations.json"))) extensions.push({
 				name: entry.name,
 				path: `@/extensions/${entry.name}/locales/${locale}/translations.json`
@@ -84,7 +85,7 @@ async function findExtensionsWithLocale(locale, extensionsDir) {
 	return extensions.sort((a, b) => a.name.localeCompare(b.name));
 }
 /** Generate the locale index file content that re-exports extension translations under `extPascalCase` namespaces. */
-function generateLocaleFile(extensions) {
+function generateLocaleFile(extensions, extensionKeys) {
 	const header = `${`/**\n${APACHE_LICENSE_HEADER.split("\n").map((line) => line ? ` * ${line}` : " *").join("\n")}\n */`}
 
 // NOTE: This file is auto-generated. Do not edit manually.
@@ -93,13 +94,16 @@ function generateLocaleFile(extensions) {
 `;
 	if (extensions.length === 0) return `${header}// No extension translations found for this locale\nexport default {};\n`;
 	return `${header}${extensions.map((ext) => {
-		return `import ${`${toCamelCase(ext.name)}Translations`} from '${ext.path}';`;
+		const varName = `${toCamelCase(ext.name)}Translations`;
+		return `${extensionKeys?.[ext.name] ? `// @sfdc-extension-line ${extensionKeys[ext.name]}\n` : ""}import ${varName} from '${ext.path}';`;
 	}).join("\n")}
 
 // Namespace is based on the following convention: extPascalCase, and it's the pascal case of the folder name (e.g. store-locator -> extStoreLocator)
 export default {
 ${extensions.map((ext) => {
-		return `    ${`ext${toPascalCase(ext.name)}`}: ${`${toCamelCase(ext.name)}Translations`},`;
+		const namespace = `ext${toPascalCase(ext.name)}`;
+		const varName = `${toCamelCase(ext.name)}Translations`;
+		return `${extensionKeys?.[ext.name] ? `    // @sfdc-extension-line ${extensionKeys[ext.name]}\n` : ""}    ${namespace}: ${varName},`;
 	}).join("\n")}
 };
 `;
@@ -109,7 +113,7 @@ ${extensions.map((ext) => {
 * Main app translations in `/src/locales/` are NOT aggregated — only per-extension `translations.json` files.
 */
 async function aggregateExtensionLocales(options = {}) {
-	const { projectDirectory = process.cwd(), silent = false } = options;
+	const { projectDirectory = process.cwd(), silent = false, selectedExtensions, extensionKeys } = options;
 	const dirs = options.dirs ?? getDefaultDirs(projectDirectory);
 	const { OUTPUT_DIR, EXTENSIONS_DIR } = dirs;
 	const log = (message, ...args) => {
@@ -129,8 +133,8 @@ async function aggregateExtensionLocales(options = {}) {
 		await mkdir(OUTPUT_DIR, { recursive: true });
 		const results = [];
 		for (const locale of locales) {
-			const extensions = await findExtensionsWithLocale(locale, EXTENSIONS_DIR);
-			const content = generateLocaleFile(extensions);
+			const extensions = await findExtensionsWithLocale(locale, EXTENSIONS_DIR, selectedExtensions);
+			const content = generateLocaleFile(extensions, extensionKeys);
 			const outputPath = join(OUTPUT_DIR, locale);
 			await mkdir(outputPath, { recursive: true });
 			const filePath = join(outputPath, "index.ts");
@@ -171,8 +175,13 @@ var AggregateExtensions = class AggregateExtensions extends Command {
 	};
 	async run() {
 		const { flags } = await this.parse(AggregateExtensions);
+		const projectDirectory = flags["project-directory"];
+		const configPath = join(projectDirectory, "src", "extensions", "config.json");
+		const extensionConfig = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, "utf8")).extensions ?? {} : void 0;
 		await aggregateExtensionLocales({
-			projectDirectory: flags["project-directory"],
+			projectDirectory,
+			selectedExtensions: extensionConfig ? Object.fromEntries(Object.values(extensionConfig).filter((extension) => extension.folder).map((extension) => [extension.folder, true])) : void 0,
+			extensionKeys: extensionConfig ? Object.fromEntries(Object.entries(extensionConfig).filter(([, extension]) => extension.folder).map(([key, extension]) => [extension.folder, key])) : void 0,
 			silent: flags.silent
 		});
 	}

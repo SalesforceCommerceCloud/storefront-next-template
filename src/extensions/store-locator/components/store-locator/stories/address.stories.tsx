@@ -19,8 +19,23 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
 import StoreAddress from '../address';
-import { createMockStore } from '@/extensions/bopis/tests/__mocks__/basket';
 import type { ShopperStores } from '@/scapi';
+
+const createMockStore = (
+    storeId: string,
+    inventoryId: string,
+    overrides: Partial<ShopperStores.schemas['Store']> = {}
+): ShopperStores.schemas['Store'] => ({
+    id: storeId,
+    inventoryId,
+    name: 'Test Store',
+    address1: '123 Main St',
+    city: 'San Francisco',
+    stateCode: 'CA',
+    postalCode: '94102',
+    countryCode: 'US',
+    ...overrides,
+});
 
 function ActionLogger({ children }: { children: ReactNode }): ReactElement {
     const containerRef = useRef<HTMLDivElement | null>(null);

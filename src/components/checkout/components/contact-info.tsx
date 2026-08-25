@@ -102,7 +102,10 @@ export default function ContactInfo({
     const cart = useBasket();
     const loginSuggestion = useLoginSuggestion();
     const customerProfile = useCustomerProfile();
-    const { shipmentDistribution, exitEditMode } = useCheckoutContext();
+    const checkoutContext = useCheckoutContext();
+    const { exitEditMode } = checkoutContext;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    const { shipmentDistribution } = checkoutContext;
     const { t } = useTranslation('checkout');
     const appConfig = useConfig();
 
@@ -614,16 +617,19 @@ export default function ContactInfo({
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [form, cart, onRegisteredUserChoseGuest]);
 
-    let nextStepButtonLabel = isLoading ? t('contactInfo.saving') : t('contactInfo.continue');
-
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const hasPickupItems = shipmentDistribution.hasPickupItems;
 
     const { t: tBopis } = useTranslation('extBopis');
-    if (!isLoading && hasPickupItems) {
-        nextStepButtonLabel = tBopis('checkout.contactInfo.continueToPickup');
-    }
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const nextStepButtonLabel =
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        !isLoading && hasPickupItems
+            ? tBopis('checkout.contactInfo.continueToPickup')
+            : // @sfdc-extension-block-end SFDC_EXT_BOPIS
+              isLoading
+              ? t('contactInfo.saving')
+              : t('contactInfo.continue');
 
     const stepTitle = (
         <span id="contact-info-heading" className="text-2xl font-bold tracking-tight text-card-foreground">

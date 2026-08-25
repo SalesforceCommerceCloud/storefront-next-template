@@ -18,7 +18,7 @@ import type { ShopperBasketsV2 } from '@/scapi';
 import type { RouterContextProvider } from 'react-router';
 import type { ToastType } from '@/components/toast';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
-import { getFirstPickupStoreId } from '@/extensions/bopis/lib/basket-utils';
+import { getPickupProductItemsForStore } from '@/extensions/bopis/lib/basket-utils';
 
 export type DeliveryOptionValidationResult = { valid: true } | { valid: false; errorMessage: string };
 
@@ -44,7 +44,11 @@ export function validateDeliveryOptionCompatibility(
         return { valid: true };
     }
 
-    const existingStoreId = getFirstPickupStoreId(basket);
+    const existingStoreId = basket.shipments?.find(
+        (shipment) =>
+            typeof shipment.c_fromStoreId === 'string' &&
+            getPickupProductItemsForStore(basket, shipment.c_fromStoreId).length > 0
+    )?.c_fromStoreId as string | undefined;
     if (newStoreId && existingStoreId && newStoreId !== existingStoreId) {
         const { t } = getTranslation(context);
         return { valid: false, errorMessage: t('extBopis:cart.addToCartValidation.changeStoreError') };

@@ -170,6 +170,8 @@ export const resourceRoutes = {
     recommendations: '/resource/recommendations',
     basketProducts: '/resource/basket-products',
     reviewsSummary: '/resource/reviews-summary',
+    // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+    shippingDestination: '/resource/shipping-destination',
     categoryProducts: '/resource/category-products',
     stores: '/resource/stores',
     analyticsProxy: '/resource/analytics-proxy',

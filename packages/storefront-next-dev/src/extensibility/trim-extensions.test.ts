@@ -152,6 +152,39 @@ describe('trim-extensions', () => {
         vi.clearAllMocks();
     });
 
+    it('formats only files changed by extension removal', async () => {
+        const formatFilesWithBundledBiome = vi.fn();
+        vi.doMock('../utils/format-with-project-biome', () => ({
+            formatFilesWithBundledBiome,
+        }));
+        const { default: trimExtensionsWithFormatter } = await reloadModule();
+
+        await trimExtensionsWithFormatter('/mock/dir', { SFDC_EXT_featureA: false }, mockedExtensionConfig as never);
+
+        expect(formatFilesWithBundledBiome).toHaveBeenCalledWith('/mock/dir', [
+            path.join('/mock/dir', 'src', 'extensions', 'config.json'),
+        ]);
+    });
+
+    it('does not format files in an extension folder that was removed', async () => {
+        const formatFilesWithBundledBiome = vi.fn();
+        vi.doMock('../utils/format-with-project-biome', () => ({
+            formatFilesWithBundledBiome,
+        }));
+        const { default: trimExtensionsWithFormatter } = await reloadModule();
+        vol.mkdirSync('/mock/dir/src/extensions/feature-a', { recursive: true });
+        vol.writeFileSync(
+            '/mock/dir/src/extensions/feature-a/test.ts',
+            '// @sfdc-extension-line SFDC_EXT_featureA\nconst featureA = true;'
+        );
+
+        await trimExtensionsWithFormatter('/mock/dir', { SFDC_EXT_featureA: false }, mockedExtensionConfig as never);
+
+        expect(formatFilesWithBundledBiome).toHaveBeenCalledWith('/mock/dir', [
+            path.join('/mock/dir', 'src', 'extensions', 'config.json'),
+        ]);
+    });
+
     describe('single line markers', () => {
         it('removes single lines marked with @sfdc-extension-line when extension is disabled', async () => {
             const code = `
@@ -301,6 +334,58 @@ describe('trim-extensions', () => {
             );
             const result = readFile('/mock/dir/src/components/test.tsx') as string;
             expect(result).toEqualTrimmedLines(expected);
+        });
+
+        it('keeps skipping a disabled outer block after a disabled nested block ends', async () => {
+            const code = `
+                // @sfdc-extension-block-start SFDC_EXT_featureA
+                const featureA = 'Feature A variable';
+                // @sfdc-extension-block-start SFDC_EXT_featureB
+                const featureB = 'Feature B variable';
+                // @sfdc-extension-block-end SFDC_EXT_featureB
+                const leakedAfterNestedBlock = 'must be removed';
+                // @sfdc-extension-block-end SFDC_EXT_featureA
+                const retained = 'retained';
+            `;
+            vol.writeFileSync('/mock/dir/src/components/test.tsx', code);
+
+            await trimExtensions(
+                '/mock/dir',
+                { SFDC_EXT_featureA: false, SFDC_EXT_featureB: false },
+                mockedExtensionConfig
+            );
+
+            const result = readFile('/mock/dir/src/components/test.tsx') as string;
+            expect(result).not.toContain('featureA');
+            expect(result).not.toContain('featureB');
+            expect(result).not.toContain('leakedAfterNestedBlock');
+            expect(result).toContain('retained');
+        });
+
+        it('keeps skipping a disabled outer block after an enabled nested block ends', async () => {
+            const code = `
+                // @sfdc-extension-block-start SFDC_EXT_featureA
+                const featureA = 'Feature A variable';
+                // @sfdc-extension-block-start SFDC_EXT_featureB
+                const featureB = 'Feature B variable';
+                // @sfdc-extension-block-end SFDC_EXT_featureB
+                const leakedAfterNestedBlock = 'must be removed';
+                // @sfdc-extension-block-end SFDC_EXT_featureA
+                const retained = 'retained';
+            `;
+            vol.writeFileSync('/mock/dir/src/components/test.tsx', code);
+
+            await trimExtensions(
+                '/mock/dir',
+                { SFDC_EXT_featureA: false, SFDC_EXT_featureB: true },
+                mockedExtensionConfig
+            );
+
+            const result = readFile('/mock/dir/src/components/test.tsx') as string;
+            expect(result).not.toContain('featureA');
+            expect(result).not.toContain('featureB');
+            expect(result).not.toContain('leakedAfterNestedBlock');
+            expect(result).toContain('retained');
         });
 
         it('handles nested line markers within blocks', async () => {

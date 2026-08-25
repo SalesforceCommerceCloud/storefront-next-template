@@ -19,6 +19,7 @@ import type { ShopperBasketsV2 } from '@/scapi';
 import { createApiClients } from '@/lib/api-clients.server';
 import { isAddressEmpty } from '@/lib/address/address-utils';
 import { getShippingMethodsForShipment } from '@/lib/api/shipping-methods.server';
+import { findOrCreateDeliveryShipment as findOrCreateCanonicalDeliveryShipment } from '@/lib/cart/shipments.server';
 import { generateRandomShipmentId, isDeliveryShipment } from '@/extensions/multiship/lib/basket-utils.server';
 
 /**
@@ -190,24 +191,7 @@ export async function findOrCreateDeliveryShipment(
     basket: ShopperBasketsV2.schemas['Basket'],
     context: Readonly<RouterContextProvider>
 ): Promise<ShopperBasketsV2.schemas['Shipment']> {
-    if (!basket.basketId) {
-        throw new Error('Basket is missing a basketId');
-    }
-
-    // Find any delivery shipment
-    const existing = basket.shipments?.find(isDeliveryShipment);
-    if (existing) {
-        return existing;
-    }
-
-    // Create new shipment
-    const { basket: updatedBasket, shipmentId } = await createDeliveryShipment(context, basket.basketId);
-    const shipment = updatedBasket.shipments?.find((s) => s.shipmentId === shipmentId);
-    if (!shipment) {
-        throw new Error('Shipment was not created');
-    }
-
-    return shipment;
+    return findOrCreateCanonicalDeliveryShipment(basket, context);
 }
 
 /**

@@ -92,6 +92,16 @@ describe('aggregate-extension-locales', () => {
             expect(content).toContain('extStoreLocator: storeLocatorTranslations');
         });
 
+        it('adds trim markers when extension config keys are provided', () => {
+            const content = generateLocaleFile(
+                [{ name: 'bopis', path: '@/extensions/bopis/locales/en-GB/translations.json' }],
+                { bopis: 'SFDC_EXT_BOPIS' }
+            );
+
+            expect(content).toContain('// @sfdc-extension-line SFDC_EXT_BOPIS\nimport bopisTranslations');
+            expect(content).toContain('    // @sfdc-extension-line SFDC_EXT_BOPIS\n    extBopis:');
+        });
+
         it('includes license header and auto-generation warning', () => {
             const content = generateLocaleFile([]);
             expect(content).toContain('Copyright');
@@ -197,6 +207,25 @@ describe('aggregate-extension-locales', () => {
                 expect(extensions[1].name).toBe('store-locator');
             });
 
+            it('skips extensions disabled in the generated storefront', async () => {
+                await mkdir(join(dirs.EXTENSIONS_DIR, 'bopis', 'locales', 'en-US'), { recursive: true });
+                await writeFile(join(dirs.EXTENSIONS_DIR, 'bopis', 'locales', 'en-US', 'translations.json'), '{}');
+                await mkdir(join(dirs.EXTENSIONS_DIR, 'store-locator', 'locales', 'en-US'), { recursive: true });
+                await writeFile(
+                    join(dirs.EXTENSIONS_DIR, 'store-locator', 'locales', 'en-US', 'translations.json'),
+                    '{}'
+                );
+
+                const extensions = await findExtensionsWithLocale('en-US', dirs.EXTENSIONS_DIR, {
+                    bopis: false,
+                    'store-locator': true,
+                });
+
+                expect(extensions).toEqual([
+                    { name: 'store-locator', path: '@/extensions/store-locator/locales/en-US/translations.json' },
+                ]);
+            });
+
             it('returns empty array when no extensions have the locale', async () => {
                 await mkdir(join(dirs.EXTENSIONS_DIR, 'bopis', 'locales', 'en-US'), { recursive: true });
                 await writeFile(join(dirs.EXTENSIONS_DIR, 'bopis', 'locales', 'en-US', 'translations.json'), '{}');
@@ -288,6 +317,27 @@ describe('aggregate-extension-locales', () => {
 
                 const frFRContent = await readFile(join(dirs.OUTPUT_DIR, 'fr-FR', 'index.ts'), 'utf8');
                 expect(frFRContent).toContain('export default {};');
+            });
+
+            it('does not aggregate translations for disabled extensions', async () => {
+                await mkdir(join(dirs.SRC_DIR, 'locales', 'en-US'), { recursive: true });
+                await mkdir(join(dirs.EXTENSIONS_DIR, 'bopis', 'locales', 'en-US'), { recursive: true });
+                await writeFile(join(dirs.EXTENSIONS_DIR, 'bopis', 'locales', 'en-US', 'translations.json'), '{}');
+                await mkdir(join(dirs.EXTENSIONS_DIR, 'store-locator', 'locales', 'en-US'), { recursive: true });
+                await writeFile(
+                    join(dirs.EXTENSIONS_DIR, 'store-locator', 'locales', 'en-US', 'translations.json'),
+                    '{}'
+                );
+
+                await aggregateExtensionLocales({
+                    dirs,
+                    selectedExtensions: { bopis: false, 'store-locator': true },
+                    silent: true,
+                });
+
+                const content = await readFile(join(dirs.OUTPUT_DIR, 'en-US', 'index.ts'), 'utf8');
+                expect(content).not.toContain('extBopis');
+                expect(content).toContain('extStoreLocator');
             });
 
             it('returns correct result metadata', async () => {

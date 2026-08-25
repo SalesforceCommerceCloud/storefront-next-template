@@ -86,8 +86,12 @@ const EXCLUDED_COMPONENTS = new Set([
     'product-content/components/target/faq-target',
     'product-content/components/target/pdp-collapsibles-target',
     'shipping-delivery/components/target/estimated-delivery-target',
-    // Hook that returns a lazy-loaded slot — not a standalone visual component
-    'bopis/components/delivery-options/use-shipping-calculator',
+    'shipping-delivery/components/target/delivery-estimate-calculator-target',
+    // Configuration-only wrappers select a display style for the shared calculator target.
+    'shipping-delivery/components/target/delivery-estimate-summary-target',
+    'shipping-delivery/components/target/delivery-estimate-detailed-target',
+    // Headless BOPIS contributor registers its option and detail content with the shared DeliveryOptions composer.
+    'bopis/components/delivery-options/pickup-option-contributor',
     // Wraps Sonner's <Toaster> to apply app-level config; no visual content of its own.
     'toast/app-toaster',
     // Page Designer Region and Component Wrapper, there is no value in having storybook stories for these
@@ -145,6 +149,9 @@ const EXCLUDED_COMPONENTS = new Set([
     'cimulate/index',
     'cimulate/cimulate-ui',
     'cimulate/cimulate-window',
+]);
+const STORY_ALIASES = new Map([
+    ['fulfillment/cart-delivery-option', 'bopis/components/delivery-options/cart-delivery-option'],
 ]);
 // Ensure OUTPUT DIR exists
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -207,7 +214,7 @@ function generateCoverage() {
                 // Get the story file name without extension
                 const storyName = parts[storiesIndex + 1].replace(/\.stories\.tsx$/, '');
 
-                // Build component name: if story is "index.stories.tsx", use the directory name
+                // Build component name: if story is "index.stories.tsx", use the directory name.
                 // Otherwise use the story name. When componentDir is empty (story's "stories/"
                 // folder sits directly under the components root), don't prefix with a stray "/".
                 const componentName =
@@ -282,7 +289,11 @@ function generateCoverage() {
         // 1. Component "cart/cart-content" matches story "cart/cart-content" (from "cart/stories/cart-content.stories.tsx")
         // 2. Component "cart/index" matches story "cart" (from "cart/stories/index.stories.tsx")
         const dirName = path.dirname(componentName);
-        const hasStory = stories.has(componentName) || (componentName.endsWith('/index') && stories.has(dirName));
+        const storyAlias = STORY_ALIASES.get(componentName);
+        const hasStory =
+            stories.has(componentName) ||
+            (componentName.endsWith('/index') && stories.has(dirName)) ||
+            (storyAlias != null && stories.has(storyAlias));
         if (!hasStory) {
             missing.push({
                 name: componentName,

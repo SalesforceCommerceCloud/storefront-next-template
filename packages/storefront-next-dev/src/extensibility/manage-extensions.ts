@@ -110,6 +110,7 @@ const handleUninstall = async (
     options: {
         projectDirectory: string;
         extensions?: string[];
+        yes?: boolean;
     }
 ) => {
     let installedExtensions: string[] = Object.keys(extensionConfig);
@@ -161,16 +162,18 @@ const handleUninstall = async (
         });
         consoleLog('\n', 'info');
 
-        const { confirmUninstall } = await prompts({
-            type: 'confirm',
-            name: 'confirmUninstall',
-            message: `Uninstall all ${extensionsToUninstall.length} extensions?`,
-            initial: true,
-        });
+        if (!options.yes) {
+            const { confirmUninstall } = await prompts({
+                type: 'confirm',
+                name: 'confirmUninstall',
+                message: `Uninstall all ${extensionsToUninstall.length} extensions?`,
+                initial: true,
+            });
 
-        if (!confirmUninstall) {
-            consoleLog('Uninstallation aborted.', 'info');
-            return;
+            if (!confirmUninstall) {
+                consoleLog('Uninstallation aborted.', 'info');
+                return;
+            }
         }
     }
 
@@ -380,6 +383,7 @@ export const manageExtensions = async (options: {
     uninstall?: boolean;
     extensions?: string[];
     sourceGitUrl?: string;
+    yes?: boolean;
 }) => {
     if (options.install && options.uninstall) {
         consoleLog('Please select either install or uninstall, not both.', 'error');

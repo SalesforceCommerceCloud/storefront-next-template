@@ -1378,14 +1378,6 @@
         "returnsAndWarrantyDescription": "Palautukset ja takuutiedot",
         "close": "Sulje"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Arvioitu toimitus",
-        "cardDescription": "Saatavilla olevat toimitusvaihtoehdot",
-        "learnMore": "Lue lisää",
-        "sectionHeading": "Arvioitu toimitus",
-        "shippingOptionsHeading": "Toimitusvaihtoehdot ja hinnat",
-        "free": "Veloituksetta"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Korjaa seuraavat asiat:",
@@ -1448,6 +1440,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Toimitustapa",
+            "deliveryDescription": "Anna postinumero nähdäksesi toimitusarvion"
+        },
         "recommendations": {
             "youMightAlsoLike": "Saatat myös pitää näistä",
             "completeTheLook": "Täydennä look",

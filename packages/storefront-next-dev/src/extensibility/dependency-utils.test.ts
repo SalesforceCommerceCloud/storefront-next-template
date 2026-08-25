@@ -26,7 +26,7 @@ import {
     type ExtensionConfig,
 } from './dependency-utils';
 
-// Test fixture: 2-layer chain (real extensions)
+// Test fixture: BOPIS depends on both Store Locator and Multiship.
 const twoLayerConfig: ExtensionConfig = {
     extensions: {
         SFDC_EXT_STORE_LOCATOR: {
@@ -40,11 +40,11 @@ const twoLayerConfig: ExtensionConfig = {
         SFDC_EXT_BOPIS: {
             name: 'Buy Online Pickup In Store',
             description:
-                'Enables a shopper to order online and pick up their order at a physical store. Requires the Store Locator extension to be installed.',
+                'Enables a shopper to order online and pick up their order at a physical store. Requires the Store Locator and Multiship extensions to be installed.',
             installationInstructions: 'instructions/install-buy-online-pickup-in-store.mdc',
             uninstallationInstructions: 'instructions/uninstall-buy-online-pickup-in-store.mdc',
             folder: 'bopis',
-            dependencies: ['SFDC_EXT_STORE_LOCATOR'],
+            dependencies: ['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP'],
         },
         SFDC_EXT_MULTISHIP: {
             name: 'Multiship',
@@ -57,7 +57,7 @@ const twoLayerConfig: ExtensionConfig = {
     },
 };
 
-// Test fixture: 3-layer chain (for transitive dependency testing)
+// Test fixture: Store Locator depends on Base Maps; BOPIS also depends on Multiship.
 const threeLayerConfig: ExtensionConfig = {
     extensions: {
         SFDC_EXT_BASE_MAPS: {
@@ -79,11 +79,19 @@ const threeLayerConfig: ExtensionConfig = {
         SFDC_EXT_BOPIS: {
             name: 'Buy Online Pickup In Store',
             description:
-                'Enables a shopper to order online and pick up their order at a physical store. Requires the Store Locator extension to be installed.',
+                'Enables a shopper to order online and pick up their order at a physical store. Requires the Store Locator and Multiship extensions to be installed.',
             installationInstructions: 'instructions/install-buy-online-pickup-in-store.mdc',
             uninstallationInstructions: 'instructions/uninstall-buy-online-pickup-in-store.mdc',
             folder: 'bopis',
-            dependencies: ['SFDC_EXT_STORE_LOCATOR'],
+            dependencies: ['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP'],
+        },
+        SFDC_EXT_MULTISHIP: {
+            name: 'Multiship',
+            description: 'Multiship allows a shopper to ship items in their order to multiple addresses.',
+            installationInstructions: 'instructions/install-multiship.mdc',
+            uninstallationInstructions: 'instructions/uninstall-multiship.mdc',
+            folder: 'multiship',
+            dependencies: [],
         },
     },
 };
@@ -186,14 +194,19 @@ describe('dependency-utils', () => {
             expect(result).toEqual(['SFDC_EXT_STORE_LOCATOR']);
         });
 
-        it('resolves single dependency in bottom up order', () => {
+        it('resolves direct dependencies in bottom up order', () => {
             const result = resolveDependencies('SFDC_EXT_BOPIS', twoLayerConfig);
-            expect(result).toEqual(['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_BOPIS']);
+            expect(result).toEqual(['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP', 'SFDC_EXT_BOPIS']);
         });
 
-        it('resolves transitive 3-layer chain in bottom up order', () => {
+        it('resolves nested and direct dependencies in bottom up order', () => {
             const result = resolveDependencies('SFDC_EXT_BOPIS', threeLayerConfig);
-            expect(result).toEqual(['SFDC_EXT_BASE_MAPS', 'SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_BOPIS']);
+            expect(result).toEqual([
+                'SFDC_EXT_BASE_MAPS',
+                'SFDC_EXT_STORE_LOCATOR',
+                'SFDC_EXT_MULTISHIP',
+                'SFDC_EXT_BOPIS',
+            ]);
         });
 
         it('returns empty array for non-existent extension', () => {
@@ -222,9 +235,9 @@ describe('dependency-utils', () => {
             expect(result).toEqual([]);
         });
 
-        it('returns empty array for extension with no dependents', () => {
+        it('returns BOPIS as the dependent of Multiship', () => {
             const result = getDependents('SFDC_EXT_MULTISHIP', twoLayerConfig);
-            expect(result).toEqual([]);
+            expect(result).toEqual(['SFDC_EXT_BOPIS']);
         });
     });
 
@@ -265,6 +278,11 @@ describe('dependency-utils', () => {
             expect(result).toEqual(['SFDC_EXT_BOPIS', 'SFDC_EXT_STORE_LOCATOR']);
         });
 
+        it('uninstalls BOPIS before Multiship', () => {
+            const result = resolveDependents('SFDC_EXT_MULTISHIP', twoLayerConfig);
+            expect(result).toEqual(['SFDC_EXT_BOPIS', 'SFDC_EXT_MULTISHIP']);
+        });
+
         it('resolves transitive 3-layer dependent chain in reverse bottom up order', () => {
             const result = resolveDependents('SFDC_EXT_BASE_MAPS', threeLayerConfig);
             expect(result).toEqual(['SFDC_EXT_BOPIS', 'SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_BASE_MAPS']);
@@ -303,7 +321,7 @@ describe('dependency-utils', () => {
 
     describe('getMissingDependencies', () => {
         it('returns empty when all dependencies are installed', () => {
-            const installed = ['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_BOPIS'];
+            const installed = ['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP', 'SFDC_EXT_BOPIS'];
             const result = getMissingDependencies('SFDC_EXT_BOPIS', installed, twoLayerConfig);
             expect(result).toEqual([]);
         });
@@ -311,11 +329,11 @@ describe('dependency-utils', () => {
         it('returns missing dependencies in bottom up order', () => {
             const installed: string[] = [];
             const result = getMissingDependencies('SFDC_EXT_BOPIS', installed, twoLayerConfig);
-            expect(result).toEqual(['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_BOPIS']);
+            expect(result).toEqual(['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP', 'SFDC_EXT_BOPIS']);
         });
 
         it('returns only missing dependencies when some are installed', () => {
-            const installed = ['SFDC_EXT_STORE_LOCATOR'];
+            const installed = ['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP'];
             const result = getMissingDependencies('SFDC_EXT_BOPIS', installed, twoLayerConfig);
             expect(result).toEqual(['SFDC_EXT_BOPIS']);
         });
@@ -323,7 +341,7 @@ describe('dependency-utils', () => {
         it('handles transitive chain with partial installation', () => {
             const installed = ['SFDC_EXT_BASE_MAPS'];
             const result = getMissingDependencies('SFDC_EXT_BOPIS', installed, threeLayerConfig);
-            expect(result).toEqual(['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_BOPIS']);
+            expect(result).toEqual(['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP', 'SFDC_EXT_BOPIS']);
         });
     });
 
@@ -346,10 +364,12 @@ describe('dependency-utils', () => {
             const result = resolveDependenciesForMultiple(['SFDC_EXT_BOPIS'], threeLayerConfig);
             const baseMapsIndex = result.indexOf('SFDC_EXT_BASE_MAPS');
             const storeLocatorIndex = result.indexOf('SFDC_EXT_STORE_LOCATOR');
+            const multishipIndex = result.indexOf('SFDC_EXT_MULTISHIP');
             const bopisIndex = result.indexOf('SFDC_EXT_BOPIS');
 
             expect(baseMapsIndex).toBeLessThan(storeLocatorIndex);
             expect(storeLocatorIndex).toBeLessThan(bopisIndex);
+            expect(multishipIndex).toBeLessThan(bopisIndex);
         });
     });
 

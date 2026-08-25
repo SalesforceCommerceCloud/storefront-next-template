@@ -25,8 +25,21 @@ import type { EnrichedProductItem } from '@/lib/product/product-utils';
 
 // Mock PickupOrDeliveryDropdown
 vi.mock('./pickup-or-delivery-dropdown', () => ({
-    default: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-        <div data-testid="pickup-or-delivery-dropdown">
+    default: ({
+        value,
+        onChange,
+        isPickupDisabled,
+        isDeliveryDisabled,
+    }: {
+        value: string;
+        onChange: (v: string) => void;
+        isPickupDisabled?: boolean;
+        isDeliveryDisabled?: boolean;
+    }) => (
+        <div
+            data-testid="pickup-or-delivery-dropdown"
+            data-pickup-disabled={isPickupDisabled}
+            data-delivery-disabled={isDeliveryDisabled}>
             <button
                 onClick={() =>
                     onChange(value === DELIVERY_OPTIONS.DELIVERY ? DELIVERY_OPTIONS.PICKUP : DELIVERY_OPTIONS.DELIVERY)
@@ -38,8 +51,8 @@ vi.mock('./pickup-or-delivery-dropdown', () => ({
 }));
 
 // Mock hooks
-vi.mock('@/extensions/bopis/hooks/use-delivery-options', () => ({
-    useDeliveryOptions: vi.fn(),
+vi.mock('@/extensions/bopis/hooks/use-pickup-availability', () => ({
+    usePickupAvailability: vi.fn(),
 }));
 
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
@@ -91,7 +104,7 @@ describe('CartDeliveryOption', () => {
     let mockUseStoreLocator: ReturnType<typeof vi.fn>;
     let mockUseBasket: ReturnType<typeof vi.fn>;
     let mockUseToast: ReturnType<typeof vi.fn>;
-    let mockUseDeliveryOptions: ReturnType<typeof vi.fn>;
+    let mockUsePickupAvailability: ReturnType<typeof vi.fn>;
     let mockUseTranslation: ReturnType<typeof vi.fn>;
     let mockOpenStoreLocator: ReturnType<typeof vi.fn>;
     let mockSetSelectedStoreInfo: ReturnType<typeof vi.fn>;
@@ -104,13 +117,13 @@ describe('CartDeliveryOption', () => {
         const { useStoreLocator } = await import('@/extensions/store-locator/providers/store-locator');
         const { useBasket } = await import('@/providers/basket');
         const { useToast } = await import('@/components/toast');
-        const { useDeliveryOptions } = await import('@/extensions/bopis/hooks/use-delivery-options');
+        const { usePickupAvailability } = await import('@/extensions/bopis/hooks/use-pickup-availability');
         const { useTranslation } = await import('react-i18next');
 
         mockUseStoreLocator = useStoreLocator as any;
         mockUseBasket = useBasket as any;
         mockUseToast = useToast as any;
-        mockUseDeliveryOptions = useDeliveryOptions as any;
+        mockUsePickupAvailability = usePickupAvailability as any;
         mockUseTranslation = useTranslation as any;
 
         // Setup mock functions
@@ -139,10 +152,7 @@ describe('CartDeliveryOption', () => {
             addToast: mockAddToast,
         });
 
-        mockUseDeliveryOptions.mockReturnValue({
-            isStoreOutOfStock: false,
-            isSiteOutOfStock: false,
-        });
+        mockUsePickupAvailability.mockReturnValue(false);
 
         mockUseTranslation.mockReturnValue({
             t: (key: string) => tMap[key] || key,
@@ -153,7 +163,7 @@ describe('CartDeliveryOption', () => {
         it('renders PickupOrDeliveryDropdown component', () => {
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -163,7 +173,7 @@ describe('CartDeliveryOption', () => {
         it('reads the basket without opting in to auto-load (cart route hydrates the basket via CartContent)', () => {
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -183,7 +193,7 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -198,11 +208,55 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
             expect(screen.getByText('Pick Up in Store')).toBeInTheDocument();
+        });
+
+        it('checks the current pickup shipment inventory instead of an unrelated selected store', () => {
+            mockUseBasket.mockReturnValue({
+                basketId: 'basket-1',
+                shipments: [{ shipmentId: 'shipment-1', c_fromStoreId: 'store-current' }],
+            });
+            mockUseStoreLocator.mockImplementation((selector: any) =>
+                selector({
+                    selectedStoreInfo: { id: 'store-other', inventoryId: 'inventory-other' },
+                    open: mockOpenStoreLocator,
+                    setSelectedStoreInfo: mockSetSelectedStoreInfo,
+                    close: vi.fn(),
+                    isOpen: false,
+                })
+            );
+
+            render(
+                <AllProvidersWrapper>
+                    <CartDeliveryOption
+                        product={{ ...mockProduct, inventoryId: 'inventory-current' }}
+                        isDeliveryOutOfStock={false}
+                    />
+                </AllProvidersWrapper>
+            );
+
+            expect(mockUsePickupAvailability).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    pickupStore: { id: 'store-current', inventoryId: 'inventory-current' },
+                })
+            );
+        });
+
+        it('passes unavailable fulfillment options to the dropdown', () => {
+            mockUsePickupAvailability.mockReturnValue(true);
+
+            render(
+                <AllProvidersWrapper>
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock />
+                </AllProvidersWrapper>
+            );
+
+            expect(screen.getByTestId('pickup-or-delivery-dropdown')).toHaveAttribute('data-pickup-disabled', 'true');
+            expect(screen.getByTestId('pickup-or-delivery-dropdown')).toHaveAttribute('data-delivery-disabled', 'true');
         });
     });
 
@@ -212,7 +266,7 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -225,10 +279,7 @@ describe('CartDeliveryOption', () => {
         });
 
         it('shows toast when pickup is selected but item is out of stock at store', async () => {
-            mockUseDeliveryOptions.mockReturnValue({
-                isStoreOutOfStock: true,
-                isSiteOutOfStock: false,
-            });
+            mockUsePickupAvailability.mockReturnValue(true);
 
             mockUseStoreLocator.mockImplementation((selector: any) => {
                 const mockStoreState = {
@@ -245,7 +296,7 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -257,10 +308,7 @@ describe('CartDeliveryOption', () => {
         });
 
         it('shows toast when delivery is selected but item is out of stock at site', async () => {
-            mockUseDeliveryOptions.mockReturnValue({
-                isStoreOutOfStock: false,
-                isSiteOutOfStock: true,
-            });
+            mockUsePickupAvailability.mockReturnValue(false);
 
             mockUseBasket.mockReturnValue({
                 basketId: 'basket-1',
@@ -271,7 +319,7 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock />
                 </AllProvidersWrapper>
             );
 
@@ -292,7 +340,7 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -329,7 +377,7 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={mockProduct} />
+                    <CartDeliveryOption product={mockProduct} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -370,7 +418,7 @@ describe('CartDeliveryOption', () => {
 
             const { rerender } = render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={productWithoutStore} />
+                    <CartDeliveryOption product={productWithoutStore} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -393,7 +441,7 @@ describe('CartDeliveryOption', () => {
             // Re-render with updated store state
             rerender(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={productWithoutStore} />
+                    <CartDeliveryOption product={productWithoutStore} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 
@@ -423,7 +471,7 @@ describe('CartDeliveryOption', () => {
 
             render(
                 <AllProvidersWrapper>
-                    <CartDeliveryOption product={productWithStore} />
+                    <CartDeliveryOption product={productWithStore} isDeliveryOutOfStock={false} />
                 </AllProvidersWrapper>
             );
 

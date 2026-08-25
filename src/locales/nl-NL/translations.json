@@ -1370,14 +1370,6 @@
         "returnsAndWarrantyDescription": "Details van retouren en garantie",
         "close": "Sluiten"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Geschatte levertijd",
-        "cardDescription": "Beschikbare verzendopties",
-        "learnMore": "Meer informatie",
-        "sectionHeading": "Geschatte levertijd",
-        "shippingOptionsHeading": "Verzendopties en tarieven",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Los het volgende op:",
@@ -1440,6 +1432,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Bezorgmethode",
+            "deliveryDescription": "Voer uw postcode in om de leveringsschatting te zien"
+        },
         "recommendations": {
             "youMightAlsoLike": "Dit vind je misschien ook leuk",
             "completeTheLook": "Look completeren",

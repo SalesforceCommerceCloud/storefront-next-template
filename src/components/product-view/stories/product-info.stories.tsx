@@ -25,7 +25,7 @@ import ProductViewProvider from '@/providers/product-view';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
 import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
-import { ProductInfo } from '../index';
+import { ProductInfo } from '@/components/product-view';
 
 type InventoryStatus = 'in-stock' | 'pre-order' | 'back-order' | 'out-of-stock';
 

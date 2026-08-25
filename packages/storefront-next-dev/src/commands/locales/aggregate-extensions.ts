@@ -16,6 +16,10 @@
 import { Command, Flags } from '@oclif/core';
 import { aggregateExtensionLocales } from '../../i18n/aggregate-extension-locales.js';
 import { commonFlags } from '../../flags.js';
+import fs from 'node:fs';
+import { join } from 'node:path';
+
+type ExtensionConfigEntry = { folder?: string };
 
 export default class AggregateExtensions extends Command {
     static description = 'Aggregate extension translation files into per-locale barrel files';
@@ -37,8 +41,34 @@ export default class AggregateExtensions extends Command {
     async run(): Promise<void> {
         const { flags } = await this.parse(AggregateExtensions);
 
+        const projectDirectory = flags['project-directory'];
+        const configPath = join(projectDirectory, 'src', 'extensions', 'config.json');
+        const extensionConfig = fs.existsSync(configPath)
+            ? ((
+                  JSON.parse(fs.readFileSync(configPath, 'utf8')) as {
+                      extensions?: Record<string, ExtensionConfigEntry>;
+                  }
+              ).extensions ?? {})
+            : undefined;
+        const selectedExtensions = extensionConfig
+            ? Object.fromEntries(
+                  Object.values(extensionConfig)
+                      .filter((extension) => extension.folder)
+                      .map((extension) => [extension.folder as string, true])
+              )
+            : undefined;
+        const extensionKeys = extensionConfig
+            ? Object.fromEntries(
+                  Object.entries(extensionConfig)
+                      .filter(([, extension]) => extension.folder)
+                      .map(([key, extension]) => [extension.folder as string, key])
+              )
+            : undefined;
+
         await aggregateExtensionLocales({
-            projectDirectory: flags['project-directory'],
+            projectDirectory,
+            selectedExtensions,
+            extensionKeys,
             silent: flags.silent,
         });
     }

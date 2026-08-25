@@ -1,60 +1,12 @@
 import { t as logger } from "./logger.js";
 import { spawnSync } from "child_process";
-import { basename, dirname, join } from "path";
+import { dirname, join, relative } from "path";
 import { createRequire } from "module";
 import { fileURLToPath } from "url";
 
 //#region src/utils/format-with-project-biome.ts
 /** This module's own path — the resolution root for the SDK-bundled Biome fallback. */
 const HERE = fileURLToPath(import.meta.url);
-/**
-* Format generated file content with the *consuming project's* Biome so the written file
-* matches what the project's own `biome format` / `pnpm lint:fix` would produce.
-*
-* The SDK generates two kinds of files into a customer project — the extension `config.json`
-* (`trim-extensions.ts`) and the static component registry (`staticRegistry.ts`). Both must
-* be emitted in the exact byte shape the project's formatter produces, or the generated file
-* fails `pnpm lint` on a fresh project / churns on every `biome format --write` (W-23074938).
-*
-* Biome is preferred from the target file's own location — i.e. the consuming project's
-* `node_modules` — so it's the project's Biome version whose output is matched. When that
-* isn't installed yet (e.g. `create-storefront` runs `trim-extensions` BEFORE the generated
-* project's first `pnpm install`), we fall back to the SDK-bundled `@biomejs/biome` (a hard
-* dependency of this package, pinned to the template's version). Either way the file's
-* committed `biome.json` governs the output: Biome discovers its config by walking up from
-* the working directory, so we spawn it with `cwd` set to the file's directory and pass the
-* file's basename via `--stdin-file-path` (which drives both parser selection and formatting).
-*
-* Returns the content unchanged when no Biome can be resolved at all or the format fails, so
-* generation never breaks over formatting. A genuine format error is logged but non-fatal —
-* an unformatted-but-valid file is recoverable by the customer running `biome format --write`.
-*
-* @param content - The serialized file content to format.
-* @param filePath - The file's path (drives parser selection + config resolution + cwd).
-* @returns The Biome-formatted content, or the original content if Biome is unavailable.
-*/
-function formatWithProjectBiome(content, filePath) {
-	const biomeBin = resolveBiomeBin(filePath);
-	if (!biomeBin) {
-		logger.warn(`⚠️  Biome could not be resolved; ${basename(filePath)} will be written unformatted.`);
-		return content;
-	}
-	const result = spawnSync(process.execPath, [
-		biomeBin,
-		"format",
-		`--stdin-file-path=${basename(filePath)}`
-	], {
-		cwd: dirname(filePath),
-		input: content,
-		encoding: "utf8"
-	});
-	if (result.status !== 0 || typeof result.stdout !== "string") {
-		const detail = result.stderr?.trim() || `exit code ${result.status}`;
-		logger.warn(`⚠️  Skipping Biome formatting for ${basename(filePath)}: ${detail}`);
-		return content;
-	}
-	return result.stdout;
-}
 /**
 * Format every file Biome recognizes under `directory` in place with the consuming project's
 * Biome, so generated files (e.g. cartridge metadata JSON) match `biome format` / `pnpm lint:fix`.
@@ -91,6 +43,39 @@ function formatDirectoryWithProjectBiome(directory) {
 	logger.debug(`✅ Formatted generated files in ${directory} with Biome`);
 }
 /**
+* Format only files changed by generation with the SDK-bundled Biome.
+*
+* Extension trimming can touch customer-owned source files, so formatting the project root would
+* rewrite unrelated files. The SDK's pinned Biome keeps this automatic path independent of any
+* target-project executable while the target project's biome.json still determines formatting.
+*
+* @param directory - Project root containing the Biome configuration.
+* @param filePaths - Absolute paths of files changed by generation.
+*/
+function formatFilesWithBundledBiome(directory, filePaths) {
+	if (filePaths.length === 0) return;
+	const biomeBin = resolveBiomeBin(HERE);
+	if (!biomeBin) {
+		logger.warn(`⚠️  Biome could not be resolved; generated files in ${directory} were left unformatted.`);
+		return;
+	}
+	const result = spawnSync(process.execPath, [
+		biomeBin,
+		"format",
+		"--write",
+		...filePaths.map((filePath) => relative(directory, filePath))
+	], {
+		cwd: directory,
+		encoding: "utf8"
+	});
+	if (result.status !== 0) {
+		const detail = result.stderr?.trim() || `exit code ${result.status}`;
+		logger.warn(`⚠️  Some generated files in ${directory} could not be formatted by Biome: ${detail}`);
+		return;
+	}
+	logger.debug(`✅ Formatted ${filePaths.length} generated files in ${directory} with Biome`);
+}
+/**
 * Resolve a Biome CLI binary path, preferring the consuming project's install and falling back
 * to the SDK-bundled copy (available pre-install). Returns null when neither resolves.
 */
@@ -105,4 +90,4 @@ function resolveBiomeBin(filePath) {
 }
 
 //#endregion
-export { formatWithProjectBiome as n, formatDirectoryWithProjectBiome as t };
+export { formatFilesWithBundledBiome as n, formatDirectoryWithProjectBiome as t };

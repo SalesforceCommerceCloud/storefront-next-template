@@ -34,6 +34,7 @@ describe('extensions remove command', () => {
             flags: {
                 'project-directory': '/test/project',
                 extensions: 'SFDC_EXT_STORE_LOCATOR,SFDC_EXT_BOPIS',
+                yes: true,
             },
             args: {},
             argv: [],
@@ -47,6 +48,7 @@ describe('extensions remove command', () => {
             projectDirectory: '/test/project',
             uninstall: true,
             extensions: ['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_BOPIS'],
+            yes: true,
         });
     });
 
@@ -57,6 +59,7 @@ describe('extensions remove command', () => {
             flags: {
                 'project-directory': '/test/project',
                 extensions: undefined,
+                yes: false,
             },
             args: {},
             argv: [],
@@ -70,6 +73,7 @@ describe('extensions remove command', () => {
             projectDirectory: '/test/project',
             uninstall: true,
             extensions: undefined,
+            yes: false,
         });
     });
 
@@ -80,6 +84,7 @@ describe('extensions remove command', () => {
             flags: {
                 'project-directory': '/test/project',
                 extensions: ' SFDC_EXT_A , SFDC_EXT_B ',
+                yes: false,
             },
             args: {},
             argv: [],
@@ -93,6 +98,7 @@ describe('extensions remove command', () => {
             projectDirectory: '/test/project',
             uninstall: true,
             extensions: ['SFDC_EXT_A', 'SFDC_EXT_B'],
+            yes: false,
         });
     });
 });

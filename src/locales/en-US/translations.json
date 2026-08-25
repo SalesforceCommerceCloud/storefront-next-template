@@ -1705,14 +1705,6 @@
         "returnsAndWarrantyDescription": "Returns and warranty details",
         "close": "Close"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Estimated Delivery",
-        "cardDescription": "Shipping options available",
-        "learnMore": "Learn More",
-        "sectionHeading": "Estimated Delivery",
-        "shippingOptionsHeading": "Shipping Options & Rates",
-        "free": "Free"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Please fix the following:",
@@ -1809,6 +1801,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Fulfillment method",
+            "deliveryDescription": "Enter postal code to see delivery estimate"
+        },
         "recommendations": {
             "youMightAlsoLike": "You might also like",
             "completeTheLook": "Complete the look",

@@ -1370,14 +1370,6 @@
         "returnsAndWarrantyDescription": "Rückgabe- und Garantiedetails",
         "close": "Schließen"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Lieferung (voraussichtlich)",
-        "cardDescription": "Verfügbare Versandoptionen",
-        "learnMore": "Weitere Informationen",
-        "sectionHeading": "Lieferung (voraussichtlich)",
-        "shippingOptionsHeading": "Versandoptionen und -kosten",
-        "free": "Kostenlos"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Bitte beheben Sie das Folgende:",
@@ -1439,6 +1431,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Fulfillment-Methode",
+            "deliveryDescription": "PLZ eingeben, um die Lieferschätzung anzuzeigen"
+        },
         "recommendations": {
             "youMightAlsoLike": "Das könnte Ihnen auch gefallen",
             "completeTheLook": "Vervollständigen Sie den Look",

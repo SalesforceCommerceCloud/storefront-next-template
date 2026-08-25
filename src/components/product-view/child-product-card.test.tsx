@@ -73,15 +73,9 @@ vi.mock('@/hooks/product/use-variation-attributes', () => ({
     useVariationAttributes: () => [],
 }));
 
-// Mock delivery options hook used by DeliveryOptions component
-vi.mock('@/extensions/bopis/hooks/use-delivery-options', () => ({
-    useDeliveryOptions: () => ({
-        selectedDeliveryOption: 'delivery',
-        isStoreOutOfStock: false,
-        isSiteOutOfStock: false,
-        setSelectedDeliveryOption: vi.fn(),
-        handleDeliveryOptionChange: vi.fn(),
-    }),
+// Mock pickup availability used by the BOPIS fulfillment contributor.
+vi.mock('@/extensions/bopis/hooks/use-pickup-availability', () => ({
+    usePickupAvailability: () => false,
 }));
 
 const createStandardProduct = (): ShopperProducts.schemas['Product'] => ({

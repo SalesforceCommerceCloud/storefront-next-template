@@ -1389,14 +1389,6 @@
         "returnsAndWarrantyDescription": "Détails des retours et de la garantie",
         "close": "Fermer"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Date de livraison prévue",
-        "cardDescription": "Options d’expédition disponibles",
-        "learnMore": "En savoir plus",
-        "sectionHeading": "Date de livraison prévue",
-        "shippingOptionsHeading": "Options et tarifs d’expédition",
-        "free": "Gratuit"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Veuillez effectuer les corrections suivantes :",
@@ -1460,6 +1452,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Mode de livraison",
+            "deliveryDescription": "Saisissez votre code postal pour voir l’estimation de livraison"
+        },
         "recommendations": {
             "youMightAlsoLike": "Vous aimerez peut-être aussi",
             "completeTheLook": "Compléter le look",

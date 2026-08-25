@@ -28,6 +28,7 @@ import {
     type ShopperProducts,
     type ShopperPromotions,
     type ShopperSearch,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
     type ShopperStores,
 } from '@/scapi';
 
@@ -90,7 +91,9 @@ type CartPageData = {
         productsByItemId: Record<string, ShopperProducts.schemas['Product']>;
         bonusProductsById: Record<string, ShopperProducts.schemas['Product']>;
         promotions: Record<string, ShopperPromotions.schemas['Promotion']>;
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
         storesByStoreId: Record<string, ShopperStores.schemas['Store']>;
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     }>;
     wishlistProductIdsPromise: Promise<string[]>;
     cartMayAlsoLikePromise: Promise<Recommendation>;
@@ -119,18 +122,16 @@ export const loader = ({ context, request }: Route.LoaderArgs): CartPageData => 
         const basketResource = await getBasket(context, { ensureBasket: true });
         const basket = basketResource.current ?? ({} as ShopperBasketsV2.schemas['Basket']);
 
-        // Default for stripped BOPIS — reassigned inside the extension block when present.
-        let storesByStoreIdRawPromise: Promise<
-            Record<string, ShopperStores.schemas['Store']> | Map<string, ShopperStores.schemas['Store']>
-        > = Promise.resolve({});
-        // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        storesByStoreIdRawPromise = fetchStoresForBasket(context, basket);
-        // @sfdc-extension-block-end SFDC_EXT_BOPIS
-
-        const [{ productsByItemId, bonusProductsById }, promotions, storesByStoreIdRaw] = await Promise.all([
+        const [
+            { productsByItemId, bonusProductsById },
+            promotions,
+            // @sfdc-extension-line SFDC_EXT_BOPIS
+            storesByStoreIdRaw,
+        ] = await Promise.all([
             fetchProductsInBasket(context, basket),
             fetchPromotionsForBasket(context, basket?.productItems ?? [], basket?.bonusDiscountLineItems ?? []),
-            storesByStoreIdRawPromise,
+            // @sfdc-extension-line SFDC_EXT_BOPIS
+            fetchStoresForBasket(context, basket),
         ]);
 
         return {
@@ -138,8 +139,10 @@ export const loader = ({ context, request }: Route.LoaderArgs): CartPageData => 
             productsByItemId,
             bonusProductsById,
             promotions,
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
             storesByStoreId:
                 storesByStoreIdRaw instanceof Map ? Object.fromEntries(storesByStoreIdRaw) : (storesByStoreIdRaw ?? {}),
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         };
     })();
 
@@ -359,10 +362,9 @@ function CartBody({
         />
     );
 
-    // Default for stripped BOPIS — reassigned inside the extension block when present.
-    let wrappedContent: ReactElement = content;
+    const wrappers: ((children: ReactElement) => ReactElement)[] = [(children) => children];
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    wrappedContent = (
+    wrappers.push((children) => (
         <PickupProvider
             basket={basketData.basket}
             initialPickupStores={
@@ -370,10 +372,10 @@ function CartBody({
                     ? new Map(Object.entries(basketData.storesByStoreId))
                     : undefined
             }>
-            {content}
+            {children}
         </PickupProvider>
-    );
+    ));
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    return wrappedContent;
+    return wrappers.reduceRight((children, wrap) => wrap(children), content);
 }

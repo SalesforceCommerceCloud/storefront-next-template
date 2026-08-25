@@ -43,11 +43,12 @@ import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/typography';
 import { useTranslation } from 'react-i18next';
 import { useBasketUpdater } from '@/providers/basket';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import CartDeliveryOption from '@/components/fulfillment/cart-delivery-option';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import CartPickup from '@/extensions/bopis/components/cart-pickup';
 import { getFirstPickupStore, filterPickupProductItems } from '@/extensions/bopis/lib/basket-utils';
 import { usePickup } from '@/extensions/bopis/context/pickup-context';
-import CartDeliveryOption from '@/extensions/bopis/components/delivery-options/cart-delivery-option';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 import { UITarget } from '@/targets/ui-target';
 
@@ -288,16 +289,17 @@ export default function CartContent({
         return <CartEmpty />;
     }
 
-    let deliveryItems = basket?.productItems || [];
+    const deliveryItemsState = { value: basket.productItems || [] };
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // Only filter pickup items from delivery if we have a store to render them in the pickup section
     // If no store exists, render all items as delivery items
     const pickupShipmentId = new Set(basket?.shipments?.filter((s) => s.c_fromStoreId).map((s) => s.shipmentId));
-    deliveryItems = store
+    deliveryItemsState.value = store
         ? basket.productItems.filter((item) => item.shipmentId && !pickupShipmentId.has(item.shipmentId))
-        : deliveryItems;
+        : deliveryItemsState.value;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const deliveryItems = deliveryItemsState.value;
 
     // TEMPORARY: Logic to facilitate bonus product modal - extract bonus product data
     const bonusDiscountItems = basket?.bonusDiscountLineItems || [];
@@ -376,12 +378,15 @@ export default function CartContent({
 
     // Per-line pickup vs delivery (BOPIS). Defined only inside the extension block so a
     // storefront that strips SFDC_EXT_BOPIS does not reference CartDeliveryOption after its import is removed.
-    let cartDeliveryActions: ((product: EnrichedProductItem) => ReactElement) | undefined = undefined;
+    const cartDeliveryActionsState: { value: ((product: EnrichedProductItem) => ReactElement) | undefined } = {
+        value: undefined,
+    };
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    cartDeliveryActions = (product: EnrichedProductItem) => (
+    cartDeliveryActionsState.value = (product: EnrichedProductItem) => (
         <CartDeliveryOption key={product.itemId || product.productId} product={product} />
     );
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const cartDeliveryActions = cartDeliveryActionsState.value;
 
     return (
         <div

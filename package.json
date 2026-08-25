@@ -204,7 +204,7 @@
             {
                 "name": "**/*",
                 "limit": "6.3 mB",
-                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measures ~6,201 kB, making it the largest vertical — bumped 6.2 mB → 6.3 mB to admit it. Uncompressed. Follow-up: server-bundle diet (footwear and cosmetic are the largest) to bring this back under 6 mB."
+                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measures ~6,201 kB, making it the largest vertical — bumped 6.2 mB → 6.3 mB to admit it. Uncompressed. Follow-up: server-bundle diet (footwear and cosmetic are the largest) to bring this back under 6 mB."
             }
         ],
         "client": [
@@ -261,18 +261,18 @@
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-                "limit": "92 kB",
-                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, and the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton). Built size ~89.4 kB for the cosmetic vertical with the hero empty-state copy."
+                "limit": "93 kB",
+                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, and the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton). The shared source build measures 92.25 kB, so 93 kB retains 0.75 kB of headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-                "limit": "92 kB",
-                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size. Built size ~90.0 kB for the cosmetic vertical with the hero empty-state copy (hero.emptyTitle / hero.emptyButton)."
+                "limit": "93 kB",
+                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size. Includes localized PDP delivery-estimate content. Built size ~92.3 kB for the cosmetic vertical with the hero empty-state copy (hero.emptyTitle / hero.emptyButton)."
             },
             {
                 "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",
-                "limit": "86 kB",
-                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Increased for passkey management translations (account.passkeys). The footwear vertical's PDP and marketing copy (size guide, colorway/width selectors, recommendation rails, home hero + featured content, About Us) measures ~84.1 kB, so the limit is 86 kB to keep the ~2 kB headroom the other locale chunks carry."
+                "limit": "87 kB",
+                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Increased for passkey management translations (account.passkeys) and localized PDP delivery-estimate content. The footwear vertical's PDP and marketing copy (size guide, colorway/width selectors, recommendation rails, home hero + featured content, About Us) measures ~86.1 kB, so the limit is 87 kB to retain nearly 1 kB of headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(ja-JP\\)-index.*.js",

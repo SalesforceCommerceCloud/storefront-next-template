@@ -32,6 +32,7 @@ import { updateShipmentForPickup } from '@/extensions/bopis/lib/api/shipment.ser
 import { isStoreOutOfStock } from '@/lib/product/inventory-utils';
 import { getPickupShipment, getPickupProductItemsForStore } from '@/extensions/bopis/lib/basket-utils';
 import { pickupStoreUpdateSchema, parsePickupStoreUpdateFromFormData } from '@/lib/cart/basket-schemas';
+import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 
 /**
  * Server action for changing the pickup store for all pickup items in the basket.
@@ -113,6 +114,20 @@ export async function action({
 
         // Extract the validated fields
         const { storeId, inventoryId, storeName } = validationResult.data;
+
+        const authoritativeInventoryId = await getStoreInventoryId(context, storeId);
+        if (!authoritativeInventoryId || authoritativeInventoryId !== inventoryId) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.INVALID_INPUT,
+                        message: 'Pickup store and inventory do not match',
+                    }),
+                },
+                { status: 400 }
+            );
+        }
 
         const clients = createApiClients(context);
         if (!basket) {

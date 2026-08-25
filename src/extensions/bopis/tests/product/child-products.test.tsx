@@ -33,7 +33,7 @@ vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
     useStoreLocator: vi.fn(),
 }));
 
-vi.mock('@/extensions/bopis/components/delivery-options/delivery-options', () => ({
+vi.mock('@/components/fulfillment/delivery-options', () => ({
     default: () => <div data-testid="delivery-options">Delivery Options</div>,
 }));
 
@@ -170,7 +170,7 @@ describe('ChildProducts - BOPIS', () => {
             expect(screen.getByTestId('delivery-options')).toBeInTheDocument();
         });
 
-        test('renders delivery options in edit mode when basketPickupStore exists', async () => {
+        test('does not render delivery options in edit mode when basketPickupStore exists', async () => {
             const bundleProduct = createBundleProduct();
 
             const { useProductActions } = await import('@/hooks/product/use-product-actions');
@@ -189,7 +189,7 @@ describe('ChildProducts - BOPIS', () => {
                 initialBundleQuantity: 2,
             });
 
-            expect(screen.getByTestId('delivery-options')).toBeInTheDocument();
+            expect(screen.queryByTestId('delivery-options')).not.toBeInTheDocument();
         });
 
         test('does not render delivery options in edit mode when basketPickupStore is undefined', () => {

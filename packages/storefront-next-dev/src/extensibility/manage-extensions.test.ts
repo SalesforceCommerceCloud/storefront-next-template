@@ -212,6 +212,59 @@ describe('manageExtensions', () => {
         expect(console.log).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('Extensions uninstalled.'));
     });
 
+    it('should uninstall dependents without prompting when yes is true', async () => {
+        vi.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {
+            if (filePath === getExtensionConfigPath('/test-project')) {
+                return JSON.stringify({
+                    extensions: {
+                        SFDC_EXT_STORE_LOCATOR: {
+                            name: 'Store Locator',
+                            description: 'Enables a shopper to find a store based on a given location.',
+                            folder: 'store-locator',
+                            dependencies: [],
+                        },
+                        SFDC_EXT_MULTISHIP: {
+                            name: 'Multiship',
+                            description: 'Ship items to multiple addresses.',
+                            folder: 'multiship',
+                            dependencies: [],
+                        },
+                        SFDC_EXT_BOPIS: {
+                            name: 'BOPIS',
+                            description: 'Buy Online Pickup In Store',
+                            folder: 'bopis',
+                            dependencies: ['SFDC_EXT_STORE_LOCATOR', 'SFDC_EXT_MULTISHIP'],
+                        },
+                    },
+                });
+            }
+            return '{}';
+        });
+
+        await manageExtensions({
+            projectDirectory: '/test-project',
+            uninstall: true,
+            extensions: ['SFDC_EXT_MULTISHIP'],
+            yes: true,
+        });
+
+        expect(prompts).not.toHaveBeenCalled();
+        expect(fs.rmSync).toHaveBeenNthCalledWith(1, path.join('/test-project', 'src', 'extensions', 'bopis'), {
+            recursive: true,
+            force: true,
+        });
+        expect(fs.rmSync).toHaveBeenNthCalledWith(2, path.join('/test-project', 'src', 'extensions', 'multiship'), {
+            recursive: true,
+            force: true,
+        });
+        expect(trimExtensions).toHaveBeenCalledWith(
+            '/test-project',
+            { SFDC_EXT_STORE_LOCATOR: true },
+            expect.anything()
+        );
+        expect(console.log).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('Extensions uninstalled.'));
+    });
+
     it('should abort uninstall when user declines dependent uninstall', async () => {
         // Mock config where BOPIS depends on Store Locator
         vi.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {

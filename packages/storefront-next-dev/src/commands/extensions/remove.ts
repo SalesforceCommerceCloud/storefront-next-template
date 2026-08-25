@@ -35,6 +35,10 @@ export default class Remove extends Command {
             char: 'e',
             description: 'Comma-separated list of extension marker values (e.g. SFDC_EXT_STORE_LOCATOR,SFDC_EXT_BOPIS)',
         }),
+        yes: Flags.boolean({
+            description: 'Confirm uninstalling dependent extensions without prompting',
+            default: false,
+        }),
     };
 
     async run(): Promise<void> {
@@ -47,6 +51,7 @@ export default class Remove extends Command {
             projectDirectory: flags['project-directory'],
             uninstall: true,
             extensions,
+            yes: flags.yes,
         });
     }
 }

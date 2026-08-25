@@ -437,12 +437,21 @@ describe('ProductTile — quick-add pre-selection', () => {
         await user.click(screen.getByRole('button', { name: /quick add/i }));
 
         const dialog = await screen.findByRole('dialog');
-        // Each variation group renders its selected value in the header as "<label>:<displayName>".
         // Represented variant is { color: 'CHARCWL', size: '036', width: 'S' },
         // which maps to display names "Charcoal", "36", "Short".
-        expect(within(dialog).getByRole('radiogroup', { name: /color/i })).toHaveTextContent(/Color:.*Charcoal/);
-        expect(within(dialog).getByRole('radiogroup', { name: /size/i })).toHaveTextContent(/Size:.*36/);
-        expect(within(dialog).getByRole('radiogroup', { name: /width/i })).toHaveTextContent(/Width:.*Short/);
+        expect(
+            within(within(dialog).getByRole('radiogroup', { name: /colou?r/i })).getByRole('radio', {
+                name: /Charcoal/,
+            })
+        ).toBeChecked();
+        expect(
+            within(within(dialog).getByRole('radiogroup', { name: /size/i })).getByRole('radio', {
+                name: /^(?:Size )?36(?:, available)?$/i,
+            })
+        ).toBeChecked();
+        expect(
+            within(within(dialog).getByRole('radiogroup', { name: /width/i })).getByRole('radio', { name: /Short/ })
+        ).toBeChecked();
     });
 
     test('marks the represented variant swatches as selected inside the modal', async () => {
@@ -453,7 +462,7 @@ describe('ProductTile — quick-add pre-selection', () => {
 
         const dialog = await screen.findByRole('dialog');
         expect(within(dialog).getByRole('radio', { name: /Charcoal/ })).toBeChecked();
-        expect(within(dialog).getByRole('radio', { name: /^36$/ })).toBeChecked();
+        expect(within(dialog).getByRole('radio', { name: /^(?:Size )?36(?:, available)?$/i })).toBeChecked();
         expect(within(dialog).getByRole('radio', { name: /Short/ })).toBeChecked();
     });
 });

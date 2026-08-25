@@ -34,11 +34,8 @@ vi.mock('react-i18next', () => ({
 }));
 
 // Mock hooks
-vi.mock('@/extensions/bopis/hooks/use-delivery-options', () => ({
-    useDeliveryOptions: () => ({
-        isStoreOutOfStock: false,
-        isSiteOutOfStock: false,
-    }),
+vi.mock('@/extensions/bopis/hooks/use-pickup-availability', () => ({
+    usePickupAvailability: () => false,
 }));
 
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({

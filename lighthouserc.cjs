@@ -70,10 +70,6 @@ module.exports = {
                             'error',
                             { maxNumericValue: 411000, aggregationMethod: 'median' },
                         ],
-                        // Raised 52000 → 53000: cosmetic mirror measured 52340 after merging
-                        // cancel/return + main into split-commits.
-                        // Raised 53000 → 54000: template measured 53049 (median of 5 runs) after
-                        // removing the email cartridge from split-commits.
                         'resource-summary:document:size': [
                             'error',
                             { maxNumericValue: 54000, aggregationMethod: 'median' },
@@ -110,34 +106,7 @@ module.exports = {
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
-                        // main baseline: product-page script bundle measures ~442183 on main
-                        // (deterministic across 5-run medians); main set the ceiling to 445000
-                        // (~2.8KB headroom) after the prior 442000 sat just under its real size.
-                        // feature/passkeys raises it further to absorb this feature's growth:
-                        //   445000 → 446000: the account.passkeys i18n keys nudged the shared chunk
-                        //   to 445551 on the cosmetic mirror.
-                        //   446000 → 447000: the round-2 review fix extracted bufferToBase64Url into
-                        //   a shared @/lib/auth/webauthn module imported by both the login hook and
-                        //   the registration modal, so the bundler hoists it into the shared route
-                        //   chunk the product page loads (cosmetic mirror measured 446288).
-                        //   447000 → 449000: merging main (Data 360 analytics adapter, ECB content
-                        //   blocks, et al.) grew the shared route chunk by ~1.4KB independently of
-                        //   this feature (cosmetic mirror measured 447721). ~1.3KB headroom above
-                        //   that absorbs main's drift plus run-to-run variance.
-                        //   449000 → 451000: stabilizing the recommender click handler (reading
-                        //   analytics through a ref so useCallback no longer re-creates every render,
-                        //   preserving ProductTile's memo()) added ~0.4KB to the PDP shared chunk the
-                        //   product-recommendations carousel loads (cosmetic mirror measured 449364).
-                        //   ~1.6KB headroom absorbs main's drift plus run-to-run variance.
-                        //   451000 → 453000: mega-menu embedded region wiring grew the PDP shared chunk
-                        //   (CI measured 452830 across 5 runs).
-                        // Separately, main's own line (deferring Google Maps behind address-field
-                        // focus, W-23605076) measured the cosmetic mirror at ~449006 and raised the
-                        // ceiling straight to 475000 (~25KB headroom) to stop unrelated branches
-                        // tripping on run-to-run variance. This back-merge combines both branches'
-                        // bundle growth (including cancel/return, cosmetic mirror measured 450148);
-                        // 475000 covers all observed sizes — re-measure on main post-merge and tighten
-                        // if the combined bundle sits well under it.
+                        // Keep the current main baseline, which includes shared PDP dependencies.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: 475000, aggregationMethod: 'median' },
@@ -218,28 +187,23 @@ module.exports = {
                         // runs). The gate is irreducible — it is the fix that stops purchasing a SKU
                         // whose inventory has not resolved — so absorb the ~54B with headroom rather
                         // than dropping it.
-                        // Raised 509000 → 513000 (@W-23917154@): the furniture PDP feature adds canonical
+                        // Raised 509000 → 513000: delivery-estimate integration, private destination-cookie
+                        // hydration, and the Furniture PDP feature add canonical
                         // image-swatch rendering (swatch-group image tiles + the `custom-swatch-images`
                         // resolver), ProductCartActions `additionalItems` product-set batching, and the
                         // ProductTile inline quick-add placement. None touch the cart route directly, but
                         // they ship in the shared chunk the cart recommendations carousel and the
-                        // bundle/set child-product-card swatches pull in (cosmetic mirror measured 511669
-                        // across 5 runs; fashion + foundations stay under 509000). The additions are the
-                        // feature surface — absorb the ~2.7KB with headroom rather than code-splitting
-                        // canonical PDP affordances out of the shared shell.
+                        // bundle/set child-product-card swatches pull in. The combined feature branch
+                        // measures 513399 (fashion), 513374 (foundations), and 516592 (cosmetic) across
+                        // five deterministic runs, so 517000 preserves the smallest measured headroom.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 513000, aggregationMethod: 'median' },
+                            { maxNumericValue: 517000, aggregationMethod: 'median' },
                         ],
-                        // Raised 31000 → 32000: baseline document growth (cosmetic mirror measured 31068).
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.
                         // The 31000 ceiling was too tight - multiple unrelated PRs hit
                         // 25-40 byte overshoots even on retry. 32000 gives ~1kB headroom
-                        // above the observed variance without loosening the intent — this also
-                        // comfortably absorbs the `guestOrderLookup` config block (~260 bytes)
-                        // now serialized into every page's `window.__APP_CONFIG__` inline script.
-                        // Raised 32000 → 33000: cosmetic mirror measured 32276-32329 across 5 runs
-                        // after merging split-commits; ~700B headroom above that.
+                        // above the observed variance without loosening the intent.
                         'resource-summary:document:size': [
                             'error',
                             { maxNumericValue: 33000, aggregationMethod: 'median' },

@@ -19,6 +19,17 @@ import { composeStories } from '@storybook/react-vite';
 import * as ProductViewStories from './product-view.stories';
 import { render, cleanup } from '@testing-library/react';
 
+function normalizeReactIds(element: Element): Element {
+    const clone = element.cloneNode(true) as Element;
+    for (const element of clone.querySelectorAll('[id], [aria-describedby], [aria-labelledby]')) {
+        for (const attribute of ['id', 'aria-describedby', 'aria-labelledby']) {
+            const value = element.getAttribute(attribute);
+            if (value) element.setAttribute(attribute, value.replace(/_r_[a-z0-9]+_/g, '__react-id__'));
+        }
+    }
+    return clone;
+}
+
 // Mock useItemFetcher
 vi.mock('@/hooks/use-item-fetcher', () => ({
     useItemFetcherLoading: () => false,
@@ -86,11 +97,18 @@ vi.mock('react-router', async (importOriginal) => {
     };
 });
 
-// Mock useStoreLocator
-vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
-    useStoreLocator: () => ({
+// BOPIS contributors use selector-based store access. Keep the selected values
+// stable so the contributor registration effects do not re-register on render.
+const { storeLocatorState } = vi.hoisted(() => ({
+    storeLocatorState: {
+        isOpen: false,
+        open: () => {},
         selectedStoreInfo: null,
-    }),
+    },
+}));
+
+vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
+    useStoreLocator: (selector: (state: typeof storeLocatorState) => unknown) => selector(storeLocatorState),
 }));
 
 // Mock useWishlistActions, useIsInWishlist, and useWishlistLoader
@@ -113,7 +131,11 @@ describe('ProductView stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
         test(`${storyName} story renders and matches snapshot`, () => {
             const { container } = render(<Story />);
-            expect(container.firstChild).toMatchSnapshot();
+            const snapshotElement =
+                storyName === 'OutOfStock'
+                    ? normalizeReactIds(container.firstElementChild as Element)
+                    : container.firstChild;
+            expect(snapshotElement).toMatchSnapshot();
         });
     }
 });

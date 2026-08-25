@@ -1436,14 +1436,6 @@
         "returnsAndWarrantyDescription": "退货和保修详情",
         "close": "关闭"
     },
-    "estimatedDelivery": {
-        "cardTitle": "预计送达时间",
-        "cardDescription": "可用送货选项",
-        "learnMore": "了解更多",
-        "sectionHeading": "预计送达时间",
-        "shippingOptionsHeading": "送货选项与费率",
-        "free": "免费"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "请修复以下问题：",
@@ -1506,6 +1498,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "配送方式",
+            "deliveryDescription": "输入邮政编码以查看配送估算"
+        },
         "recommendations": {
             "youMightAlsoLike": "您可能还喜欢",
             "completeTheLook": "完成外观",

@@ -1623,6 +1623,58 @@ describe('useProductActions', () => {
         });
 
         describe('handleProductSetAddToCart with inventoryId', () => {
+            test('serializes one parent fulfillment selection onto every set item', async () => {
+                const product = createSetProduct();
+                const { result } = renderHook(() => useProductActions({ product }), { wrapper });
+
+                await act(async () => {
+                    await result.current.handleProductSetAddToCart(
+                        [
+                            { product: { id: 'child-1', price: 10 }, quantity: 1 },
+                            { product: { id: 'child-2', price: 20 }, quantity: 2 },
+                        ] as any,
+                        {
+                            optionId: 'pickup',
+                            metadata: { storeId: 'store-parent', inventoryId: 'inventory-parent' },
+                        }
+                    );
+                });
+
+                const submitted = JSON.parse(
+                    mockUseFetcher.mock.results[0]?.value.submit.mock.calls[0][0].productItems
+                );
+                expect(submitted).toEqual([
+                    expect.objectContaining({
+                        productId: 'child-1',
+                        storeId: 'store-parent',
+                        inventoryId: 'inventory-parent',
+                    }),
+                    expect.objectContaining({
+                        productId: 'child-2',
+                        storeId: 'store-parent',
+                        inventoryId: 'inventory-parent',
+                    }),
+                ]);
+            });
+
+            test('does not reuse stale pickup context when the parent selection has fallen back to delivery', async () => {
+                const product = createSetProduct();
+                const { result } = renderHook(() => useProductActions({ product }), { wrapper });
+                act(() => result.current.addItem?.(product.id, 'inventory-stale', 'store-stale'));
+
+                await act(async () => {
+                    await result.current.handleProductSetAddToCart(
+                        [{ product: { id: 'child-1', price: 10 }, quantity: 1 }] as any,
+                        { optionId: 'delivery' }
+                    );
+                });
+
+                const submitted = JSON.parse(
+                    mockUseFetcher.mock.results[0]?.value.submit.mock.calls[0][0].productItems
+                );
+                expect(submitted[0]).toEqual(expect.objectContaining({ storeId: null, inventoryId: null }));
+            });
+
             test('adds set items WITHOUT inventoryId when products NOT in pickup map', async () => {
                 const { result } = renderHook(
                     () => useProductActions({ product: standardProd, currentVariant: null }),
@@ -1770,6 +1822,23 @@ describe('useProductActions', () => {
         });
 
         describe('handleProductBundleAddToCart with inventoryId', () => {
+            test('does not reuse stale pickup context when the parent selection has fallen back to delivery', async () => {
+                const bundleProduct = { ...standardProd, id: 'bundle-123', type: { bundle: true }, price: 50 };
+                const { result } = renderHook(() => useProductActions({ product: bundleProduct }), { wrapper });
+                act(() => result.current.addItem?.(bundleProduct.id, 'inventory-stale', 'store-stale'));
+
+                await act(async () => {
+                    await result.current.handleProductBundleAddToCart(
+                        1,
+                        [{ product: { id: 'child-1', price: 5 }, quantity: 1 }] as any,
+                        { optionId: 'delivery' }
+                    );
+                });
+
+                const submitted = JSON.parse(bundleItemFetcher.submit.mock.calls[0][0].bundleItem);
+                expect(submitted).toEqual(expect.objectContaining({ storeId: null, inventoryId: null }));
+            });
+
             test('adds bundle WITHOUT inventoryId when bundle NOT in pickup map', async () => {
                 const bundleProduct = { ...standardProd, id: 'bundle-123', type: { bundle: true } };
                 const { result } = renderHook(

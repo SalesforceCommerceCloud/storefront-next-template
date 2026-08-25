@@ -16,9 +16,8 @@
 import { type ReactElement, useCallback, useEffect, useRef } from 'react';
 import { resourceRoutes } from '@/route-paths';
 import { useItemFetcher } from '@/hooks/use-item-fetcher';
-import type { ShopperProducts } from '@/scapi';
 import PickupOrDeliveryDropdown from './pickup-or-delivery-dropdown';
-import { useDeliveryOptions } from '@/extensions/bopis/hooks/use-delivery-options';
+import { usePickupAvailability } from '@/extensions/bopis/hooks/use-pickup-availability';
 import { DELIVERY_OPTIONS } from '@/extensions/bopis/constants';
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
 import { useBasket } from '@/providers/basket';
@@ -28,6 +27,7 @@ import type { EnrichedProductItem } from '@/lib/product/product-utils';
 
 interface CartDeliveryOptionProps {
     product: EnrichedProductItem;
+    isDeliveryOutOfStock: boolean;
 }
 
 /**
@@ -35,7 +35,7 @@ interface CartDeliveryOptionProps {
  *
  * Handles:
  * - Determining current fulfillment based on shipment
- * - Checking inventory availability for both options
+ * - Checking Pickup inventory and consuming Delivery availability from the cart adapter
  * - Handling delivery option changes with form submission
  * - Opening store locator when pickup is selected without a store
  * - Showing toast notifications for errors
@@ -43,7 +43,7 @@ interface CartDeliveryOptionProps {
  * @param props
  * @returns JSX element with PickupOrDeliveryDropdown component
  */
-export default function CartDeliveryOption({ product }: CartDeliveryOptionProps): ReactElement {
+export default function CartDeliveryOption({ product, isDeliveryOutOfStock }: CartDeliveryOptionProps): ReactElement {
     const selectedStoreInfo = useStoreLocator((s) => s.selectedStoreInfo);
     const openStoreLocator = useStoreLocator((s) => s.open);
     const setSelectedStoreInfoRaw = useStoreLocator((s) => s.setSelectedStoreInfo);
@@ -55,16 +55,20 @@ export default function CartDeliveryOption({ product }: CartDeliveryOptionProps)
     // Calculate current fulfillment based on shipment
     const currentShipment = basketContext?.shipments?.find((s) => s.shipmentId === product?.shipmentId);
     const currentFulfillment = currentShipment?.c_fromStoreId ? DELIVERY_OPTIONS.PICKUP : DELIVERY_OPTIONS.DELIVERY;
-    // Ensure product has required id field for useDeliveryOptions
-    // ProductItem has productId, and Partial<Product> may have id, so we use id if available, otherwise productId
+    const currentStoreId =
+        typeof currentShipment?.c_fromStoreId === 'string' ? currentShipment.c_fromStoreId : undefined;
+    const pickupStore =
+        currentStoreId && currentFulfillment === DELIVERY_OPTIONS.PICKUP
+            ? { id: currentStoreId, inventoryId: product.inventoryId }
+            : selectedStoreInfo;
+    // ProductItem has productId, and Partial<Product> may have id, so use whichever is available for pickup inventory.
     const productId: string =
         (product as { id?: string; productId?: string }).id || (product as { productId?: string }).productId || '';
     const productWithId = { ...product, id: productId };
-    const { isStoreOutOfStock, isSiteOutOfStock } = useDeliveryOptions({
-        product: productWithId as ShopperProducts.schemas['Product'],
+    const isPickupOutOfStock = usePickupAvailability({
+        product: productWithId,
         quantity: product?.quantity || 1,
-        isInBasket: true,
-        pickupStore: undefined,
+        pickupStore,
     });
 
     /**
@@ -104,14 +108,14 @@ export default function CartDeliveryOption({ product }: CartDeliveryOptionProps)
     }, [fetcher.data, fetcher.state, addToast, tExtBopis, product]);
 
     const handleSubmitDeliveryOption = (option: string) => {
-        if (option === DELIVERY_OPTIONS.PICKUP && !selectedStoreInfo?.id) {
+        if (option === DELIVERY_OPTIONS.PICKUP && !pickupStore?.id) {
             handleOpenStoreLocator();
             return;
         }
 
         if (
-            (option === DELIVERY_OPTIONS.PICKUP && isStoreOutOfStock) ||
-            (option === DELIVERY_OPTIONS.DELIVERY && isSiteOutOfStock)
+            (option === DELIVERY_OPTIONS.PICKUP && isPickupOutOfStock) ||
+            (option === DELIVERY_OPTIONS.DELIVERY && isDeliveryOutOfStock)
         ) {
             addToast(tExtBopis('deliveryOptions.pickupOrDelivery.outOfStockAtStore'), 'error');
             return;
@@ -121,8 +125,8 @@ export default function CartDeliveryOption({ product }: CartDeliveryOptionProps)
         formData.append('quantity', String(product.quantity ?? 1));
         formData.append('deliveryOption', option);
         if (option === 'pickup') {
-            const storeId: string = selectedStoreInfo?.id || (product as { storeId?: string }).storeId || '';
-            const inventoryId: string = selectedStoreInfo?.inventoryId || product.inventoryId || '';
+            const storeId = pickupStore?.id || '';
+            const inventoryId = pickupStore?.inventoryId || '';
             if (!storeId || !inventoryId) {
                 addToast(tExtBopis('cart.pickupStoreInfo.missingStoreIdOrInventoryIdError'), 'error');
                 return;
@@ -136,5 +140,12 @@ export default function CartDeliveryOption({ product }: CartDeliveryOptionProps)
         });
     };
 
-    return <PickupOrDeliveryDropdown value={currentFulfillment} onChange={handleSubmitDeliveryOption} />;
+    return (
+        <PickupOrDeliveryDropdown
+            value={currentFulfillment}
+            onChange={handleSubmitDeliveryOption}
+            isPickupDisabled={isPickupOutOfStock}
+            isDeliveryDisabled={isDeliveryOutOfStock}
+        />
+    );
 }

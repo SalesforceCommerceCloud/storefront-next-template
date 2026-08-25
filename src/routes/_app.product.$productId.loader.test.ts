@@ -24,10 +24,21 @@ import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
 // Mock fetchProductById directly
 const mockFetchProductById = vi.hoisted(() => vi.fn());
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+const mockGetInitialDeliveryDestination = vi.hoisted(() =>
+    vi.fn<() => Promise<{ postalCode: string; countryCode?: string } | null>>(() => Promise.resolve(null))
+);
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
 vi.mock('@/lib/api/products.server', () => ({
     fetchProductById: mockFetchProductById,
 }));
+
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+vi.mock('@/extensions/shipping-delivery/lib/api/delivery-destination-cookie.server', () => ({
+    getInitialDeliveryDestination: mockGetInitialDeliveryDestination,
+}));
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
 vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(() => ({ customerId: null })),
@@ -149,6 +160,24 @@ describe('Product Route Loaders', () => {
             // The breadcrumb source is carried on the product — no separate category fetch.
             expect(mockFetchProductById).toHaveBeenCalledTimes(1);
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+        test('does not include the shopper delivery destination in cacheable PDP loader data', async () => {
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+
+            const request = new Request('https://example.com/product/test-product-123');
+            const result = await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/product/:productId',
+            });
+
+            expect(result).not.toHaveProperty('initialDestinationPromise');
+            expect(mockGetInitialDeliveryDestination).not.toHaveBeenCalled();
+        });
+        // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
         test('does not fetch the master product for a variant (breadcrumbs come from the expansion)', async () => {
             const variantProduct = {

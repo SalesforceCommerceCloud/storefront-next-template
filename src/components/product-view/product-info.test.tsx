@@ -17,18 +17,22 @@
 // Testing libraries
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, test, expect } from 'vitest';
 // React Router
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 // Components
 import ProductInfo from './product-info';
-import ProductViewProvider from '@/providers/product-view';
+import ProductViewProvider, { useProductView } from '@/providers/product-view';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 // mock data
 import { masterProduct as mockProduct } from '@/components/__mocks__/master-variant-product';
 import { standardProd } from '@/components/__mocks__/standard-product-2';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import type { ShopperProducts } from '@/scapi';
 
 const { t } = getTranslation();
 
@@ -201,6 +205,9 @@ describe('ProductInfo', () => {
             expect(
                 screen.getByText('Out of stock for Charcoal Flat Front Athletic Fit Shadow Striped Wool Suit')
             ).toBeInTheDocument();
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         });
 
         test('should render properly with low stock inventory', () => {
@@ -385,6 +392,85 @@ describe('ProductInfo', () => {
 
             expect(screen.getByText(t('product:inStock'))).toBeInTheDocument();
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test('keeps fulfillment options and the selected option visible while variant inventory is loading', async () => {
+            const user = userEvent.setup();
+            const productWithStaleMasterInventory = {
+                ...mockProduct,
+                inventories: [{ id: 'store-inventory', stockLevel: 0, orderable: false }],
+            };
+            const availableVariant = {
+                productId: 'selected-variant',
+                inventory: { id: 'site-inventory', ats: 10, orderable: true },
+                inventories: [{ id: 'store-inventory', stockLevel: 10, orderable: true }],
+            } as ShopperProducts.schemas['Variant'] & {
+                inventory: ShopperProducts.schemas['Inventory'];
+                inventories: ShopperProducts.schemas['Inventory'][];
+            };
+
+            function Harness() {
+                const [isLoading, setIsLoading] = useState(false);
+                const { fulfillmentSelection } = useProductView();
+                const currentVariant = isLoading ? undefined : availableVariant;
+                return (
+                    <>
+                        <button type="button" onClick={() => setIsLoading((loading) => !loading)}>
+                            Toggle inventory loading
+                        </button>
+                        <output data-testid="fulfillment-selection">{fulfillmentSelection?.optionId}</output>
+                        <ProductInfo
+                            product={productWithStaleMasterInventory}
+                            currentVariantOverride={currentVariant}
+                            isVariantInventoryLoading={isLoading}
+                        />
+                    </>
+                );
+            }
+
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '/product/:productId',
+                        element: (
+                            <AllProvidersWrapper>
+                                <StoreLocatorProvider
+                                    selectedStoreInfo={{
+                                        id: 'store-1',
+                                        name: 'Store 1',
+                                        inventoryId: 'store-inventory',
+                                    }}>
+                                    <ProductViewProvider product={productWithStaleMasterInventory}>
+                                        <Harness />
+                                    </ProductViewProvider>
+                                </StoreLocatorProvider>
+                            </AllProvidersWrapper>
+                        ),
+                    },
+                ],
+                { initialEntries: ['/product/test-product'] }
+            );
+            render(<RouterProvider router={router} />);
+
+            const pickupOption = screen.getByRole('radio', { name: /pickup in/i });
+            const deliveryOptions = screen.getByTestId('delivery-option-select').parentElement?.parentElement;
+            expect(deliveryOptions).not.toBeNull();
+
+            await user.click(pickupOption);
+            expect(pickupOption).toBeChecked();
+            expect(screen.getByTestId('fulfillment-selection')).toHaveTextContent('pickup');
+
+            await user.click(screen.getByRole('button', { name: 'Toggle inventory loading' }));
+            expect(screen.getByTestId('delivery-option-select').parentElement?.parentElement).toBe(deliveryOptions);
+            expect(screen.getByRole('radio', { name: /pickup in/i })).toBeChecked();
+            expect(screen.getByTestId('fulfillment-selection')).toHaveTextContent('pickup');
+
+            await user.click(screen.getByRole('button', { name: 'Toggle inventory loading' }));
+            expect(screen.getByTestId('delivery-option-select').parentElement?.parentElement).toBe(deliveryOptions);
+            expect(screen.getByRole('radio', { name: /pickup in/i })).toBeChecked();
+            expect(screen.getByTestId('fulfillment-selection')).toHaveTextContent('pickup');
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         test('should display pre-order inventory message when product is preorderable', () => {
             const preOrderProduct = {

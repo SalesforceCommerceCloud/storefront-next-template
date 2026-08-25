@@ -1369,14 +1369,6 @@
         "returnsAndWarrantyDescription": "Returer og garantiopplysninger",
         "close": "Lukk"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Anslått levering",
-        "cardDescription": "Tilgjengelige fraktalternativer",
-        "learnMore": "Finn ut mer",
-        "sectionHeading": "Anslått levering",
-        "shippingOptionsHeading": "Fraktalternativer og priser",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Rett opp følgende:",
@@ -1439,6 +1431,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Leveringsmetode",
+            "deliveryDescription": "Skriv inn postnummer for å se leveringsestimat"
+        },
         "recommendations": {
             "youMightAlsoLike": "Du liker kanskje også",
             "completeTheLook": "Fullfør utseendet",

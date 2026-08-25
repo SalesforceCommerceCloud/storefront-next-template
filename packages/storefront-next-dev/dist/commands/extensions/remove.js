@@ -18,6 +18,10 @@ var Remove = class Remove extends Command {
 		extensions: Flags.string({
 			char: "e",
 			description: "Comma-separated list of extension marker values (e.g. SFDC_EXT_STORE_LOCATOR,SFDC_EXT_BOPIS)"
+		}),
+		yes: Flags.boolean({
+			description: "Confirm uninstalling dependent extensions without prompting",
+			default: false
 		})
 	};
 	async run() {
@@ -26,7 +30,8 @@ var Remove = class Remove extends Command {
 		await manageExtensions({
 			projectDirectory: flags["project-directory"],
 			uninstall: true,
-			extensions
+			extensions,
+			yes: flags.yes
 		});
 	}
 };

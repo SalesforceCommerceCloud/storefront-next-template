@@ -10,11 +10,11 @@
         },
         "SFDC_EXT_BOPIS": {
             "name": "Buy Online Pickup In Store",
-            "description": "Enables a shopper to order online and pick up their order at a physical store. Requires the Store Locator extension to be installed.",
+            "description": "Enables a shopper to order online and pick up their order at a physical store. Requires the Store Locator and Multiship extensions to be installed.",
             "installationInstructions": "instructions/install-buy-online-pickup-in-store.mdc",
             "uninstallationInstructions": "instructions/uninstall-buy-online-pickup-in-store.mdc",
             "folder": "bopis",
-            "dependencies": ["SFDC_EXT_STORE_LOCATOR"]
+            "dependencies": ["SFDC_EXT_STORE_LOCATOR", "SFDC_EXT_MULTISHIP"]
         },
         "SFDC_EXT_MULTISHIP": {
             "name": "Multiship",
@@ -46,8 +46,8 @@
             "dependencies": []
         },
         "SFDC_EXT_SHIPPING_DELIVERY": {
-            "name": "(Demo) Shipping & Delivery",
-            "description": "Renders estimated delivery information on the PDP and provides a zip-code shipping estimator for the BOPIS delivery flow. Ships with mock fixtures; replace the API function bodies to integrate a real shipping provider.",
+            "name": "Shipping & Delivery",
+            "description": "Renders a SCAPI-backed delivery estimator on the PDP.",
             "folder": "shipping-delivery",
             "dependencies": []
         }

@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Geschatte levertijd",
+    "shippingOptionsOnlyHeading": "Verzendopties",
+    "free": "Gratis",
+    "deliverTo": "Bezorgen op <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Bestemming wijzigen",
+    "changeDestinationAriaLabel": "Bestemming wijzigen: {{postalCode}}",
+    "arrivalMessage": "Komt aan {{deliveryWindow}}",
+    "shippingCost": "Verzendkosten:",
+    "postalTerms": {
+        "zip": "postcode",
+        "postalCode": "postcode",
+        "postcode": "postcode",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "Voer uw {{term}} in",
+    "postalCodePlaceholderExample": "Voer uw {{term}} in (bijv. {{example}})",
+    "postalCodeInstructions": "Voer uw {{term}} (bijv. {{example}}) in om leveringsschattingen te zien.",
+    "postalCodeInstructionsNoExample": "Voer uw {{term}} in om leveringsschattingen te zien.",
+    "postalCodeInvalid": "Voer een geldige {{term}} in (bijv. {{example}}).",
+    "postalCodeInvalidNoExample": "Voer een geldige {{term}} in.",
+    "deliveryDatesUnavailable": "Leveringsdata niet beschikbaar. Bekijk de opties en kosten bij het afrekenen.",
+    "moreDeliveryOptions": "Meer leveringsopties",
+    "seeAllDeliveryOptions": "Alle leveringsopties bekijken",
+    "openingDeliveryOptions": "Bezorgopties openen...",
+    "calculateButton": "Berekenen",
+    "calculateAriaLabel": "Bezorgschatting berekenen",
+    "calculating": "Berekenen..."
+}

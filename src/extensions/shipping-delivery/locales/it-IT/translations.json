@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Consegna stimata",
+    "shippingOptionsOnlyHeading": "Opzioni di spedizione",
+    "free": "Gratis",
+    "deliverTo": "Consegna a <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Modifica destinazione",
+    "changeDestinationAriaLabel": "Modifica destinazione: {{postalCode}}",
+    "arrivalMessage": "Arrivo {{deliveryWindow}}",
+    "shippingCost": "Costo di spedizione:",
+    "postalTerms": {
+        "zip": "CAP",
+        "postalCode": "codice postale",
+        "postcode": "CAP",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "Inserisci il tuo {{term}}",
+    "postalCodePlaceholderExample": "Inserisci il tuo {{term}} (es. {{example}})",
+    "postalCodeInstructions": "Inserisci il tuo {{term}} (es. {{example}}) per vedere le stime di consegna.",
+    "postalCodeInstructionsNoExample": "Inserisci il tuo {{term}} per vedere le stime di consegna.",
+    "postalCodeInvalid": "Inserisci un {{term}} valido (es. {{example}}).",
+    "postalCodeInvalidNoExample": "Inserisci un {{term}} valido.",
+    "deliveryDatesUnavailable": "Date di consegna non disponibili. Consulta le opzioni e i costi al checkout.",
+    "moreDeliveryOptions": "Altre opzioni di consegna",
+    "seeAllDeliveryOptions": "Vedi tutte le opzioni",
+    "openingDeliveryOptions": "Apertura delle opzioni di spedizione...",
+    "calculateButton": "Calcola",
+    "calculateAriaLabel": "Calcola la stima di consegna",
+    "calculating": "Calcolo in corso..."
+}

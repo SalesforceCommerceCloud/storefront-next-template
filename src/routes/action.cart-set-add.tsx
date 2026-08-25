@@ -19,7 +19,7 @@ import { createActionError } from '@/lib/action-error-helpers.server';
 import { ErrorCode } from '@/lib/error-codes';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
-import { assertAllProductItemsPickup } from '@/extensions/bopis/lib/product-utils';
+import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { validateDeliveryOptionCompatibility } from '@/extensions/bopis/lib/product-actions';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -33,11 +33,25 @@ export const action = createBasketAction(
         parse: (fd) => {
             const raw = fd.get('productItems') as string | null;
             return raw
-                ? (JSON.parse(raw) as { productId: string; quantity: number; inventoryId?: string; storeId?: string }[])
+                ? (JSON.parse(raw) as {
+                      productId: string;
+                      quantity: number;
+                      inventoryId?: string | null;
+                      storeId?: string | null;
+                  }[])
                 : null;
         },
     },
-    async ({ input, basketId, basket, context, clients, logger }) => {
+    async ({
+        input,
+        basketId,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        basket,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        context,
+        clients,
+        logger,
+    }) => {
         if (!input) {
             logger.warn('CartSetAdd: missing productItems in form data');
             return data(
@@ -54,11 +68,54 @@ export const action = createBasketAction(
 
         logger.debug('CartSetAdd: starting addMultipleItemsToCart', { itemCount: input.length });
 
-        let shipmentId = 'me';
+        const fulfillment = { shipmentId: 'me' };
 
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        const firstItem = input[0];
-        const deliveryValidation = validateDeliveryOptionCompatibility(basket, firstItem?.storeId, context);
+        const fulfillmentItems = input.map((item) => ({
+            storeId: item.storeId?.trim(),
+            inventoryId: item.inventoryId?.trim(),
+            hasPickupIdentifiers: item.storeId != null || item.inventoryId != null,
+        }));
+        const hasIncompletePickupItem = fulfillmentItems.some(
+            (item) => item.hasPickupIdentifiers && (!item.storeId || !item.inventoryId)
+        );
+        const pickupItems = fulfillmentItems.filter((item) => item.storeId && item.inventoryId);
+
+        if (hasIncompletePickupItem || (pickupItems.length > 0 && pickupItems.length !== input.length)) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.INVALID_INPUT,
+                        message: 'Set items must all use delivery or all use pickup fulfillment',
+                    }),
+                },
+                { status: 400 }
+            );
+        }
+
+        const firstPickupItem = pickupItems[0];
+        if (
+            firstPickupItem &&
+            pickupItems.some(
+                (item) => item.storeId !== firstPickupItem.storeId || item.inventoryId !== firstPickupItem.inventoryId
+            )
+        ) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.CONFLICT,
+                        message: 'Pickup identifiers must be consistent across all set items',
+                    }),
+                },
+                { status: 409 }
+            );
+        }
+
+        const pickupStoreId = firstPickupItem?.storeId;
+        const pickupInventoryId = firstPickupItem?.inventoryId;
+        const deliveryValidation = validateDeliveryOptionCompatibility(basket, pickupStoreId, context);
         if (!deliveryValidation.valid) {
             return data(
                 {
@@ -71,10 +128,22 @@ export const action = createBasketAction(
                 { status: 409 }
             );
         }
-        if (firstItem.storeId && firstItem.inventoryId) {
-            assertAllProductItemsPickup(input);
-            const pickupShipment = await findOrCreatePickupShipment(basket, context, firstItem.storeId);
-            shipmentId = pickupShipment.shipmentId;
+        if (pickupStoreId && pickupInventoryId) {
+            const storeInventoryId = await getStoreInventoryId(context, pickupStoreId);
+            if (!storeInventoryId || storeInventoryId !== pickupInventoryId) {
+                return data(
+                    {
+                        success: false,
+                        error: createActionError({
+                            code: ErrorCode.INVALID_INPUT,
+                            message: 'Pickup store and inventory do not match',
+                        }),
+                    },
+                    { status: 400 }
+                );
+            }
+            const pickupShipment = await findOrCreatePickupShipment(basket, context, pickupStoreId);
+            fulfillment.shipmentId = pickupShipment.shipmentId;
         }
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
@@ -85,8 +154,10 @@ export const action = createBasketAction(
             body: input.map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
-                ...(item.inventoryId ? { inventoryId: item.inventoryId } : {}),
-                shipmentId,
+                // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                ...(pickupInventoryId ? { inventoryId: pickupInventoryId } : {}),
+                // @sfdc-extension-block-end SFDC_EXT_BOPIS
+                shipmentId: fulfillment.shipmentId,
             })),
         });
         return updatedBasket;

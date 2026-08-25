@@ -111,70 +111,6 @@ exports[`StoreLocatorList stories snapshot > Default story renders and matches s
                     2.50 km away
                   </div>
                 </div>
-                <div
-                  class="col-span-2 md:col-span-2 md:col-start-2"
-                >
-                  <div
-                    class="w-full"
-                    data-orientation="vertical"
-                    data-slot="accordion"
-                  >
-                    <div
-                      class="border-b last:border-b-0 border-none"
-                      data-orientation="vertical"
-                      data-slot="accordion-item"
-                      data-state="closed"
-                    >
-                      <h3
-                        class="flex"
-                        data-orientation="vertical"
-                        data-state="closed"
-                      >
-                        <button
-                          aria-controls="radix-_r_3_"
-                          aria-expanded="false"
-                          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-                          data-orientation="vertical"
-                          data-radix-collection-item=""
-                          data-slot="accordion-trigger"
-                          data-state="closed"
-                          id="radix-_r_2_"
-                          type="button"
-                        >
-                          Store Details
-                          <svg
-                            aria-hidden="true"
-                            class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                            fill="none"
-                            height="24"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="m6 9 6 6 6-6"
-                            />
-                          </svg>
-                        </button>
-                      </h3>
-                      <div
-                        aria-labelledby="radix-_r_2_"
-                        class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-                        data-orientation="vertical"
-                        data-slot="accordion-content"
-                        data-state="closed"
-                        hidden=""
-                        id="radix-_r_3_"
-                        role="region"
-                        style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </label>
@@ -266,70 +202,6 @@ exports[`StoreLocatorList stories snapshot > Default story renders and matches s
                     5.20 km away
                   </div>
                 </div>
-                <div
-                  class="col-span-2 md:col-span-2 md:col-start-2"
-                >
-                  <div
-                    class="w-full"
-                    data-orientation="vertical"
-                    data-slot="accordion"
-                  >
-                    <div
-                      class="border-b last:border-b-0 border-none"
-                      data-orientation="vertical"
-                      data-slot="accordion-item"
-                      data-state="closed"
-                    >
-                      <h3
-                        class="flex"
-                        data-orientation="vertical"
-                        data-state="closed"
-                      >
-                        <button
-                          aria-controls="radix-_r_6_"
-                          aria-expanded="false"
-                          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-                          data-orientation="vertical"
-                          data-radix-collection-item=""
-                          data-slot="accordion-trigger"
-                          data-state="closed"
-                          id="radix-_r_5_"
-                          type="button"
-                        >
-                          Store Details
-                          <svg
-                            aria-hidden="true"
-                            class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                            fill="none"
-                            height="24"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="m6 9 6 6 6-6"
-                            />
-                          </svg>
-                        </button>
-                      </h3>
-                      <div
-                        aria-labelledby="radix-_r_5_"
-                        class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-                        data-orientation="vertical"
-                        data-slot="accordion-content"
-                        data-state="closed"
-                        hidden=""
-                        id="radix-_r_6_"
-                        role="region"
-                        style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </label>
@@ -375,7 +247,7 @@ exports[`StoreLocatorList stories snapshot > DesktopLayout story renders and mat
         >
           <label
             class="flex items-start gap-3"
-            for="selectedStore-_r_e_-store-1"
+            for="selectedStore-_r_6_-store-1"
           >
             <button
               aria-checked="false"
@@ -384,7 +256,7 @@ exports[`StoreLocatorList stories snapshot > DesktopLayout story renders and mat
               data-radix-collection-item=""
               data-slot="radio-group-item"
               data-state="unchecked"
-              id="selectedStore-_r_e_-store-1"
+              id="selectedStore-_r_6_-store-1"
               role="radio"
               tabindex="-1"
               type="button"
@@ -451,70 +323,6 @@ exports[`StoreLocatorList stories snapshot > DesktopLayout story renders and mat
                     2.50 km away
                   </div>
                 </div>
-                <div
-                  class="col-span-2 md:col-span-2 md:col-start-2"
-                >
-                  <div
-                    class="w-full"
-                    data-orientation="vertical"
-                    data-slot="accordion"
-                  >
-                    <div
-                      class="border-b last:border-b-0 border-none"
-                      data-orientation="vertical"
-                      data-slot="accordion-item"
-                      data-state="closed"
-                    >
-                      <h3
-                        class="flex"
-                        data-orientation="vertical"
-                        data-state="closed"
-                      >
-                        <button
-                          aria-controls="radix-_r_h_"
-                          aria-expanded="false"
-                          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-                          data-orientation="vertical"
-                          data-radix-collection-item=""
-                          data-slot="accordion-trigger"
-                          data-state="closed"
-                          id="radix-_r_g_"
-                          type="button"
-                        >
-                          Store Details
-                          <svg
-                            aria-hidden="true"
-                            class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                            fill="none"
-                            height="24"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="m6 9 6 6 6-6"
-                            />
-                          </svg>
-                        </button>
-                      </h3>
-                      <div
-                        aria-labelledby="radix-_r_g_"
-                        class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-                        data-orientation="vertical"
-                        data-slot="accordion-content"
-                        data-state="closed"
-                        hidden=""
-                        id="radix-_r_h_"
-                        role="region"
-                        style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </label>
@@ -530,7 +338,7 @@ exports[`StoreLocatorList stories snapshot > DesktopLayout story renders and mat
         >
           <label
             class="flex items-start gap-3"
-            for="selectedStore-_r_e_-store-2"
+            for="selectedStore-_r_6_-store-2"
           >
             <button
               aria-checked="false"
@@ -539,7 +347,7 @@ exports[`StoreLocatorList stories snapshot > DesktopLayout story renders and mat
               data-radix-collection-item=""
               data-slot="radio-group-item"
               data-state="unchecked"
-              id="selectedStore-_r_e_-store-2"
+              id="selectedStore-_r_6_-store-2"
               role="radio"
               tabindex="-1"
               type="button"
@@ -604,70 +412,6 @@ exports[`StoreLocatorList stories snapshot > DesktopLayout story renders and mat
                       />
                     </svg>
                     5.20 km away
-                  </div>
-                </div>
-                <div
-                  class="col-span-2 md:col-span-2 md:col-start-2"
-                >
-                  <div
-                    class="w-full"
-                    data-orientation="vertical"
-                    data-slot="accordion"
-                  >
-                    <div
-                      class="border-b last:border-b-0 border-none"
-                      data-orientation="vertical"
-                      data-slot="accordion-item"
-                      data-state="closed"
-                    >
-                      <h3
-                        class="flex"
-                        data-orientation="vertical"
-                        data-state="closed"
-                      >
-                        <button
-                          aria-controls="radix-_r_k_"
-                          aria-expanded="false"
-                          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-                          data-orientation="vertical"
-                          data-radix-collection-item=""
-                          data-slot="accordion-trigger"
-                          data-state="closed"
-                          id="radix-_r_j_"
-                          type="button"
-                        >
-                          Store Details
-                          <svg
-                            aria-hidden="true"
-                            class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                            fill="none"
-                            height="24"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="m6 9 6 6 6-6"
-                            />
-                          </svg>
-                        </button>
-                      </h3>
-                      <div
-                        aria-labelledby="radix-_r_j_"
-                        class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-                        data-orientation="vertical"
-                        data-slot="accordion-content"
-                        data-state="closed"
-                        hidden=""
-                        id="radix-_r_k_"
-                        role="region"
-                        style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -715,7 +459,7 @@ exports[`StoreLocatorList stories snapshot > MobileLayout story renders and matc
         >
           <label
             class="flex items-start gap-3"
-            for="selectedStore-_r_7_-store-1"
+            for="selectedStore-_r_3_-store-1"
           >
             <button
               aria-checked="false"
@@ -724,7 +468,7 @@ exports[`StoreLocatorList stories snapshot > MobileLayout story renders and matc
               data-radix-collection-item=""
               data-slot="radio-group-item"
               data-state="unchecked"
-              id="selectedStore-_r_7_-store-1"
+              id="selectedStore-_r_3_-store-1"
               role="radio"
               tabindex="-1"
               type="button"
@@ -791,70 +535,6 @@ exports[`StoreLocatorList stories snapshot > MobileLayout story renders and matc
                     2.50 km away
                   </div>
                 </div>
-                <div
-                  class="col-span-2 md:col-span-2 md:col-start-2"
-                >
-                  <div
-                    class="w-full"
-                    data-orientation="vertical"
-                    data-slot="accordion"
-                  >
-                    <div
-                      class="border-b last:border-b-0 border-none"
-                      data-orientation="vertical"
-                      data-slot="accordion-item"
-                      data-state="closed"
-                    >
-                      <h3
-                        class="flex"
-                        data-orientation="vertical"
-                        data-state="closed"
-                      >
-                        <button
-                          aria-controls="radix-_r_a_"
-                          aria-expanded="false"
-                          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-                          data-orientation="vertical"
-                          data-radix-collection-item=""
-                          data-slot="accordion-trigger"
-                          data-state="closed"
-                          id="radix-_r_9_"
-                          type="button"
-                        >
-                          Store Details
-                          <svg
-                            aria-hidden="true"
-                            class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                            fill="none"
-                            height="24"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="m6 9 6 6 6-6"
-                            />
-                          </svg>
-                        </button>
-                      </h3>
-                      <div
-                        aria-labelledby="radix-_r_9_"
-                        class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-                        data-orientation="vertical"
-                        data-slot="accordion-content"
-                        data-state="closed"
-                        hidden=""
-                        id="radix-_r_a_"
-                        role="region"
-                        style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </label>
@@ -870,7 +550,7 @@ exports[`StoreLocatorList stories snapshot > MobileLayout story renders and matc
         >
           <label
             class="flex items-start gap-3"
-            for="selectedStore-_r_7_-store-2"
+            for="selectedStore-_r_3_-store-2"
           >
             <button
               aria-checked="false"
@@ -879,7 +559,7 @@ exports[`StoreLocatorList stories snapshot > MobileLayout story renders and matc
               data-radix-collection-item=""
               data-slot="radio-group-item"
               data-state="unchecked"
-              id="selectedStore-_r_7_-store-2"
+              id="selectedStore-_r_3_-store-2"
               role="radio"
               tabindex="-1"
               type="button"
@@ -944,70 +624,6 @@ exports[`StoreLocatorList stories snapshot > MobileLayout story renders and matc
                       />
                     </svg>
                     5.20 km away
-                  </div>
-                </div>
-                <div
-                  class="col-span-2 md:col-span-2 md:col-start-2"
-                >
-                  <div
-                    class="w-full"
-                    data-orientation="vertical"
-                    data-slot="accordion"
-                  >
-                    <div
-                      class="border-b last:border-b-0 border-none"
-                      data-orientation="vertical"
-                      data-slot="accordion-item"
-                      data-state="closed"
-                    >
-                      <h3
-                        class="flex"
-                        data-orientation="vertical"
-                        data-state="closed"
-                      >
-                        <button
-                          aria-controls="radix-_r_d_"
-                          aria-expanded="false"
-                          class="focus-visible:border-ring focus-visible:ring-ring flex flex-1 items-start justify-between gap-4 rounded-ui text-left transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180 text-sm font-semibold text-primary hover:text-primary/80 py-2 px-0"
-                          data-orientation="vertical"
-                          data-radix-collection-item=""
-                          data-slot="accordion-trigger"
-                          data-state="closed"
-                          id="radix-_r_c_"
-                          type="button"
-                        >
-                          Store Details
-                          <svg
-                            aria-hidden="true"
-                            class="lucide lucide-chevron-down text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200"
-                            fill="none"
-                            height="24"
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            viewBox="0 0 24 24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="m6 9 6 6 6-6"
-                            />
-                          </svg>
-                        </button>
-                      </h3>
-                      <div
-                        aria-labelledby="radix-_r_c_"
-                        class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
-                        data-orientation="vertical"
-                        data-slot="accordion-content"
-                        data-state="closed"
-                        hidden=""
-                        id="radix-_r_d_"
-                        role="region"
-                        style="--radix-accordion-content-height: var(--radix-collapsible-content-height); --radix-accordion-content-width: var(--radix-collapsible-content-width);"
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
