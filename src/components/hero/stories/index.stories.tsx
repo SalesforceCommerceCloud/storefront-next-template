@@ -26,7 +26,7 @@ type HeroArgs = HeroProps & {
     hasCta?: boolean;
 };
 
-const SAMPLE_IMAGE = '/images/hero-01.webp';
+const SAMPLE_IMAGE = '/images/hero-03.webp';
 
 const TYPOGRAPHY_OPTIONS = [
     'Default',

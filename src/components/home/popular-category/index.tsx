@@ -26,7 +26,7 @@ import { carouselItemImageWidths } from '@/components/carousel-section';
 import { DynamicImage } from '@/components/dynamic-image';
 import { toImageUrl } from '@/lib/images/dynamic-image';
 import { useTranslation } from 'react-i18next';
-import heroImage from '/images/hero-01.webp';
+import heroImage from '/images/hero-03.webp';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { routes, routeHref } from '@/route-paths';
 
@@ -49,6 +49,8 @@ export { loader } from './loaders';
 interface PopularCategoryProps extends Omit<ComponentProps<typeof Link>, 'to'> {
     // Category data from Page Designer (via loader) or programmatic use
     category?: ShopperProducts.schemas['Category'];
+    /** Image shown when the category has neither an image nor a banner. */
+    fallbackImageUrl?: string;
     // Whether to display the category description on the card
     showDescription?: boolean;
     /**
@@ -105,6 +107,7 @@ export class PopularCategoryMetadata {
  */
 export default function PopularCategory({
     category,
+    fallbackImageUrl,
     showDescription = false,
     labelPosition = 'overlay',
     mediaAspectRatio = 'square',
@@ -146,7 +149,7 @@ export default function PopularCategory({
     const finalName = showEmptyState ? tCommon('popularCategory.emptyTitle') : categoryData?.name || '';
     const finalDescription = showDescription ? categoryData?.pageDescription || categoryData?.description || '' : '';
 
-    // Determine image URL - priority: category image > category banner > hero fallback.
+    // Determine image URL - priority: category image > category banner > supplied fallback > shared fallback.
     // In the empty state, substitute the shared placeholder image.
     const categoryImageUrl =
         (typeof categoryData?.image === 'string' && categoryData.image) ||
@@ -155,7 +158,7 @@ export default function PopularCategory({
     const transformedCategoryImage = toImageUrl({ src: categoryImageUrl, config }) ?? categoryImageUrl;
     const finalImageUrl: string = showEmptyState
         ? resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC)
-        : transformedCategoryImage || heroImage;
+        : transformedCategoryImage || fallbackImageUrl || heroImage;
 
     // 'below' layout: square image with the name as a plain label beneath it (no scrim overlay,
     // no hover "Shop Now"). Used by the footwear activity rail.

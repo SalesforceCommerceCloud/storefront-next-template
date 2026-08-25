@@ -250,7 +250,7 @@ describe('PopularCategory', () => {
         expect(image).toHaveAttribute('alt', '');
     });
 
-    test('handles category with neither image nor banner', () => {
+    test('uses the shared fallback image when category has neither image nor banner', () => {
         const categoryNoImages = {
             ...mockCategory,
             image: undefined,
@@ -259,9 +259,23 @@ describe('PopularCategory', () => {
 
         const { container } = renderComponent(<PopularCategory data={categoryNoImages} />);
 
-        // Should use fallback hero image
         const image = container.querySelector('img');
-        expect(image).toBeInTheDocument();
+        expect(image).toHaveAttribute('src', '__ASSET_MOCK__');
+    });
+
+    test('uses the supplied fallback image when category has neither image nor banner', () => {
+        const categoryNoImages = {
+            ...mockCategory,
+            image: undefined,
+            c_slotBannerImage: undefined,
+        };
+
+        const { container } = renderComponent(
+            <PopularCategory data={categoryNoImages} fallbackImageUrl="/images/foundations/hero-carousel/hero1.webp" />
+        );
+
+        const image = container.querySelector('img');
+        expect(image).toHaveAttribute('src', '/images/foundations/hero-carousel/hero1.webp');
     });
 
     test('handles null category prop', () => {

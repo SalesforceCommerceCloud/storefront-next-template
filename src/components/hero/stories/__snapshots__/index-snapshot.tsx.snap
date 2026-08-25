@@ -13,7 +13,7 @@ exports[`Hero stories snapshot > Default story renders and matches snapshot 1`] 
       class="w-full h-full object-cover"
       fetchpriority="high"
       loading="eager"
-      src="/images/hero-01.webp"
+      src="/images/hero-03.webp"
       style="object-position: 50% 50%;"
     />
   </div>
@@ -69,7 +69,7 @@ exports[`Hero stories snapshot > LongCopy story renders and matches snapshot 1`]
       class="w-full h-full object-cover"
       fetchpriority="high"
       loading="eager"
-      src="/images/hero-01.webp"
+      src="/images/hero-03.webp"
       style="object-position: 50% 50%;"
     />
   </div>
@@ -125,7 +125,7 @@ exports[`Hero stories snapshot > PageDesignerStyling story renders and matches s
       class="w-full h-full object-cover"
       fetchpriority="high"
       loading="eager"
-      src="/images/hero-01.webp"
+      src="/images/hero-03.webp"
       style="object-position: 50% 50%;"
     />
   </div>
@@ -183,7 +183,7 @@ exports[`Hero stories snapshot > Playground story renders and matches snapshot 1
       class="w-full h-full object-cover"
       fetchpriority="high"
       loading="eager"
-      src="/images/hero-01.webp"
+      src="/images/hero-03.webp"
       style="object-position: 50% 50%;"
     />
   </div>
@@ -239,7 +239,7 @@ exports[`Hero stories snapshot > RightBlockCenteredText story renders and matche
       class="w-full h-full object-cover"
       fetchpriority="high"
       loading="eager"
-      src="/images/hero-01.webp"
+      src="/images/hero-03.webp"
       style="object-position: 50% 50%;"
     />
   </div>
@@ -372,7 +372,7 @@ exports[`Hero stories snapshot > WithoutSubtitle story renders and matches snaps
       class="w-full h-full object-cover"
       fetchpriority="high"
       loading="eager"
-      src="/images/hero-01.webp"
+      src="/images/hero-03.webp"
       style="object-position: 50% 50%;"
     />
   </div>

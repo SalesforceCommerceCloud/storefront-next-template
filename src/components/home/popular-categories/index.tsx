@@ -65,6 +65,8 @@ interface PopularCategoriesProps {
      * @default 'overlay'
      */
     labelPosition?: 'overlay' | 'below';
+    /** Image forwarded to category cards that have neither an image nor a banner. */
+    fallbackImageUrl?: string;
     // Data prop provided by the Page Designer component loader
     data?: ShopperProducts.schemas['Category'][];
     // Page Designer props
@@ -159,14 +161,21 @@ function CategoryCardsSkeleton() {
 function CategoryItem({
     category,
     labelPosition,
+    fallbackImageUrl,
 }: {
     category: ShopperProducts.schemas['Category'];
     labelPosition?: 'overlay' | 'below';
+    fallbackImageUrl?: string;
 }) {
     return (
         <CarouselItem className={itemClassName}>
             <div className="w-full max-w-full min-w-0 flex">
-                <PopularCategory category={category} labelPosition={labelPosition} className="h-full w-full" />
+                <PopularCategory
+                    category={category}
+                    labelPosition={labelPosition}
+                    fallbackImageUrl={fallbackImageUrl}
+                    className="h-full w-full"
+                />
             </div>
         </CarouselItem>
     );
@@ -187,6 +196,7 @@ function CategoryGridContent({
     shopAllText,
     centerWhenPartial,
     labelPosition,
+    fallbackImageUrl,
 }: {
     data?: ShopperProducts.schemas['Category'][];
     categoriesPromise?: Promise<ShopperProducts.schemas['Category'][]>;
@@ -198,6 +208,7 @@ function CategoryGridContent({
     shopAllText?: string;
     centerWhenPartial?: boolean;
     labelPosition?: 'overlay' | 'below';
+    fallbackImageUrl?: string;
 }) {
     const { t } = useTranslation('home');
     const { isDesignMode } = usePageDesignerMode();
@@ -266,7 +277,12 @@ function CategoryGridContent({
         return (
             <CarouselSection {...sectionProps}>
                 {data.map((category) => (
-                    <CategoryItem key={category.id} category={category} labelPosition={labelPosition} />
+                    <CategoryItem
+                        key={category.id}
+                        category={category}
+                        labelPosition={labelPosition}
+                        fallbackImageUrl={fallbackImageUrl}
+                    />
                 ))}
             </CarouselSection>
         );
@@ -279,7 +295,12 @@ function CategoryGridContent({
                     {(categories) => (
                         <CarouselSection {...sectionProps}>
                             {categories.map((category: ShopperProducts.schemas['Category']) => (
-                                <CategoryItem key={category.id} category={category} labelPosition={labelPosition} />
+                                <CategoryItem
+                                    key={category.id}
+                                    category={category}
+                                    labelPosition={labelPosition}
+                                    fallbackImageUrl={fallbackImageUrl}
+                                />
                             ))}
                         </CarouselSection>
                     )}
@@ -330,6 +351,7 @@ export default function PopularCategories({
     shopAllText,
     centerWhenPartial,
     labelPosition,
+    fallbackImageUrl,
 }: PopularCategoriesProps) {
     return (
         <section className="bg-muted/50">
@@ -344,6 +366,7 @@ export default function PopularCategories({
                 shopAllText={shopAllText}
                 centerWhenPartial={centerWhenPartial}
                 labelPosition={labelPosition}
+                fallbackImageUrl={fallbackImageUrl}
             />
         </section>
     );
