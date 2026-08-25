@@ -692,8 +692,8 @@ importers:
         specifier: ^1.9.0
         version: 1.9.1
       '@salesforce/mrt-utilities':
-        specifier: 0.2.1
-        version: 0.2.1(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.3.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
+        specifier: 0.3.0
+        version: 0.3.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.3.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)
       jiti:
         specifier: ^2.6.1
         version: 2.7.0
@@ -3506,8 +3506,8 @@ packages:
       '@oclif/core':
         optional: true
 
-  '@salesforce/mrt-utilities@0.2.1':
-    resolution: {integrity: sha512-T8piGvWAAko0lZkXNGSXfPnFIhKoR4sT9NTCkRNnH+UuQ/EozuRcC0FGEXJRWWOTEb9pnTHxunt2wCHuOyKh7g==}
+  '@salesforce/mrt-utilities@0.3.0':
+    resolution: {integrity: sha512-Ww54O2kIDXfpvgOeUdpVZH/W7fdGCrV26ELV6hsnCLMyALz///XIpp5b+0vF9R9qs0ocW2/7ZtPDdcL532aD9A==}
     engines: {node: '>=22.16.0'}
     peerDependencies:
       express: ^4.0.0 || ^5.0.0
@@ -12999,7 +12999,7 @@ snapshots:
       - react-native-b4a
       - typescript
 
-  '@salesforce/mrt-utilities@0.2.1(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.3.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
+  '@salesforce/mrt-utilities@0.3.0(@types/aws-lambda@8.10.159)(@types/body-parser@1.19.6)(@types/cors@2.8.19)(@types/express@5.0.6)(body-parser@2.3.0)(express@5.1.0)(http-errors@2.0.1)(reflect-metadata@0.2.2)':
     dependencies:
       '@aws-sdk/client-cloudwatch': 3.1049.0
       '@aws-sdk/client-dynamodb': 3.1049.0
