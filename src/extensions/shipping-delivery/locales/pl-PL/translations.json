@@ -1,5 +1,5 @@
 {
-    "cardTitle": "Szacowana dostawa",
+    "cardTitle": "Szacowana data dostawy",
     "shippingOptionsOnlyHeading": "Opcje dostawy",
     "free": "Bezpłatna",
     "deliverTo": "Dostawa do <postalCode>{{postalCode}}</postalCode>",

@@ -20,6 +20,17 @@ import { describe, expect, it } from 'vitest';
 const localeDirectory = resolve(__dirname);
 
 describe('Shipping & Delivery translations', () => {
+    it('defines the estimated-delivery-date heading in every locale', () => {
+        const translationFiles = readdirSync(localeDirectory, { withFileTypes: true })
+            .filter((entry) => entry.isDirectory())
+            .map((entry) => resolve(localeDirectory, entry.name, 'translations.json'));
+
+        for (const translationFile of translationFiles) {
+            const translations = JSON.parse(readFileSync(translationFile, 'utf-8')) as Record<string, unknown>;
+            expect(translations.cardTitle).toEqual(expect.any(String));
+        }
+    });
+
     it('defines neutral delivery-date failure guidance in every locale', () => {
         const translationFiles = readdirSync(localeDirectory, { withFileTypes: true })
             .filter((entry) => entry.isDirectory())

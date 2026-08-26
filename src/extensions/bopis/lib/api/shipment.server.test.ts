@@ -20,6 +20,7 @@ import {
     setAddressAndMethodForPickup,
     findOrCreatePickupShipment,
     getPickupShippingMethodId,
+    PickupShipmentStoreConflictError,
 } from './shipment.server';
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { RouterContextProvider } from 'react-router';
@@ -422,8 +423,8 @@ describe('Shipment API utilities', () => {
                     ],
                 } as ShopperBasketsV2.schemas['Basket'];
 
-                await expect(findOrCreatePickupShipment(basket, mockContext, 'store-123')).rejects.toThrow(
-                    'Pickup shipment assigned to a different store'
+                await expect(findOrCreatePickupShipment(basket, mockContext, 'store-123')).rejects.toBeInstanceOf(
+                    PickupShipmentStoreConflictError
                 );
             });
         });

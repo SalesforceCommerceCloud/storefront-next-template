@@ -1,5 +1,5 @@
 {
-    "cardTitle": "예상 배송",
+    "cardTitle": "예상 배송일",
     "shippingOptionsOnlyHeading": "배송 옵션",
     "free": "무료",
     "deliverTo": "<postalCode>{{postalCode}}</postalCode>(으)로 배송",

@@ -155,7 +155,7 @@ describe('DeliveryEstimateCalculatorTarget', () => {
         );
 
         expect(screen.queryByTestId('delivery-estimate-calculator')).not.toBeInTheDocument();
-        expect(screen.queryByText('Estimated Delivery')).not.toBeInTheDocument();
+        expect(screen.queryByText('Estimated Delivery Date')).not.toBeInTheDocument();
     });
 
     test('passes the resolved variant product to the live calculator', async () => {

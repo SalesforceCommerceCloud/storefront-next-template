@@ -1,5 +1,5 @@
 {
-    "cardTitle": "Anslået levering",
+    "cardTitle": "Forventet leveringsdato",
     "shippingOptionsOnlyHeading": "Forsendelsesmuligheder",
     "free": "Gratis",
     "deliverTo": "Levering til <postalCode>{{postalCode}}</postalCode>",

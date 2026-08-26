@@ -51,7 +51,7 @@ export default function EstimatedDelivery({
     const format = useMemo(() => getPostalCodeFormat(destinationCountry), [destinationCountry]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditingDestination, setIsEditingDestination] = useState(false);
-    const [postalCode, setPostalCode] = useState(initialDestination?.postalCode ?? '');
+    const [postalCode, setPostalCode] = useState(() => format.normalize(initialDestination?.postalCode ?? ''));
     const [validationError, setValidationError] = useState(false);
     const modalTriggerRef = useRef<HTMLButtonElement>(null);
     const estimateResultRef = useRef<HTMLParagraphElement>(null);

@@ -87,7 +87,7 @@ export function FulfillmentOptionPicker<OptionId extends string>({
                                 className={cn('absolute inset-0 cursor-pointer', disabled && 'cursor-not-allowed')}>
                                 <span className="sr-only">{option.label}</span>
                             </label>
-                            <label htmlFor={optionId} className="mt-0.5 shrink-0" aria-hidden="true">
+                            <div className="relative z-10 mt-0.5 shrink-0 pointer-events-none" aria-hidden="true">
                                 <div
                                     className={cn(
                                         'w-4 h-4 border-2 flex items-center justify-center transition-colors',
@@ -95,7 +95,7 @@ export function FulfillmentOptionPicker<OptionId extends string>({
                                     )}>
                                     {selected && <div className="w-2 h-2 bg-primary" />}
                                 </div>
-                            </label>
+                            </div>
                             <div className="relative z-10 flex-1 min-w-0 pointer-events-none">
                                 <div className={cn('cursor-pointer', disabled && 'cursor-not-allowed')}>
                                     <span className="text-sm font-medium leading-none text-foreground">

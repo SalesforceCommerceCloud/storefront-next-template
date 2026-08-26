@@ -1,5 +1,5 @@
 {
-    "cardTitle": "預計送達時間",
+    "cardTitle": "預計送達日期",
     "shippingOptionsOnlyHeading": "運送選項",
     "free": "免費",
     "deliverTo": "配送至 <postalCode>{{postalCode}}</postalCode>",

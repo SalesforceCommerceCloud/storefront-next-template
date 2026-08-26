@@ -16,7 +16,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 import { normalizeCountryCode } from './country-code';
+import { getPostalCodeFormat } from './postal-code-formats';
 import type { ShippingDestination } from './types';
+
+function normalizeDestination(destination: ShippingDestination | null | undefined): ShippingDestination | null {
+    if (!destination?.postalCode) return null;
+    const countryCode = normalizeCountryCode(destination.countryCode);
+    const format = getPostalCodeFormat(countryCode);
+    const postalCode = format.normalize(destination.postalCode);
+    if (!postalCode || !format.regex.test(postalCode)) return null;
+    return {
+        postalCode,
+        ...(countryCode ? { countryCode } : {}),
+    };
+}
 
 /**
  * Response shape returned by `/resource/shipping-estimate`. Generic over the
@@ -37,6 +50,26 @@ export type ShippingEstimateResponse<TEstimate> =
           countryCode?: string;
           fallbackDeliveryDescription?: string;
       };
+
+type ShippingEstimateFailure = {
+    success: false;
+    empty?: false;
+    productId?: string;
+    zipcode?: string;
+    countryCode?: string;
+    fallbackDeliveryDescription?: string;
+};
+
+type ShippingEstimateRequestIdentity = {
+    productId: string;
+    destination: ShippingDestination;
+};
+
+function isShippingEstimateFailure<TEstimate>(
+    response: ShippingEstimateResponse<TEstimate> | undefined
+): response is ShippingEstimateFailure {
+    return response?.success === false && response.empty !== true;
+}
 
 export interface UseShippingEstimateOptions {
     productId: string;
@@ -86,9 +119,15 @@ export function useShippingEstimate<TEstimate>({
         initialDestination ?? null
     );
     const autoFetchProductIdRef = useRef<string | null>(null);
+    const requestIdentityRef = useRef<ShippingEstimateRequestIdentity | null>(null);
+    const [opaqueFailureRequest, setOpaqueFailureRequest] = useState<ShippingEstimateRequestIdentity | null>(null);
 
     const fetchEstimate = useCallback(
         (zipcode: string, countryCode: string | undefined, persistDestination: boolean) => {
+            requestIdentityRef.current = {
+                productId,
+                destination: { postalCode: zipcode, ...(countryCode ? { countryCode } : {}) },
+            };
             const countryQuery = countryCode ? `&countryCode=${encodeURIComponent(countryCode)}` : '';
             const persistenceQuery = persistDestination ? '&persistDestination=true' : '';
             void fetcherLoad(
@@ -100,35 +139,61 @@ export function useShippingEstimate<TEstimate>({
 
     const load = useCallback(
         (zipcode: string, countryCode?: string) => {
-            const normalizedCountryCode = normalizeCountryCode(countryCode);
+            const destination = normalizeDestination({ postalCode: zipcode, countryCode });
+            if (!destination) return;
+
+            const normalizedCountryCode = destination.countryCode;
+            const normalizedZipcode = destination.postalCode;
             // Mark this product before an explicit request can allow the automatic effect to run.
             autoFetchProductIdRef.current = productId;
             if (
-                requestedDestination?.postalCode === zipcode &&
+                requestedDestination?.postalCode === normalizedZipcode &&
                 requestedDestination.countryCode === normalizedCountryCode
             ) {
-                fetchEstimate(zipcode, normalizedCountryCode, true);
+                fetchEstimate(normalizedZipcode, normalizedCountryCode, true);
                 return;
             }
             setRequestedDestination({
-                postalCode: zipcode,
+                postalCode: normalizedZipcode,
                 ...(normalizedCountryCode ? { countryCode: normalizedCountryCode } : {}),
             });
-            fetchEstimate(zipcode, normalizedCountryCode, true);
+            fetchEstimate(normalizedZipcode, normalizedCountryCode, true);
         },
         [fetchEstimate, productId, requestedDestination]
     );
 
     useEffect(() => {
-        const destination = requestedDestination ?? initialDestination;
+        const destination = normalizeDestination(requestedDestination ?? initialDestination);
         if (enabled && destination?.postalCode && autoFetchProductIdRef.current !== productId) {
             autoFetchProductIdRef.current = productId;
             fetchEstimate(destination.postalCode, destination.countryCode, false);
         }
     }, [enabled, fetchEstimate, initialDestination, productId, requestedDestination]);
 
-    const matchKey = matchAgainst ?? requestedDestination?.postalCode ?? '';
-    const requestCountry = requestedDestination?.countryCode;
+    useEffect(() => {
+        if (fetcher.state === 'idle') return;
+        const requestIdentity = requestIdentityRef.current;
+        if (!requestIdentity) return;
+
+        setOpaqueFailureRequest((current) =>
+            current?.productId === requestIdentity.productId &&
+            current.destination.postalCode === requestIdentity.destination.postalCode &&
+            current.destination.countryCode === requestIdentity.destination.countryCode
+                ? current
+                : requestIdentity
+        );
+    }, [fetcher.state]);
+
+    const normalizedRequestedDestination = normalizeDestination(requestedDestination ?? initialDestination);
+    const requestCountry = normalizeCountryCode((requestedDestination ?? initialDestination)?.countryCode);
+    const normalizedMatchDestination =
+        matchAgainst !== undefined
+            ? normalizeDestination({
+                  postalCode: matchAgainst,
+                  countryCode: opaqueFailureRequest?.destination.countryCode ?? requestCountry,
+              })
+            : normalizedRequestedDestination;
+    const matchKey = normalizedMatchDestination?.postalCode ?? '';
     const productMatchesResponse = fetcher.data?.productId === productId;
     const countryMatchesResponse = !requestCountry || fetcher.data?.countryCode === requestCountry;
     const matched =
@@ -143,14 +208,24 @@ export function useShippingEstimate<TEstimate>({
         fetcher.data.zipcode === matchKey
             ? fetcher.data
             : null;
-    const failed =
+    const opaqueFailureMatchesRequest =
+        fetcher.state === 'idle' &&
+        isShippingEstimateFailure(fetcher.data) &&
+        !fetcher.data.zipcode &&
+        opaqueFailureRequest?.productId === productId &&
+        opaqueFailureRequest.destination.postalCode === normalizedRequestedDestination?.postalCode &&
+        opaqueFailureRequest.destination.countryCode === requestCountry &&
+        normalizedRequestedDestination?.postalCode === matchKey &&
+        normalizedRequestedDestination?.countryCode === requestCountry;
+    const failed: ShippingEstimateFailure | null =
         productMatchesResponse &&
         countryMatchesResponse &&
-        fetcher.data?.success === false &&
-        fetcher.data.empty !== true &&
+        isShippingEstimateFailure(fetcher.data) &&
         fetcher.data.zipcode === matchKey
             ? fetcher.data
-            : null;
+            : opaqueFailureMatchesRequest && isShippingEstimateFailure(fetcher.data)
+              ? fetcher.data
+              : null;
 
     return useMemo(
         () => ({
@@ -162,6 +237,7 @@ export function useShippingEstimate<TEstimate>({
             autoFetchInFlight:
                 enabled &&
                 Boolean(requestedDestination?.postalCode ?? initialDestination?.postalCode) &&
+                Boolean(normalizedMatchDestination?.postalCode) &&
                 (fetcher.state !== 'idle' || !(matched || neutral || failed)),
             load,
         }),
@@ -173,6 +249,7 @@ export function useShippingEstimate<TEstimate>({
             enabled,
             initialDestination?.postalCode,
             requestedDestination?.postalCode,
+            normalizedMatchDestination?.postalCode,
             load,
         ]
     );

@@ -1,5 +1,5 @@
 {
-    "cardTitle": "Entrega estimada",
+    "cardTitle": "Fecha de entrega estimada",
     "shippingOptionsOnlyHeading": "Opciones de envío",
     "free": "Gratis",
     "deliverTo": "Entrega en <postalCode>{{postalCode}}</postalCode>",

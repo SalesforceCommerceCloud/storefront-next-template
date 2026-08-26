@@ -103,7 +103,7 @@ describe('EstimatedDelivery', () => {
     test('renders an accessible inline postal-code estimator when no destination is known', () => {
         render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
 
-        expect(screen.getByRole('heading', { name: 'Estimated Delivery' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Estimated Delivery Date' })).toBeInTheDocument();
         expect(screen.getByRole('textbox')).toHaveAttribute('autocomplete', 'postal-code');
         expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeInTheDocument();
     });
@@ -145,7 +145,7 @@ describe('EstimatedDelivery', () => {
             }
         );
 
-        expect(screen.queryByRole('heading', { name: 'Estimated Delivery' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Estimated Delivery Date' })).not.toBeInTheDocument();
         expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
         expect(screen.queryByText(/Sat 2 Jan.*Tue 5 Jan/)).not.toBeInTheDocument();
     });
@@ -380,6 +380,18 @@ describe('EstimatedDelivery', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
 
         expect(load).toHaveBeenCalledWith('H0H 0H0', 'CA');
+    });
+
+    test('normalizes a saved postal code before matching the initial estimate', () => {
+        render(
+            <EstimatedDelivery
+                productId="product-1"
+                initialDestination={{ postalCode: 'm5v3a8', countryCode: 'CA' }}
+            />,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(useShippingEstimate).toHaveBeenLastCalledWith(expect.objectContaining({ matchAgainst: 'M5V 3A8' }));
     });
 
     test('announces and focuses a successful shopper-initiated estimate', async () => {

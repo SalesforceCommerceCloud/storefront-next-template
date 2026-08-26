@@ -1,5 +1,5 @@
 {
-    "cardTitle": "Arvioitu toimitus",
+    "cardTitle": "Arvioitu toimituspäivä",
     "shippingOptionsOnlyHeading": "Toimitusvaihtoehdot",
     "free": "Veloituksetta",
     "deliverTo": "Toimitus osoitteeseen <postalCode>{{postalCode}}</postalCode>",

@@ -131,21 +131,14 @@ describe('FulfillmentOptionPicker', () => {
         expect(onChange).toHaveBeenCalledWith(FULFILLMENT_OPTION_IDS.DELIVERY);
     });
 
-    it('reports an enabled option selected by its visual radio indicator', async () => {
-        const onChange = vi.fn();
-        const user = userEvent.setup();
+    it('keeps a single associated label and lets the visual indicator sit outside it', () => {
         const { container } = render(
-            <FulfillmentOptionPicker value={FULFILLMENT_OPTION_IDS.PICKUP} options={options} onChange={onChange} />
+            <FulfillmentOptionPicker value={FULFILLMENT_OPTION_IDS.PICKUP} options={options} onChange={() => {}} />
         );
 
-        const indicator = container.querySelector('[aria-hidden="true"]');
-        if (!indicator) {
-            throw new Error('Expected the delivery option to have a visual radio indicator');
-        }
-
-        await user.click(indicator);
-
-        expect(onChange).toHaveBeenCalledWith(FULFILLMENT_OPTION_IDS.DELIVERY);
+        expect(container.querySelectorAll('label[for="fulfillment-option-delivery"]')).toHaveLength(1);
+        expect(container.querySelector('label[for="fulfillment-option-delivery"] [aria-hidden="true"]')).toBeNull();
+        expect(container.querySelector('[aria-hidden="true"]')).toBeInTheDocument();
     });
 
     it('does not change the selection when an option detail is clicked', async () => {

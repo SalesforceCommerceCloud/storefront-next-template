@@ -517,15 +517,14 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
                 Delivery
               </span>
             </label>
-            <label
+            <div
               aria-hidden="true"
-              class="mt-0.5 shrink-0"
-              for="fulfillment-option-womens-jewelry-bundleM-delivery"
+              class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
             >
               <div
                 class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
               />
-            </label>
+            </div>
             <div
               class="relative z-10 flex-1 min-w-0 pointer-events-none"
             >
@@ -574,15 +573,14 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
                 Free pickup in
               </span>
             </label>
-            <label
+            <div
               aria-hidden="true"
-              class="mt-0.5 shrink-0"
-              for="fulfillment-option-womens-jewelry-bundleM-pickup"
+              class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
             >
               <div
                 class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
               />
-            </label>
+            </div>
             <div
               class="relative z-10 flex-1 min-w-0 pointer-events-none"
             >

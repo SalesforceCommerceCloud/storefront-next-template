@@ -1,5 +1,5 @@
 {
-    "cardTitle": "お届け予定",
+    "cardTitle": "お届け予定日",
     "shippingOptionsOnlyHeading": "配送オプション",
     "free": "無料",
     "deliverTo": "<postalCode>{{postalCode}}</postalCode> へお届け",

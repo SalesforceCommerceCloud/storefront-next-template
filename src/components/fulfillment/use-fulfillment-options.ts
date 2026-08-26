@@ -33,11 +33,8 @@ function getInitialSelectedValue<OptionId extends string>(
     if (contributors.length === 1 && soleContributor.option.availability.available) return soleContributor.option.id;
     const defaultContributor = contributors.find(({ defaultSelected }) => defaultSelected);
     if (!defaultContributor) return undefined;
-    return (
-        defaultContributor.option.availability.available
-            ? defaultContributor
-            : contributors.find(({ option }) => option.availability.available)
-    )?.option.id;
+    const fallback = contributors.find(({ option }) => option.availability.available);
+    return (defaultContributor.option.availability.available ? defaultContributor : fallback)?.option.id;
 }
 
 export function orderFulfillmentOptions<OptionId extends string>(
@@ -62,10 +59,20 @@ export function useFulfillmentOptions<OptionId extends string>({
     );
 
     const select = useCallback(
-        (nextValue: OptionId, invokeOnSelect = true) => {
+        (nextValue: OptionId) => {
             const contributor = orderedContributors.find(({ option }) => option.id === nextValue);
             if (!contributor?.option.availability.available) return false;
-            if (invokeOnSelect && contributor.onSelect?.() === false) return false;
+            if (contributor.onSelect?.() === false) return false;
+            setValue(nextValue);
+            return true;
+        },
+        [orderedContributors]
+    );
+
+    const selectAvailable = useCallback(
+        (nextValue: OptionId) => {
+            const contributor = orderedContributors.find(({ option }) => option.id === nextValue);
+            if (!contributor?.option.availability.available) return false;
             setValue(nextValue);
             return true;
         },
@@ -80,14 +87,14 @@ export function useFulfillmentOptions<OptionId extends string>({
         if (preventUnavailableSelectionChange) return;
         if (!value) {
             const initialSelectedValue = getInitialSelectedValue(orderedContributors, initialValue);
-            if (initialSelectedValue) select(initialSelectedValue, false);
+            if (initialSelectedValue) selectAvailable(initialSelectedValue);
             return;
         }
         const selected = orderedContributors.find(({ option }) => option.id === value);
         if (selected?.option.availability.available) return;
         const fallback = orderedContributors.find(({ option }) => option.availability.available);
-        if (fallback) select(fallback.option.id, false);
-    }, [initialValue, orderedContributors, preventUnavailableSelectionChange, select, value]);
+        if (fallback) selectAvailable(fallback.option.id);
+    }, [initialValue, orderedContributors, preventUnavailableSelectionChange, selectAvailable, value]);
 
     return { value, setValue, select, options };
 }

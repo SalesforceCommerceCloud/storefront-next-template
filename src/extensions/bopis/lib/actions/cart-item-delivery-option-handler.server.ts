@@ -16,7 +16,10 @@
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { findOrCreateDeliveryShipment } from '@/lib/cart/shipments.server';
-import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
+import {
+    findOrCreatePickupShipment,
+    PickupShipmentStoreConflictError,
+} from '@/extensions/bopis/lib/api/shipment.server';
 import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { createBasketSuccessResponse, type BasketActionResponse } from '@/routes/types/action-responses';
 import { data, type RouterContextProvider } from 'react-router';
@@ -200,6 +203,18 @@ export async function handleCartItemDeliveryOptionChange(
         updateBasketResource(context, basket.data);
         return data(createBasketSuccessResponse(basket.data));
     } catch (error) {
+        if (error instanceof PickupShipmentStoreConflictError) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.CONFLICT,
+                        message: error.message,
+                    }),
+                },
+                { status: 409 }
+            );
+        }
         return data({ success: false, error: createActionError({ error }) }, { status: 500 });
     }
 }

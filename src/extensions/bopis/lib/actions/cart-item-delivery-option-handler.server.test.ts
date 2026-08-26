@@ -20,7 +20,10 @@ import { handleCartItemDeliveryOptionChange } from './cart-item-delivery-option-
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { findOrCreateDeliveryShipment } from '@/lib/cart/shipments.server';
-import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
+import {
+    findOrCreatePickupShipment,
+    PickupShipmentStoreConflictError,
+} from '@/extensions/bopis/lib/api/shipment.server';
 import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { expectStatus } from '@/lib/test-utils/expect-status';
 import type { CartItemUpdateData } from '@/lib/cart/basket-schemas';
@@ -250,6 +253,30 @@ describe('handleCartItemDeliveryOptionChange', () => {
 
         expect(result?.data.success).toBe(true);
         expect(mockClients.shopperBasketsV2.updateItemInBasket).toHaveBeenCalledTimes(1);
+    });
+
+    test('returns 409 when pickup would target a different store than an existing pickup line', async () => {
+        mockClients.shopperProducts.getProducts.mockResolvedValue({
+            data: {
+                data: [
+                    {
+                        id: 'p-1',
+                        inventory: { ats: 50, orderable: true },
+                        inventories: [{ id: 'inv-1', stockLevel: 10, orderable: true }],
+                    },
+                ],
+            },
+        });
+        vi.mocked(findOrCreatePickupShipment).mockRejectedValue(
+            new PickupShipmentStoreConflictError('Pickup shipment is assigned elsewhere')
+        );
+
+        const result = await run({ deliveryOption: 'pickup', storeId: 'store-9', inventoryId: 'inv-1' });
+
+        if (!result) throw new Error('expected a conflict response, received null');
+        expectStatus(result, 409);
+        expect(result.data.error?.code).toBe('CONFLICT');
+        expect(mockClients.shopperBasketsV2.updateItemInBasket).not.toHaveBeenCalled();
     });
 
     test('allows the swap when the availability lookup fails transiently', async () => {

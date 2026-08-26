@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import { useState } from 'react';
 
 const { t } = getTranslation();
 
@@ -27,7 +28,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { CartItemModal } from './index';
 
 // Mock data
-import { variantProduct } from '@/components/__mocks__/master-variant-product';
+import { masterProduct, variantProduct } from '@/components/__mocks__/master-variant-product';
 import { bundleProd } from '@/components/__mocks__/bundle-product';
 import { setProduct } from '@/components/__mocks__/set-product';
 
@@ -53,6 +54,8 @@ vi.mock('@/components/product-view/child-products', () => ({
 
 // Mock useScapiFetcher to prevent actual API calls
 const mockLoad = vi.fn().mockResolvedValue(undefined);
+let selectedStoreInventoryId = 'inventory-store-123';
+
 const mockUseScapiFetcher = vi.fn(
     (
         ..._args: unknown[]
@@ -93,6 +96,20 @@ vi.mock('@/extensions/ratings-reviews/providers/product-reviews-context', () => 
 }));
 // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
 
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+vi.mock('@/extensions/store-locator/providers/store-locator', async () => {
+    const actual = await vi.importActual<typeof import('@/extensions/store-locator/providers/store-locator')>(
+        '@/extensions/store-locator/providers/store-locator'
+    );
+    return {
+        ...actual,
+        useStoreLocator: (
+            selector: (state: { selectedStoreInfo: { id: string; inventoryId: string } | null }) => unknown
+        ) => selector({ selectedStoreInfo: { id: 'store-123', inventoryId: selectedStoreInventoryId } }),
+    };
+});
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
+
 const renderCartItemModal = (props: React.ComponentProps<typeof CartItemModal>) => {
     const router = createMemoryRouter(
         [
@@ -115,6 +132,7 @@ const renderCartItemModal = (props: React.ComponentProps<typeof CartItemModal>) 
 describe('CartItemModal', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        selectedStoreInventoryId = 'inventory-store-123';
         capturedImageGalleryProps.last = null;
     });
 
@@ -190,6 +208,7 @@ describe('CartItemModal', () => {
 describe('CartItemModal — add mode', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        selectedStoreInventoryId = 'inventory-store-123';
         // Default: fetcher returns data immediately (product loaded)
         mockUseScapiFetcher.mockReturnValue({
             load: mockLoad,
@@ -251,6 +270,73 @@ describe('CartItemModal — add mode', () => {
         expect(dialog.querySelector('[data-slot="quick-add-details"]')).not.toBeInTheDocument();
         expect(dialog.querySelector('[data-slot="quick-add-actions"]')).not.toBeInTheDocument();
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    test('includes selected-store inventoryIds when fetching a Quick Add variant', () => {
+        renderCartItemModal({ open: true, onOpenChange: vi.fn(), productId: variantProduct.id ?? '' });
+
+        expect(mockUseScapiFetcher).toHaveBeenCalledWith(
+            'shopperProducts',
+            'getProduct',
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    query: expect.objectContaining({ inventoryIds: ['inventory-store-123'] }),
+                }),
+            })
+        );
+    });
+
+    test('refetches selected variant inventory after the selected store changes', () => {
+        const variant = masterProduct.variants?.[0];
+        if (!variant) throw new Error('expected a master variant fixture');
+        const baseProductFetcher = {
+            load: vi.fn(),
+            data: masterProduct,
+            state: 'idle' as const,
+            success: true,
+        };
+        const variantFetcher = {
+            load: vi.fn(),
+            data: undefined,
+            state: 'idle' as const,
+            success: false,
+        };
+        mockUseScapiFetcher.mockImplementation((...args) => {
+            const options = args[2] as { params: { path: { id: string } } };
+            return options.params.path.id === masterProduct.id ? baseProductFetcher : variantFetcher;
+        });
+        const props = {
+            open: true,
+            onOpenChange: vi.fn(),
+            productId: masterProduct.id ?? '',
+            initialVariantSelections: variant.variationValues,
+        };
+        let rerenderForStoreChange: (() => void) | undefined;
+        function StoreSwitchRoute() {
+            const [version, setVersion] = useState(0);
+            rerenderForStoreChange = () => setVersion((current) => current + 1);
+            return (
+                <div data-version={version}>
+                    <AllProvidersWrapper>
+                        <CartItemModal {...props} />
+                    </AllProvidersWrapper>
+                </div>
+            );
+        }
+        const storeChangedRouter = createMemoryRouter([{ path: '/', element: <StoreSwitchRoute /> }], {
+            initialEntries: ['/'],
+        });
+        render(<RouterProvider router={storeChangedRouter} />);
+
+        expect(variantFetcher.load).toHaveBeenCalledOnce();
+
+        selectedStoreInventoryId = 'inventory-store-456';
+        act(() => rerenderForStoreChange?.());
+
+        expect(variantFetcher.load).toHaveBeenCalledTimes(2);
+    });
+
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     test('renders error state with retry button when fetcher fails', () => {
         mockUseScapiFetcher.mockReturnValue({

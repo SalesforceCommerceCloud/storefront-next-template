@@ -1,5 +1,5 @@
 {
-    "cardTitle": "Lieferung (voraussichtlich)",
+    "cardTitle": "Voraussichtliches Lieferdatum",
     "shippingOptionsOnlyHeading": "Versandoptionen",
     "free": "Kostenlos",
     "deliverTo": "Lieferung an <postalCode>{{postalCode}}</postalCode>",

@@ -45,7 +45,7 @@ describe('useFulfillmentOptions', () => {
         expect(synchronizeSelection).toHaveBeenCalledWith('delivery');
     });
 
-    it('selects the first available contributor when the default is unavailable during server rendering', () => {
+    it('does not auto-select a guarded contributor when the default is unavailable during server rendering', () => {
         function Probe() {
             const { value } = useFulfillmentOptions({
                 contributors: [
@@ -63,6 +63,7 @@ describe('useFulfillmentOptions', () => {
                             label: 'Pickup',
                             availability: available,
                         },
+                        onSelect: () => false,
                     },
                 ],
             });
@@ -106,6 +107,35 @@ describe('useFulfillmentOptions', () => {
         expect(result.current.value).toBe('pickup');
         expect(onSelect).toHaveBeenCalledOnce();
         expect(synchronizeSelection).toHaveBeenCalledWith('pickup');
+    });
+
+    it('initially selects an available guarded contributor without invoking its handler', async () => {
+        const onSelect = vi.fn(() => false);
+        const { result } = renderHook(() =>
+            useFulfillmentOptions({
+                contributors: [
+                    {
+                        option: {
+                            id: 'delivery',
+                            label: 'Delivery',
+                            availability: { available: false },
+                        },
+                        defaultSelected: true,
+                    },
+                    {
+                        option: {
+                            id: 'pickup',
+                            label: 'Pickup',
+                            availability: available,
+                        },
+                        onSelect,
+                    },
+                ],
+            })
+        );
+
+        await waitFor(() => expect(result.current.value).toBe('pickup'));
+        expect(onSelect).not.toHaveBeenCalled();
     });
 
     it('does not select a contributor that handles the interaction', () => {
@@ -169,6 +199,37 @@ describe('useFulfillmentOptions', () => {
         expect(synchronizeSelection).toHaveBeenCalledWith('delivery');
     });
 
+    it('moves an unavailable selection to an available guarded contributor without invoking its handler', async () => {
+        const onSelect = vi.fn(() => false);
+        const { result, rerender } = renderHook(
+            ({ deliveryAvailable }) =>
+                useFulfillmentOptions({
+                    contributors: [
+                        {
+                            option: {
+                                id: 'delivery',
+                                label: 'Delivery',
+                                availability: { available: deliveryAvailable },
+                            },
+                            defaultSelected: true,
+                        },
+                        {
+                            option: { id: 'pickup', label: 'Pickup', availability: available },
+                            onSelect,
+                        },
+                    ],
+                }),
+            { initialProps: { deliveryAvailable: true } }
+        );
+
+        expect(result.current.value).toBe('delivery');
+
+        rerender({ deliveryAvailable: false });
+
+        await waitFor(() => expect(result.current.value).toBe('pickup'));
+        expect(onSelect).not.toHaveBeenCalled();
+    });
+
     it('selects the contributor that explicitly provides the default', async () => {
         const synchronizeSelection = vi.fn();
         const { result } = renderHook(() =>
@@ -202,6 +263,7 @@ describe('useFulfillmentOptions', () => {
 
     it('falls back to an available contributor when the default is unavailable', async () => {
         const synchronizeSelection = vi.fn();
+        const onSelect = vi.fn(() => false);
         const { result } = renderHook(() =>
             useFulfillmentOptions({
                 contributors: [
@@ -221,6 +283,7 @@ describe('useFulfillmentOptions', () => {
                             label: 'Pickup',
                             availability: available,
                         },
+                        onSelect,
                     },
                 ],
                 synchronizeSelection,
@@ -228,6 +291,7 @@ describe('useFulfillmentOptions', () => {
         );
 
         await waitFor(() => expect(result.current.value).toBe('pickup'));
+        expect(onSelect).not.toHaveBeenCalled();
         expect(synchronizeSelection).toHaveBeenCalledWith('pickup');
     });
 

@@ -67,7 +67,69 @@ describe('useShippingEstimate', () => {
         );
     });
 
-    it('rejects a stale response for the same ZIP in a different country', () => {
+    it('normalizes an unspaced Canadian saved destination before automatic lookup', () => {
+        renderHook(() =>
+            useShippingEstimate({
+                productId: 'product-1',
+                initialDestination: { postalCode: 'm5v3a8', countryCode: 'CA' },
+            })
+        );
+
+        expect(load).toHaveBeenCalledWith(
+            '/resource/shipping-estimate?productId=product-1&zipcode=M5V%203A8&countryCode=CA'
+        );
+    });
+
+    it('matches an automatic response against the normalized saved destination', () => {
+        vi.mocked(useFetcher).mockReturnValue({
+            state: 'idle',
+            data: {
+                success: true,
+                productId: 'product-1',
+                zipcode: 'M5V 3A8',
+                countryCode: 'CA',
+                estimate: { product: 'product-1' },
+            },
+            load,
+        } as never);
+
+        const { result } = renderHook(() =>
+            useShippingEstimate({
+                productId: 'product-1',
+                initialDestination: { postalCode: 'm5v3a8', countryCode: 'CA' },
+            })
+        );
+
+        expect(result.current.estimate).toEqual({ product: 'product-1' });
+        expect(result.current.autoFetchInFlight).toBe(false);
+    });
+
+    it('normalizes an explicit match key with the saved destination country', () => {
+        vi.mocked(useFetcher).mockReturnValue({
+            state: 'idle',
+            data: {
+                success: true,
+                productId: 'product-1',
+                zipcode: 'M5V 3A8',
+                countryCode: 'CA',
+                estimate: { product: 'product-1' },
+            },
+            load,
+        } as never);
+
+        const { result } = renderHook(() =>
+            useShippingEstimate({
+                productId: 'product-1',
+                initialDestination: { postalCode: 'm5v3a8', countryCode: 'CA' },
+                matchAgainst: 'm5v3a8',
+            })
+        );
+
+        expect(result.current.estimate).toEqual({ product: 'product-1' });
+        expect(result.current.autoFetchInFlight).toBe(false);
+    });
+
+    it('does not keep an automatic lookup in flight for an invalid match key', () => {
         vi.mocked(useFetcher).mockReturnValue({
             state: 'idle',
             data: {
@@ -89,7 +151,7 @@ describe('useShippingEstimate', () => {
         );
 
         expect(result.current.estimate).toBeNull();
-        expect(result.current.autoFetchInFlight).toBe(true);
+        expect(result.current.autoFetchInFlight).toBe(false);
     });
 
     it('uses the country supplied by an explicit load', () => {
@@ -100,6 +162,17 @@ describe('useShippingEstimate', () => {
         expect(load).toHaveBeenCalledWith(
             '/resource/shipping-estimate?productId=product-1&zipcode=M5V%203A8&countryCode=CA&persistDestination=true'
         );
+    });
+
+    it('ignores an explicit lookup with an invalid postal code', () => {
+        const { result } = renderHook(() =>
+            useShippingEstimate({ productId: 'product-1', initialDestination: { postalCode: '94105' } })
+        );
+
+        act(() => result.current.load('invalid'));
+
+        expect(load).toHaveBeenCalledWith('/resource/shipping-estimate?productId=product-1&zipcode=94105');
+        expect(result.current.autoFetchInFlight).toBe(true);
     });
 
     it('does not replay a manual lookup after its destination state update', () => {
@@ -385,5 +458,76 @@ describe('useShippingEstimate', () => {
             fallbackDeliveryDescription: null,
             matchedZipcode: null,
         });
+    });
+
+    it('settles an opaque failure after the current request completes', () => {
+        const fetcher: { state: 'loading' | 'idle'; data: { success: false } | undefined; load: typeof load } = {
+            state: 'loading',
+            data: undefined,
+            load,
+        };
+        vi.mocked(useFetcher).mockReturnValue(fetcher as never);
+
+        const { result, rerender } = renderHook(() =>
+            useShippingEstimate({ productId: 'product-1', initialDestination: { postalCode: '94105' } })
+        );
+
+        fetcher.state = 'idle';
+        fetcher.data = { success: false };
+        rerender();
+
+        expect(result.current).toMatchObject({
+            estimate: null,
+            hasError: true,
+            autoFetchInFlight: false,
+        });
+    });
+
+    it('settles an opaque failure only for the active request', () => {
+        const fetcher: { state: 'loading' | 'idle'; data: { success: false } | undefined; load: typeof load } = {
+            state: 'loading',
+            data: undefined,
+            load,
+        };
+        vi.mocked(useFetcher).mockReturnValue(fetcher as never);
+
+        const { result, rerender } = renderHook(() =>
+            useShippingEstimate({ productId: 'product-1', initialDestination: { postalCode: '94105' } })
+        );
+
+        expect(load).toHaveBeenCalledWith('/resource/shipping-estimate?productId=product-1&zipcode=94105');
+
+        fetcher.state = 'idle';
+        fetcher.data = { success: false };
+        rerender();
+
+        expect(result.current.hasError).toBe(true);
+    });
+
+    it('hides an opaque failure after the shopper changes postal code or product', () => {
+        const fetcher: { state: 'loading' | 'idle'; data: { success: false } | undefined; load: typeof load } = {
+            state: 'loading',
+            data: undefined,
+            load,
+        };
+        vi.mocked(useFetcher).mockReturnValue(fetcher as never);
+
+        const { result, rerender } = renderHook(
+            ({ productId }) => useShippingEstimate({ productId, initialDestination: { postalCode: '94105' } }),
+            { initialProps: { productId: 'product-1' } }
+        );
+
+        fetcher.state = 'idle';
+        fetcher.data = { success: false };
+        rerender({ productId: 'product-1' });
+        expect(result.current.hasError).toBe(true);
+
+        fetcher.state = 'loading';
+        act(() => result.current.load('94107'));
+        rerender({ productId: 'product-1' });
+        expect(result.current.hasError).toBe(false);
+
+        rerender({ productId: 'variant-1' });
+        expect(result.current.hasError).toBe(false);
     });
 });

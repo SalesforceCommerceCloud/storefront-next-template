@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
+import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import { useTranslation } from 'react-i18next';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
@@ -22,6 +22,9 @@ import { isProductBundle, isProductSet } from '@/lib/product/product-utils';
 import { computeInitialVariationValues } from '@/lib/product/initial-variation-values';
 import { CartItemModalView } from './view';
 import type { CartItemModalProps } from './types';
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 
 interface CartItemModalAddContainerProps extends CartItemModalProps {
     productId: string;
@@ -38,9 +41,14 @@ export function CartItemModalAddContainer({
     open = false,
 }: CartItemModalAddContainerProps): ReactElement {
     const { t } = useTranslation('editItem');
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    const selectedStoreInventoryId = useStoreLocator((state) => state.selectedStoreInfo?.inventoryId);
+    const inventoryIds = selectedStoreInventoryId ? [selectedStoreInventoryId] : undefined;
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     const [variationValues, setVariationValues] = useState<Record<string, string>>({});
     const [variantInventoryCache, setVariantInventoryCache] = useState<Record<string, Product>>({});
+    const loadedVariantCacheKeysRef = useRef(new Set<string>());
 
     const initialProductFetcher = useScapiFetcher('shopperProducts', 'getProduct', {
         params: {
@@ -56,6 +64,9 @@ export function CartItemModalAddContainer({
                     'set_products',
                     'bundled_products',
                 ],
+                // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                ...(inventoryIds ? { inventoryIds } : {}),
+                // @sfdc-extension-block-end SFDC_EXT_BOPIS
             },
         },
     });
@@ -88,6 +99,7 @@ export function CartItemModalAddContainer({
                 ...(initialVariantSelections ?? {}),
             });
             setVariantInventoryCache({});
+            loadedVariantCacheKeysRef.current.clear();
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [open, baseProduct]);
@@ -102,7 +114,13 @@ export function CartItemModalAddContainer({
     }, [baseProduct, variationValues]);
 
     const selectedVariantId = matchingVariant?.productId;
-    const cachedVariantProduct = selectedVariantId ? variantInventoryCache[selectedVariantId] : undefined;
+    let variantCacheKey = selectedVariantId;
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    if (selectedVariantId && selectedStoreInventoryId) {
+        variantCacheKey = `${selectedVariantId}:${selectedStoreInventoryId}`;
+    }
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const cachedVariantProduct = variantCacheKey ? variantInventoryCache[variantCacheKey] : undefined;
 
     const variantFetcher = useScapiFetcher('shopperProducts', 'getProduct', {
         params: {
@@ -118,6 +136,9 @@ export function CartItemModalAddContainer({
                     'set_products',
                     'bundled_products',
                 ],
+                // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                ...(inventoryIds ? { inventoryIds } : {}),
+                // @sfdc-extension-block-end SFDC_EXT_BOPIS
             },
         },
     });
@@ -133,18 +154,14 @@ export function CartItemModalAddContainer({
             shouldFetchVariantInventory &&
             variantFetcher.state === 'idle' &&
             !variantFetcher.errors &&
-            variantFetcher.data?.id !== selectedVariantId
+            variantCacheKey &&
+            !loadedVariantCacheKeysRef.current.has(variantCacheKey)
         ) {
+            loadedVariantCacheKeysRef.current.add(variantCacheKey);
             void variantFetcher.load();
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        shouldFetchVariantInventory,
-        variantFetcher.state,
-        variantFetcher.errors,
-        variantFetcher.data?.id,
-        selectedVariantId,
-    ]);
+    }, [shouldFetchVariantInventory, variantFetcher.state, variantFetcher.errors, variantCacheKey]);
 
     // Cache variant inventory data when it arrives.
     useEffect(() => {
@@ -155,20 +172,22 @@ export function CartItemModalAddContainer({
             variantFetcher.data.id === selectedVariantId
         ) {
             const fetchedProduct = variantFetcher.data;
+            const cacheKey = variantCacheKey ?? fetchedProduct.id;
             setVariantInventoryCache((prev) => {
-                const cached = prev[fetchedProduct.id];
+                const cached = prev[cacheKey];
                 if (
                     cached?.inventory?.ats === fetchedProduct.inventory?.ats &&
                     cached?.inventory?.orderable === fetchedProduct.inventory?.orderable &&
                     cached?.inventory?.backorderable === fetchedProduct.inventory?.backorderable &&
-                    cached?.inventory?.preorderable === fetchedProduct.inventory?.preorderable
+                    cached?.inventory?.preorderable === fetchedProduct.inventory?.preorderable &&
+                    cached?.inventories === fetchedProduct.inventories
                 ) {
                     return prev;
                 }
-                return { ...prev, [fetchedProduct.id]: fetchedProduct };
+                return { ...prev, [cacheKey]: fetchedProduct };
             });
         }
-    }, [variantFetcher.success, variantFetcher.data, variantFetcher.state, selectedVariantId]);
+    }, [variantFetcher.success, variantFetcher.data, variantFetcher.state, selectedVariantId, variantCacheKey]);
 
     const effectiveMatchingVariant = useMemo(() => {
         if (!matchingVariant) return undefined;
