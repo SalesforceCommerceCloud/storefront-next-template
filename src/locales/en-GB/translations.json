@@ -2027,7 +2027,10 @@
             "upholstery": "Upholstery",
             "yes": "Yes",
             "no": "No",
-            "minutes": "{{count}} min"
+            "minutes": "{{count}} min",
+            "shipsQuickly": "Ships quickly",
+            "shipsInOneDay": "Ships in 1 day",
+            "shipsInDays": "Ships in {{count}} days"
         },
         "price": {
             "unavailable": "Price unavailable",
