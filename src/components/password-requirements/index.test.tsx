@@ -240,4 +240,60 @@ describe('PasswordRequirement', () => {
             expect(heading).toHaveAttribute('aria-level', '3');
         });
     });
+
+    // The check / cross icon is decorative (aria-hidden), so the met/unmet state must be
+    // carried by text a screen reader can read, not by icon shape or colour alone
+    // (WCAG 1.1.1 / 1.4.1). These guard that visually-hidden status text against regression.
+    describe('screen reader status text', () => {
+        it('announces "not met" for every unmet requirement when the password is empty', () => {
+            render(<PasswordRequirement password="" />);
+
+            expect(screen.getAllByText(/requirement not met/i)).toHaveLength(5);
+            expect(screen.queryAllByText(/^requirement met$/i)).toHaveLength(0);
+        });
+
+        it('announces "met" for every satisfied requirement when the password is fully valid', () => {
+            render(<PasswordRequirement password="ValidPass123!" />);
+
+            expect(screen.getAllByText(/^requirement met$/i)).toHaveLength(5);
+            expect(screen.queryAllByText(/requirement not met/i)).toHaveLength(0);
+        });
+
+        it('pairs each requirement with a met/not-met status so state is never conveyed by colour alone', () => {
+            render(<PasswordRequirement password="lowercase123" />);
+
+            const met = screen.queryAllByText(/^requirement met$/i);
+            const notMet = screen.queryAllByText(/requirement not met/i);
+            expect(met.length).toBeGreaterThan(0);
+            expect(notMet.length).toBeGreaterThan(0);
+            expect(met.length + notMet.length).toBe(5);
+        });
+    });
+
+    // The per-item status text above only reaches a screen reader user who navigates into the
+    // list. This live region proactively announces the running count as the password changes,
+    // without requiring focus to move (WCAG 4.1.3).
+    describe('live status summary', () => {
+        it('exposes a polite status region reporting the met count', () => {
+            render(<PasswordRequirement password="" />);
+
+            const status = screen.getByRole('status');
+            expect(status).toHaveAttribute('aria-live', 'polite');
+            expect(status).toHaveTextContent('0 of 5 requirements met');
+        });
+
+        it('updates the announced count as requirements are satisfied', () => {
+            render(<PasswordRequirement password="lowercase123" />);
+
+            const status = screen.getByRole('status');
+            expect(status).toHaveTextContent('3 of 5 requirements met');
+        });
+
+        it('reports all requirements met for a fully valid password', () => {
+            render(<PasswordRequirement password="ValidPass123!" />);
+
+            const status = screen.getByRole('status');
+            expect(status).toHaveTextContent('5 of 5 requirements met');
+        });
+    });
 });

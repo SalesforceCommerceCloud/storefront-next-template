@@ -58,7 +58,15 @@ export const action = createBasketAction(
             // @sfdc-extension-block-end SFDC_EXT_BOPIS
         }),
     },
-    async ({ input, basket, basketId, context, clients, logger }) => {
+    async ({
+        input,
+        basket,
+        basketId,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
+        context,
+        clients,
+        logger,
+    }) => {
         const validationResult = cartItemUpdateSchema.safeParse(input);
 
         if (!validationResult.success) {
@@ -96,11 +104,16 @@ export const action = createBasketAction(
         const isVariantSwap = !!productId && productId !== existingItem?.productId;
         const isQuantityIncrease = quantity > (existingItem?.quantity ?? 0);
         if (existingItem && targetProductId && (isQuantityIncrease || isVariantSwap)) {
+            const isPickupItem = { value: false };
             // @sfdc-extension-block-start SFDC_EXT_BOPIS
             // A pickup line is bound to a store's inventory, not site ATS. The minicart stepper submits only
             // itemId + quantity (no deliveryOption), so the delivery-option handler above falls through to here.
             // Check the store's stock for a pickup line instead of site availability.
-            const pickupInventoryId = existingItem.inventoryId;
+            const existingShipment = basket.shipments?.find(
+                (shipment) => shipment.shipmentId === existingItem.shipmentId
+            );
+            isPickupItem.value = !!existingShipment?.c_fromStoreId;
+            const pickupInventoryId = existingShipment?.c_fromStoreId ? existingItem.inventoryId : undefined;
             if (pickupInventoryId) {
                 let pickupLookupFailed = false;
                 let storeInventory;
@@ -141,9 +154,9 @@ export const action = createBasketAction(
                 }
             }
             // @sfdc-extension-block-end SFDC_EXT_BOPIS
-            // Check site availability. A pickup line (identified by its inventoryId) is bound to store stock,
-            // not site ATS, so the site check does not apply to it.
-            if (!existingItem.inventoryId) {
+            // Check site availability. A pickup line (identified by its shipment c_fromStoreId) is bound to store
+            // stock, not site ATS, so the site check does not apply to it.
+            if (!isPickupItem.value) {
                 let product;
                 let siteLookupFailed = false;
                 try {

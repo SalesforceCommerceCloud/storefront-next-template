@@ -17,16 +17,28 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { render, waitFor } from '@testing-library/react';
 import { createTestContext } from '@/lib/test-utils';
 import { type PropsWithChildren } from 'react';
+import { preinit } from 'react-dom';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { createRoutesStub, RouterContextProvider } from 'react-router';
 import type { PublicSessionData } from '@/lib/api/types';
+import { PAGE_DESIGNER_STYLESHEET_PRECEDENCE } from '@salesforce/storefront-next-runtime/design/react/preload';
 import type AppComponent from './root';
 import type { ErrorBoundary as RootErrorBoundary, Layout as RootLayout, loader as RootLoader } from './root';
+
+const registryMocks = vi.hoisted(() => ({ initializeRegistry: vi.fn() }));
+
+vi.mock('@/lib/page-designer/static-registry', async () => ({
+    ...(await vi.importActual('@/lib/page-designer/static-registry')),
+    initializeRegistry: registryMocks.initializeRegistry,
+}));
 
 let App: typeof AppComponent;
 let ErrorBoundary: typeof RootErrorBoundary;
 let Layout: typeof RootLayout;
 let loader: typeof RootLoader;
 let meta: Awaited<typeof import('./root')>['meta'];
+let links: Awaited<typeof import('./root')>['links'];
+let clientRegistryInitializationCount = 0;
 const defaultClientAuth: PublicSessionData = {
     customerId: 'test-customer',
     userType: 'registered',
@@ -62,7 +74,7 @@ vi.mock('@salesforce/storefront-next-runtime/i18n/client', async () => {
         }),
     };
 
-    void testInstance
+    await testInstance
         .use(initReactI18next)
         .use(mockBackend)
         .init({
@@ -181,11 +193,13 @@ vi.mock('@/middlewares/i18next', async () => {
 
 beforeAll(async () => {
     const rootModule = await import('./root');
+    clientRegistryInitializationCount = registryMocks.initializeRegistry.mock.calls.length;
     App = rootModule.default;
     ErrorBoundary = rootModule.ErrorBoundary;
     Layout = rootModule.Layout;
     loader = rootModule.loader;
     meta = rootModule.meta;
+    links = rootModule.links;
 });
 
 function createLoaderContext(options: Parameters<typeof createTestContext>[0] = {}) {
@@ -220,6 +234,11 @@ function LayoutComponent() {
     );
 }
 
+function CriticalPageDesignerStyle() {
+    preinit('/page-designer.css', { as: 'style', precedence: PAGE_DESIGNER_STYLESHEET_PRECEDENCE });
+    return null;
+}
+
 describe('root.tsx', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -227,6 +246,36 @@ describe('root.tsx', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+    });
+
+    it('initializes the Page Designer registry once when the client root module loads', () => {
+        expect(clientRegistryInitializationCount).toBe(1);
+    });
+
+    it('places application CSS in the precedence group before critical Page Designer CSS', () => {
+        const applicationStylesheet = links().find(
+            (descriptor) =>
+                'rel' in descriptor &&
+                descriptor.rel === 'stylesheet' &&
+                'precedence' in descriptor &&
+                descriptor.precedence === 'storefront'
+        );
+        if (!applicationStylesheet || !('href' in applicationStylesheet)) {
+            throw new Error('Expected the application stylesheet to use React precedence');
+        }
+
+        const markup = renderToStaticMarkup(
+            <html lang="en">
+                <head>
+                    <link rel="stylesheet" href={applicationStylesheet.href} precedence="storefront" />
+                </head>
+                <body>
+                    <CriticalPageDesignerStyle />
+                </body>
+            </html>
+        );
+
+        expect(markup.indexOf(String(applicationStylesheet.href))).toBeLessThan(markup.indexOf('/page-designer.css'));
     });
 
     describe('Layout Component', () => {
@@ -445,6 +494,47 @@ describe('root.tsx', () => {
                 const stackElement = getByText(stackText);
                 expect(stackElement).toBeInTheDocument();
                 expect(stackElement.closest('pre')).toBeInTheDocument();
+            });
+
+            // a11y: the error page renders through Layout, but root `meta` returns [] without
+            // loaderData, so <Meta/> emits no <title> on the error path. React 19 hoists this
+            // <title> to <head>; without it, axe's document-title rule fails (as it did on the
+            // 07-31 nightly homepage scan, which hit this error page during a backend flake).
+            it('sets a non-empty <title> so the error page satisfies document-title', () => {
+                const error = new Error('Test error');
+                error.stack = stackText;
+
+                render(<ErrorBoundary error={error} />);
+
+                const title = document.head.querySelector('title');
+                expect(title).toBeInTheDocument();
+                expect(title?.textContent?.trim()).toBe(enGBRouteError.defaultTitle);
+            });
+
+            // a11y: the stack-trace <pre> is scrollable (overflow-auto max-h-80). Without
+            // tabIndex it is not keyboard-reachable, failing axe's scrollable-region-focusable
+            // rule (the second 07-31 finding).
+            it('makes the scrollable stack-trace <pre> keyboard-focusable', () => {
+                const error = new Error('Test error');
+                error.stack = stackText;
+
+                const { getByText } = render(<ErrorBoundary error={error} />);
+
+                const pre = getByText(stackText).closest('pre');
+                expect(pre).toHaveAttribute('tabindex', '0');
+            });
+
+            // Verticals that resize the logo (e.g. footwear's stacked wordmark) target it via
+            // `[data-testid='header-logo'] img` in their theme CSS. The error page renders its
+            // own header markup rather than the shared one, so it needs the same test id or a
+            // vertical's logo-sizing override silently misses this page.
+            it('marks the logo link with the header-logo test id used by vertical theme overrides', () => {
+                const error = new Error('Test error');
+                error.stack = stackText;
+
+                const { getByTestId } = render(<ErrorBoundary error={error} />);
+
+                expect(getByTestId('header-logo').tagName).toBe('A');
             });
 
             it('should render predefined 404 error message for route errors with 404 status', () => {
@@ -888,7 +978,7 @@ describe('root.tsx', () => {
 
             // Set up i18next context
             const testInstance = i18next.default.createInstance();
-            void testInstance.use(initReactI18next).init({
+            await testInstance.use(initReactI18next).init({
                 lng: 'en-US',
                 fallbackLng: 'en-US',
                 resources: resources.default,
@@ -930,7 +1020,7 @@ describe('root.tsx', () => {
 
             // Set up i18next context
             const testInstance = i18next.default.createInstance();
-            void testInstance.use(initReactI18next).init({
+            await testInstance.use(initReactI18next).init({
                 lng: 'en-US',
                 fallbackLng: 'en-US',
                 resources: resources.default,

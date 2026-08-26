@@ -102,6 +102,10 @@ afterEach(() => {
 
 describe('Hero stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
+        // Interaction-only stories opt out of snapshotting. The design-mode empty state renders
+        // its children inside a lazy Suspense provider that resolves in a live browser but suspends
+        // to a fallback in this synchronous render — so its DOM is not deterministically snapshottable.
+        if (Story?.parameters?.snapshot === false) continue;
         test(`${storyName} story renders and matches snapshot`, () => {
             // <DynamicImage> reads DIS config via useConfig(), so the hero image needs a real ConfigProvider.
             const { container } = render(

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Suspense, use, useLayoutEffect } from 'react';
+import { type ReactElement, Suspense, use, useLayoutEffect } from 'react';
 import { loader, type CheckoutPageData } from '@/lib/checkout/loaders.server';
 import { createPage, type RouteComponentProps } from '@/components/create-page';
 import type { Route } from './+types/_checkout.checkout';
@@ -146,26 +146,30 @@ function CheckoutView({
             <CheckoutProvider
                 customerProfile={customerProfileData ?? undefined}
                 shippingDefaultSet={shippingDefaultSet ?? Promise.resolve(undefined)}>
-                <CheckoutFormPage
-                    shippingMethodsMapPromise={shippingMethodsMap}
-                    productMapPromise={productMap}
-                    promotionsPromise={promotions}
-                    showToast={addToast}
-                    emailVerificationEnabled={emailVerificationEnabled}
-                />
+                {/*
+                 * GoogleCloudApiProvider is scoped to CheckoutFormPage only — the subtree
+                 * that contains AddressFormFields and needs address autocomplete.
+                 * PrefillSync, SeoMeta, and PickupProvider are intentionally outside.
+                 */}
+                <GoogleCloudApiProvider apiKey={gcpApiKey}>
+                    <CheckoutFormPage
+                        shippingMethodsMapPromise={shippingMethodsMap}
+                        productMapPromise={productMap}
+                        promotionsPromise={promotions}
+                        showToast={addToast}
+                        emailVerificationEnabled={emailVerificationEnabled}
+                    />
+                </GoogleCloudApiProvider>
             </CheckoutProvider>
         </>
     );
 
-    let finalContent = content;
+    const wrappers: ((children: ReactElement) => ReactElement)[] = [(children) => children];
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    /// Initialize PickupProvider with stores by store id
-    finalContent = <PickupProvider initialPickupStores={storesByStoreId}>{content}</PickupProvider>;
+    wrappers.push((children) => <PickupProvider initialPickupStores={storesByStoreId}>{children}</PickupProvider>);
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    finalContent = <GoogleCloudApiProvider apiKey={gcpApiKey}>{finalContent}</GoogleCloudApiProvider>;
-
-    return finalContent;
+    return wrappers.reduceRight((children, wrap) => wrap(children), content);
 }
 
 const CheckoutPageWithErrorBoundary = createPage({

@@ -25,6 +25,7 @@
  *   --update          # snapshot only — regenerate snapshot fixtures
  *   --coverage        # snapshot only — auto-runs generate-story-tests then vitest --coverage
  *   --static          # interaction|a11y — build storybook & serve static instead of dev
+ *   --reuse-build     # interaction|a11y — serve an existing static build instead of rebuilding it
  *   --stories=<name>  # snapshot only — narrow the vitest run to story files whose
  *                     #   path contains <name> (may be a nested subpath, e.g.
  *                     #   account/order-details). Ignored for interaction|a11y: the
@@ -35,6 +36,7 @@
  * (storybook dev or a local `serve` of the static build) plus `test-storybook`,
  * with cleanup of the server process when done.
  */
+import { existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 
 // --- arg parsing -----------------------------------------------------------
@@ -48,6 +50,11 @@ for (const raw of process.argv.slice(2)) {
 const type = flags.type;
 if (!['snapshot', 'interaction', 'a11y'].includes(type)) {
     console.error('Error: --type=snapshot|interaction|a11y is required');
+    process.exit(2);
+}
+
+if (flags['reuse-build'] && (!flags.static || type === 'snapshot')) {
+    console.error('Error: --reuse-build requires --static with --type=interaction or --type=a11y');
     process.exit(2);
 }
 
@@ -108,9 +115,17 @@ const testEnv = {
     ...(isA11y ? { STORYBOOK_A11Y_TEST_MODE: 'error' } : { STORYBOOK_DISABLE_A11Y: 'true' }),
 };
 
-if (flags.static) {
+if (flags.static && !flags['reuse-build']) {
     const buildCode = await run('pnpm', ['storybook:build']);
     if (buildCode !== 0) process.exit(buildCode);
+}
+
+if (
+    flags['reuse-build'] &&
+    (!existsSync('.storybook/storybook-static/index.html') || !existsSync('.storybook/storybook-static/index.json'))
+) {
+    console.error('Error: --reuse-build requires a completed static Storybook build');
+    process.exit(1);
 }
 
 // Serve the static build with the LOCAL `serve` binary (a devDependency) via

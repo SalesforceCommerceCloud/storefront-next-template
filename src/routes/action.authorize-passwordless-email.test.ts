@@ -18,6 +18,9 @@ import { action } from './action.authorize-passwordless-email';
 import type { ActionFunctionArgs } from 'react-router';
 import { expectStatus } from '@/lib/test-utils';
 
+/** Deterministic HMAC-bound cookie value returned by the mocked enforceTurnstile. */
+const TEST_COOKIE_VALUE = 'a'.repeat(64);
+
 vi.mock('@/middlewares/auth.server');
 vi.mock('@/lib/auth/error-handler');
 vi.mock('@salesforce/storefront-next-runtime/i18n');
@@ -47,10 +50,15 @@ vi.mock('@/lib/turnstile/enforce.server', () => ({
     enforceTurnstile: vi.fn(),
 }));
 vi.mock('@/lib/cookie-utils.server', () => ({
-    createCookie: vi.fn(() => ({
+    createCookie: vi.fn((name: string) => ({
         parse: vi.fn().mockResolvedValue(null),
-        serialize: vi.fn().mockResolvedValue('cc-tv=1'),
+        // Reflect the serialized value so tests can assert on the actual cookie value
+        // written by the action (HMAC-bound hex string, or fallback '1').
+        serialize: vi.fn().mockImplementation((val: string) => Promise.resolve(`${name}_TestSite=${val}`)),
     })),
+    // Returns the site-namespaced name that production callers pass into
+    // `enforceTurnstile.turnstileCookieName`.
+    getCookieNameWithSiteId: vi.fn((name: string) => `${name}_TestSite`),
     getCookieConfig: vi.fn((overrides = {}) => ({
         httpOnly: false,
         secure: true,
@@ -77,7 +85,7 @@ describe('action.authorize-passwordless-email', () => {
         vi.mocked(getPasswordlessErrorMessageKey).mockReturnValue('errors:genericTryAgain');
 
         mockEnforceTurnstile = vi.mocked((await import('@/lib/turnstile/enforce.server')).enforceTurnstile);
-        mockEnforceTurnstile.mockResolvedValue(true);
+        mockEnforceTurnstile.mockResolvedValue({ allowed: true, cookieValue: TEST_COOKIE_VALUE });
 
         mockContext = {} as ActionFunctionArgs['context'];
     });
@@ -109,7 +117,7 @@ describe('action.authorize-passwordless-email', () => {
     });
 
     it('blocks request when enforceTurnstile returns false', async () => {
-        mockEnforceTurnstile.mockResolvedValue(false);
+        mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null });
 
         const formData = new FormData();
         formData.append('email', 'user@example.com');
@@ -128,7 +136,7 @@ describe('action.authorize-passwordless-email', () => {
     });
 
     it('succeeds when enforceTurnstile allows and email is valid', async () => {
-        mockEnforceTurnstile.mockResolvedValue(true);
+        mockEnforceTurnstile.mockResolvedValue({ allowed: true, cookieValue: TEST_COOKIE_VALUE });
 
         const formData = new FormData();
         formData.append('email', 'user@example.com');
@@ -533,11 +541,30 @@ describe('action.authorize-passwordless-email', () => {
             const response = await action({ request, context: mockContext } as ActionFunctionArgs);
 
             expect(response.data).toEqual({ success: true, email: 'user@example.com' });
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
+        });
+
+        it('does NOT set cc-tv cookie when enforceTurnstile short-circuits (cookieValue null, allowed true)', async () => {
+            // When the HMAC-bound cookie already covers the current email + site,
+            // enforceTurnstile returns { allowed: true, cookieValue: null }. No new
+            // cookie should be emitted — there is nothing new to record.
+            mockEnforceTurnstile.mockResolvedValue({ allowed: true, cookieValue: null });
+
+            const formData = new FormData();
+            formData.append('email', 'user@example.com');
+            const request = new Request('http://localhost/action/authorize-passwordless-email', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const response = await action({ request, context: mockContext } as ActionFunctionArgs);
+
+            expect(response.data.success).toBe(true);
+            expect(getSetCookie(response)).toBeUndefined();
         });
 
         it('does NOT set cc-tv cookie when Turnstile rejects', async () => {
-            mockEnforceTurnstile.mockResolvedValue(false);
+            mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null });
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');
@@ -597,7 +624,7 @@ describe('action.authorize-passwordless-email', () => {
 
             expectStatus(response, 200);
             expect(response.data.requiresLogin).toBe(true);
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('still sets cc-tv cookie on the email-not-verified recovery path (success after second authorize call)', async () => {
@@ -627,7 +654,7 @@ describe('action.authorize-passwordless-email', () => {
 
             expectStatus(response, 200);
             expect(response.data).toEqual({ success: true, email: 'user@example.com' });
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('still sets cc-tv cookie when SCAPI returns 403 (guest path)', async () => {
@@ -655,7 +682,7 @@ describe('action.authorize-passwordless-email', () => {
             expectStatus(response, 200);
             expect(response.data.success).toBe(false);
             expect(response.data.requiresLogin).toBeUndefined();
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('still sets cc-tv cookie when SCAPI throws a non-ApiError', async () => {
@@ -671,7 +698,7 @@ describe('action.authorize-passwordless-email', () => {
             const response = await action({ request, context: mockContext } as ActionFunctionArgs);
 
             expectStatus(response, 500);
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('still sets cc-tv cookie when SCAPI returns a 5xx (5xx → requiresLogin fallback)', async () => {
@@ -701,7 +728,88 @@ describe('action.authorize-passwordless-email', () => {
 
             expectStatus(response, 200);
             expect(response.data.requiresLogin).toBe(true);
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
+        });
+
+        it('includes recoveryStatus in the error log when the recovery dispatch throws an ApiError', async () => {
+            // Line 157: `recoveryError instanceof ApiError ? recoveryError.status : undefined`
+            // The existing "falls back to requiresLogin" test uses a plain Error, so
+            // recoveryStatus is always undefined. This case exercises the ApiError branch.
+            const { ApiError } = await import('@/scapi');
+            const probeError = new ApiError({
+                status: 400,
+                statusText: 'Bad Request',
+                headers: new Headers(),
+                body: { type: 'error', title: 'Bad Request', detail: 'Email not verified' },
+                rawBody: '{"message":"Email not verified"}',
+                url: 'https://api.example.com/authorize-passwordless',
+                method: 'POST',
+            });
+            const recoveryApiError = new ApiError({
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: new Headers(),
+                body: { type: 'error', title: 'Service Unavailable', detail: 'Upstream timeout' },
+                rawBody: '{"type":"error","title":"Service Unavailable"}',
+                url: 'https://api.example.com/authorize-passwordless',
+                method: 'POST',
+            });
+            mockAuthorizePasswordless.mockRejectedValueOnce(probeError).mockRejectedValueOnce(recoveryApiError);
+            const { extractErrorMessage } = await import('@/lib/auth/error-handler');
+            vi.mocked(extractErrorMessage).mockReturnValue('Email not verified');
+
+            const formData = new FormData();
+            formData.append('email', 'user@example.com');
+            formData.append('strictVerify', 'true');
+            const request = new Request('http://localhost/action/authorize-passwordless-email', {
+                method: 'POST',
+                body: formData,
+            });
+
+            await action({ request, context: mockContext } as ActionFunctionArgs);
+
+            // The error logger is called with recoveryStatus = 503 (from the ApiError)
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                'AuthorizePasswordlessEmail: verify-email recovery dispatch failed',
+                expect.objectContaining({
+                    recoveryStatus: 503,
+                })
+            );
+        });
+
+        it('logs recoveryMessage as "unknown error" when recovery throws a non-Error value', async () => {
+            // Line 156 false branch: recoveryError instanceof Error → false
+            const { ApiError } = await import('@/scapi');
+            const probeError = new ApiError({
+                status: 400,
+                statusText: 'Bad Request',
+                headers: new Headers(),
+                body: { type: 'error', title: 'Bad Request', detail: 'Email not verified' },
+                rawBody: '{"message":"Email not verified"}',
+                url: 'https://api.example.com/authorize-passwordless',
+                method: 'POST',
+            });
+            mockAuthorizePasswordless.mockRejectedValueOnce(probeError).mockRejectedValueOnce('plain-string-reject');
+            const { extractErrorMessage } = await import('@/lib/auth/error-handler');
+            vi.mocked(extractErrorMessage).mockReturnValue('Email not verified');
+
+            const formData = new FormData();
+            formData.append('email', 'user@example.com');
+            formData.append('strictVerify', 'true');
+            const request = new Request('http://localhost/action/authorize-passwordless-email', {
+                method: 'POST',
+                body: formData,
+            });
+
+            await action({ request, context: mockContext } as ActionFunctionArgs);
+
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                'AuthorizePasswordlessEmail: verify-email recovery dispatch failed',
+                expect.objectContaining({
+                    recoveryMessage: 'unknown error',
+                    recoveryStatus: undefined,
+                })
+            );
         });
 
         it('still sets cc-tv cookie when SCAPI returns 404 (unknown-user → guest path)', async () => {
@@ -732,7 +840,7 @@ describe('action.authorize-passwordless-email', () => {
             expectStatus(response, 200);
             expect(response.data.success).toBe(false);
             expect(response.data.requiresLogin).toBeUndefined();
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
     });
 });

@@ -90,6 +90,9 @@ afterEach(() => {
 
 describe('ProductCarousel stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
+        // Design-mode stories render inside PageDesignerProvider's lazy Suspense provider, which does
+        // not resolve deterministically in a synchronous snapshot render — they opt out via `snapshot: false`.
+        if (Story?.parameters?.snapshot === false) continue;
         test(`${storyName} story renders and matches snapshot`, () => {
             const { container } = render(
                 <SnapshotShell>

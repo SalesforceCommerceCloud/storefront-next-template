@@ -454,117 +454,130 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
     class="mt-6"
   >
     <div
-      class="space-y-4"
+      class="w-full"
     >
       <div
-        class="w-full"
+        aria-label="Fulfillment method"
+        aria-required="false"
+        class="grid gap-2 grid-cols-2"
+        data-slot="radio-group"
+        data-testid="delivery-option-select"
+        dir="ltr"
+        role="radiogroup"
+        style="outline: none;"
+        tabindex="0"
       >
         <div
-          aria-required="false"
-          class="grid grid-cols-2 gap-2"
-          data-slot="radio-group"
-          data-testid="delivery-option-select"
-          dir="ltr"
-          role="radiogroup"
-          style="outline: none;"
-          tabindex="0"
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
         >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-delivery-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-delivery"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="delivery"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
-            data-slot="label"
-            for="delivery-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-delivery"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              id="delivery-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="delivery"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Deliver to
-                </span>
-                <p
-                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
-                >
-                  Enter ZIP code to see delivery estimate
-                </p>
-              </div>
-            </div>
+              Delivery
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Delivery
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-delivery-description"
+            >
+              <p>
+                Enter postal code to see delivery estimate
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+        >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-pickup-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-pickup"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="pickup"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
-            data-slot="label"
-            for="pickup-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-pickup"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-disabled=""
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              disabled=""
-              id="pickup-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="pickup"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Pickup unavailable at
-                </span>
-                <div
-                  class="mt-0.5"
-                >
-                  <button
-                    class="text-xs text-primary hover:underline cursor-pointer"
-                    type="button"
-                  />
-                  <p
-                    class="text-xs font-normal text-destructive mt-1"
-                  >
-                    Try another store
-                  </p>
-                </div>
-              </div>
-            </div>
+              Free pickup in
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Free pickup in
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-pickup-description"
+            >
+              <p>
+                Select Store
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -608,6 +621,12 @@ exports[`ProductInfo stories snapshot > ControlledSwatchMode story renders and m
         +
       </button>
     </div>
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      id="quantity-_r_1j_-inventory-msg"
+      role="status"
+    />
   </div>
 </div>
 `;
@@ -1072,117 +1091,130 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
     class="mt-6"
   >
     <div
-      class="space-y-4"
+      class="w-full"
     >
       <div
-        class="w-full"
+        aria-label="Fulfillment method"
+        aria-required="false"
+        class="grid gap-2 grid-cols-2"
+        data-slot="radio-group"
+        data-testid="delivery-option-select"
+        dir="ltr"
+        role="radiogroup"
+        style="outline: none;"
+        tabindex="0"
       >
         <div
-          aria-required="false"
-          class="grid grid-cols-2 gap-2"
-          data-slot="radio-group"
-          data-testid="delivery-option-select"
-          dir="ltr"
-          role="radiogroup"
-          style="outline: none;"
-          tabindex="0"
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
         >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-delivery-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-delivery"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="delivery"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
-            data-slot="label"
-            for="delivery-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-delivery"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              id="delivery-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="delivery"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Deliver to
-                </span>
-                <p
-                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
-                >
-                  Enter ZIP code to see delivery estimate
-                </p>
-              </div>
-            </div>
+              Delivery
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Delivery
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-delivery-description"
+            >
+              <p>
+                Enter postal code to see delivery estimate
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+        >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-pickup-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-pickup"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="pickup"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
-            data-slot="label"
-            for="pickup-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-pickup"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-disabled=""
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              disabled=""
-              id="pickup-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="pickup"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Pickup unavailable at
-                </span>
-                <div
-                  class="mt-0.5"
-                >
-                  <button
-                    class="text-xs text-primary hover:underline cursor-pointer"
-                    type="button"
-                  />
-                  <p
-                    class="text-xs font-normal text-destructive mt-1"
-                  >
-                    Try another store
-                  </p>
-                </div>
-              </div>
-            </div>
+              Free pickup in
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Free pickup in
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-pickup-description"
+            >
+              <p>
+                Select Store
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1226,6 +1258,534 @@ exports[`ProductInfo stories snapshot > FocusOrderActionIcons story renders and 
         +
       </button>
     </div>
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      id="quantity-_r_20_-inventory-msg"
+      role="status"
+    />
+  </div>
+</div>
+`;
+
+exports[`ProductInfo stories snapshot > ImageSwatchesOnNonColorAxis story renders and matches snapshot 1`] = `
+<div
+  class="relative grid gap-4"
+>
+  <div
+    class="flex items-start justify-between gap-4"
+  >
+    <div
+      class="sm:pr-20 min-w-0"
+    >
+      <h1
+        class="text-3xl font-bold text-card-foreground tracking-tight break-words"
+        data-testid="product-title"
+      >
+        Modular Fabric Sofa
+      </h1>
+      <p
+        class="mt-2 text-xs leading-none text-secondary-foreground"
+      >
+        SKU:
+         
+        test-product-123
+      </p>
+      <p
+        class="mt-2 text-base font-normal leading-6 text-accent-foreground"
+      >
+        Soft, breathable cotton t-shirt perfect for everyday wear
+      </p>
+    </div>
+  </div>
+  <div
+    class="sm:absolute sm:top-0 sm:right-0 flex items-center gap-2 z-10"
+  >
+    <button
+      aria-label="Add to Wishlist"
+      class="absolute top-2 right-2 z-10 w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed !static border border-border bg-background/90 hover:border-muted-foreground/50 hover:bg-background"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 transition-all duration-200 ease-in-out text-muted-foreground scale-100"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+    </button>
+    <button
+      aria-label="Share"
+      class="w-9 h-9 p-2 shadow-md flex items-center justify-center rounded-ui transition-all duration-200 ease-in-out cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 !static border border-border bg-background/90 hover:bg-background hover:border-muted-foreground/50 [&_svg]:stroke-[2]"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-4 h-4 text-muted-foreground transition-all duration-200 ease-in-out"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"
+        />
+        <polyline
+          points="16 6 12 2 8 6"
+        />
+        <line
+          x1="12"
+          x2="12"
+          y1="2"
+          y2="15"
+        />
+      </svg>
+    </button>
+  </div>
+  <div
+    class="relative mt-2 inline-block"
+  >
+    <div
+      aria-controls="radix-_r_23_"
+      aria-haspopup="dialog"
+      class="relative inline-block"
+      data-slot="popover-trigger"
+      data-state="closed"
+      type="button"
+    >
+      <div
+        class="flex items-center gap-2"
+      >
+        <div
+          class="flex flex-col gap-1"
+        >
+          <div
+            class="flex items-center gap-2"
+          >
+            <div
+              aria-label="0 out of 5 stars, 0 reviews"
+              class="flex items-center gap-0.5"
+              role="group"
+            >
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="shrink-0 w-4 h-4"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  fill="white"
+                  stroke="var(--color-border-subtle)"
+                  stroke-width="1"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      class="items-center gap-2"
+    >
+      <span
+        aria-hidden="true"
+        class="[&:not(:first-child)]:mt-6 text-left text-2xl font-bold text-card-foreground leading-[120%] tracking-[-0.6px]"
+      >
+        £29.99
+      </span>
+      <span
+        aria-atomic="true"
+        aria-live="polite"
+        class="sr-only"
+      >
+        Modular Fabric Sofa
+         
+        Current price: £29.99
+      </span>
+       
+    </div>
+  </div>
+  <div
+    aria-atomic="true"
+    class="flex items-center gap-2"
+    data-slot="inventory-message"
+    role="status"
+  >
+    <span
+      aria-hidden="true"
+      class="h-2 w-2 shrink-0 rounded-full bg-current text-status-positive"
+    />
+    <p
+      class="text-sm font-medium text-status-positive"
+    >
+      <span
+        class="sr-only"
+      >
+        Available: 
+      </span>
+      In stock
+    </p>
+  </div>
+  <div
+    class="space-y-3"
+  >
+    <div
+      aria-labelledby="swatch-group-label-_r_29_"
+      class="inline-flex flex-col gap-3"
+      role="radiogroup"
+    >
+      <div
+        class="flex items-center gap-2 text-base font-semibold leading-6 text-card-foreground"
+        id="swatch-group-label-_r_29_"
+      >
+        <span>
+          Fabric
+          :
+        </span>
+      </div>
+      <div
+        class="inline-flex flex-wrap gap-2 focus:outline-none bg-swatch-group-bg p-1"
+        data-slot="swatch-container"
+      >
+        <a
+          aria-checked="false"
+          aria-label="Linen"
+          class="text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-image-tile-size,3rem)] h-[var(--swatch-image-tile-size,3rem)] p-0 overflow-hidden rounded-ui bg-muted cursor-pointer !w-[var(--swatch-image-tile-size,3rem)] !h-[var(--swatch-image-tile-size,3rem)] !min-w-[var(--swatch-image-tile-size,3rem)] !min-h-[var(--swatch-image-tile-size,3rem)] !p-0 border-2 border-border shadow-2xs hover:border-primary/60"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="image"
+          href="/RefArchGlobal/en-GB/product/test-product?fabric=linen"
+          position="relative"
+          role="radio"
+          tabindex="0"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <div
+              class="absolute inset-0 h-full w-full"
+            >
+              <img
+                alt="Linen fabric swatch"
+                class="h-full w-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://placehold.co/72x72/e4d5b7/333333?text=Linen"
+              />
+            </div>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Velvet"
+          class="text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-image-tile-size,3rem)] h-[var(--swatch-image-tile-size,3rem)] p-0 overflow-hidden rounded-ui bg-muted cursor-pointer !w-[var(--swatch-image-tile-size,3rem)] !h-[var(--swatch-image-tile-size,3rem)] !min-w-[var(--swatch-image-tile-size,3rem)] !min-h-[var(--swatch-image-tile-size,3rem)] !p-0 border-2 border-border shadow-2xs hover:border-primary/60"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="image"
+          href="/RefArchGlobal/en-GB/product/test-product?fabric=velvet"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <div
+              class="absolute inset-0 h-full w-full"
+            >
+              <img
+                alt="Velvet fabric swatch"
+                class="h-full w-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://placehold.co/72x72/6b2d5c/ffffff?text=Velvet"
+              />
+            </div>
+            <span
+              class="ml-1 text-[length:var(--swatch-description-size,0.75rem)] text-muted-foreground"
+              data-slot="swatch-description"
+            >
+              +US$200
+            </span>
+          </div>
+        </a>
+        <a
+          aria-checked="false"
+          aria-label="Leather"
+          class="text-foreground flex-shrink-0 relative group transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-w-8 min-h-8 w-[var(--swatch-image-tile-size,3rem)] h-[var(--swatch-image-tile-size,3rem)] p-0 overflow-hidden rounded-ui bg-muted cursor-pointer !w-[var(--swatch-image-tile-size,3rem)] !h-[var(--swatch-image-tile-size,3rem)] !min-w-[var(--swatch-image-tile-size,3rem)] !min-h-[var(--swatch-image-tile-size,3rem)] !p-0 border-2 border-border shadow-2xs hover:border-primary/60"
+          data-discover="true"
+          data-labeled="true"
+          data-swatch-type="image"
+          href="/RefArchGlobal/en-GB/product/test-product?fabric=leather"
+          position="relative"
+          role="radio"
+          tabindex="-1"
+        >
+          <div
+            class="flex items-center justify-center w-full h-full text-sm font-medium leading-5"
+            data-slot="swatch-content"
+          >
+            <div
+              class="absolute inset-0 h-full w-full"
+            >
+              <img
+                alt="Leather fabric swatch"
+                class="h-full w-full object-cover"
+                fetchpriority="auto"
+                loading="lazy"
+                src="https://placehold.co/72x72/6b4423/ffffff?text=Leather"
+              />
+            </div>
+            <span
+              class="ml-1 text-[length:var(--swatch-description-size,0.75rem)] text-muted-foreground"
+              data-slot="swatch-description"
+            >
+              +US$450
+            </span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div
+    class="mt-6"
+  >
+    <div
+      class="w-full"
+    >
+      <div
+        aria-label="Fulfillment method"
+        aria-required="false"
+        class="grid gap-2 grid-cols-2"
+        data-slot="radio-group"
+        data-testid="delivery-option-select"
+        dir="ltr"
+        role="radiogroup"
+        style="outline: none;"
+        tabindex="0"
+      >
+        <div
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+        >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-delivery-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-delivery"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="delivery"
+          />
+          <label
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-delivery"
+          >
+            <span
+              class="sr-only"
+            >
+              Delivery
+            </span>
+          </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Delivery
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-delivery-description"
+            >
+              <p>
+                Enter postal code to see delivery estimate
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+        >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-pickup-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-pickup"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="pickup"
+          />
+          <label
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-pickup"
+          >
+            <span
+              class="sr-only"
+            >
+              Free pickup in
+            </span>
+          </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Free pickup in
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-pickup-description"
+            >
+              <p>
+                Select Store
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="space-y-2"
+  >
+    <label
+      class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+      data-slot="label"
+      for="quantity-_r_2c_"
+    >
+      Quantity
+    </label>
+    <div
+      aria-label="Quantity for Modular Fabric Sofa"
+      class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+      role="group"
+    >
+      <button
+        aria-label="Decrement Quantity for Modular Fabric Sofa"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-decrement"
+        disabled=""
+      >
+        −
+      </button>
+      <input
+        class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        id="quantity-_r_2c_"
+        min="1"
+        step="1"
+        type="number"
+        value="1"
+      />
+      <button
+        aria-label="Increment Quantity for Modular Fabric Sofa"
+        class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="quantity-increment"
+      >
+        +
+      </button>
+    </div>
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      id="quantity-_r_2c_-inventory-msg"
+      role="status"
+    />
   </div>
 </div>
 `;
@@ -1685,119 +2245,132 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
     class="mt-6"
   >
     <div
-      class="space-y-4"
+      class="w-full"
     >
       <div
-        class="w-full"
+        aria-label="Fulfillment method"
+        aria-required="false"
+        class="grid gap-2 grid-cols-2"
+        data-slot="radio-group"
+        data-testid="delivery-option-select"
+        dir="ltr"
+        role="radiogroup"
+        style="outline: none;"
+        tabindex="0"
       >
         <div
-          aria-required="false"
-          class="grid grid-cols-2 gap-2"
-          data-slot="radio-group"
-          data-testid="delivery-option-select"
-          dir="ltr"
-          role="radiogroup"
-          style="outline: none;"
-          tabindex="-1"
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50 bg-muted/50 cursor-not-allowed"
         >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-delivery-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-disabled=""
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            disabled=""
+            id="fulfillment-option-test-product-123-delivery"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="delivery"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
-            data-slot="label"
-            for="delivery-option-test-product-123"
+            class="absolute inset-0 cursor-not-allowed"
+            for="fulfillment-option-test-product-123-delivery"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-disabled=""
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              disabled=""
-              id="delivery-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="delivery"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Deliver to
-                </span>
-                <p
-                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
-                >
-                  Enter ZIP code to see delivery estimate
-                </p>
-              </div>
-            </div>
+              Delivery
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-not-allowed"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Delivery
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-delivery-description"
+            >
+              <p>
+                Enter postal code to see delivery estimate
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+        >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-pickup-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-pickup"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="pickup"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
-            data-slot="label"
-            for="pickup-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-pickup"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-disabled=""
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              disabled=""
-              id="pickup-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="pickup"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Pickup unavailable at
-                </span>
-                <div
-                  class="mt-0.5"
-                >
-                  <button
-                    class="text-xs text-primary hover:underline cursor-pointer"
-                    type="button"
-                  />
-                  <p
-                    class="text-xs font-normal text-destructive mt-1"
-                  >
-                    Try another store
-                  </p>
-                </div>
-              </div>
-            </div>
+              Free pickup in
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Free pickup in
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-pickup-description"
+            >
+              <p>
+                Select Store
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1841,6 +2414,12 @@ exports[`ProductInfo stories snapshot > OutOfStockStatus story renders and match
         +
       </button>
     </div>
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      id="quantity-_r_p_-inventory-msg"
+      role="status"
+    />
   </div>
 </div>
 `;
@@ -2305,117 +2884,130 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
     class="mt-6"
   >
     <div
-      class="space-y-4"
+      class="w-full"
     >
       <div
-        class="w-full"
+        aria-label="Fulfillment method"
+        aria-required="false"
+        class="grid gap-2 grid-cols-2"
+        data-slot="radio-group"
+        data-testid="delivery-option-select"
+        dir="ltr"
+        role="radiogroup"
+        style="outline: none;"
+        tabindex="0"
       >
         <div
-          aria-required="false"
-          class="grid grid-cols-2 gap-2"
-          data-slot="radio-group"
-          data-testid="delivery-option-select"
-          dir="ltr"
-          role="radiogroup"
-          style="outline: none;"
-          tabindex="0"
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
         >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-delivery-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-delivery"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="delivery"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
-            data-slot="label"
-            for="delivery-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-delivery"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              id="delivery-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="delivery"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Deliver to
-                </span>
-                <p
-                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
-                >
-                  Enter ZIP code to see delivery estimate
-                </p>
-              </div>
-            </div>
+              Delivery
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Delivery
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-delivery-description"
+            >
+              <p>
+                Enter postal code to see delivery estimate
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+        >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-pickup-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-pickup"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="pickup"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
-            data-slot="label"
-            for="pickup-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-pickup"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-disabled=""
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              disabled=""
-              id="pickup-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="pickup"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Pickup unavailable at
-                </span>
-                <div
-                  class="mt-0.5"
-                >
-                  <button
-                    class="text-xs text-primary hover:underline cursor-pointer"
-                    type="button"
-                  />
-                  <p
-                    class="text-xs font-normal text-destructive mt-1"
-                  >
-                    Try another store
-                  </p>
-                </div>
-              </div>
-            </div>
+              Free pickup in
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Free pickup in
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-pickup-description"
+            >
+              <p>
+                Select Store
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2459,6 +3051,12 @@ exports[`ProductInfo stories snapshot > Playground story renders and matches sna
         +
       </button>
     </div>
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      id="quantity-_r_c_-inventory-msg"
+      role="status"
+    />
   </div>
 </div>
 `;
@@ -2858,117 +3456,130 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
     class="mt-6"
   >
     <div
-      class="space-y-4"
+      class="w-full"
     >
       <div
-        class="w-full"
+        aria-label="Fulfillment method"
+        aria-required="false"
+        class="grid gap-2 grid-cols-2"
+        data-slot="radio-group"
+        data-testid="delivery-option-select"
+        dir="ltr"
+        role="radiogroup"
+        style="outline: none;"
+        tabindex="0"
       >
         <div
-          aria-required="false"
-          class="grid grid-cols-2 gap-2"
-          data-slot="radio-group"
-          data-testid="delivery-option-select"
-          dir="ltr"
-          role="radiogroup"
-          style="outline: none;"
-          tabindex="0"
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
         >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-delivery-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-delivery"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="delivery"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
-            data-slot="label"
-            for="delivery-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-delivery"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              id="delivery-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="delivery"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Deliver to
-                </span>
-                <p
-                  class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
-                >
-                  Enter ZIP code to see delivery estimate
-                </p>
-              </div>
-            </div>
+              Delivery
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Delivery
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-delivery-description"
+            >
+              <p>
+                Enter postal code to see delivery estimate
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+        >
+          <button
+            aria-checked="false"
+            aria-describedby="fulfillment-option-test-product-123-pickup-description"
+            class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+            data-radix-collection-item=""
+            data-slot="radio-group-item"
+            data-state="unchecked"
+            id="fulfillment-option-test-product-123-pickup"
+            role="radio"
+            tabindex="-1"
+            type="button"
+            value="pickup"
+          />
           <label
-            class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
-            data-slot="label"
-            for="pickup-option-test-product-123"
+            class="absolute inset-0 cursor-pointer"
+            for="fulfillment-option-test-product-123-pickup"
           >
-            <button
-              aria-checked="false"
-              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-              data-disabled=""
-              data-radix-collection-item=""
-              data-slot="radio-group-item"
-              data-state="unchecked"
-              disabled=""
-              id="pickup-option-test-product-123"
-              role="radio"
-              tabindex="-1"
-              type="button"
-              value="pickup"
-            />
-            <div
-              class="mt-0.5 shrink-0"
+            <span
+              class="sr-only"
             >
-              <div
-                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-              />
-            </div>
-            <div
-              class="flex-1 min-w-0"
-            >
-              <div
-                class="flex flex-col"
-              >
-                <span
-                  class="text-sm font-medium leading-none text-foreground"
-                >
-                  Pickup unavailable at
-                </span>
-                <div
-                  class="mt-0.5"
-                >
-                  <button
-                    class="text-xs text-primary hover:underline cursor-pointer"
-                    type="button"
-                  />
-                  <p
-                    class="text-xs font-normal text-destructive mt-1"
-                  >
-                    Try another store
-                  </p>
-                </div>
-              </div>
-            </div>
+              Free pickup in
+            </span>
           </label>
+          <div
+            aria-hidden="true"
+            class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+          >
+            <div
+              class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+            />
+          </div>
+          <div
+            class="relative z-10 flex-1 min-w-0 pointer-events-none"
+          >
+            <div
+              class="cursor-pointer"
+            >
+              <span
+                class="text-sm font-medium leading-none text-foreground"
+              >
+                Free pickup in
+              </span>
+            </div>
+            <div
+              class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+              id="fulfillment-option-test-product-123-pickup-description"
+            >
+              <p>
+                Select Store
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3012,6 +3623,12 @@ exports[`ProductInfo stories snapshot > WithDisabledVariants story renders and m
         +
       </button>
     </div>
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      id="quantity-_r_16_-inventory-msg"
+      role="status"
+    />
   </div>
 </div>
 `;

@@ -190,7 +190,7 @@ describe('AccountOrders Page', () => {
     describe('Page Content', () => {
         test('renders Order History title', async () => {
             await renderAccountOrders();
-            expect(screen.getByRole('heading', { level: 4 })).toHaveTextContent(t('account:navigation.orderHistory'));
+            expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(t('account:navigation.orderHistory'));
         });
 
         test('renders subtitle', async () => {

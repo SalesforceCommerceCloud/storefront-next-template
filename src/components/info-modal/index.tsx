@@ -110,7 +110,14 @@ const MODAL_DESCRIPTIONS: Record<string, string> = {
  * @param props.className - Optional custom className for the dialog content
  * @returns ReactElement
  */
-export default function InfoModal({ open, onOpenChange, data, className }: InfoModalProps): ReactElement {
+export default function InfoModal({
+    open,
+    onOpenChange,
+    onCloseAutoFocus,
+    onOpenAutoFocus,
+    data,
+    className,
+}: InfoModalProps): ReactElement {
     const { currency } = useSite();
     const { t } = useTranslation('infoModal');
     // @sfdc-extension-line SFDC_EXT_RATINGS_REVIEWS
@@ -119,7 +126,10 @@ export default function InfoModal({ open, onOpenChange, data, className }: InfoM
     if (!data) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className={className}>
+                <DialogContent
+                    className={className}
+                    onCloseAutoFocus={onCloseAutoFocus}
+                    onOpenAutoFocus={onOpenAutoFocus}>
                     <DialogHeader>
                         <DialogTitle>Information</DialogTitle>
                     </DialogHeader>
@@ -131,7 +141,10 @@ export default function InfoModal({ open, onOpenChange, data, className }: InfoM
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={cn(MODAL_WIDTH_CLASSES[data.type], 'gap-0 p-0 border-0', className)}>
+            <DialogContent
+                className={cn(MODAL_WIDTH_CLASSES[data.type], 'gap-0 p-0 border-0', className)}
+                onCloseAutoFocus={onCloseAutoFocus}
+                onOpenAutoFocus={onOpenAutoFocus}>
                 <DialogDescription className="sr-only">
                     {t(MODAL_DESCRIPTIONS[data.type] ?? 'paymentScheduleDescription', '')}
                 </DialogDescription>
@@ -233,18 +246,23 @@ export default function InfoModal({ open, onOpenChange, data, className }: InfoM
                 {data.type === 'estimated-delivery' && (
                     <>
                         <DialogHeader className="p-6 pt-8 pb-0 pr-12 text-left">
-                            <DialogTitle className="text-2xl font-semibold text-foreground">{data.title}</DialogTitle>
+                            <DialogTitle
+                                id="estimated-delivery-modal-title"
+                                tabIndex={-1}
+                                className="text-2xl font-semibold text-foreground focus:outline-none">
+                                {data.title}
+                            </DialogTitle>
                         </DialogHeader>
                         <div className="mt-4 border-b border-muted-foreground/25" aria-hidden />
                         <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
                             <div className="p-6 space-y-6">
-                                <EstimatedDeliveryModalContent deliveryData={data.deliveryData} currency={currency} />
+                                <EstimatedDeliveryModalContent shippingOptions={data.shippingOptions} />
                             </div>
-                        </div>
-                        <div className="p-6 pt-4 border-t border-border">
-                            <Button className="w-full" onClick={() => onOpenChange(false)}>
-                                {t('close')}
-                            </Button>
+                            <div className="sticky bottom-0 border-t border-border bg-background p-6 pt-4">
+                                <Button className="w-full" onClick={() => onOpenChange(false)}>
+                                    {t('close')}
+                                </Button>
+                            </div>
                         </div>
                     </>
                 )}

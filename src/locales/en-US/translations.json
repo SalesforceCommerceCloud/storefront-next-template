@@ -27,17 +27,42 @@
         "hero": {
             "defaultTitle": "Shop Now",
             "defaultImageAlt": "Hero Image",
-            "defaultCtaText": "Shop Now"
+            "defaultCtaText": "Shop Now",
+            "emptyTitle": "Add your title here",
+            "emptyButton": "Button"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Add your title here"
         },
         "previousImage": "Previous image",
         "nextImage": "Next image",
         "thumbnailImage": "Product image {{current}} of {{total}}",
+        "thumbnailImageLabeled": "{{label}}, product image {{current}} of {{total}}",
         "quickCategoryFilters": "Quick category filters",
         "carousel": {
             "play": "Play carousel",
             "pause": "Pause carousel"
         },
-        "skipToMainContent": "Skip to main content"
+        "skipToMainContent": "Skip to main content",
+        "popularCategory": {
+            "emptyTitle": "Category"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Add your text here"
+        },
+        "contentCard": {
+            "emptyTitle": "Add your title here",
+            "emptyDescription": "Add your description here"
+        },
+        "productTile": {
+            "emptyTitle": "Product"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Product Recommendations"
+        }
     },
     "search": {
         "results": "Search Results for",
@@ -102,6 +127,7 @@
         "expandCategory": "Expand {{category}}",
         "collapseCategory": "Collapse {{category}}",
         "featuredContent": "{{category}} featured content",
+        "shopAllCategory": "Shop all {{category}}",
         "menu": {
             "yourLists": "Your Lists",
             "yourAccount": "Your Account",
@@ -145,7 +171,8 @@
         "resendCode": "Resend Code",
         "resendCodeTimer": "Resend in {{timer}}s",
         "resendCodeError": "Failed to resend code. Please try again.",
-        "passkeyError": "We couldn't sign you in with that passkey. Please try again or use another sign-in method."
+        "passkeyError": "We couldn't sign you in with that passkey. Please try again or use another sign-in method.",
+        "verificationFailed": "We couldn't verify your information. Please try again."
     },
     "resetPassword": {
         "title": "Reset Password",
@@ -342,7 +369,7 @@
         "itemCount_other": "Cart ({{count}} items)",
         "empty": {
             "title": "Your cart is empty.",
-            "registeredMessage": "Continue shopping to add items to your cart.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Sign in to retrieve your saved items or continue shopping.",
             "continueShopping": "Continue Shopping",
             "signIn": "Sign In"
@@ -684,6 +711,7 @@
             "hero": {
                 "thankYou": "Thank you, {{name}}!",
                 "orderConfirmed": "Your order is confirmed.",
+                "statusAnnouncement": "Your order is confirmed. Order number {{orderNo}}.",
                 "emailConfirmation": "We've sent a confirmation email to {{email}}.",
                 "needHelp": "Need help?",
                 "defaultName": "Customer",
@@ -946,7 +974,7 @@
             "empty": "You haven't placed an order yet. Once you place an order the details will show up here.",
             "continueShopping": "Continue Shopping",
             "errorDescription": "We encountered an error loading your order history. Please try again later.",
-            "subtitle": "View and track your orders",
+            "subtitle": "View and track your orders.",
             "orderDate": "Order Date",
             "total": "Total",
             "items_one": "Item",
@@ -1056,16 +1084,16 @@
             "returnErrorGenericTitle": "Something went wrong.",
             "returnErrorGenericMessage": "We couldn't process your return right now. Try again in a few minutes.",
             "returnReasonAutoAssigned": "A return reason will be assigned automatically.",
-            "cancelOrder": "Cancel order",
+            "cancelOrder": "Cancel Order",
             "cancelUnavailable": "This order can no longer be canceled.",
             "cancelDialogTitle": "Cancel order {{orderNo}}",
             "cancelDialogSubtitle": "Select a reason and confirm cancellation.",
             "cancelDialogSubtitleNoReasons": "Confirm cancellation below.",
-            "cancelDialogImpact": "This cancels the entire order.",
+            "cancelDialogImpact": "Cancel the entire order.",
             "cancelReasonLabel": "Reason",
             "cancelReasonPlaceholder": "Select a reason (optional)",
-            "cancelKeepOrder": "Keep order",
-            "cancelConfirm": "Confirm cancellation",
+            "cancelKeepOrder": "Keep Order",
+            "cancelConfirm": "Confirm Cancellation",
             "cancelConfirmSubmitting": "Canceling…",
             "cancelSuccessTitle": "Order canceled",
             "cancelSuccessDescription": "Your order was canceled successfully.",
@@ -1208,7 +1236,8 @@
                 "phoneInvalid": "Enter a valid phone number.",
                 "birthdayFuture": "Date of birth cannot be in the future."
             },
-            "phoneDescription": "Enter phone number including area code"
+            "phoneDescription": "Enter phone number including area code",
+            "dateOfBirthDescription": "Format: month, day, year"
         },
         "email": {
             "title": "Email Address",
@@ -1273,7 +1302,8 @@
                 "hasNumber": "At least one number",
                 "hasSpecial": "At least one special character",
                 "statusMet": "Requirement met",
-                "statusNotMet": "Requirement not met"
+                "statusNotMet": "Requirement not met",
+                "summary": "{{met}} of {{total}} requirements met"
             }
         },
         "common": {
@@ -1348,24 +1378,28 @@
                 "title": "The New Season",
                 "subtitle": "A new collection shaped by contrast, proportion, and modern attitude. Introducing key pieces for the season ahead.",
                 "ctaText": "Discover the Collection",
+                "ctaAriaLabel": "Discover the Collection: The New Season",
                 "imageAlt": "Women's Slacks Jackets and Purses"
             },
             "slide2": {
                 "title": "The Modern Wardrobe",
                 "subtitle": "Elevated silhouettes, refined textures, and a bold approach to everyday dressing. Designed to move with you.",
                 "ctaText": "Shop the Look",
+                "ctaAriaLabel": "Shop the Look: The Modern Wardrobe",
                 "imageAlt": "Women's White Linen Dress"
             },
             "slide3": {
                 "title": "After Hours",
                 "subtitle": "Statement pieces and refined layers designed for nights out, late moments, and everything in between.",
                 "ctaText": "Explore the Collection",
+                "ctaAriaLabel": "Explore the Collection: After Hours",
                 "imageAlt": "Women's Black Suit"
             },
             "slide4": {
                 "title": "New Perspectives",
                 "subtitle": "A curated drop of standout pieces that redefine contemporary fashion. Confident. Expressive. Uncompromising.",
                 "ctaText": "Shop Now",
+                "ctaAriaLabel": "Shop Now: New Perspectives",
                 "imageAlt": "Women's Grey Dress"
             }
         },
@@ -1382,7 +1416,9 @@
             "title": "Style for Real Life",
             "description": "At Market Street, we believe fashion should be effortless, authentic, and accessible. Our collections are designed for the modern individual who values quality, versatility, and timeless style.",
             "shopNowButton": "Shop Now",
-            "loadFailed": "Unable to load categories."
+            "loadFailed": "Unable to load categories.",
+            "emptyTitle": "Add your title here",
+            "emptyRegionLabel": "Categories carousel"
         },
         "featuredContent": {
             "women": {
@@ -1669,14 +1705,6 @@
         "returnsAndWarrantyDescription": "Returns and warranty details",
         "close": "Close"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Estimated Delivery",
-        "cardDescription": "Shipping options available",
-        "learnMore": "Learn More",
-        "sectionHeading": "Estimated Delivery",
-        "shippingOptionsHeading": "Shipping Options & Rates",
-        "free": "Free"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Please fix the following:",
@@ -1726,7 +1754,7 @@
             "page": "Page {{number}}"
         },
         "loadMore": {
-            "button": "Load more",
+            "button": "Load More",
             "loading": "Loading…",
             "retry": "Try again",
             "status": "Showing {{loaded}} of {{total}}",
@@ -1773,6 +1801,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Fulfillment method",
+            "deliveryDescription": "Enter postal code to see delivery estimate"
+        },
         "recommendations": {
             "youMightAlsoLike": "You might also like",
             "completeTheLook": "Complete the look",
@@ -1799,6 +1832,7 @@
         "backOrder": "Available for back order",
         "outOfStockLabel": "Out of stock",
         "outOfStockSuffix": "(out of stock)",
+        "swatchFilterAll": "All",
         "inventory": {
             "srPrefix": {
                 "inStock": "Available: ",
@@ -1818,7 +1852,6 @@
         "quickAdd": "Quick Add",
         "buyItNow": "Buy It Now",
         "pickupAvailable": "Pickup Available",
-        "selectProduct": "Select a product",
         "updatingCart": "Updating...",
         "updateCart": "Update",
         "addingToWishlist": "Adding to Wishlist...",
@@ -1870,6 +1903,9 @@
             "viewAllColors": "View all {{count}} colors for {{productName}}",
             "moreColorsTitle": "+{{count}} more"
         },
+        "sizeAvailableAnnouncement": "Size {{size}}, available",
+        "sizeUnavailableAnnouncement": "Size {{size}}, not available",
+        "widthUnavailableTooltip": "Not available in this size",
         "showingReviews": "Showing {{from}}-{{to}} of {{total}} reviews",
         "filterBy": "Filter by:",
         "withPhotos": "With Photos",
@@ -1888,6 +1924,8 @@
         "materials": "Materials",
         "usageInstructions": "Usage Instructions",
         "specifications": "Specifications",
+        "dimensions": "Dimensions",
+        "assembly": "Assembly",
         "careInstructions": "Care Instructions",
         "careInstructionsComingSoon": "Care instructions coming soon.",
         "productSet": "Product Set",
@@ -1959,6 +1997,27 @@
         "addingToWishlistLog": "Adding to wishlist:",
         "failedToAddProductToCartError": "Failed to add product to cart:",
         "failedToAddProductToWishlistError": "Failed to add product to wishlist:",
+        "furnitureSpec": {
+            "width": "Width",
+            "depth": "Depth",
+            "height": "Height",
+            "seatHeight": "Seat Height",
+            "armHeight": "Arm Height",
+            "weight": "Weight",
+            "assemblyRequired": "Assembly Required",
+            "difficulty": "Difficulty",
+            "assemblyTime": "Assembly Time",
+            "tools": "Tools",
+            "frame": "Frame",
+            "fill": "Fill",
+            "upholstery": "Upholstery",
+            "yes": "Yes",
+            "no": "No",
+            "minutes": "{{count}} min",
+            "shipsQuickly": "Ships quickly",
+            "shipsInOneDay": "Ships in 1 day",
+            "shipsInDays": "Ships in {{count}} days"
+        },
         "price": {
             "unavailable": "Price unavailable",
             "currentPriceFrom": "Current price from {{price}}",
@@ -1969,5 +2028,60 @@
             "listPriceFrom": "List price from {{price}}",
             "listPrice": "List price: {{price}}"
         }
+    },
+    "orderLookup": {
+        "results": {
+            "title": "Verify Your Email",
+            "description": "We've sent a verification code to {{email}}. Please enter it below.",
+            "loading": "Loading your order...",
+            "errors": {
+                "lookupFailed": "Unable to retrieve your order. Please try again later."
+            },
+            "startOver": "Start over",
+            "breadcrumb": {
+                "home": "Home",
+                "orderLookup": "Order Lookup"
+            }
+        },
+        "verify": {
+            "codeLabel": "Verification Code",
+            "submitButton": "Verify Code",
+            "cancelButton": "Cancel",
+            "verifying": "Verifying...",
+            "requestNewCode": "Request a new code",
+            "retryVerification": "Retry verification",
+            "attemptsHint": "Having trouble? You can request a new code.",
+            "errors": {
+                "invalidCode": "The code you entered is invalid or has expired. Please try again or request a new code.",
+                "validation": "Please enter a valid 6-digit code.",
+                "rateLimited": "Too many requests. Please try again later.",
+                "rateLimitedWithTime": "Too many requests. Please try again in {{seconds}} seconds.",
+                "attemptsExceeded": "Maximum verification attempts exceeded. Please request a new code.",
+                "scapiUnsupported": "This feature is temporarily unavailable. Please try again later.",
+                "featureDisabled": "Guest order lookup is not available."
+            }
+        }
+    },
+    "guestOrderLookup": {
+        "footerLinkLabel": "Order Lookup",
+        "title": "Order Lookup",
+        "description": "Enter the order number and email used at checkout.",
+        "orderNumberLabel": "Order Number",
+        "emailLabel": "Email Address",
+        "submitRequestCode": "Find My Order",
+        "enterCodeTitle": "Verify Your Email",
+        "enterCodeDescription": "We've sent a verification code to {{email}}. Please enter it below.",
+        "codeLabel": "Verification Code",
+        "submitVerify": "View Order",
+        "resend": "Resend Code",
+        "errorInvalidInput": "Please check your order number and email address.",
+        "errorCodeInvalid": "Invalid verification code. Please try again.",
+        "errorCodeExpired": "Your verification code has expired. Please request a new one.",
+        "errorApiUnavailable": "Unable to process your request. Please try again later.",
+        "errorTurnstileFailed": "Verification failed. Please try again.",
+        "errorScapiUnsupported": "Guest order lookup is not available. Please contact support.",
+        "sessionExpired": "Your session has expired. Please start over.",
+        "cooldownActive": "Please wait {{seconds}} seconds before requesting a new code.",
+        "codeResentHint": "Didn't receive the email? Check your spam folder or wait 15 minutes before requesting a new code."
     }
 }

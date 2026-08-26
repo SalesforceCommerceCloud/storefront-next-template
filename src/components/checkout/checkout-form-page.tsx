@@ -43,14 +43,23 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useCurrentSiteAndLocaleRef } from '@/hooks/use-current-site-and-locale-ref';
 import { createPaymentSchema, type PaymentData } from '@/lib/checkout/schemas';
 import { useAnalytics } from '@/hooks/use-analytics';
+import { scheduleIdleTick } from '@/hooks/use-deferred-render';
 import { UITarget } from '@/targets/ui-target';
 import { PaymentSubmissionRefProvider } from './payment-submission-context';
 import { clearCheckoutCorrelationId, getOrCreateCheckoutCorrelationId } from '@/lib/checkout/correlation';
 import { Spinner } from '@/components/spinner';
 import { getCheckoutDisplayError, isUnauthorizedError } from './utils/checkout-display-error';
 import { SessionExpiredBanner } from './components/session-expired-banner';
-import { CHECKOUT_STEPS, type CheckoutStep } from './utils/checkout-context-types';
-import { handlePickupContinueAction, hasValidShippingMethodForEveryShipment } from './utils/checkout-utils';
+import {
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    CHECKOUT_STEPS,
+    type CheckoutStep,
+} from './utils/checkout-context-types';
+import {
+    hasValidShippingMethodForEveryShipment,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    handlePickupContinueAction,
+} from './utils/checkout-utils';
 import { isAddressEmpty } from '@/lib/address/address-utils';
 import { OrderSummaryMobileAccordion } from '@/components/order-summary/mobile-heading';
 import { isOrderTotalEstimated } from '@/components/order-summary/mobile-heading-utils';
@@ -83,7 +92,9 @@ import {
     ExpressPaymentsSkeleton,
     MyCartSkeleton,
     OrderSummarySkeleton,
+    PaymentPlaceholder,
     PaymentSkeleton,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
     PickupSkeleton,
     ShippingAddressSkeleton,
     ShippingOptionsSkeleton,
@@ -286,6 +297,9 @@ export default function CheckoutFormPage({
         setFormErrors: null,
         onPlaceOrder: null,
     });
+    // Once Payment has mounted, keep it mounted even if pinToStep drops currentStep below
+    // PAYMENT (e.g. undeliverable address). Unmounting would destroy RHF card state.
+    const hasReachedPaymentRef = useRef(false);
     const otpFlowActiveRef = useRef(false);
     const noShippingMethodsRef = useRef(false);
     const [hideCreateAccountAfterSkippedPasswordlessOtp, setHideCreateAccountAfterSkippedPasswordlessOtp] =
@@ -347,7 +361,11 @@ export default function CheckoutFormPage({
         setHideCreateAccountAfterSkippedPasswordlessOtp(false);
     }, []);
 
-    let showAddressAndOptions = true;
+    const showAddressAndOptionsState = { value: true };
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    showAddressAndOptionsState.value = shipmentDistribution.hasDeliveryItems;
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const showAddressAndOptions = showAddressAndOptionsState.value;
 
     // Determine shipping methods: prefer action response over loader data (avoids flash when advancing to shipping step).
     // Loader data is a streamed promise now (see `shippingMethodsMapPromise`); read the resolved value out of state.
@@ -357,24 +375,35 @@ export default function CheckoutFormPage({
     // `undefined` while the loader promise is still in flight (first paint), otherwise the resolved map
     // (possibly `{}` when no methods came back). Callers that must distinguish "loading" from "empty"
     // check `shippingMethodsResolved` below.
-    let shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> | undefined =
-        actionShippingMethods && Object.keys(actionShippingMethods).length > 0
-            ? actionShippingMethods
-            : resolvedShippingMethodsMap;
+    const shippingMethodsState: {
+        value: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> | undefined;
+    } = {
+        value:
+            actionShippingMethods && Object.keys(actionShippingMethods).length > 0
+                ? actionShippingMethods
+                : resolvedShippingMethodsMap,
+    };
     const shippingMethodsResolved =
         (actionShippingMethods && Object.keys(actionShippingMethods).length > 0) ||
         resolvedShippingMethodsMap !== undefined;
 
     // @sfdc-extension-block-start SFDC_EXT_MULTISHIP
-    let isDeliveryProductItem = (_item: ShopperBasketsV2.schemas['ProductItem']) => true;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    const bopisIsDeliveryProductItem = shipmentDistribution.isDeliveryProductItem;
+    const isDeliveryProductItem =
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        bopisIsDeliveryProductItem ||
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+        ((_item: ShopperBasketsV2.schemas['ProductItem']) => true);
     // @sfdc-extension-block-end SFDC_EXT_MULTISHIP
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    shippingMethodsMap = shippingMethodsMap ? filterDeliveryShippingMethods(shippingMethodsMap) : undefined;
+    shippingMethodsState.value = shippingMethodsState.value
+        ? filterDeliveryShippingMethods(shippingMethodsState.value)
+        : undefined;
     const hasPickupItems = shipmentDistribution.hasPickupItems;
-    showAddressAndOptions = shipmentDistribution.hasDeliveryItems;
-    isDeliveryProductItem = shipmentDistribution.isDeliveryProductItem;
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const shippingMethodsMap = shippingMethodsState.value;
 
     // Keep ref in sync so useCheckoutActions can block advance before rendering the next step.
     // Only reflect "no methods" after the promise has actually resolved — while pending, treat as
@@ -407,30 +436,99 @@ export default function CheckoutFormPage({
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     const analytics = useAnalytics();
+    // useAnalytics() returns a fresh object every render; cart identity also churns on basket
+    // updates. Keep both in refs so idle-effect deps stay stable — otherwise cleanup cancels the
+    // pending tick on every re-render and events can be starved until idle finally settles.
+    const analyticsRef = useRef(analytics);
+    analyticsRef.current = analytics;
+    const cartRef = useRef(cart);
+    cartRef.current = cart;
+    const stepsRef = useRef(STEPS);
+    stepsRef.current = STEPS;
     const hasTrackedCheckoutStartRef = useRef(false);
     const previousStepRef = useRef<CheckoutStep | null>(null);
+    // Observed step transitions are pushed synchronously and drained on idle. Returning
+    // scheduleIdleTick's cancel from the step effect would drop queued steps whenever `step`
+    // changes mid-flight (CONTACT_INFO → computedStep on provider advance).
+    const pendingStepsRef = useRef<CheckoutStep[]>([]);
+    const cancelPendingStepIdleRef = useRef<(() => void) | null>(null);
+    // Primitive signal only: schedule when items appear; ignore cart/analytics identity churn.
+    const cartItemCount = cart?.productItems?.length ?? 0;
+
+    // Deferred to idle so analytics dispatch doesn't contribute to the hydration long-task window.
+    // Guard ref is flipped inside the callback (not synchronously): if the effect's cleanup cancels
+    // the pending tick before it fires (e.g. cart empties within the idle window), the guard stays
+    // false and the next effect run can reschedule, so the checkout-start event is not silently dropped.
+    useEffect(() => {
+        if (!hasTrackedCheckoutStartRef.current && cartItemCount > 0) {
+            return scheduleIdleTick(
+                () => {
+                    const currentCart = cartRef.current;
+                    if (!currentCart?.productItems?.length) {
+                        return;
+                    }
+                    hasTrackedCheckoutStartRef.current = true;
+                    void analyticsRef.current.trackCheckoutStart({ basket: currentCart });
+                },
+                { idleTimeout: 2000, fallbackTimeout: 0 }
+            );
+        }
+    }, [cartItemCount]);
+
+    // Deferred to idle so analytics dispatch doesn't contribute to the hydration long-task window.
+    // Enqueue each observed step synchronously; drain on a single idle tick so transitions that
+    // happen before the callback runs (including the initial CONTACT_INFO → computedStep advance)
+    // are not discarded. Cancel the idle handle only on unmount — never on `step` change.
+    // Depend on `step` (and cartItemCount) only — unrelated re-renders must not reschedule.
+    useEffect(() => {
+        if (cartItemCount <= 0) {
+            return;
+        }
+
+        const pending = pendingStepsRef.current;
+        const lastQueuedOrTracked = pending.length > 0 ? pending[pending.length - 1] : previousStepRef.current;
+        if (lastQueuedOrTracked !== step) {
+            pending.push(step);
+        }
+
+        if (pending.length === 0 || cancelPendingStepIdleRef.current) {
+            return;
+        }
+
+        cancelPendingStepIdleRef.current = scheduleIdleTick(
+            () => {
+                cancelPendingStepIdleRef.current = null;
+                const currentCart = cartRef.current;
+                if (!currentCart?.productItems?.length) {
+                    // Leave the queue intact so a later effect can reschedule when items return.
+                    return;
+                }
+                const queuedSteps = pendingStepsRef.current.splice(0);
+                const steps = stepsRef.current;
+                for (const queuedStep of queuedSteps) {
+                    if (previousStepRef.current === queuedStep) {
+                        continue;
+                    }
+                    const stepName =
+                        Object.keys(steps).find((key) => steps[key as keyof typeof steps] === queuedStep) || '';
+                    previousStepRef.current = queuedStep;
+                    void analyticsRef.current.trackCheckoutStep({
+                        stepName,
+                        stepNumber: queuedStep,
+                        basket: currentCart,
+                    });
+                }
+            },
+            { idleTimeout: 2000, fallbackTimeout: 0 }
+        );
+    }, [step, cartItemCount]);
 
     useEffect(() => {
-        // Only track checkout start once on mount if baseket is not empty
-        if (!hasTrackedCheckoutStartRef.current && cart?.productItems && cart.productItems.length > 0) {
-            void analytics.trackCheckoutStart({
-                basket: cart,
-            });
-            hasTrackedCheckoutStartRef.current = true;
-        }
-    }, [analytics, cart]);
-
-    useEffect(() => {
-        if (previousStepRef.current !== step && cart?.productItems && cart.productItems.length > 0) {
-            const stepName = Object.keys(STEPS).find((key) => STEPS[key as keyof typeof STEPS] === step) || '';
-            void analytics.trackCheckoutStep({
-                stepName,
-                stepNumber: step,
-                basket: cart,
-            });
-            previousStepRef.current = step;
-        }
-    }, [analytics, step, STEPS, cart]);
+        return () => {
+            cancelPendingStepIdleRef.current?.();
+            cancelPendingStepIdleRef.current = null;
+        };
+    }, []);
 
     const isPlacingOrder = placeOrderFetcher.state === 'submitting';
     const [isPlaceOrderPending, setIsPlaceOrderPending] = useState(false);
@@ -737,11 +835,20 @@ export default function CheckoutFormPage({
     const shippingBlocked =
         showAddressAndOptions && !!hasShippingAddress && (!shippingMethodsResolved || noShippingMethodsRef.current);
 
+    // Latch Payment mount: guests defer until PAYMENT (TBT win); registered users keep early
+    // Change access; once mounted, never unmount when pinToStep moves step backwards.
+    const shouldMountPayment =
+        isRegisteredUser || step >= STEPS.PAYMENT || editingStep === STEPS.PAYMENT || hasReachedPaymentRef.current;
+    if (shouldMountPayment) {
+        hasReachedPaymentRef.current = true;
+    }
+
     const paymentState = {
         isCompleted: step > STEPS.PAYMENT && !shippingBlocked,
         isEditing: (step === STEPS.PAYMENT || editingStep === STEPS.PAYMENT) && !shippingBlocked,
         onEdit: () => goToStep(STEPS.PAYMENT),
-        // Guest: show only "Payment" title until contact, shipping address and options are done
+        // Guest: collapsed until PAYMENT (or after latch when step moves backwards).
+        // Registered: Change stays available below PAYMENT unless shipping is blocked.
         disabled: (!isRegisteredUser && step < STEPS.PAYMENT) || shippingBlocked,
     };
 
@@ -1119,21 +1226,25 @@ export default function CheckoutFormPage({
 
                         <PaymentSubmissionRefProvider refValue={paymentSubmissionRef}>
                             <UITarget targetId="sfcc.checkout.payment.header.before" />
-                            <Suspense fallback={<PaymentSkeleton />}>
-                                <UITarget targetId="sfcc.checkout.payment.before" />
-                                <UITarget targetId="sfcc.checkout.payment">
-                                    <Payment
-                                        onSubmit={handlePaymentSubmit}
-                                        isLoading={isSubmitting('payment')}
-                                        actionData={paymentFetcher.data}
-                                        showUseDifferentBilling={showAddressAndOptions}
-                                        paymentSubmissionRef={paymentSubmissionRef}
-                                        hidePaymentSaveCheckbox={shouldCreateAccount}
-                                        {...paymentState}
-                                    />
-                                </UITarget>
-                                <UITarget targetId="sfcc.checkout.payment.after" />
-                            </Suspense>
+                            {shouldMountPayment ? (
+                                <Suspense fallback={<PaymentSkeleton />}>
+                                    <UITarget targetId="sfcc.checkout.payment.before" />
+                                    <UITarget targetId="sfcc.checkout.payment">
+                                        <Payment
+                                            onSubmit={handlePaymentSubmit}
+                                            isLoading={isSubmitting('payment')}
+                                            actionData={paymentFetcher.data}
+                                            showUseDifferentBilling={showAddressAndOptions}
+                                            paymentSubmissionRef={paymentSubmissionRef}
+                                            hidePaymentSaveCheckbox={shouldCreateAccount}
+                                            {...paymentState}
+                                        />
+                                    </UITarget>
+                                    <UITarget targetId="sfcc.checkout.payment.after" />
+                                </Suspense>
+                            ) : (
+                                <PaymentPlaceholder />
+                            )}
                         </PaymentSubmissionRefProvider>
 
                         {/* Create Account Option - Show for guest users when Place Order is visible (step >= PAYMENT).

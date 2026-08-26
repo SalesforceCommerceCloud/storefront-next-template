@@ -46,7 +46,8 @@ const createComponent = (id: string, typeId: string, regions: any[] = []) =>
         regions,
     }) as unknown as ShopperExperience.schemas['Component'];
 
-const createRegion = (components: any[]) => ({ components }) as unknown as ShopperExperience.schemas['Region'];
+const createRegion = (components: any[], id = 'region') =>
+    ({ id, components }) as unknown as ShopperExperience.schemas['Region'];
 
 describe('collectFromRegions', () => {
     beforeEach(() => {

@@ -194,6 +194,33 @@ export async function beginScan(pageKey: string): Promise<'desktop' | 'mobile'> 
 }
 
 /**
+ * data-testid the SPA ErrorBoundary stamps on its rendered error page
+ * (packages/template/src/root.tsx → ErrorPageContent).
+ */
+const ERROR_PAGE_TESTID = 'error-page';
+
+/**
+ * Throw a RETRIABLE error if the current DOM is the SPA error page rather than
+ * the page we navigated to. The storefront's errorElement renders at the SAME
+ * URL as the requested page, so URL checks can't distinguish a real landing
+ * from an error one — we probe the DOM marker instead.
+ *
+ * A wrong-page landing is transient navigation flake, not a real a11y
+ * regression, so this throws a PLAIN Error (name !== 'A11yBaselineError'). The
+ * a11y-no-retry plugin only suppresses retries for A11yBaselineError, so this
+ * flows into the spec's retry(2) instead of recording a misattributed
+ * error-page violation against `pageKey`.
+ */
+async function assertNotErrorPage(pageKey: string): Promise<void> {
+    const onErrorPage = await I.grabNumberOfVisibleElements(`[data-testid="${ERROR_PAGE_TESTID}"]`);
+    if (onErrorPage > 0) {
+        throw new Error(
+            `[A11Y] Expected the "${pageKey}" page but landed on the error page — retriable navigation failure, not an a11y finding.`
+        );
+    }
+}
+
+/**
  * Run an axe scan and either update the baseline (update mode) or assert that
  * no new violations have appeared since the last baseline commit.
  *
@@ -202,6 +229,8 @@ export async function beginScan(pageKey: string): Promise<'desktop' | 'mobile'> 
  */
 export async function scanAndAssert(pageKey: string, viewport: 'desktop' | 'mobile'): Promise<void> {
     const key = `${pageKey}/${viewport}`;
+
+    await assertNotErrorPage(pageKey);
 
     // The baseline assert below ALWAYS reads a WCAG_TAGS (WCAG 2.1 AA) view, so
     // widening the report can never change what fails CI.
@@ -292,6 +321,24 @@ export async function scanState(
     stateLabel: string,
     viewport: 'desktop' | 'mobile'
 ): Promise<A11yScanResults> {
+    // Never-throw variant of the wrong-page guard used by assertNotErrorPage:
+    // scanState must not fail a scenario, so a wrong-page landing is skipped
+    // (empty results) rather than raising a retriable error.
+    const onErrorPage = await I.grabNumberOfVisibleElements(`[data-testid="${ERROR_PAGE_TESTID}"]`);
+    if (onErrorPage > 0) {
+        console.log(
+            `  ⓘ state scan [${pageKey}:${stateLabel}/${viewport}] — skipped, landed on error page (not the page under test)`
+        );
+        return {
+            violations: [],
+            passes: [],
+            incomplete: [],
+            inapplicable: [],
+            violationCounts: {},
+            violationsByImpact: { critical: [], serious: [], moderate: [], minor: [] },
+        };
+    }
+
     const results = await runAxeScan({ tags: REPORTING_TAGS });
     const key = `${pageKey}-${stateLabel}/${viewport}`;
 

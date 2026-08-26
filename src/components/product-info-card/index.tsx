@@ -23,6 +23,12 @@ interface ProductInfoCardProps {
     icon?: ReactNode;
     /** Card title text (rendered bold) */
     title: string;
+    /**
+     * Element to render the title as. Defaults to `p`. Pass a heading level
+     * (e.g. `h2`) when the card is a labelled section of the page so the title
+     * joins the document outline instead of reading as plain text.
+     */
+    titleAs?: 'h2' | 'h3' | 'h4' | 'p';
     /** Card description or subtitle text */
     description?: string;
     /** Optional action link/button rendered below the description */
@@ -56,6 +62,7 @@ interface ProductInfoCardProps {
 export default function ProductInfoCard({
     icon,
     title,
+    titleAs = 'p',
     description,
     action,
     borderClassName,
@@ -70,7 +77,10 @@ export default function ProductInfoCard({
             )}>
             {icon && <div className="flex-shrink-0 mt-0.5 text-muted-foreground">{icon}</div>}
             <div className="min-w-0 flex-1">
-                <Typography variant="small" className="text-base font-semibold leading-6 text-card-foreground">
+                <Typography
+                    variant="small"
+                    as={titleAs}
+                    className="text-base font-semibold leading-6 text-card-foreground">
                     {title}
                 </Typography>
                 {description && (

@@ -22,17 +22,23 @@ import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
 import { authContext } from '@/middlewares/auth.utils';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
-// Mock fetchProductById and fetchCategory directly
+// Mock fetchProductById directly
 const mockFetchProductById = vi.hoisted(() => vi.fn());
-const mockFetchCategory = vi.hoisted(() => vi.fn());
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+const mockGetInitialDeliveryDestination = vi.hoisted(() =>
+    vi.fn<() => Promise<{ postalCode: string; countryCode?: string } | null>>(() => Promise.resolve(null))
+);
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
 vi.mock('@/lib/api/products.server', () => ({
     fetchProductById: mockFetchProductById,
 }));
 
-vi.mock('@/lib/api/categories.server', () => ({
-    fetchCategory: mockFetchCategory,
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+vi.mock('@/extensions/shipping-delivery/lib/api/delivery-destination-cookie.server', () => ({
+    getInitialDeliveryDestination: mockGetInitialDeliveryDestination,
 }));
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
 vi.mock('@/middlewares/auth.server', () => ({
     getAuth: vi.fn(() => ({ customerId: null })),
@@ -68,13 +74,6 @@ describe('Product Route Loaders', () => {
         shortDescription: 'Test product description',
         longDescription: 'Long test product description',
         master: undefined,
-    };
-
-    const mockCategory: ShopperProducts.schemas['Category'] = {
-        id: 'test-category-123',
-        name: 'Test Category',
-        parentCategoryId: 'parent-category-123',
-        categories: [],
     };
 
     const mockAppConfig = {
@@ -132,35 +131,79 @@ describe('Product Route Loaders', () => {
     });
 
     describe('loader function', () => {
-        test('fetches product data successfully', async () => {
-            mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
+        test('returns the resolved product with its primaryCategory expansion', async () => {
+            const productWithCategory = {
+                ...mockProduct,
+                primaryCategory: {
+                    id: 'test-category-123',
+                    name: 'Test Category',
+                    parentCategoryTree: [
+                        { id: 'root-cat', name: 'Root' },
+                        { id: 'test-category-123', name: 'Test Category' },
+                    ],
+                },
+            };
+            mockFetchProductById.mockResolvedValueOnce(productWithCategory);
 
             const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
             const context = mockContext;
 
             const result = await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
                 context,
                 url: new URL(request.url),
                 pattern: '/product/:productId',
             });
 
-            // product is now synchronous on the loaderData
-            expect(result.product).toEqual(mockProduct);
+            expect(result.product).toEqual(productWithCategory);
+            // The breadcrumb source is carried on the product — no separate category fetch.
+            expect(mockFetchProductById).toHaveBeenCalledTimes(1);
+        });
 
-            // category is still a Promise
-            const categoryData = await result.category;
-            expect(categoryData).toEqual(mockCategory);
+        // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+        test('does not include the shopper delivery destination in cacheable PDP loader data', async () => {
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
-            expect(mockFetchProductById).toHaveBeenCalledWith(
-                context,
-                'test-product-123',
-                expect.objectContaining({ allImages: true, perPricebook: true })
-            );
-            expect(mockFetchCategory).toHaveBeenCalledWith(context, 'test-category-123', 1);
+            const request = new Request('https://example.com/product/test-product-123');
+            const result = await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/product/:productId',
+            });
+
+            expect(result).not.toHaveProperty('initialDestinationPromise');
+            expect(mockGetInitialDeliveryDestination).not.toHaveBeenCalled();
+        });
+        // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+
+        test('does not fetch the master product for a variant (breadcrumbs come from the expansion)', async () => {
+            const variantProduct = {
+                ...mockProduct,
+                id: 'variant-product-123',
+                primaryCategoryId: null,
+                master: { masterId: 'master-product-123' },
+                primaryCategory: {
+                    id: 'variant-cat',
+                    name: 'Variant Cat',
+                    parentCategoryTree: [{ id: 'variant-cat', name: 'Variant Cat' }],
+                },
+            };
+            mockFetchProductById.mockResolvedValueOnce(variantProduct);
+
+            const request = new Request('https://example.com/product/variant-product-123');
+            const result = await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'variant-product-123' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/product/:productId',
+            });
+
+            expect(result.product).toEqual(variantProduct);
+            expect(mockFetchProductById).toHaveBeenCalledTimes(1);
         });
 
         test('throws Response with original status when product fetch fails with NormalizedApiError', async () => {
@@ -250,73 +293,8 @@ describe('Product Route Loaders', () => {
             expect((error as Response).status).toBe(404);
         });
 
-        test('propagates category fetch failure on the deferred promise (route-level <Await errorElement> degrades silently)', async () => {
-            const { NormalizedApiError } = await import('@/lib/api/normalized-api-error');
-            mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockRejectedValueOnce(new NormalizedApiError(new Error('Category service down')));
-
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
-            const context = mockContext;
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            // Product still resolves
-            expect(result.product).toEqual(mockProduct);
-
-            // Category promise rejects — render-time silent degradation is handled by
-            // <Await errorElement={null}> at the route level, not by a loader-side .catch().
-            await expect(result.category).rejects.toThrow(NormalizedApiError);
-        });
-
-        test('handles variant product with master product category', async () => {
-            const variantProduct = {
-                ...mockProduct,
-                id: 'variant-product-123',
-                primaryCategoryId: null,
-                master: { masterId: 'master-product-123' },
-            };
-
-            const masterProduct = {
-                ...mockProduct,
-                id: 'master-product-123',
-                primaryCategoryId: 'master-category-123',
-            };
-
-            mockFetchProductById
-                .mockResolvedValueOnce(variantProduct) // First call for variant (loader's await)
-                .mockResolvedValueOnce(masterProduct); // Second call for master (inside category promise)
-            mockFetchCategory.mockResolvedValue(mockCategory);
-
-            const request = new Request('https://example.com/product/variant-product-123');
-            const params = { productId: 'variant-product-123' };
-            const context = mockContext;
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            expect(result.product).toEqual(variantProduct);
-
-            const categoryData = await result.category;
-            expect(categoryData).toEqual(mockCategory);
-
-            expect(mockFetchProductById).toHaveBeenCalledTimes(2);
-        });
-
         test('handles product with variant ID in search params', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             const request = new Request('https://example.com/product/test-product-123?pid=variant-123');
             const params = { productId: 'test-product-123' };
@@ -339,7 +317,6 @@ describe('Product Route Loaders', () => {
     describe('loader function with BOPIS extension', () => {
         test('includes inventoryIds when store is selected in context', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             mockSelectedStoreInfo = {
                 id: 'store-123',
@@ -371,7 +348,6 @@ describe('Product Route Loaders', () => {
 
         test('does not include inventoryIds when store is not selected', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
             mockSelectedStoreInfo = null;
 
             const request = new Request('https://example.com/product/test-product-123');
@@ -392,7 +368,6 @@ describe('Product Route Loaders', () => {
 
         test('handles store info without inventoryId', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             mockSelectedStoreInfo = {
                 id: 'store-123',
@@ -423,7 +398,6 @@ describe('Product Route Loaders', () => {
     describe('getPageData helper function', () => {
         test('uses pid parameter when present in URL', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             const request = new Request('https://example.com/product/test-product-123?pid=variant-456');
             const params = { productId: 'test-product-123' };
@@ -443,7 +417,6 @@ describe('Product Route Loaders', () => {
 
         test('uses productId when pid parameter is not present', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             const request = new Request('https://example.com/product/test-product-123');
             const params = { productId: 'test-product-123' };
@@ -463,7 +436,6 @@ describe('Product Route Loaders', () => {
 
         test('includes all required expand parameters', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             const request = new Request('https://example.com/product/test-product-123');
             const params = { productId: 'test-product-123' };
@@ -491,120 +463,8 @@ describe('Product Route Loaders', () => {
             expect(callOptions.perPricebook).toBe(true);
         });
 
-        test('handles product without primaryCategoryId', async () => {
-            const productWithoutCategory = {
-                ...mockProduct,
-                primaryCategoryId: null,
-            };
-
-            mockFetchProductById.mockResolvedValueOnce(productWithoutCategory);
-
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
-            const context = mockContext;
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            const categoryData = await result.category;
-            expect(categoryData).toBeUndefined();
-            expect(mockFetchCategory).not.toHaveBeenCalled();
-        });
-
-        test('handles variant product without master product ID', async () => {
-            const variantProductWithoutMaster = {
-                ...mockProduct,
-                id: 'variant-product-123',
-                primaryCategoryId: null,
-                master: undefined, // No master product
-            };
-
-            mockFetchProductById.mockResolvedValueOnce(variantProductWithoutMaster);
-
-            const request = new Request('https://example.com/product/variant-product-123');
-            const params = { productId: 'variant-product-123' };
-            const context = mockContext;
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            const categoryData = await result.category;
-            expect(categoryData).toBeUndefined();
-            // Should not try to fetch master product category
-            expect(mockFetchProductById).toHaveBeenCalledTimes(1);
-        });
-
-        test('handles variant product with master but master has no category', async () => {
-            const variantProduct = {
-                ...mockProduct,
-                id: 'variant-product-123',
-                primaryCategoryId: null,
-                master: {
-                    masterId: 'master-product-123',
-                },
-            };
-
-            const masterProductWithoutCategory = {
-                ...mockProduct,
-                id: 'master-product-123',
-                primaryCategoryId: null, // Master also has no category
-            };
-
-            mockFetchProductById
-                .mockResolvedValueOnce(variantProduct) // First call for variant
-                .mockResolvedValueOnce(masterProductWithoutCategory); // Second call for master
-
-            const request = new Request('https://example.com/product/variant-product-123');
-            const params = { productId: 'variant-product-123' };
-            const context = mockContext;
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            const categoryData = await result.category;
-            expect(categoryData).toBeUndefined();
-            expect(mockFetchProductById).toHaveBeenCalledTimes(2);
-            expect(mockFetchCategory).not.toHaveBeenCalled();
-        });
-
-        test('propagates category fetch failure on the deferred promise', async () => {
-            const { NormalizedApiError } = await import('@/lib/api/normalized-api-error');
-            mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockRejectedValueOnce(new NormalizedApiError(new Error('Category not found')));
-
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
-            const context = mockContext;
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            await expect(result.category).rejects.toThrow(NormalizedApiError);
-        });
-
         test('passes primaryCategoryId to fetchPageWithComponentData as the category fallback', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             const request = new Request('https://example.com/product/test-product-123');
             const params = { productId: 'test-product-123' };
@@ -623,6 +483,33 @@ describe('Product Route Loaders', () => {
                     aspectType: 'pdp',
                     productId: 'test-product-123',
                     categoryId: 'test-category-123',
+                })
+            );
+        });
+
+        test('prefers primaryCategory.id over primaryCategoryId for the Page Designer categoryId', async () => {
+            const productWithBoth = {
+                ...mockProduct,
+                primaryCategoryId: 'legacy-cat-id',
+                primaryCategory: { id: 'expansion-cat-id', name: 'Expansion Cat' },
+            };
+            mockFetchProductById.mockResolvedValueOnce(productWithBoth);
+
+            const request = new Request('https://example.com/product/test-product-123');
+            await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/product/:productId',
+            });
+
+            expect(mockFetchPageWithComponentData).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    aspectType: 'pdp',
+                    productId: 'test-product-123',
+                    categoryId: 'expansion-cat-id',
                 })
             );
         });
@@ -658,7 +545,6 @@ describe('Product Route Loaders', () => {
         test('uses variant pid as productId for fetchPageWithComponentData', async () => {
             const variantProduct = { ...mockProduct, id: 'variant-pid-123', primaryCategoryId: 'variant-cat-123' };
             mockFetchProductById.mockResolvedValueOnce(variantProduct);
-            mockFetchCategory.mockResolvedValue(mockCategory);
 
             const request = new Request('https://example.com/product/test-product-123?pid=variant-pid-123');
             const params = { productId: 'test-product-123' };
@@ -679,96 +565,6 @@ describe('Product Route Loaders', () => {
                     categoryId: 'variant-cat-123',
                 })
             );
-        });
-
-        test('falls back to the master product category for fetchPageWithComponentData when the variant has none', async () => {
-            const variantProduct = {
-                ...mockProduct,
-                id: 'variant-product-123',
-                primaryCategoryId: null,
-                master: { masterId: 'master-product-123' },
-            };
-            const masterProduct = {
-                ...mockProduct,
-                id: 'master-product-123',
-                primaryCategoryId: 'master-category-123',
-            };
-
-            mockFetchProductById
-                .mockResolvedValueOnce(variantProduct) // loader's awaited product fetch
-                .mockResolvedValueOnce(masterProduct); // shared master fetch
-            mockFetchCategory.mockResolvedValue(mockCategory);
-
-            const request = new Request('https://example.com/product/variant-product-123');
-            const params = { productId: 'variant-product-123' };
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context: mockContext,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            // Resolve the deferred page promise so the master-category fallback runs.
-            await result.page;
-
-            expect(mockFetchPageWithComponentData).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.objectContaining({
-                    aspectType: 'pdp',
-                    productId: 'variant-product-123',
-                    categoryId: 'master-category-123',
-                })
-            );
-
-            // The master is fetched once and shared by both the breadcrumb category
-            // promise and the page-fallback promise — not re-fetched per consumer.
-            expect(mockFetchProductById).toHaveBeenCalledTimes(2);
-        });
-
-        test('handles variant product with master product category lookup', async () => {
-            const variantProduct = {
-                ...mockProduct,
-                id: 'variant-product-123',
-                primaryCategoryId: null,
-                master: {
-                    masterId: 'master-product-123',
-                },
-            };
-
-            const masterProduct = {
-                ...mockProduct,
-                id: 'master-product-123',
-                primaryCategoryId: 'master-category-123',
-            };
-
-            mockFetchProductById
-                .mockResolvedValueOnce(variantProduct) // First call for variant
-                .mockResolvedValueOnce(masterProduct); // Second call for master
-            mockFetchCategory.mockResolvedValue(mockCategory);
-
-            const request = new Request('https://example.com/product/variant-product-123');
-            const params = { productId: 'variant-product-123' };
-            const context = mockContext;
-
-            const result = await loader({
-                request,
-                params: { siteId: 'test-site', localeId: 'en-US', ...params },
-                context,
-                url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
-
-            expect(result.product).toEqual(variantProduct);
-
-            const categoryData = await result.category;
-            expect(categoryData).toEqual(mockCategory);
-
-            // Verify both product calls were made
-            expect(mockFetchProductById).toHaveBeenCalledTimes(2);
-            expect(mockFetchProductById.mock.calls[0][1]).toBe('variant-product-123');
-            expect(mockFetchProductById.mock.calls[1][1]).toBe('master-product-123');
         });
     });
 });

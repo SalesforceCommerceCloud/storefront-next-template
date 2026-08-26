@@ -24,10 +24,34 @@
         "hero": {
             "defaultTitle": "立即選購",
             "defaultImageAlt": "主視覺圖像",
-            "defaultCtaText": "立即選購"
+            "defaultCtaText": "立即選購",
+            "emptyTitle": "在此新增標題",
+            "emptyButton": "按鈕"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "在此新增標題"
         },
         "previousImage": "上一張圖像",
-        "nextImage": "下一張圖像"
+        "nextImage": "下一張圖像",
+        "popularCategory": {
+            "emptyTitle": "種類"
+        },
+        "announcementBanner": {
+            "emptyTitle": "在此新增標題"
+        },
+        "contentCard": {
+            "emptyTitle": "在此新增標題",
+            "emptyDescription": "在此新增描述"
+        },
+        "productTile": {
+            "emptyTitle": "產品"
+        },
+        "productRecommendations": {
+            "emptyTitle": "產品推薦"
+        }
     },
     "search": {
         "results": "搜尋結果",
@@ -89,6 +113,7 @@
         "mobileNavigation": "行動導航選單",
         "expandCategory": "展開 {{category}}",
         "collapseCategory": "摺疊 {{category}}",
+        "shopAllCategory": "查看全部 {{category}}",
         "menu": {
             "yourLists": "您的清單",
             "yourAccount": "您的帳戶",
@@ -313,7 +338,7 @@
         "itemCount_other": "購物車 ({{count}} 個項目)",
         "empty": {
             "title": "您的購物車是空的。",
-            "registeredMessage": "繼續選購，並將商品新增至購物車。",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "登入來存取您所儲存的項目，或繼續選購。",
             "continueShopping": "繼續選購",
             "signIn": "登入"
@@ -598,6 +623,7 @@
             "hero": {
                 "thankYou": "謝謝，{{name}}！",
                 "orderConfirmed": "已確認您的訂單。",
+                "statusAnnouncement": "已確認您的訂單。訂單編號為 {{orderNo}}。",
                 "emailConfirmation": "我們已傳送確認電子郵件至 {{email}}。",
                 "needHelp": "是否需要協助？",
                 "defaultName": "客戶",
@@ -1131,7 +1157,9 @@
         "categoryGrid": {
             "title": "真實生活風格",
             "description": "在 Market Street，我們相信時尚應該是輕鬆、真實且易於接觸的。我們的系列產品專為重視品質、多功能用途及經典風格的現代個人而設計。",
-            "shopNowButton": "立即選購"
+            "shopNowButton": "立即選購",
+            "emptyTitle": "在此新增標題",
+            "emptyRegionLabel": "類別輪播"
         },
         "featuredContent": {
             "women": {
@@ -1406,14 +1434,6 @@
         "returnsAndWarrantyDescription": "退貨和保固詳細資料",
         "close": "關閉"
     },
-    "estimatedDelivery": {
-        "cardTitle": "預計送達時間",
-        "cardDescription": "可選運送選項",
-        "learnMore": "瞭解更多",
-        "sectionHeading": "預計送達時間",
-        "shippingOptionsHeading": "運送選項和費率",
-        "free": "免費"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "請修正以下內容：",
@@ -1476,6 +1496,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "配送方式",
+            "deliveryDescription": "輸入郵遞區號以查看送達估計"
+        },
         "recommendations": {
             "youMightAlsoLike": "您可能也喜歡",
             "completeTheLook": "完善外觀",
@@ -1512,7 +1537,6 @@
         "quickAdd": "快速新增",
         "buyItNow": "立即購買",
         "pickupAvailable": "可自取",
-        "selectProduct": "選取產品",
         "updatingCart": "正在更新…",
         "updateCart": "更新",
         "addingToWishlist": "新增至願望清單...",

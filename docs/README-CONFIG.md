@@ -65,6 +65,7 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | Variable | Used by | Notes |
 |---|---|---|
 | `COMMERCE_API_SLAS_SECRET` | `src/lib/api-clients.server.ts`, `e2e/src/utils/scapi-helper.ts` | Required only with private-client SCAPI auth. |
+| `GUEST_ORDER_LOOKUP_COOKIE_SECRET` | `src/lib/order/session.server.ts` | Signs the guest order lookup state cookie. Required whenever `guestOrderLookup.enabled` is `true` — falls back to `CLIENT_SECRET`, but that's rarely set (only present with private-client SCAPI auth), so set this explicitly. Unset in either var → the feature fails closed with a `CONFIGURATION_ERROR`, not silent breakage. |
 | `MARKETING_CLOUD_CLIENT_ID`, `MARKETING_CLOUD_CLIENT_SECRET`, `MARKETING_CLOUD_AUTH_BASE_URL`, `MARKETING_CLOUD_REST_BASE_URL` | Passwordless login email delivery | Required only when `passwordlessLogin.mode = 'email'` and you ship your own MC tenant. |
 | `SCAPI_PROXY_HOST` | `vite-plugins/env-validation.ts`, `src/middlewares/app-config.server.ts` | Internal-developer-only override (workspace proxy). |
 
@@ -579,15 +580,18 @@ Single-site is the default. To enable multiple sites, define them as a JSON arra
 
 See [README-MULTI-SITE.md](./README-MULTI-SITE.md) for site-context routing details.
 
-### Live Sites from the Data Access Layer (`commerce.sitesFromDal`)
+### Live Sites from the MRT Data Store
 
-On by default. When on, live site data synced through the Data Access Layer (DAL) replaces the static `commerce.sites` above for site, locale, and currency resolution, per request. The DAL keeps the storefront in sync with the sites, locales, and currencies a merchant configures in Business Manager, so adding a site or enabling a currency goes live without editing `config.server.ts` and redeploying. It does not change routing: `defaultSiteId` and the `siteAliasMap` and `localeAliasMap` stay static. Set the flag to `false` to keep the static `commerce.sites` authoritative regardless of the DAL.
+On by default. When on, live site data synced through the MRT Data Store replaces the static `commerce.sites` above for site, locale, and currency resolution, per request. The MRT Data Store keeps the storefront in sync with the sites, locales, and currencies an administrator configures in Business Manager, so adding a site or enabling a currency goes live without editing `config.server.ts` and redeploying. This setting doesn't change routing: `defaultSiteId` and the `siteAliasMap` and `localeAliasMap` stay static. Set `commerce.sitesFromDal` to `false` to keep the static `commerce.sites` authoritative.
 
 ```bash
 # PUBLIC__app__commerce__sitesFromDal=false
 ```
 
-The DAL set should include the site named by `defaultSiteId`. If it doesn't, or the DAL entry is unavailable or yields no usable sites, the storefront keeps serving the static `commerce.sites` and logs a warning naming the drift, rather than failing the request. See the DAL-sourced sites section in [README-MULTI-SITE.md](./README-MULTI-SITE.md#dal-sourced-sites-commercesitesfromdal) for the fallback rules and why the alias maps stay static.
+> [!NOTE]
+> The `commerce.sitesFromDal` setting name includes "Dal" for Data Access Layer, which corresponds to the MRT Data Store. Log messages corresponding to this setting include "DAL sites".
+
+The MRT Data Store includes the site named by `defaultSiteId`. If it doesn't, or the data store entry is unavailable or yields no usable sites, the storefront keeps serving the static `commerce.sites` and logs a warning rather than failing the request. See the "MRT Data Store Sites" section in [README-MULTI-SITE.md](./README-MULTI-SITE.md#mrt-data-store-sites) for the fallback rules and why the alias maps stay static.
 
 ### Hybrid Proxy (local development only)
 

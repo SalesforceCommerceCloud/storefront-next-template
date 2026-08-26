@@ -18,14 +18,21 @@ import { Button } from '@/components/ui/button';
 import { useProductSetsBundles } from '@/hooks/product/use-product-sets-bundles';
 import { useProductActions } from '@/hooks/product/use-product-actions';
 import type { ShopperProducts } from '@/scapi';
-import { type ReactElement } from 'react';
+import {
+    type ReactElement,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    useState,
+} from 'react';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
 import { hasPurchasablePrice } from '@/lib/product/price-utils';
 import ChildProductCard from './child-product-card';
-// @sfdc-extension-block-start SFDC_EXT_BOPIS
-import DeliveryOptions from '@/extensions/bopis/components/delivery-options/delivery-options';
+import DeliveryOptions from '@/components/fulfillment/delivery-options';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { useOptionalProductView } from '@/providers/product-view';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import type { SelectedFulfillmentOption } from '@/components/fulfillment/types';
+// @sfdc-extension-line SFDC_EXT_BOPIS
 import { useStoreLocator } from '@/extensions/store-locator/providers/store-locator';
-// @sfdc-extension-block-end SFDC_EXT_BOPIS
 import { useTranslation } from 'react-i18next';
 
 type ChildProductsBaseProps = {
@@ -140,6 +147,12 @@ export default function ChildProducts({
     const { t } = useTranslation('product');
     const isProductASet = isProductSet(parentProduct);
     const isProductABundle = isProductBundle(parentProduct);
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    const [localFulfillmentSelection, setLocalFulfillmentSelection] = useState<SelectedFulfillmentOption>();
+    const productView = useOptionalProductView();
+    const fulfillmentSelection = productView ? productView.fulfillmentSelection : localFulfillmentSelection;
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const showFulfillmentOptions = mode !== 'edit';
 
     // @sfdc-extension-line SFDC_EXT_BOPIS
     const selectedStore = useStoreLocator((state) => state.selectedStoreInfo);
@@ -183,7 +196,6 @@ export default function ChildProducts({
     });
 
     const childProducts = comboProduct.childProducts || [];
-
     const handleAddToCart = async () => {
         // Validate all child products are selected
         if (!handleChildProductValidation()) {
@@ -194,14 +206,25 @@ export default function ChildProducts({
             onBeforeCartAction?.();
             if (isProductASet) {
                 const selectedProducts = Object.values(childProductSelection);
-                await handleProductSetAddToCart(selectedProducts);
+                await handleProductSetAddToCart(
+                    selectedProducts,
+                    // @sfdc-extension-line SFDC_EXT_BOPIS
+                    ...(fulfillmentSelection ? [fulfillmentSelection] : [])
+                );
             } else if (isProductABundle) {
                 const selectedProducts = Object.values(childProductSelection);
-                await handleProductBundleAddToCart(selectedBundleQuantity, selectedProducts);
+                await handleProductBundleAddToCart(
+                    selectedBundleQuantity,
+                    selectedProducts,
+                    // @sfdc-extension-line SFDC_EXT_BOPIS
+                    ...(fulfillmentSelection ? [fulfillmentSelection] : [])
+                );
             }
 
             // Call onSuccess callback if operation was successful
-            onCartSuccess?.();
+            if (isProductASet || isProductABundle) {
+                onCartSuccess?.();
+            }
         } catch (error) {
             onCartError?.(error);
         }
@@ -279,19 +302,21 @@ export default function ChildProducts({
                 </div>
             )}
 
-            {/* @sfdc-extension-block-start SFDC_EXT_BOPIS */}
             {/* Delivery Options - For both bundles and sets */}
-            {/* Hide for non-pickup items when opened from cart page */}
-            {(mode !== 'edit' || basketPickupStore) && (
+            {/* Cart item fulfillment changes use the cart-specific control. */}
+            {showFulfillmentOptions && (
                 <div className="flex justify-center">
                     <DeliveryOptions
                         product={productWithCalculatedInventory}
                         quantity={effectiveQuantity}
-                        basketPickupStore={basketPickupStore}
+                        // @sfdc-extension-line SFDC_EXT_BOPIS
+                        pickupLocation={basketPickupStore}
+                        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                        onSelectionChange={productView?.setFulfillmentSelection ?? setLocalFulfillmentSelection}
+                        // @sfdc-extension-block-end SFDC_EXT_BOPIS
                     />
                 </div>
             )}
-            {/* @sfdc-extension-block-end SFDC_EXT_BOPIS */}
 
             {/* Progress indicator */}
             <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">

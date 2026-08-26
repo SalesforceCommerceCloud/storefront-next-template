@@ -66,7 +66,7 @@ export function loader({ context, params }: Route.LoaderArgs): OrderDetailsPageL
         throw redirect(buildUrlFromContext(routes.accountOrders, context));
     }
 
-    const { orderDataPromise } = fetchOrderWithProducts(context, orderNo);
+    const { orderDataPromise } = fetchOrderWithProducts(context, orderNo, { includeOms: true });
 
     return {
         orderData: orderDataPromise,

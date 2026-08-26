@@ -23,11 +23,13 @@ import { Plus, Minus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Typography } from '@/components/typography';
 import { UITarget } from '@/targets/ui-target';
+import { uiConfig } from '@/lib/config.ui';
 import type { FilterValue, RefinementProps } from './types';
 import RefineDefault from './refine-default';
 import RefineColor from './refine-color';
 import RefineSize from './refine-size';
 import RefinePrice from './refine-price';
+import RefineCategory from './refine-cgid';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import RefineInventory from '@/extensions/bopis/components/refine-inventory';
 
@@ -71,10 +73,14 @@ export default function CategoryRefinements({
         [effectiveRefines]
     );
 
-    // Category (`cgid`) selection is handled by QuickFilters, not the side filters panel.
+    // Category (`cgid`) selection is handled by QuickFilters, not the side filters panel — unless a
+    // vertical opts a promoted category level into the sidebar as a grouped facet (e.g. footwear
+    // "Shop by Activity"), in which case the route suppresses QuickFilters and we keep `cgid` here.
+    const keepCgidInSidebar = uiConfig.pages.category.sidebarCategoryRefinement?.enabled ?? false;
     const refinements = useMemo(
-        () => (result?.refinements || []).filter((refinement) => refinement.attributeId !== 'cgid'),
-        [result]
+        () =>
+            (result?.refinements || []).filter((refinement) => keepCgidInSidebar || refinement.attributeId !== 'cgid'),
+        [result, keepCgidInSidebar]
     );
 
     const toggleFilter = useCallback(
@@ -88,9 +94,13 @@ export default function CategoryRefinements({
                 // Remove this refinement
                 nextRefines = refines.filter((r) => r !== refinePair);
             } else {
-                // Exclusive refinements - only one value can be selected at a time
+                // Exclusive refinements - only one value can be selected at a time.
+                // `cgid` is single-valued per SCAPI (the productSearch `refine` param documents
+                // "refinement per single category ID; multiple category IDs are not supported"), so a
+                // promoted category facet is single-select — picking an activity replaces the prior one.
                 const exclusiveRefinements = [
                     'price',
+                    'cgid',
                     // @sfdc-extension-line SFDC_EXT_BOPIS
                     'ilids',
                 ];
@@ -144,6 +154,9 @@ export default function CategoryRefinements({
                 return <RefineSize {...refinementProps} />;
             case 'price':
                 return <RefinePrice {...refinementProps} result={result} />;
+            case 'cgid':
+                // Pass the refinement label so RefineCategory can name its radiogroup for AT.
+                return <RefineCategory {...refinementProps} label={refinement.label} />;
             default:
                 return <RefineDefault {...refinementProps} />;
         }

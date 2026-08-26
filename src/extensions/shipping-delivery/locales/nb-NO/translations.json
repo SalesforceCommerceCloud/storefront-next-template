@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Forventet leveringsdato",
+    "shippingOptionsOnlyHeading": "Fraktalternativer",
+    "free": "Gratis",
+    "deliverTo": "Levering til <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Endre destinasjon",
+    "changeDestinationAriaLabel": "Endre destinasjon: {{postalCode}}",
+    "arrivalMessage": "Ankommer {{deliveryWindow}}",
+    "shippingCost": "Fraktkostnad:",
+    "postalTerms": {
+        "zip": "postnummer",
+        "postalCode": "postnummer",
+        "postcode": "postnummer",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "Skriv inn {{term}}",
+    "postalCodePlaceholderExample": "Skriv inn {{term}} (f.eks. {{example}})",
+    "postalCodeInstructions": "Skriv inn {{term}} (f.eks. {{example}}) for å se leveringsestimater.",
+    "postalCodeInstructionsNoExample": "Skriv inn {{term}} for å se leveringsestimater.",
+    "postalCodeInvalid": "Skriv inn et gyldig {{term}} (f.eks. {{example}}).",
+    "postalCodeInvalidNoExample": "Skriv inn et gyldig {{term}}.",
+    "deliveryDatesUnavailable": "Leveringsdatoer er ikke tilgjengelige. Se alternativer og kostnader i kassen.",
+    "moreDeliveryOptions": "Flere leveringsalternativer",
+    "seeAllDeliveryOptions": "Se alle leveringsalternativer",
+    "openingDeliveryOptions": "Åpner leveringsalternativer...",
+    "calculateButton": "Beregn",
+    "calculateAriaLabel": "Beregn leveringsestimat",
+    "calculating": "Beregner..."
+}

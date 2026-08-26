@@ -37,6 +37,7 @@ import { routes } from '@/route-paths';
 import { createInstance, type i18n } from 'i18next';
 import { I18nextProvider, useTranslation, initReactI18next } from 'react-i18next';
 import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import { createStorefrontStylesheetLink } from '@salesforce/storefront-next-runtime/design/react/preload';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
 import { dataStoreMiddlewareLazy, sitesMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
 import {
@@ -131,13 +132,16 @@ import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
 // logo implementations (raster, inline-SVG, etc.) can be provided per brand.
 import Logo from '@/components/logo';
 import { SkipLink } from '@/components/skip-link';
+// The server entry initializes before route loaders run. Initialize separately
+// when this module is loaded in the browser, rather than during every App render.
+if (typeof window !== 'undefined') initializeRegistry();
 
 export const links: Route.LinksFunction = () => {
     return [
         // Preload critical fonts
         { rel: 'preload', href: primaryFont, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
         { rel: 'preload', href: appStylesHref, as: 'style' },
-        { rel: 'stylesheet', href: appStylesHref },
+        createStorefrontStylesheetLink(appStylesHref),
     ];
 };
 
@@ -409,12 +413,16 @@ function ErrorPageContent({
 }) {
     return (
         <>
+            {/* React 19 hoists this to <head>. The error page renders through Layout, but the
+                root `meta` returns [] without loaderData, so <Meta/> emits no <title> on the
+                error path — set one here to satisfy the document-title a11y rule. */}
+            <title>{title}</title>
             <SkipLink />
             {/* Simple Header */}
             <header className="bg-header-background text-header-foreground sticky top-0 z-50">
                 <div className="section-container">
                     <div className="flex items-center gap-x-4 lg:gap-x-6 h-16">
-                        <a href={homepageUrl} className="flex-shrink-0 flex items-center">
+                        <a href={homepageUrl} className="flex-shrink-0 flex items-center" data-testid="header-logo">
                             <Logo className="h-3 lg:h-4 w-auto [filter:var(--header-logo-filter)]" />
                         </a>
                     </div>
@@ -422,7 +430,9 @@ function ErrorPageContent({
             </header>
 
             {/* Main Content */}
-            <main id="main-content" tabIndex={-1} className="grow pt-8">
+            {/* data-testid lets E2E (a11y scan guard) detect an error-page landing — the SPA
+                ErrorBoundary renders at the requested URL, so URL checks can't tell them apart. */}
+            <main id="main-content" data-testid="error-page" tabIndex={-1} className="grow pt-8">
                 <div className="flex items-center justify-center min-h-[60vh] px-4 py-12">
                     <div className="mx-auto max-w-3xl w-full text-center">
                         {/* Large status code */}
@@ -458,9 +468,18 @@ function ErrorPageContent({
                         {stack && (
                             <div className="mt-16 border border-border bg-muted/30 text-left">
                                 <div className="flex items-center px-4 py-3 border-b border-border">
-                                    <h2 className="text-sm font-semibold text-foreground">Stack Trace</h2>
+                                    <h2 id="stack-trace-heading" className="text-sm font-semibold text-foreground">
+                                        Stack Trace
+                                    </h2>
                                 </div>
-                                <pre className="p-4 overflow-auto max-h-80 text-xs leading-relaxed text-foreground/90 font-mono">
+                                {/* tabIndex=0 makes the scrollable block keyboard-reachable so
+                                    keyboard-only users can scroll it (scrollable-region-focusable
+                                    a11y rule); aria-labelledby names the region via the heading above. */}
+                                <pre
+                                    aria-labelledby="stack-trace-heading"
+                                    // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- intentional tab stop so keyboard users can scroll the overflowing stack trace
+                                    tabIndex={0}
+                                    className="p-4 overflow-auto max-h-80 text-xs leading-relaxed text-foreground/90 font-mono">
                                     <code>{stack}</code>
                                 </pre>
                                 <div className="px-4 py-3 border-t border-border">
@@ -676,9 +695,6 @@ export default function App({
     // - These values are serialized directly from the server loader
     // - No client middleware or bootstrap needed - server is the single source of truth
     // - Tokens (accessToken, refreshToken) stay server-side only
-
-    // Initialize Page Designer components
-    initializeRegistry();
 
     const i18next = (typeof window === 'undefined' ? getI18next?.() : i18nextOnClient) as i18n;
 

@@ -22,7 +22,7 @@ import { ErrorCode } from '@/lib/error-codes';
 import { createShippingAddressSchema, parseShippingAddressFromFormData } from '@/lib/checkout/schemas';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { applyDefaultShippingMethod, fetchShippingMethodsMapForBasket } from '@/lib/checkout/loaders.server';
-import { saveShippingAddressToCustomer, getCurrentCustomer, isRegisteredCustomer } from '@/lib/api/customer.server';
+import { saveShippingAddressToCustomer, getCurrentCustomer } from '@/lib/api/customer.server';
 import {
     getAddressKey,
     isAddressEmpty,
@@ -230,8 +230,9 @@ export async function action(formData: FormData, context: ActionFunctionArgs['co
         logger.error('SubmitShippingAddress: failed to prefetch shipping methods', { error });
     }
 
-    // Re-evaluate the basket's stored shipping method for registered shoppers.
-    if (isRegisteredCustomer(context)) {
+    // For every shopper, swap an applied method that is not offerable for the entered address to the
+    // first valid one (leaving the basket untouched when none are offerable).
+    {
         const shipmentId = updatedBasket.shipments?.[0]?.shipmentId ?? 'me';
         const applicableMethods = shippingMethodsMap[shipmentId]?.applicableShippingMethods;
         updatedBasket = await applyDefaultShippingMethod(context, updatedBasket, applicableMethods);

@@ -76,8 +76,14 @@ afterEach(() => {
     cleanup();
 });
 
+type ComposedStory = ComponentType & { parameters?: { snapshot?: boolean } };
+
 describe('AnnouncementBanner stories snapshot', () => {
-    for (const [storyName, Story] of Object.entries(composed) as [string, ComponentType][]) {
+    for (const [storyName, Story] of Object.entries(composed) as [string, ComposedStory][]) {
+        // Interaction-only stories opt out of snapshotting. The design-mode empty state renders
+        // its children inside a lazy Suspense provider that resolves in a live browser but suspends
+        // to a fallback in this synchronous render — so its DOM is not deterministically snapshottable.
+        if (Story?.parameters?.snapshot === false) continue;
         test(`${storyName} story renders and matches snapshot`, () => {
             const { container } = render(
                 <SnapshotShell>

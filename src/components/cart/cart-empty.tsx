@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Typography } from '@/components/typography';
 
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/providers/auth';
 import { routes } from '@/route-paths';
 
 /**
@@ -34,6 +35,7 @@ import { routes } from '@/route-paths';
  */
 export default function EmptyCart(): ReactElement {
     const { t } = useTranslation('cart');
+    const isRegistered = useAuth()?.userType === 'registered';
 
     return (
         <div className="bg-muted flex-1 min-w-full w-full" data-testid="sf-cart-empty">
@@ -61,7 +63,9 @@ export default function EmptyCart(): ReactElement {
                         className="text-2xl text-center font-semibold text-foreground mb-2">
                         {t('empty.title')}
                     </Typography>
-                    <p className="text-sm text-muted-foreground mb-8">{t('empty.guestMessage')}</p>
+                    <p className="text-sm text-muted-foreground mb-8">
+                        {t(isRegistered ? 'empty.registeredMessage' : 'empty.guestMessage')}
+                    </p>
 
                     {/* Action Button */}
                     <Button asChild>

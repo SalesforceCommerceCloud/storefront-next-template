@@ -47,6 +47,8 @@ const baseOptions: UseLoadMoreProductsOptions = {
 beforeEach(() => {
     fetcher = { state: 'idle', data: undefined, load: vi.fn() };
     vi.mocked(useFetcher).mockReturnValue(fetcher as never);
+    sessionStorage.clear();
+    window.history.replaceState({}, '');
 });
 
 afterEach(() => vi.clearAllMocks());
@@ -96,6 +98,106 @@ describe('useLoadMoreProducts', () => {
         act(() => result.current.loadMore());
         const params = new URLSearchParams((fetcher.load.mock.calls[0][0] as string).split('?')[1]);
         expect(params.get('offset')).toBe('26');
+    });
+
+    it('reports a successful shopper-initiated batch', () => {
+        const onLoad = vi.fn();
+        const { result, rerender } = renderHook(() => useLoadMoreProducts({ ...baseOptions, onLoad }));
+
+        act(() => result.current.loadMore());
+        act(() => setFetcher({ state: 'loading' }));
+        rerender();
+        expect(onLoad).not.toHaveBeenCalled();
+
+        act(() =>
+            setFetcher({
+                state: 'idle',
+                data: { hits: [{ productId: 'p25' }], total: 218, offset: 24, limit: 24 },
+            })
+        );
+        rerender();
+
+        expect(onLoad).toHaveBeenCalledWith({
+            hits: [{ productId: 'p25' }],
+            total: 218,
+            offset: 24,
+            limit: 24,
+        });
+    });
+
+    it('does not report a restored back-navigation batch', () => {
+        const historyKey = 'category-history';
+        window.history.replaceState({ key: historyKey }, '');
+        sessionStorage.setItem('sfnext:loadMore', JSON.stringify({ [historyKey]: 36 }));
+        const onLoad = vi.fn();
+        const { result, rerender } = renderHook(() => useLoadMoreProducts({ ...baseOptions, onLoad }));
+        const restoredHits = Array.from({ length: 12 }, (_, index) => ({ productId: `p${index + 25}` }));
+
+        expect(fetcher.load).toHaveBeenCalledTimes(1);
+        act(() => setFetcher({ state: 'loading' }));
+        rerender();
+        act(() =>
+            setFetcher({
+                state: 'idle',
+                data: { hits: restoredHits, total: 218, offset: 24, limit: 12 },
+            })
+        );
+        rerender();
+
+        expect(result.current.appended).toEqual(restoredHits);
+        expect(result.current.isRestoring).toBe(false);
+        expect(onLoad).not.toHaveBeenCalled();
+    });
+
+    it('does not report a later non-shopper result after a failed load', () => {
+        const onLoad = vi.fn();
+        const { result, rerender } = renderHook(() => useLoadMoreProducts({ ...baseOptions, onLoad }));
+
+        act(() => result.current.loadMore());
+        act(() => setFetcher({ state: 'idle', data: 'Internal Error' }));
+        rerender();
+        act(() =>
+            setFetcher({
+                state: 'idle',
+                data: { hits: [{ productId: 'p25' }], total: 218, offset: 24, limit: 24 },
+            })
+        );
+        rerender();
+
+        expect(onLoad).not.toHaveBeenCalled();
+    });
+
+    it('reports only products appended after de-duplication', () => {
+        const onLoad = vi.fn();
+        const { result, rerender } = renderHook(() => useLoadMoreProducts({ ...baseOptions, onLoad }));
+
+        act(() => result.current.loadMore());
+        act(() =>
+            setFetcher({
+                data: { hits: [{ productId: 'p25' }], total: 218, offset: 24, limit: 24 },
+            })
+        );
+        rerender();
+
+        act(() => result.current.loadMore());
+        act(() =>
+            setFetcher({
+                data: {
+                    hits: [{ productId: 'p25' }, { productId: 'p26' }],
+                    total: 218,
+                    offset: 25,
+                    limit: 24,
+                },
+            })
+        );
+        rerender();
+
+        expect(onLoad).toHaveBeenLastCalledWith({
+            hits: [{ productId: 'p26' }],
+            total: 218,
+            offset: 25,
+            limit: 24,
+        });
     });
 
     it('de-duplicates by product id across batches', () => {

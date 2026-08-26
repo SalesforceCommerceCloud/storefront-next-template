@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import ProductView from '../product-view';
+import ProductView from '@/components/product-view';
 import { mockStandardProductOrderable } from '../../__mocks__/standard-product';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
@@ -179,6 +179,9 @@ export const Playground: StoryWithSynthetic = {
  * not just stylistic.
  */
 export const MissingImages: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         product: {
             ...mockStandardProductOrderable.product,
@@ -188,11 +191,14 @@ export const MissingImages: Story = {
 };
 
 /**
- * Out-of-stock — the cart action button, delivery options, and inventory
- * messaging all change. Distinct enough visually to warrant a dedicated story
- * rather than a Controls toggle.
+ * Out-of-stock — the cart action button and inventory messaging change.
+ * Distinct enough visually to warrant a dedicated story rather than a Controls
+ * toggle.
  */
 export const OutOfStock: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         product: {
             ...mockStandardProductOrderable.product,

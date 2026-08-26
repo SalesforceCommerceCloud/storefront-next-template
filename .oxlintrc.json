@@ -11,6 +11,7 @@
         ".claude/**",
         "**/lighthouserc.cjs",
         "**/generate-config.cjs",
+        "**/cartridges/**/cartridge/scripts/**/*.js",
         "e2e/**",
         ".storybook/**/*",
         "build/**/*",

@@ -99,7 +99,7 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
           />
         </a>
         <div
-          class="hidden lg:flex items-center"
+          class="hidden lg:flex min-w-0 flex-1 self-stretch items-center"
         >
           <button
             aria-expanded="false"
@@ -134,11 +134,11 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
             </svg>
           </button>
           <div
-            class="hidden lg:flex items-center h-full"
+            class="hidden lg:flex h-full w-full items-center"
           />
         </div>
         <div
-          class="flex-1"
+          class="flex-1 lg:hidden"
         />
         <div
           class="hidden lg:block"
@@ -233,7 +233,7 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
               />
             </svg>
           </button>
-          <a
+          <button
             aria-controls="radix-_r_2_"
             aria-expanded="false"
             aria-haspopup="dialog"
@@ -244,7 +244,6 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
             data-state="closed"
             data-testid="user-account-trigger"
             data-variant="ghost"
-            href="/RefArchGlobal/en-GB/login"
             type="button"
           >
             <svg
@@ -270,7 +269,7 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
                 d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
               />
             </svg>
-          </a>
+          </button>
           <a
             aria-label="Wishlist"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
@@ -369,7 +368,7 @@ exports[`Header stories snapshot > Default story renders and matches snapshot 1`
               </svg>
             </button>
             <div
-              class="hidden lg:flex items-center h-full"
+              class="hidden lg:flex h-full w-full items-center"
             />
           </div>
         </div>
@@ -488,7 +487,7 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
             />
           </a>
           <div
-            class="hidden lg:flex items-center"
+            class="hidden lg:flex min-w-0 flex-1 self-stretch items-center"
           >
             <button
               aria-expanded="false"
@@ -523,11 +522,11 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
               </svg>
             </button>
             <div
-              class="hidden lg:flex items-center h-full"
+              class="hidden lg:flex h-full w-full items-center"
             />
           </div>
           <div
-            class="flex-1"
+            class="flex-1 lg:hidden"
           />
           <div
             class="hidden lg:block"
@@ -622,7 +621,7 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
                 />
               </svg>
             </button>
-            <a
+            <button
               aria-controls="radix-_r_7_"
               aria-expanded="false"
               aria-haspopup="dialog"
@@ -633,7 +632,6 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
               data-state="closed"
               data-testid="user-account-trigger"
               data-variant="ghost"
-              href="/RefArchGlobal/en-GB/login"
               type="button"
             >
               <svg
@@ -659,7 +657,7 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
                   d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
                 />
               </svg>
-            </a>
+            </button>
             <a
               aria-label="Wishlist"
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
@@ -758,7 +756,7 @@ exports[`Header stories snapshot > MobileView story renders and matches snapshot
                 </svg>
               </button>
               <div
-                class="hidden lg:flex items-center h-full"
+                class="hidden lg:flex h-full w-full items-center"
               />
             </div>
           </div>
@@ -871,7 +869,7 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
           />
         </a>
         <div
-          class="hidden lg:flex items-center"
+          class="hidden lg:flex min-w-0 flex-1 self-stretch items-center"
         >
           <button
             aria-expanded="false"
@@ -906,11 +904,11 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
             </svg>
           </button>
           <div
-            class="hidden lg:flex items-center h-full"
+            class="hidden lg:flex h-full w-full items-center"
           />
         </div>
         <div
-          class="flex-1"
+          class="flex-1 lg:hidden"
         />
         <div
           class="hidden lg:block"
@@ -1005,7 +1003,7 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
               />
             </svg>
           </button>
-          <a
+          <button
             aria-controls="radix-_r_c_"
             aria-expanded="false"
             aria-haspopup="dialog"
@@ -1016,7 +1014,6 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
             data-state="closed"
             data-testid="user-account-trigger"
             data-variant="ghost"
-            href="/RefArchGlobal/en-GB/login"
             type="button"
           >
             <svg
@@ -1042,7 +1039,7 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
                 d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
               />
             </svg>
-          </a>
+          </button>
           <a
             aria-label="Wishlist"
             class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:hover:bg-accent/50 h-9 px-4 py-2 cursor-pointer lg:has-[>svg]:px-4 has-[>svg]:px-1 hover:bg-transparent hover:opacity-50 transition-opacity"
@@ -1141,7 +1138,7 @@ exports[`Header stories snapshot > WithAnnouncementBanner story renders and matc
               </svg>
             </button>
             <div
-              class="hidden lg:flex items-center h-full"
+              class="hidden lg:flex h-full w-full items-center"
             />
           </div>
         </div>

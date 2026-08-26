@@ -16,6 +16,7 @@
 import { type ReactElement, Suspense, lazy, startTransition, useState, useEffect } from 'react';
 import type { ShopperProducts } from '@/scapi';
 import { Button } from '@/components/ui/button';
+import ProductQuantityPicker from '@/components/product-quantity-picker';
 import { useProductView } from '@/providers/product-view';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
 import { useCheckAndExecutePendingAction } from '@/hooks/check-and-execute-pending-action';
@@ -24,6 +25,12 @@ import { UITarget } from '@/targets/ui-target';
 
 /** @feature-stub Express checkout buttons — remove this import and its JSX below to strip the stub */
 const ExpressPayments = lazy(() => import('@/components/checkout/components/express-payments'));
+
+export interface AdditionalItem {
+    productId: string;
+    quantity: number;
+    price?: number;
+}
 
 interface ProductCartActionsProps {
     product: ShopperProducts.schemas['Product'];
@@ -46,6 +53,17 @@ interface ProductCartActionsProps {
      * Typically navigates to the PDP for the full purchase flow.
      */
     onBuyNow?: () => void;
+    /**
+     * Additional items to batch with the main product on Add-to-Cart (e.g. service add-ons).
+     * Generic prop with no domain-specific knowledge.
+     */
+    additionalItems?: AdditionalItem[];
+    /**
+     * Render the quantity picker inline, in one row to the left of the Add-to-Cart button (default
+     * false → button only). Pair with `ProductInfo` `showQuantityPicker={false}` so quantity isn't
+     * rendered twice. Standard (non-compact, non-set/bundle) add-mode layout only.
+     */
+    showInlineQuantity?: boolean;
 }
 
 export default function ProductCartActions({
@@ -57,6 +75,8 @@ export default function ProductCartActions({
     onAddToWishlistSuccess,
     onAddToWishlistError,
     onBuyNow,
+    additionalItems = [],
+    showInlineQuantity = false,
 }: ProductCartActionsProps): ReactElement {
     const { t } = useTranslation('product');
     const isProductASet = isProductSet(product);
@@ -71,9 +91,16 @@ export default function ProductCartActions({
         mode,
         isAddingToOrUpdatingCart,
         canAddToCart,
+        isVariantInventoryLoading,
         currentVariant,
         isMasterOrVariantProduct,
+        quantity,
+        setQuantity,
+        maxQuantity,
+        stockLevel,
+        isOutOfStock,
         handleAddToCart,
+        handleProductSetAddToCart,
         handleUpdateCart,
         handleAddToWishlist,
     } = useProductView();
@@ -118,6 +145,20 @@ export default function ProductCartActions({
             // Use handleUpdateCart in edit mode, handleAddToCart in add mode
             if (isEditMode) {
                 await handleUpdateCart();
+            } else if (additionalItems.length > 0) {
+                // Additional items provided (e.g. service add-ons): add the main variant and the
+                // additional products together in one batch via the product-set path (separate line items).
+                await handleProductSetAddToCart([
+                    { product, variant: currentVariant ?? undefined, quantity },
+                    // Contract: the product-set add path reads ONLY `id` and `price` off each selection's
+                    // product (see `handleProductSetAddToCart` in use-product-actions.ts — it maps to
+                    // `productId`/`price`). We therefore synthesize a minimal stub rather than fetch the full
+                    // Product. If that path ever starts reading other fields, this cast must be revisited.
+                    ...additionalItems.map((item) => ({
+                        product: { id: item.productId, price: item.price } as ShopperProducts.schemas['Product'],
+                        quantity: item.quantity,
+                    })),
+                ]);
             } else {
                 await handleAddToCart();
             }
@@ -156,7 +197,7 @@ export default function ProductCartActions({
                     <div className="grid grid-cols-2 gap-3">
                         <Button
                             onClick={() => void onAddOrUpdateToCart()}
-                            disabled={!canAddToCart || isAddingToOrUpdatingCart}
+                            disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
                             className="w-full"
                             size="lg">
                             {isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
@@ -164,7 +205,7 @@ export default function ProductCartActions({
                         <UITarget targetId="sfcc.quickAdd.payments.expressCheckout">
                             <Button
                                 onClick={onBuyNow}
-                                disabled={!canAddToCart}
+                                disabled={!canAddToCart || isVariantInventoryLoading}
                                 variant="outline"
                                 className="w-full"
                                 size="lg">
@@ -174,18 +215,47 @@ export default function ProductCartActions({
                     </div>
                 )}
 
-                {/* Standard layout: single Add to Cart / Update button */}
-                {!isCompactAddMode && !isProductASet && !isProductABundle && (
-                    <Button
-                        data-testid="add-to-cart"
-                        data-slot="add-to-cart-button"
-                        onClick={() => void onAddOrUpdateToCart()}
-                        disabled={!canAddToCart || isAddingToOrUpdatingCart}
-                        className="w-full text-base font-semibold leading-6"
-                        size="lg">
-                        {isEditMode ? t('updateCart') : isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
-                    </Button>
-                )}
+                {/* Standard layout: single Add to Cart / Update button, or (opt-in) quantity + ATC in one row */}
+                {!isCompactAddMode &&
+                    !isProductASet &&
+                    !isProductABundle &&
+                    (showInlineQuantity && !isEditMode ? (
+                        <div className="flex items-stretch gap-3" data-slot="qty-add-row">
+                            <ProductQuantityPicker
+                                value={quantity.toString()}
+                                onChange={setQuantity}
+                                stockLevel={stockLevel}
+                                isOutOfStock={isOutOfStock}
+                                productName={product.name}
+                                maxQuantity={maxQuantity}
+                                hideLabel
+                                className="shrink-0 self-stretch"
+                            />
+                            <Button
+                                data-testid="add-to-cart"
+                                data-slot="add-to-cart-button"
+                                onClick={() => void onAddOrUpdateToCart()}
+                                disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
+                                className="min-w-0 flex-1 text-base font-semibold leading-6"
+                                size="lg">
+                                {isAddingToOrUpdatingCart ? t('addingToCart') : t('addToCart')}
+                            </Button>
+                        </div>
+                    ) : (
+                        <Button
+                            data-testid="add-to-cart"
+                            data-slot="add-to-cart-button"
+                            onClick={() => void onAddOrUpdateToCart()}
+                            disabled={!canAddToCart || isAddingToOrUpdatingCart || isVariantInventoryLoading}
+                            className="w-full text-base font-semibold leading-6"
+                            size="lg">
+                            {isEditMode
+                                ? t('updateCart')
+                                : isAddingToOrUpdatingCart
+                                  ? t('addingToCart')
+                                  : t('addToCart')}
+                        </Button>
+                    ))}
 
                 {/* Express Payments — standard layout only, vertical for PDP */}
                 {!isCompactAddMode &&
@@ -199,7 +269,7 @@ export default function ProductCartActions({
                                     layout="vertical"
                                     separatorPosition="top"
                                     separatorText={t('expressPayments.separatorBuyWith')}
-                                    disabled={!canAddToCart}
+                                    disabled={!canAddToCart || isVariantInventoryLoading}
                                 />
                             </Suspense>
                         </UITarget>

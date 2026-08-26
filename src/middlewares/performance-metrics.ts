@@ -395,7 +395,7 @@ export const performanceMetricsMiddlewareServer: MiddlewareFunction<Response> = 
     const performanceTimer = new PerformanceTimer({
         enabled,
         requestId: `server-${Date.now()}`,
-        requestUrl: request.url,
+        requestUrl: new URL(request.url).pathname,
     });
     // Always set the performance timer in context, even when disabled
     context.set(performanceTimerContext, performanceTimer);
@@ -461,7 +461,7 @@ export const performanceMetricsMiddlewareClient: MiddlewareFunction<Record<strin
     const performanceTimer = new PerformanceTimer({
         enabled,
         requestId: `client-${Date.now()}`,
-        requestUrl: typeof window !== 'undefined' ? window.location.href : 'client-side',
+        requestUrl: typeof window !== 'undefined' ? window.location.pathname : 'client-side',
     });
     // Always set the performance timer in context, even when disabled
     context.set(performanceTimerContext, performanceTimer);

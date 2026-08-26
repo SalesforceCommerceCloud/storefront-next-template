@@ -55,6 +55,7 @@ export default function ReturnsAndWarranty({ data }: ReturnsAndWarrantyProps): R
                 <ProductInfoCard
                     icon={<ShieldCheck className="h-5 w-5" />}
                     title={data.title}
+                    titleAs="h2"
                     description={data.description}
                     action={{
                         label: t('returnsAndWarranty.learnMore'),

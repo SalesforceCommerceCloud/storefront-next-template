@@ -104,7 +104,12 @@ export function TurnstileWidget({
 
     useEffect(() => {
         if (executeRef) {
+            // Cloudflare only accepts execute() when the widget was rendered with
+            // execution: 'execute' (our non-interactive mode). Calling execute() in
+            // managed/invisible/visible (execution: 'render') races the in-flight
+            // challenge and can suppress error-callback → onRetryExhausted (WI-10).
             executeRef.current = () => {
+                if (mode !== 'non-interactive') return;
                 if (widgetIdRef.current && window.turnstile) {
                     window.turnstile.execute(widgetIdRef.current);
                 }
@@ -115,7 +120,7 @@ export function TurnstileWidget({
                 executeRef.current = null;
             }
         };
-    }, [executeRef]);
+    }, [executeRef, mode]);
 
     useEffect(() => {
         if (!enabled || !siteKey || !containerRef.current) {
@@ -226,6 +231,10 @@ export function TurnstileWidget({
                 // 5s is generous for a CDN script load; if it hasn't arrived, the CDN is likely down.
                 scriptLoadTimeoutId = setTimeout(() => {
                     scriptLoadTimeoutId = null;
+                    // The else branch (widgetIdRef already set when timeout fires) is
+                    // unreachable on this path: onload always clears the timeout via
+                    // clearTimeout before calling initializeWidget, so the timer can
+                    // only fire when the script never loaded (widgetIdRef is null).
                     if (!widgetIdRef.current) {
                         if (!hasLoggedErrorRef.current) {
                             // oxlint-disable-next-line no-console
@@ -268,6 +277,11 @@ export function TurnstileWidget({
                 // Script exists, wait for it to load
                 scriptLoadIntervalId = setInterval(() => {
                     if (window.turnstile) {
+                        // The else branch (scriptLoadIntervalId is null here) is
+                        // unreachable: clearInterval in cleanup also nullifies this
+                        // local variable, preventing any subsequent interval tick
+                        // from running. If the interval fires, scriptLoadIntervalId
+                        // is still the non-null id that was assigned above.
                         if (scriptLoadIntervalId) {
                             clearInterval(scriptLoadIntervalId);
                             scriptLoadIntervalId = null;

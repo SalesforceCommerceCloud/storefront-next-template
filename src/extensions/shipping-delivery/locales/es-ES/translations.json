@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Fecha de entrega estimada",
+    "shippingOptionsOnlyHeading": "Opciones de envío",
+    "free": "Gratis",
+    "deliverTo": "Entrega en <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Cambiar destino",
+    "changeDestinationAriaLabel": "Cambiar destino: {{postalCode}}",
+    "arrivalMessage": "Llega {{deliveryWindow}}",
+    "shippingCost": "Coste de envío:",
+    "postalTerms": {
+        "zip": "código postal",
+        "postalCode": "código postal",
+        "postcode": "código postal",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "Introduce tu {{term}}",
+    "postalCodePlaceholderExample": "Introduce tu {{term}} (ej. {{example}})",
+    "postalCodeInstructions": "Introduce tu {{term}} (ej. {{example}}) para ver las estimaciones de entrega.",
+    "postalCodeInstructionsNoExample": "Introduce tu {{term}} para ver las estimaciones de entrega.",
+    "postalCodeInvalid": "Introduce un {{term}} válido (ej. {{example}}).",
+    "postalCodeInvalidNoExample": "Introduce un {{term}} válido.",
+    "deliveryDatesUnavailable": "Fechas de entrega no disponibles. Consulta las opciones y los costes al finalizar la compra.",
+    "moreDeliveryOptions": "Más opciones de entrega",
+    "seeAllDeliveryOptions": "Ver todas las opciones",
+    "openingDeliveryOptions": "Abriendo opciones de envío...",
+    "calculateButton": "Calcular",
+    "calculateAriaLabel": "Calcular estimación de entrega",
+    "calculating": "Calculando..."
+}

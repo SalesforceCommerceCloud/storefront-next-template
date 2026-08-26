@@ -17,12 +17,15 @@
 /* oxlint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
 import { createContext, useContext, type PropsWithChildren, type ReactElement } from 'react';
 import type { ShopperProducts } from '@/scapi';
-import type { ReturnsAndWarrantyData, HtmlContent } from '@/extensions/product-content/lib/api/product-content.server';
+import type {
+    ReturnsAndWarrantyData,
+    SectionContent,
+} from '@/extensions/product-content/lib/api/product-content.server';
 
 export interface ProductContentDataContextValue {
     product: ShopperProducts.schemas['Product'];
     returnsWarrantyPromise: Promise<ReturnsAndWarrantyData>;
-    pdpCollapsiblesPromise: Promise<Array<HtmlContent | null>>;
+    pdpCollapsiblesPromise: Promise<Array<SectionContent | null>>;
 }
 
 const ProductContentDataContext = createContext<ProductContentDataContextValue | null>(null);

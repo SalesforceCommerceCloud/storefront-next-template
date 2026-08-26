@@ -83,6 +83,7 @@ pnpm storybook:test --type=snapshot --update      # Refresh snapshot fixtures
 pnpm storybook:test --type=snapshot --coverage    # Snapshot tests + coverage (auto-generates story tests)
 pnpm storybook:test --type=interaction --static   # Build & serve static bundle, then test (CI mode)
 pnpm storybook:test --type=a11y --static          # Same, for a11y
+pnpm storybook:test --type=interaction --static --reuse-build # Test an existing static bundle
 ```
 
 **Bundle size with treemap:**
@@ -126,31 +127,32 @@ These rules take priority when designing routes, components, and state. Apply th
 7. **Skeleton screens for known layouts, spinners for indeterminate operations.** If the shape of the resolved content is known, use a skeleton. Spinners are only for global or unknown-layout loading states.
 8. **Above the fold: avoid `fallback={null}` without reserving space.** Rendering nothing and then injecting content causes CLS. If no visual fallback is desired, the container must maintain explicit dimensions (`minHeight`, aspect ratio).
 9. **Below the fold: prefer `fallback={null}` or a simple placeholder.** Users don't perceive layout shift for content they can't see, and complex skeletons add hydration cost without visible benefit.
+10. **Use `<Region critical>` only for initial-render Page Designer content.** Await the page in the route loader, mark only a page-level above-the-fold/LCP region as critical, and omit its region-local `fallbackElement`; nested component regions are included automatically and component loader data retains its local Suspense boundaries. Never mark below-the-fold or broad catch-all regions critical. See [Critical Page Regions](./docs/README-PAGE-DESIGNER.md#critical-page-regions).
 
 ### Mutations & Interactions
 
-10. **Navigating mutations: `action` + `<Form>`.** Non-navigating mutations: `useFetcher`. Never mix these — the choice determines whether React Router triggers a route transition.
-11. **Prefer optimistic UI when failure is unlikely and reversible.** Use `fetcher.formData` for simple optimistic reads, `useOptimistic` for complex state transformations (e.g., list insertions).
+11. **Navigating mutations: `action` + `<Form>`.** Non-navigating mutations: `useFetcher`. Never mix these — the choice determines whether React Router triggers a route transition.
+12. **Prefer optimistic UI when failure is unlikely and reversible.** Use `fetcher.formData` for simple optimistic reads, `useOptimistic` for complex state transformations (e.g., list insertions).
 
 ### State Management
 
-12. **URL-worthy state goes in `useSearchParams`, not `useState`.** Filters, pagination, sort order, and modal visibility belong in the URL — they must survive refresh and be shareable.
-13. **Never store derived state in `useState`.** Compute inline or use `useMemo` for expensive derivations. A second source of truth is a bug waiting to happen.
-14. **Split React Contexts by concern.** One context per domain (theme, locale, user) — never a single large `AppContext`. Every value change re-renders all consumers of that context.
-15. **Persistent cross-request state via cookies/sessions, not `localStorage`.** Cookies are SSR-compatible, avoid hydration mismatches, and work before scripts load.
+13. **URL-worthy state goes in `useSearchParams`, not `useState`.** Filters, pagination, sort order, and modal visibility belong in the URL — they must survive refresh and be shareable.
+14. **Never store derived state in `useState`.** Compute inline or use `useMemo` for expensive derivations. A second source of truth is a bug waiting to happen.
+15. **Split React Contexts by concern.** One context per domain (theme, locale, user) — never a single large `AppContext`. Every value change re-renders all consumers of that context.
+16. **Persistent cross-request state via cookies/sessions, not `localStorage`.** Cookies are SSR-compatible, avoid hydration mismatches, and work before scripts load.
 
 ### Images
 
-16. **Use `<DynamicImage>` with `widths` or `heights` for all product and content images.** Without either, the component renders a plain `<img>` with no responsive sources and no DIS resizing. Set `priority="high"` on LCP-candidate images (hero, first product image) to trigger React 19 SSR preloading. See [Images](./docs/README-IMAGES.md).
-17. **Use `DynamicImageProvider` for image grids.** Wrap product grids in a provider to control priority and responsive widths centrally rather than prop-drilling through every tile.
+17. **Use `<DynamicImage>` with `widths` or `heights` for all product and content images.** Without either, the component renders a plain `<img>` with no responsive sources and no DIS resizing. Set `priority="high"` on LCP-candidate images (hero, first product image) to trigger React 19 SSR preloading. See [Images](./docs/README-IMAGES.md).
+18. **Use `DynamicImageProvider` for image grids.** Wrap product grids in a provider to control priority and responsive widths centrally rather than prop-drilling through every tile.
 
 ### Best Practices
 
-18. **Lazy-load overlays and heavy below-the-fold content.** Use `React.lazy()` with deferred mounting — only mount the `<Suspense>` subtree after the first user interaction. See [Lazy Loading for Overlays](./docs/README-PERFORMANCE.md#lazy-loading-for-overlays-modals-drawers-dialogs).
-19. **Self-host web fonts.** Use WOFF2 variable fonts, preload in `<head>`, inline the `@font-face` declaration, and set `font-display: swap` or `optional`. Never load fonts from third-party CDNs (cache partitioning, GDPR).
-20. **Never load third-party scripts synchronously.** Always use `async` or `defer`. Lazy-load interaction-driven widgets (chat, social) on scroll or click, not on page load.
-21. **Monitor bundle size.** Run `pnpm bundlesize` to verify against configured size limits — CI enforces these on every PR. Check bundle impact with `pnpm bundlesize --analyze` before adding large dependencies.
-22. **Configure resource hints via `config.server.ts`.** Use `preconnect` for origins contacted on every page (e.g., image CDN), `dns-prefetch` for optional origins. Don't preconnect to origins that aren't used on every page.
+19. **Lazy-load overlays and heavy below-the-fold content.** Use `React.lazy()` with deferred mounting — only mount the `<Suspense>` subtree after the first user interaction. See [Lazy Loading for Overlays](./docs/README-PERFORMANCE.md#lazy-loading-for-overlays-modals-drawers-dialogs).
+20. **Self-host web fonts.** Use WOFF2 variable fonts, preload in `<head>`, inline the `@font-face` declaration, and set `font-display: swap` or `optional`. Never load fonts from third-party CDNs (cache partitioning, GDPR).
+21. **Never load third-party scripts synchronously.** Always use `async` or `defer`. Lazy-load interaction-driven widgets (chat, social) on scroll or click, not on page load.
+22. **Monitor bundle size.** Run `pnpm bundlesize` to verify against configured size limits — CI enforces these on every PR. Check bundle impact with `pnpm bundlesize --analyze` before adding large dependencies.
+23. **Configure resource hints via `config.server.ts`.** Use `preconnect` for origins contacted on every page (e.g., image CDN), `dns-prefetch` for optional origins. Don't preconnect to origins that aren't used on every page.
 
 ## Code Conventions
 
@@ -304,7 +306,7 @@ The docs below are where architectural detail lives — consult them for tasks i
 - [docs/README-AUTH.md](./docs/README-AUTH.md) — Authentication patterns
 - [docs/README-COOKIE-DOMAIN.md](./docs/README-COOKIE-DOMAIN.md) — Configurable cookie domains: storefront config (`app.cookies.domain` + per-site), the matching Business Manager setting, verification, rollout
 - [docs/README-EMAIL-VERIFICATION.md](./docs/README-EMAIL-VERIFICATION.md) — Email verification: OTP flows, passwordless registration/login, account details badge, Change Email
-- [docs/README-TURNSTILE.md](./docs/README-TURNSTILE.md) — Cloudflare Turnstile bot protection (BFF verification, three-tier health, fail-open)
+- [docs/README-TURNSTILE.md](./docs/README-TURNSTILE.md) — Cloudflare Turnstile bot protection (BFF verification, two-tier health, fail-open)
 - [docs/README-SECURITY-HEADERS.md](./docs/README-SECURITY-HEADERS.md) — Default security response headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
 - [docs/README-I18N.md](./docs/README-I18N.md) — Internationalization
 - [docs/README-MULTI-SITE.md](./docs/README-MULTI-SITE.md) — Site context and locale URL routing

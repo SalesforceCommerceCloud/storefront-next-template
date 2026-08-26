@@ -22,10 +22,13 @@ import { waitForStorybookReady } from '@storybook/test-utils';
 import type { FilterValue } from '../../types';
 
 // ---------------------------------------------------------------------------
-// RefineCategory (cgid) takes RefinementProps — a `values: FilterValue[]`
-// list plus selection callbacks. The visible variation is entirely a function
-// of (a) how many values are rendered and (b) which one is currently selected
-// (drives the border highlight). Both fold into Controls.
+// RefineCategory (cgid) takes RefinementProps — a `values: FilterValue[]` list
+// plus selection callbacks. It renders a SINGLE-SELECT radio group for a
+// promoted category level, e.g. an "activity" parent whose child categories
+// become the sidebar facet (SCAPI `cgid` is single-valued). SCAPI returns cgid
+// refinements hierarchically, so a parent value carries its children in
+// `.values`; the component flattens to the leaf children. Visible state is a
+// function of (a) how many leaf values render and (b) which one is selected.
 // ---------------------------------------------------------------------------
 
 const ALL_CATEGORY_VALUES: FilterValue[] = [
@@ -35,6 +38,23 @@ const ALL_CATEGORY_VALUES: FilterValue[] = [
     { value: 'accessories', label: 'Accessories', hitCount: 24 },
 ];
 const MAX_VALUES = ALL_CATEGORY_VALUES.length;
+
+// Hierarchical payload as SCAPI returns it for a promoted parent category: one
+// "activity" parent whose `.values` are the child categories the sidebar shows.
+const HIERARCHICAL_ACTIVITY_VALUES: FilterValue[] = [
+    {
+        value: 'activity',
+        label: 'Activity',
+        hitCount: 160,
+        values: [
+            { value: 'running', label: 'Running', hitCount: 42 },
+            { value: 'trail', label: 'Trail', hitCount: 18 },
+            { value: 'training', label: 'Training', hitCount: 24 },
+            { value: 'walking', label: 'Walking', hitCount: 20 },
+            { value: 'casual', label: 'Casual', hitCount: 56 },
+        ],
+    },
+];
 
 type SyntheticArgs = {
     valueCount: number;
@@ -50,7 +70,7 @@ const meta: Meta<typeof RefineCategory> = {
         docs: {
             description: {
                 component:
-                    'Sub-category navigation list inside the side-panel filters. Renders one link-style button per value in `values`; the selected value gets a border highlight.',
+                    'Single-select radio facet for a category (`cgid`) refinement promoted into the side-panel filters. SCAPI `cgid` is single-valued, so selecting a category replaces the active one. Renders one radio row per leaf category, with label and hit-count pill. Flattens SCAPI hierarchical values to the child categories.',
             },
         },
     },
@@ -60,8 +80,8 @@ export default meta;
 
 /**
  * Rich-but-realistic baseline — four categories with "Mens" pre-selected.
- * `valueCount` slices the canonical list (1–4); `selectedValue` is the
- * `value` of the highlighted entry (empty string = no selection).
+ * `valueCount` slices the canonical list (1–4); `selectedValue` is the single
+ * active `value` (empty string = none). cgid is single-select.
  */
 export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
     args: {
@@ -75,8 +95,7 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
             table: { category: 'Synthetic (data shape)' },
         },
         selectedValue: {
-            description:
-                'Synthetic: `value` of the currently-selected category. Empty string = nothing selected. Drives the border-highlight on the matching button.',
+            description: 'Synthetic: the single selected `value` (single-select). Empty string = none.',
             control: 'text',
             table: { category: 'Synthetic (data shape)' },
         },
@@ -102,8 +121,36 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const buttons = canvas.getAllByRole('button');
-        await expect(buttons.length).toBeGreaterThan(0);
-        await userEvent.click(buttons[0]);
+        const radios = canvas.getAllByRole('radio');
+        await expect(radios.length).toBeGreaterThan(0);
+        await userEvent.click(radios[0]);
+    },
+};
+
+/**
+ * Hierarchical payload — an "activity" parent category whose child categories
+ * (running, trail, training, walking, casual) are flattened into the radio
+ * group. This is the shape SCAPI returns when a parent category is promoted to
+ * the sidebar facet (footwear "Shop by Activity").
+ */
+export const HierarchicalActivity: StoryObj<ComponentType> = {
+    render: () => {
+        const isFilterSelected = (attributeId: string, value: string) => attributeId === 'cgid' && value === 'running';
+        return (
+            <RefineCategory
+                values={HIERARCHICAL_ACTIVITY_VALUES}
+                attributeId="cgid"
+                isFilterSelected={isFilterSelected}
+                toggleFilter={action('cgid-toggle-filter')}
+            />
+        );
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+        // Five leaf activity categories render as radios (parent is flattened away).
+        const radios = canvas.getAllByRole('radio');
+        await expect(radios).toHaveLength(5);
+        await userEvent.click(radios[1]);
     },
 };

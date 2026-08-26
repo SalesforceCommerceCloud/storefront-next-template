@@ -42,11 +42,19 @@ vi.mock('react-i18next', () => ({
         t: (key: string) => {
             const translations: Record<string, string> = {
                 'categoryGrid.shopNowButton': 'Shop Now',
+                'popularCategory.emptyTitle': 'Category',
             };
             return translations[key] || key;
         },
         i18n: { language: mockSiteObject.defaultLocale },
     }),
+}));
+
+// Mock Page Designer mode — default to non-design (live storefront). Individual tests flip
+// mockIsDesignMode to exercise the authoring empty state.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }),
 }));
 
 const mockCategory: ShopperProducts.schemas['Category'] = {
@@ -88,6 +96,7 @@ const renderComponent = (component: React.ReactElement) => {
 describe('PopularCategory', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockIsDesignMode = false;
     });
 
     test('renders category with data prop (from loader)', () => {
@@ -166,9 +175,9 @@ describe('PopularCategory', () => {
     });
 
     test('uses category image when available', () => {
-        renderComponent(<PopularCategory data={mockCategory} />);
+        const { container } = renderComponent(<PopularCategory data={mockCategory} />);
 
-        const image = screen.getByRole('img');
+        const image = container.querySelector('img');
         expect(image).toHaveAttribute('src', '/images/new-arrivals.jpg');
     });
 
@@ -178,17 +187,17 @@ describe('PopularCategory', () => {
             image: undefined,
         };
 
-        renderComponent(<PopularCategory data={categoryWithoutImage} />);
+        const { container } = renderComponent(<PopularCategory data={categoryWithoutImage} />);
 
-        const image = screen.getByRole('img');
+        const image = container.querySelector('img');
         expect(image).toHaveAttribute('src', '/images/new-arrivals-banner.jpg');
     });
 
-    test('uses category name as image alt text', () => {
-        renderComponent(<PopularCategory data={mockCategory} />);
+    test('sets image alt to empty (decorative — the overlaid heading names the tile)', () => {
+        const { container } = renderComponent(<PopularCategory data={mockCategory} />);
 
-        const image = screen.getByRole('img');
-        expect(image).toHaveAttribute('alt', 'New Arrivals');
+        const image = container.querySelector('img');
+        expect(image).toHaveAttribute('alt', '');
     });
 
     test('generates correct category link', () => {
@@ -196,6 +205,22 @@ describe('PopularCategory', () => {
 
         const link = screen.getByRole('link', { name: /new arrivals/i });
         expect(link).toHaveAttribute('href', `${getSitePrefix()}/category/newarrivals`);
+    });
+
+    test('can fill a parent grid cell without changing the default square media layout', () => {
+        const { container } = renderComponent(<PopularCategory data={mockCategory} mediaAspectRatio="fill" />);
+
+        expect(container.querySelector('[data-slot="category-media"]')).toHaveClass('h-full');
+        expect(container.querySelector('[data-slot="category-media"]')).not.toHaveClass('aspect-square');
+    });
+
+    test('can fill a parent grid cell when its label is below the media', () => {
+        const { container } = renderComponent(
+            <PopularCategory data={mockCategory} labelPosition="below" mediaAspectRatio="fill" />
+        );
+
+        expect(container.querySelector('[data-slot="category-media"]')).toHaveClass('flex-1', 'min-h-0');
+        expect(container.querySelector('[data-slot="category-media"]')).not.toHaveClass('aspect-square');
     });
 
     test('handles category with empty id', () => {
@@ -225,18 +250,32 @@ describe('PopularCategory', () => {
         expect(image).toHaveAttribute('alt', '');
     });
 
-    test('handles category with neither image nor banner', () => {
+    test('uses the shared fallback image when category has neither image nor banner', () => {
         const categoryNoImages = {
             ...mockCategory,
             image: undefined,
             c_slotBannerImage: undefined,
         };
 
-        renderComponent(<PopularCategory data={categoryNoImages} />);
+        const { container } = renderComponent(<PopularCategory data={categoryNoImages} />);
 
-        // Should use fallback hero image
-        const image = screen.getByRole('img');
-        expect(image).toBeInTheDocument();
+        const image = container.querySelector('img');
+        expect(image).toHaveAttribute('src', '__ASSET_MOCK__');
+    });
+
+    test('uses the supplied fallback image when category has neither image nor banner', () => {
+        const categoryNoImages = {
+            ...mockCategory,
+            image: undefined,
+            c_slotBannerImage: undefined,
+        };
+
+        const { container } = renderComponent(
+            <PopularCategory data={categoryNoImages} fallbackImageUrl="/images/foundations/hero-carousel/hero1.webp" />
+        );
+
+        const image = container.querySelector('img');
+        expect(image).toHaveAttribute('src', '/images/foundations/hero-carousel/hero1.webp');
     });
 
     test('handles null category prop', () => {
@@ -251,5 +290,36 @@ describe('PopularCategory', () => {
 
         // Component returns null since null is not an object
         expect(container.firstChild).toBeNull();
+    });
+
+    describe('Empty state (Page Designer authoring)', () => {
+        test('renders placeholder card with default "Category" title in design mode', () => {
+            mockIsDesignMode = true;
+
+            renderComponent(<PopularCategory />);
+
+            // Feeds the placeholder image + default title through the real render path.
+            expect(screen.getByRole('heading', { name: 'Category' })).toBeInTheDocument();
+            expect(screen.getByRole('link', { name: /category/i })).toBeInTheDocument();
+        });
+
+        test('placeholder image is decorative (empty alt) so the title is not read twice', () => {
+            mockIsDesignMode = true;
+
+            const { container } = renderComponent(<PopularCategory />);
+
+            const image = container.querySelector('img');
+            expect(image).toBeInTheDocument();
+            expect(image).toHaveAttribute('alt', '');
+        });
+
+        test('renders nothing when unconfigured on the live storefront (not design mode)', () => {
+            mockIsDesignMode = false;
+
+            const { container } = renderComponent(<PopularCategory />);
+
+            // The authoring placeholder must never leak to shoppers.
+            expect(container.firstChild).toBeNull();
+        });
     });
 });

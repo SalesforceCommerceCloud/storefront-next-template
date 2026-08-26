@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
-/* oxlint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
+/* eslint-disable react-refresh/only-export-components -- provider and hook are co-located by design */
 import { createContext, useContext, type PropsWithChildren, type ReactElement } from 'react';
-import type { EstimatedDeliveryData } from '@/extensions/shipping-delivery/lib/api/shipping-delivery.server';
 
 export interface ShippingDeliveryContextValue {
-    estimatedDeliveryPromise: Promise<EstimatedDeliveryData>;
+    productId: string;
 }
 
 const ShippingDeliveryContext = createContext<ShippingDeliveryContextValue | null>(null);
@@ -29,16 +28,9 @@ export function useShippingDelivery(): ShippingDeliveryContextValue | null {
 }
 
 export type ShippingDeliveryProviderProps = PropsWithChildren<{
-    estimatedDeliveryPromise: Promise<EstimatedDeliveryData>;
+    productId: string;
 }>;
 
-export function ShippingDeliveryProvider({
-    estimatedDeliveryPromise,
-    children,
-}: ShippingDeliveryProviderProps): ReactElement {
-    return (
-        <ShippingDeliveryContext.Provider value={{ estimatedDeliveryPromise }}>
-            {children}
-        </ShippingDeliveryContext.Provider>
-    );
+export function ShippingDeliveryProvider({ productId, children }: ShippingDeliveryProviderProps): ReactElement {
+    return <ShippingDeliveryContext.Provider value={{ productId }}>{children}</ShippingDeliveryContext.Provider>;
 }

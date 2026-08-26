@@ -25,3 +25,9 @@ declare module 'virtual:action-hooks' {
         options?: { blocking?: boolean }
     ): Promise<ActionHookContext<T>>;
 }
+
+declare module 'virtual:storefront-next/page-designer-preload-manifest' {
+    import type { PageDesignerPreloadManifest } from '@salesforce/storefront-next-runtime/design/preload';
+    const manifest: PageDesignerPreloadManifest;
+    export default manifest;
+}

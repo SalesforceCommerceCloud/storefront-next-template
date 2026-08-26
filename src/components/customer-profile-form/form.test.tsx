@@ -320,3 +320,25 @@ describe('CustomerProfileForm submission', () => {
         expect(onCancel).toHaveBeenCalledTimes(1);
     });
 });
+
+describe('CustomerProfileForm field grouping (WCAG 1.3.1)', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('groups the related profile fields under a named group so a screen reader announces them as a set', () => {
+        renderForm({ initialData: { firstName: 'Jane', lastName: 'Doe' } });
+
+        // The name, contact, and date-of-birth fields are a single related set. Without a
+        // programmatic grouping (fieldset/legend or role="group") a screen reader hears a flat
+        // run of inputs with no indication they belong together. Assert the set is wrapped in a
+        // group whose accessible name comes from the section's visible heading.
+        const group = screen.getByRole('group', { name: /personal information/i });
+
+        // The grouped fields must actually live inside the group, not merely alongside it.
+        expect(group).toContainElement(screen.getByLabelText(/first name/i));
+        expect(group).toContainElement(screen.getByLabelText(/last name/i));
+        expect(group).toContainElement(screen.getByLabelText(/phone number/i));
+        expect(group).toContainElement(screen.getByLabelText(/date of birth/i));
+    });
+});

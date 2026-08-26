@@ -364,6 +364,59 @@ export async function addItemToBasket(
 }
 
 /**
+ * Discover currently-orderable product IDs via the Shopper Search API.
+ *
+ * Returns specific addable IDs (a variant or standalone product), resolved from
+ * `product-search` hits refined to `orderable_only=true`. A master/set hit is not
+ * itself addable to a basket, so its first represented (variant) product ID is used
+ * instead. Deduplicated, in relevance order, capped at `limit`.
+ *
+ * This lets cart/checkout setup stay independent of any single SKU's stock level:
+ * a shifting sandbox can take a hardcoded variant out of stock (the failure that
+ * blocked earlier cart-panel regression runs), but there is almost always *some*
+ * orderable product to seed with.
+ */
+export async function searchOrderableVariantIds(
+    config: ScapiConfig,
+    tokens: GuestTokens,
+    options?: { query?: string; limit?: number }
+): Promise<string[]> {
+    const baseUrl = getBaseUrl(config);
+    const query = options?.query ?? 'shirt';
+    const limit = options?.limit ?? 12;
+    const url =
+        `${baseUrl}/search/shopper-search/v1/organizations/${config.organizationId}/product-search` +
+        `?siteId=${config.siteId}&q=${encodeURIComponent(query)}` +
+        `&refine=${encodeURIComponent('orderable_only=true')}&limit=${limit}`;
+
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${tokens.accessToken}` },
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Product search failed (${response.status}): ${text}`);
+    }
+
+    const data = await response.json();
+    const hits: Array<{
+        hitType?: string;
+        productId?: string;
+        representedProducts?: Array<{ id?: string }>;
+    }> = data.hits ?? [];
+
+    const ids: string[] = [];
+    for (const hit of hits) {
+        const addableId =
+            hit.hitType === 'master' || hit.hitType === 'set' ? hit.representedProducts?.[0]?.id : hit.productId;
+        if (addableId && !ids.includes(addableId)) {
+            ids.push(addableId);
+        }
+    }
+    return ids;
+}
+
+/**
  * Guest login, create basket, and add item in a single sequence.
  * Returns the tokens and basket info needed for cookie injection.
  */

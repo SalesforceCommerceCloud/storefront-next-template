@@ -23,10 +23,34 @@
         "hero": {
             "defaultTitle": "Køb nu",
             "defaultImageAlt": "Hero-billede",
-            "defaultCtaText": "Køb nu"
+            "defaultCtaText": "Køb nu",
+            "emptyTitle": "Tilføj din titel her",
+            "emptyButton": "Knap"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Tilføj din titel her"
         },
         "previousImage": "Forrige billede",
-        "nextImage": "Næste billede"
+        "nextImage": "Næste billede",
+        "popularCategory": {
+            "emptyTitle": "Kategori"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Tilføj din titel her"
+        },
+        "contentCard": {
+            "emptyTitle": "Tilføj din titel her",
+            "emptyDescription": "Tilføj din beskrivelse her"
+        },
+        "productTile": {
+            "emptyTitle": "Produkt"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Produktanbefalinger"
+        }
     },
     "search": {
         "results": "Søgeresultater for",
@@ -88,6 +112,7 @@
         "mobileNavigation": "Mobil navigationsmenu",
         "expandCategory": "Udvid {{category}}",
         "collapseCategory": "Skjul {{category}}",
+        "shopAllCategory": "Se alle {{category}}",
         "menu": {
             "yourLists": "Dine lister",
             "yourAccount": "Din konto",
@@ -312,7 +337,7 @@
         "itemCount_other": "Kurv ({{count}} varer)",
         "empty": {
             "title": "Din kurv er tom.",
-            "registeredMessage": "Fortsæt med at handle for at lægge varer i din kurv.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Log ind for at hente dine gemte varer eller fortsætte med at handle.",
             "continueShopping": "Fortsæt med at handle",
             "signIn": "Log ind"
@@ -596,6 +621,7 @@
             "hero": {
                 "thankYou": "Tak, {{name}}!",
                 "orderConfirmed": "Din ordre er bekræftet.",
+                "statusAnnouncement": "Din ordre er bekræftet. Ordrenummer {{orderNo}}.",
                 "emailConfirmation": "Vi har sendt en bekræftelsesmail til {{email}}.",
                 "needHelp": "Har du brug for hjælp?",
                 "defaultName": "Kunde",
@@ -1129,7 +1155,9 @@
         "categoryGrid": {
             "title": "Stil til det virkelige liv",
             "description": "Hos Market Street mener vi, at mode skal være ubesværet, autentisk og tilgængelig. Vores kollektioner er designet til det moderne menneske, der værdsætter kvalitet, alsidighed og tidløs stil.",
-            "shopNowButton": "Køb nu"
+            "shopNowButton": "Køb nu",
+            "emptyTitle": "Tilføj din titel her",
+            "emptyRegionLabel": "Kategorikarrusel"
         },
         "featuredContent": {
             "women": {
@@ -1341,14 +1369,6 @@
         "returnsAndWarrantyDescription": "Oplysninger om returnering og garanti",
         "close": "Luk"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Anslået levering",
-        "cardDescription": "Tilgængelige forsendelsesmuligheder",
-        "learnMore": "Få mere at vide",
-        "sectionHeading": "Anslået levering",
-        "shippingOptionsHeading": "Forsendelsesmuligheder og priser",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Ret følgende:",
@@ -1411,6 +1431,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Leveringsmetode",
+            "deliveryDescription": "Indtast dit postnummer for at se leveringsestimat"
+        },
         "recommendations": {
             "youMightAlsoLike": "Du vil måske også synes om",
             "completeTheLook": "Fuldend looket",
@@ -1447,7 +1472,6 @@
         "quickAdd": "Hurtig tilføjelse",
         "buyItNow": "Køb nu",
         "pickupAvailable": "Afhentning tilgængelig",
-        "selectProduct": "Vælg et produkt",
         "updatingCart": "Opdaterer ...",
         "updateCart": "Opdater",
         "addingToWishlist": "Føjer til ønskelisten ...",

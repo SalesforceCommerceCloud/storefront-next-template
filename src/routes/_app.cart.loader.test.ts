@@ -154,13 +154,17 @@ describe('Cart route loader', () => {
         expect(data).toHaveProperty('productsByItemId');
         expect(data).toHaveProperty('bonusProductsById');
         expect(data).toHaveProperty('promotions');
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
         expect(data).toHaveProperty('storesByStoreId');
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
         expect(data).not.toHaveProperty('wishlistProductIds');
         expect(data.basket).toEqual(mockBasket);
         expect(data.productsByItemId).toEqual({ 'item-1': { id: 'product-1' } });
         expect(data.bonusProductsById).toEqual({});
         expect(data.promotions).toEqual({});
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
         expect(data.storesByStoreId).toEqual({});
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     });
 
     test('wishlistProductIdsPromise resolves independently of basketDataPromise', async () => {

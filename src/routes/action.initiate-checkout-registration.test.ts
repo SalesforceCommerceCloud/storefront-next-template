@@ -18,6 +18,9 @@ import { action } from './action.initiate-checkout-registration';
 import type { ActionFunctionArgs } from 'react-router';
 import { expectStatus } from '@/lib/test-utils';
 
+/** Deterministic HMAC-bound cookie value returned by the mocked enforceTurnstile. */
+const TEST_COOKIE_VALUE = 'b'.repeat(64);
+
 // Mock dependencies
 vi.mock('@/lib/api-clients.server');
 vi.mock('@/middlewares/auth.server');
@@ -43,10 +46,15 @@ vi.mock('@/lib/turnstile/enforce.server', () => ({
     resolveVerificationMode: vi.fn(() => 'enforce'),
 }));
 vi.mock('@/lib/cookie-utils.server', () => ({
-    createCookie: vi.fn(() => ({
-        parse: vi.fn().mockResolvedValue('1'),
-        serialize: vi.fn().mockResolvedValue('cc-tv=1'),
+    createCookie: vi.fn((name: string) => ({
+        parse: vi.fn().mockResolvedValue('some-prev-cookie-value'),
+        // Reflect the serialized value so tests can assert on the actual cookie value
+        // written by the action (HMAC-bound hex string, or fallback '1').
+        serialize: vi.fn().mockImplementation((val: string) => Promise.resolve(`${name}_TestSite=${val}`)),
     })),
+    // Returns the site-namespaced name that production callers pass into
+    // `enforceTurnstile.turnstileCookieName`.
+    getCookieNameWithSiteId: vi.fn((name: string) => `${name}_TestSite`),
     getCookieConfig: vi.fn((overrides = {}) => ({
         httpOnly: false,
         secure: true,
@@ -77,7 +85,7 @@ describe('action.initiate-checkout-registration', () => {
 
         const { enforceTurnstile } = await import('@/lib/turnstile/enforce.server');
         mockEnforceTurnstile = vi.mocked(enforceTurnstile);
-        mockEnforceTurnstile.mockResolvedValue(true);
+        mockEnforceTurnstile.mockResolvedValue({ allowed: true, cookieValue: TEST_COOKIE_VALUE });
 
         // Setup default mocks
         mockPasswordlessAuthorize = vi.fn().mockResolvedValue({});
@@ -165,6 +173,17 @@ describe('action.initiate-checkout-registration', () => {
             lastName: 'Doe',
             email: 'user@example.com',
         });
+    });
+
+    it('returns 405 METHOD_NOT_ALLOWED for non-POST requests', async () => {
+        mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+            method: 'GET',
+        });
+
+        const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+        expectStatus(response, 405);
+        expect(response.data.success).toBe(false);
+        expect(response.data.error?.code).toBe('METHOD_NOT_ALLOWED');
     });
 
     it('should successfully initiate registration with email from basket', async () => {
@@ -376,7 +395,7 @@ describe('action.initiate-checkout-registration', () => {
         });
 
         it('should block request when enforceTurnstile returns false', async () => {
-            mockEnforceTurnstile.mockResolvedValue(false);
+            mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null });
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');
@@ -416,12 +435,12 @@ describe('action.initiate-checkout-registration', () => {
             );
         });
 
-        it('should skip enforcement when verification cookie exists', async () => {
-            const { createCookie } = await import('@/lib/cookie-utils.server');
-            vi.mocked(createCookie).mockReturnValue({
-                parse: vi.fn().mockResolvedValue('1'),
-                serialize: vi.fn().mockResolvedValue('cc-tv=1'),
-            } as never);
+        it('calls enforceTurnstile even when a verification cookie is present', async () => {
+            // The pre-check bypass was removed: enforceTurnstile is always invoked so
+            // its HMAC email-binding check always runs. When the cookie matches the
+            // current email, enforceTurnstile short-circuits internally and returns
+            // { allowed: true, cookieValue: null }.
+            mockEnforceTurnstile.mockResolvedValue({ allowed: true, cookieValue: null });
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');
@@ -435,12 +454,37 @@ describe('action.initiate-checkout-registration', () => {
             const result = response.data;
 
             expect(result.success).toBe(true);
-            expect(mockEnforceTurnstile).not.toHaveBeenCalled();
+            expect(mockEnforceTurnstile).toHaveBeenCalledWith(expect.objectContaining({ email: 'user@example.com' }));
             expect(mockPasswordlessAuthorize).toHaveBeenCalled();
         });
 
+        it('blocks when cookie is for a different email (enumeration attack)', async () => {
+            // Attacker solved Turnstile for attacker@example.com, now replays that
+            // cookie against victim@example.com with no fresh token. Without the
+            // email-binding check this would short-circuit; with it, enforceTurnstile
+            // must be consulted so it can compare cookie vs current email.
+            mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null });
+
+            const formData = new FormData();
+            formData.append('email', 'victim@example.com');
+            // No turnstileToken - attacker is reusing the cookie.
+
+            mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+            const result = response.data;
+
+            expect(result.success).toBe(false);
+            expect(result.error?.code).toBe('NOT_AUTHORIZED');
+            expect(mockEnforceTurnstile).toHaveBeenCalledWith(expect.objectContaining({ email: 'victim@example.com' }));
+            expect(mockPasswordlessAuthorize).not.toHaveBeenCalled();
+        });
+
         it('should block when no token and no cookie', async () => {
-            mockEnforceTurnstile.mockResolvedValue(false);
+            mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null });
 
             const { createCookie } = await import('@/lib/cookie-utils.server');
             vi.mocked(createCookie).mockReturnValue({
@@ -465,7 +509,7 @@ describe('action.initiate-checkout-registration', () => {
         });
 
         it('should not call SCAPI when Turnstile blocks the request', async () => {
-            mockEnforceTurnstile.mockResolvedValue(false);
+            mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null });
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');
@@ -493,7 +537,7 @@ describe('action.initiate-checkout-registration', () => {
                 parse: vi.fn().mockResolvedValue(null), // no cc-tv cookie present
                 serialize: vi.fn().mockResolvedValue(''),
             } as never);
-            mockEnforceTurnstile.mockResolvedValue(false); // simulates the missing-token-and-platform-healthy block path
+            mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null }); // simulates the missing-token-and-platform-healthy block path
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');
@@ -519,6 +563,180 @@ describe('action.initiate-checkout-registration', () => {
             );
         });
     });
+
+    // ── Basket-email path: missing names ──────────────────────────────────────
+
+    it('returns REQUIRED_FIELD 400 when basket has email but shipping address lacks firstName', async () => {
+        mockGetBasket.mockResolvedValue({
+            current: {
+                customerInfo: { email: 'test@example.com' },
+                shipments: [
+                    {
+                        shippingAddress: {
+                            // firstName intentionally missing
+                            lastName: 'Doe',
+                        },
+                    },
+                ],
+            },
+        });
+
+        const formData = new FormData(); // no email in form → basket path
+        mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+
+        expectStatus(response, 400);
+        expect(response.data.success).toBe(false);
+        expect(response.data.error?.code).toBe('REQUIRED_FIELD');
+        expect(mockPasswordlessAuthorize).not.toHaveBeenCalled();
+    });
+
+    it('returns REQUIRED_FIELD 400 when basket has email but shipping address lacks lastName', async () => {
+        mockGetBasket.mockResolvedValue({
+            current: {
+                customerInfo: { email: 'test@example.com' },
+                shipments: [
+                    {
+                        shippingAddress: {
+                            firstName: 'Jane',
+                            // lastName intentionally missing
+                        },
+                    },
+                ],
+            },
+        });
+
+        const formData = new FormData();
+        mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+
+        expectStatus(response, 400);
+        expect(response.data.success).toBe(false);
+        expect(response.data.error?.code).toBe('REQUIRED_FIELD');
+        expect(mockPasswordlessAuthorize).not.toHaveBeenCalled();
+    });
+
+    it('returns REQUIRED_FIELD 400 when basket has email but no shipments/shippingAddress', async () => {
+        mockGetBasket.mockResolvedValue({
+            current: {
+                customerInfo: { email: 'test@example.com' },
+                // no shipments
+            },
+        });
+
+        const formData = new FormData();
+        mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+
+        expectStatus(response, 400);
+        expect(response.data.success).toBe(false);
+        expect(response.data.error?.code).toBe('REQUIRED_FIELD');
+    });
+
+    // ── Basket-email path: trackingConsent ────────────────────────────────────
+
+    it('includes dnt in basket-email path when tracking consent is enabled', async () => {
+        mockIsTrackingConsentEnabled.mockReturnValue(true);
+        mockGetAuth.mockReturnValue({ usid: 'test-usid', trackingConsent: 'optedOut' });
+        mockTrackingConsentToBoolean.mockReturnValue(true);
+
+        const { trackingConsentToBoolean } = await import('@/types/tracking-consent');
+        vi.mocked(trackingConsentToBoolean).mockImplementation(mockTrackingConsentToBoolean);
+
+        const formData = new FormData(); // no email → basket path
+        mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+
+        expect(response.data.success).toBe(true);
+        expect(mockPasswordlessAuthorize).toHaveBeenCalledWith(expect.objectContaining({ dnt: true }));
+    });
+
+    // ── Form-email path: missing names ────────────────────────────────────────
+
+    it('returns REQUIRED_FIELD 400 when form email provided but shipping address lacks firstName', async () => {
+        mockGetBasket.mockResolvedValue({
+            current: {
+                customerInfo: { email: 'other@example.com' },
+                shipments: [
+                    {
+                        shippingAddress: {
+                            // firstName intentionally missing
+                            lastName: 'Smith',
+                        },
+                    },
+                ],
+            },
+        });
+
+        const formData = new FormData();
+        formData.append('email', 'user@example.com');
+        mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+
+        expectStatus(response, 400);
+        expect(response.data.success).toBe(false);
+        expect(response.data.error?.code).toBe('REQUIRED_FIELD');
+        expect(mockPasswordlessAuthorize).not.toHaveBeenCalled();
+    });
+
+    it('returns REQUIRED_FIELD 400 when form email provided but shipping address lacks lastName', async () => {
+        mockGetBasket.mockResolvedValue({
+            current: {
+                customerInfo: { email: 'other@example.com' },
+                shipments: [
+                    {
+                        shippingAddress: {
+                            firstName: 'Bob',
+                            // lastName intentionally missing
+                        },
+                    },
+                ],
+            },
+        });
+
+        const formData = new FormData();
+        formData.append('email', 'user@example.com');
+        mockRequest = new Request('http://localhost/action/initiate-checkout-registration', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
+
+        expectStatus(response, 400);
+        expect(response.data.success).toBe(false);
+        expect(response.data.error?.code).toBe('REQUIRED_FIELD');
+        expect(mockPasswordlessAuthorize).not.toHaveBeenCalled();
+    });
+
+    // ── respondWithCookie: Headers instance branch (line 98) ──────────────────
+
+    // The `existingHeaders instanceof Headers` branch inside respondWithCookie is a
+    // defensive guard: no call-site within this action passes a Headers instance for
+    // `init.headers` (every call uses either no init or `{ status: N }`). It is
+    // therefore unreachable from the current codebase. The branch exists so the
+    // helper is correct if a future caller does pass a Headers instance.
+    // No test is added for it; this comment documents the gap.
 
     it('should return unavailable when SLAS responds with 400 email not verified', async () => {
         const { ApiError } = await import('@/scapi');
@@ -642,9 +860,9 @@ describe('action.initiate-checkout-registration', () => {
             const { createCookie } = await import('@/lib/cookie-utils.server');
             vi.mocked(createCookie).mockReturnValue({
                 parse: vi.fn().mockResolvedValue(null),
-                serialize: vi.fn().mockResolvedValue('cc-tv=1'),
+                serialize: vi.fn().mockImplementation((val: string) => Promise.resolve(`cc-tv_TestSite=${val}`)),
             } as never);
-            mockEnforceTurnstile.mockResolvedValue(true);
+            mockEnforceTurnstile.mockResolvedValue({ allowed: true, cookieValue: TEST_COOKIE_VALUE });
         });
 
         it('sets cc-tv cookie on success', async () => {
@@ -659,7 +877,7 @@ describe('action.initiate-checkout-registration', () => {
             const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
 
             expect(response.data.success).toBe(true);
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('still sets cc-tv cookie when SCAPI returns 400 email-not-verified (unavailable)', async () => {
@@ -689,7 +907,7 @@ describe('action.initiate-checkout-registration', () => {
             const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
 
             expect(response.data.unavailable).toBe(true);
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('still sets cc-tv cookie when SCAPI returns a different 400 error', async () => {
@@ -719,7 +937,7 @@ describe('action.initiate-checkout-registration', () => {
             const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
 
             expectStatus(response, 400);
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('still sets cc-tv cookie when SCAPI throws a non-ApiError', async () => {
@@ -736,11 +954,11 @@ describe('action.initiate-checkout-registration', () => {
             const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
 
             expectStatus(response, 500);
-            expect(getSetCookie(response)).toContain('cc-tv=1');
+            expect(getSetCookie(response)).toContain(`cc-tv_TestSite=${TEST_COOKIE_VALUE}`);
         });
 
         it('does NOT set cc-tv cookie when Turnstile rejects', async () => {
-            mockEnforceTurnstile.mockResolvedValue(false);
+            mockEnforceTurnstile.mockResolvedValue({ allowed: false, cookieValue: null });
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');
@@ -757,14 +975,10 @@ describe('action.initiate-checkout-registration', () => {
         });
 
         it('does NOT re-emit cc-tv cookie when prior valid cookie was already present', async () => {
-            // When turnstileVerifiedViaCookie is true, enforceTurnstile is skipped entirely
-            // (no fresh token, no fresh check), shouldSetCookie stays false, and the
-            // response carries no Set-Cookie. Nothing new to record.
-            const { createCookie } = await import('@/lib/cookie-utils.server');
-            vi.mocked(createCookie).mockReturnValue({
-                parse: vi.fn().mockResolvedValue('1'), // prior valid cookie
-                serialize: vi.fn().mockResolvedValue('cc-tv=1'),
-            } as never);
+            // Cookie short-circuit lives inside enforceTurnstile: a matching HMAC-bound
+            // cookie returns { allowed: true, cookieValue: null }, so shouldSetCookie
+            // stays false and the response carries no Set-Cookie.
+            mockEnforceTurnstile.mockResolvedValue({ allowed: true, cookieValue: null });
 
             const formData = new FormData();
             formData.append('email', 'user@example.com');
@@ -777,6 +991,7 @@ describe('action.initiate-checkout-registration', () => {
             const response = await action({ request: mockRequest, context: mockContext } as ActionFunctionArgs);
 
             expect(response.data.success).toBe(true);
+            expect(mockEnforceTurnstile).toHaveBeenCalled();
             expect(getSetCookie(response)).toBeUndefined();
         });
     });

@@ -26,12 +26,15 @@ export function ProductTileSwatchesSkeleton({ count = 2 }: { count?: number }) {
     );
 }
 
-export function ProductTileSkeleton() {
+export function ProductTileSkeleton({ imgAspectRatio = 1 }: { imgAspectRatio?: number }) {
     return (
         <Card className="product-tile-skeleton overflow-hidden w-full min-w-0 max-w-full flex flex-col h-full gap-0 py-0">
             {/* Product image */}
             <CardHeader className="p-0">
-                <Skeleton className="aspect-square w-full" />
+                <Skeleton
+                    className="aspect-square w-full"
+                    style={imgAspectRatio === 1 ? undefined : { aspectRatio: String(imgAspectRatio) }}
+                />
             </CardHeader>
 
             {/* Swatches */}

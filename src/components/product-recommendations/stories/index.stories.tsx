@@ -26,6 +26,9 @@ import {
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
 import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
 import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import { expect, waitFor, within } from 'storybook/test';
+import { waitForStorybookReady } from '@storybook/test-utils';
 import type { ShopperSearch } from '@/scapi';
 
 type ProductSearchHit = ShopperSearch.schemas['ProductSearchHit'];
@@ -208,6 +211,46 @@ export const Playground: Story = {
  * already a public export and is what `index.tsx` mounts during the loading
  * state).
  */
+/**
+ * W-23729817: a freshly-dropped, unconfigured Product Recommendations component as a merchant sees
+ * it in Page Designer design mode (`mode="EDIT"`). With no recommender selected there are no recs
+ * and no title, so the component feeds an empty `ProductCarousel` through the *real* render path —
+ * the carousel renders its own row of placeholder Product Tiles under a default heading. On the
+ * live storefront the same unconfigured component renders nothing (see the Playground story with
+ * `productCount: 0`), so shoppers never see an empty carousel.
+ */
+export const UnconfiguredDesignMode: StoryObj = {
+    render: () => <ProductRecommendations />,
+    parameters: {
+        // Design mode renders inside PageDesignerProvider's lazy Suspense provider, which resolves in
+        // a live browser but suspends to a fallback in a synchronous snapshot render — interaction-only.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729817: a freshly-dropped, unconfigured Product Recommendations component in Page Designer design mode. Feeds an empty Product Carousel through the real render path so it shows placeholder tiles under a default heading. On the live storefront the same unconfigured component renders nothing.',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-product-recommendations" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the default heading to appear.
+        await waitFor(async () => {
+            await expect(canvas.getByRole('heading', { name: 'Product Recommendations' })).toBeInTheDocument();
+        });
+        // The placeholder Product Tiles render their own default "Product" headings.
+        await expect(canvas.getAllByRole('heading', { name: 'Product' }).length).toBe(8);
+    },
+};
+
 export const Loading: Story = {
     render: () => (
         <div>

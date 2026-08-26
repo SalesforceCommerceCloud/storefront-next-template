@@ -542,7 +542,7 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                 role="region"
               >
                 <dl
-                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
                   <dt>
                     Subtotal
@@ -2263,7 +2263,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                 role="region"
               >
                 <dl
-                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
                   <dt>
                     Subtotal
@@ -3549,7 +3549,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                 role="region"
               >
                 <dl
-                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
                   <dt>
                     Subtotal
@@ -3560,8 +3560,9 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                     $75.00
                   </dd>
                   <dt
-                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
                     data-slot="badge"
+                    title="$5 Off Tops"
                   >
                     $5 Off Tops
                   </dt>
@@ -3571,8 +3572,9 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                     -$5.00
                   </dd>
                   <dt
-                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
                     data-slot="badge"
+                    title="10% Off Accessories"
                   >
                     10% Off Accessories
                   </dt>
@@ -4033,7 +4035,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
               role="region"
             >
               <dl
-                class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
               >
                 <dt>
                   Subtotal
@@ -6985,7 +6987,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                 role="region"
               >
                 <dl
-                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
                   <dt>
                     Subtotal
@@ -6996,8 +6998,9 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                     $20.00
                   </dd>
                   <dt
-                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
                     data-slot="badge"
+                    title="Buy one Classic Fit Shirt, get 2 free ties!"
                   >
                     Buy one Classic Fit Shirt, get 2 free ties!
                   </dt>
@@ -7964,7 +7967,7 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                 role="region"
               >
                 <dl
-                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
                   <dt>
                     Subtotal
@@ -7975,8 +7978,9 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                     $38.38
                   </dd>
                   <dt
-                    class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+                    class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
                     data-slot="badge"
+                    title="10% Off Order"
                   >
                     10% Off Order
                   </dt>
@@ -8981,7 +8985,7 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                 role="region"
               >
                 <dl
-                  class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+                  class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
                 >
                   <dt>
                     Subtotal

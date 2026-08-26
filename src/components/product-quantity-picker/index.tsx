@@ -45,6 +45,12 @@ interface ProductQuantityPickerProps {
     isBundle?: boolean;
     /** Maximum quantity allowed (for bonus products, etc.) */
     maxQuantity?: number;
+    /**
+     * Visually hide the "Quantity" label (kept for screen readers via `sr-only`) and let the picker
+     * fill its container height. Used in compact layouts where the picker sits inline with the
+     * Add-to-Cart button and the label would be redundant. Default false.
+     */
+    hideLabel?: boolean;
 }
 
 /**
@@ -66,6 +72,7 @@ export default function ProductQuantityPicker({
     disabled = false,
     isBundle = false,
     maxQuantity,
+    hideLabel = false,
 }: ProductQuantityPickerProps): ReactElement {
     const [quantity, setQuantity] = useState<string>(value);
     const { t: tQuantity } = useTranslation('quantitySelector');
@@ -111,8 +118,14 @@ export default function ProductQuantityPicker({
     const inventoryMessageId = `${quantityId}-inventory-msg`;
 
     return (
-        <div className={cn('space-y-2', className)}>
-            <Label htmlFor={quantityId} className="text-base font-semibold leading-6 text-card-foreground">
+        <div className={cn(hideLabel ? 'flex flex-col' : 'space-y-2', className)}>
+            <Label
+                htmlFor={quantityId}
+                className={cn(
+                    'text-base font-semibold leading-6 text-card-foreground',
+                    // Keep the label for AT (association via htmlFor) but hide it visually in compact layouts.
+                    hideLabel && 'sr-only'
+                )}>
                 {tQuantity('quantity')}
             </Label>
             <QuantityPicker
@@ -124,17 +137,22 @@ export default function ProductQuantityPicker({
                 productName={productName}
                 disabled={disabled}
                 aria-describedby={inventoryMessage ? inventoryMessageId : undefined}
+                // Fill the row height so it lines up with the Add-to-Cart button in the inline layout.
+                className={cn(hideLabel && 'flex-1')}
             />
-            {inventoryMessage && (
-                <Typography
-                    id={inventoryMessageId}
-                    variant="small"
-                    className="text-destructive font-medium"
-                    role="alert"
-                    aria-live="polite">
-                    {inventoryMessage}
-                </Typography>
-            )}
+            {/* Inventory message.
+                The live region stays mounted and empty when there is no message, so a screen
+                reader observes the empty→filled transition and announces the warning when the
+                requested quantity crosses the stock threshold. A region that only mounts once
+                it already holds text is silent. Matches the InventoryMessage pattern.
+                The id is the aria-describedby target for the picker input above. */}
+            <div id={inventoryMessageId} role="status" aria-live="polite" aria-atomic="true">
+                {inventoryMessage && (
+                    <Typography variant="small" className="text-destructive font-medium">
+                        {inventoryMessage}
+                    </Typography>
+                )}
+            </div>
         </div>
     );
 }

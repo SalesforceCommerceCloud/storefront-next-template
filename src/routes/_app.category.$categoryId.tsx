@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Suspense, use, useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
+import { Suspense, use, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAsyncError, useLocation, useNavigation, useRouteLoaderData } from 'react-router';
 import type { loader as rootLoader } from '@/root';
 import type { Route } from './+types/_app.category.$categoryId';
@@ -28,6 +28,7 @@ import CategoryBreadcrumbs from '@/components/category-breadcrumbs';
 import CategoryPagination from '@/components/category-pagination';
 import LoadMore from '@/components/product-grid/load-more';
 import { useLoadMoreProducts } from '@/hooks/use-load-more-products';
+import type { CategoryProductsResult } from '@/routes/resource.category-products';
 import ActiveFilters from '@/components/category-refinements/active-filters';
 import FiltersButton from '@/components/category-refinements/filters-button';
 import CategoryRefinements from '@/components/category-refinements';
@@ -354,6 +355,13 @@ export default function CategoryPage({
     const searchWithoutFiltersParam = useMemo(() => getSearchWithoutFiltersParam(location.search), [location.search]);
     const pageIdentity = `${categoryId}-${currency}-${locale}`;
     const analyticsKey = `${pageIdentity}-${searchWithoutFiltersParam}-${location.hash}`;
+    const analyticsSequence = useMemo(() => {
+        let release: (() => void) | undefined;
+        const initial = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        return { key: analyticsKey, initial, resolveInitial: () => release?.() };
+    }, [analyticsKey]);
     const productGridDataKey = `${pageIdentity}-${searchWithoutFiltersParam}`;
     const selectedFiltersCount = useMemo(
         () => new URLSearchParams(location.search).getAll('refine').length,
@@ -369,6 +377,11 @@ export default function CategoryPage({
     const categoryLabel = uiConfig.pages.category.showCategoryLabel
         ? searchResultCritical.refinements?.find((r) => r.attributeId === 'cgid')?.label
         : undefined;
+
+    // When a vertical promotes the category (`cgid`) level into the side-panel filters as a grouped
+    // facet (see `sidebarCategoryRefinement`), suppress the QuickFilters chip row so the same level
+    // isn't filterable in two UIs at once. CategoryRefinements keeps `cgid` in the sidebar in that case.
+    const sidebarCategoryFacetEnabled = uiConfig.pages.category.sidebarCategoryRefinement?.enabled ?? false;
     const isProductGridLoading = useMemo(() => {
         if (navigation.state === 'idle' || !navigation.location) {
             return false;
@@ -390,6 +403,32 @@ export default function CategoryPage({
     // or `traditional` (numbered prev/next that navigates the URL offset). See @/lib/config.ui.
     const paginationConfig = uiConfig.pages.category.pagination;
     const isLoadMoreMode = paginationConfig.mode === 'load-more';
+
+    const sendLoadedProducts = useCallback(
+        ({ hits, offset: batchOffset, limit: batchLimit, total: batchTotal }: CategoryProductsResult) => {
+            if (analytics && hits.length > 0) {
+                void analytics.trackViewCategory({
+                    category,
+                    searchResults: hits,
+                    sort:
+                        searchResultCritical.selectedSortingOption ||
+                        searchResultCritical.sortingOptions?.[0]?.label ||
+                        '',
+                    refinements: searchResultCritical.selectedRefinements ?? {},
+                    offset: batchOffset,
+                    limit: batchLimit,
+                    total: batchTotal,
+                });
+            }
+        },
+        [analytics, category, searchResultCritical]
+    );
+    const trackLoadedProducts = useCallback(
+        (result: CategoryProductsResult) => {
+            void analyticsSequence.initial.then(() => sendLoadedProducts(result));
+        },
+        [analyticsSequence, sendLoadedProducts]
+    );
 
     // "Load more" / infinite scroll: the loader renders the first page (`initialCount` products) and
     // this hook appends further pages via a non-navigating fetch, resetting whenever the underlying
@@ -418,6 +457,7 @@ export default function CategoryPage({
         maxProducts: paginationConfig.maxProducts,
         identity: productGridDataKey,
         offset,
+        onLoad: trackLoadedProducts,
     });
 
     // Accessibility: after a "load more" appends a batch, move focus to its first tile so keyboard and
@@ -464,20 +504,30 @@ export default function CategoryPage({
         }
     }, [isLoadMoreMode, isRestoring, loadedCount, initialCount]);
 
-    const [, startTransition] = useTransition();
     // Compare on the meaningful search only. Opening/closing the filters panel writes a client-only
     // `filters` param (see use-filters-panel-state); that toggle must not steal focus up to the
     // heading — the panel manages its own focus. (W-23325653)
     const lastSearchParamsRef = useRef<string>(getSearchWithoutClientOnlyParams(location.search));
 
     useEffect(() => {
-        // Move focus to results heading after refinement or sort changes
+        // After a refinement or sort change settles, only re-home focus if the control the shopper
+        // operated was removed by the update. Clearing filters ("Clear all" / a "Clear filter" chip)
+        // unmounts the control that had focus, dropping it to <body> and losing the user's place; in
+        // that case send focus to the results heading so keyboard and screen-reader users keep a
+        // predictable position (W-23325659). When the operated control persists — e.g. a facet button
+        // the shopper just toggled, kept mounted via the panel's optimistic state — leave focus on it.
+        // Moving focus to the results heading on every refinement stole focus from the facet the
+        // shopper was operating, an unexpected change of context (WCAG 3.2.2). (W-23492546)
         const meaningfulSearch = getSearchWithoutClientOnlyParams(location.search);
         if (navigation.state === 'idle' && lastSearchParamsRef.current !== meaningfulSearch) {
             lastSearchParamsRef.current = meaningfulSearch;
-            // Allow the DOM to update before moving focus
+            // Wait for the DOM to settle, then re-home focus only if it was dropped to the document.
             requestAnimationFrame(() => {
-                resultsHeadingRef.current?.focus();
+                const active = document.activeElement;
+                const focusLost = !active || active === document.body || active === document.documentElement;
+                if (focusLost) {
+                    resultsHeadingRef.current?.focus();
+                }
             });
         }
     }, [navigation.state, location.search]);
@@ -498,34 +548,33 @@ export default function CategoryPage({
 
     useEffect(() => {
         // Only track if we haven't already tracked this specific data combination
-        if (analyticsKey !== lastTrackedDataRef.current) {
-            lastTrackedDataRef.current = analyticsKey;
+        if (analyticsSequence.key !== lastTrackedDataRef.current) {
+            lastTrackedDataRef.current = analyticsSequence.key;
 
-            startTransition(() => {
-                void nonCriticalPromise
-                    .then((searchHitsData: ShopperSearch.schemas['ProductSearchHit'][]) => {
-                        if (analytics) {
-                            void analytics.trackViewCategory({
-                                category,
-                                searchResults: [...(searchResultCritical.hits ?? []), ...searchHitsData],
-                                sort:
-                                    searchResultCritical.selectedSortingOption ||
-                                    searchResultCritical.sortingOptions?.[0]?.label ||
-                                    '',
-                                refinements: searchResultCritical.selectedRefinements ?? {},
-                                offset: searchResultCritical.offset,
-                                limit,
-                                total: searchResultCritical.total,
-                            });
-                        }
-                    })
-                    .catch(() => {
-                        // Silently handle promise rejection
-                    });
-            });
+            void nonCriticalPromise
+                .then((searchHitsData: ShopperSearch.schemas['ProductSearchHit'][]) => {
+                    if (analytics) {
+                        return analytics.trackViewCategory({
+                            category,
+                            searchResults: [...(searchResultCritical.hits ?? []), ...searchHitsData],
+                            sort:
+                                searchResultCritical.selectedSortingOption ||
+                                searchResultCritical.sortingOptions?.[0]?.label ||
+                                '',
+                            refinements: searchResultCritical.selectedRefinements ?? {},
+                            offset: searchResultCritical.offset,
+                            limit,
+                            total: searchResultCritical.total,
+                        });
+                    }
+                })
+                .catch(() => {
+                    // Silently handle promise rejection
+                })
+                .finally(analyticsSequence.resolveInitial);
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [analytics, category, analyticsKey, nonCriticalPromise]);
+    }, [analytics, analyticsSequence, category, nonCriticalPromise]);
 
     const handleProductClick = useCallback(
         (product: ShopperSearch.schemas['ProductSearchHit']) => {
@@ -591,7 +640,9 @@ export default function CategoryPage({
                                 isActive={filtersOpen}
                                 selectedFiltersCount={selectedFiltersCount}
                             />
-                            <QuickFilters category={category} categoryLabel={categoryLabel} />
+                            {!sidebarCategoryFacetEnabled && (
+                                <QuickFilters category={category} categoryLabel={categoryLabel} />
+                            )}
                         </div>
 
                         {/* Category Refinements - toggles visibility on left side */}
@@ -614,7 +665,9 @@ export default function CategoryPage({
                                     isActive={filtersOpen}
                                     selectedFiltersCount={selectedFiltersCount}
                                 />
-                                <QuickFilters category={category} categoryLabel={categoryLabel} />
+                                {!sidebarCategoryFacetEnabled && (
+                                    <QuickFilters category={category} categoryLabel={categoryLabel} />
+                                )}
                             </div>
 
                             <ActiveFilters result={searchResultCritical} />

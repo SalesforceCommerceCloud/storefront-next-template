@@ -43,9 +43,18 @@ vi.mock('@/components/toast', () => ({
 
 // BOPIS extension reads StoreLocatorProvider via `useStoreLocator`. The
 // extension provider isn't part of the snapshot story decorator, so stub it.
-// (Same approach as product-view-snapshot.tsx.)
+// Selectors must receive a stable store snapshot because contributors register
+// themselves from effects.
+const { storeLocatorState } = vi.hoisted(() => ({
+    storeLocatorState: {
+        isOpen: false,
+        open: () => {},
+        selectedStoreInfo: null,
+    },
+}));
+
 vi.mock('@/extensions/store-locator/providers/store-locator', () => ({
-    useStoreLocator: () => ({ selectedStoreInfo: null }),
+    useStoreLocator: (selector: (state: typeof storeLocatorState) => unknown) => selector(storeLocatorState),
 }));
 
 // `useProductActions` reaches into useNavigate → useConfig and useAnalytics →

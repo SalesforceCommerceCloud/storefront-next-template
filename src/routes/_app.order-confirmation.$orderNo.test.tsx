@@ -16,13 +16,22 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { createRoutesStub } from 'react-router';
-import { ApiError, type ShopperOrders, type ShopperProducts, type ShopperStores } from '@/scapi';
+import { createMemoryRouter, createRoutesStub, RouterProvider, useLoaderData } from 'react-router';
+import {
+    ApiError,
+    type ShopperOrders,
+    type ShopperProducts,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    type ShopperStores,
+} from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import OrderConfirmationPage, { loader, ErrorBoundary } from './_app.order-confirmation.$orderNo';
 
 const { t } = getTranslation();
+
+// @sfdc-extension-line SFDC_EXT_BOPIS
+type Store = ShopperStores.schemas['Store'];
 
 // --- Server-side mocks (these cannot run in jsdom) ---
 
@@ -125,7 +134,7 @@ const baseOrder: ShopperOrders.schemas['Order'] = {
 };
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
-const mockStore: ShopperStores.schemas['Store'] = {
+const mockStore: Store = {
     id: 'store-123',
     name: 'Test Store',
     address1: '456 Store Ave',
@@ -136,7 +145,7 @@ const mockStore: ShopperStores.schemas['Store'] = {
     email: 'store@example.com',
 };
 
-const mockStoresByStoreId = new Map<string, ShopperStores.schemas['Store']>([['store-123', mockStore]]);
+const mockStoresByStoreId = new Map<string, Store>([['store-123', mockStore]]);
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
 // --- Helpers ---
@@ -153,6 +162,7 @@ function renderRoute(
                 orderData: Promise.resolve({
                     order,
                     productsById,
+                    // @sfdc-extension-line SFDC_EXT_BOPIS
                     storesByStoreId: new Map(),
                 }),
                 showPostOrderRegistration: false,
@@ -163,6 +173,39 @@ function renderRoute(
     return render(
         <AllProvidersWrapper>
             <Stub initialEntries={[`/order-confirmation/${order.orderNo}`]} />
+        </AllProvidersWrapper>
+    );
+}
+
+function renderRouteWithDeferredError(orderNo: string, error: Error) {
+    let rejectOrderData: (error: Error) => void;
+    const orderData = new Promise<never>((_, reject) => {
+        rejectOrderData = reject;
+    });
+    orderData.catch(() => undefined);
+    const RouteComponent = () => <OrderConfirmationPage loaderData={useLoaderData() as any} />;
+    const router = createMemoryRouter(
+        [
+            {
+                path: '/order-confirmation/:orderNo',
+                Component: RouteComponent,
+                ErrorBoundary,
+                HydrateFallback: () => null,
+                loader: () => {
+                    setTimeout(() => rejectOrderData(error), 0);
+                    return {
+                        orderData,
+                        showPostOrderRegistration: false,
+                    };
+                },
+            },
+        ],
+        { initialEntries: [`/order-confirmation/${orderNo}`] }
+    );
+
+    return render(
+        <AllProvidersWrapper>
+            <RouterProvider router={router} />
         </AllProvidersWrapper>
     );
 }
@@ -195,7 +238,7 @@ describe('Order Confirmation Route', () => {
             expect(resolved).toHaveProperty('productsById');
         });
 
-        test('calls fetchOrderWithProducts with context and orderNo', async () => {
+        test('fetches confirmation data without OMS enrichment', async () => {
             const orderPromise = Promise.resolve(baseOrder);
             vi.mocked(fetchOrderWithProducts).mockReturnValue({
                 orderDataPromise: orderPromise.then((order) => ({ order, productsById: {} })),
@@ -208,7 +251,9 @@ describe('Order Confirmation Route', () => {
             const mockContext = { get: vi.fn(() => undefined) };
             await loader({ context: mockContext, params: { orderNo: 'TEST-ORDER-12345' } } as any);
 
-            expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(mockContext, 'TEST-ORDER-12345');
+            expect(vi.mocked(fetchOrderWithProducts)).toHaveBeenCalledWith(mockContext, 'TEST-ORDER-12345', {
+                includeOms: false,
+            });
         });
 
         test('tears down basket once the order is confirmed (idempotent safety net)', async () => {
@@ -247,6 +292,7 @@ describe('Order Confirmation Route', () => {
 
             const mockContext = { get: vi.fn(() => undefined) };
             const result = await loader({ context: mockContext, params: { orderNo: 'INVALID' } } as any);
+            const resultOrderData = result.orderData.catch(() => undefined);
             // Loader's combinedPromise also rejects; in production <Await> handles it,
             // here we attach an explicit catch so the test runner doesn't see it as
             // unhandled.
@@ -256,6 +302,7 @@ describe('Order Confirmation Route', () => {
             // the loader has had its chance to react. Awaiting the promise itself is the
             // observable signal we want, not an opaque microtask count.
             await orderPromise.catch(() => undefined);
+            await resultOrderData;
 
             expect(vi.mocked(destroyBasket)).not.toHaveBeenCalled();
         });
@@ -314,6 +361,29 @@ describe('Order Confirmation Route', () => {
             expect(screen.getByText(t('checkout:confirmation.actions.continueShopping'))).toBeInTheDocument();
         });
 
+        // The error state replaces the whole route, so its title is the page's primary
+        // heading and must be a real heading rather than a bare <div>, otherwise this
+        // render has no entry in the heading outline. Regression guard for W-23325709.
+        test('exposes the error-state page title as a heading', () => {
+            const Stub = createRoutesStub([
+                {
+                    path: '/order-confirmation/:orderNo',
+                    Component: () => {
+                        throw createApiError(404);
+                    },
+                    ErrorBoundary,
+                },
+            ]);
+
+            render(
+                <AllProvidersWrapper>
+                    <Stub initialEntries={['/order-confirmation/INVALID']} />
+                </AllProvidersWrapper>
+            );
+
+            expect(screen.getByRole('heading', { name: t('checkout:confirmation.orderNotFound') })).toBeInTheDocument();
+        });
+
         test('renders order-placed-but-details-unavailable messaging on 5xx, with the orderNo surfaced', () => {
             const Stub = createRoutesStub([
                 {
@@ -357,6 +427,26 @@ describe('Order Confirmation Route', () => {
             );
 
             expect(screen.getByText(t('checkout:confirmation.orderPlacedDetailsUnavailable'))).toBeInTheDocument();
+        });
+
+        test('handles a deferred ApiError(404) rejection with the route ErrorBoundary', async () => {
+            renderRouteWithDeferredError('INVALID', createApiError(404));
+
+            expect(await screen.findByText(t('checkout:confirmation.orderNotFound'))).toBeInTheDocument();
+            expect(screen.getByText(t('checkout:confirmation.orderNotFoundDescription'))).toBeInTheDocument();
+            expect(screen.queryByText(/INVALID/)).not.toBeInTheDocument();
+        });
+
+        test('handles a deferred ApiError(500) rejection with the route ErrorBoundary', async () => {
+            renderRouteWithDeferredError('ORD-9001', createApiError(500));
+
+            expect(
+                await screen.findByText(t('checkout:confirmation.orderPlacedDetailsUnavailable'))
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText(t('checkout:confirmation.orderPlacedDetailsUnavailableDescription'))
+            ).toBeInTheDocument();
+            expect(screen.getByText(/ORD-9001/)).toBeInTheDocument();
         });
     });
 
@@ -667,6 +757,81 @@ describe('Order Confirmation Route', () => {
             expect(
                 screen.queryByRole('heading', { name: t('checkout:confirmation.summaryLabels.arriving') })
             ).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Newsletter section markup', () => {
+        // The newsletter card is a section with its own title, like the store-pickup and order-summary
+        // cards, so its title must be a heading rather than a plain paragraph — otherwise the card has
+        // no entry in the heading outline a screen-reader user navigates by. Regression guard for W-23325709.
+        test('exposes the newsletter title as a heading', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                expect(
+                    screen.getByRole('heading', { name: t('checkout:confirmation.newsletter.title') })
+                ).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('accessibility - status announcement', () => {
+        // A screen reader only announces content written into a live region that was already
+        // present (empty) when the region was observed. The confirmation content mounts inside
+        // an <Await> boundary already holding the "order confirmed" copy, so on its own it is
+        // never announced. A persistent region must exist from first paint (through the Suspense
+        // fallback) and be filled once the order resolves — the empty→filled transition an SR
+        // needs. Regression guard for W-23325712.
+        test('keeps a polite status region mounted and empty while the order is still loading', async () => {
+            // Hold orderData pending so the page sits in its Suspense fallback, then assert the
+            // live region is already in the DOM and empty. The region must exist ahead of the
+            // content (it must not mount together with its text) or a screen reader stays silent.
+            let resolveOrder: (data: unknown) => void = () => {};
+            const pendingOrder = new Promise<unknown>((resolve) => {
+                resolveOrder = resolve;
+            });
+
+            const Stub = createRoutesStub([
+                {
+                    path: '/order-confirmation/:orderNo',
+                    Component: OrderConfirmationPage,
+                    HydrateFallback: () => null,
+                    loader: () => ({
+                        orderData: pendingOrder,
+                        showPostOrderRegistration: false,
+                    }),
+                },
+            ]);
+
+            render(
+                <AllProvidersWrapper>
+                    <Stub initialEntries={['/order-confirmation/PENDING']} />
+                </AllProvidersWrapper>
+            );
+
+            // While the order is still loading (skeleton showing), the region exists and is empty.
+            const region = await screen.findByRole('status');
+            expect(region).toHaveAttribute('aria-live', 'polite');
+            expect(region).toHaveAttribute('aria-atomic', 'true');
+            expect(region).toHaveTextContent('');
+
+            // Let the deferred promise settle so the test doesn't leak a pending microtask.
+            resolveOrder({
+                order: baseOrder,
+                productsById: {},
+                // @sfdc-extension-line SFDC_EXT_BOPIS
+                storesByStoreId: new Map(),
+            });
+        });
+
+        test('announces the order-confirmed status once the order resolves', async () => {
+            renderRoute(baseOrder);
+
+            await waitFor(() => {
+                expect(screen.getByRole('status')).toHaveTextContent(
+                    t('checkout:confirmation.hero.statusAnnouncement', { orderNo: baseOrder.orderNo })
+                );
+            });
         });
     });
 

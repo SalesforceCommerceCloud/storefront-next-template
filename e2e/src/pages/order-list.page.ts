@@ -31,8 +31,8 @@ const { I } = inject();
  */
 class OrderListPage {
     locators = {
-        // Page header (OrderListHeader uses Typography h4)
-        pageTitle: locate('h4').withText('Order History').as('Page Title'),
+        // Page header (OrderListHeader renders an h1 with h4 typography styling)
+        pageTitle: locate('h1').withText('Order History').as('Page Title'),
         pageSubtitle: locate('p.text-muted-foreground').as('Page Subtitle'),
 
         // Order list - each order is a Link wrapping a Card

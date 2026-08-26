@@ -24,10 +24,34 @@
         "hero": {
             "defaultTitle": "立即购买",
             "defaultImageAlt": "主图片",
-            "defaultCtaText": "立即购买"
+            "defaultCtaText": "立即购买",
+            "emptyTitle": "在此添加标题",
+            "emptyButton": "按钮"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "在此添加标题"
         },
         "previousImage": "上一张图片",
-        "nextImage": "下一张图片"
+        "nextImage": "下一张图片",
+        "popularCategory": {
+            "emptyTitle": "类别"
+        },
+        "announcementBanner": {
+            "emptyTitle": "在此添加标题"
+        },
+        "contentCard": {
+            "emptyTitle": "在此添加标题",
+            "emptyDescription": "在此添加描述"
+        },
+        "productTile": {
+            "emptyTitle": "产品"
+        },
+        "productRecommendations": {
+            "emptyTitle": "产品推荐"
+        }
     },
     "search": {
         "results": "搜索以下方面的结果：",
@@ -89,6 +113,7 @@
         "mobileNavigation": "移动导航菜单",
         "expandCategory": "展开 {{category}}",
         "collapseCategory": "折叠 {{category}}",
+        "shopAllCategory": "查看全部{{category}}",
         "menu": {
             "yourLists": "您的列表",
             "yourAccount": "您的账户",
@@ -313,7 +338,7 @@
         "itemCount_other": "购物车 （{{count}} 件商品）",
         "empty": {
             "title": "购物车内没有商品。",
-            "registeredMessage": "继续购物并将商品添加到购物车。",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "登录以检索您保存的商品或继续购物。",
             "continueShopping": "继续购物",
             "signIn": "登录"
@@ -601,6 +626,7 @@
             "hero": {
                 "thankYou": "{{name}}，谢谢！ ",
                 "orderConfirmed": "您的订单已确认。",
+                "statusAnnouncement": "您的订单已确认。订单编号为 {{orderNo}}。",
                 "emailConfirmation": "我们已将确认电子邮件发送至 {{email}}。",
                 "needHelp": "需要帮助吗？",
                 "defaultName": "顾客",
@@ -1135,7 +1161,9 @@
         "categoryGrid": {
             "title": "现实生活的风格",
             "description": "在 Market Street，我们相信时尚应该轻松自在、真实自然、触手可及。我们的系列专为重视品质、百搭性和永恒风格的现代人士而设计。",
-            "shopNowButton": "立即购买"
+            "shopNowButton": "立即购买",
+            "emptyTitle": "在此添加标题",
+            "emptyRegionLabel": "类别轮播"
         },
         "featuredContent": {
             "women": {
@@ -1408,14 +1436,6 @@
         "returnsAndWarrantyDescription": "退货和保修详情",
         "close": "关闭"
     },
-    "estimatedDelivery": {
-        "cardTitle": "预计送达时间",
-        "cardDescription": "可用送货选项",
-        "learnMore": "了解更多",
-        "sectionHeading": "预计送达时间",
-        "shippingOptionsHeading": "送货选项与费率",
-        "free": "免费"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "请修复以下问题：",
@@ -1478,6 +1498,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "配送方式",
+            "deliveryDescription": "输入邮政编码以查看配送估算"
+        },
         "recommendations": {
             "youMightAlsoLike": "您可能还喜欢",
             "completeTheLook": "完成外观",
@@ -1514,7 +1539,6 @@
         "quickAdd": "快速添加",
         "buyItNow": "立即购买",
         "pickupAvailable": "提供取货服务",
-        "selectProduct": "选择产品",
         "updatingCart": "正在更新...",
         "updateCart": "更新",
         "addingToWishlist": "正在添加到愿望清单...",

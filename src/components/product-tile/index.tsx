@@ -25,11 +25,15 @@ import {
     Suspense,
 } from 'react';
 import { Link } from '@/components/link';
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 
 import type { ShopperSearch } from '@/scapi';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 
-import { cn } from '@/lib/utils';
+import { cn, resolveAssetUrl } from '@/lib/utils';
+import { DynamicImage } from '@/components/dynamic-image';
+import { carouselItemImageWidths } from '@/components/carousel-section';
 import {
     createProductUrl,
     getDecoratedVariationAttributes,
@@ -48,6 +52,7 @@ import { RegionDefinition } from '@/lib/decorators/region-definition';
 import type { ComponentType } from '@/components/region';
 import { ProductImageContainer } from '@/components/product-image';
 import ProductPrice from '@/components/product-price';
+import CurrentPrice from '@/components/product-price/current-price';
 import { StarRating } from '@/components/product-ratings/star-rating';
 import { UITarget } from '@/targets/ui-target';
 import { Card } from '@/components/ui/card';
@@ -57,6 +62,15 @@ const LazySwatches = lazy(() => import('./swatches').then((m) => ({ default: m.P
 
 const PRODUCT_TILE_SELECTABLE_ATTRIBUTE_ID = 'color';
 const PRODUCT_TILE_MAX_SWATCHES = 3;
+
+/**
+ * Public-dir path to the shared authoring placeholder. Referenced by URL (not a module import) so
+ * the 906-byte SVG is never inlined as a data URI into the Product Tile's shopper bundle — a
+ * top-level `import … from '/images/…svg'` would inline it and regress the Lighthouse bundle-size
+ * budget (Product Tile ships in the above-the-fold Product Carousel / Product Recommendations
+ * chunks). Only ever resolved on the design-mode empty-state path.
+ */
+const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
 
 /* v8 ignore start - do not test decorators in unit tests, decorator functionality is tested separately*/
 @Component('productTile', {
@@ -263,6 +277,12 @@ export interface ProductTileProps extends ComponentProps<'div'> {
     showPickupAvailable?: boolean;
     /** Custom quick add button label */
     quickAddLabel?: string;
+    /**
+     * Where the Quick-Add button renders. `'overlay'` (default) keeps the current absolute,
+     * hover/focus-revealed control over the image; `'inline'` renders it in-flow at the bottom of the
+     * tile's info section (always visible, full-width). Backward-safe — omitting it keeps the overlay.
+     */
+    quickAddPlacement?: 'overlay' | 'inline';
     /** Top-level navigation category name shown below swatches (e.g. "Men", "Women") */
     topCategoryName?: string;
     /** Accepted for API compatibility; has no effect */
@@ -299,6 +319,7 @@ const ProductTile = memo(
                 imgAspectRatio,
                 showPickupAvailable = false,
                 quickAddLabel,
+                quickAddPlacement = 'overlay',
                 topCategoryName,
                 showNavigationArrows: _showNavigationArrows,
                 // Page Designer styling props
@@ -324,6 +345,8 @@ const ProductTile = memo(
             const product = (data as ShopperSearch.schemas['ProductSearchHit'] | undefined) || productProp;
 
             const { config, t, currency, getBadges } = useProductTileContext();
+            const { t: tCommon } = useTranslation('common');
+            const { isDesignMode } = usePageDesignerMode();
 
             const productData = useMemo(() => {
                 if (!product) return null;
@@ -400,8 +423,15 @@ const ProductTile = memo(
             // the tile — so binding the trigger to the heart alone means it never fires until the
             // pointer reaches the heart's box, leaving the revealed heart empty. Idempotent.
             const loadWishlist = useWishlistLoader();
+            // Tile intent (pointer/focus/touch anywhere on the tile) both kicks the wishlist data
+            // load and eagerly swaps the deferred wishlist button to its real interactive form. For
+            // keyboard users this fires when the image link — one tab stop before the button — is
+            // focused, so the swap is done before Tab reaches the button (see DeferredWishlistButton
+            // `preload`). Without this, focusing the button would remount it and drop focus.
+            const [tileEngaged, setTileEngaged] = useState(false);
             const handleTileIntent = useCallback(() => {
                 void loadWishlist();
+                setTileEngaged(true);
             }, [loadWishlist]);
 
             const productUrl = createProductUrl(product?.productId ?? '', null, 'color', defaultVariantPid);
@@ -419,6 +449,23 @@ const ProductTile = memo(
             });
 
             if (!product) {
+                // Empty state (W-23908487): a freshly-dropped Product Tile with no product selected
+                // yet. Rather than a bespoke text placeholder, we render the tile's *real* card shape
+                // (square image surface + product-name heading) with the shared placeholder image and
+                // a default "Product" title, so the authoring preview reads as an actual tile and
+                // cannot drift from a configured one. This is a Page-Designer *authoring* affordance:
+                // it only kicks in during design mode; on the live storefront an unconfigured tile
+                // renders nothing, closing the previous "Select a product" leak to shoppers. Mirrors
+                // the Content Card's and Category Card's design-mode gate.
+                if (!isDesignMode) {
+                    return null;
+                }
+                // Resolve a currency for the placeholder price from the site context, falling back to
+                // the first configured site's default. Both can be absent in an authoring preview that
+                // isn't wired to a site yet — an empty-string currency would reach `Intl.NumberFormat`
+                // and throw `RangeError: Invalid currency code`, crashing the preview. When neither
+                // source resolves we simply omit the price row rather than render a broken one.
+                const placeholderCurrency = currency ?? config.commerce.sites?.[0]?.defaultCurrency;
                 return (
                     <Card
                         ref={ref}
@@ -427,8 +474,46 @@ const ProductTile = memo(
                             pageDesignerStyles,
                             className
                         )}
+                        data-slot="empty-state"
                         {...props}>
-                        <div className="p-4 text-sm text-muted-foreground">{t('selectProduct')}</div>
+                        {/* Image area — mirrors the configured tile's square image surface. */}
+                        <div className="product-image relative">
+                            <div className="relative w-full aspect-square overflow-hidden bg-muted">
+                                <DynamicImage
+                                    src={resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC)}
+                                    // Decorative: the default "Product" title is rendered as a heading
+                                    // below, so an alt would make a screen reader read it twice.
+                                    alt=""
+                                    className="w-full h-full"
+                                    imageProps={{ className: 'w-full h-full object-cover' }}
+                                    widths={carouselItemImageWidths}
+                                    loading="eager"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Info section — mirrors the configured tile's product name, star rating, and
+                            price rows (skipping the data-driven store/category/SKU lines), so the
+                            authoring preview reads as a fully-populated tile rather than a bare title.
+                            Reuses the real `StarRating` and `CurrentPrice` so the placeholder cannot
+                            drift from a configured tile: black stars (`text-foreground`, matching real
+                            tiles) at an empty 0/0 rating, and a currency-formatted zero price (never a
+                            hardcoded "$0.00") via the same formatter the live price uses. */}
+                        <div className="relative p-4">
+                            <h3 className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
+                                {tCommon('productTile.emptyTitle')}
+                            </h3>
+                            <div className="mb-2">
+                                <StarRating rating={0} reviewCount={0} starSize="sm" starClassName="text-foreground" />
+                            </div>
+                            {placeholderCurrency && (
+                                <CurrentPrice
+                                    price={0}
+                                    currency={placeholderCurrency}
+                                    className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground"
+                                />
+                            )}
+                        </div>
                     </Card>
                 );
             }
@@ -459,13 +544,20 @@ const ProductTile = memo(
                             />
                             <UITarget targetId="sfcc.plp.shipping.deliveryEstimate" />
 
-                            {/* Clickable product link overlay — mouse convenience only, hidden from AT */}
+                            {/*
+                             * Clickable product link over the image. This is the tile's keyboard
+                             * entry point (a real tab stop with an accessible name): focusing it
+                             * fires `group-focus-within`, which reveals the wishlist and quick-add
+                             * controls before forward-Tab reaches them in DOM order — without it,
+                             * those controls stay `invisible` (removed from tab order) and keyboard
+                             * users can never reach them (WCAG 2.1.1). The product name link below
+                             * is `tabIndex={-1}` so this does not add a second tab stop.
+                             */}
                             <Link
                                 to={productUrl}
-                                className="absolute inset-0 z-[1] cursor-pointer"
-                                aria-hidden="true"
+                                className="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                                aria-label={productName}
                                 onClick={handleClick}
-                                tabIndex={-1}
                             />
 
                             {/* Badges — top-left */}
@@ -501,11 +593,19 @@ const ProductTile = memo(
                                     </div>
                                 )}
 
-                                <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
+                                {/*
+                                 * `invisible` (not just `opacity-0`) so the wishlist button is removed
+                                 * from the accessibility tree and tab order while hidden — an opacity-0
+                                 * control still gets announced and focused, so a screen reader hears
+                                 * "Add to wishlist" on every resting tile (WCAG 1.3.1). Revealed on tile
+                                 * hover and on keyboard focus reaching the tile (group-focus-within).
+                                 */}
+                                <div className="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                                     <DeferredWishlistButton
                                         product={product}
                                         surface="plp"
                                         size="sm"
+                                        preload={tileEngaged}
                                         className="relative top-auto right-auto z-20 bg-muted hover:bg-background shadow-sm border-0"
                                     />
                                 </div>
@@ -514,16 +614,22 @@ const ProductTile = memo(
                             {/* Hover overlay — subtle dark tint */}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none" />
 
-                            {/* Quick Add button */}
-                            <div className="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20">
-                                <QuickAddButton
-                                    productId={product.productId ?? ''}
-                                    productName={productName}
-                                    selectedColorValue={selectedAttributeValue}
-                                    initialVariantSelections={initialVariantSelections}
-                                    label={quickAddLabel ?? t('quickAdd')}
-                                />
-                            </div>
+                            {/* Quick Add button — `invisible` at rest for the same reason as the
+                                wishlist button above: an opacity-0 control stays in the a11y tree and
+                                tab order, so it is announced on every resting tile (WCAG 1.3.1).
+                                Rendered here only for the default overlay placement; the `inline`
+                                placement renders it in-flow at the bottom of the info section below. */}
+                            {quickAddPlacement === 'overlay' && (
+                                <div className="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20">
+                                    <QuickAddButton
+                                        productId={product.productId ?? ''}
+                                        productName={productName}
+                                        selectedColorValue={selectedAttributeValue}
+                                        initialVariantSelections={initialVariantSelections}
+                                        label={quickAddLabel ?? t('quickAdd')}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -559,11 +665,18 @@ const ProductTile = memo(
                             </p>
                         )}
 
-                        {/* Product name — the single keyboard/SR tab stop for this tile */}
-                        <h3 className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
+                        {/* Product name — the heading carries the product's accessible name directly.
+                            The tile's single product link (keyboard + AT) is the image overlay above;
+                            this inner link is a mouse-only convenience, so it is `aria-hidden` and
+                            `tabIndex={-1}` to avoid duplicating that link in the accessibility tree. */}
+                        <h3
+                            aria-label={productName}
+                            className="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2">
                             <Link
                                 to={productUrl}
-                                className="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                                className="hover:underline"
+                                tabIndex={-1}
+                                aria-hidden="true"
                                 onClick={handleClick}>
                                 {productName}
                             </Link>
@@ -614,6 +727,20 @@ const ProductTile = memo(
                         </div>
                         <UITarget targetId="sfcc.productCard.loyalty.points" />
                         <UITarget targetId="sfcc.productCard.bnpl.message" />
+
+                        {/* Inline Quick-Add — always-visible, full-width button at the bottom of the
+                            tile (opt-in via quickAddPlacement="inline"; the overlay above is skipped). */}
+                        {quickAddPlacement === 'inline' && (
+                            <div className="mt-3">
+                                <QuickAddButton
+                                    productId={product.productId ?? ''}
+                                    productName={productName}
+                                    selectedColorValue={selectedAttributeValue}
+                                    initialVariantSelections={initialVariantSelections}
+                                    label={quickAddLabel ?? t('quickAdd')}
+                                />
+                            </div>
+                        )}
                     </div>
                 </Card>
             );

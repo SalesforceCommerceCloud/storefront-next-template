@@ -21,7 +21,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import type { ShopperProducts } from '@/scapi';
 
-import InventoryMessage from '../index';
+import InventoryMessage from '@/components/inventory-message';
 
 function ActionLogger({ children }: { children: ReactNode }): ReactElement {
     const containerRef = useRef<HTMLDivElement | null>(null);

@@ -47,6 +47,11 @@ vi.mock('@/extensions/bopis/lib/basket-utils', async (importOriginal) => {
 vi.mock('@/extensions/bopis/lib/api/shipment.server', () => ({
     findOrCreatePickupShipment: vi.fn(() => Promise.resolve({ shipmentId: 'pickup-shipment-1' })),
 }));
+vi.mock('@/extensions/bopis/lib/api/stores.server', () => ({
+    getStoreInventoryId: vi.fn((_context: unknown, storeId: string) =>
+        Promise.resolve(storeId === 'store-A' ? 'inv-A' : undefined)
+    ),
+}));
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 vi.mock('react-router', () => {
     return {
@@ -142,6 +147,83 @@ describe('action.cart-bundle-add', () => {
             expect(result.data.success).toBe(true);
             expect(mockClients.shopperBasketsV2.addItemToBasket).toHaveBeenCalled();
         });
+
+        test('accepts client-produced delivery identifiers serialized as null', async () => {
+            const bundleItem = { productId: 'bundle-123', quantity: 1, storeId: null, inventoryId: null };
+            const childSelections = [
+                {
+                    product: { id: 'standard-product-1' } as ShopperProducts.schemas['Product'],
+                    quantity: 1,
+                },
+            ];
+
+            mockClients.shopperBasketsV2.addItemToBasket.mockResolvedValue({ data: mockUpdatedBasket });
+            mockClients.shopperBasketsV2.updateItemsInBasket.mockResolvedValue({ data: mockUpdatedBasket });
+            mockClients.shopperBasketsV2.getBasket.mockResolvedValue({ data: mockUpdatedBasket });
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.cartBundleAdd}`, 'POST', {
+                bundleItem: JSON.stringify(bundleItem),
+                childSelections: JSON.stringify(childSelections),
+            });
+
+            const result = await action(
+                createActionArgs(request, {} as any, { pattern: resourceRoutes.cartBundleAdd })
+            );
+
+            expect(result.data.success).toBe(true);
+        });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test('uses normalized pickup identifiers in bundle SCAPI requests', async () => {
+            const bundleItem = {
+                productId: 'bundle-123',
+                quantity: 1,
+                storeId: ' store-A ',
+                inventoryId: ' inv-A ',
+            };
+            const childSelections = [
+                {
+                    product: { id: 'standard-product-1' } as ShopperProducts.schemas['Product'],
+                    quantity: 1,
+                },
+            ];
+
+            mockClients.shopperBasketsV2.addItemToBasket.mockResolvedValue({ data: mockUpdatedBasket });
+            mockClients.shopperBasketsV2.updateItemsInBasket.mockResolvedValue({ data: mockUpdatedBasket });
+            mockClients.shopperBasketsV2.getBasket.mockResolvedValue({ data: mockUpdatedBasket });
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.cartBundleAdd}`, 'POST', {
+                bundleItem: JSON.stringify(bundleItem),
+                childSelections: JSON.stringify(childSelections),
+            });
+
+            const result = await action(
+                createActionArgs(request, {} as any, { pattern: resourceRoutes.cartBundleAdd })
+            );
+
+            expect(result.data.success).toBe(true);
+            expect(mockClients.shopperBasketsV2.addItemToBasket).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    body: [
+                        expect.objectContaining({
+                            inventoryId: 'inv-A',
+                            shipmentId: 'pickup-shipment-1',
+                        }),
+                    ],
+                })
+            );
+            expect(mockClients.shopperBasketsV2.updateItemsInBasket).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    body: expect.arrayContaining([
+                        expect.objectContaining({
+                            inventoryId: 'inv-A',
+                            shipmentId: 'pickup-shipment-1',
+                        }),
+                    ]),
+                })
+            );
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         test('adds bundle with variant products to cart', async () => {
             const bundleItem = { productId: 'bundle-123', quantity: 1 };
@@ -248,6 +330,61 @@ describe('action.cart-bundle-add', () => {
         });
 
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test.each([
+            ['storeId', { storeId: 'store-A' }],
+            ['inventoryId', { inventoryId: 'inv-A' }],
+        ])('rejects a bundle with only %s before writing to SCAPI', async (_identifier, fulfillment) => {
+            const bundleItem = { productId: 'bundle-123', quantity: 1, ...fulfillment };
+            const childSelections = [
+                {
+                    product: { id: 'standard-product-1' } as ShopperProducts.schemas['Product'],
+                    quantity: 1,
+                },
+            ];
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.cartBundleAdd}`, 'POST', {
+                bundleItem: JSON.stringify(bundleItem),
+                childSelections: JSON.stringify(childSelections),
+            });
+
+            const result = await action(
+                createActionArgs(request, {} as any, { pattern: resourceRoutes.cartBundleAdd })
+            );
+
+            expectStatus(result, 400);
+            expect(result.data.success).toBe(false);
+            expect(result.data.error?.code).toBe('INVALID_INPUT');
+            expect(mockClients.shopperBasketsV2.addItemToBasket).not.toHaveBeenCalled();
+        });
+
+        test('rejects bundle pickup identifiers that are present but empty before writing to SCAPI', async () => {
+            const bundleItem = {
+                productId: 'bundle-123',
+                quantity: 1,
+                storeId: ' ',
+                inventoryId: ' ',
+            };
+            const childSelections = [
+                {
+                    product: { id: 'standard-product-1' } as ShopperProducts.schemas['Product'],
+                    quantity: 1,
+                },
+            ];
+
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.cartBundleAdd}`, 'POST', {
+                bundleItem: JSON.stringify(bundleItem),
+                childSelections: JSON.stringify(childSelections),
+            });
+
+            const result = await action(
+                createActionArgs(request, {} as any, { pattern: resourceRoutes.cartBundleAdd })
+            );
+
+            expectStatus(result, 400);
+            expect(result.data.error?.code).toBe('INVALID_INPUT');
+            expect(mockClients.shopperBasketsV2.addItemToBasket).not.toHaveBeenCalled();
+        });
+
         test('rejects pickup bundle from a different store than existing pickup items (BOPIS)', async () => {
             const basketWithPickup = {
                 basketId: 'test-basket-123',

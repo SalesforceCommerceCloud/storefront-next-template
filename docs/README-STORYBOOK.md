@@ -98,11 +98,17 @@ pnpm storybook:test --type=interaction
 # Run interaction tests against static build
 pnpm storybook:test --type=interaction --static
 
+# Reuse a static build produced by `pnpm storybook:build`
+pnpm storybook:test --type=interaction --static --reuse-build
+
 # Run a11y tests
 pnpm storybook:test --type=a11y
 
 # Run a11y tests against static build
 pnpm storybook:test --type=a11y --static
+
+# Reuse the same static build for a11y tests
+pnpm storybook:test --type=a11y --static --reuse-build
 ```
 
 **Storybook URL:** http://localhost:6006
@@ -117,14 +123,16 @@ pnpm storybook:test --type=a11y --static
 | `pnpm storybook:test --type=snapshot --update` | Update snapshot files locally and run tests |
 | `pnpm storybook:test --type=interaction` | Run interaction tests against live Storybook server |
 | `pnpm storybook:test --type=interaction --static` | Run interaction tests against static Storybook build |
+| `pnpm storybook:test --type=interaction --static --reuse-build` | Run interaction tests against an existing static Storybook build |
 | `pnpm storybook:test --type=a11y` | Run a11y tests against live Storybook server |
 | `pnpm storybook:test --type=a11y --static` | Run a11y tests against static Storybook build |
+| `pnpm storybook:test --type=a11y --static --reuse-build` | Run a11y tests against an existing static Storybook build |
 | `pnpm storybook:test --type=snapshot --coverage` | Run snapshot tests with code coverage (auto-generates story tests first) |
 | `pnpm storybook:test --type=snapshot --stories=<name>` | Snapshot only — narrow the run to story files whose path contains `<name>` (e.g. `account/order-details`) |
 
 ## CI execution
 
-All three suites run on every PR in a single CI job inside the `mcr.microsoft.com/playwright` container (browsers pre-installed), executing the same commands you'd run locally: `snapshot --coverage`, `interaction --static`, `a11y --static`, then the coverage report.
+All three suites run on every PR in a single CI job inside the `mcr.microsoft.com/playwright` container (browsers pre-installed). CI runs `snapshot --coverage`, builds static Storybook once, then runs interaction and a11y against that output before generating the coverage report.
 
 ## Features & Addons
 

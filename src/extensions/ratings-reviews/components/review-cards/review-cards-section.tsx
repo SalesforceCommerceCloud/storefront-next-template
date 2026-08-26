@@ -122,6 +122,11 @@ export default function ReviewCardsSection({
     const [withPhotosOnly, setWithPhotosOnly] = useState(false);
     const [sortBy, setSortBy] = useState<ReviewSortValue>('most-recent');
     const sectionRef = useRef<HTMLDivElement>(null);
+    const ratingButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+    const withPhotosButtonRef = useRef<HTMLButtonElement | null>(null);
+    const prevPageButtonRef = useRef<HTMLButtonElement | null>(null);
+    const nextPageButtonRef = useRef<HTMLButtonElement | null>(null);
+    const lastPaginationActionRef = useRef<'prev' | 'next' | null>(null);
 
     const isControlled = onRatingChange != null;
     const selectedRating = isControlled ? (controlledRating ?? null) : internalRating;
@@ -177,6 +182,20 @@ export default function ReviewCardsSection({
     const from = totalReviews === 0 ? 0 : startIndex + 1;
     const to = Math.min(startIndex + REVIEWS_PER_PAGE, totalReviews);
 
+    // Previous/Next become disabled at the ends of the page range. A disabled button can't hold
+    // focus, so send it to the remaining enabled control instead of letting it drop (WCAG 2.4.3).
+    useEffect(() => {
+        const action = lastPaginationActionRef.current;
+        if (!action) return;
+        lastPaginationActionRef.current = null;
+
+        if (action === 'prev' && currentPage <= 1) {
+            nextPageButtonRef.current?.focus();
+        } else if (action === 'next' && currentPage >= totalPages) {
+            prevPageButtonRef.current?.focus();
+        }
+    }, [currentPage, totalPages]);
+
     return (
         <div ref={sectionRef} className="space-y-6" data-testid="review-cards-section">
             {reviews.length === 0 ? (
@@ -193,6 +212,9 @@ export default function ReviewCardsSection({
                                 return (
                                     <Button
                                         key={rating}
+                                        ref={(el) => {
+                                            ratingButtonRefs.current[rating] = el;
+                                        }}
                                         type="button"
                                         variant="outline"
                                         size="sm"
@@ -210,6 +232,7 @@ export default function ReviewCardsSection({
                                 );
                             })}
                             <Button
+                                ref={withPhotosButtonRef}
                                 type="button"
                                 variant="outline"
                                 size="sm"
@@ -269,7 +292,13 @@ export default function ReviewCardsSection({
                             {selectedRating != null && (
                                 <button
                                     type="button"
-                                    onClick={() => setSelectedRating(null)}
+                                    onClick={() => {
+                                        const rating = selectedRating;
+                                        setSelectedRating(null);
+                                        requestAnimationFrame(() => {
+                                            ratingButtonRefs.current[rating]?.focus();
+                                        });
+                                    }}
                                     className="inline-flex items-center gap-1 rounded-ui border border-filter-selected-border bg-filter-selected px-2 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label={t('filters.clearStarFilter', { count: selectedRating })}>
                                     <span>{t('filters.activeFilterStars', { count: selectedRating })}</span>
@@ -279,7 +308,12 @@ export default function ReviewCardsSection({
                             {withPhotosOnly && (
                                 <button
                                     type="button"
-                                    onClick={() => setWithPhotosOnly(false)}
+                                    onClick={() => {
+                                        setWithPhotosOnly(false);
+                                        requestAnimationFrame(() => {
+                                            withPhotosButtonRef.current?.focus();
+                                        });
+                                    }}
                                     className="inline-flex items-center gap-1 rounded-ui border border-filter-selected-border bg-filter-selected px-2 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label={t('filters.clearPhotoFilter')}>
                                     <span>{t('filters.withPhotos')}</span>
@@ -308,10 +342,14 @@ export default function ReviewCardsSection({
                                 </p>
                                 <nav className="flex items-center gap-1" aria-label={t('section.heading')}>
                                     <Button
+                                        ref={prevPageButtonRef}
                                         variant="outline"
                                         size="icon"
                                         className="size-9"
-                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                        onClick={() => {
+                                            lastPaginationActionRef.current = 'prev';
+                                            setCurrentPage((p) => Math.max(1, p - 1));
+                                        }}
                                         disabled={safePage <= 1}
                                         aria-label="Previous page">
                                         <ChevronLeft className="size-4" />
@@ -342,10 +380,14 @@ export default function ReviewCardsSection({
                                         );
                                     })}
                                     <Button
+                                        ref={nextPageButtonRef}
                                         variant="outline"
                                         size="icon"
                                         className="size-9"
-                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                        onClick={() => {
+                                            lastPaginationActionRef.current = 'next';
+                                            setCurrentPage((p) => Math.min(totalPages, p + 1));
+                                        }}
                                         disabled={safePage >= totalPages}
                                         aria-label="Next page">
                                         <ChevronRight className="size-4" />

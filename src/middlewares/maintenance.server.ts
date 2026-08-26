@@ -16,6 +16,7 @@
 import { type MiddlewareFunction, redirect } from 'react-router';
 import { createMaintenance, maintenanceContext } from '@/lib/maintenance';
 import { getLogger } from '@/lib/logger.server';
+import { buildUrlFromContext } from '@/lib/url.server';
 import { routes } from '@/route-paths';
 
 /**
@@ -38,9 +39,10 @@ export const maintenanceMiddleware: MiddlewareFunction<Response> = async ({ cont
         // 503 Error -> Redirect to maintenance page
         if (e instanceof Response && e.status === 503 && pattern !== 'maintenance') {
             logger.info('Maintenance: redirecting to maintenance page');
-            // Preserve the `returnPath` and filter out the internal `_routes` parameter
+            // Preserve the `returnPath` and filter out internal/PII parameters
             const url = new URL(request.url);
             url.searchParams.delete('_routes');
+            url.searchParams.delete('email');
             const returnPath = `${url.pathname}${url.search}`;
             // oxlint-disable-next-line @typescript-eslint/only-throw-error
             throw redirect(`${routes.maintenance}?returnTo=${encodeURIComponent(returnPath)}`);
@@ -55,8 +57,18 @@ export const maintenanceMiddleware: MiddlewareFunction<Response> = async ({ cont
         const returnTo = url.searchParams.get('returnTo');
         if (returnTo) {
             logger.info('Maintenance: redirecting back from maintenance page', { returnTo });
+            // Validate same-origin by resolving against the request URL — this rejects
+            // absolute URLs, protocol-relative paths (//evil.com), and backslash-based
+            // bypasses (/\evil.com) that browsers normalize to external origins.
+            let isSafeReturnTo = false;
+            try {
+                const resolved = new URL(returnTo, request.url);
+                isSafeReturnTo = resolved.origin === new URL(request.url).origin;
+            } catch {
+                // returnTo could not be parsed as a URL — reject it
+            }
             // oxlint-disable-next-line @typescript-eslint/only-throw-error
-            throw redirect(returnTo);
+            throw redirect(isSafeReturnTo ? returnTo : buildUrlFromContext('/', context));
         }
     }
 

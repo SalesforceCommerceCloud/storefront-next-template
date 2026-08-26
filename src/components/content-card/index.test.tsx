@@ -14,14 +14,28 @@
  * limitations under the License.
  */
 import { createRef } from 'react';
-import { describe, test, expect } from 'vitest';
+import { vi, describe, test, expect, beforeEach } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import ContentCard from './index';
 import { type Image } from '@/types';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
+// The instructional empty state is gated to Page Designer design mode. Default to false (live
+// storefront) so the bulk of the suite exercises the shopper-facing render; individual empty-state
+// tests flip this to true.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }),
+}));
+
+// Import the component after mocks are set up
+import ContentCard from './index';
+
 describe('ContentCard', () => {
+    beforeEach(() => {
+        mockIsDesignMode = false;
+    });
+
     const defaultProps = {
         title: 'Test Title',
         description: 'Test description content',
@@ -160,6 +174,71 @@ describe('ContentCard', () => {
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
+    describe('Empty state (Page Designer authoring)', () => {
+        test('does not render the instructional empty state on the live storefront (not design mode)', () => {
+            const { container } = renderWithRouter(<ContentCard />);
+
+            // On the live storefront an unconfigured Content Card falls through to the plain empty
+            // card shell — no authoring prompt is shown to shoppers.
+            expect(screen.queryByRole('heading', { name: 'Add your title here' })).not.toBeInTheDocument();
+            expect(screen.queryByText('Add your description here')).not.toBeInTheDocument();
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
+            expect(container.querySelector('[data-slot="card-content"]')).not.toBeInTheDocument();
+        });
+
+        test('renders the instructional empty state in design mode with default title/description and no props', () => {
+            mockIsDesignMode = true;
+            const { container } = renderWithRouter(<ContentCard />);
+
+            // W-23729786: in Page Designer design mode, an unconfigured Content Card renders through
+            // the real image-backed path — the shared placeholder image with the default title and
+            // description bottom-left aligned over the standard gradient, and no CTA.
+            expect(screen.getByRole('heading', { name: 'Add your title here' })).toBeInTheDocument();
+            expect(screen.getByText('Add your description here')).toBeInTheDocument();
+            // The placeholder art renders as a real <img> (fed through the normal render path). The
+            // src is the shared placeholder asset — in tests the Vite asset alias resolves any
+            // static image import to a fixed mock string (see asset-mock.ts), so we assert that the
+            // mocked asset (not an authored URL) is what flows through. It is decorative (alt="") so
+            // the screen reader doesn't read the title twice (heading + image name), which means it
+            // carries the presentation role — query it by tag rather than role="img".
+            const placeholder = container.querySelector('img');
+            expect(placeholder).not.toBeNull();
+            expect(placeholder?.getAttribute('alt')).toBe('');
+            expect(placeholder?.getAttribute('src')).toContain('__ASSET_MOCK__');
+            expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+            expect(container.querySelector('[data-slot="empty-state"]')).toBeInTheDocument();
+        });
+
+        test('the empty state has no interactive controls (illustrative placeholder only)', () => {
+            mockIsDesignMode = true;
+            renderWithRouter(<ContentCard />);
+
+            // The placeholder previews the default card — copy only, no CTA button or link.
+            expect(screen.queryByRole('button')).not.toBeInTheDocument();
+            expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        });
+
+        test('configured cards are unchanged in design mode', () => {
+            mockIsDesignMode = true;
+            renderWithRouter(<ContentCard {...defaultProps} />);
+
+            expect(screen.getByText('Test Title')).toBeInTheDocument();
+            expect(screen.queryByRole('heading', { name: 'Add your title here' })).not.toBeInTheDocument();
+            expect(screen.queryByText('Add your description here')).not.toBeInTheDocument();
+        });
+
+        test('cards with only an image (no text/CTA) are unchanged in design mode', () => {
+            mockIsDesignMode = true;
+            const { container } = renderWithRouter(
+                <ContentCard imageUrl={{ url: 'https://example.com/image.jpg' }} imageAlt="Only image" />
+            );
+
+            expect(screen.getByAltText('Only image')).toBeInTheDocument();
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
+        });
+    });
+
     test('applies loading attribute correctly', () => {
         renderWithRouter(<ContentCard {...defaultProps} loading="eager" />);
         let image = screen.getByAltText('Test image');
@@ -174,5 +253,53 @@ describe('ContentCard', () => {
         renderWithRouter(<ContentCard {...defaultProps} />);
         image = screen.getByAltText('Test image');
         expect(image).toHaveAttribute('loading', 'lazy');
+    });
+
+    describe('image scrim contrast (WCAG 1.4.3)', () => {
+        // Relative luminance / contrast ratio per WCAG 2.x, applied to a solid black
+        // scrim of the given opacity composited over a worst-case white (#FFFFFF)
+        // image, with white (#FFFFFF) text on top.
+        const srgbToLinear = (channel: number) =>
+            channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+        const contrastOfWhiteTextOverBlackScrim = (scrimOpacity: number) => {
+            const compositedChannel = 1 - scrimOpacity; // white image blended with a black scrim
+            const backgroundLuminance = srgbToLinear(compositedChannel);
+            const textLuminance = 1; // white text
+            return (textLuminance + 0.05) / (backgroundLuminance + 0.05);
+        };
+
+        test('lightest point of the scrim gradient still yields >=4.5:1 for white text over a white image', () => {
+            // The scrim's className encodes its opacity stops directly (from-black/90
+            // via-black/75 to-black/60). The lightest stop, black/60, is the worst case
+            // since the title/description block is unbounded in height (long copy or a
+            // large Heading typography preset can push content up to that zone).
+            expect(contrastOfWhiteTextOverBlackScrim(0.6)).toBeGreaterThanOrEqual(4.5);
+        });
+
+        test('renders long copy with the largest typography preset legibly over a white image', () => {
+            const longDescription =
+                'A long, normal-size description that can extend the content block well above the ' +
+                'bottom of the card, into the lighter part of the scrim gradient, to stress-test contrast.';
+
+            const { container } = renderWithRouter(
+                <ContentCard
+                    title="Largest Heading Preset"
+                    titleTypography="Heading 1"
+                    description={longDescription}
+                    descriptionTypography="Heading 1"
+                    imageUrl={{ url: 'https://example.com/white-image.jpg' }}
+                    imageAlt="White background image"
+                />
+            );
+
+            expect(screen.getByRole('heading', { name: 'Largest Heading Preset' })).toBeInTheDocument();
+            expect(screen.getByText(longDescription)).toBeInTheDocument();
+
+            const scrim = container.querySelector('.bg-gradient-to-t');
+            expect(scrim?.className).toContain('from-black/90');
+            expect(scrim?.className).toContain('via-black/75');
+            expect(scrim?.className).toContain('to-black/60');
+            expect(scrim?.className).not.toContain('to-transparent');
+        });
     });
 });

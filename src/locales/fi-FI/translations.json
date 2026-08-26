@@ -23,10 +23,34 @@
         "hero": {
             "defaultTitle": "Osta nyt",
             "defaultImageAlt": "Hero-kuva",
-            "defaultCtaText": "Osta nyt"
+            "defaultCtaText": "Osta nyt",
+            "emptyTitle": "Lisää otsikko tähän",
+            "emptyButton": "Painike"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Lisää otsikko tähän"
         },
         "previousImage": "Edellinen kuva",
-        "nextImage": "Seuraava kuva"
+        "nextImage": "Seuraava kuva",
+        "popularCategory": {
+            "emptyTitle": "Kategoria"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Lisää otsikko tähän"
+        },
+        "contentCard": {
+            "emptyTitle": "Lisää otsikko tähän",
+            "emptyDescription": "Lisää kuvaus tähän"
+        },
+        "productTile": {
+            "emptyTitle": "Tuote"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Tuotesuositukset"
+        }
     },
     "search": {
         "results": "Hakutulokset",
@@ -88,6 +112,7 @@
         "mobileNavigation": "Mobiilinavigointivalikko",
         "expandCategory": "Laajenna {{category}}",
         "collapseCategory": "Sulje {{category}}",
+        "shopAllCategory": "Katso kaikki {{category}}",
         "menu": {
             "yourLists": "Luettelosi",
             "yourAccount": "Tilisi",
@@ -312,7 +337,7 @@
         "itemCount_other": "Ostoskori ({{count}} tuotetta)",
         "empty": {
             "title": "Ostoskorisi on tyhjä.",
-            "registeredMessage": "Jatka ostoksia lisätäksesi tuotteita ostoskoriin.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Kirjaudu sisään hakeaksesi tallennetut tuotteet tai jatka ostoksia.",
             "continueShopping": "Jatka ostoksia",
             "signIn": "Kirjaudu sisään"
@@ -598,6 +623,7 @@
             "hero": {
                 "thankYou": "Kiitos {{name}}!",
                 "orderConfirmed": "Tilauksesi on vahvistettu.",
+                "statusAnnouncement": "Tilauksesi on vahvistettu. Tilausnumero {{orderNo}}.",
                 "emailConfirmation": "Olemme lähettäneet vahvistussähköpostin osoitteeseen {{email}}.",
                 "needHelp": "Tarvitsetko apua?",
                 "defaultName": "Asiakas",
@@ -1131,7 +1157,9 @@
         "categoryGrid": {
             "title": "Tyyliä tosielämään",
             "description": "Me Market Streetillä uskomme, että muodin pitäisi olla vaivatonta, aitoa ja helposti lähestyttävää. Mallistomme on suunniteltu modernille ihmiselle, joka arvostaa laatua, monipuolisuutta ja ajatonta tyyliä.",
-            "shopNowButton": "Osta nyt"
+            "shopNowButton": "Osta nyt",
+            "emptyTitle": "Lisää otsikko tähän",
+            "emptyRegionLabel": "Kategoriakaruselli"
         },
         "featuredContent": {
             "women": {
@@ -1350,14 +1378,6 @@
         "returnsAndWarrantyDescription": "Palautukset ja takuutiedot",
         "close": "Sulje"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Arvioitu toimitus",
-        "cardDescription": "Saatavilla olevat toimitusvaihtoehdot",
-        "learnMore": "Lue lisää",
-        "sectionHeading": "Arvioitu toimitus",
-        "shippingOptionsHeading": "Toimitusvaihtoehdot ja hinnat",
-        "free": "Veloituksetta"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Korjaa seuraavat asiat:",
@@ -1420,6 +1440,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Toimitustapa",
+            "deliveryDescription": "Anna postinumero nähdäksesi toimitusarvion"
+        },
         "recommendations": {
             "youMightAlsoLike": "Saatat myös pitää näistä",
             "completeTheLook": "Täydennä look",
@@ -1456,7 +1481,6 @@
         "quickAdd": "Pikalisäys",
         "buyItNow": "Osta se nyt",
         "pickupAvailable": "Nouto saatavilla",
-        "selectProduct": "Valitse tuote",
         "updatingCart": "Päivitetään...",
         "updateCart": "Päivitys",
         "addingToWishlist": "Lisätään toivelistalle...",

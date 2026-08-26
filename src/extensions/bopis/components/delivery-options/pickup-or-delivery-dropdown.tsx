@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { DELIVERY_OPTIONS, type DeliveryOption } from '@/extensions/bopis/constants';
-import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Store, ShoppingCart } from 'lucide-react';
+import { FulfillmentOptionDropdown } from '@/components/fulfillment/fulfillment-option-dropdown';
 export interface PickupOrDeliveryDropdownProps {
     value: DeliveryOption;
     onChange: (v: DeliveryOption) => void;
@@ -37,45 +31,35 @@ export default function PickupOrDeliveryDropdown({
     isDeliveryDisabled = false,
 }: PickupOrDeliveryDropdownProps) {
     const { t } = useTranslation('extBopis');
-    const isPickup = value === DELIVERY_OPTIONS.PICKUP;
-    const text = isPickup
-        ? t('deliveryOptions.pickupOrDelivery.storePickupLabel')
-        : t('deliveryOptions.pickupOrDelivery.delivery');
+    const options = [
+        {
+            id: DELIVERY_OPTIONS.DELIVERY,
+            order: 10,
+            label: t('deliveryOptions.pickupOrDelivery.delivery'),
+            menuLabel: t('deliveryOptions.pickupOrDelivery.shipToAddress'),
+            availability: { available: !isDeliveryDisabled },
+        },
+        {
+            id: DELIVERY_OPTIONS.PICKUP,
+            order: 20,
+            label: t('deliveryOptions.pickupOrDelivery.storePickupLabel'),
+            menuLabel: t('deliveryOptions.pickupOrDelivery.storePickup'),
+            availability: { available: !isPickupDisabled },
+        },
+    ];
 
     return (
-        <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-                <button
-                    type="button"
-                    className={cn(
-                        'mb-1 w-fit px-2 border-0 bg-muted text-xs font-medium text-foreground flex items-center justify-center gap-1 hover:bg-accent transition-colors'
-                    )}>
-                    {isPickup ? <Store className="size-3" /> : <ShoppingCart className="size-3" />}
-                    <span>{text}</span>
-                </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="p-0 min-w-[200px]">
-                <DropdownMenuItem
-                    onSelect={() => !isDeliveryDisabled && onChange(DELIVERY_OPTIONS.DELIVERY)}
-                    className={cn(
-                        'flex-row px-4 py-2',
-                        value === DELIVERY_OPTIONS.DELIVERY && 'text-primary font-semibold',
-                        isDeliveryDisabled && 'opacity-50 pointer-events-none'
-                    )}>
-                    {value === DELIVERY_OPTIONS.DELIVERY && <span className="mr-2">✓</span>}
-                    {t('deliveryOptions.pickupOrDelivery.shipToAddress')}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    onSelect={() => !isPickupDisabled && onChange(DELIVERY_OPTIONS.PICKUP)}
-                    className={cn(
-                        'flex-row px-4 py-2',
-                        value === DELIVERY_OPTIONS.PICKUP && 'text-primary font-semibold',
-                        isPickupDisabled && 'opacity-50 pointer-events-none'
-                    )}>
-                    {value === DELIVERY_OPTIONS.PICKUP && <span className="mr-2">✓</span>}
-                    {t('deliveryOptions.pickupOrDelivery.storePickup')}
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <FulfillmentOptionDropdown
+            value={value}
+            options={options}
+            onChange={onChange}
+            renderIcon={(option) =>
+                option.id === DELIVERY_OPTIONS.PICKUP ? (
+                    <Store className="size-3" />
+                ) : (
+                    <ShoppingCart className="size-3" />
+                )
+            }
+        />
     );
 }

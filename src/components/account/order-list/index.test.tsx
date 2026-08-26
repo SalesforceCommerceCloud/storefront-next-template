@@ -91,7 +91,7 @@ describe('OrderList Component', () => {
     describe('Header Rendering', () => {
         test('renders title', () => {
             renderOrderList({ title: 'My Orders' });
-            expect(screen.getByRole('heading', { level: 4 })).toHaveTextContent('My Orders');
+            expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('My Orders');
         });
 
         test('renders subtitle when provided', () => {
@@ -267,7 +267,7 @@ describe('OrderList Component', () => {
 describe('OrderListHeader Component', () => {
     test('renders title', () => {
         render(<OrderListHeader title="My Orders" />);
-        expect(screen.getByRole('heading', { level: 4 })).toHaveTextContent('My Orders');
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('My Orders');
     });
 
     test('renders subtitle when provided', () => {
@@ -282,7 +282,7 @@ describe('OrderListHeader Component', () => {
 
     test('title is not an extra tab stop', () => {
         render(<OrderListHeader title="My Orders" />);
-        const heading = screen.getByRole('heading', { level: 4 });
+        const heading = screen.getByRole('heading', { level: 1 });
         expect(heading).not.toHaveAttribute('tabindex');
     });
 });
@@ -348,7 +348,7 @@ describe('OrderListBody Component', () => {
 
     test('does not render header elements', () => {
         render(<OrderListBody orders={testOrders} />);
-        expect(screen.queryByRole('heading', { level: 4 })).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
     });
 
     // Guards Order → OrderListItemData threading through toOrderListItemData: an

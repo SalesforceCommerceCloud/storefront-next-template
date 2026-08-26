@@ -22,6 +22,8 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { ProductTile } from './index';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
+import { mockConfig } from '@/test-utils/config';
+import type { AppConfig } from '@/types/config';
 import { masterProduct } from '@/components/__mocks__/master-variant-product';
 
 // Mock only the network boundary. `useScapiFetcher` is what the CartItemModal
@@ -43,6 +45,14 @@ const loadSpy = vi.fn();
 vi.mock('@/providers/wishlist', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/providers/wishlist')>();
     return { ...actual, useWishlistLoader: () => loadSpy };
+});
+
+// Drives the Page Designer design-mode gate on the no-product empty state. Partial mock (not a full
+// mock) so `createReactAdapter` and the other real exports the runtime needs stay intact.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/design/react/core')>();
+    return { ...actual, usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }) };
 });
 
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
@@ -107,13 +117,16 @@ const mockSingleVariantProduct: ShopperSearch.schemas['ProductSearchHit'] = {
     ],
 };
 
-const renderTile = (props: Partial<React.ComponentProps<typeof ProductTile>> = {}) => {
+const renderTile = (
+    props: Partial<React.ComponentProps<typeof ProductTile>> = {},
+    wrapperProps: { config?: AppConfig; currency?: string } = {}
+) => {
     const router = createMemoryRouter(
         [
             {
                 path: '/test',
                 element: (
-                    <AllProvidersWrapper>
+                    <AllProvidersWrapper {...wrapperProps}>
                         <ProductTile product={mockSingleVariantProduct} {...props} />
                     </AllProvidersWrapper>
                 ),
@@ -191,6 +204,18 @@ describe('ProductTile — rendering', () => {
     test('renders a quick-add button with a custom label', () => {
         renderTile({ quickAddLabel: 'Fast Add' });
         expect(screen.getByRole('button', { name: /fast add/i })).toBeInTheDocument();
+    });
+
+    test('places the quick-add as an absolute overlay over the image by default', () => {
+        renderTile();
+        // Default 'overlay' placement: the button lives in the absolutely-positioned hover overlay.
+        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).not.toBeNull();
+    });
+
+    test('places the quick-add inline at the tile bottom when quickAddPlacement="inline"', () => {
+        renderTile({ quickAddPlacement: 'inline' });
+        // Inline placement: the button is in-flow in the info section, not the absolute overlay.
+        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).toBeNull();
     });
 });
 
@@ -412,12 +437,21 @@ describe('ProductTile — quick-add pre-selection', () => {
         await user.click(screen.getByRole('button', { name: /quick add/i }));
 
         const dialog = await screen.findByRole('dialog');
-        // Each variation group renders its selected value in the header as "<label>:<displayName>".
         // Represented variant is { color: 'CHARCWL', size: '036', width: 'S' },
         // which maps to display names "Charcoal", "36", "Short".
-        expect(within(dialog).getByRole('radiogroup', { name: /color/i })).toHaveTextContent(/Color:.*Charcoal/);
-        expect(within(dialog).getByRole('radiogroup', { name: /size/i })).toHaveTextContent(/Size:.*36/);
-        expect(within(dialog).getByRole('radiogroup', { name: /width/i })).toHaveTextContent(/Width:.*Short/);
+        expect(
+            within(within(dialog).getByRole('radiogroup', { name: /colou?r/i })).getByRole('radio', {
+                name: /Charcoal/,
+            })
+        ).toBeChecked();
+        expect(
+            within(within(dialog).getByRole('radiogroup', { name: /size/i })).getByRole('radio', {
+                name: /^(?:Size )?36(?:, available)?$/i,
+            })
+        ).toBeChecked();
+        expect(
+            within(within(dialog).getByRole('radiogroup', { name: /width/i })).getByRole('radio', { name: /Short/ })
+        ).toBeChecked();
     });
 
     test('marks the represented variant swatches as selected inside the modal', async () => {
@@ -428,7 +462,56 @@ describe('ProductTile — quick-add pre-selection', () => {
 
         const dialog = await screen.findByRole('dialog');
         expect(within(dialog).getByRole('radio', { name: /Charcoal/ })).toBeChecked();
-        expect(within(dialog).getByRole('radio', { name: /^36$/ })).toBeChecked();
+        expect(within(dialog).getByRole('radio', { name: /^(?:Size )?36(?:, available)?$/i })).toBeChecked();
         expect(within(dialog).getByRole('radio', { name: /Short/ })).toBeChecked();
+    });
+});
+
+describe('ProductTile — no-product empty state', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockIsDesignMode = false;
+    });
+
+    afterEach(() => {
+        mockIsDesignMode = false;
+    });
+
+    test('renders nothing on the live storefront when no product is supplied', () => {
+        const { container } = renderTile({ product: undefined });
+        // The tile must not leak any placeholder to shoppers — no card, no "Select a product" text.
+        expect(container.querySelector('.product-card')).toBeNull();
+        expect(screen.queryByText(/select a product/i)).not.toBeInTheDocument();
+    });
+
+    test('renders a placeholder tile with the default title, rating, and price in Page Designer design mode', () => {
+        mockIsDesignMode = true;
+        renderTile({ product: undefined });
+        // A real-shaped placeholder tile (image surface + "Product" heading + star rating + zero
+        // price) stands in for the unconfigured tile so the authoring preview reads as a
+        // fully-populated tile rather than a bare title.
+        expect(screen.getByRole('heading', { name: 'Product' })).toBeInTheDocument();
+        // Star rating placeholder: the StarRating group is announced with an empty (0-of-5) rating.
+        expect(screen.getByRole('group', { name: /0 out of 5/i })).toBeInTheDocument();
+        // Price placeholder: the zero price is currency-formatted (USD in the test wrapper), never a
+        // hardcoded "$0.00" literal.
+        expect(screen.getByText('$0.00')).toBeInTheDocument();
+        expect(screen.queryByText(/select a product/i)).not.toBeInTheDocument();
+    });
+
+    test('omits the placeholder price (no Intl crash) when neither the site nor config resolves a currency', () => {
+        mockIsDesignMode = true;
+        // An authoring preview not yet wired to a site: no site currency and no configured site to
+        // fall back to. An empty-string currency would reach `Intl.NumberFormat` and throw
+        // `RangeError: Invalid currency code`, crashing the preview — the placeholder must instead
+        // render without a price row. The title and rating still render.
+        const configWithoutCurrency: AppConfig = {
+            ...mockConfig,
+            commerce: { ...mockConfig.commerce, sites: [] },
+        };
+        renderTile({ product: undefined }, { config: configWithoutCurrency, currency: '' });
+        expect(screen.getByRole('heading', { name: 'Product' })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: /0 out of 5/i })).toBeInTheDocument();
+        expect(screen.queryByText(/\$?0\.00/)).not.toBeInTheDocument();
     });
 });

@@ -15,8 +15,12 @@
  */
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createApiClients } from '@/lib/api-clients.server';
-import { findOrCreateDeliveryShipment } from '@/extensions/multiship/lib/api/basket.server';
-import { findOrCreatePickupShipment } from '@/extensions/bopis/lib/api/shipment.server';
+import { findOrCreateDeliveryShipment } from '@/lib/cart/shipments.server';
+import {
+    findOrCreatePickupShipment,
+    PickupShipmentStoreConflictError,
+} from '@/extensions/bopis/lib/api/shipment.server';
+import { getStoreInventoryId } from '@/extensions/bopis/lib/api/stores.server';
 import { createBasketSuccessResponse, type BasketActionResponse } from '@/routes/types/action-responses';
 import { data, type RouterContextProvider } from 'react-router';
 import { createActionError } from '@/lib/action-error-helpers.server';
@@ -36,7 +40,10 @@ export async function handleCartItemDeliveryOptionChange(
     input: CartItemUpdateData,
     context: Readonly<RouterContextProvider>
 ): Promise<DeliveryOptionResponse | null> {
-    const { itemId, productId, quantity, deliveryOption, storeId, inventoryId } = input;
+    const { itemId, productId, quantity, deliveryOption } = input;
+    const storeId = input.storeId?.trim();
+    const requestedInventoryId = input.inventoryId?.trim();
+    let inventoryId = requestedInventoryId;
 
     if (!deliveryOption) return null;
 
@@ -52,10 +59,19 @@ export async function handleCartItemDeliveryOptionChange(
                 { status: 404 }
             );
         }
+        const existingItem = freshBasket.productItems?.find((item) => item.itemId === itemId);
+        if (!existingItem) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({ code: ErrorCode.NOT_FOUND, message: 'Cart item not found.' }),
+                },
+                { status: 404 }
+            );
+        }
         const clients = createApiClients(context);
-        let targetShipment;
         if (deliveryOption === 'pickup') {
-            if (!storeId || !inventoryId) {
+            if (!storeId || !requestedInventoryId) {
                 return data(
                     {
                         success: false,
@@ -67,21 +83,20 @@ export async function handleCartItemDeliveryOptionChange(
                     { status: 400 }
                 );
             }
-            targetShipment = await findOrCreatePickupShipment(freshBasket, context, storeId);
-        } else if (deliveryOption === 'delivery') {
-            targetShipment = await findOrCreateDeliveryShipment(freshBasket, context);
-        }
-        if (!targetShipment) {
-            return data(
-                {
-                    success: false,
-                    error: createActionError({
-                        code: ErrorCode.OPERATION_FAILED,
-                        message: 'Could not find or create target shipment.',
-                    }),
-                },
-                { status: 500 }
-            );
+            const storeInventoryId = await getStoreInventoryId(context, storeId);
+            if (!storeInventoryId || storeInventoryId !== requestedInventoryId) {
+                return data(
+                    {
+                        success: false,
+                        error: createActionError({
+                            code: ErrorCode.INVALID_INPUT,
+                            message: 'Pickup store and inventory do not match',
+                        }),
+                    },
+                    { status: 400 }
+                );
+            }
+            inventoryId = storeInventoryId;
         }
 
         // Reject a write that would exceed available stock before it reaches the basket. SCAPI does not enforce
@@ -90,7 +105,6 @@ export async function handleCartItemDeliveryOptionChange(
         // line to pickup at a store that stocks fewer units than the line quantity breaches store stock, and the
         // client dropdown cannot catch it (it renders before a store is selected). Check the pool the swap targets:
         // store inventory for pickup, site ats for delivery.
-        const existingItem = freshBasket.productItems?.find((item) => item.itemId === itemId);
         const targetProductId = productId || existingItem?.productId;
         const logger = getLogger(context);
         if (targetProductId) {
@@ -152,6 +166,27 @@ export async function handleCartItemDeliveryOptionChange(
             }
         }
 
+        // Shipment helpers can create or retarget an empty shipment. Do that only after
+        // validating availability so a rejected fulfillment change leaves the basket untouched.
+        const targetShipment =
+            deliveryOption === 'pickup' && storeId
+                ? await findOrCreatePickupShipment(freshBasket, context, storeId)
+                : deliveryOption === 'delivery'
+                  ? await findOrCreateDeliveryShipment(freshBasket, context)
+                  : undefined;
+        if (!targetShipment) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.OPERATION_FAILED,
+                        message: 'Could not find or create target shipment.',
+                    }),
+                },
+                { status: 500 }
+            );
+        }
+
         await clients.shopperBasketsV2.updateItemInBasket({
             params: { path: { basketId: freshBasket.basketId, itemId } },
             body: {
@@ -168,6 +203,18 @@ export async function handleCartItemDeliveryOptionChange(
         updateBasketResource(context, basket.data);
         return data(createBasketSuccessResponse(basket.data));
     } catch (error) {
+        if (error instanceof PickupShipmentStoreConflictError) {
+            return data(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.CONFLICT,
+                        message: error.message,
+                    }),
+                },
+                { status: 409 }
+            );
+        }
         return data({ success: false, error: createActionError({ error }) }, { status: 500 });
     }
 }

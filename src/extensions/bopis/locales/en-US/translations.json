@@ -14,21 +14,30 @@
             "deliverToZip": "Deliver to {{zipCode}}",
             "deliveryInDays": "Deliver in {{days}} business days",
             "estimatedDeliveryInDays": "Estimated delivery: {{days}} business days",
-            "enterZipPrompt": "Enter ZIP code to see delivery estimate",
+            "enterZipPrompt": "Enter postal code to see delivery estimate",
             "pickupUnavailable": "Pickup unavailable",
             "tryAnotherStore": "Try another store",
             "calculatorTitle": "Calculate Shipping",
-            "calculatorInstructionMessage": "Enter a 5-digit ZIP code to see delivery estimates.",
-            "zipPlaceholder": "Enter ZIP code",
-            "zipAriaLabel": "ZIP code",
+            "calculatorInstructionMessage": "Enter your {{term}} (e.g. {{example}}) to see delivery estimates.",
+            "zipPlaceholder": "Enter {{term}}",
+            "zipAriaLabel": "{{term}}",
             "calculateButton": "Calculate",
             "calculateAriaLabel": "Calculate delivery estimate",
-            "invalidZipCode": "Please enter a valid 5-digit ZIP code.",
+            "invalidZipCode": "Enter a valid {{term}} (e.g. {{example}}).",
             "free": "Free",
             "calculating": "Calculating...",
             "errorFetchingEstimates": "We couldn't fetch delivery estimates right now. Please try again.",
             "retry": "Retry",
-            "shippingCost": "Shipping cost:"
+            "shippingCost": "Shipping cost:",
+            "calculatorInstructionMessageNoExample": "Enter your {{term}} to see delivery estimates.",
+            "invalidPostalCodeNoExample": "Enter a valid {{term}}.",
+            "postalTerms": {
+                "zip": "ZIP code",
+                "postalCode": "postal code",
+                "postcode": "postcode",
+                "cap": "CAP",
+                "eircode": "Eircode"
+            }
         }
     },
     "storeInventoryFilter": {

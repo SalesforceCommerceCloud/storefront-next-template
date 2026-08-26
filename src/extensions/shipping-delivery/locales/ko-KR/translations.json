@@ -1,0 +1,30 @@
+{
+    "cardTitle": "예상 배송일",
+    "shippingOptionsOnlyHeading": "배송 옵션",
+    "free": "무료",
+    "deliverTo": "<postalCode>{{postalCode}}</postalCode>(으)로 배송",
+    "changeDestination": "배송지 변경",
+    "changeDestinationAriaLabel": "배송지 변경: {{postalCode}}",
+    "arrivalMessage": "{{deliveryWindow}} 도착 예정",
+    "shippingCost": "배송비:",
+    "postalTerms": {
+        "zip": "우편번호",
+        "postalCode": "우편번호",
+        "postcode": "우편번호",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "{{term}} 입력",
+    "postalCodePlaceholderExample": "{{term}} 입력(예: {{example}})",
+    "postalCodeInstructions": "{{term}}(예: {{example}})을(를) 입력하여 배송 예상을 확인하세요.",
+    "postalCodeInstructionsNoExample": "{{term}}을(를) 입력하여 배송 예상을 확인하세요.",
+    "postalCodeInvalid": "올바른 {{term}}을(를) 입력하세요(예: {{example}}).",
+    "postalCodeInvalidNoExample": "올바른 {{term}}을(를) 입력하세요.",
+    "deliveryDatesUnavailable": "배송 예정일을 확인할 수 없습니다. 옵션 및 비용은 결제 단계에서 확인하세요.",
+    "moreDeliveryOptions": "더 많은 배송 옵션",
+    "seeAllDeliveryOptions": "모든 배송 옵션 보기",
+    "openingDeliveryOptions": "배송 옵션을 여는 중...",
+    "calculateButton": "계산",
+    "calculateAriaLabel": "배송 예상 계산",
+    "calculating": "계산 중..."
+}

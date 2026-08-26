@@ -22,12 +22,17 @@ const alertVariants = cva(
 function Alert({
   className,
   variant,
+  // Defaults to the assertive "alert" role. Pass role="note" for static, informational
+  // content that should not interrupt a screen reader on mount. Declaring it here rather
+  // than relying on {...props} to override a hardcoded role keeps the override explicit
+  // and independent of prop-spread ordering.
+  role = "alert",
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
   return (
     <div
       data-slot="alert"
-      role="alert"
+      role={role}
       className={cn(alertVariants({ variant }), className)}
       {...props}
     />

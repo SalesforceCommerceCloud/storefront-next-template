@@ -164,6 +164,8 @@ exports[`AnnouncementBanner stories snapshot > Playground story renders and matc
 </div>
 `;
 
+exports[`AnnouncementBanner stories snapshot > UnconfiguredLiveStorefront story renders and matches snapshot 1`] = `null`;
+
 exports[`AnnouncementBanner stories snapshot > WithCTA story renders and matches snapshot 1`] = `
 <div
   class="relative flex items-center gap-2 px-4 md:px-10 tracking-wide justify-center bg-primary text-primary-foreground py-3 text-sm"

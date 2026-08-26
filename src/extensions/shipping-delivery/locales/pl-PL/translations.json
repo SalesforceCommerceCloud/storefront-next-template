@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Szacowana data dostawy",
+    "shippingOptionsOnlyHeading": "Opcje dostawy",
+    "free": "Bezpłatna",
+    "deliverTo": "Dostawa do <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Zmień miejsce dostawy",
+    "changeDestinationAriaLabel": "Zmień miejsce dostawy: {{postalCode}}",
+    "arrivalMessage": "Dotrze {{deliveryWindow}}",
+    "shippingCost": "Koszt wysyłki:",
+    "postalTerms": {
+        "zip": "kod pocztowy",
+        "postalCode": "kod pocztowy",
+        "postcode": "kod pocztowy",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "Wpisz {{term}}",
+    "postalCodePlaceholderExample": "Wpisz {{term}} (np. {{example}})",
+    "postalCodeInstructions": "Wpisz swój {{term}} (np. {{example}}), aby zobaczyć szacowaną dostawę.",
+    "postalCodeInstructionsNoExample": "Wpisz swój {{term}}, aby zobaczyć szacowaną dostawę.",
+    "postalCodeInvalid": "Wpisz prawidłowy {{term}} (np. {{example}}).",
+    "postalCodeInvalidNoExample": "Wpisz prawidłowy {{term}}.",
+    "deliveryDatesUnavailable": "Daty dostawy są niedostępne. Zobacz opcje i koszty w kasie.",
+    "moreDeliveryOptions": "Więcej opcji dostawy",
+    "seeAllDeliveryOptions": "Zobacz wszystkie opcje dostawy",
+    "openingDeliveryOptions": "Otwieranie opcji dostawy...",
+    "calculateButton": "Oblicz",
+    "calculateAriaLabel": "Oblicz szacowaną dostawę",
+    "calculating": "Obliczanie..."
+}

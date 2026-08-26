@@ -15,7 +15,8 @@
  */
 import pino from 'pino';
 import type { MiddlewareFunction } from 'react-router';
-import { dataStoreLoggerContext } from '@salesforce/storefront-next-runtime/data-store';
+import { dataStoreLoggerContext, dataStoreTracerContext } from '@salesforce/storefront-next-runtime/data-store';
+import { getPlatformTracer } from '@salesforce/storefront-next-runtime/otel';
 import { correlationContext } from '@/lib/correlation';
 import { processMetadata, resolveLevel, type Logger } from '@/lib/logger';
 import { loggerContext } from '@/lib/logger.server';
@@ -97,5 +98,11 @@ export const loggingMiddleware: MiddlewareFunction<Response> = async ({ request,
     // middleware emits warnings through pino with the request bindings (correlationId, method, path)
     // rather than bare console.warn.
     context.set(dataStoreLoggerContext, wrapped);
+    // Hand the runtime SDK the platform's provider-held tracer so its data-store fetch emits a
+    // span on the ambient trace. `null` (OTel disabled) leaves the fetch untraced. Runs before
+    // the data-store middleware in the chain, so the tracer is present when the fetch fires.
+    // Read per-request rather than at module scope: the platform populates the shared tracer slot
+    // during server bootstrap, and a module-scope read could run first and cache a stale `null`.
+    context.set(dataStoreTracerContext, getPlatformTracer());
     return next();
 };

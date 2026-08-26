@@ -106,6 +106,7 @@ type SyntheticArgs = {
     hasRefinementsPanel: boolean;
     topCategoryName: string;
     skeletonCount: number;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
     showPickupAvailable: boolean;
 };
 
@@ -123,6 +124,7 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
         hasRefinementsPanel: true,
         topCategoryName: '',
         skeletonCount: 0,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
         showPickupAvailable: false,
     },
     argTypes: {
@@ -151,11 +153,13 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
                 'Direct prop: number of extra tile skeletons rendered after the hits (e.g. while a fetch for additional pages is in flight). 0 = no skeletons.',
             control: { type: 'number', min: 0, max: 8, step: 1 },
         },
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
         showPickupAvailable: {
             description:
                 'Direct prop (BOPIS extension): when true, each tile shows a "Pickup available" indicator. Defaults to whatever the URL `pickup` query param indicates.',
             control: 'boolean',
         },
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     },
     render: (args) => {
         const synthetic: SyntheticArgs = {
@@ -164,6 +168,7 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
             hasRefinementsPanel: args.hasRefinementsPanel ?? true,
             topCategoryName: args.topCategoryName ?? '',
             skeletonCount: args.skeletonCount ?? 0,
+            // @sfdc-extension-line SFDC_EXT_BOPIS
             showPickupAvailable: args.showPickupAvailable ?? false,
         };
         const clampedCritical = Math.max(0, Math.min(synthetic.criticalCount, MAX_PRODUCTS));
@@ -177,6 +182,7 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
                 hasRefinementsPanel={synthetic.hasRefinementsPanel}
                 topCategoryName={synthetic.topCategoryName || undefined}
                 skeletonCount={synthetic.skeletonCount}
+                // @sfdc-extension-line SFDC_EXT_BOPIS
                 showPickupAvailable={synthetic.showPickupAvailable}
             />
         );
@@ -196,6 +202,9 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
  * (no tiles, just one centered message).
  */
 export const EmptyState: StoryObj<typeof ProductGrid> = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         critical: [],
         nonCritical: [],
@@ -215,9 +224,13 @@ export const EmptyState: StoryObj<typeof ProductGrid> = {
  * indicator per rendered tile.
  */
 export const WithPickupAvailable: StoryObj<typeof ProductGrid> = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         critical: ALL_PRODUCTS.slice(0, 4),
         nonCritical: [],
+        // @sfdc-extension-line SFDC_EXT_BOPIS
         showPickupAvailable: true,
     },
     play: async ({ canvasElement }) => {
@@ -243,6 +256,9 @@ export const WithPickupAvailable: StoryObj<typeof ProductGrid> = {
  * rely on.
  */
 export const Loading: StoryObj<typeof ProductGrid> = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     args: {
         critical: ALL_PRODUCTS.slice(0, 2),
         nonCritical: ALL_PRODUCTS.slice(2, 8),

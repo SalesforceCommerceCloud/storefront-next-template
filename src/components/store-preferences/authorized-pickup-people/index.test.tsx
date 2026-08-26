@@ -66,6 +66,29 @@ describe('AuthorizedPickupPeople', () => {
         });
     });
 
+    describe('accessibility - informational note is not announced assertively', () => {
+        // The ID note is static, non-urgent guidance. It must not sit in an assertive
+        // live region (role="alert"), which a screen reader would announce on load,
+        // interrupting the user. It should be a passive note instead. Guard for W-23325763.
+
+        test('presents the ID note as a passive note, not an alert', () => {
+            renderComponent();
+
+            const note = screen.getByText(
+                /Authorised pickup people will need to show a valid ID matching the name on file when picking up orders/i
+            );
+            const container = note.closest('[data-slot="alert"]');
+
+            expect(container).not.toBeNull();
+            expect(container).toHaveAttribute('role', 'note');
+        });
+
+        test('renders no assertive alert region on the page', () => {
+            renderComponent();
+            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+        });
+    });
+
     describe('Add Authorized Person modal', () => {
         test('opens modal when Add Person is clicked', async () => {
             const user = userEvent.setup();
@@ -105,6 +128,29 @@ describe('AuthorizedPickupPeople', () => {
             expect(screen.getByText('First name is required.')).toBeInTheDocument();
             expect(screen.getByText('Last name is required.')).toBeInTheDocument();
             expect(screen.getByText('Email is required.')).toBeInTheDocument();
+        });
+
+        // W-23325757: the relationship error must be programmatically linked to the <select>
+        // itself. It previously sat inside FormControl wrapping an extra <div>, so Radix's Slot
+        // forwarded aria-describedby/aria-invalid onto the div, not the control, leaving a screen
+        // reader unaware of the error on the field (WCAG 1.3.1). FormNativeSelect wires them onto
+        // the <select>. Guard so it cannot silently regress again.
+        test('links the relationship error to the select via aria-describedby/aria-invalid', async () => {
+            const user = userEvent.setup();
+            renderComponent();
+            await user.click(screen.getByRole('button', { name: /Add Person/i }));
+
+            await user.click(screen.getByRole('button', { name: 'Save' }));
+
+            const select = screen.getByRole('combobox');
+            expect(select).toHaveAttribute('aria-invalid', 'true');
+
+            const describedBy = select.getAttribute('aria-describedby');
+            expect(describedBy).toBeTruthy();
+
+            const errorMessage = document.getElementById(describedBy as string);
+            expect(errorMessage).not.toBeNull();
+            expect(errorMessage).toHaveTextContent(/relationship/i);
         });
 
         test('keeps modal open and shows validation when email is invalid', async () => {

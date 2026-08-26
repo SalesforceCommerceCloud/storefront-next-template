@@ -16,6 +16,9 @@
 
 /**
  * Turnstile utility functions for site key lookup, secret key retrieval, and config helpers.
+ *
+ * Client-safe: do not import `node:crypto` here. HMAC helpers live in `hmac.server.ts`
+ * so checkout/login client modules can import this file without breaking the browser bundle.
  */
 
 import type { AppConfig } from '@/types/config';
@@ -69,6 +72,18 @@ export function getTurnstileSecretKey(siteKey: string): string | null {
         console.error('[Turnstile] Failed to parse TURNSTILE_SECRET_KEYS:', error);
         return null;
     }
+}
+
+/**
+ * Resolve the Turnstile site key from the current browser location.
+ * Returns null during SSR (`typeof window === 'undefined'`) or when no domain matches.
+ */
+export function getBrowserTurnstileSiteKey(config: AppConfig): string | null {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
+    return getTurnstileSiteKey(config, baseUrl);
 }
 
 /** Check if Turnstile is enabled in config. */

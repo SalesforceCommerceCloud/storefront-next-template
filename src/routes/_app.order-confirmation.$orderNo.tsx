@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Fragment, type ReactElement, Suspense, useEffect, useId } from 'react';
+import { Fragment, type ReactElement, Suspense, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { UITarget } from '@/targets/ui-target';
 import AddressDisplay from '@/components/address-display';
 import { Await, useFetcher, useParams, useRouteError } from 'react-router';
@@ -114,7 +114,7 @@ export async function loader({ context, params }: Route.LoaderArgs): Promise<Che
     const { orderNo } = params;
     const logger = getLogger(context);
     logger.debug('OrderConfirmation: loader starting', { orderNo });
-    const { orderDataPromise, orderPromise } = fetchOrderWithProducts(context, orderNo);
+    const { orderDataPromise, orderPromise } = fetchOrderWithProducts(context, orderNo, { includeOms: false });
 
     // Idempotent basket teardown safety net. The default action.place-order and the
     // extension-driven place-order-finalize both tear the basket down before sending the
@@ -136,22 +136,27 @@ export async function loader({ context, params }: Route.LoaderArgs): Promise<Che
     const { emailVerificationEnabled } = await getLoginPreferences(context);
     const showPostOrderRegistration = !userIsRegistered && !emailVerificationEnabled;
 
-    // @sfdc-extension-line SFDC_EXT_BOPIS
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const storesByStoreIdPromise = orderPromise.then((order) => fetchStoresForOrder(context, order));
-
+    // Attach immediately so an order failure cannot leave this parallel promise unhandled.
+    storesByStoreIdPromise.catch(() => undefined);
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
     const combinedPromise = Promise.all([
         orderDataPromise,
-        // @sfdc-extension-line SFDC_EXT_BOPIS
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
         storesByStoreIdPromise,
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     ]).then(
         ([
             orderData,
-            // @sfdc-extension-line SFDC_EXT_BOPIS
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
             storesByStoreId,
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         ]) => ({
             ...orderData,
-            // @sfdc-extension-line SFDC_EXT_BOPIS
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
             storesByStoreId,
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         })
     );
 
@@ -193,7 +198,9 @@ export function ErrorBoundary() {
             <div className="max-w-4xl mx-auto section-container py-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-center">{title}</CardTitle>
+                        <CardTitle as="h1" className="text-center">
+                            {title}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="text-center space-y-4">
                         <Typography variant="p" className="text-muted-foreground">
@@ -241,17 +248,18 @@ function OrderConfirmationContent({
     const registerFetcher = useFetcher<typeof postOrderRegisterAction>({ key: 'post-order-register' });
     const registrationSuccess = registerFetcher.data?.success === true;
 
-    let deliveryShipments = order.shipments;
+    const deliveryShipmentsState = { value: order.shipments ?? [] };
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // note: this BOPIS implementation assumes at most 1 pickup store is used for the order
     const { t: tBopis } = useTranslation('extBopis');
-    deliveryShipments = getOrderDeliveryShipments(order);
+    deliveryShipmentsState.value = getOrderDeliveryShipments(order);
     const store = getPickupStoreFromMap(
         getOrderPickupShipment(order)?.c_fromStoreId as string | undefined,
         storesByStoreId
     );
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const deliveryShipments = deliveryShipmentsState.value;
 
     const customerName =
         order.customerInfo?.firstName || order.billingAddress?.firstName || t('confirmation.hero.defaultName');
@@ -606,7 +614,9 @@ function OrderConfirmationContent({
                 <Card className="border border-border/70">
                     <CardContent className="space-y-4 p-6">
                         <div>
-                            <p className="font-medium text-foreground">{t('confirmation.newsletter.title')}</p>
+                            <CardTitle as="h2" className="font-medium text-foreground">
+                                {t('confirmation.newsletter.title')}
+                            </CardTitle>
                             <p className="text-sm text-muted-foreground">{t('confirmation.newsletter.subtitle')}</p>
                         </div>
                         {/* This is a static placeholder form. Integrators should handle submit events here
@@ -647,6 +657,44 @@ function OrderConfirmationContent({
 }
 
 /**
+ * Fires once the order has resolved to fill the confirmation live region. Renders nothing.
+ * The region itself lives on the page (mounted before this resolves), so writing the text here
+ * gives a screen reader the empty→filled transition it needs to announce the confirmation.
+ * @param orderNo - The confirmed order number, spoken as part of the announcement
+ * @param onAnnounce - Writes the announcement into the page-level live region, keyed by orderNo
+ *                     so a revalidation of the same order stays silent
+ */
+function OrderConfirmedAnnouncer({
+    orderNo,
+    onAnnounce,
+}: {
+    orderNo?: string;
+    onAnnounce: (orderNo: string, message: string) => void;
+}): null {
+    const { t } = useTranslation('checkout');
+
+    useEffect(() => {
+        const key = orderNo ?? '';
+        const message = t('confirmation.hero.statusAnnouncement', { orderNo: key });
+        // Write the text on the frame after the region has painted empty, so a screen reader
+        // observes the empty→filled transition. Filling it synchronously with the region's
+        // first paint is silent. Two frames are used because the region mounts a frame ahead
+        // of this announcer (it lives outside the Suspense boundary), and rAF sidesteps the
+        // arbitrary timer the old fixed delay relied on.
+        let inner = 0;
+        const outer = requestAnimationFrame(() => {
+            inner = requestAnimationFrame(() => onAnnounce(key, message));
+        });
+        return () => {
+            cancelAnimationFrame(outer);
+            cancelAnimationFrame(inner);
+        };
+    }, [orderNo, onAnnounce, t]);
+
+    return null;
+}
+
+/**
  * Order confirmation page component that wraps the content with Suspense and Await.
  * This component follows the React Router v7 pattern for handling deferred data with Suspense.
  * @param loaderData - The loader data containing the combined order data promise
@@ -659,16 +707,40 @@ export default function OrderConfirmationPage({
 }): ReactElement {
     const { t } = useTranslation('checkout');
 
+    // The confirmation content mounts inside <Await> already holding the "order confirmed" copy,
+    // so on its own it is never announced. This region is mounted from first paint (through the
+    // Suspense fallback) and stays empty until the order resolves, at which point the announcer
+    // below fills it — the empty→filled transition a screen reader needs to speak the status.
+    const [announcement, setAnnouncement] = useState('');
+    // Track the order already announced. A revalidation re-resolves the same order and must
+    // stay silent, but navigating to a different order (new orderNo, no remount) must announce
+    // again — keying on orderNo rather than a one-shot boolean gives both.
+    const announcedOrderRef = useRef<string | null>(null);
+
+    const announce = useCallback((orderNo: string, message: string) => {
+        if (announcedOrderRef.current === orderNo) {
+            return;
+        }
+        announcedOrderRef.current = orderNo;
+        setAnnouncement(message);
+    }, []);
+
     return (
         <>
             <SeoMeta title={t('meta.confirmationTitle', { defaultValue: 'Order Confirmation' })} noIndex />
+            <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                {announcement}
+            </div>
             <Suspense fallback={<OrderSkeleton />}>
                 <Await resolve={loaderData.orderData}>
                     {(data) => (
-                        <OrderConfirmationContent
-                            {...data}
-                            showPostOrderRegistration={loaderData.showPostOrderRegistration}
-                        />
+                        <>
+                            <OrderConfirmedAnnouncer orderNo={data.order.orderNo} onAnnounce={announce} />
+                            <OrderConfirmationContent
+                                {...data}
+                                showPostOrderRegistration={loaderData.showPostOrderRegistration}
+                            />
+                        </>
                     )}
                 </Await>
             </Suspense>

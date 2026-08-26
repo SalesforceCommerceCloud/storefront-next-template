@@ -23,6 +23,7 @@ describe('getSingleShipmentDistribution', () => {
         it('returns all false flags when basket is undefined', () => {
             const result = getSingleShipmentDistribution(undefined);
             expect(result).toEqual({
+                hasDeliveryItems: false,
                 hasUnaddressedDeliveryItems: false,
                 needsShippingMethods: false,
                 hasEmptyShipments: false,
@@ -43,6 +44,7 @@ describe('getSingleShipmentDistribution', () => {
             };
             const result = getSingleShipmentDistribution(basket);
             expect(result).toEqual({
+                hasDeliveryItems: false,
                 hasUnaddressedDeliveryItems: false,
                 needsShippingMethods: false,
                 hasEmptyShipments: false,
@@ -61,6 +63,7 @@ describe('getSingleShipmentDistribution', () => {
             };
             const result = getSingleShipmentDistribution(basket);
             expect(result).toEqual({
+                hasDeliveryItems: false,
                 hasUnaddressedDeliveryItems: false,
                 needsShippingMethods: false,
                 hasEmptyShipments: true,
@@ -82,6 +85,7 @@ describe('getSingleShipmentDistribution', () => {
             };
             const result = getSingleShipmentDistribution(basket);
             expect(result).toEqual({
+                hasDeliveryItems: false,
                 hasUnaddressedDeliveryItems: false,
                 needsShippingMethods: false,
                 hasEmptyShipments: false,

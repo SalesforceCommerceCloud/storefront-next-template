@@ -26,6 +26,7 @@ import {
     CHECKOUT_ACTION_INTENTS,
     type CheckoutStep,
 } from '@/components/checkout/utils/checkout-context-types';
+import { getOrCreateCheckoutCorrelationId } from '@/lib/checkout/correlation';
 import { resourceRoutes } from '@/route-paths';
 
 /** Persists create-account intent across reloads (mirrors handleCreateAccountPreferenceChange). */
@@ -191,7 +192,7 @@ export function useCheckoutActions(options?: {
     /** When .current is true, do not advance from shipping address step (no valid methods available). */
     noShippingMethodsRef?: NoShippingMethodsRef;
 }) {
-    const { exitEditMode, editingStep, goToStep, step: currentStep } = useCheckoutContext();
+    const { exitEditMode, editingStep, step: currentStep } = useCheckoutContext();
     const updateBasket = useBasketUpdater();
     const basket = useBasket();
 
@@ -247,10 +248,8 @@ export function useCheckoutActions(options?: {
         }
     }, [basket]);
 
-    // Reset lifecycle when entering a different edit step.
-    // Skip reset when editingStep matches the step already tracked in actionRef: this happens
-    // during recalculation submissions where goToStep and actionRef are set in the same call —
-    // the deferred editingStep state update would otherwise wipe the in-flight actionRef state.
+    // Reset lifecycle when entering a different edit step, but skip when editingStep already matches
+    // the step tracked in actionRef so an in-flight recalculation on that step is not wiped.
     useEffect(() => {
         if (editingStep !== null && actionRef.current.step !== editingStep) {
             actionRef.current = { step: null, state: ActionState.NOT_STARTED };
@@ -410,6 +409,10 @@ export function useCheckoutActions(options?: {
         formData.append('email', data.email);
         if (data.phone) formData.append('phone', data.phone);
         if (data.countryCode) formData.append('countryCode', data.countryCode);
+        // Propagate the checkout-scoped correlation ID. fetcher.submit does not accept
+        // a headers option, so we ride the form field; correlationMiddleware falls
+        // back to reading it from FormData when the header is absent.
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void contactFetcher.submit(formData, {
             method: 'post',
@@ -430,8 +433,10 @@ export function useCheckoutActions(options?: {
         // Transition: IDLE -> SUBMITTED
         actionRef.current = { step: CHECKOUT_STEPS.SHIPPING_ADDRESS, state: ActionState.SUBMITTED };
 
-        // Add intent field
+        // Add intent field and propagate the checkout-scoped correlation ID
+        // (see submitContactInfo for the propagation rationale).
         formData.append('intent', CHECKOUT_ACTION_INTENTS.SHIPPING_ADDRESS);
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void shippingAddressFetcher.submit(formData, {
             method: 'post',
@@ -452,8 +457,8 @@ export function useCheckoutActions(options?: {
         // Transition: IDLE -> SUBMITTED
         actionRef.current = { step: CHECKOUT_STEPS.SHIPPING_OPTIONS, state: ActionState.SUBMITTED };
 
-        // Add intent field
         formData.append('intent', CHECKOUT_ACTION_INTENTS.SHIPPING_OPTIONS);
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void shippingOptionsFetcher.submit(formData, {
             method: 'post',
@@ -472,10 +477,8 @@ export function useCheckoutActions(options?: {
             return;
         }
 
-        // Pin editingStep to SHIPPING_OPTIONS so the checkout context's computedStep update
-        // (which fires when the basket gains a shipping method) cannot advance the step automatically.
-        goToStep(CHECKOUT_STEPS.SHIPPING_OPTIONS);
-
+        // Do not pin editingStep to SHIPPING_OPTIONS here: it would leave both it and Payment open
+        // once computedStep advances; the recalculating flag below already blocks a step advance.
         actionRef.current = {
             step: CHECKOUT_STEPS.SHIPPING_OPTIONS,
             state: ActionState.SUBMITTED,
@@ -483,6 +486,7 @@ export function useCheckoutActions(options?: {
         };
 
         formData.append('intent', CHECKOUT_ACTION_INTENTS.SHIPPING_OPTIONS);
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         void shippingOptionsFetcher.submit(formData, {
             method: 'post',
@@ -529,6 +533,10 @@ export function useCheckoutActions(options?: {
             formData.append('billingPhone', data.billingPhone || '');
             formData.append('billingCountryCode', data.billingCountryCode || 'US');
         }
+
+        // Propagate the checkout-scoped correlation ID
+        // (see submitContactInfo for the propagation rationale).
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
 
         // Submit payment form data
         void paymentFetcher.submit(formData, {
@@ -620,6 +628,9 @@ export function useCheckoutActions(options?: {
             return;
         }
         const formData = buildPlaceOrderFinalizeFormData();
+        // Propagate the checkout-scoped correlation ID
+        // (see submitContactInfo for the propagation rationale).
+        formData.append('x-correlation-id', getOrCreateCheckoutCorrelationId());
         void placeOrderFetcher.submit(formData, {
             method: 'post',
             action: resourceRoutes.placeOrder,

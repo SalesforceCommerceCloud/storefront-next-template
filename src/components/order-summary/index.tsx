@@ -201,7 +201,7 @@ function SummaryBodyContent({
             )}
 
             {/* Order Summary Details */}
-            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2">
+            <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2">
                 {/* Subtotal */}
                 <UITarget targetId="sfcc.orderSummary.subtotal.before" />
                 <UITarget targetId="sfcc.orderSummary.subtotal">
@@ -223,7 +223,8 @@ function SummaryBodyContent({
                         <Fragment key={adjustment.priceAdjustmentId}>
                             <dt
                                 data-slot="badge"
-                                className="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui">
+                                title={adjustment.itemText}
+                                className="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui">
                                 {adjustment.itemText}
                             </dt>
                             <dd className="text-sm font-normal leading-5 text-muted-foreground text-right">

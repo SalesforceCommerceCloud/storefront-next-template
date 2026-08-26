@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Arvioitu toimituspäivä",
+    "shippingOptionsOnlyHeading": "Toimitusvaihtoehdot",
+    "free": "Veloituksetta",
+    "deliverTo": "Toimitus osoitteeseen <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Vaihda toimituskohde",
+    "changeDestinationAriaLabel": "Vaihda toimituskohde: {{postalCode}}",
+    "arrivalMessage": "Saapuu {{deliveryWindow}}",
+    "shippingCost": "Toimituskulut:",
+    "postalTerms": {
+        "zip": "postinumero",
+        "postalCode": "postinumero",
+        "postcode": "postinumero",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "Anna {{term}}",
+    "postalCodePlaceholderExample": "Anna {{term}} (esim. {{example}})",
+    "postalCodeInstructions": "Anna {{term}} (esim. {{example}}) nähdäksesi toimitusarviot.",
+    "postalCodeInstructionsNoExample": "Anna {{term}} nähdäksesi toimitusarviot.",
+    "postalCodeInvalid": "Anna kelvollinen {{term}} (esim. {{example}}).",
+    "postalCodeInvalidNoExample": "Anna kelvollinen {{term}}.",
+    "deliveryDatesUnavailable": "Toimituspäiviä ei ole saatavilla. Tarkista vaihtoehdot ja hinnat kassalla.",
+    "moreDeliveryOptions": "Lisää toimitusvaihtoehtoja",
+    "seeAllDeliveryOptions": "Näytä kaikki toimitusvaihtoehdot",
+    "openingDeliveryOptions": "Avataan toimitusvaihtoehtoja...",
+    "calculateButton": "Laske",
+    "calculateAriaLabel": "Laske toimitusarvio",
+    "calculating": "Lasketaan..."
+}

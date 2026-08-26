@@ -116,7 +116,12 @@ export const Swatch: FC<SwatchProps> = ({
         })
     );
 
-    const innerClasses = 'flex items-center justify-center w-full h-full text-sm font-medium leading-5';
+    // Option cards (`imageCard`) stack a thumb + name + price as a left-aligned column that fills the
+    // card; every other shape centers its single child (color dot, label text, or compact image tile).
+    const innerClasses =
+        shape === 'imageCard'
+            ? 'flex w-full flex-col items-start'
+            : 'flex items-center justify-center w-full h-full text-sm font-medium leading-5';
 
     // Build accessible name that includes out-of-stock status
     const accessibleName = disabled ? `${name || label || value} ${outOfStockSuffix}` : name || label || value;

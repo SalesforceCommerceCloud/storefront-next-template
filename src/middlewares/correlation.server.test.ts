@@ -124,5 +124,199 @@ describe('middlewares/correlation.server.ts', () => {
             expect(context1.get(correlationContext)).toBe('id-1');
             expect(context2.get(correlationContext)).toBe('id-2');
         });
+
+        it('reads x-correlation-id from url-encoded POST body when header is absent', async () => {
+            const body = new URLSearchParams({
+                intent: 'contactInfo',
+                email: 'shopper@example.com',
+                'x-correlation-id': 'from-form-body-abc',
+            });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).not.toHaveBeenCalled();
+            expect(mockContext.get(correlationContext)).toBe('from-form-body-abc');
+        });
+
+        it('reads x-correlation-id from multipart POST body when header is absent', async () => {
+            const formData = new FormData();
+            formData.append('intent', 'payment');
+            formData.append('x-correlation-id', 'from-multipart-xyz');
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                body: formData,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).not.toHaveBeenCalled();
+            expect(mockContext.get(correlationContext)).toBe('from-multipart-xyz');
+        });
+
+        it('prefers the header over the form body when both are present', async () => {
+            const body = new URLSearchParams({ 'x-correlation-id': 'from-form-body' });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded',
+                    'x-correlation-id': 'from-header',
+                },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(mockContext.get(correlationContext)).toBe('from-header');
+        });
+
+        it('does not consume the request body when reading the form fallback', async () => {
+            const body = new URLSearchParams({
+                intent: 'contactInfo',
+                'x-correlation-id': 'from-form-body',
+            });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            // The downstream action must still be able to read the body. If the
+            // middleware consumed it directly, this second read would throw.
+            const downstreamForm = await postRequest.formData();
+            expect(downstreamForm.get('intent')).toBe('contactInfo');
+        });
+
+        it('falls back to generating an ID when POST body is not form-encoded', async () => {
+            // Reset the mock so a prior test's per-call counter does not leak.
+            vi.mocked(generateCorrelationId).mockReturnValue('mock-correlation-id-12345');
+            const postRequest = new Request('https://example.com/api/things', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ 'x-correlation-id': 'ignored-because-json' }),
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).toHaveBeenCalledOnce();
+            expect(mockContext.get(correlationContext)).toBe('mock-correlation-id-12345');
+        });
+
+        it('generates an ID when the form field is empty', async () => {
+            vi.mocked(generateCorrelationId).mockReturnValue('mock-correlation-id-12345');
+            const body = new URLSearchParams({
+                intent: 'contactInfo',
+                'x-correlation-id': '',
+            });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).toHaveBeenCalledOnce();
+            expect(mockContext.get(correlationContext)).toBe('mock-correlation-id-12345');
+        });
+
+        it('generates an ID when the form field is missing', async () => {
+            vi.mocked(generateCorrelationId).mockReturnValue('mock-correlation-id-12345');
+            const body = new URLSearchParams({ intent: 'contactInfo' });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).toHaveBeenCalledOnce();
+            expect(mockContext.get(correlationContext)).toBe('mock-correlation-id-12345');
+        });
+
+        it('rejects CRLF / invalid form values and generates an ID', async () => {
+            vi.mocked(generateCorrelationId).mockReturnValue('mock-correlation-id-12345');
+            const body = new URLSearchParams({
+                'x-correlation-id': 'evil\r\ninjection',
+            });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).toHaveBeenCalledOnce();
+            expect(mockContext.get(correlationContext)).toBe('mock-correlation-id-12345');
+        });
+
+        it('rejects oversized form values and generates an ID', async () => {
+            vi.mocked(generateCorrelationId).mockReturnValue('mock-correlation-id-12345');
+            const body = new URLSearchParams({
+                'x-correlation-id': 'a'.repeat(129),
+            });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).toHaveBeenCalledOnce();
+            expect(mockContext.get(correlationContext)).toBe('mock-correlation-id-12345');
+        });
+
+        it('accepts a valid form UUID', async () => {
+            const uuid = '550e8400-e29b-41d4-a716-446655440000';
+            const body = new URLSearchParams({ 'x-correlation-id': uuid });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).not.toHaveBeenCalled();
+            expect(mockContext.get(correlationContext)).toBe(uuid);
+        });
+
+        it('reads form correlation ID when content-type includes charset', async () => {
+            const body = new URLSearchParams({
+                'x-correlation-id': 'from-form-with-charset',
+            });
+            const postRequest = new Request('https://example.com/checkout/checkout', {
+                method: 'POST',
+                headers: { 'content-type': 'Application/X-WWW-Form-UrlEncoded; charset=UTF-8' },
+                body,
+            });
+
+            await correlationMiddleware(createLoaderArgs(postRequest, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).not.toHaveBeenCalled();
+            expect(mockContext.get(correlationContext)).toBe('from-form-with-charset');
+        });
+
+        it('rejects an invalid header and falls through to generate', async () => {
+            // Fetch Headers reject CRLF; use other invalid chars the validator still rejects.
+            vi.mocked(generateCorrelationId).mockReturnValue('mock-correlation-id-12345');
+            const requestWithHeader = new Request('https://example.com/test', {
+                headers: { 'x-correlation-id': 'has spaces and/slashes' },
+            });
+
+            await correlationMiddleware(createLoaderArgs(requestWithHeader, mockContext, { pattern: '/' }), mockNext);
+
+            expect(generateCorrelationId).toHaveBeenCalledOnce();
+            expect(mockContext.get(correlationContext)).toBe('mock-correlation-id-12345');
+        });
     });
 });

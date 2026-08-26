@@ -144,6 +144,7 @@ type SyntheticArgs = {
     showPrimaryAction: boolean;
     showSecondaryActions: boolean;
     separateCards: boolean;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
     isPickup: boolean;
 };
 
@@ -173,6 +174,7 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
         showPrimaryAction: false,
         showSecondaryActions: false,
         separateCards: false,
+        // @sfdc-extension-line SFDC_EXT_BOPIS
         isPickup: false,
     },
     argTypes: {
@@ -204,11 +206,13 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
                 'Direct prop: when true, each item is wrapped in its own Card instead of being separated by hairline dividers within a single stack.',
             control: 'boolean',
         },
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
         isPickup: {
             description:
                 'Direct prop (BOPIS extension): marks every line as a pickup item, which affects per-line stock-level calculations.',
             control: 'boolean',
         },
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     },
     render: (args) => {
         const synthetic: SyntheticArgs = {
@@ -217,6 +221,7 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
             showPrimaryAction: args.showPrimaryAction ?? false,
             showSecondaryActions: args.showSecondaryActions ?? false,
             separateCards: args.separateCards ?? false,
+            // @sfdc-extension-line SFDC_EXT_BOPIS
             isPickup: args.isPickup ?? false,
         };
         const clamped = Math.max(0, Math.min(synthetic.itemCount, MAX_ITEMS));
@@ -234,6 +239,7 @@ export const FullyFeatured: StoryObj<ComponentType<Partial<SyntheticArgs>>> = {
                 primaryAction={synthetic.showPrimaryAction ? renderPrimaryAction : undefined}
                 secondaryActions={synthetic.showSecondaryActions ? renderSecondaryActions : undefined}
                 separateCards={synthetic.separateCards}
+                // @sfdc-extension-line SFDC_EXT_BOPIS
                 isPickup={synthetic.isPickup}
             />
         );

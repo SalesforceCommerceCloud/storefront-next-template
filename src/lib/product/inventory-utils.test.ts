@@ -20,7 +20,9 @@ import {
     getStoreInventoryById,
     isStoreOutOfStock,
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    getInventoryForResolvedSelection,
     isSiteOutOfStock,
+    hasDeferredAvailability,
     getEffectiveStockLevel,
     isInStock,
 } from './inventory-utils';
@@ -34,6 +36,65 @@ const mockSetProduct = setProductWithInventories;
 const mockBundleProduct = bundleProductWithInventories;
 
 describe('inventory-utils', () => {
+    describe('hasDeferredAvailability', () => {
+        it.each([
+            ['preorderable', { id: 'inventory', ats: 0, preorderable: true, backorderable: false }, true],
+            ['backorderable', { id: 'inventory', ats: 0, preorderable: false, backorderable: true }, true],
+            ['in-stock backorderable', { id: 'inventory', ats: 1, preorderable: false, backorderable: true }, false],
+            ['out of stock', { id: 'inventory', ats: 0, preorderable: false, backorderable: false }, false],
+            ['missing ats', { id: 'inventory', preorderable: true, backorderable: false }, false],
+            ['missing inventory', undefined, false],
+        ])('returns %s state', (_availability, inventory, expected) => {
+            expect(hasDeferredAvailability(inventory)).toBe(expected);
+        });
+    });
+
+    describe('getInventoryForResolvedSelection', () => {
+        const masterProduct = {
+            id: 'master-product',
+            type: { master: true },
+            inventory: { id: 'master-inventory', ats: 0, preorderable: true },
+        } as ShopperProducts.schemas['Product'];
+        const standaloneProduct = {
+            id: 'standalone-product',
+            inventory: { id: 'product-inventory', ats: 1, orderable: true },
+        } as ShopperProducts.schemas['Product'];
+
+        it('does not use master inventory before a variant resolves', () => {
+            expect(getInventoryForResolvedSelection(masterProduct)).toBeUndefined();
+        });
+
+        it('uses selected variant inventory without falling back to the master', () => {
+            const inventory = { id: 'variant-inventory', ats: 0, preorderable: true };
+            const variant = {
+                productId: 'variant-product',
+                inventory,
+            } as ShopperProducts.schemas['Variant'];
+
+            expect(getInventoryForResolvedSelection(masterProduct, variant)).toEqual(inventory);
+        });
+
+        it('treats selected variants without inventory as unknown', () => {
+            const variant = { productId: 'loading-variant' } as ShopperProducts.schemas['Variant'];
+
+            expect(getInventoryForResolvedSelection(masterProduct, variant)).toBeUndefined();
+        });
+
+        it('uses standalone product inventory without a variant', () => {
+            expect(getInventoryForResolvedSelection(standaloneProduct)).toEqual(standaloneProduct.inventory);
+        });
+
+        it('uses a selected variant when product context is unavailable', () => {
+            const inventory = { id: 'variant-inventory', ats: 1, orderable: true };
+            const variant = {
+                productId: 'variant-product',
+                inventory,
+            } as ShopperProducts.schemas['Variant'];
+
+            expect(getInventoryForResolvedSelection(undefined, variant)).toEqual(inventory);
+        });
+    });
+
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     describe('getStoreInventoryById', () => {
         it('returns inventory when found', () => {
@@ -858,6 +919,40 @@ describe('inventory-utils', () => {
                         product: productWithInventory,
                         isPickup: false,
                         storeInventoryId: undefined,
+                        quantity: 1,
+                        variant,
+                    })
+                ).toBe(false);
+            });
+
+            it('uses selected variant store inventory for pickup', () => {
+                const variant = {
+                    orderable: true,
+                    productId: '640188016716M',
+                    inventories: [
+                        {
+                            id: 'store-inventory',
+                            stockLevel: 0,
+                            orderable: false,
+                        },
+                    ],
+                } as ShopperProducts.schemas['Variant'] & { inventories?: ShopperProducts.schemas['Inventory'][] };
+                const productWithStoreInventory = {
+                    ...mockProduct,
+                    inventories: [
+                        {
+                            id: 'store-inventory',
+                            stockLevel: 10,
+                            orderable: true,
+                        },
+                    ],
+                };
+
+                expect(
+                    isInStock({
+                        product: productWithStoreInventory,
+                        isPickup: true,
+                        storeInventoryId: 'store-inventory',
                         quantity: 1,
                         variant,
                     })

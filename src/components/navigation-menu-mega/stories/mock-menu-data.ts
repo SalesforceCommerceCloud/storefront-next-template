@@ -37,7 +37,7 @@ export const mockMegaMenuRootCategory = category({
             name: 'Women',
             c_headerMenuOrientation: 'horizontal',
             c_headerMenuBanner:
-                '<img src="/images/hero-01.webp" alt="Women new arrivals" class="w-full rounded-md object-cover" />',
+                '<img src="/images/hero-03.webp" alt="Women new arrivals" class="w-full rounded-md object-cover" />',
             categories: [
                 {
                     id: 'womens-clothing',

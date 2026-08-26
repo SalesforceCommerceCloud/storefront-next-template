@@ -16,7 +16,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import HeroCarousel, { HeroCarouselPlain, type HeroSlide } from '../index';
 import type { ComponentType } from '@/components/region';
-import { expect, within } from 'storybook/test';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import { expect, waitFor, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 type HeroCarouselArgs = {
@@ -145,7 +146,7 @@ export const EmptySlides: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'Coverage for AC #2 missing-media at the carousel level — when the `slides` prop is empty (or every slide gets filtered out), the component falls back to a flat "No slides available" placeholder. Merchants see this when a Page Designer slides region is left empty.',
+                story: 'Live-storefront behaviour (W-23729831): with no slides — and outside Page Designer design mode — the carousel renders nothing, so shoppers never see an empty placeholder. Merchants configuring an empty slides region see the design-mode placeholder instead (see the Unconfigured Design Mode story).',
             },
         },
     },
@@ -153,10 +154,48 @@ export const EmptySlides: Story = {
         const canvas = within(canvasElement);
         await waitForStorybookReady(canvasElement);
 
-        await expect(await canvas.findByText(/no slides available/i)).toBeInTheDocument();
-        // No carousel region, no tablist.
+        // No carousel region, no tablist, no placeholder — the component renders nothing.
         await expect(canvas.queryByRole('region', { name: /hero carousel/i })).not.toBeInTheDocument();
         await expect(canvas.queryByRole('tablist')).not.toBeInTheDocument();
+        await expect(canvas.queryByText(/no slides available/i)).not.toBeInTheDocument();
+    },
+};
+
+/**
+ * W-23729831: a freshly-dropped, unconfigured Hero Carousel as a merchant sees it in Page Designer
+ * design mode (`mode="EDIT"`). With no authored slides the carousel renders its own placeholder — a
+ * muted "No banners yet" surface framed by decorative arrows and dot indicators, previewing the
+ * carousel's shape. It renders none of the registered `Hero` component, so dropping an unconfigured
+ * carousel can't re-enter the component registry. On the live storefront the same unconfigured
+ * carousel renders nothing (see the Empty Slides story), so shoppers never see a placeholder.
+ */
+export const UnconfiguredDesignMode: StoryObj = {
+    render: () => <HeroCarousel slides={[]} />,
+    parameters: {
+        // Design mode renders inside PageDesignerProvider's lazy Suspense provider, which resolves in
+        // a live browser but suspends to a fallback in a synchronous snapshot render — interaction-only.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729831: a freshly-dropped, unconfigured Hero Carousel in Page Designer design mode. Renders the carousel\'s own "No banners yet" placeholder surface (decorative arrows + dots), rendering none of the registered Hero component. On the live storefront the same unconfigured carousel renders nothing.',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-hero-carousel" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the carousel's empty-state cue.
+        await waitFor(async () => {
+            await expect(canvas.getByRole('heading', { name: /no banners yet/i })).toBeInTheDocument();
+        });
     },
 };
 

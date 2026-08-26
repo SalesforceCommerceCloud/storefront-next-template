@@ -128,6 +128,13 @@ vi.mock('@/hooks/use-intersection-observer', () => ({
     useIntersectionObserver: (...args: any[]) => mockUseIntersectionObserver(...args),
 }));
 
+// Mock Page Designer mode — default to the live storefront (design mode off); the design-mode
+// empty-state test overrides this to true.
+const mockUsePageDesignerMode = vi.fn(() => ({ isDesignMode: false }));
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => mockUsePageDesignerMode(),
+}));
+
 // Mock ProductRecommendationSkeleton
 vi.mock('@/components/product/skeletons', () => ({
     ProductRecommendationSkeleton: ({ title }: { title?: string }) => (
@@ -146,6 +153,7 @@ describe('ProductRecommendations', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockUseIntersectionObserver.mockReturnValue(true);
+        mockUsePageDesignerMode.mockReturnValue({ isDesignMode: false });
     });
 
     describe('Analytics (FU1)', () => {
@@ -289,6 +297,68 @@ describe('ProductRecommendations', () => {
             });
 
             const { container } = renderComponent(<ProductRecommendations recommender={mockRecommender} />);
+
+            expect(container.firstChild).toBeNull();
+        });
+    });
+
+    describe('Design-mode empty state (W-23729817)', () => {
+        test('renders a placeholder carousel with the default heading when unconfigured in design mode', async () => {
+            mockUsePageDesignerMode.mockReturnValue({ isDesignMode: true });
+            const { useRecommenders } = await import('@/hooks/recommenders/use-recommenders');
+            mockUseRecommenders = useRecommenders as any;
+            mockUseRecommenders.mockReturnValue({
+                isLoading: false,
+                recommendations: { recs: [] },
+                error: null,
+                getRecommendations: mockGetRecommendations,
+                getZoneRecommendations: mockGetZoneRecommendations,
+            });
+
+            // No recommender config → no title source, so the default empty-state heading is used.
+            renderComponent(<ProductRecommendations recommender={null as any} />);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('product-carousel')).toBeInTheDocument();
+            });
+            // The mocked ProductCarousel renders 0 products; the real one renders placeholder tiles.
+            expect(screen.getByTestId('product-count')).toHaveTextContent('0 products');
+            expect(screen.getByText('Product Recommendations')).toBeInTheDocument();
+        });
+
+        test('keeps the configured title in the design-mode placeholder when a recommender is set', async () => {
+            mockUsePageDesignerMode.mockReturnValue({ isDesignMode: true });
+            const { useRecommenders } = await import('@/hooks/recommenders/use-recommenders');
+            mockUseRecommenders = useRecommenders as any;
+            mockUseRecommenders.mockReturnValue({
+                isLoading: false,
+                recommendations: { recs: [] },
+                error: null,
+                getRecommendations: mockGetRecommendations,
+                getZoneRecommendations: mockGetZoneRecommendations,
+            });
+
+            renderComponent(<ProductRecommendations recommender={mockRecommender} />);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('product-carousel')).toBeInTheDocument();
+            });
+            expect(screen.getByText('You May Also Like')).toBeInTheDocument();
+        });
+
+        test('renders nothing (not the placeholder) on the live storefront when recs are empty', async () => {
+            // isDesignMode stays false (beforeEach default) — shoppers never see the empty carousel.
+            const { useRecommenders } = await import('@/hooks/recommenders/use-recommenders');
+            mockUseRecommenders = useRecommenders as any;
+            mockUseRecommenders.mockReturnValue({
+                isLoading: false,
+                recommendations: { recs: [] },
+                error: null,
+                getRecommendations: mockGetRecommendations,
+                getZoneRecommendations: mockGetZoneRecommendations,
+            });
+
+            const { container } = renderComponent(<ProductRecommendations recommender={null as any} />);
 
             expect(container.firstChild).toBeNull();
         });

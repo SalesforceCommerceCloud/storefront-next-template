@@ -110,6 +110,13 @@
                     "description": "Field: ctaLink"
                 },
                 {
+                    "id": "ctaAriaLabel",
+                    "name": "CTA Accessible Name",
+                    "type": "text",
+                    "required": false,
+                    "description": "Accessible name for the CTA link, read by screen readers instead of the visible button text. Use when the button text is generic (e.g. \"Shop Now\") and does not by itself describe the link's destination. Leave blank to use the title and button text together."
+                },
+                {
                     "id": "buttonStyle",
                     "name": "Button Style",
                     "type": "enum",

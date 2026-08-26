@@ -44,8 +44,10 @@ import { Spinner } from '@/components/spinner';
 import { usePasskeyLogin } from '@/hooks/use-passkey-login';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { TurnstileWidget } from '@/components/security/turnstile-widget';
-import { getTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
-import { resourceRoutes } from '@/route-paths';
+import { getBrowserTurnstileSiteKey, getTurnstileMode, isTurnstileEnabled } from '@/lib/turnstile/utils';
+import { checkTurnstileSessionVerified } from '@/lib/turnstile/check-session';
+import { Link } from '@/components/link';
+import { routes, resourceRoutes } from '@/route-paths';
 
 const OtpModal = lazy(() => import('@/components/login/otp-modal'));
 const LoginModal = lazy(() => import('@/components/login/login-modal'));
@@ -100,7 +102,10 @@ export default function ContactInfo({
     const cart = useBasket();
     const loginSuggestion = useLoginSuggestion();
     const customerProfile = useCustomerProfile();
-    const { shipmentDistribution, exitEditMode } = useCheckoutContext();
+    const checkoutContext = useCheckoutContext();
+    const { exitEditMode } = checkoutContext;
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    const { shipmentDistribution } = checkoutContext;
     const { t } = useTranslation('checkout');
     const appConfig = useConfig();
 
@@ -108,6 +113,7 @@ export default function ContactInfo({
 
     const schema = useMemo(() => createContactInfoSchema(t), [t]);
     const authorizePasswordlessEmailPath = useResolvedPath(resourceRoutes.authorizePasswordlessEmail).pathname;
+    const turnstileSessionPath = useResolvedPath(resourceRoutes.turnstileSession).pathname;
     const revalidator = useRevalidator();
     // E2e tests can stub this fetcher's response per scenario via
     // e2e/src/utils/login-prefs-stub.ts (`stubLoginPrefs({ branch })`).
@@ -123,9 +129,21 @@ export default function ContactInfo({
 
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const [turnstileBypassed, setTurnstileBypassed] = useState(false);
+    // True when BFF reports the httpOnly cc-tv cookie already matches this email —
+    // widget stays unmounted; server enforceTurnstile remains the allow authority.
+    const [turnstileSessionVerified, setTurnstileSessionVerified] = useState(false);
+    const [turnstileSessionChecking, setTurnstileSessionChecking] = useState(false);
+    const sessionVerifiedEmailRef = useRef<string | null>(null);
     const turnstileResetRef = useRef<(() => void) | null>(null);
     const turnstileExecuteRef = useRef<(() => void) | null>(null);
     const tokenConsumedRef = useRef(false);
+    // Set to true when the widget exhausts its own retry cap (onRetryExhausted fires).
+    // Unblocks guest Continue so the shopper isn't silently stuck; clears on email re-focus
+    // when we remount the widget for a fresh attempt (recovery path — distinct from first show).
+    const [turnstileRetryExhausted, setTurnstileRetryExhausted] = useState(false);
+    // Incrementing this key forces the TurnstileWidget to fully unmount + remount,
+    // giving the shopper a clean challenge after retry exhaustion.
+    const [turnstileWidgetKey, setTurnstileWidgetKey] = useState(0);
     // Error message shown when server-side Turnstile verification rejects the request.
     // Generic copy by design - we never tell the shopper *why* (bot detection, replay, etc.)
     // to avoid leaking detection signals to attackers. See README-TURNSTILE.md.
@@ -140,16 +158,18 @@ export default function ContactInfo({
     const turnstileMode = getTurnstileMode(appConfig);
     const turnstileSiteKey = useMemo(() => {
         if (!turnstileEnabled) return null;
-        if (typeof window !== 'undefined') {
-            const baseUrl = `${window.location.protocol}//${window.location.host}`;
-            return getTurnstileSiteKey(appConfig, baseUrl);
-        }
-        return null;
+        return getBrowserTurnstileSiteKey(appConfig);
     }, [appConfig, turnstileEnabled]);
 
     const [showTurnstile, setShowTurnstile] = useState(false);
 
-    const turnstilePending = !!(turnstileEnabled && turnstileSiteKey && !turnstileToken && !turnstileBypassed);
+    // Session-verified (cc-tv match) and CDN bypass both unblock the form without a fresh token.
+    // Session-checking keeps Continue gated until the blur-time cookie check settles.
+    const turnstilePending = !!(
+        turnstileEnabled &&
+        turnstileSiteKey &&
+        (turnstileSessionChecking || (!turnstileToken && !turnstileBypassed && !turnstileSessionVerified))
+    );
 
     const resetTurnstile = useCallback(() => {
         setTurnstileToken(null);
@@ -159,6 +179,7 @@ export default function ContactInfo({
     const handleTurnstileSuccess = useCallback((token: string) => {
         tokenConsumedRef.current = false;
         setTurnstileToken(token);
+        setTurnstileRetryExhausted(false);
     }, []);
 
     const handleTurnstileError = useCallback(() => {
@@ -188,9 +209,12 @@ export default function ContactInfo({
     // shows for server-side rejection so the shopper isn't silently stuck. We do not
     // auto-reset here - the widget already exhausted its own retry cap; further resets
     // would just loop. The error clears when the shopper focuses the email field again,
-    // which also remounts the widget via showTurnstile and gives them a fresh try.
+    // which also remounts the widget via turnstileWidgetKey and gives them a fresh try.
+    // We set turnstileRetryExhausted so guest Continue is unblocked (the passwordless
+    // path is still gated since there is no token).
     const handleTurnstileRetryExhausted = useCallback(() => {
         setVerificationError(t('contactInfo.verificationFailed'));
+        setTurnstileRetryExhausted(true);
         // Clear any pending submission so the form doesn't try to re-trigger the widget.
         pendingEmailRef.current = null;
     }, [t]);
@@ -238,15 +262,24 @@ export default function ContactInfo({
 
     const pendingEmailRef = useRef<string | null>(null);
 
+    // Focus does not mount the widget (first show is email blur). Focus still clears
+    // verification errors and remounts after retry exhaustion so the shopper can recover
+    // without a full page refresh.
     const handleEmailFocus = useCallback(() => {
-        if (turnstileEnabled && !showTurnstile) {
-            setShowTurnstile(true);
-        }
         // Clear any prior verification error when the shopper engages with the field again.
         if (verificationError) {
             setVerificationError(null);
         }
-    }, [turnstileEnabled, showTurnstile, verificationError]);
+        // After widget retry exhaustion, give the shopper a clean challenge by remounting
+        // the widget. We clear the token, reset the consumed flag, and bump the widget key
+        // so React unmounts the old exhausted instance and mounts a fresh one.
+        if (turnstileRetryExhausted) {
+            setTurnstileRetryExhausted(false);
+            setTurnstileToken(null);
+            tokenConsumedRef.current = false;
+            setTurnstileWidgetKey((k) => k + 1);
+        }
+    }, [verificationError, turnstileRetryExhausted]);
 
     const lastPasskeyEmailRef = useRef<string | null>(null);
 
@@ -299,37 +332,95 @@ export default function ContactInfo({
                 void loginWithPasskey();
             }
 
-            if (turnstileEnabled && !showTurnstile) {
-                setShowTurnstile(true);
-            }
-
-            if (lastEmailSentRef.current === normalized) return;
-            if (passwordlessEmailFetcher.state === 'submitting' || passwordlessEmailFetcher.state === 'loading') return;
-
-            if (turnstileEnabled && !turnstileBypassed && (!turnstileToken || tokenConsumedRef.current)) {
-                pendingEmailRef.current = raw;
-                if (tokenConsumedRef.current) {
-                    resetTurnstile();
-                } else {
-                    turnstileExecuteRef.current?.();
+            const submitPasswordless = (email: string, token: string | null) => {
+                if (lastEmailSentRef.current === normalized) return;
+                if (passwordlessEmailFetcher.state === 'submitting' || passwordlessEmailFetcher.state === 'loading') {
+                    return;
                 }
+                lastEmailSentRef.current = normalized;
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('strictVerify', 'true');
+                if (token) {
+                    formData.append('turnstileToken', token);
+                    tokenConsumedRef.current = true;
+                }
+                void passwordlessEmailFetcher.submit(formData, {
+                    method: 'POST',
+                    action: authorizePasswordlessEmailPath,
+                });
+                // Set immediately so "Continue" submit that follows blur does not advance to shipping before OTP modal
+                if (otpFlowActiveRef) otpFlowActiveRef.current = true;
+            };
+
+            if (!turnstileEnabled) {
+                submitPasswordless(raw, null);
                 return;
             }
 
-            lastEmailSentRef.current = normalized;
-            const formData = new FormData();
-            formData.append('email', raw);
-            formData.append('strictVerify', 'true');
-            if (turnstileToken) {
-                formData.append('turnstileToken', turnstileToken);
-                tokenConsumedRef.current = true;
+            // Already verified for this email via cc-tv — skip widget, submit without a fresh token.
+            // Server enforceTurnstile short-circuits on the same cookie.
+            if (turnstileSessionVerified && sessionVerifiedEmailRef.current === normalized) {
+                submitPasswordless(raw, null);
+                return;
             }
-            void passwordlessEmailFetcher.submit(formData, {
-                method: 'POST',
-                action: authorizePasswordlessEmailPath,
-            });
-            // Set immediately so "Continue" submit that follows blur does not advance to shipping before OTP modal
-            if (otpFlowActiveRef) otpFlowActiveRef.current = true;
+
+            // Email changed since a prior session verify — clear so we re-check / remount.
+            if (sessionVerifiedEmailRef.current && sessionVerifiedEmailRef.current !== normalized) {
+                setTurnstileSessionVerified(false);
+                sessionVerifiedEmailRef.current = null;
+            }
+
+            void (async () => {
+                setTurnstileSessionChecking(true);
+                const verified = await checkTurnstileSessionVerified(turnstileSessionPath, raw);
+                const stillCurrent = (form.getValues('email')?.trim() ?? '').toLowerCase() === normalized;
+                if (!stillCurrent) {
+                    setTurnstileSessionChecking(false);
+                    return;
+                }
+                setTurnstileSessionChecking(false);
+
+                if (verified) {
+                    setTurnstileSessionVerified(true);
+                    sessionVerifiedEmailRef.current = normalized;
+                    setShowTurnstile(false);
+                    setTurnstileToken(null);
+                    submitPasswordless(raw, null);
+                    return;
+                }
+
+                setTurnstileSessionVerified(false);
+                sessionVerifiedEmailRef.current = null;
+
+                // First show: mount the widget on blur of a valid email (not on focus), so the
+                // Cloudflare script is not loaded until the shopper finishes entering email.
+                if (!showTurnstile) {
+                    setShowTurnstile(true);
+                }
+
+                if (lastEmailSentRef.current === normalized) return;
+                if (passwordlessEmailFetcher.state === 'submitting' || passwordlessEmailFetcher.state === 'loading') {
+                    return;
+                }
+
+                if (!turnstileBypassed && (!turnstileToken || tokenConsumedRef.current)) {
+                    pendingEmailRef.current = raw;
+                    if (tokenConsumedRef.current) {
+                        resetTurnstile();
+                    } else if (turnstileMode === 'non-interactive') {
+                        // Only non-interactive widgets use execution: 'execute'. Managed /
+                        // invisible / visible already run on render; calling execute() there
+                        // races the challenge and can block WI-10 onRetryExhausted.
+                        // When the widget is mounting on this same blur, executeRef may still
+                        // be null — the effect below retries once showTurnstile flips true.
+                        turnstileExecuteRef.current?.();
+                    }
+                    return;
+                }
+
+                submitPasswordless(raw, turnstileToken);
+            })();
         },
         // Ref is stable; .current is mutated intentionally — omit from deps
         // oxlint-disable-next-line react-hooks/exhaustive-deps -- otpFlowActiveRef
@@ -337,9 +428,12 @@ export default function ContactInfo({
             form,
             passwordlessEmailFetcher,
             authorizePasswordlessEmailPath,
+            turnstileSessionPath,
             turnstileToken,
             turnstileBypassed,
             turnstileEnabled,
+            turnstileMode,
+            turnstileSessionVerified,
             showTurnstile,
             resetTurnstile,
             passkeyEnabled,
@@ -349,10 +443,20 @@ export default function ContactInfo({
     );
 
     useEffect(() => {
-        if (turnstileToken === null && pendingEmailRef.current && turnstileEnabled && !turnstileBypassed) {
+        if (
+            turnstileMode === 'non-interactive' &&
+            turnstileToken === null &&
+            pendingEmailRef.current &&
+            turnstileEnabled &&
+            !turnstileBypassed &&
+            !turnstileSessionVerified &&
+            showTurnstile
+        ) {
+            // showTurnstile in deps: when the widget first mounts on blur, child effects
+            // wire executeRef before this parent effect re-runs.
             turnstileExecuteRef.current?.();
         }
-    }, [turnstileToken, turnstileEnabled, turnstileBypassed]);
+    }, [turnstileToken, turnstileEnabled, turnstileBypassed, turnstileSessionVerified, turnstileMode, showTurnstile]);
 
     useEffect(() => {
         if (!turnstileBypassed || !pendingEmailRef.current) return;
@@ -513,16 +617,19 @@ export default function ContactInfo({
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [form, cart, onRegisteredUserChoseGuest]);
 
-    let nextStepButtonLabel = isLoading ? t('contactInfo.saving') : t('contactInfo.continue');
-
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const hasPickupItems = shipmentDistribution.hasPickupItems;
 
     const { t: tBopis } = useTranslation('extBopis');
-    if (!isLoading && hasPickupItems) {
-        nextStepButtonLabel = tBopis('checkout.contactInfo.continueToPickup');
-    }
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const nextStepButtonLabel =
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        !isLoading && hasPickupItems
+            ? tBopis('checkout.contactInfo.continueToPickup')
+            : // @sfdc-extension-block-end SFDC_EXT_BOPIS
+              isLoading
+              ? t('contactInfo.saving')
+              : t('contactInfo.continue');
 
     const stepTitle = (
         <span id="contact-info-heading" className="text-2xl font-bold tracking-tight text-card-foreground">
@@ -593,6 +700,17 @@ export default function ContactInfo({
                                                     disabled={isSendingOtp}
                                                     className="pr-12"
                                                     {...field}
+                                                    onChange={(e) => {
+                                                        field.onChange(e);
+                                                        const next = (e.target.value ?? '').trim().toLowerCase();
+                                                        if (
+                                                            sessionVerifiedEmailRef.current &&
+                                                            next !== sessionVerifiedEmailRef.current
+                                                        ) {
+                                                            setTurnstileSessionVerified(false);
+                                                            sessionVerifiedEmailRef.current = null;
+                                                        }
+                                                    }}
                                                     onFocus={handleEmailFocus}
                                                     onBlur={(e) => handleEmailBlur(e, field.onBlur)}
                                                 />
@@ -609,8 +727,9 @@ export default function ContactInfo({
                                     )}
                                 />
 
-                                {turnstileEnabled && turnstileSiteKey && showTurnstile && (
+                                {turnstileEnabled && turnstileSiteKey && showTurnstile && !turnstileSessionVerified && (
                                     <TurnstileWidget
+                                        key={turnstileWidgetKey}
                                         siteKey={turnstileSiteKey}
                                         onSuccess={handleTurnstileSuccess}
                                         onError={handleTurnstileError}
@@ -706,7 +825,12 @@ export default function ContactInfo({
                                 className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background px-6 py-4 lg:static lg:inset-auto lg:z-auto lg:w-full lg:border-0 lg:bg-transparent lg:p-0 lg:pt-2">
                                 <Button
                                     type="submit"
-                                    disabled={isLoading || turnstilePending || isOtpOpen || isLoginModalOpen}
+                                    disabled={
+                                        isLoading ||
+                                        (turnstilePending && !turnstileRetryExhausted) ||
+                                        isOtpOpen ||
+                                        isLoginModalOpen
+                                    }
                                     className="w-full">
                                     {nextStepButtonLabel}
                                 </Button>
@@ -730,9 +854,9 @@ export default function ContactInfo({
                             !suppressRegisteredEmailLoginHints && (
                                 <Typography variant="small" className="text-accent-foreground">
                                     {t('contactInfo.loginSuggestion')}
-                                    <a href="/login" className="underline hover:no-underline">
+                                    <Link to={routes.login} className="underline hover:no-underline">
                                         {t('contactInfo.loginSuggestionLink')}
-                                    </a>
+                                    </Link>
                                 </Typography>
                             )}
                         {loginSuggestion.isCurrentUser && (

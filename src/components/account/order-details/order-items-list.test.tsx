@@ -84,7 +84,7 @@ describe('OrderItemsList', () => {
         };
         renderOrderItemsList(items, productsById);
 
-        expect(screen.getByText('Sweater')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 4, name: 'Sweater' })).toBeInTheDocument();
         expect(screen.getByText(t('account:orders.quantityLabel', { count: 3 }))).toBeInTheDocument();
         expect(screen.getByText('£61.99')).toBeInTheDocument();
 

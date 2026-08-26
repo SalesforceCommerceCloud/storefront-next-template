@@ -66,6 +66,13 @@ exports[`ResetPasswordForm stories snapshot > ConfirmPasswordMismatch story rend
           >
             Password Requirements
           </p>
+          <p
+            aria-live="polite"
+            class="sr-only"
+            role="status"
+          >
+            0 of 5 requirements met
+          </p>
           <ul
             class="space-y-1.5"
             role="list"
@@ -339,6 +346,13 @@ exports[`ResetPasswordForm stories snapshot > Default story renders and matches 
             role="heading"
           >
             Password Requirements
+          </p>
+          <p
+            aria-live="polite"
+            class="sr-only"
+            role="status"
+          >
+            0 of 5 requirements met
           </p>
           <ul
             class="space-y-1.5"
@@ -622,6 +636,13 @@ exports[`ResetPasswordForm stories snapshot > ExpiredLink story renders and matc
             role="heading"
           >
             Password Requirements
+          </p>
+          <p
+            aria-live="polite"
+            class="sr-only"
+            role="status"
+          >
+            0 of 5 requirements met
           </p>
           <ul
             class="space-y-1.5"

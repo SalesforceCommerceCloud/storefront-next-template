@@ -98,7 +98,7 @@ export function OrderItemsList({
                                 <ProductItemVariantImage productItem={enrichedItem} className="h-24 w-24" />
                             </Link>
                             <div className="min-w-0 flex-1 space-y-1">
-                                <ProductItemVariantName productItem={enrichedItem} />
+                                <ProductItemVariantName productItem={enrichedItem} headingLevel="h4" />
                                 <ProductItemVariantAttributes productItem={enrichedItem} />
                                 <p className="text-xs text-muted-foreground">
                                     {t('orders.quantityLabel', { count: item.quantity ?? 1 })}

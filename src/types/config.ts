@@ -212,6 +212,16 @@ export type AppConfig = {
         };
         mrtBasedPageDesignerResolution: boolean;
     };
+    guestOrderLookup: {
+        enabled: boolean;
+        orderNumberPattern: string;
+        cooldownSeconds: number;
+        allowedFields: string[];
+        turnstile: {
+            enabled: boolean;
+            failOpen: boolean;
+        };
+    };
     global: {
         branding: {
             name: string;

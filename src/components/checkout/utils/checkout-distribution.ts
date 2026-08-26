@@ -33,6 +33,8 @@ import {
  * Return type for single shipment distribution analysis functions.
  */
 export type SingleShipmentDistribution = {
+    /** `true` if the basket has product items assigned to delivery */
+    hasDeliveryItems: boolean;
     /** `true` if there are product items but the first shipment has no valid shipping address (empty or missing) */
     hasUnaddressedDeliveryItems: boolean;
     /** `true` if the first shipment exists, has items, and has a falsey shippingMethod */
@@ -79,6 +81,7 @@ export function getSingleShipmentDistribution(basket?: ShopperBasketsV2.schemas[
     // Early return if basket is invalid
     if (!basket?.shipments || !basket.productItems) {
         return {
+            hasDeliveryItems: false,
             hasUnaddressedDeliveryItems: false,
             needsShippingMethods: false,
             hasEmptyShipments: basket?.shipments ? basket.shipments.length > 0 : false,
@@ -89,20 +92,22 @@ export function getSingleShipmentDistribution(basket?: ShopperBasketsV2.schemas[
     // Assume there is only one shipment (shipments[0]) and all items are in it
     const firstShipment = basket.shipments[0];
     const hasItems = basket.productItems.length > 0;
+    const hasDeliveryItems = !!firstShipment && hasItems;
 
     // Check if there are items but no shipping address on the first shipment
-    const hasUnaddressedDeliveryItems = !!(hasItems && firstShipment && isAddressEmpty(firstShipment.shippingAddress));
+    const hasUnaddressedDeliveryItems = !!(hasDeliveryItems && isAddressEmpty(firstShipment.shippingAddress));
 
     // Check if the first shipment exists, has items, and needs a shipping method
-    const needsShippingMethods = !!(hasItems && firstShipment && !firstShipment.shippingMethod);
+    const needsShippingMethods = !!(hasDeliveryItems && !firstShipment.shippingMethod);
 
     // Check if the first shipment exists but has no items assigned
     const hasEmptyShipments = !!firstShipment && !hasItems;
 
     // Return the first shipment if it exists and has items (address can be empty)
-    const deliveryShipments = firstShipment && hasItems ? [firstShipment] : [];
+    const deliveryShipments = hasDeliveryItems ? [firstShipment] : [];
 
     return {
+        hasDeliveryItems,
         hasUnaddressedDeliveryItems,
         needsShippingMethods,
         hasEmptyShipments,

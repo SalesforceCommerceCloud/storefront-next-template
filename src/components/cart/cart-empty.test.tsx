@@ -17,6 +17,8 @@ import { describe, test, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import type { SessionData } from '@/lib/api/types';
+import AuthProvider from '@/providers/auth';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
 const { t } = getTranslation();
@@ -26,10 +28,20 @@ import CartEmpty from './cart-empty';
 
 // Use createMemoryRouter (data mode) instead of MemoryRouter (declarative mode)
 // since the app uses React Router's framework mode which shares core APIs with data mode
-const renderWithRouter = (ui: React.ReactElement) => {
-    const router = createMemoryRouter([{ path: '*', element: <AllProvidersWrapper>{ui}</AllProvidersWrapper> }], {
-        initialEntries: ['/'],
-    });
+const renderWithRouter = (ui: React.ReactElement, session?: SessionData) => {
+    const router = createMemoryRouter(
+        [
+            {
+                path: '*',
+                element: (
+                    <AllProvidersWrapper>
+                        {session ? <AuthProvider value={session}>{ui}</AuthProvider> : ui}
+                    </AllProvidersWrapper>
+                ),
+            },
+        ],
+        { initialEntries: ['/'] }
+    );
     return render(<RouterProvider router={router} />);
 };
 
@@ -49,10 +61,20 @@ describe('CartEmpty', () => {
             // Check for empty cart title
             expect(screen.getByText(t('cart:empty.title'))).toBeInTheDocument();
 
-            // Check for guest message (always rendered)
+            // Check for guest message
             expect(screen.getByText(t('cart:empty.guestMessage'))).toBeInTheDocument();
+            expect(screen.queryByText(t('cart:empty.registeredMessage'))).not.toBeInTheDocument();
 
             // Check for start shopping button
+            expect(screen.getByText(t('cart:empty.continueShopping'))).toBeInTheDocument();
+        });
+
+        test('shows registered guidance instead of guest sign-in guidance for a registered shopper', () => {
+            renderWithRouter(<CartEmpty />, { userType: 'registered' });
+
+            expect(screen.getByText(t('cart:empty.registeredMessage'))).toBeInTheDocument();
+            expect(screen.queryByText(t('cart:empty.guestMessage'))).not.toBeInTheDocument();
+            expect(screen.getByText(t('cart:empty.title'))).toBeInTheDocument();
             expect(screen.getByText(t('cart:empty.continueShopping'))).toBeInTheDocument();
         });
     });

@@ -151,9 +151,13 @@ export async function fetchShippingMethodsMapForBasket(
     const basketId = basket.basketId;
     const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {};
 
-    // Fetch shipping methods for each shipment that has a shipping address
+    // Fetch shipping methods for each shipment that has a shipping address or already carries a
+    // pre-applied method, so a method applied before an address can render as a summary at entry.
     const fetchPromises = basket.shipments
-        .filter((shipment) => shipment.shipmentId && !isAddressEmpty(shipment.shippingAddress))
+        .filter(
+            (shipment) =>
+                shipment.shipmentId && (!isAddressEmpty(shipment.shippingAddress) || !!shipment.shippingMethod?.id)
+        )
         .map(async (shipment) => {
             try {
                 const methods = await getShippingMethodsForShipment(context, basketId, shipment.shipmentId);
@@ -416,10 +420,10 @@ export async function applyDefaultShippingMethod(
             (await getShippingMethodsForShipment(context, basketId, shipmentId))?.applicableShippingMethods ??
             [];
 
-        let candidateMethods = methods;
-        // @sfdc-extension-block-start SFDC_EXT_BOPIS
-        // Don't use pickup methods as the auto-default.
-        candidateMethods = candidateMethods.filter((method) => !isPickupShippingMethod(method));
+        const candidateMethods = methods
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            // Don't use pickup methods as the auto-default.
+            .filter((method) => !isPickupShippingMethod(method));
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
         if (candidateMethods.length === 0) {
@@ -693,7 +697,7 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
 
         const promotionsPromise = fetchPromotionsForBasket(context, basket?.productItems ?? [], basket);
 
-        let shippingDefaultSet = Promise.resolve(undefined);
+        const shippingDefaultSetState = { value: Promise.resolve(undefined) };
         // @sfdc-extension-block-start SFDC_EXT_BOPIS
         let storesByStoreId: Map<string, ShopperStores.schemas['Store']> | undefined;
         const pickupShipment = getPickupShipment(basket);
@@ -704,7 +708,7 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
                 const addressAlreadySet = isPickupAddressSet(pickupShipment.shippingAddress, store, context);
 
                 if (!addressAlreadySet) {
-                    shippingDefaultSet = setAddressAndMethodForPickup(
+                    shippingDefaultSetState.value = setAddressAndMethodForPickup(
                         context,
                         basket?.basketId,
                         store,
@@ -717,6 +721,7 @@ export async function loader(args: LoaderFunctionArgs): Promise<CheckoutPageData
             }
         }
         // @sfdc-extension-block-end SFDC_EXT_BOPIS
+        const shippingDefaultSet = shippingDefaultSetState.value;
 
         if (userIsRegistered && session.customerId) {
             const customerProfile = await getCustomerProfileForCheckout(context, session.customerId).catch((error) => {

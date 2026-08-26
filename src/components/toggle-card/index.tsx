@@ -92,6 +92,10 @@ export function ToggleCard({
                 );
                 el?.focus();
             });
+        } else if (!editing && prevEditingRef.current) {
+            requestAnimationFrame(() => {
+                titleRef.current?.focus();
+            });
         }
         prevEditingRef.current = editing;
     }, [editing]);

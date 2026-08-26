@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect, within, waitFor } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 import { mockConfig } from '@/test-utils/config';
 import type { AppConfig } from '@/types/config';
 import { DynamicImage } from '../index';
@@ -42,7 +43,7 @@ const meta: Meta<typeof DynamicImage> = {
         docs: {
             description: {
                 component:
-                    'Responsive image component optimized for the Dynamic Imaging Service (DIS) with Page Designer support. Builds a `<picture>` element with theme-aware `<source>`s and React 19 SSR preloading for high-priority images. Page Designer authors style it via the enum props (objectFit, borderRadius, boxShadow, padding, margin, hoverEffect); code callers typically pass `widths` (+ `priority` for above-the-fold images).',
+                    'Responsive image component optimized for the Dynamic Imaging Service (DIS) with Page Designer support. Builds a `<picture>` element with theme-aware `<source>`s and React 19 SSR preloading for high-priority images. Page Designer authors style it via the enum props (objectFit, borderRadius, boxShadow, padding, margin, hoverEffect); code callers typically pass `widths` (+ `priority` for above-the-fold images). W-23729798: a freshly-dropped, unconfigured Image feeds the shared placeholder asset through the real render path — a grey placeholder image with the picture glyph — while authoring in Page Designer design mode (see UnconfiguredDesignMode). On the live storefront (MissingSrc) it renders a bare `<img>` with no src, with no placeholder shown to shoppers.',
             },
         },
     },
@@ -174,7 +175,7 @@ export const MissingSrc: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'With an empty `src` and no responsive `widths`, the component renders a single bare `<img>` with no `<picture>`/`<source>` wrapper and no `src` attribute. Authors hit this when an image attribute is left unset in Page Designer.',
+                story: 'With an empty `src` and no responsive `widths`, the component renders a single bare `<img>` with no `<picture>`/`<source>` wrapper and no `src` attribute. Authors hit this when an image attribute is left unset in Page Designer. This is the live-storefront view (not Page Designer design mode) — see UnconfiguredDesignMode for the design-mode authoring view.',
             },
         },
     },
@@ -187,6 +188,50 @@ export const MissingSrc: Story = {
         await expect(image.closest('picture')).toBeNull();
         // React omits the src attribute entirely for an empty string.
         await expect(image.getAttribute('src')).toBeNull();
+        // Not in design mode → no authoring prompt leaks to shoppers.
+        await expect(canvasElement.querySelector('[data-slot="empty-state"]')).toBeNull();
+    },
+};
+
+/**
+ * W-23729798: a freshly-dropped, unconfigured Image as a merchant sees it in Page Designer design
+ * mode (`mode="EDIT"`). Feeds the shared placeholder asset through the real render path — a grey
+ * placeholder image with the picture glyph — the authoring cue that never leaks to shoppers (see
+ * MissingSrc for the live view).
+ */
+export const UnconfiguredDesignMode: Story = {
+    render: () => <DynamicImage src="" alt="" />,
+    parameters: {
+        // Design mode renders the real DynamicImage inside PageDesignerProvider's lazy Suspense
+        // provider, which resolves in a live browser but suspends to a fallback in the synchronous
+        // snapshot render — so this story is interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23729798: a freshly-dropped, unconfigured Image as a merchant sees it in Page Designer design mode (`mode="EDIT"`). Feeds the shared placeholder asset through the real render path — a grey placeholder image with the picture glyph — the authoring cue that never leaks to shoppers (see MissingSrc for the live view).',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-pd-image" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the placeholder image to appear.
+        await waitFor(async () => {
+            const img = canvas.getByRole('img');
+            // The placeholder is referenced by public-dir URL (not a bundled module import), so the
+            // rendered src is the stable asset path — not a data URI.
+            await expect(img.getAttribute('src')).toContain('content-placeholder.svg');
+        });
+        // The placeholder is a plain image — no interactive controls.
+        await expect(canvas.queryByRole('button')).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector('[data-slot="empty-state"]')).not.toBeNull();
     },
 };
 

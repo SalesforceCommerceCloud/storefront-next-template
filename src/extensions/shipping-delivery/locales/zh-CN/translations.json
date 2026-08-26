@@ -1,0 +1,30 @@
+{
+    "cardTitle": "预计送达日期",
+    "shippingOptionsOnlyHeading": "配送选项",
+    "free": "免费",
+    "deliverTo": "配送至 <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "更改配送地址",
+    "changeDestinationAriaLabel": "更改配送地址: {{postalCode}}",
+    "arrivalMessage": "预计 {{deliveryWindow}} 送达",
+    "shippingCost": "配送费用:",
+    "postalTerms": {
+        "zip": "邮政编码",
+        "postalCode": "邮政编码",
+        "postcode": "邮政编码",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "输入{{term}}",
+    "postalCodePlaceholderExample": "输入{{term}}(例如 {{example}})",
+    "postalCodeInstructions": "请输入{{term}}(例如 {{example}})以查看配送估算。",
+    "postalCodeInstructionsNoExample": "请输入{{term}}以查看配送估算。",
+    "postalCodeInvalid": "请输入有效的{{term}}(例如 {{example}})。",
+    "postalCodeInvalidNoExample": "请输入有效的{{term}}。",
+    "deliveryDatesUnavailable": "无法提供配送日期。请在结账时查看配送选项和费用。",
+    "moreDeliveryOptions": "更多配送选项",
+    "seeAllDeliveryOptions": "查看所有配送选项",
+    "openingDeliveryOptions": "正在打开配送选项...",
+    "calculateButton": "计算",
+    "calculateAriaLabel": "计算配送预估",
+    "calculating": "计算中..."
+}

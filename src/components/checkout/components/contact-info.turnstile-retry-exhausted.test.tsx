@@ -23,7 +23,7 @@
  */
 import React from 'react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 vi.mock('@/components/login/otp-modal', () => ({
@@ -56,6 +56,11 @@ vi.mock('@/lib/turnstile/utils', () => ({
     isTurnstileEnabled: () => true,
     getTurnstileMode: () => 'managed' as const,
     getTurnstileSiteKey: () => '2x00000000000000000000AB',
+    getBrowserTurnstileSiteKey: () => '2x00000000000000000000AB',
+}));
+
+vi.mock('@/lib/turnstile/check-session', () => ({
+    checkTurnstileSessionVerified: vi.fn().mockResolvedValue(false),
 }));
 
 const passwordlessFetcherState = {
@@ -142,6 +147,16 @@ function renderWithRouter(ui: React.ReactElement) {
     return render(<RouterProvider router={router} />);
 }
 
+/** Mount Turnstile by blurring a valid email (first show is blur, not focus). */
+async function mountTurnstileViaEmailBlur(emailInput: HTMLElement) {
+    act(() => {
+        fireEvent.blur(emailInput);
+    });
+    await waitFor(() => {
+        expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
+    });
+}
+
 describe('ContactInfo - Turnstile widget retry exhaustion', () => {
     let useBasket: ReturnType<typeof vi.fn>;
 
@@ -157,14 +172,13 @@ describe('ContactInfo - Turnstile widget retry exhaustion', () => {
     });
 
     test('renders generic verification-error alert when widget exhausts retries', async () => {
-        const { fireEvent } = await import('@testing-library/react');
         renderWithRouter(
             <ContactInfo onSubmit={vi.fn()} isLoading={false} isCompleted={false} isEditing={true} onEdit={vi.fn()} />
         );
 
-        // Focus the email field so the widget mounts (showTurnstile flips to true).
+        // Blur the email field so the widget mounts (showTurnstile flips to true).
         const emailInput = screen.getByLabelText(/Email Address/i);
-        fireEvent.focus(emailInput);
+        await mountTurnstileViaEmailBlur(emailInput);
 
         // The widget mock should be in the DOM now.
         const triggerButton = await screen.findByTestId('turnstile-mock-trigger-retry-exhausted');
@@ -183,13 +197,12 @@ describe('ContactInfo - Turnstile widget retry exhaustion', () => {
     });
 
     test('callback was actually wired through the contact-info -> widget prop', async () => {
-        const { fireEvent } = await import('@testing-library/react');
         renderWithRouter(
             <ContactInfo onSubmit={vi.fn()} isLoading={false} isCompleted={false} isEditing={true} onEdit={vi.fn()} />
         );
 
         const emailInput = screen.getByLabelText(/Email Address/i);
-        fireEvent.focus(emailInput);
+        await mountTurnstileViaEmailBlur(emailInput);
 
         // Widget mock captures whatever onRetryExhausted prop the form passes in.
         await screen.findByTestId('turnstile-widget-mock');
@@ -197,13 +210,12 @@ describe('ContactInfo - Turnstile widget retry exhaustion', () => {
     });
 
     test('alert clears when shopper focuses email field after retry exhaustion', async () => {
-        const { fireEvent } = await import('@testing-library/react');
         renderWithRouter(
             <ContactInfo onSubmit={vi.fn()} isLoading={false} isCompleted={false} isEditing={true} onEdit={vi.fn()} />
         );
 
         const emailInput = screen.getByLabelText(/Email Address/i);
-        fireEvent.focus(emailInput);
+        await mountTurnstileViaEmailBlur(emailInput);
 
         const trigger = await screen.findByTestId('turnstile-mock-trigger-retry-exhausted');
         fireEvent.click(trigger);
@@ -216,5 +228,56 @@ describe('ContactInfo - Turnstile widget retry exhaustion', () => {
 
         // Alert should be gone.
         expect(screen.queryByTestId('contact-info-verification-error')).not.toBeInTheDocument();
+    });
+
+    test('Continue button is enabled for guest after widget exhausts retries', async () => {
+        renderWithRouter(
+            <ContactInfo onSubmit={vi.fn()} isLoading={false} isCompleted={false} isEditing={true} onEdit={vi.fn()} />
+        );
+
+        const emailInput = screen.getByLabelText(/Email Address/i);
+        await mountTurnstileViaEmailBlur(emailInput);
+
+        const trigger = await screen.findByTestId('turnstile-mock-trigger-retry-exhausted');
+        fireEvent.click(trigger);
+
+        // Verify alert is shown (exhaustion registered).
+        await screen.findByTestId('contact-info-verification-error');
+
+        // Continue button must NOT be disabled solely because Turnstile has no token;
+        // the exhausted state overrides the pending gate so the guest can still proceed.
+        const continueButton = screen.getByRole('button', { name: /continue/i });
+        expect(continueButton).not.toBeDisabled();
+    });
+
+    test('focus after exhaustion remounts widget and re-gates Continue until new token', async () => {
+        renderWithRouter(
+            <ContactInfo onSubmit={vi.fn()} isLoading={false} isCompleted={false} isEditing={true} onEdit={vi.fn()} />
+        );
+
+        const emailInput = screen.getByLabelText(/Email Address/i);
+        await mountTurnstileViaEmailBlur(emailInput);
+
+        const trigger = await screen.findByTestId('turnstile-mock-trigger-retry-exhausted');
+        fireEvent.click(trigger);
+        await screen.findByTestId('contact-info-verification-error');
+
+        // Confirm button is unblocked in exhausted state.
+        const continueButton = screen.getByRole('button', { name: /continue/i });
+        expect(continueButton).not.toBeDisabled();
+
+        // Re-focus email: clears alert, clears exhaustion flag, remounts widget.
+        emailInput.blur();
+        fireEvent.focus(emailInput);
+
+        // Alert is gone.
+        expect(screen.queryByTestId('contact-info-verification-error')).not.toBeInTheDocument();
+
+        // Widget is still present (remounted fresh instance ready for a new challenge).
+        expect(screen.getByTestId('turnstile-widget-mock')).toBeInTheDocument();
+
+        // Continue button is disabled again — exhaustion was cleared so turnstilePending
+        // gates it while the new widget challenge is in flight.
+        expect(continueButton).toBeDisabled();
     });
 });

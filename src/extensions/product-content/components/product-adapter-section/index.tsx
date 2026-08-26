@@ -15,12 +15,13 @@
  */
 import { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { HtmlContent } from '@/extensions/product-content/lib/api/product-content.server';
+import type { SectionContent } from '@/components/html-fragment/types';
 import HtmlFragment from '@/components/html-fragment';
+import SpecTable from '@/components/spec-table';
 
 export interface ProductAdapterSectionProps {
-    /** Pre-resolved HTML content for this section, or `null` if no content is available. */
-    content: HtmlContent | null;
+    /** Pre-resolved content for this section (legacy HTML or a structured spec table), or `null`. */
+    content: SectionContent | null;
 }
 
 /**
@@ -38,6 +39,10 @@ export default function ProductAdapterSection({ content }: ProductAdapterSection
 
     if (!content) {
         return <p className="text-sm text-muted-foreground">{t('contentComingSoon')}</p>;
+    }
+
+    if (content.contentType === 'spec-table') {
+        return <SpecTable content={content} />;
     }
 
     return <HtmlFragment content={content.html} contentType={content.contentType} />;

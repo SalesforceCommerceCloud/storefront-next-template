@@ -1,0 +1,30 @@
+{
+    "cardTitle": "預計送達日期",
+    "shippingOptionsOnlyHeading": "運送選項",
+    "free": "免費",
+    "deliverTo": "配送至 <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "變更配送地點",
+    "changeDestinationAriaLabel": "變更配送地點: {{postalCode}}",
+    "arrivalMessage": "預計 {{deliveryWindow}} 送達",
+    "shippingCost": "運費:",
+    "postalTerms": {
+        "zip": "郵遞區號",
+        "postalCode": "郵遞區號",
+        "postcode": "郵遞區號",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "輸入{{term}}",
+    "postalCodePlaceholderExample": "輸入{{term}}(例如 {{example}})",
+    "postalCodeInstructions": "請輸入{{term}}(例如 {{example}})以查看送達估計。",
+    "postalCodeInstructionsNoExample": "請輸入{{term}}以查看送達估計。",
+    "postalCodeInvalid": "請輸入有效的{{term}}(例如 {{example}})。",
+    "postalCodeInvalidNoExample": "請輸入有效的{{term}}。",
+    "deliveryDatesUnavailable": "無法提供送達日期。請在結帳時查看選項和費用。",
+    "moreDeliveryOptions": "更多配送選項",
+    "seeAllDeliveryOptions": "查看所有配送選項",
+    "openingDeliveryOptions": "正在開啟運送選項...",
+    "calculateButton": "計算",
+    "calculateAriaLabel": "計算送達估計",
+    "calculating": "計算中..."
+}

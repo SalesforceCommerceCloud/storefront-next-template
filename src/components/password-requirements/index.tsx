@@ -117,10 +117,21 @@ export function PasswordRequirement({ password, className, id, headingLevel = 4 
         },
     ];
 
+    const metCount = requirements.filter((requirement) => requirement.validator(password)).length;
+
     return (
         <div id={id} className={cn('space-y-2', className)}>
             <p role="heading" aria-level={headingLevel} className="text-sm font-medium text-foreground">
                 {t('password.requirements.title')}
+            </p>
+            {/*
+             * Announce the met-requirement count as it changes so screen reader users get
+             * confirmation of each keystroke's effect without moving focus (WCAG 4.1.3). The
+             * per-item sr-only text below only helps once a user navigates into the list; this
+             * live region is what makes the update proactive.
+             */}
+            <p role="status" aria-live="polite" className="sr-only">
+                {t('password.requirements.summary', { met: metCount, total: requirements.length })}
             </p>
             <ul role="list" className="space-y-1.5">
                 {requirements.map((requirement) => {

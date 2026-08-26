@@ -32,6 +32,7 @@
             "!**/src/lib/page-designer/static-registry.ts",
             "!**/lighthouserc.cjs",
             "!**/generate-config.cjs",
+            "!**/cartridges/**/cartridge/scripts/**/*.js",
             "!!**/e2e/**",
             "!!e2e/**",
             "!.storybook/**",

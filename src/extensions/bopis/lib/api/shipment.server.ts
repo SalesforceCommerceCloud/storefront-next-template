@@ -25,6 +25,14 @@ import { orderAddressFromStoreAddress } from '@/extensions/bopis/lib/store-utils
 
 export { getPickupShippingMethodId } from '@/extensions/bopis/lib/pickup-shipping-method-utils';
 
+/** Raised when a basket's one supported pickup shipment belongs to another store. */
+export class PickupShipmentStoreConflictError extends Error {
+    constructor(message = 'Pickup shipment assigned to a different store') {
+        super(message);
+        this.name = 'PickupShipmentStoreConflictError';
+    }
+}
+
 /**
  * Update shipment custom attributes for pickup
  * Sets c_fromStoreId
@@ -189,7 +197,7 @@ export async function findOrCreatePickupShipment(
     const hasProductItems = basket.productItems?.some((item) => item.shipmentId === existingPickupShipment.shipmentId);
 
     if (hasProductItems) {
-        throw new Error('Pickup shipment assigned to a different store');
+        throw new PickupShipmentStoreConflictError();
     }
 
     // Existing pickup shipment has no product items, update its store ID

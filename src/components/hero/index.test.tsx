@@ -53,6 +53,14 @@ vi.mock('react-dom', async (importOriginal) => {
     };
 });
 
+// The instructional empty state is gated to Page Designer design mode. Default to false (live
+// storefront) so the bulk of the suite exercises the shopper-facing render; individual empty-state
+// tests flip this to true.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }),
+}));
+
 // Import the component after mocks are set up
 import Hero from './index';
 
@@ -60,6 +68,7 @@ describe('Hero Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         (isServer as Mock).mockReturnValue(false);
+        mockIsDesignMode = false;
     });
 
     const renderHero = (props = {}) => {
@@ -80,14 +89,43 @@ describe('Hero Component', () => {
     };
 
     describe('Content Rendering', () => {
-        test('renders empty placeholder state with no props', () => {
+        test('renders the instructional empty state in design mode with default content and no props', () => {
+            mockIsDesignMode = true;
             const { container } = renderHero();
 
-            expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+            // W-23729775: in Page Designer design mode, an unconfigured Hero shows the placeholder
+            // surface with default authoring content ("Add your title here" + a Button label), not a
+            // bare grey box.
+            expect(screen.getByRole('heading', { name: 'Add your title here' })).toBeInTheDocument();
+            expect(screen.getByText('Button')).toBeInTheDocument();
             expect(screen.queryByRole('img')).not.toBeInTheDocument();
             expect(screen.queryByRole('link')).not.toBeInTheDocument();
 
-            // Placeholder background should be present instead of an image
+            // The empty-state surface should be present instead of an image.
+            expect(container.querySelector('[data-slot="empty-state"]')).toBeInTheDocument();
+            expect(container.querySelector('.bg-muted')).toBeInTheDocument();
+        });
+
+        test('the empty-state button label is non-interactive (illustrative, not a control)', () => {
+            mockIsDesignMode = true;
+            renderHero();
+
+            // The default "Button" affordance is presentational only — it must not be a focusable
+            // control or a form-submitting <button>.
+            expect(screen.queryByRole('button')).not.toBeInTheDocument();
+            const label = screen.getByText('Button');
+            expect(label.tagName).toBe('SPAN');
+        });
+
+        test('does not render the instructional empty state on the live storefront (not design mode)', () => {
+            const { container } = renderHero();
+
+            // On the live storefront an unconfigured Hero falls through to the plain muted box —
+            // no authoring prompt is shown to shoppers.
+            expect(screen.queryByRole('heading', { name: 'Add your title here' })).not.toBeInTheDocument();
+            expect(screen.queryByText('Button')).not.toBeInTheDocument();
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
+            // renderImage() with no imageUrl produces the flat muted fallback.
             expect(container.querySelector('.bg-muted')).toBeInTheDocument();
         });
 
@@ -113,6 +151,19 @@ describe('Hero Component', () => {
             expect(image).toHaveAttribute('fetchpriority', 'high');
 
             expect(screen.getByText('Custom Subtitle')).toBeInTheDocument();
+        });
+
+        test('renders the title at the requested semantic heading level', () => {
+            renderHero({ title: 'Section title', headingLevel: 2 });
+
+            expect(screen.getByRole('heading', { level: 2, name: 'Section title' })).toBeInTheDocument();
+            expect(screen.queryByRole('heading', { level: 1, name: 'Section title' })).not.toBeInTheDocument();
+        });
+
+        test('falls back to h1 when the heading level is outside the supported range', () => {
+            renderHero({ title: 'Section title', headingLevel: 7 as never });
+
+            expect(screen.getByRole('heading', { level: 1, name: 'Section title' })).toBeInTheDocument();
         });
 
         test('renders image with empty alt when imageAlt is not provided', () => {
@@ -173,6 +224,42 @@ describe('Hero Component', () => {
 
             renderHero({ ctaText: 'Go', ctaLink: '   \t  ' });
             expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        });
+
+        test('overrides the CTA accessible name with ctaAriaLabel while keeping the visible ctaText', () => {
+            renderHero({
+                ctaText: 'Shop Now',
+                ctaLink: '/go',
+                ctaAriaLabel: 'Shop Now: New Perspectives',
+            });
+            const link = screen.getByRole('link', { name: 'Shop Now: New Perspectives' });
+            expect(link).toHaveTextContent('Shop Now');
+        });
+
+        test('derives a default accessible name from title and ctaText when ctaAriaLabel is not authored', () => {
+            renderHero({
+                title: 'New Perspectives',
+                ctaText: 'Shop Now',
+                ctaLink: '/go',
+            });
+            const link = screen.getByRole('link', { name: 'Shop Now: New Perspectives' });
+            expect(link).toHaveTextContent('Shop Now');
+        });
+
+        test('gives identical ctaText distinct accessible names across different titles (no ctaAriaLabel authored)', () => {
+            const { unmount } = renderHero({ title: 'Slide One', ctaText: 'Shop Now', ctaLink: '/a' });
+            const firstLink = screen.getByRole('link', { name: 'Shop Now: Slide One' });
+            expect(firstLink).toBeInTheDocument();
+            unmount();
+
+            renderHero({ title: 'Slide Two', ctaText: 'Shop Now', ctaLink: '/b' });
+            expect(screen.getByRole('link', { name: 'Shop Now: Slide Two' })).toBeInTheDocument();
+        });
+
+        test('falls back to the visible CTA text alone when neither ctaAriaLabel nor title is set', () => {
+            renderHero({ ctaText: 'Shop Now', ctaLink: '/go' });
+            const link = screen.getByRole('link', { name: 'Shop Now' });
+            expect(link).toHaveTextContent('Shop Now');
         });
 
         test('applies titleColor when hex is valid', () => {
@@ -429,8 +516,12 @@ describe('Hero Component', () => {
     });
 
     describe('Height', () => {
+        // Height presets apply to a configured Hero. An unconfigured (empty-state) Hero uses a
+        // fixed banner height instead — see the "Empty state" describe block below.
+        const configured = { title: 'Sized Hero' };
+
         test('applies full height class by default', () => {
-            const { container } = renderHero();
+            const { container } = renderHero(configured);
             expect(container.firstChild).toHaveClass('h-[100vh]', 'md:h-[85vh]');
         });
 
@@ -441,19 +532,42 @@ describe('Hero Component', () => {
             { height: 'xl', classes: ['h-[500px]', 'md:h-[600px]', 'lg:h-[700px]'] },
             { height: 'full', classes: ['h-[100vh]', 'md:h-[85vh]'] },
         ])('applies $height height class', ({ height, classes }) => {
-            const { container } = renderHero({ height });
+            const { container } = renderHero({ ...configured, height });
             expect(container.firstChild).toHaveClass(...classes);
         });
 
         test('falls back to full height for invalid height value', () => {
-            const { container } = renderHero({ height: 'invalid' });
+            const { container } = renderHero({ ...configured, height: 'invalid' });
             expect(container.firstChild).toHaveClass('h-[100vh]', 'md:h-[85vh]');
         });
 
         test('fillHeight overrides the height preset with h-full', () => {
-            const { container } = renderHero({ height: 'sm', fillHeight: true });
+            const { container } = renderHero({ ...configured, height: 'sm', fillHeight: true });
             expect(container.firstChild).toHaveClass('h-full');
             expect(container.firstChild).not.toHaveClass('h-[250px]');
+        });
+
+        test('unconfigured Hero in design mode uses the fixed banner height, ignoring the height preset', () => {
+            mockIsDesignMode = true;
+            const { container } = renderHero({ height: 'sm' });
+            expect(container.firstChild).toHaveClass('h-[300px]');
+            expect(container.firstChild).not.toHaveClass('h-[250px]');
+        });
+
+        test('empty-state Hero with fillHeight fills its parent instead of the fixed banner height', () => {
+            // Inside a carousel (fillHeight) an empty slide must match its configured siblings'
+            // height, not collapse to the 300px banner height.
+            mockIsDesignMode = true;
+            const { container } = renderHero({ fillHeight: true });
+            expect(container.firstChild).toHaveClass('h-full');
+            expect(container.firstChild).not.toHaveClass('h-[300px]');
+        });
+
+        test('unconfigured Hero on the live storefront uses the configured height preset', () => {
+            // Not design mode → no empty state → the normal height preset applies.
+            const { container } = renderHero({ height: 'sm' });
+            expect(container.firstChild).toHaveClass('h-[250px]', 'md:h-[300px]', 'lg:h-[350px]');
+            expect(container.firstChild).not.toHaveClass('h-[300px]');
         });
     });
 

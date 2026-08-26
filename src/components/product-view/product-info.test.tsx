@@ -15,20 +15,24 @@
  */
 
 // Testing libraries
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { describe, test, expect } from 'vitest';
 // React Router
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
 // Components
 import ProductInfo from './product-info';
-import ProductViewProvider from '@/providers/product-view';
+import ProductViewProvider, { useProductView } from '@/providers/product-view';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 // mock data
 import { masterProduct as mockProduct } from '@/components/__mocks__/master-variant-product';
 import { standardProd } from '@/components/__mocks__/standard-product-2';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import StoreLocatorProvider from '@/extensions/store-locator/providers/store-locator';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
+import type { ShopperProducts } from '@/scapi';
 
 const { t } = getTranslation();
 
@@ -201,6 +205,9 @@ describe('ProductInfo', () => {
             expect(
                 screen.getByText('Out of stock for Charcoal Flat Front Athletic Fit Shadow Striped Wool Suit')
             ).toBeInTheDocument();
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         });
 
         test('should render properly with low stock inventory', () => {
@@ -386,6 +393,85 @@ describe('ProductInfo', () => {
             expect(screen.getByText(t('product:inStock'))).toBeInTheDocument();
         });
 
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        test('keeps fulfillment options and the selected option visible while variant inventory is loading', async () => {
+            const user = userEvent.setup();
+            const productWithStaleMasterInventory = {
+                ...mockProduct,
+                inventories: [{ id: 'store-inventory', stockLevel: 0, orderable: false }],
+            };
+            const availableVariant = {
+                productId: 'selected-variant',
+                inventory: { id: 'site-inventory', ats: 10, orderable: true },
+                inventories: [{ id: 'store-inventory', stockLevel: 10, orderable: true }],
+            } as ShopperProducts.schemas['Variant'] & {
+                inventory: ShopperProducts.schemas['Inventory'];
+                inventories: ShopperProducts.schemas['Inventory'][];
+            };
+
+            function Harness() {
+                const [isLoading, setIsLoading] = useState(false);
+                const { fulfillmentSelection } = useProductView();
+                const currentVariant = isLoading ? undefined : availableVariant;
+                return (
+                    <>
+                        <button type="button" onClick={() => setIsLoading((loading) => !loading)}>
+                            Toggle inventory loading
+                        </button>
+                        <output data-testid="fulfillment-selection">{fulfillmentSelection?.optionId}</output>
+                        <ProductInfo
+                            product={productWithStaleMasterInventory}
+                            currentVariantOverride={currentVariant}
+                            isVariantInventoryLoading={isLoading}
+                        />
+                    </>
+                );
+            }
+
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: '/product/:productId',
+                        element: (
+                            <AllProvidersWrapper>
+                                <StoreLocatorProvider
+                                    selectedStoreInfo={{
+                                        id: 'store-1',
+                                        name: 'Store 1',
+                                        inventoryId: 'store-inventory',
+                                    }}>
+                                    <ProductViewProvider product={productWithStaleMasterInventory}>
+                                        <Harness />
+                                    </ProductViewProvider>
+                                </StoreLocatorProvider>
+                            </AllProvidersWrapper>
+                        ),
+                    },
+                ],
+                { initialEntries: ['/product/test-product'] }
+            );
+            render(<RouterProvider router={router} />);
+
+            const pickupOption = screen.getByRole('radio', { name: /pickup in/i });
+            const deliveryOptions = screen.getByTestId('delivery-option-select').parentElement?.parentElement;
+            expect(deliveryOptions).not.toBeNull();
+
+            await user.click(pickupOption);
+            expect(pickupOption).toBeChecked();
+            expect(screen.getByTestId('fulfillment-selection')).toHaveTextContent('pickup');
+
+            await user.click(screen.getByRole('button', { name: 'Toggle inventory loading' }));
+            expect(screen.getByTestId('delivery-option-select').parentElement?.parentElement).toBe(deliveryOptions);
+            expect(screen.getByRole('radio', { name: /pickup in/i })).toBeChecked();
+            expect(screen.getByTestId('fulfillment-selection')).toHaveTextContent('pickup');
+
+            await user.click(screen.getByRole('button', { name: 'Toggle inventory loading' }));
+            expect(screen.getByTestId('delivery-option-select').parentElement?.parentElement).toBe(deliveryOptions);
+            expect(screen.getByRole('radio', { name: /pickup in/i })).toBeChecked();
+            expect(screen.getByTestId('fulfillment-selection')).toHaveTextContent('pickup');
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
         test('should display pre-order inventory message when product is preorderable', () => {
             const preOrderProduct = {
                 ...mockProduct,
@@ -532,6 +618,139 @@ describe('ProductInfo', () => {
             // Should still render the product name - price may vary based on priceRanges
             expect(screen.getByText('Charcoal Flat Front Athletic Fit Shadow Striped Wool Suit')).toBeInTheDocument();
             expect(screen.getAllByText((content) => content.includes('$299.99')).length).toBeGreaterThanOrEqual(1);
+        });
+    });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    // The delivery/pickup block is BOPIS-provided (DeliveryOptions renders `delivery-option-select`),
+    // so these assertions only hold when the BOPIS extension is present. Guard the whole describe with
+    // the extension marker so it is stripped alongside BOPIS in the extensions-stripped test run.
+    describe('delivery options visibility', () => {
+        test('renders the delivery/pickup options by default for an in-stock product', () => {
+            renderProductInfo({ product: mockProduct });
+
+            expect(screen.getByTestId('delivery-option-select')).toBeInTheDocument();
+        });
+
+        test('suppresses the delivery/pickup options when hideDeliveryOptions is set', () => {
+            renderProductInfo({ product: mockProduct, hideDeliveryOptions: true });
+
+            // A vertical rendering its own grouped fulfillment section opts out of the built-in block.
+            expect(screen.queryByTestId('delivery-option-select')).not.toBeInTheDocument();
+        });
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+    describe('image swatches on non-color axes', () => {
+        // A product whose `fabric` axis ships per-value swatch imagery (furniture-style). The
+        // canonical PDP renders these as <DynamicImage> tiles — no vertical-specific overlay needed.
+        const fabricProduct = {
+            id: 'sofa-1',
+            name: 'Modular Sofa',
+            price: 999.99,
+            priceMax: 999.99,
+            inventory: { ats: 10, orderable: true, id: 'inv-sofa' },
+            variationAttributes: [
+                {
+                    id: 'fabric',
+                    name: 'Fabric',
+                    values: [
+                        // Linen has no price delta; velvet ships a localized one via SCAPI description.
+                        { value: 'linen', name: 'Linen', orderable: true },
+                        { value: 'velvet', name: 'Velvet', orderable: true, description: '+US$200' },
+                    ],
+                },
+            ],
+            imageGroups: [
+                {
+                    viewType: 'swatch',
+                    variationAttributes: [{ id: 'fabric', values: [{ value: 'linen', name: 'Linen' }] }],
+                    images: [
+                        {
+                            link: 'https://example.com/linen.jpg',
+                            disBaseLink: 'https://example.com/linen.jpg',
+                            alt: 'Linen fabric swatch',
+                        },
+                    ],
+                },
+                {
+                    viewType: 'swatch',
+                    variationAttributes: [{ id: 'fabric', values: [{ value: 'velvet', name: 'Velvet' }] }],
+                    images: [
+                        {
+                            link: 'https://example.com/velvet.jpg',
+                            disBaseLink: 'https://example.com/velvet.jpg',
+                            alt: 'Velvet fabric swatch',
+                        },
+                    ],
+                },
+            ],
+        } as unknown as React.ComponentProps<typeof ProductInfo>['product'];
+
+        test('renders a non-color axis with swatch imagery as image tiles', () => {
+            renderProductInfo({ product: fabricProduct });
+
+            const linenSwatch = screen.getByRole('radio', { name: /linen/i });
+            expect(linenSwatch).toHaveAttribute('data-swatch-type', 'image');
+            // The image is a <DynamicImage> <img> with the swatch alt text.
+            expect(within(linenSwatch).getByRole('img', { name: 'Linen fabric swatch' })).toBeInTheDocument();
+        });
+
+        test('renders the SCAPI price-delta hint on image swatches, and nothing on values without one', () => {
+            renderProductInfo({ product: fabricProduct });
+
+            // Velvet ships a description → muted hint rendered verbatim inside its tile.
+            const velvetSwatch = screen.getByRole('radio', { name: /velvet/i });
+            const hint = velvetSwatch.querySelector('[data-slot="swatch-description"]');
+            expect(hint).toBeInTheDocument();
+            expect(hint).toHaveTextContent('+US$200');
+
+            // Linen has no description → no hint element at all (backward-safe).
+            const linenSwatch = screen.getByRole('radio', { name: /linen/i });
+            expect(linenSwatch.querySelector('[data-slot="swatch-description"]')).not.toBeInTheDocument();
+        });
+
+        test('renders the price-delta hint on text/label swatches too (non-image axis)', () => {
+            // A `legStyle` axis with NO swatch imagery → label tiles, but still carries descriptions.
+            const legStyleProduct = {
+                id: 'sofa-2',
+                name: 'Sofa With Leg Options',
+                price: 799.99,
+                priceMax: 799.99,
+                inventory: { ats: 5, orderable: true, id: 'inv-legs' },
+                variationAttributes: [
+                    {
+                        id: 'legStyle',
+                        name: 'Leg Style',
+                        values: [
+                            { value: 'tapered', name: 'Tapered', orderable: true },
+                            { value: 'brass', name: 'Brass', orderable: true, description: '+US$120' },
+                        ],
+                    },
+                ],
+            } as unknown as React.ComponentProps<typeof ProductInfo>['product'];
+
+            renderProductInfo({ product: legStyleProduct });
+
+            const brassSwatch = screen.getByRole('radio', { name: /brass/i });
+            expect(brassSwatch).toHaveAttribute('data-swatch-type', 'label');
+            const hint = brassSwatch.querySelector('[data-slot="swatch-description"]');
+            expect(hint).toBeInTheDocument();
+            expect(hint).toHaveTextContent('+US$120');
+
+            const taperedSwatch = screen.getByRole('radio', { name: /tapered/i });
+            expect(taperedSwatch).toHaveAttribute('data-swatch-type', 'label');
+            expect(taperedSwatch.querySelector('[data-slot="swatch-description"]')).not.toBeInTheDocument();
+        });
+
+        test('keeps a non-color axis without swatch imagery as text swatches (backward-safe)', () => {
+            renderProductInfo({ product: mockProduct });
+
+            // The suit only ships color swatch imagery, so size renders as a text label tile,
+            // never borrowing the color swatch image.
+            const size36 = screen.getByLabelText('36');
+            expect(size36).toHaveAttribute('data-swatch-type', 'label');
+            expect(within(size36).queryByRole('img')).not.toBeInTheDocument();
         });
     });
 });

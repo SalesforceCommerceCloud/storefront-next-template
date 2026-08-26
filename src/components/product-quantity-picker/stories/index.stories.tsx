@@ -90,9 +90,9 @@ export const Default: Story = {
  * simple state management"), so clicking increment is fully safe: it fires
  * `onChange(n)` and re-renders with the new value, with no network or
  * navigation. Starting at value=1 with stockLevel=2, two increments drive
- * the quantity to 3 (> stock), which reveals the "Only N left" inventory
- * alert that was absent at rest. Asserts both the callback contract and the
- * interaction-driven conditional render.
+ * the quantity to 3 (> stock), which fills the "Only N left" inventory
+ * warning that was empty at rest. Asserts both the callback contract and the
+ * interaction-driven message.
  */
 export const IncrementPastStock: Story = {
     args: {
@@ -105,9 +105,9 @@ export const IncrementPastStock: Story = {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
-        // At rest: quantity is within stock, so no inventory alert.
+        // At rest: quantity is within stock, so the live region is present but empty.
         await expect(canvas.getByDisplayValue('1')).toBeInTheDocument();
-        await expect(canvas.queryByRole('alert')).toBeNull();
+        await expect(canvas.getByRole('status')).toHaveTextContent('');
 
         const incrementButton = canvas.getByRole('button', { name: /increment quantity for/i });
 
@@ -115,13 +115,13 @@ export const IncrementPastStock: Story = {
         await userEvent.click(incrementButton);
         await expect(canvas.getByDisplayValue('2')).toBeInTheDocument();
         await expect(args.onChange).toHaveBeenLastCalledWith(2);
-        await expect(canvas.queryByRole('alert')).toBeNull();
+        await expect(canvas.getByRole('status')).toHaveTextContent('');
 
-        // Second increment → 3 (exceeds stock) surfaces the "Only N left" alert.
+        // Second increment → 3 (exceeds stock) fills the "Only N left" warning.
         await userEvent.click(incrementButton);
         await expect(canvas.getByDisplayValue('3')).toBeInTheDocument();
         await expect(args.onChange).toHaveBeenLastCalledWith(3);
-        await expect(canvas.getByRole('alert')).toBeInTheDocument();
+        await expect(canvas.getByRole('status')).toHaveTextContent(/only\s*2\s*left/i);
     },
 };
 
@@ -146,8 +146,8 @@ export const OutOfStock: Story = {
         void expect(incrementButton).toBeDisabled();
         void expect(decrementButton).toBeDisabled();
 
-        // Inventory alert text is the distinguishing feature of this story.
-        void expect(canvas.getByRole('alert')).toBeInTheDocument();
+        // Inventory message text is the distinguishing feature of this story.
+        void expect(canvas.getByRole('status')).toHaveTextContent(/out of stock/i);
     },
 };
 
@@ -167,7 +167,44 @@ export const LowStockWarning: Story = {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
-        // Inventory alert text appears because requested quantity (5) > stockLevel (3).
-        void expect(canvas.getByRole('alert')).toBeInTheDocument();
+        // Inventory message appears because requested quantity (5) > stockLevel (3).
+        void expect(canvas.getByRole('status')).toHaveTextContent(/only\s*3\s*left/i);
+    },
+};
+
+/**
+ * Live-region announcement — the stock warning must be spoken when it appears.
+ *
+ * A screen reader only announces content injected into a live region that was
+ * ALREADY in the DOM (empty) when the region was observed. A region that mounts
+ * at the same instant it is populated is silent. This story proves the region is
+ * present and empty at rest (stock not yet exceeded), then holds the warning text
+ * after an increment crosses the threshold — the empty→filled transition an SR
+ * needs to announce. Regression guard for W-23325670, W-23325674, W-23325695,
+ * W-23325699, W-23325705, W-23325706, W-23325765.
+ */
+export const StockWarningAnnounced: Story = {
+    args: {
+        value: '1',
+        productName: 'Limited Run Tee',
+        stockLevel: 2,
+        onChange: fn(),
+    },
+    play: async ({ canvasElement }) => {
+        await waitForStorybookReady(canvasElement);
+        const canvas = within(canvasElement);
+
+        // At rest the live region exists but is empty — this is what lets a screen
+        // reader announce the warning the moment it is written in.
+        const region = canvas.getByRole('status');
+        void expect(region).toBeInTheDocument();
+        void expect(region).toHaveTextContent('');
+
+        const incrementButton = canvas.getByRole('button', { name: /increment quantity for/i });
+        await userEvent.click(incrementButton); // → 2 (at stock, still no warning)
+        await userEvent.click(incrementButton); // → 3 (exceeds stock)
+
+        // Same region node now carries the warning text (empty → filled transition).
+        void expect(canvas.getByRole('status')).toHaveTextContent(/only\s*2\s*left/i);
     },
 };

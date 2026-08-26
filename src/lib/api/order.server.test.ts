@@ -75,7 +75,7 @@ describe('fetchOrderWithProducts', () => {
         expect(result.orderPromise).toBeInstanceOf(Promise);
     });
 
-    test('calls createApiClients and getOrder with orderNo', () => {
+    test('calls createApiClients and gets the OMS-enriched order by default', () => {
         const mockOrder: ShopperOrders.schemas['Order'] = {
             orderNo: 'ORD-123',
             productItems: [],
@@ -94,22 +94,42 @@ describe('fetchOrderWithProducts', () => {
         });
     });
 
-    test('requests OMS tracking enrichment via expand: oms, oms_shipments', () => {
+    test('includes OMS expansion when explicitly requested', () => {
         const mockOrder: ShopperOrders.schemas['Order'] = {
-            orderNo: 'ORD-OMS',
+            orderNo: 'ORD-OMS-EXPLICIT',
             productItems: [],
         } as ShopperOrders.schemas['Order'];
         mockGetOrder.mockResolvedValue({ data: mockOrder });
 
-        fetchOrderWithProducts(createTestContext({ currency: 'USD' }), 'ORD-OMS');
+        fetchOrderWithProducts(createTestContext({ currency: 'USD' }), 'ORD-OMS-EXPLICIT', { includeOms: true });
 
-        const callArg = mockGetOrder.mock.calls[0][0];
-        expect(callArg.params.query.expand).toEqual(['oms', 'oms_shipments']);
+        expect(mockGetOrder).toHaveBeenCalledWith({
+            params: {
+                path: { orderNo: 'ORD-OMS-EXPLICIT' },
+                query: { expand: ['oms', 'oms_shipments'] },
+            },
+        });
+    });
+
+    test('omits OMS expansion when requested', () => {
+        const mockOrder: ShopperOrders.schemas['Order'] = {
+            orderNo: 'ORD-CONFIRMATION',
+            productItems: [],
+        } as ShopperOrders.schemas['Order'];
+        mockGetOrder.mockResolvedValue({ data: mockOrder });
+
+        fetchOrderWithProducts(createTestContext({ currency: 'USD' }), 'ORD-CONFIRMATION', { includeOms: false });
+
+        expect(mockGetOrder).toHaveBeenCalledWith({
+            params: {
+                path: { orderNo: 'ORD-CONFIRMATION' },
+            },
+        });
     });
 
     test('order still loads when omsData is absent (ECOM path not regressed)', async () => {
-        // A non-SOM org disregards the expand tokens → order comes back with no
-        // omsData; the fetch must still resolve the order normally.
+        // Baseline order retrieval does not require OMS data; the fetch must still
+        // resolve the order normally when omsData is absent.
         const ecomOnlyOrder: ShopperOrders.schemas['Order'] = {
             orderNo: 'ORD-ECOM',
             productItems: [],

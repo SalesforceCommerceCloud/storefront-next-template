@@ -15,6 +15,7 @@
  */
 
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -133,6 +134,10 @@ export function ShippingOptionsSkeleton(): ReactElement {
     );
 }
 
+/**
+ * Suspense fallback while the Payment chunk/content is loading soon.
+ * Uses animate-pulse skeletons — appropriate only for short-lived loading.
+ */
 export function PaymentSkeleton(): ReactElement {
     return (
         <Card className="relative gap-4 min-h-[280px]">
@@ -168,6 +173,26 @@ export function PaymentSkeleton(): ReactElement {
                     <Skeleton className="h-4 w-4 rounded-ui" />
                     <Skeleton className="h-4 w-64" />
                 </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+/**
+ * Static pre-payment step placeholder (not a Suspense fallback).
+ * Keeps the real Payment heading in the outline without pulsing skeletons.
+ * Matches Payment / Shipping upcoming-step empty state (copy + compact height).
+ */
+export function PaymentPlaceholder(): ReactElement {
+    const { t } = useTranslation('checkout');
+
+    return (
+        <Card className="relative gap-4" data-testid="payment-placeholder">
+            <CardHeader className="border-b border-border pb-4">
+                <h2 className="text-2xl font-bold tracking-tight text-card-foreground">{t('payment.title')}</h2>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground">{t('shippingOptions.completePreviousSteps')}</p>
             </CardContent>
         </Card>
     );

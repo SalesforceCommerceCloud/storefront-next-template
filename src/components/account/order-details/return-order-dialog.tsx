@@ -59,11 +59,12 @@ import {
 import type { ReturnErrorKind } from '@/lib/order-management/return-error';
 import { getDisplayVariationValues } from '@/lib/product/product-utils';
 import { useToast } from '@/components/toast';
+import type { OmsMetaDataResult } from '@/lib/api/order.server';
 
 type OmsReasonCode = ShopperOrders.schemas['OmsReasonCode'];
 
 export type ReturnOrderDialogProps = {
-    order: OrderLike;
+    order: Partial<OrderLike>;
     /** Reason codes from the OMS metadata loader. Empty when the metadata fetch degraded (5xx/network). */
     returnReasonCodes: OmsReasonCode[];
     open: boolean;
@@ -80,13 +81,24 @@ export type ReturnOrderDialogProps = {
      * outside the trigger's Suspense boundary.
      */
     fallbackFocusRef?: RefObject<HTMLElement | null>;
+    /** Called once the submission settles (success or failure). Guest order lookup uses this to drive its own feedback UI. */
+    onSettled?: (result: ActionResponse) => void;
+    /**
+     * Submit target for the return request. Defaults to the registered-customer
+     * `/action/return-order` action; guest order lookup passes `/action/order-lookup-return`.
+     */
+    action?: string;
+    /** Form field name carrying `orderNo`. Defaults to `orderNo`; guest order lookup passes `orderNumber`. */
+    orderNumberFieldName?: string;
+    /** Additional form fields to submit alongside the order number and items (e.g. guest `email`). */
+    extraFields?: Record<string, string>;
 };
 
 type ReturnDialogView = 'select' | 'review';
 
-type ActionSuccess = { success: true };
+type ActionSuccess = { success: true; order?: unknown; omsMetaData?: OmsMetaDataResult };
 type ActionFailure = { success: false; error?: { kind?: ReturnErrorKind; status?: number } };
-type ActionResponse = ActionSuccess | ActionFailure;
+export type ActionResponse = ActionSuccess | ActionFailure;
 
 /**
  * Error kinds that carry a per-item recovery affordance: the shopper is sent back
@@ -218,6 +230,10 @@ export function ReturnOrderDialog({
     onOpenChange,
     triggerRef,
     fallbackFocusRef,
+    onSettled,
+    action,
+    orderNumberFieldName,
+    extraFields,
 }: ReturnOrderDialogProps): ReactElement {
     const { t } = useTranslation('account');
     const fetcher = useFetcher<ActionResponse>();
@@ -336,9 +352,12 @@ export function ReturnOrderDialog({
         }
         const productItems = buildReturnProductItems(selections, defaultReasonCode);
         const formData = new FormData();
-        formData.set('orderNo', order.orderNo ?? '');
+        formData.set(orderNumberFieldName ?? 'orderNo', order.orderNo ?? '');
+        if (extraFields) {
+            Object.entries(extraFields).forEach(([key, value]) => formData.set(key, value));
+        }
         formData.set('productItems', JSON.stringify(productItems));
-        void fetcher.submit(formData, { method: 'post', action: '/action/return-order' });
+        void fetcher.submit(formData, { method: 'post', action: action ?? '/action/return-order' });
     }
 
     // React to a settled submission. Keyed on `fetcher.data` so it runs once per response.
@@ -353,6 +372,7 @@ export function ReturnOrderDialog({
         if (!result || open === false) {
             return;
         }
+        onSettled?.(result);
         if (result.success) {
             addToast(t('orders.returnSuccessTitle'), 'success', {
                 description: t('orders.returnSuccessMessage'),
@@ -367,7 +387,7 @@ export function ReturnOrderDialog({
                 setSelections((prev) => prev.map((s) => (s.checked ? { ...s, reason: undefined } : s)));
             }
         }
-        // oxlint-disable-next-line react-hooks/exhaustive-deps -- handleOpenChange/open/t/addToast intentionally excluded to avoid re-firing on every state reset
+        // oxlint-disable-next-line react-hooks/exhaustive-deps -- handleOpenChange/open/t/addToast/onSettled intentionally excluded to avoid re-firing on every state reset
     }, [fetcher.data]);
 
     // Reconcile local selections to a freshly-revalidated order. After a successful or recoverable

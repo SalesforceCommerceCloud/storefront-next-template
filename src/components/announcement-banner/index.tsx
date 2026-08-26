@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators';
@@ -140,7 +142,47 @@ export default function AnnouncementBanner({
     alignment,
     className,
 }: AnnouncementBannerProps) {
-    if (!message) return null;
+    const { t } = useTranslation('common');
+    const { isDesignMode } = usePageDesignerMode();
+
+    // Empty state (W-23729792): a freshly-dropped Announcement Banner with no configured message.
+    // It renders exactly like a real default-configured banner — the declared defaults: Primary
+    // color scheme, Md height, and Center alignment (see AnnouncementBannerMetadata.alignment /
+    // normalizeAlignment) — with the placeholder message "Add your text here" and no other
+    // properties set (no link/CTA, no decorative art). Matching the real default keeps the banner
+    // from shifting alignment the moment an author types a message. This is a Page-Designer
+    // *authoring* affordance, so it renders only in design mode; on the live storefront an
+    // unconfigured banner still renders nothing. Mirrors the Content Card's design-mode gate.
+    const isUnconfigured = !message?.trim();
+    const showEmptyState = isUnconfigured && isDesignMode;
+
+    if (isUnconfigured) {
+        if (!showEmptyState) return null;
+
+        // Same shell as the live banner's default (md/center/primary) with placeholder copy, so the
+        // authoring preview matches what a shopper will see once a message is typed. Uses theme
+        // tokens only (bg-primary / text-primary-foreground) — no hardcoded colors.
+        return (
+            <div
+                role="status"
+                data-slot="empty-state"
+                className={cn(
+                    'relative flex items-center gap-2 px-4 md:px-10 tracking-wide',
+                    ALIGNMENT_JUSTIFY_CLASS.center,
+                    COLOR_SCHEME_CLASS.primary,
+                    HEIGHT_CLASS.md,
+                    className
+                )}>
+                {/*
+                 * Full opacity: the placeholder previews a real default banner (per the Figma
+                 * spec), and text-primary-foreground on bg-primary is tuned for AA contrast in
+                 * every theme. `opacity-60` would alpha-blend the text toward the background and
+                 * drop it below the WCAG AA ratio for normal text.
+                 */}
+                <p className={ALIGNMENT_TEXT_CLASS.center}>{t('announcementBanner.emptyTitle')}</p>
+            </div>
+        );
+    }
 
     const heightClass = HEIGHT_CLASS[normalizeHeight(height)];
     const resolvedAlignment = normalizeAlignment(alignment);

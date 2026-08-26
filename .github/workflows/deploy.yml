@@ -59,7 +59,7 @@ on:
         required: false
 
 concurrency:
-  group: deploy-${{ github.event.inputs.environment || 'Production' }}
+  group: deploy-${{ github.event.inputs.environment || 'default' }}
   cancel-in-progress: false
 
 permissions:
@@ -73,7 +73,7 @@ env:
 jobs:
   deploy-mrt:
     runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
-    environment: ${{ github.event.inputs.environment || 'Production' }}
+    environment: ${{ github.event.inputs.environment }}
     timeout-minutes: 30
     env:
       MRT_API_KEY: ${{ secrets.MRT_API_KEY }}
@@ -114,7 +114,7 @@ jobs:
 
   deploy-cartridges:
     runs-on: ${{ vars.RUNNER_UBUNTU || 'ubuntu-latest' }}
-    environment: ${{ github.event.inputs.environment || 'Production' }}
+    environment: ${{ github.event.inputs.environment }}
     timeout-minutes: 15
     env:
       SFCC_SERVER: ${{ vars.SFCC_SERVER }}

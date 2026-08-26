@@ -119,7 +119,7 @@ exports[`OrderSummary stories snapshot > CartItemsAccordionInteraction story ren
           </div>
         </div>
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -281,7 +281,7 @@ exports[`OrderSummary stories snapshot > Default story renders and matches snaps
           </div>
         </div>
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -443,7 +443,7 @@ exports[`OrderSummary stories snapshot > EmptyBasket story renders and matches s
           </div>
         </div>
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -605,7 +605,7 @@ exports[`OrderSummary stories snapshot > EstimateMode story renders and matches 
           </div>
         </div>
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -676,7 +676,7 @@ exports[`OrderSummary stories snapshot > GrossTaxation story renders and matches
         role="region"
       >
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -816,7 +816,7 @@ exports[`OrderSummary stories snapshot > NetTaxation story renders and matches s
         role="region"
       >
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -986,7 +986,7 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
           </div>
         </div>
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -997,8 +997,9 @@ exports[`OrderSummary stories snapshot > WithAppliedPromotions story renders and
             £73.57
           </dd>
           <dt
-            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
             data-slot="badge"
+            title="20% Off Discount"
           >
             20% Off Discount
           </dt>
@@ -1676,7 +1677,7 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
           </div>
         </div>
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -1687,8 +1688,9 @@ exports[`OrderSummary stories snapshot > WithBonusProductLine story renders and 
             £20.00
           </dd>
           <dt
-            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
             data-slot="badge"
+            title="Buy one Classic Fit Shirt, get 2 free ties!"
           >
             Buy one Classic Fit Shirt, get 2 free ties!
           </dt>
@@ -1766,7 +1768,7 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
         role="region"
       >
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -1777,8 +1779,9 @@ exports[`OrderSummary stories snapshot > WithCouponDiscount story renders and ma
             £38.38
           </dd>
           <dt
-            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
             data-slot="badge"
+            title="10% Off Order"
           >
             10% Off Order
           </dt>
@@ -2248,7 +2251,7 @@ exports[`OrderSummary stories snapshot > WithGiftLine story renders and matches 
           </div>
         </div>
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -2319,7 +2322,7 @@ exports[`OrderSummary stories snapshot > WithItemLevelPromotions story renders a
         role="region"
       >
         <dl
-          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
+          class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 items-center text-sm font-normal leading-5 text-muted-foreground pb-2"
         >
           <dt>
             Subtotal
@@ -2330,8 +2333,9 @@ exports[`OrderSummary stories snapshot > WithItemLevelPromotions story renders a
             £58.29
           </dd>
           <dt
-            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
             data-slot="badge"
+            title="$10 Off Ties"
           >
             $10 Off Ties
           </dt>
@@ -2341,8 +2345,9 @@ exports[`OrderSummary stories snapshot > WithItemLevelPromotions story renders a
             -£10.00
           </dd>
           <dt
-            class="inline-flex w-fit max-w-full border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground whitespace-normal break-words rounded-ui"
+            class="inline-block max-w-full truncate border-0 bg-muted px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-foreground rounded-ui"
             data-slot="badge"
+            title="15% Off Tops"
           >
             15% Off Tops
           </dt>

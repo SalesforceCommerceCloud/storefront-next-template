@@ -464,6 +464,12 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
             +
           </button>
         </div>
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          id="quantity-_r_3_-inventory-msg"
+          role="status"
+        />
       </div>
     </div>
   </div>
@@ -472,117 +478,130 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
   >
     <div>
       <div
-        class="space-y-4"
+        class="w-full"
       >
         <div
-          class="w-full"
+          aria-label="Fulfillment method"
+          aria-required="false"
+          class="grid gap-2 grid-cols-2"
+          data-slot="radio-group"
+          data-testid="delivery-option-select"
+          dir="ltr"
+          role="radiogroup"
+          style="outline: none;"
+          tabindex="0"
         >
           <div
-            aria-required="false"
-            class="grid grid-cols-2 gap-2"
-            data-slot="radio-group"
-            data-testid="delivery-option-select"
-            dir="ltr"
-            role="radiogroup"
-            style="outline: none;"
-            tabindex="0"
+            class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
           >
+            <button
+              aria-checked="false"
+              aria-describedby="fulfillment-option-womens-jewelry-bundleM-delivery-description"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              id="fulfillment-option-womens-jewelry-bundleM-delivery"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="delivery"
+            />
             <label
-              class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs cursor-pointer border-muted-foreground/20 hover:border-primary/50"
-              data-slot="label"
-              for="delivery-option-womens-jewelry-bundleM"
+              class="absolute inset-0 cursor-pointer"
+              for="fulfillment-option-womens-jewelry-bundleM-delivery"
             >
-              <button
-                aria-checked="false"
-                class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-                data-radix-collection-item=""
-                data-slot="radio-group-item"
-                data-state="unchecked"
-                id="delivery-option-womens-jewelry-bundleM"
-                role="radio"
-                tabindex="-1"
-                type="button"
-                value="delivery"
-              />
-              <div
-                class="mt-0.5 shrink-0"
+              <span
+                class="sr-only"
               >
-                <div
-                  class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-                />
-              </div>
-              <div
-                class="flex-1 min-w-0"
-              >
-                <div
-                  class="flex flex-col"
-                >
-                  <span
-                    class="text-sm font-medium leading-none text-foreground"
-                  >
-                    Deliver to
-                  </span>
-                  <p
-                    class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
-                  >
-                    Enter ZIP code to see delivery estimate
-                  </p>
-                </div>
-              </div>
+                Delivery
+              </span>
             </label>
+            <div
+              aria-hidden="true"
+              class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="relative z-10 flex-1 min-w-0 pointer-events-none"
+            >
+              <div
+                class="cursor-pointer"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Delivery
+                </span>
+              </div>
+              <div
+                class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+                id="fulfillment-option-womens-jewelry-bundleM-delivery-description"
+              >
+                <p>
+                  Enter postal code to see delivery estimate
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="relative flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-muted-foreground/20 hover:border-primary/50"
+          >
+            <button
+              aria-checked="false"
+              aria-describedby="fulfillment-option-womens-jewelry-bundleM-pickup-description"
+              class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only peer"
+              data-radix-collection-item=""
+              data-slot="radio-group-item"
+              data-state="unchecked"
+              id="fulfillment-option-womens-jewelry-bundleM-pickup"
+              role="radio"
+              tabindex="-1"
+              type="button"
+              value="pickup"
+            />
             <label
-              class="text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 flex items-start gap-2 rounded-ui p-3 border transition-colors text-left shadow-xs border-muted-foreground/20 hover:border-primary/50 opacity-50 cursor-not-allowed"
-              data-slot="label"
-              for="pickup-option-womens-jewelry-bundleM"
+              class="absolute inset-0 cursor-pointer"
+              for="fulfillment-option-womens-jewelry-bundleM-pickup"
             >
-              <button
-                aria-checked="false"
-                class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 sr-only"
-                data-disabled=""
-                data-radix-collection-item=""
-                data-slot="radio-group-item"
-                data-state="unchecked"
-                disabled=""
-                id="pickup-option-womens-jewelry-bundleM"
-                role="radio"
-                tabindex="-1"
-                type="button"
-                value="pickup"
-              />
-              <div
-                class="mt-0.5 shrink-0"
+              <span
+                class="sr-only"
               >
-                <div
-                  class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
-                />
-              </div>
-              <div
-                class="flex-1 min-w-0"
-              >
-                <div
-                  class="flex flex-col"
-                >
-                  <span
-                    class="text-sm font-medium leading-none text-foreground"
-                  >
-                    Pickup unavailable at
-                  </span>
-                  <div
-                    class="mt-0.5"
-                  >
-                    <button
-                      class="text-xs text-primary hover:underline cursor-pointer"
-                      type="button"
-                    />
-                    <p
-                      class="text-xs font-normal text-destructive mt-1"
-                    >
-                      Try another store
-                    </p>
-                  </div>
-                </div>
-              </div>
+                Free pickup in
+              </span>
             </label>
+            <div
+              aria-hidden="true"
+              class="relative z-10 mt-0.5 shrink-0 pointer-events-none"
+            >
+              <div
+                class="w-4 h-4 border-2 flex items-center justify-center transition-colors border-muted-foreground/20"
+              />
+            </div>
+            <div
+              class="relative z-10 flex-1 min-w-0 pointer-events-none"
+            >
+              <div
+                class="cursor-pointer"
+              >
+                <span
+                  class="text-sm font-medium leading-none text-foreground"
+                >
+                  Free pickup in
+                </span>
+              </div>
+              <div
+                class="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5"
+                id="fulfillment-option-womens-jewelry-bundleM-pickup-description"
+              >
+                <p>
+                  Select Store
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

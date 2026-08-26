@@ -63,7 +63,11 @@ describe('PopularCategory loader', () => {
         expect(result).toEqual(mockCategory);
     });
 
-    test('throws error when categoryId is missing', () => {
+    // A freshly-dropped Category Card in Page Designer has no category yet. The loader must resolve
+    // (to undefined) rather than throw — a thrown PD component-data loader rejects the region <Await>,
+    // which then renders a null error fallback in place of the card, so the design-mode empty state
+    // never mounts. Resolving lets the component render its empty state (design mode) or null (live).
+    test('resolves to undefined without fetching when categoryId is missing', async () => {
         const componentData: ShopperExperience.schemas['Component'] = {
             id: 'component-1',
             typeId: 'Content.popularCategory',
@@ -71,15 +75,11 @@ describe('PopularCategory loader', () => {
             regions: [],
         };
 
-        expect(() => {
-            void loader({
-                componentData,
-                context: mockContext,
-            });
-        }).toThrow('Category ID is required for PopularCategory component');
+        await expect(loader({ componentData, context: mockContext })).resolves.toBeUndefined();
+        expect(mockFetchCategory).not.toHaveBeenCalled();
     });
 
-    test('throws error when categoryId is not a string', () => {
+    test('resolves to undefined without fetching when categoryId is not a string', async () => {
         const componentData: ShopperExperience.schemas['Component'] = {
             id: 'component-1',
             typeId: 'Content.popularCategory',
@@ -89,15 +89,11 @@ describe('PopularCategory loader', () => {
             regions: [],
         };
 
-        expect(() => {
-            void loader({
-                componentData,
-                context: mockContext,
-            });
-        }).toThrow('Category ID is required for PopularCategory component');
+        await expect(loader({ componentData, context: mockContext })).resolves.toBeUndefined();
+        expect(mockFetchCategory).not.toHaveBeenCalled();
     });
 
-    test('throws error when categoryId is empty string', () => {
+    test('resolves to undefined without fetching when categoryId is empty string', async () => {
         const componentData: ShopperExperience.schemas['Component'] = {
             id: 'component-1',
             typeId: 'Content.popularCategory',
@@ -107,11 +103,7 @@ describe('PopularCategory loader', () => {
             regions: [],
         };
 
-        expect(() => {
-            void loader({
-                componentData,
-                context: mockContext,
-            });
-        }).toThrow('Category ID is required for PopularCategory component');
+        await expect(loader({ componentData, context: mockContext })).resolves.toBeUndefined();
+        expect(mockFetchCategory).not.toHaveBeenCalled();
     });
 });

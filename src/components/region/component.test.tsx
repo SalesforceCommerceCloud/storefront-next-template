@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type FC, Suspense } from 'react';
+import { type FC, lazy, Suspense } from 'react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { Await } from 'react-router';
 import { Component } from './component';
 import type { ComponentType } from './index';
 
@@ -47,12 +49,12 @@ vi.mock('react-router', async (importOriginal) => {
     return {
         ...actual,
         useAsyncError: () => mockAsyncError,
-        Await: ({ resolve, children, errorElement }: any) => {
+        Await: vi.fn(({ resolve, children, errorElement }: any) => {
             if (shouldTriggerError && errorElement) {
                 return errorElement;
             }
             return actual.Await({ resolve, children, errorElement });
-        },
+        }),
     };
 });
 
@@ -60,6 +62,10 @@ vi.mock('react-router', async (importOriginal) => {
 const mockUseComponentDataById = vi.fn();
 vi.mock('./component-data-context', () => ({
     useComponentDataById: (id: string) => mockUseComponentDataById(id),
+}));
+const mockUseIsCriticalComponent = vi.fn();
+vi.mock('./critical-component-context', () => ({
+    useIsCriticalComponent: (id: string) => mockUseIsCriticalComponent(id),
 }));
 
 import { registry } from '@/lib/page-designer/registry';
@@ -79,6 +85,8 @@ describe('Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockUseComponentDataById.mockReset();
+        mockUseIsCriticalComponent.mockReset();
+        mockUseIsCriticalComponent.mockReturnValue(false);
         mockAsyncError = undefined;
         shouldTriggerError = false;
     });
@@ -166,6 +174,75 @@ describe('Component', () => {
     });
 
     describe('Synchronous rendering', () => {
+        test('renders a critical concrete no-data component without a Suspense boundary', () => {
+            const Fallback: FC = () => <div>Component fallback</div>;
+            (registry.getFallback as any).mockReturnValue(Fallback);
+            (registry.getComponent as any).mockReturnValue(() => <div>Server content</div>);
+            mockUseComponentDataById.mockReturnValue(undefined);
+            mockUseIsCriticalComponent.mockReturnValue(true);
+
+            const html = renderToString(
+                <Component component={{ id: 'server', typeId: 'server' } as ComponentType} regionId="main" />
+            );
+
+            expect(html).toContain('Server content');
+            expect(html).not.toContain('Component fallback');
+            expect(html).not.toContain('<!--$-->');
+            expect(Await).not.toHaveBeenCalled();
+        });
+
+        test('preserves the Suspense boundary for a non-critical concrete no-data component', () => {
+            (registry.getFallback as any).mockReturnValue(undefined);
+            (registry.getComponent as any).mockReturnValue(() => <div>Server content</div>);
+            mockUseComponentDataById.mockReturnValue(undefined);
+
+            const html = renderToString(
+                <Component component={{ id: 'server', typeId: 'server' } as ComponentType} regionId="main" />
+            );
+
+            expect(html).toContain('Server content');
+            expect(html).toContain('<!--$-->');
+        });
+
+        test('keeps critical component data inside its local boundary', async () => {
+            const dataPromise = deferred<Record<string, never>>();
+            (registry.getFallback as any).mockReturnValue(() => (
+                <div data-testid="component-fallback">Loading data</div>
+            ));
+            (registry.getComponent as any).mockReturnValue(() => (
+                <div data-testid="server-content">Server content</div>
+            ));
+            mockUseComponentDataById.mockReturnValue(dataPromise.promise);
+            mockUseIsCriticalComponent.mockReturnValue(true);
+
+            render(<Component component={{ id: 'server', typeId: 'server' } as ComponentType} regionId="main" />);
+
+            expect(screen.getByTestId('component-fallback')).toBeInTheDocument();
+
+            dataPromise.resolve({});
+            await waitFor(() => expect(screen.getByTestId('server-content')).toBeInTheDocument());
+        });
+
+        test('keeps suspensions created inside a critical component local', async () => {
+            const nestedModule = deferred<{ default: FC }>();
+            const Nested = lazy(() => nestedModule.promise);
+            const Dynamic: FC = () => (
+                <Suspense fallback={<div data-testid="inner-fallback">Loading inner content</div>}>
+                    <Nested />
+                </Suspense>
+            );
+            (registry.getFallback as any).mockReturnValue(() => <div>Framework fallback</div>);
+            (registry.getComponent as any).mockReturnValue(Dynamic);
+            mockUseComponentDataById.mockReturnValue(undefined);
+            mockUseIsCriticalComponent.mockReturnValue(true);
+
+            render(<Component component={{ id: 'server', typeId: 'server' } as ComponentType} regionId="main" />);
+
+            expect(screen.getByTestId('inner-fallback')).toBeInTheDocument();
+            nestedModule.resolve({ default: () => <div data-testid="inner-content">Inner content</div> });
+            await waitFor(() => expect(screen.getByTestId('inner-content')).toBeInTheDocument());
+        });
+
         test('renders immediately when no data promise is provided', async () => {
             (registry.getFallback as any).mockReturnValue(undefined);
 
@@ -189,6 +266,7 @@ describe('Component', () => {
 
             // Should render immediately without loading state
             expect(await screen.findByTestId('sync-content')).toBeInTheDocument();
+            expect(Await).not.toHaveBeenCalled();
 
             expect(capturedProps).toMatchObject({
                 message: 'Hello',
@@ -262,6 +340,27 @@ describe('Component', () => {
     });
 
     describe('Component registry and lazy loading', () => {
+        test('keeps a no-data lazy component inside its local fallback boundary', async () => {
+            const Fallback: FC = () => <div data-testid="component-fallback">Component loading</div>;
+            (registry.getFallback as any).mockReturnValue(Fallback);
+            const lazyModule = deferred<{ default: FC }>();
+            const LazyComponent = lazy(() => lazyModule.promise);
+            (registry.getComponent as any).mockReturnValue(LazyComponent);
+            mockUseComponentDataById.mockReturnValue(undefined);
+
+            render(
+                <Suspense fallback={<div data-testid="outer-fallback">Outer loading</div>}>
+                    <Component component={{ id: 'lazy', typeId: 'lazy' } as ComponentType} regionId="main" />
+                </Suspense>
+            );
+
+            expect(screen.getByTestId('component-fallback')).toBeInTheDocument();
+            expect(screen.queryByTestId('outer-fallback')).not.toBeInTheDocument();
+
+            lazyModule.resolve({ default: () => <div data-testid="lazy-content">Loaded</div> });
+            await waitFor(() => expect(screen.getByTestId('lazy-content')).toBeInTheDocument());
+        });
+
         test('triggers preload when component not yet loaded', async () => {
             (registry.getComponent as any).mockReturnValue(undefined);
             const preloadPromise = deferred<void>();
@@ -335,7 +434,7 @@ describe('Component', () => {
 
             mockAsyncError = testError;
             shouldTriggerError = true;
-            mockUseComponentDataById.mockReturnValue(undefined);
+            mockUseComponentDataById.mockReturnValue(Promise.resolve(undefined));
 
             const { container } = render(<Component component={component} regionId="main" />);
 
@@ -363,7 +462,7 @@ describe('Component', () => {
             const apiError = new Error('API Error: 503 Service Unavailable');
             mockAsyncError = apiError;
             shouldTriggerError = true;
-            mockUseComponentDataById.mockReturnValue(undefined);
+            mockUseComponentDataById.mockReturnValue(Promise.resolve(undefined));
 
             render(<Component component={component} regionId="header" />);
 

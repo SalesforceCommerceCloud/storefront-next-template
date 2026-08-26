@@ -15,3 +15,5 @@
  */
 export { Swatch } from './swatch';
 export { SwatchGroup } from './swatch-group';
+export { GroupedSwatchGroup, splitGroupedSwatchName } from './grouped-swatch-group';
+export type { GroupedSwatchValue } from './grouped-swatch-group';

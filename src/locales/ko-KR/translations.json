@@ -23,10 +23,34 @@
         "hero": {
             "defaultTitle": "지금 쇼핑하기",
             "defaultImageAlt": "히어로 이미지",
-            "defaultCtaText": "지금 쇼핑하기"
+            "defaultCtaText": "지금 쇼핑하기",
+            "emptyTitle": "여기에 제목 추가",
+            "emptyButton": "버튼"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "여기에 제목 추가"
         },
         "previousImage": "이전 이미지",
-        "nextImage": "다음 이미지"
+        "nextImage": "다음 이미지",
+        "popularCategory": {
+            "emptyTitle": "카테고리"
+        },
+        "announcementBanner": {
+            "emptyTitle": "여기에 제목 추가"
+        },
+        "contentCard": {
+            "emptyTitle": "여기에 제목 추가",
+            "emptyDescription": "여기에 설명 추가"
+        },
+        "productTile": {
+            "emptyTitle": "제품"
+        },
+        "productRecommendations": {
+            "emptyTitle": "제품 추천"
+        }
     },
     "search": {
         "results": "검색 결과",
@@ -88,6 +112,7 @@
         "mobileNavigation": "모바일 탐색 메뉴",
         "expandCategory": "{{category}} 펼치기",
         "collapseCategory": "{{category}} 접기",
+        "shopAllCategory": "{{category}} 모두 쇼핑하기",
         "menu": {
             "yourLists": "내 목록",
             "yourAccount": "내 계정",
@@ -312,7 +337,7 @@
         "itemCount_other": "카트({{count}}개 품목)",
         "empty": {
             "title": "카트가 비어 있습니다.",
-            "registeredMessage": "계속 쇼핑하면서 카트에 항목을 추가합니다.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "로그인하여 저장된 항목을 검색하거나 쇼핑을 계속하십시오.",
             "continueShopping": "계속 쇼핑하기",
             "signIn": "로그인"
@@ -596,6 +621,7 @@
             "hero": {
                 "thankYou": "{{name}} 님, 감사합니다!",
                 "orderConfirmed": "주문이 확인되었습니다.",
+                "statusAnnouncement": "주문이 확인되었습니다. 주문 번호는 {{orderNo}}입니다.",
                 "emailConfirmation": "{{email}}(으)로 확인 이메일을 보냈습니다.",
                 "needHelp": "도움이 필요하신가요?",
                 "defaultName": "고객",
@@ -1129,7 +1155,9 @@
         "categoryGrid": {
             "title": "실생활에 어울리는 스타일",
             "description": "Market Street는 패션이 수월하고 진정성 있고 접근하기 쉬워야 한다고 믿습니다. Market Street의 컬렉션은 품질, 다재다능함, 시대를 초월한 스타일을 중시하는 현대인에게 어울리도록 디자인되었습니다.",
-            "shopNowButton": "지금 쇼핑하기"
+            "shopNowButton": "지금 쇼핑하기",
+            "emptyTitle": "여기에 제목 추가",
+            "emptyRegionLabel": "카테고리 캐러셀"
         },
         "featuredContent": {
             "women": {
@@ -1401,14 +1429,6 @@
         "returnsAndWarrantyDescription": "반품 및 보증 세부 정보",
         "close": "닫기"
     },
-    "estimatedDelivery": {
-        "cardTitle": "예상 배송",
-        "cardDescription": "사용 가능한 배송 옵션",
-        "learnMore": "자세히 알아보기",
-        "sectionHeading": "예상 배송",
-        "shippingOptionsHeading": "배송 옵션 및 요금",
-        "free": "무료"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "다음 문제를 해결하십시오.",
@@ -1471,6 +1491,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "수령 방법",
+            "deliveryDescription": "우편번호을(를) 입력하여 배송 예상을 확인하세요"
+        },
         "recommendations": {
             "youMightAlsoLike": "추천 상품",
             "completeTheLook": "룩 완성",
@@ -1507,7 +1532,6 @@
         "quickAdd": "빠른 추가",
         "buyItNow": "지금 구매하기",
         "pickupAvailable": "수령 가능",
-        "selectProduct": "제품 선택",
         "updatingCart": "업데이트 중...",
         "updateCart": "업데이트",
         "addingToWishlist": "위시리스트에 추가 중...",

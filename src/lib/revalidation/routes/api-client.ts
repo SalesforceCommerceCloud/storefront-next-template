@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { ShouldRevalidateFunctionArgs } from 'react-router';
+// @sfdc-extension-line SFDC_EXT_BOPIS
 import { resourceRoutes } from '@/route-paths';
 import { invokeMatchingFetchers } from '@/lib/scapi/fetcher-registry';
 import type { DecodedResource } from '@/lib/scapi/resource-encoding';

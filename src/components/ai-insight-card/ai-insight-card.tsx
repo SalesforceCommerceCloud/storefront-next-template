@@ -38,6 +38,12 @@ export interface AiInsightCardProps {
      */
     badgeText?: string;
     /**
+     * Element to render the title as. Defaults to `h3`. Pass a non-heading
+     * (e.g. `span`) where the card is a labelled block rather than a document
+     * section, so the label does not read as a heading to assistive technology.
+     */
+    titleAs?: 'h2' | 'h3' | 'h4' | 'span' | 'p';
+    /**
      * Variant: 'review' shows rating line (reviews section); 'shoppingAssistant' shows dark card with arrow (search page). Optional click when onActionClick is provided.
      */
     variant: AiInsightCardVariant;
@@ -96,6 +102,7 @@ export function AiInsightCard({
     title,
     description,
     badgeText,
+    titleAs = 'h3',
     variant,
     rating = 0,
     reviewCount = 0,
@@ -119,7 +126,7 @@ export function AiInsightCard({
                 <div className="flex items-center gap-2 flex-wrap">
                     <Typography
                         variant="small"
-                        as="h3"
+                        as={titleAs}
                         className={cn('font-semibold', isDark ? 'text-white' : 'text-neutral-900')}>
                         {title}
                     </Typography>

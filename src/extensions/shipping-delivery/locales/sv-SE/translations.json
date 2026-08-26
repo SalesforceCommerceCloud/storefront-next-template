@@ -1,0 +1,30 @@
+{
+    "cardTitle": "Beräknat leveransdatum",
+    "shippingOptionsOnlyHeading": "Fraktalternativ",
+    "free": "Gratis",
+    "deliverTo": "Leverera till <postalCode>{{postalCode}}</postalCode>",
+    "changeDestination": "Ändra destination",
+    "changeDestinationAriaLabel": "Ändra destination: {{postalCode}}",
+    "arrivalMessage": "Ankommer {{deliveryWindow}}",
+    "shippingCost": "Fraktkostnad:",
+    "postalTerms": {
+        "zip": "postnummer",
+        "postalCode": "postnummer",
+        "postcode": "postnummer",
+        "cap": "CAP",
+        "eircode": "Eircode"
+    },
+    "postalCodePlaceholder": "Ange {{term}}",
+    "postalCodePlaceholderExample": "Ange {{term}} (t.ex. {{example}})",
+    "postalCodeInstructions": "Ange ditt {{term}} (t.ex. {{example}}) för att se leveransuppskattningar.",
+    "postalCodeInstructionsNoExample": "Ange ditt {{term}} för att se leveransuppskattningar.",
+    "postalCodeInvalid": "Ange ett giltigt {{term}} (t.ex. {{example}}).",
+    "postalCodeInvalidNoExample": "Ange ett giltigt {{term}}.",
+    "deliveryDatesUnavailable": "Leveransdatum är inte tillgängliga. Se alternativ och kostnader i kassan.",
+    "moreDeliveryOptions": "Fler leveransalternativ",
+    "seeAllDeliveryOptions": "Visa alla leveransalternativ",
+    "openingDeliveryOptions": "Öppnar leveransalternativ...",
+    "calculateButton": "Beräkna",
+    "calculateAriaLabel": "Beräkna leveransuppskattning",
+    "calculating": "Beräknar..."
+}

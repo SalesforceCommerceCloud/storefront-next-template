@@ -17,6 +17,7 @@ import { useMemo } from 'react';
 import { useLocation } from 'react-router';
 import { useSelectedVariations } from './use-selected-variations';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
+import { getCustomSwatchImageUrl, parseCustomSwatchImages } from '@/lib/product/custom-swatch-images';
 import type { ShopperProducts } from '@/scapi';
 
 const getProductViewSearchParams = (search: string, productId: string) => {
@@ -91,6 +92,12 @@ export interface VariationAttribute {
         value: string;
         orderable?: boolean;
         image?: ShopperProducts.schemas['Image'];
+        /**
+         * Localized per-option hint shipped by SCAPI on the variation value (e.g. a price-delta
+         * like "+US$200"). Already resolved to the request locale, so the PDP renders it verbatim
+         * with no currency logic. Absent on values that don't ship one.
+         */
+        description?: string;
         href: string;
         selected: boolean;
         disabled?: boolean;
@@ -163,6 +170,12 @@ export const useVariationAttributes = ({
 
         const existingParams = getProductViewSearchParams(location.search, product.id);
 
+        // Optional custom master attribute mapping axes → values → swatch image paths, for axes SCAPI
+        // does not natively decorate (e.g. size, legStyle). Parsed once; absent on most catalogs.
+        const customSwatchImages = parseCustomSwatchImages(
+            (product as unknown as { c_swatchImages?: unknown }).c_swatchImages
+        );
+
         return product?.variationAttributes.map((variationAttribute) => {
             const currentValue = selectedVariations[variationAttribute.id || ''];
             const selectedValueObj = variationAttribute.values?.find(({ value }) => value === currentValue);
@@ -184,16 +197,42 @@ export const useVariationAttributes = ({
                         isChildProduct,
                     });
 
-                    // Find swatch image for this variation - only for color attributes
+                    // Find the swatch image for this variation value on ANY axis (color, size,
+                    // fabric, legStyle, …) — data-driven so a catalog can ship image swatches for
+                    // whichever attribute carries swatch imagery, not just color.
+                    //
+                    // Backward-safe guard: `findImageGroupBy` filters out attributes that no
+                    // swatch image group represents, and when that leaves the criteria empty its
+                    // `.find` matches the FIRST swatch group via a vacuous `[].every()` — which
+                    // would wrongly hand (e.g.) a color swatch image to a `size` value on a
+                    // color-only catalog. So only accept a group that actually declares THIS
+                    // axis; axes with no swatch group resolve to `undefined` → text swatch.
                     let image: ShopperProducts.schemas['Image'] | undefined;
-                    if (product.imageGroups && variationAttribute.id === 'color') {
+                    if (product.imageGroups) {
                         const imageGroup = findImageGroupBy(product.imageGroups, {
                             viewType: 'swatch',
                             selectedVariationAttributes: {
-                                ['color']: value.value,
+                                [variationAttribute.id || '']: value.value,
                             },
                         });
-                        image = imageGroup?.images?.[0];
+                        const matchesAxis = imageGroup?.variationAttributes?.some(
+                            (attr) => attr.id === variationAttribute.id
+                        );
+                        image = matchesAxis ? imageGroup?.images?.[0] : undefined;
+                    }
+
+                    // Fall back to the custom `c_swatchImages` map for axes SCAPI doesn't natively
+                    // decorate (size, legStyle, …). Synthesize an Image so downstream renders it via
+                    // <DynamicImage> exactly like a native swatch. No entry ⇒ image stays undefined ⇒ text.
+                    if (!image) {
+                        const customUrl = getCustomSwatchImageUrl(
+                            customSwatchImages,
+                            variationAttribute.id || '',
+                            value.value
+                        );
+                        if (customUrl) {
+                            image = { link: customUrl, disBaseLink: customUrl, alt: value.name || value.value };
+                        }
                     }
 
                     // Check if this variation value is orderable by looking at variants
@@ -209,6 +248,8 @@ export const useVariationAttributes = ({
                         orderable: isOrderable,
                         disabled: !isOrderable,
                         image,
+                        // Localized price-delta / option hint straight from SCAPI (undefined when absent).
+                        description: value.description,
                         href,
                         selected: currentValue === value.value,
                     };

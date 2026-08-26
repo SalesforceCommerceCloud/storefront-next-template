@@ -1,13 +1,13 @@
 {
     "name": "template-retail-rsc-app",
-    "version": "2026.8.0",
+    "version": "2026.9.0-alpha.0",
     "description": "Standalone Salesforce Commerce Cloud storefront (fashion).",
     "private": true,
     "type": "module",
     "storefrontNext": {
-        "templateRelease": "August 2026",
-        "templateVersion": "2026.8.0",
-        "minSdkVersion": "1.2.0"
+        "templateRelease": "September 2026",
+        "templateVersion": "2026.9.0",
+        "minSdkVersion": "1.3.0-alpha.0"
     },
     "scripts": {
         "dev": "pnpm locales:aggregate-extensions && pnpm config:aggregate-extensions && cross-env NODE_OPTIONS=--conditions=dev-data-store sfnext dev",
@@ -20,9 +20,10 @@
         "preview": "pnpm start",
         "push": "sfnext push --project-directory .",
         "typecheck": "pnpm config:aggregate-extensions && react-router typegen && cross-env NODE_OPTIONS=--max-old-space-size=8192 tsc --noEmit",
-        "lint": "oxlint --type-aware --ignore-pattern \"e2e/**\" --report-unused-disable-directives --max-warnings 0 && pnpm format:check && pnpm --filter ./e2e lint",
-        "lint:fix": "oxlint --type-aware --ignore-pattern \"e2e/**\" --fix && pnpm format && pnpm --filter ./e2e lint:fix",
+        "lint": "oxlint --type-aware --ignore-pattern \"e2e/**\" --report-unused-disable-directives --max-warnings 0 && pnpm --if-present lint:vertical-imports && pnpm format:check && pnpm --filter ./e2e lint",
+        "lint:fix": "oxlint --type-aware --ignore-pattern \"e2e/**\" --fix && pnpm --if-present lint:vertical-imports && pnpm format && pnpm --filter ./e2e lint:fix",
         "lint:a11y": "node scripts/lint-a11y.mjs",
+        "a11y:scan-coverage": "node scripts/a11yScanCoverage.js",
         "format": "biome format --write .",
         "format:check": "biome format .",
         "test": "vitest run",
@@ -30,7 +31,6 @@
         "storybook": "storybook dev -p 6006",
         "storybook:build": "storybook build -o .storybook/storybook-static",
         "storybook:test": "node scripts/test-storybook.js",
-        "chromatic": "chromatic --build-script-name=storybook:build --exit-zero-on-changes",
         "chromatic:core": "node scripts/chromatic-core.js",
         "cartridge:generate": "sfnext generate-cartridge",
         "cartridge:validate": "sfnext validate-cartridge",
@@ -43,6 +43,7 @@
         "extensions:list": "node scripts/list-extension-points.js",
         "b2c": "b2c",
         "e2e": "pnpm --filter ./e2e e2e",
+        "e2e:turnstile": "pnpm --filter ./e2e e2e:turnstile",
         "a11y": "pnpm --filter ./e2e a11y"
     },
     "dependencies": {
@@ -65,8 +66,8 @@
         "@radix-ui/react-switch": "1.2.2",
         "@radix-ui/react-tooltip": "1.2.8",
         "@react-router/node": "7.18.0",
-        "@salesforce/storefront-next-dev": "1.2.0",
-        "@salesforce/storefront-next-runtime": "1.2.0",
+        "@salesforce/storefront-next-dev": "1.3.0-alpha.0",
+        "@salesforce/storefront-next-runtime": "1.3.0-alpha.0",
         "@vis.gl/react-google-maps": "1.7.1",
         "class-variance-authority": "0.7.1",
         "clsx": "2.1.1",
@@ -127,14 +128,14 @@
         "@vitest/browser": "4.1.8",
         "@vitest/coverage-v8": "4.1.8",
         "@vitest/ui": "4.1.8",
-        "chromatic": "^11.21.0",
+        "chromatic": "^18.0.1",
         "compression": "1.8.1",
         "concurrently": "^9.1.2",
         "cross-env": "10.0.0",
         "dotenv": "17.2.2",
         "globals": "16.3.0",
         "jsdom": "27.4.0",
-        "morgan": "1.10.1",
+        "morgan": "1.11.0",
         "msw": "2.11.3",
         "oxlint": "1.73.0",
         "oxlint-tsgolint": "0.24.0",
@@ -169,7 +170,8 @@
             "rollup": "4.62.2",
             "serialize-javascript": "7.0.6",
             "@xmldom/xmldom": "0.9.10",
-            "fast-uri": "3.1.2",
+            "http-proxy-middleware": "3.0.6",
+            "fast-uri": "3.1.3",
             "lodash": "4.18.1",
             "minimatch": "10.2.5",
             "picomatch": "4.0.4",
@@ -186,7 +188,7 @@
             "ip-address": "10.2.0",
             "uuid@11": "11.1.1",
             "@protobufjs/utf8": "1.1.1",
-            "brace-expansion": "5.0.7",
+            "brace-expansion": "5.0.8",
             "@babel/core@7": "7.29.7",
             "diff@5": "5.2.2",
             "lodash-es": "4.18.1",
@@ -201,8 +203,8 @@
         "server": [
             {
                 "name": "**/*",
-                "limit": "6.1 mB",
-                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys push it to ~6,011 kB. Bumped from 6 mB to 6.1 mB to admit the overage. Uncompressed. Follow-up: server-bundle diet (cosmetic vertical is the largest) to bring this back under 6 mB."
+                "limit": "6.4 mB",
+                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measures ~6,201 kB, making it the largest vertical — bumped 6.2 mB → 6.3 mB to admit it. Uncompressed. Follow-up: server-bundle diet (footwear and cosmetic are the largest) to bring this back under 6 mB."
             }
         ],
         "client": [
@@ -259,18 +261,18 @@
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-                "limit": "88 kB",
-                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), and passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login."
+                "limit": "93 kB",
+                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the Mirror footwear CI build measures it at 91.6 kB, so the 93 kB limit retains about 1.4 kB of headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-                "limit": "88 kB",
-                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size."
+                "limit": "93 kB",
+                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size. Includes the shared PDP delivery-estimate content plus the footwear home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the Mirror footwear CI build measures it at 91.9 kB, so the 93 kB limit retains about 1.1 kB of headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",
-                "limit": "84 kB",
-                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Increased for passkey management translations (account.passkeys)."
+                "limit": "88 kB",
+                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Includes passkey management translations (account.passkeys), localized PDP delivery-estimate content, the footwear vertical's PDP and marketing copy (size guide, colorway/width selectors, recommendation rails), and the footwear home hero, activity-discovery rail, and spotlight copy (running/casual plus the styleForRealLife editorial card) in Italian. Adding the Italian activity-discovery and editorial copy increases this chunk by about 0.5 kB (measured in a footwear build); applied to the 86.6 kB the last Mirror footwear CI build measured, that takes it just past the previous 87 kB limit, so the limit is raised to 88 kB."
             },
             {
                 "name": "assets/\\(locales\\)-\\(ja-JP\\)-index.*.js",

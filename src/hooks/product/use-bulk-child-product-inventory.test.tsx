@@ -765,6 +765,51 @@ describe('useBulkChildProductInventory', () => {
                 expect(result.current.enrichedSelections[0].product.inventory?.ats).toBe(20);
             });
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        it('should re-enrich when the selected inventory changes', async () => {
+            const product = createMockProduct('product-1');
+            const selection = createChildSelection(product);
+            const storeAProduct = createMockProduct('product-1', {
+                inventories: [{ id: 'store-a', stockLevel: 10, orderable: true }],
+            });
+
+            const { result, rerender } = renderHook(
+                ({ selections, inventoryId }) =>
+                    useBulkChildProductInventory({
+                        childSelections: selections,
+                        inventoryId,
+                    }),
+                {
+                    wrapper,
+                    initialProps: { selections: [selection], inventoryId: 'store-a' },
+                }
+            );
+
+            await simulateSuccessfulFetch([storeAProduct], rerender, {
+                selections: [selection],
+                inventoryId: 'store-a',
+            });
+
+            await waitFor(() => {
+                expect(result.current.enrichedSelections[0].product.inventories?.[0]?.stockLevel).toBe(10);
+            });
+
+            const storeBProduct = createMockProduct('product-1', {
+                inventories: [{ id: 'store-b', stockLevel: 20, orderable: true }],
+            });
+            rerender({ selections: [selection], inventoryId: 'store-b' });
+            await simulateSuccessfulFetch([storeBProduct], rerender, {
+                selections: [selection],
+                inventoryId: 'store-b',
+            });
+
+            await waitFor(() => {
+                expect(result.current.enrichedSelections[0].product.inventories?.[0]?.id).toBe('store-b');
+                expect(result.current.enrichedSelections[0].product.inventories?.[0]?.stockLevel).toBe(20);
+            });
+        });
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
     });
 
     describe('Edge cases', () => {

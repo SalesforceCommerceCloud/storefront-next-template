@@ -69,17 +69,16 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           </a>
         </div>
         <a
-          aria-hidden="true"
-          class="absolute inset-0 z-[1] cursor-pointer"
+          aria-label="Charcoal Single Pleat Wool Suit"
+          class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           href="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
-          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
         />
         <div
           class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
         >
           <div
-            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+            class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
           >
             <button
               aria-label="Add to Wishlist"
@@ -106,7 +105,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
         >
           <button
             aria-label="Quick Add Charcoal Single Pleat Wool Suit"
@@ -126,12 +125,12 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
       <div>
         <div
           aria-label="Available colours"
-          class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+          class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
           role="group"
         >
           <a
             aria-label="View Charcoal Single Pleat Wool Suit in Navy"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
             href="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
             style="background-color: navy;"
             to="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
@@ -146,7 +145,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
           <a
             aria-current="true"
             aria-label="View Charcoal Single Pleat Wool Suit in Charcoal"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
             href="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
             to="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
           >
@@ -165,11 +164,14 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
         Test Store
       </p>
       <h3
+        aria-label="Charcoal Single Pleat Wool Suit"
         class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
       >
         <a
-          class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          aria-hidden="true"
+          class="hover:underline"
           href="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
+          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
         >
           Charcoal Single Pleat Wool Suit
@@ -260,7 +262,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -307,18 +309,7 @@ exports[`ProductTile stories snapshot > Default story renders and matches snapsh
 exports[`ProductTile stories snapshot > NoProduct story renders and matches snapshot 1`] = `
 <div
   class="w-64"
->
-  <div
-    class="bg-card text-card-foreground flex flex-col rounded-ui border-ui border-border shadow-ui product-card group w-full min-w-0 max-w-full overflow-hidden gap-0 py-0"
-    data-slot="card"
-  >
-    <div
-      class="p-4 text-sm text-muted-foreground"
-    >
-      Select a product
-    </div>
-  </div>
-</div>
+/>
 `;
 
 exports[`ProductTile stories snapshot > OutOfStock story renders and matches snapshot 1`] = `
@@ -390,17 +381,16 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           </a>
         </div>
         <a
-          aria-hidden="true"
-          class="absolute inset-0 z-[1] cursor-pointer"
+          aria-label="Charcoal Single Pleat Wool Suit"
+          class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           href="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
-          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
         />
         <div
           class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
         >
           <div
-            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+            class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
           >
             <button
               aria-label="Add to Wishlist"
@@ -427,7 +417,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
         >
           <button
             aria-label="Quick Add Charcoal Single Pleat Wool Suit"
@@ -447,12 +437,12 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
       <div>
         <div
           aria-label="Available colours"
-          class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+          class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
           role="group"
         >
           <a
             aria-label="View Charcoal Single Pleat Wool Suit in Navy"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
             href="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
             style="background-color: navy;"
             to="/RefArchGlobal/en-GB/product/25686571M?color=NAVYWL"
@@ -467,7 +457,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
           <a
             aria-current="true"
             aria-label="View Charcoal Single Pleat Wool Suit in Charcoal"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
             href="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
             to="/RefArchGlobal/en-GB/product/25686571M?color=CHARCWL"
           >
@@ -486,11 +476,14 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
         Test Store
       </p>
       <h3
+        aria-label="Charcoal Single Pleat Wool Suit"
         class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
       >
         <a
-          class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          aria-hidden="true"
+          class="hover:underline"
           href="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
+          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/25686571M?pid=750518894461M"
         >
           Charcoal Single Pleat Wool Suit
@@ -581,7 +574,7 @@ exports[`ProductTile stories snapshot > OutOfStock story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -694,10 +687,9 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           </a>
         </div>
         <a
-          aria-hidden="true"
-          class="absolute inset-0 z-[1] cursor-pointer"
+          aria-label="Long Sleeve Embellished Boat Neck Top"
+          class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           href="/RefArchGlobal/en-GB/product/25518101M?pid=701642823919M"
-          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/25518101M?pid=701642823919M"
         />
         <div
@@ -748,7 +740,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
             </div>
           </div>
           <div
-            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+            class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
           >
             <button
               aria-label="Add to Wishlist"
@@ -775,7 +767,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
         >
           <button
             aria-label="Quick Add Long Sleeve Embellished Boat Neck Top"
@@ -795,12 +787,12 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
       <div>
         <div
           aria-label="Available colours"
-          class="flex items-center gap-1 mb-2 relative z-20 flex-wrap"
+          class="flex items-center gap-2 mb-2 relative z-20 flex-wrap"
           role="group"
         >
           <a
             aria-label="View Long Sleeve Embellished Boat Neck Top in Begonia Pink"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring hover:ring-[3px] hover:ring-muted-hover"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 hover:ring-[3px] hover:ring-muted-hover"
             href="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
             to="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
           >
@@ -814,7 +806,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
           <a
             aria-current="true"
             aria-label="View Long Sleeve Embellished Boat Neck Top in Grey Heather"
-            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
+            class="w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2 ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground"
             href="/RefArchGlobal/en-GB/product/25518101M?color=JJ908XX"
             to="/RefArchGlobal/en-GB/product/25518101M?color=JJ908XX"
           >
@@ -838,11 +830,14 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
         Men
       </p>
       <h3
+        aria-label="Long Sleeve Embellished Boat Neck Top"
         class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
       >
         <a
-          class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          aria-hidden="true"
+          class="hover:underline"
           href="/RefArchGlobal/en-GB/product/25518101M?pid=701642823919M"
+          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/25518101M?pid=701642823919M"
         >
           Long Sleeve Embellished Boat Neck Top
@@ -933,7 +928,7 @@ exports[`ProductTile stories snapshot > Playground story renders and matches sna
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)
@@ -1061,17 +1056,16 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
           </a>
         </div>
         <a
-          aria-hidden="true"
-          class="absolute inset-0 z-[1] cursor-pointer"
+          aria-label="Winter Look"
+          class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
           href="/RefArchGlobal/en-GB/product/winter-lookM"
-          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/winter-lookM"
         />
         <div
           class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
         >
           <div
-            class="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300"
+            class="invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
           >
             <button
               aria-label="Add to Wishlist"
@@ -1098,7 +1092,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
           class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-opacity duration-300 pointer-events-none"
         />
         <div
-          class="absolute bottom-4 left-0 right-0 px-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity duration-300 z-20"
+          class="absolute bottom-4 left-0 right-0 px-4 invisible opacity-0 transition-[opacity,visibility] duration-300 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 z-20"
         >
           <button
             aria-label="Quick Add Winter Look"
@@ -1121,11 +1115,14 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
         Test Store
       </p>
       <h3
+        aria-label="Winter Look"
         class="text-lg font-semibold leading-[120%] tracking-[-0.45px] text-card-foreground mb-2"
       >
         <a
-          class="hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          aria-hidden="true"
+          class="hover:underline"
           href="/RefArchGlobal/en-GB/product/winter-lookM"
+          tabindex="-1"
           to="/RefArchGlobal/en-GB/product/winter-lookM"
         >
           Winter Look
@@ -1216,7 +1213,7 @@ exports[`ProductTile stories snapshot > ProductSetWithPriceRange story renders a
             </div>
             <button
               aria-label="(218)"
-              class="cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
+              class="inline-flex items-center justify-center -m-1.5 p-1.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 rounded-ui text-xs text-muted-foreground"
               type="button"
             >
               (218)

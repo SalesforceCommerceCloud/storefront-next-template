@@ -39,6 +39,13 @@ export interface GalleryImage {
     src: string;
     alt?: string;
     thumbSrc?: string;
+    /**
+     * Optional descriptive name for this image's view (e.g. a specific angle), surfaced as the
+     * thumbnail selector button's accessible name so a screen-reader user can choose a view before
+     * activating it. When omitted, the button falls back to the generic "product image N of M" name,
+     * so callers that don't supply per-view names are unaffected.
+     */
+    thumbnailLabel?: string;
 }
 
 interface ImageGalleryWidths {
@@ -75,6 +82,13 @@ interface ImageGalleryProps {
      * container so DIS doesn't deliver oversized variants.
      */
     widths?: ImageGalleryWidths;
+    /**
+     * PDP product-image layout. `'stacked'` (default) = hero image + thumbnail selector (unchanged).
+     * `'mosaic'` = a flat 2-column grid of all images where index 0 and every `index % 3 === 0` (plus a
+     * trailing orphan) span both columns — used by furniture, selected via
+     * `uiConfig.pages.product.galleryLayout`. Non-PDP callers (modals) omit it and stay `'stacked'`.
+     */
+    layout?: 'stacked' | 'mosaic';
 }
 
 type NetworkInformation = {
@@ -118,6 +132,12 @@ const DEFAULT_WIDTHS_THUMBNAIL_GRID: DynamicImageDimensions = { base: 144, sm: 1
 // Horizontal strip uses fixed `h-16 w-16 sm:h-20 sm:w-20` — 64 base, 80 sm+. Fixed CSS, so this is intentionally
 // not configurable per consumer.
 const DEFAULT_WIDTHS_THUMBNAIL_STRIP: DynamicImageDimensions = [64, 80];
+// Mosaic "pair" tiles are half-width (`grid-cols-2`), and the gallery is half-viewport at `lg+` — narrower
+// than the full mosaic tiles (which reuse the `main` ladder). Rungs align with the existing thumb/main set.
+const DEFAULT_WIDTHS_MOSAIC_PAIR: DynamicImageDimensions = { base: '50vw', lg: 360, '2xl': 420 };
+// Mosaic renders at most this many images (2 full + 2 pair = 4 rows). Products with more large images are
+// truncated to keep a tidy grid; products with fewer render fewer rows.
+const MOSAIC_MAX = 6;
 
 /**
  * Respect the user-explicit Data Saver preference (`Save-Data`) by skipping preloads. Falls back to "preload allowed"
@@ -141,12 +161,14 @@ export default function ImageGallery({
     horizontalThumbnails = false,
     productName,
     widths,
+    layout = 'stacked',
 }: ImageGalleryProps): ReactElement {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const thumbStripRef = useRef<HTMLDivElement>(null);
     const config = useConfig();
     const mainWidths = widths?.main ?? DEFAULT_WIDTHS_MAIN;
     const thumbnailWidths = widths?.thumbnail ?? DEFAULT_WIDTHS_THUMBNAIL_GRID;
+    const mosaicPairWidths = widths?.thumbnail ?? DEFAULT_WIDTHS_MOSAIC_PAIR;
 
     const preloadGallerySlide = useCallback(
         (image: GalleryImage | undefined) => {
@@ -236,6 +258,52 @@ export default function ImageGallery({
 
     const imageAltFallback = productName || tProduct('imageAlt') || 'Product Image';
 
+    // Accessible name for a thumbnail button. A per-thumbnail label (e.g. a detected view like "Side
+    // view") is prepended to — not substituted for — the positional "image N of M": two thumbnails
+    // that resolve to the same label would otherwise share an identical name and a screen-reader user
+    // would lose track of which slide is which.
+    const thumbnailAccessibleName = (thumbnailLabel: string | undefined, index: number) =>
+        thumbnailLabel
+            ? tCommon('thumbnailImageLabeled', { label: thumbnailLabel, current: index + 1, total: images.length })
+            : tCommon('thumbnailImage', { current: index + 1, total: images.length });
+
+    // Mosaic layout (furniture PDP): a flat 2-column grid of all images (capped at MOSAIC_MAX). Index 0
+    // and every index%3===0 span both columns; a trailing orphan (last image at a pair-start) also spans
+    // both — reproducing the reference full→pair→full→pair mosaic. No hero image / thumbnail selection.
+    if (layout === 'mosaic') {
+        const mosaicImages = images.slice(0, MOSAIC_MAX);
+        return (
+            <UITarget targetId="sfcc.pdp.products.gallery">
+                <div
+                    data-gallery-mosaic
+                    className="grid grid-cols-2 gap-1 overflow-hidden rounded-ui"
+                    role="group"
+                    aria-label={imageAltFallback}>
+                    {mosaicImages.map((image, i) => {
+                        const isFull = i % 3 === 0 || (i === mosaicImages.length - 1 && i % 3 === 1);
+                        return (
+                            <div
+                                key={image.src + (image.thumbSrc || '')}
+                                className={cn(
+                                    'relative overflow-hidden bg-muted',
+                                    isFull ? 'col-span-2 aspect-[4/5] sm:aspect-square' : 'aspect-square'
+                                )}>
+                                <DynamicImage
+                                    src={image.src}
+                                    alt={image.alt || imageAltFallback}
+                                    widths={isFull ? mainWidths : mosaicPairWidths}
+                                    className="h-full w-full object-cover object-center [&_img]:object-cover! [&_img]:h-full! [&_img]:w-full! [&_img]:max-w-full!"
+                                    loading={eager && i === 0 ? 'eager' : 'lazy'}
+                                    priority={eager && i === 0 ? 'high' : undefined}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </UITarget>
+        );
+    }
+
     return (
         <UITarget targetId="sfcc.pdp.products.gallery">
             <div className="space-y-4">
@@ -272,7 +340,7 @@ export default function ImageGallery({
                                 onPointerEnter={handleThumbnailIntent}
                                 onFocus={handleThumbnailIntent}
                                 data-index={index}
-                                aria-label={tCommon('thumbnailImage', { current: index + 1, total: images.length })}
+                                aria-label={thumbnailAccessibleName(image.thumbnailLabel, index)}
                                 // The selected thumbnail is the current item within a single-select set, not an
                                 // independently toggleable control, so aria-current ("current" in a set) fits better
                                 // than aria-pressed ("toggle button, pressed"). Mirrors the swatch / pagination
@@ -331,7 +399,7 @@ export default function ImageGallery({
                                     onPointerEnter={handleThumbnailIntent}
                                     onFocus={handleThumbnailIntent}
                                     data-index={index}
-                                    aria-label={tCommon('thumbnailImage', { current: index + 1, total: images.length })}
+                                    aria-label={thumbnailAccessibleName(image.thumbnailLabel, index)}
                                     // See the grid layout above: aria-current, not aria-pressed, for the selected slide.
                                     aria-current={selectedImageIndex === index ? 'true' : undefined}
                                     className={cn(

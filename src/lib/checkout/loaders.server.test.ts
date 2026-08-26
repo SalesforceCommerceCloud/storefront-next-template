@@ -546,6 +546,54 @@ describe('Checkout Loaders', () => {
             expect(getShippingMethodsForShipment).not.toHaveBeenCalled();
         });
 
+        it('should fetch methods for a shipment with a pre-applied method but no address', async () => {
+            // A method applied before an address exists is still fetched so it can render as a summary.
+            const { getShippingMethodsForShipment } = await import('@/lib/api/shipping-methods.server');
+
+            vi.mocked(getShippingMethodsForShipment).mockResolvedValue({
+                applicableShippingMethods: [{ id: 'standard', name: 'Standard' }],
+            } as any);
+
+            const mockContext = {} as any;
+            const basket = {
+                basketId: 'test-basket',
+                shipments: [
+                    {
+                        shipmentId: 'shipment-1',
+                        shippingAddress: {},
+                        shippingMethod: { id: 'standard', name: 'Standard' },
+                    },
+                ],
+            } as any;
+
+            const result = await fetchShippingMethodsMapForBasket(mockContext, basket);
+
+            expect(getShippingMethodsForShipment).toHaveBeenCalledWith(mockContext, 'test-basket', 'shipment-1');
+            expect(result).toHaveProperty('shipment-1');
+            expect(result['shipment-1'].applicableShippingMethods).toHaveLength(1);
+        });
+
+        it('should skip a shipment with neither an address nor a pre-applied method (no regression)', async () => {
+            const { getShippingMethodsForShipment } = await import('@/lib/api/shipping-methods.server');
+
+            const mockContext = {} as any;
+            const basket = {
+                basketId: 'test-basket',
+                shipments: [
+                    {
+                        shipmentId: 'shipment-1',
+                        shippingAddress: {},
+                        shippingMethod: undefined,
+                    },
+                ],
+            } as any;
+
+            const result = await fetchShippingMethodsMapForBasket(mockContext, basket);
+
+            expect(result).toEqual({});
+            expect(getShippingMethodsForShipment).not.toHaveBeenCalled();
+        });
+
         it('should handle fetch failures gracefully', async () => {
             const { getShippingMethodsForShipment } = await import('@/lib/api/shipping-methods.server');
 

@@ -150,7 +150,7 @@ export default function CustomerReviewsSection({
         <div id="customer-reviews" tabIndex={-1} className="outline-none">
             <Accordion type="multiple" className="w-full" value={accordionValue} onValueChange={setAccordionValue}>
                 <AccordionItem value={CUSTOMER_REVIEWS_ACCORDION_VALUE}>
-                    <AccordionTrigger className="text-left hover:no-underline py-2 cursor-pointer">
+                    <AccordionTrigger headingLevel={2} className="text-left hover:no-underline py-2 cursor-pointer">
                         <span className="sm:text-2xl text-brand-black font-medium">{t('section.heading')}</span>
                     </AccordionTrigger>
                     {!isLoadingHeader && aggregateRating.count > 0 && (
@@ -162,6 +162,7 @@ export default function CustomerReviewsSection({
                                 <AiInsightCard
                                     variant="review"
                                     title={t('section.aiReviewSummary')}
+                                    titleAs="span"
                                     badgeText="Beta"
                                     description={aiSummary}
                                     rating={aggregateRating.average}

@@ -1,14 +1,24 @@
 import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 import type { StorybookConfig } from '@storybook/react-vite';
 import type { InlineConfig, Plugin } from 'vite';
+import { findCoreStoryFiles } from '../scripts/core-story-files.js';
 
+const CONFIG_DIR = dirname(fileURLToPath(import.meta.url)); // .storybook
+const packageRoot = join(CONFIG_DIR, '..');
+
+// When CHROMATIC_CORE_ONLY=true (set by scripts/chromatic-core.js), build ONLY the
+// stories tagged `chromatic-core` so untagged stories never enter the Storybook
+// bundle — they'd otherwise be uploaded to Chromatic as TurboSnap noise. Normal dev,
+// test, and build runs are unaffected and keep the full story list.
 const config: StorybookConfig = {
     staticDirs: ['../public'],
-    // Plain array (not a function): the Storybook test-runner statically
-    // reads `main.stories` and rejects a function form (its `.length` is the
-    // param count → 0 → "Could not find stories").
-    stories: ["../src/**/*.stories.@(ts|tsx)", "../src/**/*.mdx"],
+    // Not a function: the Storybook test-runner statically reads `main.stories`
+    // and rejects a function form (its `.length` is the param count → 0 →
+    // "Could not find stories").
+    stories: process.env.CHROMATIC_CORE_ONLY === 'true'
+        ? findCoreStoryFiles(packageRoot)
+        : ["../src/**/*.stories.@(ts|tsx)", "../src/**/*.mdx"],
     addons: [getAbsolutePath("@chromatic-com/storybook"), getAbsolutePath("@storybook/addon-docs"), getAbsolutePath("@storybook/addon-a11y"), getAbsolutePath("@storybook/addon-vitest")],
     core: {
         builder: {

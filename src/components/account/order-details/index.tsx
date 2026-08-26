@@ -25,9 +25,8 @@ import {
     useState,
 } from 'react';
 import { Await } from 'react-router';
-import { Check, ChevronDown, ExternalLink, Hash, X } from 'lucide-react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -48,17 +47,6 @@ import {
 } from '@/components/account/order-tracking/track-shipment';
 import OrderSummary from '@/components/order-summary';
 import ShippingAddressDisplay from '@/components/checkout/components/shipping-address-display';
-import {
-    ORDER_STATUS_BADGE_CLASS,
-    formatStatusFallbackLabel,
-    getOrderCancelStatusConfig,
-    getOrderReturnStatus,
-    getOrderReturnStatusConfig,
-    getOrderStatusConfig,
-    getShippingStatusConfig,
-    resolveOrderStatus,
-} from '@/lib/order/status';
-import { cn } from '@/lib/utils';
 import { UITarget } from '@/targets/ui-target';
 import { useAuth } from '@/providers/auth';
 import { getReturnableItems, isOrderOwnedBy } from '@/lib/order-management/return';
@@ -66,6 +54,13 @@ import { canCancelOrder, isOrderCancelled } from '@/lib/order-management/cancel'
 import type { CancelActionResult } from '@/components/account/order-details/cancel-order-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { OmsMetaDataResult } from '@/lib/api/order.server';
+import {
+    groupProductItemsByShipmentId,
+    getPaymentMethodDisplays,
+} from '@/components/account/order-details/order-badge-shared';
+import ShipmentShippingStatusBadge from '@/components/account/order-details/shipment-shipping-status-badge';
+import OrderStatusHeader from '@/components/account/order-details/order-status-header';
+import PaymentMethodCard from '@/components/account/order-details/payment-method-card';
 
 export type { ProductDataById };
 
@@ -76,8 +71,6 @@ const ReturnOrderDialog = lazy(() =>
 );
 
 const CancelOrderDialog = lazy(() => import('@/components/account/order-details/cancel-order-dialog'));
-
-const BADGE_BASE_CLASSES = 'shrink-0 font-semibold border-0 py-1 w-fit';
 
 // Delay before surfacing the cancel feedback alert, so screen readers finish
 // announcing the dialog close before the alert steals the live-region announcement.
@@ -94,63 +87,7 @@ export type OrderDetailsProps = {
     omsMetaData?: Promise<OmsMetaDataResult>;
 };
 
-type ProductItem = ShopperOrders.schemas['ProductItem'];
 type OmsReasonCode = ShopperOrders.schemas['OmsReasonCode'];
-
-function groupProductItemsByShipmentId(productItems: ProductItem[]): Record<string, ProductItem[]> {
-    return productItems.reduce<Record<string, ProductItem[]>>((itemsByShipmentId, item) => {
-        const shipmentId = item.shipmentId ?? 'default';
-        if (!itemsByShipmentId[shipmentId]) itemsByShipmentId[shipmentId] = [];
-        itemsByShipmentId[shipmentId].push(item);
-        return itemsByShipmentId;
-    }, {});
-}
-
-/** Raw `order.status` when it is not a known SCAPI enum value in {@link getOrderStatusConfig}. */
-function orderStatusFallbackLabel(status: string | undefined): string {
-    return formatStatusFallbackLabel(status);
-}
-
-function ShipmentShippingStatusBadge({
-    shippingStatus,
-    t,
-}: {
-    shippingStatus: string | undefined;
-    t: ReturnType<typeof useTranslation>['t'];
-}): ReactElement | null {
-    const trimmed = shippingStatus?.trim() ?? '';
-    const config = getShippingStatusConfig(shippingStatus);
-    if (!config && !trimmed) {
-        return null;
-    }
-    return (
-        <Badge
-            data-testid="shipping-status-badge"
-            className={cn(BADGE_BASE_CLASSES, config?.className ?? 'border-transparent bg-muted text-foreground')}>
-            {config ? t(config.labelKey) : formatStatusFallbackLabel(trimmed)}
-        </Badge>
-    );
-}
-
-type PaymentMethodDisplay = { id: string; label: string };
-
-function getPaymentMethodDisplays(
-    order: ShopperOrders.schemas['Order'],
-    t: ReturnType<typeof useTranslation>['t']
-): PaymentMethodDisplay[] {
-    const instruments = order.paymentInstruments ?? [];
-    return instruments.flatMap((instrument, index) => {
-        const card = instrument.paymentCard;
-        if (!card?.numberLastDigits) return [];
-        const id = instrument.paymentInstrumentId ?? `payment-${index}`;
-        const cardType = card.cardType ?? 'Card';
-        const label = t('orders.paymentMethodEndingIn', {
-            cardType,
-            lastDigits: card.numberLastDigits,
-        });
-        return [{ id, label }];
-    });
-}
 
 function orderReviewStorageKey(orderNo: string | undefined): string {
     return `orderReviewSubmittedLines:${orderNo ?? ''}`;
@@ -558,26 +495,6 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
     const orderDetailsHeadingRef = useRef<HTMLHeadingElement | null>(null);
     const shipments = order.shipments ?? [];
     const productItems = order.productItems ?? [];
-    // Derived order-level statuses (aggregated from item-level omsData.status).
-    // Priority mirrors PWA Kit's OrderStatusBadge:
-    //   cancel (item-level all-cancelled) → return (aggregated from items) → raw status.
-    // The raw status uses the shared resolveOrderStatus (ECOM-first, OMS as fallback) so
-    // this badge and the order-history list badge can never disagree for the same order —
-    // distinct from the tracking mapper's OMS-preferred shipment *sourcing*. SCAPI's
-    // Order.status can lag behind OMS (stays "created"/"new" while OMS reports "Approved"),
-    // so resolveOrderStatus falls back to omsData.status when ECOM is silent. The
-    // per-shipment shipping-status badge below stays ECOM — an OMS shipment has no join key
-    // to a specific ECOM shipment, so OMS-enriching it would render data against the wrong one.
-    const cancelStatusConfig = getOrderCancelStatusConfig(order);
-    const returnStatusConfig = !cancelStatusConfig
-        ? getOrderReturnStatusConfig(getOrderReturnStatus(order))
-        : undefined;
-    const orderStatus = resolveOrderStatus(order);
-    const orderStatusConfig = getOrderStatusConfig(orderStatus);
-    const orderStatusLabelFallback = orderStatusFallbackLabel(orderStatus);
-    const showOrderStatusBadge =
-        cancelStatusConfig || returnStatusConfig || orderStatusConfig || orderStatusLabelFallback;
-    const OrderStatusIcon = orderStatusConfig?.icon === 'check' ? Check : orderStatusConfig?.icon === 'x' ? X : null;
     const itemsByShipmentId = groupProductItemsByShipmentId(productItems);
     const paymentMethodDisplays = getPaymentMethodDisplays(order, t);
     // Whether the order has a card to show in the tracking section. Gate on the SAME
@@ -614,56 +531,7 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                     </div>
 
                     {/* Order Details header */}
-                    <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
-                        <div>
-                            <h1
-                                ref={orderDetailsHeadingRef}
-                                tabIndex={-1}
-                                className="text-2xl font-semibold outline-none">
-                                {t('orders.orderDetailsPageTitle')}
-                            </h1>
-                            <p
-                                className="mt-1 flex items-center gap-0 text-base font-medium text-muted-foreground"
-                                data-testid="order-number">
-                                <Hash className="size-4 shrink-0" aria-hidden={true} />
-                                <span>{order.orderNo}</span>
-                            </p>
-                        </div>
-                        {cancelStatusConfig ? (
-                            <Badge
-                                data-testid="order-cancel-status-badge"
-                                className={cn(BADGE_BASE_CLASSES, cancelStatusConfig.className)}>
-                                <X
-                                    data-testid="order-status-icon"
-                                    className="mr-1 inline size-3.5"
-                                    aria-hidden={true}
-                                />
-                                {t(cancelStatusConfig.labelKey)}
-                            </Badge>
-                        ) : returnStatusConfig ? (
-                            <Badge
-                                data-testid="order-return-status-badge"
-                                className={cn(BADGE_BASE_CLASSES, returnStatusConfig.className)}>
-                                {t(returnStatusConfig.labelKey)}
-                            </Badge>
-                        ) : showOrderStatusBadge ? (
-                            <Badge
-                                data-testid="order-status-badge"
-                                className={cn(
-                                    BADGE_BASE_CLASSES,
-                                    orderStatusConfig?.className ?? ORDER_STATUS_BADGE_CLASS.success
-                                )}>
-                                {OrderStatusIcon ? (
-                                    <OrderStatusIcon
-                                        data-testid="order-status-icon"
-                                        className="mr-1 inline size-3.5"
-                                        aria-hidden={true}
-                                    />
-                                ) : null}
-                                {orderStatusConfig ? t(orderStatusConfig.labelKey) : orderStatusLabelFallback}
-                            </Badge>
-                        ) : null}
-                    </div>
+                    <OrderStatusHeader order={order} headingRef={orderDetailsHeadingRef} />
 
                     {/* Order-level action bar (return / cancel / track shipment / support). Sits
                         directly under the header — matching the order-management design (PR #1911) —
@@ -774,7 +642,7 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                         ) : null}
                         <UITarget targetId="sfcc.myAccount.orderDetails.support" />
                     </div>
-                    <div className="border-t border-muted-foreground/20" aria-hidden />
+                    <div className="border-t border-border" aria-hidden />
 
                     {/* Items Ordered and Order Summary */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -789,7 +657,7 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                                             <div
                                                 key={sid}
                                                 data-shipment-id={sid}
-                                                className={idx > 0 ? 'border-t border-muted-foreground/20' : ''}>
+                                                className={idx > 0 ? 'border-t border-border' : ''}>
                                                 <div className="px-3 py-2 bg-muted flex flex-nowrap items-center justify-between gap-2">
                                                     <h3 className="text-sm min-w-0 font-medium">
                                                         {t('orders.shipmentNumber', {
@@ -812,31 +680,29 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                                                     <UITarget targetId="sfcc.myAccount.orderDetails.review" />
                                                 </div>
                                                 {/* Shipping Address for this shipment */}
-                                                <div className="mt-2 border-t border-muted-foreground/20 pt-4 px-3 pb-3 mx-3">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                        {shipment.shippingAddress && (
-                                                            <Card
-                                                                className="rounded-ui  min-h-[4rem] p-0 bg-card"
-                                                                data-card="shipping-address">
-                                                                <CardContent className="p-3">
-                                                                    <p className="text-xs font-semibold text-foreground">
-                                                                        {t('orders.shippingAddress')}
+                                                {shipment.shippingAddress && (
+                                                    <div className="mt-2 p-3">
+                                                        <Card
+                                                            className="rounded-ui p-0 bg-card"
+                                                            data-card="shipping-address">
+                                                            <CardContent className="p-4">
+                                                                <h4 className="text-xs font-semibold text-foreground">
+                                                                    {t('orders.shippingAddress')}
+                                                                </h4>
+                                                                <div className="mt-2">
+                                                                    <ShippingAddressDisplay
+                                                                        address={shipment.shippingAddress}
+                                                                    />
+                                                                </div>
+                                                                {shipment.shippingMethod?.name && (
+                                                                    <p className="mt-2 text-sm text-muted-foreground">
+                                                                        {shipment.shippingMethod.name}
                                                                     </p>
-                                                                    <div className="mt-2">
-                                                                        <ShippingAddressDisplay
-                                                                            address={shipment.shippingAddress}
-                                                                        />
-                                                                    </div>
-                                                                    {shipment.shippingMethod?.name && (
-                                                                        <p className="mt-2 text-sm text-muted-foreground">
-                                                                            {shipment.shippingMethod.name}
-                                                                        </p>
-                                                                    )}
-                                                                </CardContent>
-                                                            </Card>
-                                                        )}
+                                                                )}
+                                                            </CardContent>
+                                                        </Card>
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -858,20 +724,7 @@ export function OrderDetails({ order, productsById, omsMetaData }: OrderDetailsP
                             <UITarget targetId="sfcc.myAccount.orderDetails.tax">
                                 <OrderSummary basket={order} showCartItems={false} showHeading={false} />
                             </UITarget>
-                            {paymentMethodDisplays.length > 0 && (
-                                <div className="space-y-1.5">
-                                    <p className="text-xs font-semibold text-foreground">{t('orders.paymentMethod')}</p>
-                                    <Card className="rounded-ui p-0 bg-card" data-card="payment-method">
-                                        <CardContent className="p-3 py-2">
-                                            <ul className="text-sm font-medium text-muted-foreground space-y-1 list-none">
-                                                {paymentMethodDisplays.map(({ id, label }) => (
-                                                    <li key={id}>{label}</li>
-                                                ))}
-                                            </ul>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            )}
+                            <PaymentMethodCard payments={paymentMethodDisplays} />
                         </div>
                     </div>
                 </CardContent>

@@ -21,10 +21,34 @@
         "hero": {
             "defaultTitle": "Nu shoppen",
             "defaultImageAlt": "Hero-afbeelding",
-            "defaultCtaText": "Nu shoppen"
+            "defaultCtaText": "Nu shoppen",
+            "emptyTitle": "Voeg hier je titel toe",
+            "emptyButton": "Knop"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Voeg hier je titel toe"
         },
         "previousImage": "Vorige afbeelding",
-        "nextImage": "Volgende afbeelding"
+        "nextImage": "Volgende afbeelding",
+        "popularCategory": {
+            "emptyTitle": "Categorie"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Voeg hier je titel toe"
+        },
+        "contentCard": {
+            "emptyTitle": "Voeg hier je titel toe",
+            "emptyDescription": "Voeg hier je beschrijving toe"
+        },
+        "productTile": {
+            "emptyTitle": "Product"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Productaanbevelingen"
+        }
     },
     "search": {
         "results": "Zoekresultaten voor",
@@ -86,6 +110,7 @@
         "mobileNavigation": "Mobiel navigatiemenu",
         "expandCategory": "Uitvouwen {{category}}",
         "collapseCategory": "Samenvouwen {{category}}",
+        "shopAllCategory": "Alle {{category}} shoppen",
         "menu": {
             "yourLists": "Je lijsten",
             "yourAccount": "Je account",
@@ -310,7 +335,7 @@
         "itemCount_other": "Winkelwagen ({{count}} artikelen)",
         "empty": {
             "title": "Je winkelwagen is leeg.",
-            "registeredMessage": "Ga door met shoppen om artikelen aan je winkelwagen toe te voegen.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Meld je aan om je opgeslagen artikelen terug te halen of om door te gaan met shoppen.",
             "continueShopping": "Doorgaan met shoppen",
             "signIn": "Aanmelden"
@@ -595,6 +620,7 @@
             "hero": {
                 "thankYou": "Bedankt, {{name}}!",
                 "orderConfirmed": "Je order is bevestigd.",
+                "statusAnnouncement": "Je order is bevestigd. Ordernummer {{orderNo}}.",
                 "emailConfirmation": "We hebben een e-mail met de bevestiging gestuurd naar {{email}}",
                 "needHelp": "Hulp nodig?",
                 "defaultName": "Klant",
@@ -1126,7 +1152,9 @@
         "categoryGrid": {
             "title": "Stijl voor het echte leven",
             "description": "Bij Market Street vinden we dat mode moeiteloos, authentiek en toegankelijk moet zijn. Onze collecties zijn ontworpen voor de moderne mens die waarde hecht aan kwaliteit, veelzijdigheid en een tijdloze stijl.",
-            "shopNowButton": "Nu shoppen"
+            "shopNowButton": "Nu shoppen",
+            "emptyTitle": "Voeg hier je titel toe",
+            "emptyRegionLabel": "Categorieëncarrousel"
         },
         "featuredContent": {
             "women": {
@@ -1342,14 +1370,6 @@
         "returnsAndWarrantyDescription": "Details van retouren en garantie",
         "close": "Sluiten"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Geschatte levertijd",
-        "cardDescription": "Beschikbare verzendopties",
-        "learnMore": "Meer informatie",
-        "sectionHeading": "Geschatte levertijd",
-        "shippingOptionsHeading": "Verzendopties en tarieven",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Los het volgende op:",
@@ -1412,6 +1432,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Bezorgmethode",
+            "deliveryDescription": "Voer uw postcode in om de leveringsschatting te zien"
+        },
         "recommendations": {
             "youMightAlsoLike": "Dit vind je misschien ook leuk",
             "completeTheLook": "Look completeren",
@@ -1448,7 +1473,6 @@
         "quickAdd": "Snel toevoegen",
         "buyItNow": "Nu kopen",
         "pickupAvailable": "Ophalen beschikbaar",
-        "selectProduct": "Selecteer een product",
         "updatingCart": "Bijwerken...",
         "updateCart": "Bijwerken",
         "addingToWishlist": "Toevoegen aan verlanglijst...",

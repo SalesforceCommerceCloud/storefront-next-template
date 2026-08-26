@@ -18,6 +18,7 @@ import { expect, within } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 
 import EmptyCart from '../cart-empty';
+import AuthProvider from '@/providers/auth';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const meta: Meta<typeof EmptyCart> = {
@@ -78,5 +79,20 @@ export const Default: Story = {
 
         const cta = await canvas.findByText(t('cart:empty.continueShopping'));
         await expect(cta).toBeInTheDocument();
+    },
+};
+
+export const RegisteredShopper: Story = {
+    render: () => (
+        <AuthProvider value={{ userType: 'registered', customerId: 'storybook-customer' }}>
+            <EmptyCart />
+        </AuthProvider>
+    ),
+    parameters: {
+        docs: {
+            description: {
+                story: 'Empty cart state for a registered shopper, with personalized guidance instead of the guest sign-in message.',
+            },
+        },
     },
 };

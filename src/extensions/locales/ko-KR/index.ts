@@ -17,21 +17,39 @@
 // NOTE: This file is auto-generated. Do not edit manually.
 // Run 'pnpm locales:aggregate-extensions' to regenerate this file.
 
+// @sfdc-extension-line SFDC_EXT_BNPL
 import bnplTranslations from '@/extensions/bnpl/locales/ko-KR/translations.json';
+// @sfdc-extension-line SFDC_EXT_BOPIS
 import bopisTranslations from '@/extensions/bopis/locales/ko-KR/translations.json';
+// @sfdc-extension-line SFDC_EXT_CUSTOMER_PREFERENCES
 import customerPreferencesTranslations from '@/extensions/customer-preferences/locales/ko-KR/translations.json';
+// @sfdc-extension-line SFDC_EXT_MULTISHIP
 import multishipTranslations from '@/extensions/multiship/locales/ko-KR/translations.json';
+// @sfdc-extension-line SFDC_EXT_PRODUCT_CONTENT
 import productContentTranslations from '@/extensions/product-content/locales/ko-KR/translations.json';
+// @sfdc-extension-line SFDC_EXT_RATINGS_REVIEWS
 import ratingsReviewsTranslations from '@/extensions/ratings-reviews/locales/ko-KR/translations.json';
+// @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+import shippingDeliveryTranslations from '@/extensions/shipping-delivery/locales/ko-KR/translations.json';
+// @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
 import storeLocatorTranslations from '@/extensions/store-locator/locales/ko-KR/translations.json';
 
 // Namespace is based on the following convention: extPascalCase, and it's the pascal case of the folder name (e.g. store-locator -> extStoreLocator)
 export default {
+    // @sfdc-extension-line SFDC_EXT_BNPL
     extBnpl: bnplTranslations,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
     extBopis: bopisTranslations,
+    // @sfdc-extension-line SFDC_EXT_CUSTOMER_PREFERENCES
     extCustomerPreferences: customerPreferencesTranslations,
+    // @sfdc-extension-line SFDC_EXT_MULTISHIP
     extMultiship: multishipTranslations,
+    // @sfdc-extension-line SFDC_EXT_PRODUCT_CONTENT
     extProductContent: productContentTranslations,
+    // @sfdc-extension-line SFDC_EXT_RATINGS_REVIEWS
     extRatingsReviews: ratingsReviewsTranslations,
+    // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+    extShippingDelivery: shippingDeliveryTranslations,
+    // @sfdc-extension-line SFDC_EXT_STORE_LOCATOR
     extStoreLocator: storeLocatorTranslations,
 };

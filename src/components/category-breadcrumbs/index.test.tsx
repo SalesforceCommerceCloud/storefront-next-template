@@ -20,6 +20,8 @@ import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import CategoryBreadcrumbs from './index';
 import type { ShopperProducts } from '@/scapi';
 
+type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
+
 const createTestWrapper = (component: React.ReactElement) => {
     const router = createMemoryRouter(
         [
@@ -35,7 +37,7 @@ const createTestWrapper = (component: React.ReactElement) => {
 
 describe('CategoryBreadcrumbs', () => {
     it('should render breadcrumbs from parentCategoryTree when provided', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-3',
             name: 'Subcategory',
             parentCategoryTree: [
@@ -55,7 +57,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     it('should render Home and fallback breadcrumb when parentCategoryTree is undefined', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-1',
             name: 'Root Category',
         };
@@ -68,7 +70,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     it('should render links with correct hrefs', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-2',
             name: 'Category',
             parentCategoryTree: [
@@ -89,7 +91,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     it('should show chevron icons between breadcrumb items', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'category-3',
             name: 'Third',
             parentCategoryTree: [
@@ -107,7 +109,7 @@ describe('CategoryBreadcrumbs', () => {
     });
 
     it('should show chevron between Home and single category item', () => {
-        const category: ShopperProducts.schemas['Category'] = {
+        const category: PrimaryCategory = {
             id: 'cat-1',
             name: 'Single',
             parentCategoryTree: [{ id: 'cat-1', name: 'Single' }],

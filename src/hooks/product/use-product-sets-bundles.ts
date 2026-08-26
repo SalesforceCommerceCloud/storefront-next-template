@@ -443,9 +443,11 @@ export function useProductSetsBundles({
     ]);
 
     // Bundle/set is out of stock if BOTH delivery methods are unavailable
-    let isCompletelyOutOfStock = isSiteOutOfStock;
-    // @sfdc-extension-line SFDC_EXT_BOPIS
-    isCompletelyOutOfStock = isCompletelyOutOfStock && isStoreOutOfStock;
+    const inventoryAvailability = { isCompletelyOutOfStock: isSiteOutOfStock };
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    inventoryAvailability.isCompletelyOutOfStock = isSiteOutOfStock && isStoreOutOfStock;
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const { isCompletelyOutOfStock } = inventoryAvailability;
 
     // Get the effective stock level and out-of-stock status for the bundle quantity picker
     // These should match the selected delivery method (store vs site)

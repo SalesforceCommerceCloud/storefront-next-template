@@ -27,10 +27,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import type { ShopperOrders } from '@/scapi';
+import type { OmsMetaDataResult } from '@/lib/api/order.server';
 
 type OmsReasonCode = ShopperOrders.schemas['OmsReasonCode'];
 
-export type CancelActionResult = { success: true } | { success: false; error: { kind: string; status: number } };
+export type CancelActionResult =
+    | { success: true; order?: unknown; omsMetaData?: OmsMetaDataResult }
+    | { success: false; error: { kind: string; status: number } };
 
 export type CancelOrderDialogProps = {
     orderNo: string;
@@ -45,6 +48,15 @@ export type CancelOrderDialogProps = {
      * after a successful cancel). Prevents focus dropping to `<body>` on dialog close.
      */
     fallbackFocusRef?: RefObject<HTMLElement | null>;
+    /**
+     * Submit target for the cancel request. Defaults to the registered-customer
+     * `/action/cancel-order` action; guest order lookup passes `/action/order-lookup-cancel`.
+     */
+    action?: string;
+    /** Form field name carrying `orderNo`. Defaults to `orderNo`; guest order lookup passes `orderNumber`. */
+    orderNumberFieldName?: string;
+    /** Additional form fields to submit alongside the order number (e.g. guest `email`). */
+    extraFields?: Record<string, string>;
 };
 
 export default function CancelOrderDialog({
@@ -55,6 +67,9 @@ export default function CancelOrderDialog({
     onSettled,
     triggerRef,
     fallbackFocusRef,
+    action,
+    orderNumberFieldName,
+    extraFields,
 }: CancelOrderDialogProps): ReactElement {
     const { t } = useTranslation('account');
     const fetcher = useFetcher<CancelActionResult>();
@@ -82,11 +97,14 @@ export default function CancelOrderDialog({
 
     const handleConfirm = () => {
         const formData = new FormData();
-        formData.set('orderNo', orderNo);
+        formData.set(orderNumberFieldName ?? 'orderNo', orderNo);
+        if (extraFields) {
+            Object.entries(extraFields).forEach(([key, value]) => formData.set(key, value));
+        }
         if (showReasonDropdown && selectedReason) {
             formData.set('reason', selectedReason);
         }
-        void fetcher.submit(formData, { method: 'post', action: '/action/cancel-order' });
+        void fetcher.submit(formData, { method: 'post', action: action ?? '/action/cancel-order' });
     };
 
     return (

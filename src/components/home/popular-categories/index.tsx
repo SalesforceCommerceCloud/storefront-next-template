@@ -22,6 +22,7 @@ import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
 import { RegionDefinition } from '@/lib/decorators';
 import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import type { NormalizedApiError } from '@/lib/api/normalized-api-error';
 // oxlint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
@@ -37,10 +38,35 @@ interface PopularCategoriesProps {
     title?: string;
     subtitle?: string;
     /**
+     * Heading alignment, forwarded to `CarouselSection`.
+     * - `'center'` (default): centered title/subtitle, no shop-all link (the classic categories look).
+     * - `'left'`: left-aligned title with an optional shop-all link on the right (see `shopAllUrl`/`shopAllText`).
+     * @default 'center'
+     */
+    titleAlign?: 'left' | 'center';
+    /**
+     * Optional "shop all" link URL, forwarded to `CarouselSection`.
+     * @remarks Only rendered when `titleAlign` is `'left'` (CarouselSection ignores it when centered).
+     */
+    shopAllUrl?: string;
+    /**
+     * Optional label for the "shop all" link, forwarded to `CarouselSection`.
+     * @remarks Only rendered when `titleAlign` is `'left'`.
+     */
+    shopAllText?: string;
+    /**
      * Center the category cards when they don't fill the track (see
      * `CarouselSection`'s `centerWhenPartial`). Off by default.
      */
     centerWhenPartial?: boolean;
+    /**
+     * Where each card's name sits relative to its image, forwarded to `PopularCategory`.
+     * `'overlay'` (default) keeps the name on the image; `'below'` renders it beneath.
+     * @default 'overlay'
+     */
+    labelPosition?: 'overlay' | 'below';
+    /** Image forwarded to category cards that have neither an image nor a banner. */
+    fallbackImageUrl?: string;
     // Data prop provided by the Page Designer component loader
     data?: ShopperProducts.schemas['Category'][];
     // Page Designer props
@@ -88,6 +114,14 @@ export class PopularCategoriesMetadata {
 
 const itemClassName = 'w-[348px] md:w-[256px] 2xl:w-[288px] basis-auto py-1 flex';
 
+/**
+ * Number of placeholder Category Cards rendered in the Page Designer design-mode empty state
+ * (W-23729836) so a freshly-dropped, unconfigured Categories Carousel reads as a real carousel row
+ * rather than an empty section. Enough to fill the track past the viewport edge at wide breakpoints,
+ * so the row reads as a scrollable carousel rather than a short, centered cluster.
+ */
+const EMPTY_STATE_PLACEHOLDER_COUNT = 8;
+
 function CategoriesError() {
     const error = useAsyncError() as NormalizedApiError;
     const { t } = useTranslation('home');
@@ -124,11 +158,24 @@ function CategoryCardsSkeleton() {
 /**
  * Renders a single category as a CarouselItem
  */
-function CategoryItem({ category }: { category: ShopperProducts.schemas['Category'] }) {
+function CategoryItem({
+    category,
+    labelPosition,
+    fallbackImageUrl,
+}: {
+    category: ShopperProducts.schemas['Category'];
+    labelPosition?: 'overlay' | 'below';
+    fallbackImageUrl?: string;
+}) {
     return (
         <CarouselItem className={itemClassName}>
             <div className="w-full max-w-full min-w-0 flex">
-                <PopularCategory category={category} className="h-full w-full" />
+                <PopularCategory
+                    category={category}
+                    labelPosition={labelPosition}
+                    fallbackImageUrl={fallbackImageUrl}
+                    className="h-full w-full"
+                />
             </div>
         </CarouselItem>
     );
@@ -144,16 +191,27 @@ function CategoryGridContent({
     component,
     title,
     subtitle,
+    titleAlign,
+    shopAllUrl,
+    shopAllText,
     centerWhenPartial,
+    labelPosition,
+    fallbackImageUrl,
 }: {
     data?: ShopperProducts.schemas['Category'][];
     categoriesPromise?: Promise<ShopperProducts.schemas['Category'][]>;
     component?: ComponentType;
     title?: string;
     subtitle?: string;
+    titleAlign?: 'left' | 'center';
+    shopAllUrl?: string;
+    shopAllText?: string;
     centerWhenPartial?: boolean;
+    labelPosition?: 'overlay' | 'below';
+    fallbackImageUrl?: string;
 }) {
     const { t } = useTranslation('home');
+    const { isDesignMode } = usePageDesignerMode();
     const resolvedTitle = title || t('categoryGrid.title');
     const resolvedSubtitle = subtitle || t('categoryGrid.description');
     const ariaLabel = resolvedTitle;
@@ -161,9 +219,30 @@ function CategoryGridContent({
     const sectionProps = {
         title: resolvedTitle,
         subtitle: resolvedSubtitle,
-        titleAlign: 'center' as const,
+        // Default to the classic centered look; `titleAlign="left"` opts into a shop-all link.
+        titleAlign: titleAlign ?? 'center',
+        shopAllUrl,
+        shopAllText,
         centerWhenPartial,
         ariaLabel,
+    };
+
+    // Empty-state heading: a neutral authoring placeholder, never the brand copy. The live carousel
+    // is titled with the merchant's default (`categoryGrid.title` = "Style for Real Life") and its
+    // marketing subtitle; leaking those into an *unconfigured* card reads as real content. A
+    // merchant-set title still wins, otherwise we show the generic "Add your title here" heading
+    // (shared wording with the Content Card empty state), left-aligned and with no subtitle.
+    const emptyStateTitle = title || t('categoryGrid.emptyTitle');
+    const emptyStateSectionProps = {
+        title: emptyStateTitle,
+        subtitle,
+        titleAlign: 'left' as const,
+        centerWhenPartial,
+        // Accessible name for the region: the visible heading is a bare edit prompt ("Add your title
+        // here"), so labelling the landmark with it would announce the region as an editing hint
+        // rather than its purpose (WCAG 2.4.6). Use the merchant's title when set, otherwise a
+        // descriptive "Categories carousel" — the heading stays the neutral placeholder either way.
+        ariaLabel: title || t('categoryGrid.emptyRegionLabel'),
     };
 
     // Determine if we should use Page Designer components or fallback categories
@@ -198,7 +277,12 @@ function CategoryGridContent({
         return (
             <CarouselSection {...sectionProps}>
                 {data.map((category) => (
-                    <CategoryItem key={category.id} category={category} />
+                    <CategoryItem
+                        key={category.id}
+                        category={category}
+                        labelPosition={labelPosition}
+                        fallbackImageUrl={fallbackImageUrl}
+                    />
                 ))}
             </CarouselSection>
         );
@@ -211,12 +295,37 @@ function CategoryGridContent({
                     {(categories) => (
                         <CarouselSection {...sectionProps}>
                             {categories.map((category: ShopperProducts.schemas['Category']) => (
-                                <CategoryItem key={category.id} category={category} />
+                                <CategoryItem
+                                    key={category.id}
+                                    category={category}
+                                    labelPosition={labelPosition}
+                                    fallbackImageUrl={fallbackImageUrl}
+                                />
                             ))}
                         </CarouselSection>
                     )}
                 </Await>
             </Suspense>
+        );
+    }
+
+    // Empty state (W-23729836): a freshly-dropped, unconfigured Categories Carousel with no cards yet.
+    // Rather than a bespoke placeholder, we feed empty `PopularCategory` (Category Card) children
+    // through the *real* CarouselSection render path — each renders its own design-mode empty state
+    // (placeholder image + default "Category" title). This keeps the authoring preview identical to a
+    // configured carousel and cannot drift from it. Page-Designer *authoring* affordance only: on the
+    // live storefront an unconfigured carousel still renders nothing, exactly as before.
+    if (isDesignMode) {
+        return (
+            <CarouselSection {...emptyStateSectionProps}>
+                {Array.from({ length: EMPTY_STATE_PLACEHOLDER_COUNT }, (_, i) => (
+                    <CarouselItem key={i} className={itemClassName}>
+                        <div className="w-full max-w-full min-w-0 flex">
+                            <PopularCategory labelPosition={labelPosition} className="h-full w-full" />
+                        </div>
+                    </CarouselItem>
+                ))}
+            </CarouselSection>
         );
     }
 
@@ -237,7 +346,12 @@ export default function PopularCategories({
     component,
     title,
     subtitle,
+    titleAlign,
+    shopAllUrl,
+    shopAllText,
     centerWhenPartial,
+    labelPosition,
+    fallbackImageUrl,
 }: PopularCategoriesProps) {
     return (
         <section className="bg-muted/50">
@@ -247,7 +361,12 @@ export default function PopularCategories({
                 component={component}
                 title={title}
                 subtitle={subtitle}
+                titleAlign={titleAlign}
+                shopAllUrl={shopAllUrl}
+                shopAllText={shopAllText}
                 centerWhenPartial={centerWhenPartial}
+                labelPosition={labelPosition}
+                fallbackImageUrl={fallbackImageUrl}
             />
         </section>
     );

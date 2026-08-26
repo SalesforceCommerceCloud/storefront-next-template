@@ -313,7 +313,7 @@ Both alias maps are optional. Without them, the raw site ID and locale ID appear
 
 ### Site and Locale Definitions
 
-Sites and their supported locales are defined under `commerce.sites`:
+Sites and their supported locales are defined in `config.server.ts` under `commerce.sites`. By default, sites and their locales are retrieved from the MRT Data Store. See [MRT Data Store Sites](#mrt-data-store-sites). If the MRT Data Store sites option is turned off, sites and locales are retrieved from `config.server.ts`.
 
 ```typescript
 commerce: {
@@ -332,13 +332,13 @@ commerce: {
 }
 ```
 
-### DAL-Sourced Sites (`commerce.sitesFromDal`)
+### MRT Data Store Sites
 
-On by default. When `commerce.sitesFromDal` is on, live site data synced through the Data Access Layer (DAL) replaces the static `commerce.sites` for site, locale, and currency resolution, resolved per request. `defaultSiteId`, `siteAliasMap`, and `localeAliasMap` stay static and derived from config, never from the DAL. Set the flag to `false` to keep the static `commerce.sites` authoritative regardless of the DAL.
+On by default. When `commerce.sitesFromDal` is on, live site data synced through the [MRT Data Store](https://developer.salesforce.com/docs/commerce/sfnext/guide/sfnext-mrt-data-store.html) replaces the static `commerce.sites` for site, locale, and currency resolution, resolved per request. `defaultSiteId`, `siteAliasMap`, and `localeAliasMap` stay static and derived from config, never from the MRT Data Store. Set the flag to `false` to keep the static `commerce.sites` authoritative.
 
-**Fallback rules.** The middleware keeps the static `commerce.sites`, and does not fail the request, whenever any of these hold: the flag is off, the DAL entry is unavailable, the DAL payload yields no usable sites, or the usable sites omit the site named by `defaultSiteId`. The last case logs a warning naming the missing default and the DAL site IDs actually present, so the drift is visible in monitoring while the storefront keeps serving. This is deliberate: the app-config middleware validates `defaultSiteId` against the static sites before the DAL rewrite runs, so falling back is provably safe, whereas failing the request would take every site down over one missing default.
+**Fallback behavior.** When the middleware can't get site data from the MRT Data Store, the storefront keeps serving the static `commerce.sites` and doesn't fail the request. This fallback applies whenever `commerce.sitesFromDal` is off, the MRT Data Store entry is unavailable, the payload yields no usable sites, or the usable sites omit the site named by `defaultSiteId`. That last case logs a warning naming the missing default and the site IDs actually present, so the issue is visible in monitoring.
 
-**URL aliasing stays config-owned.** When the flag is on, the DAL supplies which sites exist and their locale and currency data, but not how their URLs are aliased. `siteContextMiddleware`, which runs after the DAL rewrite, derives each resolved site's routing `alias` from the config `siteAliasMap`, keyed by site `id`, which is the same for DAL-sourced and static sites. So `siteAliasMap` and `localeAliasMap` remain the config-owned source for the `:siteId` and `:localeId` URL refs; a per-site `alias` value on the DAL payload does not change routing. Because a DAL `alias` or `name` would be overwritten before routing reads it, the DAL rewrite drops both at the source rather than carrying dead fields. Site detection matches a URL segment against a site's resolved `alias` before its `id` (see [Detection Config](#detection-config)), and that resolved `alias` comes from `siteAliasMap`, so keeping the maps in config is what keeps multi-site URLs stable when sites go live from the DAL.
+**URL aliasing stays config-owned.** The MRT Data Store supplies which sites exist and their locale and currency data, but not how their URLs are aliased. `siteContextMiddleware` runs after the data store rewrite and derives each resolved site's routing `alias` from the config `siteAliasMap`, keyed by site `id` (the same key for the data store and static sites), so `siteAliasMap` and `localeAliasMap` stay the config-owned source for the `:siteId` and `:localeId` URL refs. A per-site `alias` on the data store payload would be overwritten before routing reads it, so the rewrite drops it at the source. This is what keeps multi-site URLs stable when sites go live from the data store.
 
 ```bash
 # Opt out via env (see README-CONFIG.md) to keep static commerce.sites authoritative
@@ -378,7 +378,10 @@ import { Link, NavLink } from '@/components/link';
 
 Special cases:
 - External URLs (`http://`, `//`) are passed through unchanged
-- Non-string `to` values (objects) are passed through unchanged
+- Object `to` values with rooted pathnames are site-prefixed
+- Search-only strings and pathname-less objects with `search` resolve against the current route
+  before configured URL context is applied
+- Empty, hash-only, and relative object targets retain React Router's native resolution
 
 ### useNavigate
 

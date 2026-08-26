@@ -17,17 +17,26 @@ import type { ComponentProps } from 'react';
 import type { ShopperProducts, ShopperExperience } from '@/scapi';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import type { ComponentType } from '@/components/region';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { Link } from '@/components/link';
 import { Component } from '@/lib/decorators/component';
 import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
-import { cn } from '@/lib/utils';
+import { cn, resolveAssetUrl } from '@/lib/utils';
 import { carouselItemImageWidths } from '@/components/carousel-section';
 import { DynamicImage } from '@/components/dynamic-image';
 import { toImageUrl } from '@/lib/images/dynamic-image';
 import { useTranslation } from 'react-i18next';
-import heroImage from '/images/hero-01.webp';
+import heroImage from '/images/hero-03.webp';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { routes, routeHref } from '@/route-paths';
+
+/**
+ * Public-dir path to the shared authoring placeholder. Referenced by URL (not a module import) so
+ * the 906-byte SVG is never inlined as a data URI into this home-page component's shopper bundle —
+ * a top-level `import … from '/images/…svg'` would inline it and regress the home Lighthouse
+ * bundle-size budget. Only ever resolved on the design-mode empty-state path.
+ */
+const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
 
 // oxlint-disable-next-line react-refresh/only-export-components
 export { loader } from './loaders';
@@ -40,8 +49,24 @@ export { loader } from './loaders';
 interface PopularCategoryProps extends Omit<ComponentProps<typeof Link>, 'to'> {
     // Category data from Page Designer (via loader) or programmatic use
     category?: ShopperProducts.schemas['Category'];
+    /** Image shown when the category has neither an image nor a banner. */
+    fallbackImageUrl?: string;
     // Whether to display the category description on the card
     showDescription?: boolean;
+    /**
+     * Where the category name sits relative to the image.
+     * - `'overlay'` (default): name overlaid on the image with a gradient scrim and hover "Shop Now".
+     * - `'below'`: square image with the name as a plain label beneath it (no scrim, no "Shop Now").
+     *   `showDescription` is ignored in this layout.
+     * @default 'overlay'
+     */
+    labelPosition?: 'overlay' | 'below';
+    /**
+     * `'square'` preserves the default card media frame. `'fill'` lets a parent
+     * layout, such as a category mosaic, own the tile's aspect ratio.
+     * @default 'square'
+     */
+    mediaAspectRatio?: 'square' | 'fill';
     // Page Designer props (passed by Component wrapper, must be extracted to avoid passing to DOM)
     regionId?: string;
     page?: ShopperExperience.schemas['Page'];
@@ -82,7 +107,10 @@ export class PopularCategoryMetadata {
  */
 export default function PopularCategory({
     category,
+    fallbackImageUrl,
     showDescription = false,
+    labelPosition = 'overlay',
+    mediaAspectRatio = 'square',
     // Page Designer props - extracted to avoid passing to DOM
     regionId: _regionId,
     page: _page,
@@ -95,28 +123,81 @@ export default function PopularCategory({
     ...rest
 }: PopularCategoryProps) {
     const { t } = useTranslation('home');
+    const { t: tCommon } = useTranslation('common');
     const config = useConfig();
+    const { isDesignMode } = usePageDesignerMode();
 
     // Use data from loader (Page Designer) or category prop (programmatic use)
     // If category is a string, it's from Page Designer and we should ignore it (wait for loader data)
     // If category is an object, it's programmatic use
     const categoryData = data || (typeof category === 'object' && category !== null ? category : undefined);
 
-    if (!categoryData) {
+    // Empty state (W-23729812): a freshly-dropped Category Card with no category selected yet.
+    // Rather than a bespoke placeholder branch, we feed the shared image placeholder plus a default
+    // "Category" title through the component's *real* render path — so the authoring preview is the
+    // actual card layout (image surface + bottom title over the standard gradient) and cannot drift
+    // from a configured card. This is a Page-Designer *authoring* affordance, so it only kicks in
+    // during design mode; on the live storefront an unconfigured Category Card still renders nothing,
+    // exactly as before. Mirrors the Content Card's and Hero's design-mode gate.
+    const showEmptyState = !categoryData && isDesignMode;
+
+    if (!categoryData && !showEmptyState) {
         return null;
     }
 
-    const finalCategoryId = categoryData.id || '';
-    const finalName = categoryData.name || '';
-    const finalDescription = showDescription ? categoryData.pageDescription || categoryData.description || '' : '';
+    const finalCategoryId = categoryData?.id || '';
+    const finalName = showEmptyState ? tCommon('popularCategory.emptyTitle') : categoryData?.name || '';
+    const finalDescription = showDescription ? categoryData?.pageDescription || categoryData?.description || '' : '';
 
-    // Determine image URL - priority: category image > category banner > hero fallback
+    // Determine image URL - priority: category image > category banner > supplied fallback > shared fallback.
+    // In the empty state, substitute the shared placeholder image.
     const categoryImageUrl =
-        (typeof categoryData.image === 'string' && categoryData.image) ||
-        (typeof categoryData.c_slotBannerImage === 'string' && categoryData.c_slotBannerImage) ||
+        (typeof categoryData?.image === 'string' && categoryData.image) ||
+        (typeof categoryData?.c_slotBannerImage === 'string' && categoryData.c_slotBannerImage) ||
         undefined;
     const transformedCategoryImage = toImageUrl({ src: categoryImageUrl, config }) ?? categoryImageUrl;
-    const finalImageUrl: string = transformedCategoryImage || heroImage;
+    const finalImageUrl: string = showEmptyState
+        ? resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC)
+        : transformedCategoryImage || fallbackImageUrl || heroImage;
+
+    // 'below' layout: square image with the name as a plain label beneath it (no scrim overlay,
+    // no hover "Shop Now"). Used by the footwear activity rail.
+    if (labelPosition === 'below') {
+        return (
+            <Link
+                to={routeHref(routes.category, { categoryId: finalCategoryId })}
+                className={cn(
+                    'group flex flex-col items-center gap-3',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui',
+                    className
+                )}
+                {...rest}>
+                <div
+                    data-slot="category-media"
+                    className={cn(
+                        'relative w-full overflow-hidden rounded-ui bg-muted',
+                        mediaAspectRatio === 'square' ? 'aspect-square' : 'flex-1 min-h-0'
+                    )}>
+                    {/* Decorative: the adjacent visible label below names the link, so empty alt
+                        avoids the category name being announced twice by assistive technology. */}
+                    <DynamicImage
+                        src={finalImageUrl}
+                        alt=""
+                        className="h-full w-full"
+                        imageProps={{
+                            className:
+                                'h-full w-full object-cover transition-transform duration-300 group-hover:scale-105',
+                        }}
+                        widths={carouselItemImageWidths}
+                        loading="eager"
+                    />
+                </div>
+                <span data-slot="category-label" className="text-sm font-medium text-foreground group-hover:underline">
+                    {finalName}
+                </span>
+            </Link>
+        );
+    }
 
     return (
         <Link
@@ -127,11 +208,15 @@ export default function PopularCategory({
             )}
             {...rest}>
             <div className="group relative overflow-hidden bg-muted h-full">
-                <div className="aspect-square overflow-hidden">
+                <div
+                    data-slot="category-media"
+                    className={cn('overflow-hidden', mediaAspectRatio === 'square' ? 'aspect-square' : 'h-full')}>
                     <div className="relative w-full h-full transition-transform duration-500 group-hover:scale-105">
+                        {/* Decorative: the overlaid heading below names the link, so empty alt avoids
+                            the category name being announced twice by assistive technology. */}
                         <DynamicImage
                             src={finalImageUrl}
-                            alt={finalName}
+                            alt=""
                             className="w-full h-full"
                             imageProps={{ className: 'w-full h-full object-cover' }}
                             widths={carouselItemImageWidths}

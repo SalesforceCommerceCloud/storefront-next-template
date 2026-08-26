@@ -72,6 +72,18 @@ export async function fetchStores(
 }
 
 /**
+ * Returns the inventory list assigned to a store by the Store API.
+ *
+ * Basket mutations must not trust a client-submitted store/inventory pairing.
+ */
+export async function getStoreInventoryId(
+    context: Readonly<RouterContextProvider>,
+    storeId: string
+): Promise<string | undefined> {
+    return (await fetchStores(context, [storeId])).get(storeId)?.inventoryId;
+}
+
+/**
  * Fetches store details for all pickup stores in the basket.
  *
  * This function extracts unique store IDs from basket shipments that have

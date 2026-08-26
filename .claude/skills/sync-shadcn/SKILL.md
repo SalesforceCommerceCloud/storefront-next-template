@@ -1,7 +1,7 @@
 ---
 name: sync-shadcn
 description: |
-  Sync upstream shadcn/ui updates into our forked primitives in packages/storefront-ui/src/components/ui/ via a 3-way merge that preserves our customizations (relative imports, rounded-ui/shadow-ui/border-ui shape tokens, data-slot attributes, added props), AND apply our house-style shape tokens to ANY component via `restyle` — including a brand-new `npx shadcn add`ed primitive with no baseline. Use when shadcn ships new variants, accessibility fixes, or dependency bumps and you want to pull them into our forks without clobbering local changes (`sync`); when applying/normalizing our shape tokens on a new or existing component (`restyle`); when checking which primitives have drifted behind upstream (`status`) or off our house style (`infer`); or to see exactly what we customized for a component (`diff`). Repo-agnostic: resolves the ui dir from components.json, so it runs in a flattened customer/mirror repo, not just the monorepo.
+  Sync upstream shadcn/ui updates into our forked primitives in packages/storefront-ui/src/components/ui/ via a 3-way merge that preserves our customizations (relative imports, rounded-ui/shadow-ui/border-ui shape tokens, data-slot attributes, added props), AND apply our house-style shape tokens to ANY component via `restyle`. Use when onboarding a brand-new shadcn primitive in one house-style-correct step — fork + baseline + shape tokens + unified `radix-ui`→individual `@radix-ui/react-*` imports (`add`); when shadcn ships new variants, accessibility fixes, or dependency bumps and you want to pull them into our forks without clobbering local changes (`sync`); when applying/normalizing our shape tokens on a new or existing component (`restyle`); when checking which primitives have drifted behind upstream (`status`) or off our house style (`infer`); or to see exactly what we customized for a component (`diff`). Repo-agnostic: resolves the ui dir from components.json, so it runs in a flattened customer/mirror repo, not just the monorepo.
   SKIP when: editing fashion/cosmetic primitives directly (those derive from packages/template via the mvt-* mirror skills — restyle the storefront-ui source instead); making a one-off manual tweak to a single primitive.
 ---
 
@@ -33,7 +33,7 @@ The skill is **customization-as-merge** plus **customization-as-transform**:
 | | mechanism | what it handles | needs a baseline? |
 |---|---|---|---|
 | **`sync`** | 3-way `git merge-file` | STRUCTURAL deltas: added props, `data-slot`, behavior, variants | yes (the `.shadcn-baseline/` anchor) |
-| **`restyle`** | declarative ruleset (`ruleset.json`) | MECHANICAL shape tokens: `rounded-*`→`rounded-ui`, `shadow-*`→`shadow-ui`, `border`→`border-ui` (Card), import convention | no — works on any file |
+| **`restyle`** | declarative ruleset (`ruleset.json`) | MECHANICAL shape tokens: `rounded-*`→`rounded-ui`, `shadow-*`→`shadow-ui`, `border`→`border-ui` (Card), import convention, unified `radix-ui`→individual `@radix-ui/react-*` | no — works on any file |
 
 They compose: `sync` brings upstream structure in, then `restyle` normalizes any raw shape tokens
 the merge reintroduced. A brand-new component (no baseline) gets its house style from `restyle`
@@ -43,7 +43,7 @@ alone.
 
 - shadcn announced a release, or you want to check for drift → `status`.
 - A primitive needs an upstream a11y/variant fix → `sync <name>`.
-- Just ran `npx shadcn add <name>` → `restyle --path <file>` to apply our shape tokens.
+- Onboarding a NEW shadcn primitive → `add <name>` (one step: fork + baseline + house style).
 - Want to confirm forks haven't drifted off our house style → `restyle --all --check` / `infer --all`.
 - Periodically (e.g. quarterly) to keep forks from drifting far.
 
@@ -59,6 +59,7 @@ edits — they mirror `packages/template` (which inlines storefront-ui), so rest
 ```bash
 S=.claude/skills/sync-shadcn/sync.mjs
 
+node $S add slider                  # ONBOARD a new primitive: fork + baseline + house style, one step
 node $S status                      # behind / up-to-date / no-baseline for every primitive
 node $S sync button                 # 3-way merge one component (+ auto-restyle on a clean merge)
 node $S sync button dialog card     # several
@@ -91,18 +92,32 @@ className / `cn()` / `cva()` string literals, matching tokens by exact variant-s
 - **Import convention** auto-adapts: where the `@/` alias resolves via tsconfig `paths` (the
   customer/mirror convention), `@/` imports are KEPT; where it does not (storefront-ui bans `@/`
   under `ui/`), they are relativized (`@/lib/utils` → `../../lib/utils`).
+- **Radix unbundle** (`imports.unbundle`): upstream's unified `import { Dialog as DialogPrimitive }
+  from "radix-ui"` → the individual `import * as DialogPrimitive from "@radix-ui/react-dialog"` our
+  forks use (package derived from the export name, so `Dialog as SheetPrimitive` → `react-dialog`
+  with the alias kept). `Slot` is an `exceptions` entry: it becomes a named import from
+  `@radix-ui/react-slot` and its `Slot.Root` usage collapses to bare `Slot`. Matches only the exact
+  bare `radix-ui` specifier, so it is a **no-op** on already-individual forks.
 
 `restyle` is **idempotent** — the replacements are never members, so running twice is a no-op.
 
 ### New component flow
 
+One command onboards a new primitive — it fetches from the correct `new-york-v4` path
+(**not** the stale `new-york` that `npx shadcn add` uses), writes a house-styled fork
+(shape tokens + radix unbundle + import convention), and seeds the baseline from the same
+raw upstream in one step:
+
 ```bash
 cd packages/storefront-ui
-npx shadcn@latest add <name>                          # raw upstream into src/components/ui/
-node $S restyle src/components/ui/<name>.tsx          # apply our shape tokens + import convention
+node $S add <name>                                    # fork + baseline + house style, one step
 pnpm lint && pnpm typecheck                           # ESLint enforces the no-@/ import rule
-node $S sync <name> --bootstrap                        # seed the baseline so future syncs 3-way merge
 ```
+
+Because the fork and its baseline come from a single fetch, `status`/`diff` immediately show
+only our customizations — no phantom drift on the first sync. `add` refuses if the fork already
+exists (use `sync` to update it, or `add <name> --force` to overwrite). The baseline stays the
+pristine raw upstream (unified `radix-ui`, `@/` imports) — it is the 3-way merge anchor.
 
 ### Customer brand layer (dogfood path)
 
@@ -170,11 +185,25 @@ the `border-ui` utility, `data-slot`/`data-variant`/`data-size` attributes, rela
 
 | report | meaning | action |
 |--------|---------|--------|
-| `[new-dependency]` | upstream declares a dep we don't have (e.g. unified `radix-ui`) | review; our fork may intentionally use individual `@radix-ui/*` packages |
+| `[new-dependency]` | upstream declares a dep we don't have (e.g. unified `radix-ui`) | expected — the unbundle rule rewrites it to individual `@radix-ui/*`; review only if it's a non-radix dep |
+| `[dep-missing]` | the fork imports a package (or an upstream dep) that isn't in `package.json` | install it at a version consistent with the other forks, then re-run `add`/`advance` |
 | `[multi-file]` | upstream split the component into several files | merge the primary `<name>.tsx`; handle extra files manually |
 | `[renamed]` | upstream's file basename ≠ `<name>.tsx` | likely rename/split; inspect before trusting the merge |
-| `[missing-fork]` | exists upstream, not in our set | `npx shadcn add <name>`, then `restyle --path` to apply our shape tokens + `sync --bootstrap` to seed the baseline |
+| `[missing-fork]` | exists upstream, not in our set | `add <name>` — onboards fork + baseline + house style in one step |
 | `NOT FOUND (404)` | not published upstream (e.g. our custom `native-select`) | skipped; nothing to sync |
+
+## Manifest fields (`.shadcn-baseline/manifest.json`)
+
+Each component entry records:
+
+- `contentSha256` — sha of the pristine upstream baseline (the change-detection key).
+- `dependencies` — raw upstream dep **names** (e.g. `["radix-ui"]`), unchanged.
+- `resolvedDependencies` — the fork's actual packages → **installed versions** (e.g.
+  `{ "@radix-ui/react-slot": "1.2.3" }`), derived from the fork's post-unbundle imports and
+  `package.json`. Written by `add`/`advance`/`sync --bootstrap`; pins what our fork ships.
+- `syncedAt` — last **promotion** (seed / advance / add).
+- `checkedAt` — last **drift-check** (also stamped by `sync`'s up-to-date path). `status` is
+  read-only and does not write it.
 
 ## Notes
 

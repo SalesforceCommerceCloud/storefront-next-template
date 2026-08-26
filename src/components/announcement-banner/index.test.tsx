@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
-import { vi, describe, test, expect } from 'vitest';
+import { vi, describe, test, expect, beforeEach } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
@@ -28,6 +28,14 @@ vi.mock('@/lib/decorators', () => ({
 
 vi.mock('@/lib/decorators/attribute-definition', () => ({
     AttributeDefinition: () => () => {},
+}));
+
+// The instructional empty state is gated to Page Designer design mode. Default to false (live
+// storefront) so the bulk of the suite exercises the shopper-facing render; individual empty-state
+// tests flip this to true.
+let mockIsDesignMode = false;
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+    usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }),
 }));
 
 import AnnouncementBanner from './index';
@@ -46,6 +54,10 @@ function renderWithRouter(ui: React.ReactElement) {
 }
 
 describe('AnnouncementBanner', () => {
+    beforeEach(() => {
+        mockIsDesignMode = false;
+    });
+
     test('renders message text', () => {
         renderWithRouter(<AnnouncementBanner message="Free shipping on orders over $50" />);
         expect(screen.getByText('Free shipping on orders over $50')).toBeInTheDocument();
@@ -167,6 +179,62 @@ describe('AnnouncementBanner', () => {
         test('falls back to primary tokens for unknown colorScheme values', () => {
             renderWithRouter(<AnnouncementBanner message="Sale" colorScheme="rainbow" />);
             expect(screen.getByRole('status')).toHaveClass('bg-primary');
+        });
+    });
+
+    describe('Empty state (Page Designer authoring)', () => {
+        test('does not render the instructional empty state on the live storefront (not design mode)', () => {
+            const { container } = renderWithRouter(<AnnouncementBanner message="" />);
+
+            // On the live storefront an unconfigured banner still renders nothing — no authoring
+            // prompt is shown to shoppers.
+            expect(screen.queryByRole('status')).not.toBeInTheDocument();
+            expect(screen.queryByText('Add your text here')).not.toBeInTheDocument();
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
+        });
+
+        test('renders the instructional empty state in design mode as a default-styled banner with placeholder copy', () => {
+            mockIsDesignMode = true;
+            const { container } = renderWithRouter(<AnnouncementBanner message="" />);
+
+            // W-23729792: in Page Designer design mode, an unconfigured Announcement Banner renders
+            // like a real default banner (Primary color, Md height, Center alignment) with the
+            // placeholder message "Add your text here" — no decorative art and no CTA.
+            const emptyState = container.querySelector('[data-slot="empty-state"]');
+            expect(emptyState).toBeInTheDocument();
+            expect(screen.getByText('Add your text here')).toBeInTheDocument();
+            // Uses the default Primary color scheme via theme tokens (no hardcoded grey surface).
+            expect(emptyState).toHaveClass('bg-primary', 'text-primary-foreground');
+            expect(container.querySelector('.bg-muted')).not.toBeInTheDocument();
+            // The preview must use the component's *declared* default alignment (center) so the
+            // banner does not shift when an author types their first message — see normalizeAlignment
+            // and AnnouncementBannerMetadata.alignment (defaultValue: 'center').
+            expect(emptyState).toHaveClass('justify-center');
+            expect(screen.getByText('Add your text here')).toHaveClass('text-center');
+        });
+
+        test('the empty state has no interactive controls (illustrative placeholder only)', () => {
+            mockIsDesignMode = true;
+            renderWithRouter(<AnnouncementBanner message="" />);
+
+            // The placeholder is a preview of the default banner — copy only, no CTA button or link.
+            expect(screen.queryByRole('button')).not.toBeInTheDocument();
+            expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        });
+
+        test('configured banners are unchanged in design mode', () => {
+            mockIsDesignMode = true;
+            renderWithRouter(<AnnouncementBanner message="Sale" />);
+
+            expect(screen.getByText('Sale')).toBeInTheDocument();
+            expect(screen.queryByText('Add your text here')).not.toBeInTheDocument();
+        });
+
+        test('renders nothing when message is whitespace-only and design mode is disabled', () => {
+            const { container } = renderWithRouter(<AnnouncementBanner message="   " />);
+
+            expect(screen.queryByRole('status')).not.toBeInTheDocument();
+            expect(container.querySelector('[data-slot="empty-state"]')).not.toBeInTheDocument();
         });
     });
 });

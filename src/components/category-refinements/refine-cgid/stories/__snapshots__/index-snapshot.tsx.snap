@@ -2,39 +2,323 @@
 
 exports[`RefineCategory stories snapshot > FullyFeatured story renders and matches snapshot 1`] = `
 <div
-  class="flex flex-col gap-2 mt-2"
+  aria-label="cgid"
+  aria-required="false"
+  class="grid gap-3 space-y-1 mt-2"
+  data-slot="radio-group"
+  dir="ltr"
+  role="radiogroup"
+  style="outline: none;"
+  tabindex="0"
 >
-  <button
-    class="inline-flex items-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 justify-start border-foreground/80"
-    data-size="default"
-    data-slot="button"
-    data-variant="link"
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_0_-0"
   >
-    Mens
-  </button>
-  <button
-    class="inline-flex items-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 justify-start"
-    data-size="default"
-    data-slot="button"
-    data-variant="link"
+    <button
+      aria-checked="true"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="checked"
+      id="_r_0_-0"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="mens"
+    >
+      <span
+        class="relative flex items-center justify-center"
+        data-slot="radio-group-indicator"
+        data-state="checked"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-circle fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+        </svg>
+      </span>
+    </button>
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Mens
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      42
+    </span>
+  </label>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_0_-1"
   >
-    Womens
-  </button>
-  <button
-    class="inline-flex items-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 justify-start"
-    data-size="default"
-    data-slot="button"
-    data-variant="link"
+    <button
+      aria-checked="false"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="unchecked"
+      id="_r_0_-1"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="womens"
+    />
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Womens
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      36
+    </span>
+  </label>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_0_-2"
   >
-    Electronics
-  </button>
-  <button
-    class="inline-flex items-center gap-2 whitespace-nowrap rounded-ui text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary underline-offset-4 hover:underline h-9 px-4 py-2 has-[>svg]:px-3 justify-start"
-    data-size="default"
-    data-slot="button"
-    data-variant="link"
+    <button
+      aria-checked="false"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="unchecked"
+      id="_r_0_-2"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="electronics"
+    />
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Electronics
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      18
+    </span>
+  </label>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_0_-3"
   >
-    Accessories
-  </button>
+    <button
+      aria-checked="false"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="unchecked"
+      id="_r_0_-3"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="accessories"
+    />
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Accessories
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      24
+    </span>
+  </label>
+</div>
+`;
+
+exports[`RefineCategory stories snapshot > HierarchicalActivity story renders and matches snapshot 1`] = `
+<div
+  aria-label="cgid"
+  aria-required="false"
+  class="grid gap-3 space-y-1 mt-2"
+  data-slot="radio-group"
+  dir="ltr"
+  role="radiogroup"
+  style="outline: none;"
+  tabindex="0"
+>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_5_-0"
+  >
+    <button
+      aria-checked="true"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="checked"
+      id="_r_5_-0"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="running"
+    >
+      <span
+        class="relative flex items-center justify-center"
+        data-slot="radio-group-indicator"
+        data-state="checked"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-circle fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+        </svg>
+      </span>
+    </button>
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Running
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      42
+    </span>
+  </label>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_5_-1"
+  >
+    <button
+      aria-checked="false"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="unchecked"
+      id="_r_5_-1"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="trail"
+    />
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Trail
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      18
+    </span>
+  </label>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_5_-2"
+  >
+    <button
+      aria-checked="false"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="unchecked"
+      id="_r_5_-2"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="training"
+    />
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Training
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      24
+    </span>
+  </label>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_5_-3"
+  >
+    <button
+      aria-checked="false"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="unchecked"
+      id="_r_5_-3"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="walking"
+    />
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Walking
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      20
+    </span>
+  </label>
+  <label
+    class="flex items-center p-2 hover:bg-muted/30 cursor-pointer"
+    for="_r_5_-4"
+  >
+    <button
+      aria-checked="false"
+      class="border-input text-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square shrink-0 rounded-full border shadow-ui transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 size-4"
+      data-radix-collection-item=""
+      data-slot="radio-group-item"
+      data-state="unchecked"
+      id="_r_5_-4"
+      role="radio"
+      tabindex="-1"
+      type="button"
+      value="casual"
+    />
+    <span
+      class="ml-3 text-sm font-medium"
+    >
+      Casual
+    </span>
+    <span
+      class="ml-auto text-xs bg-muted/50 px-2 py-1 rounded-full"
+    >
+      56
+    </span>
+  </label>
 </div>
 `;

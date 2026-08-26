@@ -55,6 +55,7 @@ const MOBILE_QUERY = '(max-width: 767px)';
  * @property identity - A stable string that changes whenever the underlying query changes (category,
  *   sort, refinements, locale, currency). When it changes, accumulated batches are discarded so the
  *   shopper starts from the fresh first page again.
+ * @property onLoad - Called after a successful shopper-initiated load with the newly appended batch.
  */
 export interface UseLoadMoreProductsOptions {
     refine: string[];
@@ -67,6 +68,7 @@ export interface UseLoadMoreProductsOptions {
     maxProducts: number;
     identity: string;
     offset?: number;
+    onLoad?: (result: CategoryProductsResult) => void;
 }
 
 /**
@@ -115,13 +117,18 @@ export function useLoadMoreProducts({
     maxProducts,
     identity,
     offset = 0,
+    onLoad,
 }: UseLoadMoreProductsOptions): UseLoadMoreProductsResult {
     const fetcher = useFetcher<typeof categoryProductsLoader>();
 
     // Batches appended after the initial (server-rendered) page.
     const [appended, setAppended] = useState<ProductSearchHit[]>([]);
+    const appendedProductIdsRef = useRef(new Set<string | undefined>());
     // Next offset to request. Starts just past the initial (server-rendered) page.
     const nextOffsetRef = useRef<number>(offset + initialCount);
+    const shopperLoadPendingRef = useRef(false);
+    const onLoadRef = useRef(onLoad);
+    onLoadRef.current = onLoad;
     // Index within `appended` where the most recent batch starts — used to focus the first new tile.
     const [firstNewIndex, setFirstNewIndex] = useState<number | null>(null);
 
@@ -149,6 +156,8 @@ export function useLoadMoreProducts({
         prevIdentityRef.current = identity;
 
         nextOffsetRef.current = offset + initialCount;
+        shopperLoadPendingRef.current = false;
+        appendedProductIdsRef.current.clear();
         setAppended([]);
         setFirstNewIndex(null);
 
@@ -169,25 +178,41 @@ export function useLoadMoreProducts({
     const result = asCategoryProductsResult(fetcher.data);
     const lastMergedRef = useRef<unknown>(null);
     useEffect(() => {
-        if (!result || fetcher.data === lastMergedRef.current) {
+        if (fetcher.state !== 'idle') {
+            return;
+        }
+        const shopperLoadPending = shopperLoadPendingRef.current;
+        shopperLoadPendingRef.current = false;
+        if (fetcher.data === lastMergedRef.current) {
             return;
         }
         lastMergedRef.current = fetcher.data;
+        if (!result) {
+            return;
+        }
         const batch = result.hits;
         if (batch.length === 0) {
             return;
         }
         nextOffsetRef.current = result.offset + batch.length;
-        setAppended((prev) => {
-            const seen = new Set<string | undefined>(prev.map((h) => h.productId));
-            const fresh = batch.filter((h) => !seen.has(h.productId));
-            if (!fresh.length) {
-                return prev;
+        const fresh = batch.filter((hit) => {
+            if (appendedProductIdsRef.current.has(hit.productId)) {
+                return false;
             }
+            appendedProductIdsRef.current.add(hit.productId);
+            return true;
+        });
+        if (shopperLoadPending && fresh.length > 0) {
+            onLoadRef.current?.({ ...result, hits: fresh });
+        }
+        if (fresh.length === 0) {
+            return;
+        }
+        setAppended((prev) => {
             setFirstNewIndex(prev.length);
             return [...prev, ...fresh];
         });
-    }, [fetcher.data, result]);
+    }, [fetcher.data, fetcher.state, result]);
 
     // Back-nav catch-up: read the prior loaded count from sessionStorage (keyed by React Router's
     // history key) synchronously so the skeleton grid renders on the very first frame — before
@@ -238,6 +263,7 @@ export function useLoadMoreProducts({
         for (const r of refine) {
             params.append(PRODUCT_SEARCH_QUERY_PARAMS.REFINE, r);
         }
+        shopperLoadPendingRef.current = true;
         void fetcher.load(`${resourceRoutes.categoryProducts}?${params.toString()}`);
     }, [isLoading, hasMore, effectiveBatchSize, maxProducts, sort, currency, refine]); // oxlint-disable-line react-hooks/exhaustive-deps -- fetcher.load is stable per React Router
 

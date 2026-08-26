@@ -15,8 +15,9 @@
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Hero from '../index';
-import { expect, within } from 'storybook/test';
+import { expect, within, waitFor } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
+import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
 
 type HeroProps = React.ComponentProps<typeof Hero>;
 type HeroArgs = HeroProps & {
@@ -25,7 +26,7 @@ type HeroArgs = HeroProps & {
     hasCta?: boolean;
 };
 
-const SAMPLE_IMAGE = '/images/hero-01.webp';
+const SAMPLE_IMAGE = '/images/hero-03.webp';
 
 const TYPOGRAPHY_OPTIONS = [
     'Default',
@@ -150,6 +151,70 @@ export const Default: Story = {
 
         await expect(await canvas.findByText(/welcome to our store/i)).toBeInTheDocument();
         await expect(await canvas.findByRole('link', { name: /shop now/i })).toBeInTheDocument();
+    },
+};
+
+export const UnconfiguredLiveStorefront: Story = {
+    args: {
+        title: '',
+        hasImage: false,
+        hasSubtitle: false,
+        hasCta: false,
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'W-23729775: a freshly-dropped, unconfigured Hero as a shopper sees it on the live storefront (not Page Designer design mode). Renders a plain muted box with no authoring prompt — the instructional empty state ("Add your title here" + a Button) is gated to design mode, so it never leaks to shoppers. See the Content/Page Designer/Overview stories for the design-mode authoring view.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await waitForStorybookReady(canvasElement);
+
+        // No authoring prompt on the live storefront — just the muted fallback surface.
+        await expect(canvas.queryByRole('heading', { name: /add your title here/i })).not.toBeInTheDocument();
+        await expect(canvas.queryByRole('img')).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector('.bg-muted')).not.toBeNull();
+    },
+};
+
+export const UnconfiguredDesignMode: Story = {
+    args: {
+        title: '',
+        hasImage: false,
+        hasSubtitle: false,
+        hasCta: false,
+    },
+    parameters: {
+        // Design mode renders the real Hero inside PageDesignerProvider's lazy Suspense provider,
+        // which resolves in a live browser but suspends to a fallback in the synchronous snapshot
+        // render — so this story is interaction-only and opts out of snapshotting.
+        snapshot: false,
+        docs: {
+            description: {
+                story: 'W-23733121: a freshly-dropped, unconfigured Hero as a merchant sees it in Page Designer design mode (`mode="EDIT"`). Renders the real decorated empty state — a muted surface with the wave decoration, the "Add your title here" prompt, and a non-interactive Button — the authoring cue that never leaks to shoppers (see UnconfiguredLiveStorefront for the live view).',
+            },
+        },
+    },
+    decorators: [
+        (Story) => (
+            <PageDesignerProvider clientId="storybook-hero" targetOrigin="*" mode="EDIT">
+                <Story />
+            </PageDesignerProvider>
+        ),
+    ],
+    play: async ({ canvasElement }) => {
+        const canvas = within(canvasElement);
+        await waitForStorybookReady(canvasElement);
+
+        // The lazy DesignProvider resolves asynchronously — wait for the authoring prompt to appear.
+        await waitFor(async () => {
+            await expect(canvas.getByRole('heading', { name: /add your title here/i })).toBeInTheDocument();
+        });
+        // The CTA is presentation only — a non-interactive span, not a real button.
+        await expect(canvas.queryByRole('button')).not.toBeInTheDocument();
+        await expect(canvasElement.querySelector('[data-slot="empty-state"]')).not.toBeNull();
     },
 };
 

@@ -125,6 +125,10 @@ vi.mock('@/providers/product-context', () => ({
     useProduct: vi.fn(() => null),
 }));
 
+vi.mock('@/providers/product-view', () => ({
+    default: ({ children }: any) => <div data-testid="product-view-provider">{children}</div>,
+}));
+
 vi.mock('@/components/region', () => ({
     Region: ({ fallback }: any) => <div data-testid="region">{fallback}</div>,
 }));
@@ -163,6 +167,16 @@ vi.mock('@/extensions/bopis/context/pickup-context', () => ({
 }));
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+vi.mock('@/extensions/shipping-delivery/context/shipping-delivery-context', () => ({
+    ShippingDeliveryProvider: ({ children, productId }: any) => (
+        <div data-testid="shipping-delivery-provider" data-product-id={productId}>
+            {children}
+        </div>
+    ),
+}));
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+
 // Import the functions we want to test
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
 
@@ -183,13 +197,6 @@ describe('Product Detail Route', () => {
         shortDescription: 'Test product description',
         longDescription: 'Long test product description',
         master: undefined,
-    };
-
-    const mockCategory: ShopperProducts.schemas['Category'] = {
-        id: 'test-category-123',
-        name: 'Test Category',
-        parentCategoryId: 'parent-category-123',
-        categories: [],
     };
 
     const mockPage = Promise.resolve({
@@ -255,16 +262,14 @@ describe('Product Detail Route', () => {
         }),
         pdpCollapsibles: Promise.resolve([]),
         // @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
-        // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-        estimatedDelivery: Promise.resolve({
-            title: '',
-            estimatedDelivery: { options: [], note: '' },
-            shippingOptions: [],
-            internationalShipping: { heading: '', points: [] },
-            orderTracking: { heading: '', points: [] },
-        }),
-        // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
     };
+
+    function renderProductPage(
+        ProductPage: React.ComponentType<{ loaderData: ProductPageData }>,
+        loaderData: ProductPageData
+    ) {
+        return render(<ProductPage loaderData={loaderData} />);
+    }
 
     describe('shouldRevalidate export', () => {
         // The policy itself (navigation axis + action-axis denylist) is covered by
@@ -326,7 +331,6 @@ describe('Product Detail Route', () => {
             const { default: ProductPage } = await import('./_app.product.$productId');
             const mockLoaderData: ProductPageData = {
                 product: productWithoutDescription,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: 'http://localhost/product/test',
@@ -335,7 +339,7 @@ describe('Product Detail Route', () => {
             };
 
             // Render the page component to exercise ProductDetailView
-            render(<ProductPage loaderData={mockLoaderData} />);
+            renderProductPage(ProductPage, mockLoaderData);
 
             // Component should handle missing shortDescription
             expect(productWithoutDescription.shortDescription).toBeUndefined();
@@ -353,7 +357,6 @@ describe('Product Detail Route', () => {
             const { default: ProductPage } = await import('./_app.product.$productId');
             const mockLoaderData: ProductPageData = {
                 product: productWithDescription,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: 'http://localhost/product/test',
@@ -362,7 +365,7 @@ describe('Product Detail Route', () => {
             };
 
             // Render the page component to exercise ProductDetailView
-            render(<ProductPage loaderData={mockLoaderData} />);
+            renderProductPage(ProductPage, mockLoaderData);
 
             // Component should handle shortDescription
             expect(productWithDescription.shortDescription).toBe('Test description');
@@ -375,7 +378,6 @@ describe('Product Detail Route', () => {
             const { default: ProductPage } = await import('./_app.product.$productId');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: 'http://localhost/product/test',
@@ -384,7 +386,7 @@ describe('Product Detail Route', () => {
             };
 
             // Render the page component to exercise ProductDetailView with product set
-            render(<ProductPage loaderData={mockLoaderData} />);
+            renderProductPage(ProductPage, mockLoaderData);
         });
 
         test('should render ProductDetailView with product bundle', async () => {
@@ -394,7 +396,6 @@ describe('Product Detail Route', () => {
             const { default: ProductPage } = await import('./_app.product.$productId');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: 'http://localhost/product/test',
@@ -403,7 +404,7 @@ describe('Product Detail Route', () => {
             };
 
             // Render the page component to exercise ProductDetailView with product bundle
-            render(<ProductPage loaderData={mockLoaderData} />);
+            renderProductPage(ProductPage, mockLoaderData);
         });
     });
 
@@ -423,7 +424,6 @@ describe('Product Detail Route', () => {
         test('should handle pageKey correctly', () => {
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: 'http://localhost/product/test',
@@ -438,7 +438,6 @@ describe('Product Detail Route', () => {
         test('should have proper loader data structure', () => {
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: 'http://localhost/product/test',
@@ -448,7 +447,6 @@ describe('Product Detail Route', () => {
 
             // Test that all required properties are present
             expect(mockLoaderData).toHaveProperty('product');
-            expect(mockLoaderData).toHaveProperty('category');
             expect(mockLoaderData).toHaveProperty('page');
             expect(mockLoaderData).toHaveProperty('pageKey');
             expect(mockLoaderData).toHaveProperty('productSchema');
@@ -461,7 +459,6 @@ describe('Product Detail Route', () => {
             const { default: ProductPage } = await import('./_app.product.$productId');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: 'http://localhost/product/test',
@@ -469,13 +466,34 @@ describe('Product Detail Route', () => {
                 ...mockExtensionLoaderData,
             };
 
-            const { queryByTestId, getByTestId } = render(<ProductPage loaderData={mockLoaderData} />);
+            const { queryByTestId, getByTestId } = renderProductPage(ProductPage, mockLoaderData);
 
             // ProductContent renders synchronously — the route no longer mounts a
             // Suspense boundary around the product
             expect(getByTestId('product-view')).toBeInTheDocument();
             expect(queryByTestId('product-skeleton')).not.toBeInTheDocument();
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+        test('passes the product ID to the delivery provider', async () => {
+            const { default: ProductPage } = await import('./_app.product.$productId');
+            const mockLoaderData: ProductPageData = {
+                product: mockProduct,
+                page: mockPage,
+                pageKey: 'test-product-123',
+                pageUrl: 'http://localhost/product/test',
+                productSchema: Promise.resolve(null),
+                ...mockExtensionLoaderData,
+            };
+
+            renderProductPage(ProductPage, mockLoaderData);
+
+            expect(screen.getByTestId('shipping-delivery-provider')).toHaveAttribute(
+                'data-product-id',
+                'test-product-123'
+            );
+        });
+        // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
         test('renders product JSON-LD after main page content', async () => {
             vi.mocked(isProductSet).mockReturnValue(false);
@@ -484,7 +502,6 @@ describe('Product Detail Route', () => {
             const { default: ProductPage } = await import('./_app.product.$productId');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
-                category: Promise.resolve(mockCategory),
                 page: mockPage,
                 pageKey: 'test-product-123',
                 pageUrl: '/product/test-product-123',
@@ -496,7 +513,7 @@ describe('Product Detail Route', () => {
                 ...mockExtensionLoaderData,
             };
 
-            render(<ProductPage loaderData={mockLoaderData} />);
+            renderProductPage(ProductPage, mockLoaderData);
 
             await waitFor(() => {
                 expect(screen.getByTestId('product-view')).toBeInTheDocument();
@@ -508,6 +525,27 @@ describe('Product Detail Route', () => {
             expect(Boolean(pageContent.compareDocumentPosition(productSchema) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(
                 true
             );
+        });
+
+        test('renders breadcrumbs from the product primary_category expansion', async () => {
+            vi.mocked(isProductSet).mockReturnValue(false);
+            vi.mocked(isProductBundle).mockReturnValue(false);
+
+            const { default: ProductPage } = await import('./_app.product.$productId');
+            const mockLoaderData: ProductPageData = {
+                product: {
+                    ...mockProduct,
+                    primaryCategory: { id: 'test-category-123', name: 'Test Category' },
+                },
+                page: mockPage,
+                pageKey: 'test-product-123',
+                pageUrl: 'http://localhost/product/test',
+                productSchema: Promise.resolve(null),
+                ...mockExtensionLoaderData,
+            };
+
+            const { getByTestId } = render(<ProductPage loaderData={mockLoaderData} />);
+            expect(getByTestId('category-breadcrumbs')).toHaveTextContent('Test Category');
         });
     });
 });

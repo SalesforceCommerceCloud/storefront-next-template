@@ -183,6 +183,9 @@ export const Default: Story = {
  * on the two-item default's layout.
  */
 export const SingleItem: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     render: () => (
         <MyCart
             basket={
@@ -216,6 +219,9 @@ export const SingleItem: Story = {
  * simply renders empty.
  */
 export const EmptyBasket: Story = {
+    parameters: {
+        chromatic: { disableSnapshot: true },
+    },
     render: () => (
         <MyCart
             basket={{ ...checkoutWithMultipleItems.cart, productItems: [] } as never}

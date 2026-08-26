@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { HtmlContent } from '@/components/html-fragment/types';
+import type { HtmlContent, SectionContent } from '@/components/html-fragment/types';
 
 /**
  * @feature-stub Product Content (server module)
@@ -32,7 +32,7 @@ import type { HtmlContent } from '@/components/html-fragment/types';
  * productionizing or removing stubs.
  */
 
-export type { HtmlContent };
+export type { HtmlContent, SectionContent };
 
 export interface ReturnsAndWarrantyData {
     title: string;

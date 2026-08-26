@@ -16,6 +16,7 @@
 
 import { type FormEvent, useEffect, useMemo, useRef, useCallback, type MutableRefObject } from 'react';
 import { useBasket } from '@/providers/basket';
+import { isAddressEmpty } from '@/lib/address/address-utils';
 import { getDefaultShippingMethod } from '@/lib/customer/profile-utils';
 import { useCustomerProfile } from '@/hooks/checkout/use-customer-profile';
 import type { ShopperBasketsV2 } from '@/scapi';
@@ -132,16 +133,18 @@ export function useShippingOptions({
 
     const selectedMethod = cart?.shipments?.[0]?.shippingMethod;
 
-    // Only show a summary when the basket's selected method is actually offerable for the current
-    // address.
+    // Drives the summary display: resolves only when the applied method is offerable for the address.
     const summaryMethod: ShippingMethod | undefined = useMemo(() => {
         if (!selectedMethod?.id) return undefined;
         return availableShippingMethods.find((m) => m.id === selectedMethod.id);
     }, [selectedMethod, availableShippingMethods]);
 
+    // Require both a method and an address so a pre-applied method can't open the stage early.
+    const hasConfirmedMethod = !!selectedMethod && !isAddressEmpty(cart?.shipments?.[0]?.shippingAddress);
+
     const isGuest = !customerProfile?.customer?.customerId;
-    const hideChangeForGuest = isGuest && !selectedMethod;
-    const isUpcomingStep = !isEditing && !selectedMethod;
+    const hideChangeForGuest = isGuest && !hasConfirmedMethod;
+    const isUpcomingStep = !isEditing && !hasConfirmedMethod;
 
     const defaultShippingMethodId = getDefaultShippingMethod(
         availableShippingMethods,

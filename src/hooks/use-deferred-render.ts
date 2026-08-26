@@ -33,11 +33,11 @@ export type UseDeferredRenderOptions = {
 };
 
 /**
- * Schedule `tick` on the next idle frame via `requestIdleCallback`, with a `setTimeout` fallback for browsers that
- * don't expose RIC. Returns a cleanup that cancels whichever was scheduled. Shared by `useDeferredRender` and
- * `useDeferredRenderSequence` so both hooks behave identically with regard to scheduling and cleanup.
+ * Schedule `tick` on the next idle frame via `requestIdleCallback`, with a `setTimeout` fallback for environments
+ * that don't expose RIC (SSR, JSDOM). Returns a cleanup that cancels whichever was scheduled. Use to defer
+ * non-critical work (e.g. analytics dispatch) out of the hydration long-task window.
  */
-const scheduleIdleTick = (
+export const scheduleIdleTick = (
     tick: () => void,
     { idleTimeout, fallbackTimeout }: { idleTimeout: number; fallbackTimeout: number }
 ): (() => void) => {

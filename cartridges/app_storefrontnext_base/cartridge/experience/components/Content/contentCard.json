@@ -23,7 +23,16 @@
                     "type": "enum",
                     "required": false,
                     "description": "Visual typography for the title",
-                    "values": ["...CONTENT_CARD_TYPOGRAPHY_VALUES"],
+                    "values": [
+                        "Default",
+                        "Paragraph",
+                        "Heading 1",
+                        "Heading 2",
+                        "Heading 3",
+                        "Heading 4",
+                        "Heading 5",
+                        "Heading 6"
+                    ],
                     "default_value": "Default"
                 },
                 {
@@ -39,7 +48,16 @@
                     "type": "enum",
                     "required": false,
                     "description": "Visual typography for the description",
-                    "values": ["...CONTENT_CARD_TYPOGRAPHY_VALUES"],
+                    "values": [
+                        "Default",
+                        "Paragraph",
+                        "Heading 1",
+                        "Heading 2",
+                        "Heading 3",
+                        "Heading 4",
+                        "Heading 5",
+                        "Heading 6"
+                    ],
                     "default_value": "Default"
                 },
                 {

@@ -15,6 +15,8 @@
  */
 import { Suspense, useCallback, useEffect, useRef, useMemo, type ReactElement, type ReactNode } from 'react';
 import { Await } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { useRecommenders, type Product, type Recommendation } from '@/hooks/recommenders/use-recommenders';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
@@ -102,6 +104,14 @@ export interface ProductRecommendationsProps {
     shopAllText?: string;
     /** Optional className to apply to the carousel wrapper */
     className?: string;
+    /** Optional product image aspect ratio per tile (default 0.8 portrait; pass 1 for square). Forwarded to ProductCarousel. */
+    imgAspectRatio?: number;
+    /** Optional override for the per-item width/spacing classes. Forwarded to ProductCarousel. */
+    itemClassName?: string;
+    /** Optional Quick-Add placement per tile: 'overlay' (default) or 'inline' (bottom of tile). Forwarded to ProductCarousel. */
+    quickAddPlacement?: 'overlay' | 'inline';
+    /** Optional label override for each tile's Quick-Add CTA (e.g. "Add to Cart"). Forwarded to ProductCarousel. */
+    quickAddLabel?: string;
     /**
      * Pre-fetched recommendation Promise (typically from a route loader).
      * When provided, the component skips the client-side `useRecommenders`
@@ -147,6 +157,10 @@ export default function ProductRecommendations(props: ProductRecommendationsProp
                             subtitle={props.subtitle}
                             shopAllText={props.shopAllText}
                             className={props.className}
+                            imgAspectRatio={props.imgAspectRatio}
+                            itemClassName={props.itemClassName}
+                            quickAddPlacement={props.quickAddPlacement}
+                            quickAddLabel={props.quickAddLabel}
                         />
                     )}
                 </Await>
@@ -186,6 +200,10 @@ function ProductRecommendationsClientData({
     subtitle,
     shopAllText,
     className,
+    imgAspectRatio,
+    itemClassName,
+    quickAddPlacement,
+    quickAddLabel,
 }: Omit<ProductRecommendationsProps, 'data' | 'fallback' | 'recommender'> & {
     recommender: RecommenderConfig | null;
 }): ReactElement | null {
@@ -289,6 +307,10 @@ function ProductRecommendationsClientData({
             subtitle={subtitle}
             shopAllText={shopAllText}
             className={className}
+            imgAspectRatio={imgAspectRatio}
+            itemClassName={itemClassName}
+            quickAddPlacement={quickAddPlacement}
+            quickAddLabel={quickAddLabel}
         />
     );
 }
@@ -297,7 +319,17 @@ type ProductRecommendationsViewProps = {
     recommender: RecommenderConfig | null;
     recommendation: Recommendation | undefined;
     isLoading: boolean;
-} & Pick<ProductRecommendationsProps, 'titleClassName' | 'subtitle' | 'shopAllText' | 'className'>;
+} & Pick<
+    ProductRecommendationsProps,
+    | 'titleClassName'
+    | 'subtitle'
+    | 'shopAllText'
+    | 'className'
+    | 'imgAspectRatio'
+    | 'itemClassName'
+    | 'quickAddPlacement'
+    | 'quickAddLabel'
+>;
 
 function ProductRecommendationsView({
     recommender,
@@ -307,10 +339,16 @@ function ProductRecommendationsView({
     subtitle,
     shopAllText,
     className,
+    imgAspectRatio,
+    itemClassName,
+    quickAddPlacement,
+    quickAddLabel,
 }: ProductRecommendationsViewProps): ReactElement | null {
     // The title can come either from the static recommender config (client/PD path) or from the server response's
     // `displayMessage` (loader/BFF path). Fail closed when neither is present — we never want a headless carousel.
     const analytics = useAnalytics();
+    const { t } = useTranslation('common');
+    const { isDesignMode } = usePageDesignerMode();
     const ref = useRef<HTMLDivElement>(null);
     // Viewport-gated: fire the impression once when the carousel scrolls into view (PWA Kit parity).
     const isOnScreen = useIntersectionObserver(ref, { useOnce: true });
@@ -337,6 +375,30 @@ function ProductRecommendationsView({
     );
 
     const title = recommendation?.displayMessage || recommender?.title;
+    const hasRecs = !!productRecs && productRecs.length > 0;
+
+    // Empty state (W-23729817): a freshly-dropped, unconfigured Product Recommendations component —
+    // no recommender selected yet, so no title and no recs. Rather than a bespoke placeholder, we feed
+    // an empty `ProductCarousel` (which renders its own row of placeholder Product Tiles) through the
+    // *real* render path, with a default heading, so the authoring preview reads as a real recs
+    // carousel and cannot drift from a configured one. Page-Designer *authoring* affordance only: on
+    // the live storefront a component with no title / no recs still renders nothing (see the gates
+    // below), so shoppers never see an empty carousel. Mirrors the Product/Categories Carousel gate.
+    if (isDesignMode && !isLoading && !hasRecs) {
+        return (
+            <div ref={ref}>
+                <ProductCarousel
+                    products={[]}
+                    title={title || t('productRecommendations.emptyTitle')}
+                    titleClassName={titleClassName}
+                    subtitle={subtitle}
+                    shopAllText={shopAllText}
+                    className={className}
+                />
+            </div>
+        );
+    }
+
     if (!title) {
         return null;
     }
@@ -349,7 +411,7 @@ function ProductRecommendationsView({
         );
     }
 
-    if (!productRecs || productRecs.length === 0) {
+    if (!hasRecs) {
         return null;
     }
 
@@ -363,6 +425,10 @@ function ProductRecommendationsView({
                 shopAllText={shopAllText}
                 className={className}
                 handleProductClick={onProductClick}
+                imgAspectRatio={imgAspectRatio}
+                itemClassName={itemClassName}
+                quickAddPlacement={quickAddPlacement}
+                quickAddLabel={quickAddLabel}
             />
         </div>
     );

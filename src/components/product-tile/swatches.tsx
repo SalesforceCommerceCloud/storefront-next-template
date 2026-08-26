@@ -67,10 +67,16 @@ export function ProductTileSwatches({
         <div
             role="group"
             aria-label={t('swatches.availableColors')}
-            className="flex items-center gap-1 mb-2 relative z-20 flex-wrap">
+            // gap-2 keeps the 16px swatches >=24px apart center-to-center so the 24px tap targets
+            // (extended via each swatch's ::before below) are tangent, not overlapping (WCAG 2.5.8).
+            className="flex items-center gap-2 mb-2 relative z-20 flex-wrap">
             {colorValues.map(({ value, name: valueName, href, swatch }) => {
                 const isSelected = selectedAttributeValue === value;
 
+                // The visible swatch is only 16px, under the 24px WCAG 2.5.8 minimum tap target.
+                // Keep the swatch's look but extend the clickable area to 24x24 with a centered
+                // transparent ::before, so the target the shopper can tap/click meets the minimum
+                // without enlarging the swatch visually.
                 return (
                     <Link
                         key={value}
@@ -81,6 +87,7 @@ export function ProductTileSwatches({
                         aria-current={isSelected ? 'true' : undefined}
                         className={cn(
                             'w-4 h-4 rounded-full transition-all cursor-pointer relative shrink-0 focus-visible:ring-[3px] focus-visible:ring-ring',
+                            "before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2",
                             isSelected
                                 ? 'ring-[2px] ring-muted-hover ring-offset-[1px] ring-offset-foreground'
                                 : 'hover:ring-[3px] hover:ring-muted-hover'
@@ -105,7 +112,7 @@ export function ProductTileSwatches({
                 <Link
                     to={productHref}
                     onClick={onSwatchClick}
-                    className="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:ring-[3px] hover:ring-muted-hover focus-visible:ring-[3px] focus-visible:ring-ring transition-all"
+                    className="w-4 h-4 rounded-full bg-primary-foreground border border-border-subtle flex items-center justify-center shrink-0 relative cursor-pointer hover:ring-[3px] hover:ring-muted-hover focus-visible:ring-[3px] focus-visible:ring-ring transition-all before:absolute before:content-[''] before:left-1/2 before:top-1/2 before:size-6 before:-translate-x-1/2 before:-translate-y-1/2"
                     title={t('swatches.moreColorsTitle', {
                         count: Math.min(overflowCount, MAX_VISIBLE_INDICATOR_COUNT),
                     })}

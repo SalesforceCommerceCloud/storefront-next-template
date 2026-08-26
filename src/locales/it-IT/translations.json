@@ -23,12 +23,36 @@
         "hero": {
             "defaultTitle": "Acquista ora",
             "defaultImageAlt": "Immagine hero",
-            "defaultCtaText": "Acquista ora"
+            "defaultCtaText": "Acquista ora",
+            "emptyTitle": "Aggiungi qui il titolo",
+            "emptyButton": "Pulsante"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Aggiungi qui il titolo"
         },
         "previousImage": "Immagine precedente",
         "nextImage": "Immagine successiva",
         "productGrid": {
             "loadFailed": "Impossibile caricare ulteriori prodotti."
+        },
+        "popularCategory": {
+            "emptyTitle": "Categoria"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Aggiungi qui il titolo"
+        },
+        "contentCard": {
+            "emptyTitle": "Aggiungi qui il titolo",
+            "emptyDescription": "Aggiungi qui la descrizione"
+        },
+        "productTile": {
+            "emptyTitle": "Prodotto"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Prodotti consigliati"
         }
     },
     "search": {
@@ -88,6 +112,7 @@
         "mobileNavigation": "Menu di navigazione mobile",
         "expandCategory": "Espandi {{category}}",
         "collapseCategory": "Comprimi {{category}}",
+        "shopAllCategory": "Vedi tutto {{category}}",
         "menu": {
             "yourLists": "Le tue liste",
             "yourAccount": "Il tuo account",
@@ -131,7 +156,8 @@
         "checkoutAsGuest": "Checkout come ospite",
         "resendCode": "Invia di nuovo il codice",
         "resendCodeTimer": "Invia di nuovo tra {{timer}} sec",
-        "resendCodeError": "Impossibile inviare nuovamente il codice. Riprova."
+        "resendCodeError": "Impossibile inviare nuovamente il codice. Riprova.",
+        "verificationFailed": "Non è stato possibile verificare le tue informazioni. Riprova."
     },
     "resetPassword": {
         "title": "Reimposta password",
@@ -320,7 +346,7 @@
         "itemCount_other": "Carrello ({{count}} articoli)",
         "empty": {
             "title": "Il tuo carrello è vuoto.",
-            "registeredMessage": "Continua con lo shopping per aggiungere articoli al carrello.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Accedi per recuperare gli articoli salvati o continuare con lo shopping.",
             "continueShopping": "Continua lo shopping",
             "signIn": "Accedi"
@@ -645,6 +671,7 @@
             "hero": {
                 "thankYou": "Grazie, {{name}}!",
                 "orderConfirmed": "L'ordine è confermato.",
+                "statusAnnouncement": "L'ordine è confermato. Numero ordine {{orderNo}}.",
                 "emailConfirmation": "Abbiamo inviato un'e-mail di conferma a {{email}}.",
                 "needHelp": "Serve aiuto?",
                 "defaultName": "Cliente",
@@ -1248,7 +1275,9 @@
             "title": "Stile per la vita reale",
             "description": "Noi di Market Street crediamo che la moda debba essere semplice, autentica e accessibile. Le nostre collezioni sono progettate per le persone moderne che apprezzano la qualità, la versatilità e lo stile senza tempo.",
             "shopNowButton": "Acquista ora",
-            "loadFailed": "Impossibile caricare le categorie."
+            "loadFailed": "Impossibile caricare le categorie.",
+            "emptyTitle": "Aggiungi qui il titolo",
+            "emptyRegionLabel": "Sequenza categorie"
         },
         "featuredContent": {
             "women": {
@@ -1473,14 +1502,6 @@
         "returnsAndWarrantyDescription": "Resi e dettagli sulla garanzia",
         "close": "Chiudi"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Consegna stimata",
-        "cardDescription": "Opzioni di spedizione disponibili",
-        "learnMore": "Scopri di più",
-        "sectionHeading": "Consegna stimata",
-        "shippingOptionsHeading": "Tariffe e opzioni di spedizione",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Risolvi i seguenti problemi:",
@@ -1568,6 +1589,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Consegna",
+            "method": "Metodo di consegna",
+            "deliveryDescription": "Inserisci il tuo codice postale per vedere la stima di consegna"
+        },
         "recommendations": {
             "youMightAlsoLike": "Potrebbe interessarti anche",
             "completeTheLook": "Completa il look",
@@ -1604,7 +1630,6 @@
         "quickAdd": "Aggiunta rapida",
         "buyItNow": "Compralo subito",
         "pickupAvailable": "Ritiro disponibile",
-        "selectProduct": "Seleziona un prodotto",
         "updatingCart": "Aggiornamento in corso...",
         "updateCart": "Aggiorna",
         "addingToWishlist": "Aggiunta alla lista desideri in corso...",

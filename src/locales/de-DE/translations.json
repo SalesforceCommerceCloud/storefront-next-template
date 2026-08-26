@@ -23,10 +23,34 @@
         "hero": {
             "defaultTitle": "Jetzt shoppen",
             "defaultImageAlt": "Hero-Bild",
-            "defaultCtaText": "Jetzt shoppen"
+            "defaultCtaText": "Jetzt shoppen",
+            "emptyTitle": "Titel hier hinzufügen",
+            "emptyButton": "Schaltfläche"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Titel hier hinzufügen"
         },
         "previousImage": "Vorheriges Bild",
-        "nextImage": "Nächstes Bild"
+        "nextImage": "Nächstes Bild",
+        "popularCategory": {
+            "emptyTitle": "Kategorie"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Titel hier hinzufügen"
+        },
+        "contentCard": {
+            "emptyTitle": "Titel hier hinzufügen",
+            "emptyDescription": "Beschreibung hier hinzufügen"
+        },
+        "productTile": {
+            "emptyTitle": "Produkt"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Produktempfehlungen"
+        }
     },
     "search": {
         "results": "Suchergebnisse für",
@@ -87,6 +111,7 @@
         "mobileNavigation": "Mobiles Navigationsmenü",
         "expandCategory": "{{category}} erweitern",
         "collapseCategory": "{{category}} reduzieren",
+        "shopAllCategory": "Alle {{category}} anzeigen",
         "menu": {
             "yourLists": "Ihre Listen",
             "yourAccount": "Ihr Konto",
@@ -311,7 +336,7 @@
         "itemCount_other": "Warenkorb ({{count}} Artikel)",
         "empty": {
             "title": "Ihr Warenkorb ist leer.",
-            "registeredMessage": "Setzen Sie Ihren Einkauf fort, um Ihrem Warenkorb Artikel hinzuzufügen.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Melden Sie sich an, um Ihre gespeicherten Artikel abzurufen oder mit dem Einkauf fortzufahren.",
             "continueShopping": "Weiter einkaufen",
             "signIn": "Anmelden"
@@ -596,6 +621,7 @@
             "hero": {
                 "thankYou": "Vielen Dank, {{name}}!",
                 "orderConfirmed": "Ihre Bestellung wurde bestätigt.",
+                "statusAnnouncement": "Ihre Bestellung wurde bestätigt. Bestellungsnummer {{orderNo}}.",
                 "emailConfirmation": "Wir haben eine Bestätigungs-E-Mail an {{email}} geschickt.",
                 "needHelp": "Benötigen Sie Hilfe?",
                 "defaultName": "Kunde",
@@ -1128,7 +1154,9 @@
         "categoryGrid": {
             "title": "Stilvoll durch den Alltag",
             "description": "Bei Market Street sind wir der Meinung, dass Mode unkompliziert, authentisch und zugänglich sein sollte. Unsere Kollektionen sind für moderne Menschen geschaffen, die Wert auf Qualität, Vielseitigkeit und zeitlosen Stil legen.",
-            "shopNowButton": "Jetzt shoppen"
+            "shopNowButton": "Jetzt shoppen",
+            "emptyTitle": "Titel hier hinzufügen",
+            "emptyRegionLabel": "Kategorie-Karussell"
         },
         "featuredContent": {
             "women": {
@@ -1342,14 +1370,6 @@
         "returnsAndWarrantyDescription": "Rückgabe- und Garantiedetails",
         "close": "Schließen"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Lieferung (voraussichtlich)",
-        "cardDescription": "Verfügbare Versandoptionen",
-        "learnMore": "Weitere Informationen",
-        "sectionHeading": "Lieferung (voraussichtlich)",
-        "shippingOptionsHeading": "Versandoptionen und -kosten",
-        "free": "Kostenlos"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Bitte beheben Sie das Folgende:",
@@ -1411,6 +1431,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Fulfillment-Methode",
+            "deliveryDescription": "PLZ eingeben, um die Lieferschätzung anzuzeigen"
+        },
         "recommendations": {
             "youMightAlsoLike": "Das könnte Ihnen auch gefallen",
             "completeTheLook": "Vervollständigen Sie den Look",
@@ -1447,7 +1472,6 @@
         "quickAdd": "Direkt hinzufügen",
         "buyItNow": "Jetzt kaufen",
         "pickupAvailable": "Abholung verfügbar",
-        "selectProduct": "Produkt auswählen",
         "updatingCart": "Wird aktualisiert...",
         "updateCart": "Aktualisieren",
         "addingToWishlist": "Zur Wunschliste hinzufügen …",

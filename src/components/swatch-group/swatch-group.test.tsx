@@ -50,6 +50,21 @@ describe('SwatchGroup', () => {
         expect(screen.getByText('Navy Blue')).toBeInTheDocument();
     });
 
+    test('suppresses its header when hideHeader is set, labeling the radiogroup via aria-label', () => {
+        render(
+            <SwatchGroup label="Color" displayName="Navy Blue" hideHeader>
+                <MockSwatch value="navy">Navy</MockSwatch>
+                <MockSwatch value="black">Black</MockSwatch>
+            </SwatchGroup>
+        );
+
+        // No in-component header (a collapsible summary supplies it), but the group stays labeled.
+        expect(screen.queryByText('Color:')).not.toBeInTheDocument();
+        const radioGroup = screen.getByRole('radiogroup');
+        expect(radioGroup).toHaveAttribute('aria-label', 'Color');
+        expect(radioGroup).not.toHaveAttribute('aria-labelledby');
+    });
+
     test('handles empty children gracefully', () => {
         render(<SwatchGroup label="Color">{null}</SwatchGroup>);
 
@@ -474,6 +489,39 @@ describe('SwatchGroup', () => {
         await user.keyboard('{ArrowRight}');
         expect(swatches[2]).toHaveFocus();
         expect(handleChange).toHaveBeenCalledWith('large');
+    });
+
+    describe('image swatches', () => {
+        test('uses the boxed tile layout when the first swatch is an image shape', () => {
+            renderInRouter(
+                <SwatchGroup label="Fabric" value="linen">
+                    <Swatch value="linen" shape="image" href="/linen">
+                        <img alt="Linen fabric" src="/linen.jpg" />
+                    </Swatch>
+                    <Swatch value="velvet" shape="image" href="/velvet">
+                        <img alt="Velvet fabric" src="/velvet.jpg" />
+                    </Swatch>
+                </SwatchGroup>
+            );
+
+            // Image tiles share the square/tile layout with label swatches (boxed, wrapping).
+            const container = screen.getByRole('radiogroup').querySelector('[data-slot="swatch-container"]');
+            expect(container).toHaveClass('bg-swatch-group-bg');
+            expect(container).toHaveClass('flex-wrap');
+        });
+
+        test('marks image swatches with the image shape type', () => {
+            renderInRouter(
+                <SwatchGroup label="Fabric" value="linen">
+                    <Swatch value="linen" shape="image" href="/linen">
+                        <img alt="Linen fabric" src="/linen.jpg" />
+                    </Swatch>
+                </SwatchGroup>
+            );
+
+            const swatch = screen.getByRole('radio', { name: /linen/i });
+            expect(swatch).toHaveAttribute('data-swatch-type', 'image');
+        });
     });
 
     // Focus-restore fixes for the post-selection value-change effect (W-23545805, G7 t2).

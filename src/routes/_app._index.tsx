@@ -34,7 +34,7 @@ import hero01 from '/images/hero-01.webp';
 import hero02 from '/images/hero-02.webp';
 import hero03 from '/images/hero-03.webp';
 import hero04 from '/images/hero-04.webp';
-import HeroCarousel, { HeroCarouselSkeleton, type HeroSlide } from '@/components/hero-carousel';
+import HeroCarousel, { type HeroSlide } from '@/components/hero-carousel';
 import { ProductCarouselSkeleton } from '@/components/product-carousel';
 import { ProductCarouselWithData } from '@/components/product-carousel/carousel';
 import { SeoMeta } from '@/components/seo-meta';
@@ -82,7 +82,7 @@ function FeaturedProductsError() {
 }
 
 export type HomePageData = {
-    page: ReturnType<typeof fetchPageWithComponentData>;
+    page: Awaited<ReturnType<typeof fetchPageWithComponentData>>;
     searchResult: Promise<ShopperSearch.schemas['ProductSearchResult']>;
     categories: Promise<ShopperProducts.schemas['Category'][]>;
     pageUrl: string;
@@ -94,7 +94,7 @@ export type HomePageData = {
  * This function runs on the server during SSR and prepares data for the home page.
  * @returns Promise that resolves to an object containing search result promise
  */
-export function loader(args: Route.LoaderArgs): HomePageData {
+export async function loader(args: Route.LoaderArgs): Promise<HomePageData> {
     const logger = getLogger(args.context);
     logger.debug('HomePage: loader starting');
 
@@ -116,17 +116,22 @@ export function loader(args: Route.LoaderArgs): HomePageData {
 
     const currency = (args.context.get(siteContext) as SiteContext).currency;
     const pageUrl = buildCanonicalUrl(requestUrl.origin, requestUrl.pathname, requestUrl.search);
+    const page = fetchPageWithComponentData(args, { pageId: 'homepage' });
+    const searchResult = fetchCarouselProducts(args.context, {
+        categoryId: 'root',
+        limit: config.pages.home.featuredProductsCount,
+        currency: currency ?? undefined,
+    });
+    const categories = fetchCategories(args.context, 'root', 1);
+
+    // These promises are returned to React Router on success. If the critical page request fails
+    // first, observe their eventual outcome so a later API failure cannot become unhandled.
+    void Promise.allSettled([searchResult, categories]);
 
     return {
-        page: fetchPageWithComponentData(args, {
-            pageId: 'homepage',
-        }),
-        searchResult: fetchCarouselProducts(args.context, {
-            categoryId: 'root',
-            limit: config.pages.home.featuredProductsCount,
-            currency: currency ?? undefined,
-        }),
-        categories: fetchCategories(args.context, 'root', 1),
+        page: await page,
+        searchResult,
+        categories,
         pageUrl,
         ogImageUrl: new URL(hero01, requestUrl.origin).href,
     };
@@ -148,6 +153,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
             imageUrl: hero01,
             imageAlt: t('hero.slide1.imageAlt'),
             ctaText: t('hero.slide1.ctaText'),
+            ctaAriaLabel: t('hero.slide1.ctaAriaLabel'),
             ctaLink: '/category/root',
             overlayPosition: 'Middle Center',
             overlayAlignment: 'center',
@@ -159,6 +165,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
             imageUrl: hero02,
             imageAlt: t('hero.slide2.imageAlt'),
             ctaText: t('hero.slide2.ctaText'),
+            ctaAriaLabel: t('hero.slide2.ctaAriaLabel'),
             ctaLink: '/category/root',
             overlayPosition: 'Middle Center',
             overlayAlignment: 'center',
@@ -170,6 +177,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
             imageUrl: hero03,
             imageAlt: t('hero.slide3.imageAlt'),
             ctaText: t('hero.slide3.ctaText'),
+            ctaAriaLabel: t('hero.slide3.ctaAriaLabel'),
             ctaLink: '/category/root',
             overlayPosition: 'Middle Center',
             overlayAlignment: 'center',
@@ -181,6 +189,7 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
             imageUrl: hero04,
             imageAlt: t('hero.slide4.imageAlt'),
             ctaText: t('hero.slide4.ctaText'),
+            ctaAriaLabel: t('hero.slide4.ctaAriaLabel'),
             ctaLink: '/category/root',
             overlayPosition: 'Middle Center',
             overlayAlignment: 'center',
@@ -203,18 +212,12 @@ export default function HomePage({ loaderData }: { loaderData: HomePageData }) {
                         image: loaderData.ogImageUrl,
                     }}
                 />
-                {/* Header Banner Region - Region component handles its own Suspense internally */}
+                {/* Header Banner Region - critical content suspends at the page boundary */}
                 <div>
                     <Region
                         page={loaderData.page}
                         regionId="headerbanner"
-                        fallbackElement={
-                            <>
-                                {/* Provide fallback skeletons for the above the fold content */}
-                                <HeroCarouselSkeleton showDots={true} showNavigation={true} />
-                                <ProductCarouselSkeleton title={t('featuredProducts.title')} />
-                            </>
-                        }
+                        critical={true}
                         errorElement={
                             <>
                                 <HeroCarousel

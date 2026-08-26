@@ -171,7 +171,7 @@ export const Default: Story = {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
 
-        await expect(canvas.getByText('Interests & Preferences')).toBeInTheDocument();
+        await expect(canvas.getByRole('heading', { level: 2, name: 'Interests & Preferences' })).toBeInTheDocument();
         await expect(
             canvas.getByText('Add your design interests and manage your shopping preferences')
         ).toBeInTheDocument();

@@ -76,7 +76,7 @@ const shopperContextMiddleware: MiddlewareFunction<Response> = async ({ request,
         logger.error('ShopperContext: middleware failed', {
             error,
             usid: session.usid,
-            url: request.url,
+            url: new URL(request.url).pathname,
         });
         return response ?? (await next());
     }

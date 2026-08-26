@@ -76,7 +76,7 @@ exports[`LoadMore stories snapshot > Default story renders and matches snapshot 
       data-variant="outline"
       type="button"
     >
-      Load more
+      Load More
     </button>
   </div>
 </div>

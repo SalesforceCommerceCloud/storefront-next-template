@@ -26,7 +26,7 @@ exports[`ContentCard stories snapshot > CustomClassNames story renders and match
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8 footer-override-sentinel"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10"
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
           />
           <div
             class="relative z-10"
@@ -88,7 +88,7 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10"
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
           />
           <div
             class="relative z-10"
@@ -124,17 +124,6 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
 </div>
 `;
 
-exports[`ContentCard stories snapshot > EmptyCard story renders and matches snapshot 1`] = `
-<div
-  style="width: 400px;"
->
-  <div
-    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50"
-    data-slot="card"
-  />
-</div>
-`;
-
 exports[`ContentCard stories snapshot > LongCopy story renders and matches snapshot 1`] = `
 <div
   style="width: 400px;"
@@ -161,7 +150,7 @@ exports[`ContentCard stories snapshot > LongCopy story renders and matches snaps
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10"
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
           />
           <div
             class="relative z-10"
@@ -223,7 +212,7 @@ exports[`ContentCard stories snapshot > NoBackground story renders and matches s
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10"
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
           />
           <div
             class="relative z-10"
@@ -285,7 +274,7 @@ exports[`ContentCard stories snapshot > Playground story renders and matches sna
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10"
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
           />
           <div
             class="relative z-10"
@@ -360,6 +349,17 @@ exports[`ContentCard stories snapshot > TypographyPresets story renders and matc
 </div>
 `;
 
+exports[`ContentCard stories snapshot > UnconfiguredLiveStorefront story renders and matches snapshot 1`] = `
+<div
+  style="width: 400px;"
+>
+  <div
+    class="text-card-foreground flex flex-col gap-6 rounded-ui border-ui border-border py-6 shadow-ui relative h-full overflow-hidden ring-secondary/40 bg-muted/50"
+    data-slot="card"
+  />
+</div>
+`;
+
 exports[`ContentCard stories snapshot > WithoutButton story renders and matches snapshot 1`] = `
 <div
   style="width: 400px;"
@@ -386,7 +386,7 @@ exports[`ContentCard stories snapshot > WithoutButton story renders and matches 
           class="absolute inset-0 flex flex-col justify-end p-6 md:p-8"
         >
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10"
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60"
           />
           <div
             class="relative z-10"

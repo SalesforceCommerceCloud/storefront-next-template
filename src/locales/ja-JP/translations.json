@@ -23,10 +23,34 @@
         "hero": {
             "defaultTitle": "今すぐお買い物",
             "defaultImageAlt": "ヒーロー画像",
-            "defaultCtaText": "今すぐお買い物"
+            "defaultCtaText": "今すぐお買い物",
+            "emptyTitle": "ここにタイトルを追加",
+            "emptyButton": "ボタン"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "ここにタイトルを追加"
         },
         "previousImage": "前の画像",
-        "nextImage": "次の画像"
+        "nextImage": "次の画像",
+        "popularCategory": {
+            "emptyTitle": "カテゴリ"
+        },
+        "announcementBanner": {
+            "emptyTitle": "ここにタイトルを追加"
+        },
+        "contentCard": {
+            "emptyTitle": "ここにタイトルを追加",
+            "emptyDescription": "ここに説明を追加"
+        },
+        "productTile": {
+            "emptyTitle": "商品"
+        },
+        "productRecommendations": {
+            "emptyTitle": "おすすめ商品"
+        }
     },
     "search": {
         "results": "次の検索結果: ",
@@ -88,6 +112,7 @@
         "mobileNavigation": "モバイルナビゲーションメニュー",
         "expandCategory": "{{category}} を展開する",
         "collapseCategory": "{{category}} をたたむ",
+        "shopAllCategory": "{{category}}をすべて見る",
         "menu": {
             "yourLists": "マイリスト",
             "yourAccount": "アカウント",
@@ -312,7 +337,7 @@
         "itemCount_other": "買い物カゴ ({{count}} 点)",
         "empty": {
             "title": "買い物カゴは空です。",
-            "registeredMessage": "買い物を続けて、買い物カゴに商品を追加してください。",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "保存済み商品を表示するにはサインインするか、買い物を続けてください。",
             "continueShopping": "買い物を続ける",
             "signIn": "サインイン"
@@ -600,6 +625,7 @@
             "hero": {
                 "thankYou": "ありがとうございます、{{name}} さん!",
                 "orderConfirmed": "ご注文が確定しました。",
+                "statusAnnouncement": "ご注文が確定しました。注文番号は {{orderNo}} です。",
                 "emailConfirmation": "{{email}} に確認メールを送信しました。",
                 "needHelp": "お困りですか? ",
                 "defaultName": "顧客",
@@ -1133,7 +1159,9 @@
         "categoryGrid": {
             "title": "日常に寄り添うスタイル",
             "description": "Market Street では、ファッションは気負わず、自分らしく、誰もが楽しめるものであるべきだと考えています。私たちのコレクションは、品質、多用途性、そして時代を超えて愛されるスタイルを大切にする現代的な一人ひとりのためにデザインされています。",
-            "shopNowButton": "今すぐお買い物"
+            "shopNowButton": "今すぐお買い物",
+            "emptyTitle": "ここにタイトルを追加",
+            "emptyRegionLabel": "カテゴリカルーセル"
         },
         "featuredContent": {
             "women": {
@@ -1405,14 +1433,6 @@
         "returnsAndWarrantyDescription": "返品および保証の詳細",
         "close": "閉じる"
     },
-    "estimatedDelivery": {
-        "cardTitle": "お届け予定",
-        "cardDescription": "利用可能な配送オプション",
-        "learnMore": "詳しく見る",
-        "sectionHeading": "お届け予定",
-        "shippingOptionsHeading": "配送オプションと料金",
-        "free": "無料"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "以下を修正してください。",
@@ -1475,6 +1495,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "受け取り方法",
+            "deliveryDescription": "郵便番号を入力してお届け予定を確認"
+        },
         "recommendations": {
             "youMightAlsoLike": "こちらもどうぞ",
             "completeTheLook": "ルックを完成",
@@ -1511,7 +1536,6 @@
         "quickAdd": "クイック追加",
         "buyItNow": "今すぐ購入",
         "pickupAvailable": "店舗受け取り可能",
-        "selectProduct": "商品を選択",
         "updatingCart": "更新中...",
         "updateCart": "更新",
         "addingToWishlist": "ほしい物リストに追加しています...",

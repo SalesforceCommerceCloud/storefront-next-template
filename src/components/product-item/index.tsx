@@ -112,14 +112,19 @@ export function ProductItemVariantImage({
  * @param props - Component props
  * @param props.productItem - Product data containing name and ID information
  * @param props.showBonusBadge - When true (default), renders the "Bonus Product" badge for bonus line items
+ * @param props.headingLevel - Heading element to render the name as (default 'h2'). Callers nesting this
+ * under their own heading hierarchy (e.g. Order Details' h2/h3 shipment structure) should pass the level
+ * that keeps headings sequential.
  * @returns JSX element with product name link
  */
 export function ProductItemVariantName({
     productItem,
     showBonusBadge = true,
+    headingLevel = 'h2',
 }: {
     productItem: EnrichedProductItem;
     showBonusBadge?: boolean;
+    headingLevel?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 }): ReactElement {
     const { t: tCart } = useTranslation('cart');
     const { t: tProduct } = useTranslation('product');
@@ -140,6 +145,7 @@ export function ProductItemVariantName({
             )}
             <Typography
                 variant="h2"
+                as={headingLevel}
                 className="text-xl font-semibold leading-7 tracking-[-0.5px] text-card-foreground min-w-0 flex-1">
                 <Link
                     to={createProductUrl(productId)}
@@ -333,16 +339,16 @@ function ProductItem({
     const isAutoBonusProduct = isBonusProduct && !isChoiceBasedBonusProduct;
 
     // Determine stock level: site-level ATS by default, store-specific for pickup items
-    let stockLevel = productItem?.inventory?.ats;
-    // @sfdc-extension-block-start SFDC_EXT_BOPIS
-    if (isPickup && productItem) {
-        stockLevel = getEffectiveStockLevel({
-            product: productItem as unknown as ShopperProducts.schemas['Product'],
-            isPickup: true,
-            storeInventoryId: productItem.inventoryId,
-        });
-    }
-    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    const stockLevel =
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        isPickup && productItem
+            ? getEffectiveStockLevel({
+                  product: productItem as unknown as ShopperProducts.schemas['Product'],
+                  isPickup: true,
+                  storeInventoryId: productItem.inventoryId,
+              })
+            : // @sfdc-extension-block-end SFDC_EXT_BOPIS
+              productItem?.inventory?.ats;
 
     if (!productItem || typeof productItem !== 'object') {
         return <div data-testid="product-item-error">Product data not available</div>;

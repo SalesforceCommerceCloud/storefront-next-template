@@ -15,12 +15,9 @@
  */
 
 // Constants
-export const DELIVERY_OPTIONS = {
-    DELIVERY: 'delivery',
-    PICKUP: 'pickup',
-} as const;
+export { FULFILLMENT_OPTION_IDS as DELIVERY_OPTIONS } from '@/components/fulfillment/types';
 
-export type DeliveryOption = (typeof DELIVERY_OPTIONS)[keyof typeof DELIVERY_OPTIONS];
+export type { FulfillmentOptionId as DeliveryOption } from '@/components/fulfillment/types';
 
 export const PICKUP_SHIPPING_METHOD_ID = '005';
 

@@ -93,13 +93,15 @@ Object.defineProperty(window, 'location', {
 
 // see https://vitest.dev/api/vi.html#mock-modules
 // Mock the useProductActions hook - use vi.hoisted to ensure proper hoisting
-const { mockHandleAddToCart, mockHandleUpdateCart, mockHandleAddToWishlist } = vi.hoisted(() => {
-    return {
-        mockHandleAddToCart: vi.fn(),
-        mockHandleUpdateCart: vi.fn(),
-        mockHandleAddToWishlist: vi.fn(),
-    };
-});
+const { mockHandleAddToCart, mockHandleUpdateCart, mockHandleAddToWishlist, mockHandleProductSetAddToCart } =
+    vi.hoisted(() => {
+        return {
+            mockHandleAddToCart: vi.fn(),
+            mockHandleUpdateCart: vi.fn(),
+            mockHandleAddToWishlist: vi.fn(),
+            mockHandleProductSetAddToCart: vi.fn(),
+        };
+    });
 
 vi.mock('@/hooks/product/use-product-actions', async () => {
     const actual = await vi.importActual<typeof import('@/hooks/product/use-product-actions')>(
@@ -113,6 +115,7 @@ vi.mock('@/hooks/product/use-product-actions', async () => {
                 handleAddToCart: mockHandleAddToCart,
                 handleUpdateCart: mockHandleUpdateCart,
                 handleAddToWishlist: mockHandleAddToWishlist,
+                handleProductSetAddToCart: mockHandleProductSetAddToCart,
             };
         }),
     };
@@ -391,6 +394,78 @@ describe('ProductCartActions', () => {
                 },
                 { timeout: 2000 }
             );
+        });
+    });
+
+    describe('additionalItems prop', () => {
+        test('batches main product + additionalItems via handleProductSetAddToCart', async () => {
+            // When additionalItems prop is provided (e.g. service add-ons from vertical overlay),
+            // ProductCartActions routes the add through the product-set batch path instead of the
+            // single-item path, creating separate line items for the main product and each additional item.
+            const user = userEvent.setup();
+            const additionalItems = [
+                {
+                    productId: 'FNXT-SVC-ASSEMBLY-99',
+                    quantity: 1,
+                    price: 99,
+                },
+            ];
+
+            renderProductCartActions({ product: standardProd, additionalItems });
+
+            const addToCartButton = screen.getByTestId('add-to-cart');
+            await user.click(addToCartButton);
+
+            expect(mockHandleProductSetAddToCart).toHaveBeenCalledTimes(1);
+            const selections = mockHandleProductSetAddToCart.mock.calls[0][0];
+            expect(selections).toHaveLength(2);
+            expect(selections[0].product.id).toBe(standardProd.id);
+            expect(selections[0].quantity).toBe(1);
+            expect(selections[1].product.id).toBe('FNXT-SVC-ASSEMBLY-99');
+            expect(selections[1].quantity).toBe(1);
+            expect(mockHandleAddToCart).not.toHaveBeenCalled();
+        });
+
+        test('calls handleAddToCart when additionalItems array is empty', async () => {
+            const user = userEvent.setup();
+
+            renderProductCartActions({ product: standardProd, additionalItems: [] });
+
+            const addToCartButton = screen.getByTestId('add-to-cart');
+            await user.click(addToCartButton);
+
+            // Should call handleAddToCart when no additional items
+            expect(mockHandleAddToCart).toHaveBeenCalledTimes(1);
+            expect(mockHandleProductSetAddToCart).not.toHaveBeenCalled();
+        });
+
+        test('calls handleAddToCart when additionalItems prop is not provided', async () => {
+            const user = userEvent.setup();
+
+            renderProductCartActions({ product: standardProd });
+
+            const addToCartButton = screen.getByTestId('add-to-cart');
+            await user.click(addToCartButton);
+
+            // Should call handleAddToCart when no additionalItems prop
+            expect(mockHandleAddToCart).toHaveBeenCalledTimes(1);
+            expect(mockHandleProductSetAddToCart).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('showInlineQuantity prop', () => {
+        test('renders the quantity picker inline with Add-to-Cart when set', () => {
+            renderProductCartActions({ product: standardProd, showInlineQuantity: true });
+
+            expect(document.querySelector('[data-slot="qty-add-row"]')).toBeInTheDocument();
+            expect(screen.getByTestId('add-to-cart')).toBeInTheDocument();
+        });
+
+        test('renders the Add-to-Cart button alone by default (no inline quantity)', () => {
+            renderProductCartActions({ product: standardProd });
+
+            expect(document.querySelector('[data-slot="qty-add-row"]')).not.toBeInTheDocument();
+            expect(screen.getByTestId('add-to-cart')).toBeInTheDocument();
         });
     });
 });

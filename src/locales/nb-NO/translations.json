@@ -24,10 +24,34 @@
         "hero": {
             "defaultTitle": "Handle nå",
             "defaultImageAlt": "Heltebilde",
-            "defaultCtaText": "Handle nå"
+            "defaultCtaText": "Handle nå",
+            "emptyTitle": "Legg til tittelen her",
+            "emptyButton": "Knapp"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Legg til tittelen her"
         },
         "previousImage": "Forrige bilde",
-        "nextImage": "Neste bilde"
+        "nextImage": "Neste bilde",
+        "popularCategory": {
+            "emptyTitle": "Kategori"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Legg til tittelen her"
+        },
+        "contentCard": {
+            "emptyTitle": "Legg til tittelen her",
+            "emptyDescription": "Legg til beskrivelsen her"
+        },
+        "productTile": {
+            "emptyTitle": "Produkt"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Produktanbefalinger"
+        }
     },
     "search": {
         "results": "Søkeresultater for",
@@ -89,6 +113,7 @@
         "mobileNavigation": "Mobil navigasjonsmeny",
         "expandCategory": "Utvid {{category}}",
         "collapseCategory": "Kollaps {{category}}",
+        "shopAllCategory": "Handle alle {{category}}",
         "menu": {
             "yourLists": "Listene dine",
             "yourAccount": "Kontoen din",
@@ -313,7 +338,7 @@
         "itemCount_other": "Kurv ({{count}} varer)",
         "empty": {
             "title": "Kurven er tom.",
-            "registeredMessage": "Fortsett å handle for å legge til varer i kurven.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Logg på for å hente lagrede varer eller fortsette å handle.",
             "continueShopping": "Fortsett å handle",
             "signIn": "Logg på"
@@ -597,6 +622,7 @@
             "hero": {
                 "thankYou": "Takk skal du ha, {{name}}!",
                 "orderConfirmed": "Ordren din er bekreftet.",
+                "statusAnnouncement": "Ordren din er bekreftet. Ordrenummer {{orderNo}}.",
                 "emailConfirmation": "Vi har sendt en e-post med bekreftelse til {{email}}.",
                 "needHelp": "Trenger du hjelp?",
                 "defaultName": "Kunde",
@@ -1129,7 +1155,9 @@
         "categoryGrid": {
             "title": "Stil for det virkelige liv",
             "description": "Hos Market Street mener vi at mote skal være uanstrengt, autentisk og tilgjengelig. Kolleksjonene våre er designet for det moderne mennesket som setter pris på kvalitet, allsidighet og tidløs stil.",
-            "shopNowButton": "Handle nå"
+            "shopNowButton": "Handle nå",
+            "emptyTitle": "Legg til tittelen her",
+            "emptyRegionLabel": "Karusell med kategorier"
         },
         "featuredContent": {
             "women": {
@@ -1341,14 +1369,6 @@
         "returnsAndWarrantyDescription": "Returer og garantiopplysninger",
         "close": "Lukk"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Anslått levering",
-        "cardDescription": "Tilgjengelige fraktalternativer",
-        "learnMore": "Finn ut mer",
-        "sectionHeading": "Anslått levering",
-        "shippingOptionsHeading": "Fraktalternativer og priser",
-        "free": "Gratis"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Rett opp følgende:",
@@ -1411,6 +1431,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Leveringsmetode",
+            "deliveryDescription": "Skriv inn postnummer for å se leveringsestimat"
+        },
         "recommendations": {
             "youMightAlsoLike": "Du liker kanskje også",
             "completeTheLook": "Fullfør utseendet",
@@ -1447,7 +1472,6 @@
         "quickAdd": "Hurtigtillegg",
         "buyItNow": "Kjøp det nå",
         "pickupAvailable": "Tilgjengelig for henting",
-        "selectProduct": "Velg et produkt",
         "updatingCart": "Oppdaterer ...",
         "updateCart": "Oppdater",
         "addingToWishlist": "Legger til på ønskelisten ...",

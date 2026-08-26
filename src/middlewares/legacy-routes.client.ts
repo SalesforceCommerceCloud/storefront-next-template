@@ -35,8 +35,9 @@ import { appendSuffix, findLegacyRoute } from '@/middlewares/legacy-routes';
  * (`*`) — the latter two follow React Router-style syntax.
  *
  * Each entry is either a bare pattern string or `{ pattern, suffix }`. The optional `suffix` is
- * appended to the stripped pathname when the full-page redirect is built. This handles legacy
- * SEO URLs that carry a file extension: SFCC appends `.html` to product/category SEO URLs (when
+ * applied after the stripped pathname matches the configured pattern, but is appended to the
+ * original pathname when the full-page redirect is built. This handles legacy SEO URLs that
+ * carry a file extension: SFCC appends `.html` to product/category SEO URLs (when
  * `StorefrontURLsEnabled` is on), while routes like `/cart` resolve as clean paths. Without the
  * suffix, a redirect to `/product/123` would 404 on the legacy backend that expects
  * `/product/123.html`.
@@ -145,15 +146,13 @@ const legacyRoutesMiddleware: MiddlewareFunction<Record<string, DataStrategyResu
     const matchedRoute = findLegacyRoute(strippedPathname, legacyRoutes);
 
     if (matchedRoute) {
-        // Navigate to the stripped pathname so the legacy backend (or local hybrid proxy)
-        // can apply its own site/locale prefix without doubling up on storefront-next's.
-        // Without this, '/global/en-GB/cart' would be handed to the proxy, which prepends
-        // its own SFRA prefix and produces '/s/{siteId}/{locale}/global/en-GB/cart' — a 404.
+        // Strip the prefix only to match the configured functional route. The full-document
+        // navigation must retain the original request pathname so site and locale context
+        // remains available to the legacy backend.
         //
-        // Append the matched route's suffix (e.g. '.html') so legacy SEO URLs resolve. The
-        // suffix goes on the path, before the query string and hash, so '/product/123' becomes
-        // '/product/123.html' while '?source=cart' and any '#fragment' are preserved below.
-        const redirectPathname = appendSuffix(strippedPathname, matchedRoute.suffix);
+        // Append the matched route's suffix (e.g. '.html') to that original pathname before
+        // preserving its query string and hash below.
+        const redirectPathname = appendSuffix(pathname, matchedRoute.suffix);
         const legacyUrl = new URL(redirectPathname, url.origin);
         legacyUrl.search = url.search;
         legacyUrl.hash = url.hash;

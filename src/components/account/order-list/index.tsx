@@ -116,7 +116,7 @@ export function OrderListHeader({ title, subtitle }: { title: string; subtitle?:
     return (
         <Card className="bg-card border-border rounded-b-none border-b-0">
             <CardContent className="px-5">
-                <Typography variant="h4" className="text-foreground mb-1.5">
+                <Typography variant="h4" as="h1" className="text-foreground mb-1.5">
                     {title}
                 </Typography>
                 {subtitle && (

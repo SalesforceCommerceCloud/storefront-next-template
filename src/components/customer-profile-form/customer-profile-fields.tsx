@@ -54,133 +54,144 @@ export function CustomerProfileFields({
 
     return (
         <div className="space-y-4">
-            {/* First Name and Last Name Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* First Name Field */}
-                <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-sm font-medium text-foreground">
-                                {t('profile.firstName')}
-                            </FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="text"
-                                    autoComplete="given-name"
-                                    placeholder={t('profile.firstNamePlaceholder')}
-                                    className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+            {/* Group the related profile inputs so a screen reader announces them as one set
+                (WCAG 1.3.1). A native <fieldset> carries the grouping without extra ARIA; the
+                <legend> is visually hidden because the surrounding card already shows the section
+                heading, but it still gives the group its accessible name. `min-w-0` keeps the
+                fieldset from establishing a min-content floor that would break the grid columns. */}
+            <fieldset className="min-w-0 space-y-4 border-0 p-0 m-0">
+                <legend className="sr-only">{t('profile.title')}</legend>
+                {/* First Name and Last Name Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* First Name Field */}
+                    <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm font-medium text-foreground">
+                                    {t('profile.firstName')}
+                                </FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        autoComplete="given-name"
+                                        placeholder={t('profile.firstNamePlaceholder')}
+                                        className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                {/* Last Name Field */}
-                <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-sm font-medium text-foreground">
-                                {t('profile.lastName')}
-                            </FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="text"
-                                    autoComplete="family-name"
-                                    placeholder={t('profile.lastNamePlaceholder')}
-                                    className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
+                    {/* Last Name Field */}
+                    <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm font-medium text-foreground">
+                                    {t('profile.lastName')}
+                                </FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="text"
+                                        autoComplete="family-name"
+                                        placeholder={t('profile.lastNamePlaceholder')}
+                                        className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
-            {/* Phone and Gender Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Phone Number Field */}
-                <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-sm font-medium text-foreground">
-                                {t('profile.phoneNumber')}
-                            </FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="tel"
-                                    autoComplete="tel"
-                                    placeholder={t('profile.phonePlaceholder')}
-                                    className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormDescription>{t('profile.phoneDescription')}</FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {/* Phone and Gender Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Phone Number Field */}
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm font-medium text-foreground">
+                                    {t('profile.phoneNumber')}
+                                </FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="tel"
+                                        autoComplete="tel"
+                                        placeholder={t('profile.phonePlaceholder')}
+                                        className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormDescription>{t('profile.phoneDescription')}</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                {/* Gender Field */}
-                <FormField
-                    control={form.control}
-                    name="gender"
-                    render={({ field }) => (
-                        <FormItem className="[&_[data-slot=native-select-wrapper]]:w-full">
-                            <FormLabel className="text-sm font-medium text-foreground">{t('profile.gender')}</FormLabel>
-                            <FormControl>
-                                <NativeSelect
-                                    className="w-full border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                                    value={field.value || ''}
-                                    onChange={field.onChange}
-                                    onBlur={field.onBlur}
-                                    name={field.name}>
-                                    <option value="">{t('profile.genderPlaceholder')}</option>
-                                    {GENDER_OPTIONS.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {t(option.labelKey)}
-                                        </option>
-                                    ))}
-                                </NativeSelect>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
+                    {/* Gender Field */}
+                    <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                            <FormItem className="[&_[data-slot=native-select-wrapper]]:w-full">
+                                <FormLabel className="text-sm font-medium text-foreground">
+                                    {t('profile.gender')}
+                                </FormLabel>
+                                <FormControl>
+                                    <NativeSelect
+                                        className="w-full border-border focus:ring-2 focus:ring-ring focus:border-transparent"
+                                        value={field.value || ''}
+                                        onChange={field.onChange}
+                                        onBlur={field.onBlur}
+                                        name={field.name}>
+                                        <option value="">{t('profile.genderPlaceholder')}</option>
+                                        {GENDER_OPTIONS.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {t(option.labelKey)}
+                                            </option>
+                                        ))}
+                                    </NativeSelect>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
-            {/* Date of Birth Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Date of Birth Field */}
-                <FormField
-                    control={form.control}
-                    name="birthday"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-sm font-medium text-foreground">
-                                {t('profile.dateOfBirth')}
-                            </FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="date"
-                                    autoComplete="bday"
-                                    className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
+                {/* Date of Birth Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Date of Birth Field */}
+                    <FormField
+                        control={form.control}
+                        name="birthday"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-sm font-medium text-foreground">
+                                    {t('profile.dateOfBirth')}
+                                </FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="date"
+                                        autoComplete="bday"
+                                        className="border-border focus:ring-2 focus:ring-ring focus:border-transparent"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormDescription>{t('profile.dateOfBirthDescription')}</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </fieldset>
 
             {/* Action Buttons (omit when hideActions for header placement) */}
             {!hideActions && (

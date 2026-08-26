@@ -141,6 +141,14 @@ describe('pageLoader', () => {
             });
         });
 
+        test('uses only explicit params when design mode is active without URL parameters', async () => {
+            mockedIsDesignModeActive.mockReturnValue(true);
+
+            await fetchPageFromLoader(createLoaderArgs(BASE_URL), { pageId: MOCK_PAGE_ID });
+
+            expect(fetchPage).toHaveBeenCalledWith(TEST_CONTEXT, { pageId: MOCK_PAGE_ID });
+        });
+
         test('includes mode=VIEW but ignores pdToken and pageId from URL', async () => {
             const paramPageId = 'param-page';
             const args = createLoaderArgs(`${BASE_URL}?mode=VIEW&pdToken=shouldNotAppear&pageId=ignored`);

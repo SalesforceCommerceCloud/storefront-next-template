@@ -440,3 +440,41 @@ describe('CartSheet navigation behavior', () => {
         expect(screen.queryByText('Test Product')).not.toBeInTheDocument();
     });
 });
+
+describe('CartSheet focus visibility (W-23325700)', () => {
+    const renderCartSheet = () =>
+        render(
+            <CartSheet>
+                <button>open-mini-cart</button>
+            </CartSheet>
+        );
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        currentFetcher = { state: 'idle', data: undefined, submit: mockSubmit };
+        currentPathname = '/';
+        act(() => {
+            setMiniCartOpen(true);
+        });
+    });
+
+    afterEach(() => {
+        act(() => {
+            setMiniCartOpen(false);
+        });
+    });
+
+    it('keeps the footer out of the scrollable content region so it can never overlay a focused item at high zoom', () => {
+        // W-23325700 (2.4.11 Focus Not Obscured): the audit flagged the sticky footer covering
+        // focused controls when the page is zoomed to 400%. The footer renders as a flex sibling
+        // AFTER the `overflow-y-auto` content region, not inside it, so scrolling that region can
+        // never carry a focused control underneath the footer regardless of viewport size.
+        const { container } = renderCartSheet();
+
+        const scrollRegion = container.querySelector('.overflow-y-auto');
+        expect(scrollRegion).not.toBeNull();
+
+        const checkoutLink = screen.getByRole('link', { name: /checkout/i });
+        expect(scrollRegion?.contains(checkoutLink)).toBe(false);
+    });
+});

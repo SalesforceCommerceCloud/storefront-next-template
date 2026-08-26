@@ -40,6 +40,12 @@ exports[`ProductQuantityPicker stories snapshot > Default story renders and matc
       +
     </button>
   </div>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    id="quantity-_r_0_-inventory-msg"
+    role="status"
+  />
 </div>
 `;
 
@@ -83,6 +89,12 @@ exports[`ProductQuantityPicker stories snapshot > IncrementPastStock story rende
       +
     </button>
   </div>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    id="quantity-_r_1_-inventory-msg"
+    role="status"
+  />
 </div>
 `;
 
@@ -126,14 +138,18 @@ exports[`ProductQuantityPicker stories snapshot > LowStockWarning story renders 
       +
     </button>
   </div>
-  <p
+  <div
+    aria-atomic="true"
     aria-live="polite"
-    class="text-sm leading-none text-left text-destructive font-medium"
     id="quantity-_r_3_-inventory-msg"
-    role="alert"
+    role="status"
   >
-    Only 3 left!
-  </p>
+    <p
+      class="text-sm leading-none text-left text-destructive font-medium"
+    >
+      Only 3 left!
+    </p>
+  </div>
 </div>
 `;
 
@@ -180,13 +196,66 @@ exports[`ProductQuantityPicker stories snapshot > OutOfStock story renders and m
       +
     </button>
   </div>
-  <p
+  <div
+    aria-atomic="true"
     aria-live="polite"
-    class="text-sm leading-none text-left text-destructive font-medium"
     id="quantity-_r_2_-inventory-msg"
-    role="alert"
+    role="status"
   >
-    Out of stock for Sold Out Product
-  </p>
+    <p
+      class="text-sm leading-none text-left text-destructive font-medium"
+    >
+      Out of stock for Sold Out Product
+    </p>
+  </div>
+</div>
+`;
+
+exports[`ProductQuantityPicker stories snapshot > StockWarningAnnounced story renders and matches snapshot 1`] = `
+<div
+  class="space-y-2"
+>
+  <label
+    class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+    data-slot="label"
+    for="quantity-_r_4_"
+  >
+    Quantity
+  </label>
+  <div
+    aria-label="Quantity for Limited Run Tee"
+    class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+    role="group"
+  >
+    <button
+      aria-label="Decrement Quantity for Limited Run Tee"
+      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="quantity-decrement"
+      disabled=""
+    >
+      −
+    </button>
+    <input
+      class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+      id="quantity-_r_4_"
+      min="1"
+      step="1"
+      type="number"
+      value="1"
+    />
+    <button
+      aria-label="Increment Quantity for Limited Run Tee"
+      class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+      data-testid="quantity-increment"
+    >
+      +
+    </button>
+  </div>
+  <div
+    aria-atomic="true"
+    aria-live="polite"
+    id="quantity-_r_4_-inventory-msg"
+    role="status"
+  />
 </div>
 `;

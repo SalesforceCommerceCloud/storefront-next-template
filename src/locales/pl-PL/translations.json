@@ -23,10 +23,34 @@
         "hero": {
             "defaultTitle": "Kupuj teraz",
             "defaultImageAlt": "Baner główny",
-            "defaultCtaText": "Kupuj teraz"
+            "defaultCtaText": "Kupuj teraz",
+            "emptyTitle": "Dodaj tytuł tutaj",
+            "emptyButton": "Przycisk"
+        },
+        "heroCarousel": {
+            "emptyLabel": "No banners yet"
+        },
+        "image": {
+            "emptyTitle": "Dodaj tytuł tutaj"
         },
         "previousImage": "Poprzedni obraz",
-        "nextImage": "Następny obraz"
+        "nextImage": "Następny obraz",
+        "popularCategory": {
+            "emptyTitle": "Kategoria"
+        },
+        "announcementBanner": {
+            "emptyTitle": "Dodaj tytuł tutaj"
+        },
+        "contentCard": {
+            "emptyTitle": "Dodaj tytuł tutaj",
+            "emptyDescription": "Dodaj opis tutaj"
+        },
+        "productTile": {
+            "emptyTitle": "Produkt"
+        },
+        "productRecommendations": {
+            "emptyTitle": "Rekomendacje produktów"
+        }
     },
     "search": {
         "results": "Wyniki wyszukiwania dla",
@@ -88,6 +112,7 @@
         "mobileNavigation": "Mobilne menu nawigacyjne",
         "expandCategory": "Rozwiń {{category}}",
         "collapseCategory": "Zwiń {{category}}",
+        "shopAllCategory": "Zobacz wszystko: {{category}}",
         "menu": {
             "yourLists": "Twoje listy",
             "yourAccount": "Twoje konto",
@@ -314,7 +339,7 @@
         "itemCount_other": "Koszyk (artykuły:{{count}})",
         "empty": {
             "title": "Twój koszyk jest pusty.",
-            "registeredMessage": "Kontynuuj zakupy, aby dodać artykuły do koszyka.",
+            "registeredMessage": "Welcome back. Continue shopping to find something you’ll love.",
             "guestMessage": "Zaloguj się, aby odzyskać zapisane artykuły, lub kontynuuj zakupy.",
             "continueShopping": "Kontynuuj zakupy",
             "signIn": "Zaloguj się"
@@ -607,6 +632,7 @@
             "hero": {
                 "thankYou": "Dziękujemy, {{name}}!",
                 "orderConfirmed": "Zamówienie zostało potwierdzone.",
+                "statusAnnouncement": "Zamówienie zostało potwierdzone. Numer zamówienia {{orderNo}}.",
                 "emailConfirmation": "Wysłaliśmy wiadomość e-mail z potwierdzeniem na adres {{email}}.",
                 "needHelp": "Potrzebujesz pomocy?",
                 "defaultName": "Klient",
@@ -1142,7 +1168,9 @@
         "categoryGrid": {
             "title": "Styl w prawdziwym życiu",
             "description": "W Market Street uważamy, że moda powinna być naturalna, autentyczna i dostępna. Nasze kolekcje zostały zaprojektowane z myślą o nowoczesnych ludziach, którzy cenią sobie jakość, wszechstronność i ponadczasowy styl.",
-            "shopNowButton": "Kupuj teraz"
+            "shopNowButton": "Kupuj teraz",
+            "emptyTitle": "Dodaj tytuł tutaj",
+            "emptyRegionLabel": "Karuzela kategorii"
         },
         "featuredContent": {
             "women": {
@@ -1377,14 +1405,6 @@
         "returnsAndWarrantyDescription": "Szczegóły zwrotów i gwarancji",
         "close": "Zamknij"
     },
-    "estimatedDelivery": {
-        "cardTitle": "Szacowana dostawa",
-        "cardDescription": "Dostępne opcje wysyłki",
-        "learnMore": "Dowiedz się więcej",
-        "sectionHeading": "Szacowana dostawa",
-        "shippingOptionsHeading": "Opcje wysyłki i opłaty",
-        "free": "Bezpłatna"
-    },
     "writeReview": {
         "validation": {
             "pleaseFixFollowing": "Popraw następujące błędy:",
@@ -1449,6 +1469,11 @@
         }
     },
     "product": {
+        "fulfillment": {
+            "delivery": "Delivery",
+            "method": "Metoda dostawy",
+            "deliveryDescription": "Wpisz swój kod pocztowy, aby zobaczyć szacowaną dostawę"
+        },
         "recommendations": {
             "youMightAlsoLike": "Inne produkty, które mogą Ci się spodobać",
             "completeTheLook": "Uzupełnij stylizację",
@@ -1485,7 +1510,6 @@
         "quickAdd": "Szybko dodaj",
         "buyItNow": "Kup teraz",
         "pickupAvailable": "Dostępny odbiór osobisty",
-        "selectProduct": "Wybierz produkt",
         "updatingCart": "Aktualizowanie...",
         "updateCart": "Zaktualizuj",
         "addingToWishlist": "Dodawanie do listy życzeń...",

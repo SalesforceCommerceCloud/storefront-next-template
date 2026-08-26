@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 import { forwardRef, type ComponentProps } from 'react';
+import { useTranslation } from 'react-i18next';
+import { usePageDesignerMode } from '@salesforce/storefront-next-runtime/design/react/core';
+import contentPlaceholder from '/images/content-placeholder.svg';
 import { Link } from '@/components/link';
-import {
-    CONTENT_CARD_TYPOGRAPHY_VALUES,
-    TITLE_TYPOGRAPHY_CLASS,
-    DESCRIPTION_TYPOGRAPHY_CLASS,
-    normalizeTypography,
-} from './typography';
+import { TITLE_TYPOGRAPHY_CLASS, DESCRIPTION_TYPOGRAPHY_CLASS, normalizeTypography } from './typography';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { cn, resolveAssetUrl } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -76,12 +74,18 @@ export class ContentCardMetadata {
     @AttributeDefinition()
     title?: string;
 
+    // `values` must be an inline string-literal array: the cartridge metadata generator
+    // (`sfnext cartridge:generate`) statically parses this decorator via ts-morph and cannot expand
+    // a spread of an imported const (`[...CONTENT_CARD_TYPOGRAPHY_VALUES]`) — it emits the string
+    // "...CONTENT_CARD_TYPOGRAPHY_VALUES" verbatim, yielding an invalid enum that SFCC rejects on
+    // import (Content Card then never appears in the Page Designer palette). Keep this list in sync
+    // with CONTENT_CARD_TYPOGRAPHY_VALUES in ./typography (the runtime source of truth).
     @AttributeDefinition({
         id: 'titleTypography',
         name: 'Title Typography',
         description: 'Visual typography for the title',
         type: 'enum',
-        values: [...CONTENT_CARD_TYPOGRAPHY_VALUES],
+        values: ['Default', 'Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4', 'Heading 5', 'Heading 6'],
         defaultValue: 'Default',
     })
     titleTypography?: string;
@@ -89,12 +93,13 @@ export class ContentCardMetadata {
     @AttributeDefinition()
     description?: string;
 
+    // Inline literal — see the titleTypography note above (generator cannot expand a const spread).
     @AttributeDefinition({
         id: 'descriptionTypography',
         name: 'Description Typography',
         description: 'Visual typography for the description',
         type: 'enum',
-        values: [...CONTENT_CARD_TYPOGRAPHY_VALUES],
+        values: ['Default', 'Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Heading 4', 'Heading 5', 'Heading 6'],
         defaultValue: 'Default',
     })
     descriptionTypography?: string;
@@ -152,17 +157,41 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
         },
         ref
     ) => {
-        const imageObj = typeof imageUrl === 'string' ? { url: imageUrl } : imageUrl;
+        const { t } = useTranslation('common');
+        const { isDesignMode } = usePageDesignerMode();
+
+        const rawImageObj = typeof imageUrl === 'string' ? { url: imageUrl } : imageUrl;
+        const rawImageSrc = rawImageObj?.url;
+
+        const rawHasCta = !!(buttonText && buttonLink);
+        const rawHasText = !!(title || description);
+
+        // Empty state (W-23729786): a freshly-dropped Content Card with no configured content.
+        // Rather than a bespoke placeholder branch, we feed the shared image placeholder plus the
+        // default title/description through the component's *real* render path — so the authoring
+        // preview is the actual image-backed card layout (grey placeholder surface + bottom
+        // title/description over the standard gradient), guaranteeing it matches a configured card.
+        // This is a Page-Designer *authoring* affordance, so it only kicks in during design mode;
+        // on the live storefront an unconfigured Content Card still renders just the empty <Card>
+        // shell. Mirrors the Hero's design-mode gate.
+        const isUnconfigured = !rawImageSrc && !rawHasText && !rawHasCta;
+        const showEmptyState = isUnconfigured && isDesignMode;
+
+        // In the empty state, substitute the placeholder image and default copy; otherwise use the
+        // authored values verbatim.
+        const imageObj = showEmptyState ? { url: contentPlaceholder } : rawImageObj;
         const imageSrc = imageObj?.url;
         const focalPoint = imageObj?.focalPoint;
+        const resolvedTitle = showEmptyState ? t('contentCard.emptyTitle') : title;
+        const resolvedDescription = showEmptyState ? t('contentCard.emptyDescription') : description;
 
         // Calculate focal point for object-position (defaults to center).
         const focalX = focalPoint?.x != null ? `${focalPoint.x}%` : '50%';
         const focalY = focalPoint?.y != null ? `${focalPoint.y}%` : '50%';
         const objectPosition = `${focalX} ${focalY}`;
 
-        const hasCta = !!(buttonText && buttonLink);
-        const hasText = !!(title || description);
+        const hasCta = rawHasCta;
+        const hasText = !!(resolvedTitle || resolvedDescription);
         const hasContent = hasText || hasCta;
 
         // Resolve the typography presets once. `Default` reproduces the
@@ -185,7 +214,7 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                              * while `order-*` preserves the visual layout (description above title,
                              * both bottom-aligned via justify-end).
                              */}
-                            {title && (
+                            {resolvedTitle && (
                                 <h3
                                     className={cn(
                                         'order-2',
@@ -193,10 +222,10 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                         'mb-4',
                                         onImage ? 'text-card' : 'text-foreground'
                                     )}>
-                                    {title}
+                                    {resolvedTitle}
                                 </h3>
                             )}
-                            {description && (
+                            {resolvedDescription && (
                                 <p
                                     className={cn(
                                         'order-1',
@@ -204,7 +233,7 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                         'mb-2 whitespace-pre-line',
                                         onImage ? 'text-muted' : 'text-muted-foreground'
                                     )}>
-                                    {description}
+                                    {resolvedDescription}
                                 </p>
                             )}
                         </div>
@@ -237,10 +266,14 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                 {...props}>
                 {imageSrc ? (
                     <CardContent className="p-0">
-                        <div className="relative aspect-[4/3] overflow-hidden bg-secondary/20">
+                        <div
+                            {...(showEmptyState && { 'data-slot': 'empty-state' })}
+                            className="relative aspect-[4/3] overflow-hidden bg-secondary/20">
                             <img
                                 src={resolveAssetUrl(imageSrc)}
-                                alt={imageAlt || title || ''}
+                                // Empty-state placeholder is decorative: the same title text is rendered
+                                // as a heading below, so an alt would make a screen reader read it twice.
+                                alt={showEmptyState ? '' : imageAlt || resolvedTitle || ''}
                                 className="w-full h-full object-cover"
                                 style={{ objectPosition }}
                                 loading={loading}
@@ -251,7 +284,17 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                         'absolute inset-0 flex flex-col justify-end p-6 md:p-8',
                                         cardFooterClassName
                                     )}>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent -z-10" />
+                                    {/*
+                                     * Scrim for WCAG 1.4.3. Must paint ABOVE the sibling <img>: a negative
+                                     * z-index here pushed it behind the image, darkening nothing (white title
+                                     * and description measured ~1.2:1 over light photos). The title/description
+                                     * block is bottom-anchored but unbounded in height (long descriptions, the
+                                     * Heading 1-6 typography presets), so it can extend anywhere up the card. A
+                                     * gradient that fades to transparent at the top (as popular-category uses)
+                                     * would drop white text below 4.5:1 wherever content reaches that lighter
+                                     * zone. The gradient here is floored at black/60 (never lighter) so contrast
+                                     * stays >=4.5:1 (actually ~5.7:1) at every point text can occupy. */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60" />
                                     {renderContent(true)}
                                 </div>
                             )}

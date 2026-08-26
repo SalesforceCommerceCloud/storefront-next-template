@@ -39,6 +39,11 @@ vi.mock('@salesforce/storefront-next-runtime/i18n', () => ({
 vi.mock('@/extensions/bopis/lib/api/shipment.server', () => ({
     findOrCreatePickupShipment: vi.fn(() => Promise.resolve({ shipmentId: 'pickup-shipment-1' })),
 }));
+vi.mock('@/extensions/bopis/lib/api/stores.server', () => ({
+    getStoreInventoryId: vi.fn((_context: unknown, storeId: string) =>
+        Promise.resolve(storeId === 'store-A' ? 'inv-A' : undefined)
+    ),
+}));
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 vi.mock('react-router', () => {
     return {
@@ -56,7 +61,11 @@ vi.mock('@/lib/logger.server', () => ({
 }));
 
 import { createFormDataRequest } from '@/test-utils/request-helpers';
-import { createActionArgs, expectStatus } from '@/lib/test-utils';
+import {
+    createActionArgs,
+    // @sfdc-extension-line SFDC_EXT_BOPIS
+    expectStatus,
+} from '@/lib/test-utils';
 import { resourceRoutes } from '@/route-paths';
 
 describe('action.cart-item-add', () => {

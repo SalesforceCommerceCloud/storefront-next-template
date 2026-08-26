@@ -123,6 +123,7 @@ type Story = StoryObj<typeof CartDeliveryOption>;
 export const Default: Story = {
     args: {
         product: mockProductItem,
+        isDeliveryOutOfStock: false,
     },
     parameters: {
         docs: {
@@ -153,6 +154,7 @@ Shows:
 
 export const PickupSelected: Story = {
     args: {
+        isDeliveryOutOfStock: false,
         product: {
             ...mockProductItem,
             shipmentId: 'shipment-pickup-1',
@@ -214,6 +216,7 @@ Shows:
 export const Mobile: Story = {
     args: {
         product: mockProductItem,
+        isDeliveryOutOfStock: false,
     },
     globals: {
         viewport: 'mobile2',
@@ -231,6 +234,7 @@ export const Mobile: Story = {
 export const Desktop: Story = {
     args: {
         product: mockProductItem,
+        isDeliveryOutOfStock: false,
     },
     globals: {
         viewport: 'desktop',

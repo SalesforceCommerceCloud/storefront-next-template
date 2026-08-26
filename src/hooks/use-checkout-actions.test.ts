@@ -451,8 +451,8 @@ describe('shipping progression', () => {
 
         expect(mocks.updateBasket).toHaveBeenCalledWith(responseBasket);
         expect(mocks.exitEditMode).not.toHaveBeenCalled();
-        expect(mocks.goToStep).toHaveBeenCalledOnce();
-        expect(mocks.goToStep).toHaveBeenCalledWith(3);
+        // The price-only recalculation must neither pin the step nor advance it.
+        expect(mocks.goToStep).not.toHaveBeenCalled();
 
         act(() => {
             mocks.basket = responseBasket;
@@ -471,7 +471,7 @@ describe('shipping progression', () => {
         });
 
         expect(mocks.exitEditMode).not.toHaveBeenCalled();
-        expect(mocks.goToStep).toHaveBeenCalledOnce();
+        expect(mocks.goToStep).not.toHaveBeenCalled();
     });
 });
 
@@ -570,5 +570,117 @@ describe('exitEditMode focus behavior (end-to-end)', () => {
         // frame with the same handle rAF returned.
         expect(() => unmount()).not.toThrow();
         expect(cafSpy).toHaveBeenCalledWith(scheduledId);
+    });
+});
+
+// Checkout correlation ID propagation: each mid-flow submit and place-order
+// must send the checkout-scoped id as a FormData field so `correlationMiddleware`
+// picks it up on the server. `fetcher.submit` does not accept a headers option,
+// so we ride the form body; the middleware falls back to reading it from there.
+describe('mid-flow submits propagate checkout correlation ID via FormData', () => {
+    const CORRELATION_ID = 'test-correlation-uuid-1234';
+
+    beforeEach(() => {
+        sessionStorage.clear();
+        sessionStorage.setItem('checkoutCorrelationId', CORRELATION_ID);
+    });
+
+    const readSubmittedFormData = (key: string): FormData => {
+        const fetcher = mocks.fetchers.get(key);
+        if (!fetcher) throw new Error(`fetcher ${key} not initialized`);
+        const [firstArg] = fetcher.submit.mock.calls[0] ?? [];
+        if (!(firstArg instanceof FormData)) {
+            throw new Error(`fetcher ${key} was not submitted with a FormData body`);
+        }
+        return firstArg;
+    };
+
+    it('contact info submit includes x-correlation-id', () => {
+        const { result } = renderHook(() => useCheckoutActions({ paymentSubmissionRef: buildPaymentSubmissionRef() }));
+
+        act(() =>
+            result.current.submitContactInfo({
+                email: 'shopper@example.com',
+                phone: '5551234567',
+                countryCode: '+1',
+            })
+        );
+
+        const submitted = readSubmittedFormData('contact-form');
+        expect(submitted.get('x-correlation-id')).toBe(CORRELATION_ID);
+    });
+
+    it('shipping address submit includes x-correlation-id', () => {
+        mocks.checkoutContext.step = 2;
+        mocks.checkoutContext.editingStep = 2;
+        const { result } = renderHook(() => useCheckoutActions({ paymentSubmissionRef: buildPaymentSubmissionRef() }));
+
+        const formData = new FormData();
+        formData.append('address1', '1 Market St');
+        act(() => result.current.submitShippingAddress(formData));
+
+        const submitted = readSubmittedFormData('shipping-address-form');
+        expect(submitted.get('x-correlation-id')).toBe(CORRELATION_ID);
+    });
+
+    it('shipping options submit includes x-correlation-id', () => {
+        mocks.checkoutContext.step = 3;
+        mocks.checkoutContext.editingStep = 3;
+        const { result } = renderHook(() => useCheckoutActions({ paymentSubmissionRef: buildPaymentSubmissionRef() }));
+
+        const formData = new FormData();
+        formData.append('shippingMethodId', 'ground');
+        act(() => result.current.submitShippingOptions(formData));
+
+        const submitted = readSubmittedFormData('shipping-options-form');
+        expect(submitted.get('x-correlation-id')).toBe(CORRELATION_ID);
+    });
+
+    // Recalculation submit runs the same shipping-options fetcher as `submitShippingOptions`
+    // and must propagate the correlation ID too, so a shopper's basket-recalculate call
+    // (triggered when they enter a new address) lands in the same server-side log trail.
+    it('shipping options recalculation submit includes x-correlation-id', () => {
+        mocks.checkoutContext.step = 3;
+        mocks.checkoutContext.editingStep = 3;
+        const { result } = renderHook(() => useCheckoutActions({ paymentSubmissionRef: buildPaymentSubmissionRef() }));
+
+        const formData = new FormData();
+        formData.append('shippingMethodId', 'ground');
+        act(() => result.current.submitShippingOptionsForRecalculation(formData));
+
+        const submitted = readSubmittedFormData('shipping-options-form');
+        expect(submitted.get('x-correlation-id')).toBe(CORRELATION_ID);
+    });
+
+    it('payment submit includes x-correlation-id', () => {
+        mocks.checkoutContext.step = 4;
+        mocks.checkoutContext.editingStep = 4;
+        const { result } = renderHook(() => useCheckoutActions({ paymentSubmissionRef: buildPaymentSubmissionRef() }));
+
+        act(() =>
+            result.current.submitPayment({
+                cardNumber: '4111111111111111',
+                cardholderName: 'Test Shopper',
+                expiryDate: '12/30',
+                cvv: '123',
+                useDifferentBilling: false,
+                useSavedPaymentMethod: false,
+            })
+        );
+
+        const submitted = readSubmittedFormData('payment-form');
+        expect(submitted.get('x-correlation-id')).toBe(CORRELATION_ID);
+    });
+
+    it('place order submit includes x-correlation-id', () => {
+        const { result } = renderHook(() => useCheckoutActions({ paymentSubmissionRef: buildPaymentSubmissionRef() }));
+
+        act(() => result.current.submitPlaceOrder());
+
+        const submitted = readSubmittedFormData('place-order');
+        const correlationId = submitted.get('x-correlation-id');
+        expect(typeof correlationId).toBe('string');
+        expect(correlationId).toBeTruthy();
+        expect(correlationId).toBe(CORRELATION_ID);
     });
 });

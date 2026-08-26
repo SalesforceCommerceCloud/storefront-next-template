@@ -56,6 +56,25 @@ Check **[Releases](../../releases)** for all versions.
 
 This template is dated by a **release stamp** (e.g. "June 2026"), recorded in `package.json` under `storefrontNext` (`templateRelease`, `templateVersion`, `minSdkVersion`). The Storefront Next **SDK** (`@salesforce/storefront-next-dev` / `-runtime`) versions separately, with SemVer. See the **[compatibility matrix](./docs/COMPATIBILITY.md)** for which SDK version each template release needs.
 
+## Available Verticals
+
+This repository is one of several published storefront templates, each starting from a different retail vertical. They share the same framework and core commerce capabilities. Each vertical can customize branding, content, components, and page layouts to fit that industry, so verticals may differ in more than just theme. Pick the one closest to your industry as a starting point, then customize it further.
+
+| Vertical | Identifier | Repository |
+|----------|------------|------------|
+| Fashion / Retail | `fashion` | [storefront-next-template](https://github.com/SalesforceCommerceCloud/storefront-next-template) |
+| Beauty / Cosmetic | `cosmetic` | [storefront-next-beauty](https://github.com/SalesforceCommerceCloud/storefront-next-beauty) |
+| Footwear | `footwear` | [storefront-next-footwear](https://github.com/SalesforceCommerceCloud/storefront-next-footwear) |
+| Foundations | `foundations` | [storefront-next-foundations](https://github.com/SalesforceCommerceCloud/storefront-next-foundations) |
+| Furniture | `furniture` | [storefront-next-furniture](https://github.com/SalesforceCommerceCloud/storefront-next-furniture) |
+
+Each repository ships with its own default demo data out of the box. Connect your own B2C Commerce instance to browse your real catalog.
+
+The [Storefront Next CLI](https://www.npmjs.com/package/@salesforce/storefront-next-dev) can also generate a new project instead of cloning a repo directly:
+
+- `sfnext create-storefront` with no flag prompts you to pick a vertical interactively.
+- `sfnext create-storefront --vertical <identifier>` (e.g. `--vertical cosmetic`) skips the prompt and clones that vertical's repo directly. Use the `Identifier` column above, not the display name.
+
 ## Configuration
 
 All settings are defined in `config.server.ts` and can be configured via environment variables—no code changes required.
@@ -158,6 +177,7 @@ src/
 - 🧪 [Tests & Coverage](./README-TESTS.md)
 - 🔍 [Linting (OxLint), Formatting (Biome) & TypeScript Enforcement](./README-LINTING.md)
 - 🖼️ [Images](./docs/README-IMAGES.md)
+- 🧩 [Page Designer Components](./docs/README-PAGE-DESIGNER.md)
 - ⚡ [Performance Best Practices](./docs/README-PERFORMANCE.md)
 - 📈 [Performance Metrics](./docs/README-PERFORMANCE-METRICS.md)
 - 🔎 [SEO (Hreflang, Canonical URLs, and Meta Tags)](./docs/README-SEO.md)
@@ -186,4 +206,3 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 ## License
 
 See [LICENSE](./LICENSE) for details.
-

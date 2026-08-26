@@ -15,7 +15,7 @@
  */
 
 import 'reflect-metadata';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import { ApiError, type ShopperExperience, type ShopperProducts, type ShopperSearch } from '@/scapi';
@@ -154,8 +154,8 @@ vi.mock('@/components/category-breadcrumbs', () => ({
 
 // Mock the "Load more" hook: no fetcher (which needs a data router), just derive hasMore from the
 // initial page vs total so behavior-driven tests still exercise the show/hide logic.
-vi.mock('@/hooks/use-load-more-products', () => ({
-    useLoadMoreProducts: ({ initialCount, total }: any) => ({
+const mockUseLoadMoreProducts = vi.hoisted(() =>
+    vi.fn(({ initialCount, total }: any) => ({
         appended: [],
         loadedCount: initialCount,
         total,
@@ -165,7 +165,11 @@ vi.mock('@/hooks/use-load-more-products', () => ({
         hasError: false,
         firstNewIndex: null,
         loadMore: vi.fn(),
-    }),
+    }))
+);
+
+vi.mock('@/hooks/use-load-more-products', () => ({
+    useLoadMoreProducts: mockUseLoadMoreProducts,
 }));
 
 // Mock the "Load more" control: mirror the real component's terminal-state logic — it renders whenever
@@ -298,6 +302,10 @@ describe('CategoryPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(useAnalytics).mockReturnValue({
+            trackViewCategory: mockTrackViewCategory,
+            trackClickProductInCategory: mockTrackClickProductInCategory,
+        } as never);
         (getConfig as any).mockReturnValue(mockConfig);
         (fetchCategory as any).mockResolvedValue(mockCategory);
         (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
@@ -1338,13 +1346,16 @@ describe('CategoryPage', () => {
                 initialCount: 24,
             };
 
-            render(
-                <MemoryRouter>
-                    <AllProvidersWrapper>
-                        <CategoryPage loaderData={loaderData} />
-                    </AllProvidersWrapper>
-                </MemoryRouter>
-            );
+            await act(async () => {
+                render(
+                    <MemoryRouter>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+                await loaderData.categorySchema;
+            });
 
             await waitFor(() => {
                 expect(screen.getByTestId('category-schema')).toBeInTheDocument();
@@ -1429,6 +1440,118 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 product: expect.objectContaining({ productId: 'product-1' }),
             });
+        });
+
+        test('should track product impressions after loading more products', async () => {
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+            const loadedProduct = { productId: 'product-25', productName: 'Product 25' };
+
+            await act(async () => {
+                render(
+                    <MemoryRouter>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+                await Promise.resolve();
+            });
+            await waitFor(() => expect(mockTrackViewCategory).toHaveBeenCalled());
+            mockTrackViewCategory.mockClear();
+            mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                hits: [loadedProduct],
+                total: 25,
+                offset: 24,
+                limit: 1,
+            });
+
+            await waitFor(() =>
+                expect(mockTrackViewCategory).toHaveBeenCalledWith({
+                    category: mockCategory,
+                    searchResults: [loadedProduct],
+                    sort: 'best-matches',
+                    refinements: {},
+                    offset: 24,
+                    limit: 1,
+                    total: 25,
+                })
+            );
+        });
+
+        test('should track initial impressions before loaded products', async () => {
+            let resolveNonCritical: (value: ShopperSearch.schemas['ProductSearchResult']) => void;
+            const searchResultNonCritical = new Promise<ShopperSearch.schemas['ProductSearchResult']>((resolve) => {
+                resolveNonCritical = resolve;
+            });
+            let resolveInitialTracking: () => void;
+            const initialTracking = new Promise<void>((resolve) => {
+                resolveInitialTracking = resolve;
+            });
+            mockTrackViewCategory.mockReturnValueOnce(initialTracking);
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical,
+                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+            const loadedProduct = { productId: 'product-25', productName: 'Product 25' };
+
+            await act(async () => {
+                render(
+                    <MemoryRouter>
+                        <AllProvidersWrapper>
+                            <CategoryPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+                await Promise.resolve();
+            });
+            mockUseLoadMoreProducts.mock.calls.at(-1)?.[0].onLoad({
+                hits: [loadedProduct],
+                total: 25,
+                offset: 24,
+                limit: 1,
+            });
+            expect(mockTrackViewCategory).not.toHaveBeenCalled();
+
+            await act(async () => {
+                resolveNonCritical(mockSearchResult);
+                await searchResultNonCritical;
+            });
+
+            await waitFor(() => expect(mockTrackViewCategory).toHaveBeenCalledTimes(1));
+            expect(mockTrackViewCategory.mock.calls[0][0].offset).toBe(0);
+
+            await act(async () => {
+                resolveInitialTracking();
+                await initialTracking;
+            });
+
+            await waitFor(() => expect(mockTrackViewCategory).toHaveBeenCalledTimes(2));
+            expect(mockTrackViewCategory.mock.calls[1][0]).toEqual(
+                expect.objectContaining({ searchResults: [loadedProduct], offset: 24 })
+            );
         });
 
         test('should render without errors when analytics is not available', async () => {
