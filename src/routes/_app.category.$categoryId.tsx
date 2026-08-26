@@ -90,7 +90,7 @@ type CategoryPageData = {
     category: ShopperProducts.schemas['Category'];
     searchResultCritical: ShopperSearch.schemas['ProductSearchResult'];
     searchResultNonCritical: Promise<ShopperSearch.schemas['ProductSearchResult']>;
-    page: ReturnType<typeof fetchPageWithComponentData>;
+    page: Awaited<ReturnType<typeof fetchPageWithComponentData>>;
     categoryId: string;
     pageUrl: string;
     refine: string[];
@@ -152,16 +152,6 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     const offset = isPagedRequest ? (requestedPage - 1) * limit : requestedOffset;
     const initialFetchLimit = limit;
 
-    let categoryData: ShopperProducts.schemas['Category'] | undefined;
-    try {
-        categoryData = await fetchCategory(context, categoryId, 1);
-    } catch (e) {
-        if (e instanceof NormalizedApiError && e.status) {
-            throw new Response(e.message, { status: e.status });
-        }
-        throw new Response('Internal Server Error', { status: 500 });
-    }
-
     // Keep non-category refinements and apply exactly one category refinement.
     // If URL already contains a cgid refine (e.g. from quick filters), honor it.
     // Otherwise, default to the category id from the route path.
@@ -172,13 +162,37 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     // Ensure criticalCount doesn't exceed limit to prevent negative non-critical limit
     const criticalCount = config.search.products.hits.critical ?? 4;
     const safeCriticalCount = Math.min(criticalCount, limit);
-    const searchResultCritical = await fetchSearchProducts(context, {
+
+    // Start independent I/O together. Awaiting these promises below preserves the category error
+    // mapping and the critical/non-critical search dependency without serializing their requests.
+    const categoryPromise = fetchCategory(context, categoryId, 1);
+    const searchResultCriticalPromise = fetchSearchProducts(context, {
         limit: safeCriticalCount,
         offset,
         sort,
         refine: effectiveRefine,
         currency,
     });
+    const pagePromise = fetchPageWithComponentData(args, {
+        aspectType: 'plp',
+        categoryId,
+    });
+
+    // Observe concurrent requests immediately so an early category failure cannot leave rejected
+    // promises unhandled. Awaiting the original promises below still propagates their errors.
+    void Promise.allSettled([searchResultCriticalPromise, pagePromise]);
+
+    let categoryData: ShopperProducts.schemas['Category'] | undefined;
+    try {
+        categoryData = await categoryPromise;
+    } catch (e) {
+        if (e instanceof NormalizedApiError && e.status) {
+            throw new Response(e.message, { status: e.status });
+        }
+        throw new Response('Internal Server Error', { status: 500 });
+    }
+
+    const searchResultCritical = await searchResultCriticalPromise;
 
     const effectiveCriticalCount = searchResultCritical.hits?.length ?? 0;
     const searchResultNonCritical = fetchSearchProducts(context, {
@@ -255,10 +269,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         category: categoryData,
         searchResultCritical,
         searchResultNonCritical,
-        page: fetchPageWithComponentData(args, {
-            aspectType: 'plp',
-            categoryId,
-        }),
+        page: await pagePromise,
         categoryId,
         pageUrl,
         refine: effectiveRefine,
@@ -607,9 +618,10 @@ export default function CategoryPage({
                 <Region
                     page={page}
                     regionId="plpTopFullWidth"
+                    critical={true}
                     fallbackElement={<CategoryBannerSkeleton />}
-                    errorElement={<CategoryBanner />}
                     fallbackOnEmpty
+                    errorElement={<CategoryBanner />}
                 />
 
                 <div className="section-container pt-8">

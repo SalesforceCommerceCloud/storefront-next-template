@@ -118,9 +118,11 @@ const createMockPage = (regions: any[] = []): ShopperExperience.schemas['Page'] 
         regions,
     }) as ShopperExperience.schemas['Page'];
 
-// Mock the Region component - simplified since we don't test region behavior
+const mockRegion = vi.hoisted(() => vi.fn((_props: Record<string, unknown>) => null));
+
+// Mock the Region component while retaining its props for route-level integration assertions.
 vi.mock('@/components/region', () => ({
-    Region: () => null,
+    Region: mockRegion,
 }));
 
 // Mock DeferredProductGrid component
@@ -376,6 +378,81 @@ describe('CategoryPage', () => {
             expect(result.categoryId).toBe('electronics');
             expect(result.category).toEqual(mockCategory);
             expect(result.searchResultCritical).toEqual(mockSearchResult);
+        });
+
+        test('starts independent loader requests before the category resolves', async () => {
+            let resolveCategory!: (category: ShopperProducts.schemas['Category']) => void;
+            vi.mocked(fetchCategory).mockReturnValue(
+                new Promise((resolve) => {
+                    resolveCategory = resolve;
+                })
+            );
+
+            const resultPromise = loader(createLoaderArgs('https://example.com/category/electronics'));
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
+            expect(fetchPageWithComponentData).toHaveBeenCalledTimes(1);
+
+            resolveCategory(mockCategory);
+            await resultPromise;
+        });
+
+        test('starts the non-critical search only after the critical result resolves', async () => {
+            let resolveCriticalSearch!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            vi.mocked(fetchSearchProducts)
+                .mockReturnValueOnce(
+                    new Promise((resolve) => {
+                        resolveCriticalSearch = resolve;
+                    })
+                )
+                .mockResolvedValueOnce(mockSearchResult);
+
+            const resultPromise = loader(createLoaderArgs('https://example.com/category/electronics'));
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
+
+            resolveCriticalSearch(mockSearchResult);
+            await resultPromise;
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(2);
+        });
+
+        test('waits for Page Designer data before resolving the loader', async () => {
+            const page = { ...createMockPage(), componentData: {} };
+            let resolvePage!: (resolvedPage: typeof page) => void;
+            vi.mocked(fetchPageWithComponentData).mockReturnValue(
+                new Promise((resolve) => {
+                    resolvePage = resolve;
+                })
+            );
+            let loaderResolved = false;
+
+            const resultPromise = loader(createLoaderArgs('https://example.com/category/electronics')).then(
+                (result) => {
+                    loaderResolved = true;
+                    return result;
+                }
+            );
+
+            await vi.waitFor(() => expect(fetchSearchProducts).toHaveBeenCalledTimes(2));
+            expect(loaderResolved).toBe(false);
+
+            resolvePage(page);
+            await expect(resultPromise).resolves.toEqual(expect.objectContaining({ page }));
+        });
+
+        test('maps a category failure when concurrent loader requests also reject', async () => {
+            vi.mocked(fetchCategory).mockRejectedValue(new Error('Category request failed'));
+            vi.mocked(fetchSearchProducts).mockRejectedValue(new Error('Search request failed'));
+            vi.mocked(fetchPageWithComponentData).mockRejectedValue(new Error('Page request failed'));
+
+            const response = await loader(createLoaderArgs('https://example.com/category/electronics')).catch(
+                (error: unknown) => error
+            );
+
+            expect(response).toBeInstanceOf(Response);
+            expect((response as Response).status).toBe(500);
+            await expect((response as Response).text()).resolves.toBe('Internal Server Error');
         });
 
         test('should handle query parameters correctly', async () => {
@@ -815,7 +892,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -864,7 +941,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -908,13 +985,51 @@ describe('CategoryPage', () => {
             });
         });
 
+        test('marks only the above-the-fold Page Designer region as critical', async () => {
+            const page = { ...createMockPage(), componentData: {} };
+            const loaderData: CategoryPageData = {
+                category: mockCategory,
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page,
+                categoryId: 'electronics',
+                refine: ['cgid=electronics'],
+                currency: 'USD',
+                locale: 'en-US',
+                pageUrl: 'http://localhost/category/test',
+                categorySchema: Promise.resolve(null),
+                seoPagination: null,
+                initialCount: 24,
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <CategoryPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            await waitFor(() => expect(mockRegion).toHaveBeenCalledTimes(3));
+            const regionProps = mockRegion.mock.calls.map(([props]) => props);
+
+            expect(regionProps).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({ page, regionId: 'plpTopFullWidth', critical: true }),
+                    expect.objectContaining({ page, regionId: 'plpTopContent' }),
+                    expect.objectContaining({ page, regionId: 'plpBottom' }),
+                ])
+            );
+            expect(regionProps.filter(({ critical }) => critical)).toHaveLength(1);
+        });
+
         test('should display category name or id as fallback', async () => {
             const categoryWithoutName = { ...mockCategory, name: undefined };
             const loaderData: CategoryPageData = {
                 category: categoryWithoutName,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -944,7 +1059,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: searchResultWithoutSorting,
                 searchResultNonCritical: Promise.resolve(searchResultWithoutSorting),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -974,7 +1089,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: searchResultWithOneItem,
                 searchResultNonCritical: Promise.resolve(searchResultWithOneItem),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1005,7 +1120,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1048,7 +1163,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: searchResultWithoutHits,
                 searchResultNonCritical: Promise.resolve(searchResultWithoutHits),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1078,7 +1193,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: { ...mockSearchResult, hits: [], total: 0, offset: 0 },
                 searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [], total: 0 }),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1115,7 +1230,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: { ...mockSearchResult, hits: manyHits as any, total: 100, offset: 0 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1150,7 +1265,7 @@ describe('CategoryPage', () => {
                     offset: 0,
                 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1186,7 +1301,7 @@ describe('CategoryPage', () => {
                     offset: 0,
                 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1224,7 +1339,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: { ...mockSearchResult, hits: fourHits as any, total: 30, offset: 20 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1260,7 +1375,7 @@ describe('CategoryPage', () => {
                     offset: 24,
                 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1298,7 +1413,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: { ...mockSearchResult, hits: tenHits as any, total: 5, offset: 0 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1331,7 +1446,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1373,7 +1488,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1409,7 +1524,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1447,7 +1562,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1505,7 +1620,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical,
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',
@@ -1562,7 +1677,7 @@ describe('CategoryPage', () => {
                 category: mockCategory,
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 categoryId: 'electronics',
                 refine: ['cgid=electronics'],
                 currency: 'USD',

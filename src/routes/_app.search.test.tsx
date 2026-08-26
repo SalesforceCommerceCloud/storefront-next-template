@@ -15,7 +15,6 @@
  */
 
 import 'reflect-metadata';
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
@@ -111,34 +110,23 @@ vi.mock('@salesforce/storefront-next-runtime/design/mode', () => ({
     isDesignModeActive: vi.fn(() => false),
 }));
 
+const mockRegionProps = vi.hoisted(() => vi.fn());
+
 // Mock the Region component
 vi.mock('@/components/region', async () => {
     const { isDesignModeActive } = await import('@salesforce/storefront-next-runtime/design/mode');
 
     return {
-        Region: ({ page, regionId }: any) => {
-            // Simulate the real Region component behavior
-            const MockRegion = () => {
-                const [resolvedPage, setResolvedPage] = React.useState<any>(null);
+        Region: (props: any) => {
+            mockRegionProps(props);
+            const { page, regionId } = props;
+            const region = page.regions?.find((candidate: any) => candidate.id === regionId);
+            if (!region) return null;
 
-                React.useEffect(() => {
-                    page.then((p: any) => setResolvedPage(p));
-                }, []);
+            // Don't render if no components and not in design mode
+            if (!region.components?.length && !isDesignModeActive()) return null;
 
-                if (!resolvedPage) return null;
-
-                const region = resolvedPage.regions?.find((r: any) => r.id === regionId);
-                if (!region) return null;
-
-                const isDesignMode = isDesignModeActive();
-
-                // Don't render if no components and not in design mode
-                if (!region.components?.length && !isDesignMode) return null;
-
-                return <div data-testid="region" data-region-id={regionId} />;
-            };
-
-            return <MockRegion />;
+            return <div data-testid="region" data-region-id={regionId} />;
         },
     };
 });
@@ -336,6 +324,71 @@ describe('SearchPage', () => {
 
             expect(fetchPageWithComponentData).toHaveBeenCalledWith(args, { pageId: 'search' });
             expect(result.searchTerm).toBe('shoes');
+        });
+
+        test('starts Page Designer before the critical search resolves', async () => {
+            let resolveCriticalSearch!: (result: ShopperSearch.schemas['ProductSearchResult']) => void;
+            vi.mocked(fetchSearchProducts)
+                .mockReturnValueOnce(
+                    new Promise((resolve) => {
+                        resolveCriticalSearch = resolve;
+                    })
+                )
+                .mockResolvedValueOnce(mockSearchResult);
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://example.com/search?q=shoes'),
+                mockContext,
+                { pattern: '/search' }
+            );
+
+            const resultPromise = loader(args);
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
+            expect(fetchPageWithComponentData).toHaveBeenCalledTimes(1);
+
+            resolveCriticalSearch(mockSearchResult);
+            await resultPromise;
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(2);
+        });
+
+        test('waits for Page Designer data before resolving the loader', async () => {
+            const page = { ...createMockPage(), componentData: {} };
+            let resolvePage!: (resolvedPage: typeof page) => void;
+            vi.mocked(fetchPageWithComponentData).mockReturnValue(
+                new Promise((resolve) => {
+                    resolvePage = resolve;
+                })
+            );
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://example.com/search?q=shoes'),
+                mockContext,
+                { pattern: '/search' }
+            );
+            let loaderResolved = false;
+
+            const resultPromise = loader(args).then((result) => {
+                loaderResolved = true;
+                return result;
+            });
+
+            await vi.waitFor(() => expect(fetchSearchProducts).toHaveBeenCalledTimes(2));
+            expect(loaderResolved).toBe(false);
+
+            resolvePage(page);
+            await expect(resultPromise).resolves.toEqual(expect.objectContaining({ page }));
+        });
+
+        test('propagates a critical search failure when the concurrent Page Designer request also rejects', async () => {
+            vi.mocked(fetchSearchProducts).mockRejectedValue(new Error('Search request failed'));
+            vi.mocked(fetchPageWithComponentData).mockRejectedValue(new Error('Page request failed'));
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://example.com/search?q=shoes'),
+                mockContext,
+                { pattern: '/search' }
+            );
+
+            await expect(loader(args)).rejects.toThrow('Search request failed');
         });
 
         test('should handle query parameters correctly', async () => {
@@ -605,7 +658,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 initialFiltersOpen: true,
@@ -650,7 +703,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -672,6 +725,33 @@ describe('SearchPage', () => {
             });
         });
 
+        test('marks only the top full-width Page Designer region as critical', () => {
+            const page = { ...createMockPage(), componentData: {} };
+            const loaderData: SearchPageData = {
+                searchTerm: 'shoes',
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve(mockSearchResult),
+                page,
+                currency: 'USD',
+                locale: 'en-US',
+                refine: [],
+                pageUrl: 'http://localhost/search',
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <SearchPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            const regionProps = new Map(mockRegionProps.mock.calls.map(([props]) => [props.regionId, props]));
+            expect(regionProps.get('searchTopFullWidth')).toEqual(expect.objectContaining({ page, critical: true }));
+            expect(regionProps.get('searchTopContent')?.critical).toBeUndefined();
+            expect(regionProps.get('searchBottom')?.critical).toBeUndefined();
+        });
+
         test('should render region when it has components', async () => {
             const mockRegion = {
                 id: 'searchTopContent',
@@ -688,7 +768,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage([mockRegion]), componentData: {} }),
+                page: { ...createMockPage([mockRegion]), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -715,7 +795,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage([]), componentData: {} }),
+                page: { ...createMockPage([]), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -740,7 +820,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: { ...mockSearchResult, total: 50 },
                 searchResultNonCritical: Promise.resolve({ ...mockSearchResult, total: 50 }),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -765,7 +845,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: { ...mockSearchResult, total: 1 },
                 searchResultNonCritical: Promise.resolve({ ...mockSearchResult, total: 1 }),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -790,7 +870,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -825,7 +905,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage([mockRegion]), componentData: {} }),
+                page: { ...createMockPage([mockRegion]), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -863,7 +943,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage([mockRegion]), componentData: {} }),
+                page: { ...createMockPage([mockRegion]), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -889,7 +969,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: searchResultWithoutSorting,
                 searchResultNonCritical: Promise.resolve(searchResultWithoutSorting),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -914,7 +994,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -953,7 +1033,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: searchResultWithoutHits,
                 searchResultNonCritical: Promise.resolve(searchResultWithoutHits),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -979,7 +1059,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: { ...mockSearchResult, hits: [], total: 0, offset: 0 },
                 searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [], total: 0 }),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1012,7 +1092,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: { ...mockSearchResult, hits: manyHits as any, total: 100, offset: 0 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1043,7 +1123,7 @@ describe('SearchPage', () => {
                     offset: 0,
                 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1075,7 +1155,7 @@ describe('SearchPage', () => {
                     offset: 0,
                 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1109,7 +1189,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: { ...mockSearchResult, hits: fourHits as any, total: 30, offset: 20 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1141,7 +1221,7 @@ describe('SearchPage', () => {
                     offset: 24,
                 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1175,7 +1255,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: { ...mockSearchResult, hits: tenHits as any, total: 5, offset: 0 },
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1209,7 +1289,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],
@@ -1246,7 +1326,7 @@ describe('SearchPage', () => {
                 searchTerm: 'shoes',
                 searchResultCritical: mockSearchResult,
                 searchResultNonCritical: Promise.resolve(mockSearchResult),
-                page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+                page: { ...createMockPage(), componentData: {} },
                 currency: 'USD',
                 locale: 'en-US',
                 refine: [],

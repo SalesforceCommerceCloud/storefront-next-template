@@ -73,7 +73,7 @@ export type SearchPageData = {
     searchTerm: string;
     searchResultCritical: ShopperSearch.schemas['ProductSearchResult'];
     searchResultNonCritical: Promise<ShopperSearch.schemas['ProductSearchResult']>;
-    page: ReturnType<typeof fetchPageWithComponentData>;
+    page: Awaited<ReturnType<typeof fetchPageWithComponentData>>;
     pageUrl: string;
     refine: string[];
     currency: string;
@@ -113,7 +113,7 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
     const safeCriticalCount = Math.min(criticalCount, limit);
 
     logger.debug('Search: loader starting', { q, offset, sort, refineCount: refine.length });
-    const searchResultCritical = await fetchSearchProducts(context, {
+    const searchResultCriticalPromise = fetchSearchProducts(context, {
         q,
         limit: safeCriticalCount,
         offset,
@@ -121,6 +121,15 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
         refine,
         currency,
     });
+    const pagePromise = fetchPageWithComponentData(args, {
+        pageId: 'search',
+    });
+
+    // Observe both concurrent requests immediately so a failure in either request cannot leave the
+    // other rejection unhandled. Awaiting the original promises still propagates their errors.
+    void Promise.allSettled([searchResultCriticalPromise, pagePromise]);
+
+    const searchResultCritical = await searchResultCriticalPromise;
     logger.info('Search: results loaded', { query: q, total: searchResultCritical.total, offset });
 
     const pageUrl = buildCanonicalUrl(requestUrl.origin, requestUrl.pathname, requestUrl.search);
@@ -137,9 +146,7 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
             refine,
             currency,
         }),
-        page: fetchPageWithComponentData(args, {
-            pageId: 'search',
-        }),
+        page: await pagePromise,
         pageUrl,
         refine,
         currency,
@@ -306,7 +313,7 @@ export default function SearchPage({
                     </div>
 
                     {/* searchTopFullWidth */}
-                    <Region className="mb-8" page={page} regionId="searchTopFullWidth" />
+                    <Region className="mb-8" page={page} regionId="searchTopFullWidth" critical={true} />
 
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Filters toggle button - mobile only (above panel) */}
