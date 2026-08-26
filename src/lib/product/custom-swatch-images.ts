@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { resolveAssetUrl } from '@/lib/utils';
 
 /**
  * Custom swatch-image support for variation axes that SCAPI does not natively decorate with a
@@ -91,8 +92,15 @@ export const parseCustomSwatchImages = (raw: unknown): CustomSwatchImageMap | un
  * break. We therefore serve these assets from the vertical's public overlay (same mechanism as the
  * hero images) by mapping the path to `/images/<basename>`.
  *
- * - Already root-absolute (`/images/…`) or a full URL (`http(s)://…`) → returned unchanged.
- * - Bare catalog path (`images/products/size-loveseat.webp`) → `/images/size-loveseat.webp`.
+ * The mapped local path is then run through `resolveAssetUrl`, which prepends the Managed Runtime
+ * bundle prefix at runtime (`/mobify/bundle/<id>/client/…`). MRT does NOT serve these assets at the
+ * site root — only under the bundle path — so a raw `/images/<basename>` would 404 (and fall through
+ * to SSR) on a deployed environment while working locally. `resolveAssetUrl` leaves `http(s)`/`data`
+ * URLs untouched and is a no-op in local dev.
+ *
+ * - Already root-absolute (`/images/…`) → bundle-prefixed via `resolveAssetUrl`.
+ * - Full URL (`http(s)://…`) → returned unchanged.
+ * - Bare catalog path (`images/products/size-loveseat.webp`) → `/images/size-loveseat.webp`, bundle-prefixed.
  * - Empty / non-string → `undefined`.
  */
 export const resolveCustomSwatchImagePath = (path: unknown): string | undefined => {
@@ -104,10 +112,10 @@ export const resolveCustomSwatchImagePath = (path: unknown): string | undefined 
         return undefined;
     }
     if (trimmed.startsWith('/') || /^https?:\/\//i.test(trimmed)) {
-        return trimmed;
+        return resolveAssetUrl(trimmed);
     }
     const basename = trimmed.split('/').pop();
-    return basename ? `/images/${basename}` : undefined;
+    return basename ? resolveAssetUrl(`/images/${basename}`) : undefined;
 };
 
 /**

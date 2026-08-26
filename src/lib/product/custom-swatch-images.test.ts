@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { getCustomSwatchImageUrl, parseCustomSwatchImages, resolveCustomSwatchImagePath } from './custom-swatch-images';
 
 describe('parseCustomSwatchImages', () => {
@@ -78,6 +78,36 @@ describe('resolveCustomSwatchImagePath', () => {
         expect(resolveCustomSwatchImagePath(undefined)).toBeUndefined();
         expect(resolveCustomSwatchImagePath('   ')).toBeUndefined();
         expect(resolveCustomSwatchImagePath(123)).toBeUndefined();
+    });
+
+    // On MRT there is no root static serving — client assets live under /mobify/bundle/<id>/client/.
+    // resolveAssetUrl (mocked here via window._BUNDLE_ID) adds that prefix; in local dev (default) it
+    // is a no-op, which the cases above already cover.
+    describe('on MRT (BUNDLE_ID set)', () => {
+        beforeEach(() => {
+            (window as { _BUNDLE_ID: string })._BUNDLE_ID = '60';
+        });
+        afterEach(() => {
+            delete (window as { _BUNDLE_ID?: string })._BUNDLE_ID;
+        });
+
+        it('bundle-prefixes a bare catalog path (by basename)', () => {
+            expect(resolveCustomSwatchImagePath('images/products/size-loveseat.webp')).toBe(
+                '/mobify/bundle/60/client/images/size-loveseat.webp'
+            );
+        });
+
+        it('bundle-prefixes a root-absolute /images path', () => {
+            expect(resolveCustomSwatchImagePath('/images/leg-tapered.webp')).toBe(
+                '/mobify/bundle/60/client/images/leg-tapered.webp'
+            );
+        });
+
+        it('leaves full URLs unchanged', () => {
+            expect(resolveCustomSwatchImagePath('https://cdn.example.com/x.webp')).toBe(
+                'https://cdn.example.com/x.webp'
+            );
+        });
     });
 });
 
