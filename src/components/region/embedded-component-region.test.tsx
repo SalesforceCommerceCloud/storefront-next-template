@@ -35,6 +35,12 @@ vi.mock('./region-wrapper', () => ({
         className ? <div className={className}>{children}</div> : <>{children}</>,
 }));
 
+// Embedded component regions cannot be marked critical; keep their tests isolated
+// from the page-level critical-region registry preparation.
+vi.mock('@/lib/page-designer/critical-region', () => ({
+    prepareCriticalRegion: vi.fn(),
+}));
+
 vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
     useRegionContext: vi.fn(() => ({})),
     usePageDesignerMode: vi.fn(() => ({ isDesignMode: false })),

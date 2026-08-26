@@ -100,6 +100,8 @@ const EXCLUDED_COMPONENTS = new Set([
     'region/embedded-component-region',
     'region/index',
     'region/region-wrapper',
+    // Document-level preload integration and non-visual context plumbing, covered by unit tests.
+    'region/critical-component-context',
     // Tiny error-boundary fallback components consumed via React Router's `errorElement` —
     // depend on `useAsyncError()` which only resolves inside an `<Await>` boundary, so a
     // standalone story is awkward and offers little value beyond the unit test

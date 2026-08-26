@@ -32,6 +32,7 @@ export function storefrontNext() {
         staticRegistry: {
             componentPath: 'src/components',
             registryPath: 'src/lib/page-designer/static-registry.ts',
+            preloadManifest: true,
         },
     });
 }

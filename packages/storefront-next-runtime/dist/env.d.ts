@@ -17,10 +17,14 @@
 /**
  * Whether the app is running on a deployed Managed Runtime environment.
  *
- * Reads (at call time, so tests and per-request logic see the live value):
- * - `process.env.BUNDLE_ID` (optional) — Managed Runtime bundle identifier. A
- *   real bundle ID (e.g. `'42'`) on deployed environments; unset or `'local'`
- *   during local `pnpm dev` / `pnpm preview`.
+ * Reads at call time so tests, per-request SSR logic, and browser code see the
+ * live value:
+ * - `process.env.BUNDLE_ID` during SSR.
+ * - `window._BUNDLE_ID` in the browser, injected before application scripts by
+ *   the Storefront Next Scripts integration.
+ *
+ * A real bundle ID (e.g. `'42'`) identifies a deployed environment; unset,
+ * empty, or `'local'` identifies local `pnpm dev` / `pnpm preview`.
  *
  * @returns `true` when `BUNDLE_ID` is set and not `'local'` (deployed, real
  * HTTPS); `false` for local development and `pnpm preview`.

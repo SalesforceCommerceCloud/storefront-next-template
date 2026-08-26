@@ -77,6 +77,7 @@ function createReactRegionDesignDecorator(Region) {
 * for the framework-agnostic component registry.
 */
 var ReactAdapter = class {
+	decoratedComponents = /* @__PURE__ */ new WeakMap();
 	/**
 	* Creates a React lazy component from an importer function.
 	*/
@@ -90,7 +91,11 @@ var ReactAdapter = class {
 	* Uses the React-specific design decorator directly.
 	*/
 	decorateComponent(component) {
-		return createReactComponentDesignDecorator(component);
+		const cached = this.decoratedComponents.get(component);
+		if (cached) return cached;
+		const decorated = createReactComponentDesignDecorator(component);
+		this.decoratedComponents.set(component, decorated);
+		return decorated;
 	}
 };
 /**

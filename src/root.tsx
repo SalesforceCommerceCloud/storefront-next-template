@@ -37,6 +37,7 @@ import { routes } from '@/route-paths';
 import { createInstance, type i18n } from 'i18next';
 import { I18nextProvider, useTranslation, initReactI18next } from 'react-i18next';
 import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import { createStorefrontStylesheetLink } from '@salesforce/storefront-next-runtime/design/react/preload';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
 import { dataStoreMiddlewareLazy, sitesMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
 import {
@@ -131,13 +132,16 @@ import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
 // logo implementations (raster, inline-SVG, etc.) can be provided per brand.
 import Logo from '@/components/logo';
 import { SkipLink } from '@/components/skip-link';
+// The server entry initializes before route loaders run. Initialize separately
+// when this module is loaded in the browser, rather than during every App render.
+if (typeof window !== 'undefined') initializeRegistry();
 
 export const links: Route.LinksFunction = () => {
     return [
         // Preload critical fonts
         { rel: 'preload', href: primaryFont, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
         { rel: 'preload', href: appStylesHref, as: 'style' },
-        { rel: 'stylesheet', href: appStylesHref },
+        createStorefrontStylesheetLink(appStylesHref),
     ];
 };
 
@@ -691,9 +695,6 @@ export default function App({
     // - These values are serialized directly from the server loader
     // - No client middleware or bootstrap needed - server is the single source of truth
     // - Tokens (accessToken, refreshToken) stay server-side only
-
-    // Initialize Page Designer components
-    initializeRegistry();
 
     const i18next = (typeof window === 'undefined' ? getI18next?.() : i18nextOnClient) as i18n;
 

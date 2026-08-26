@@ -30,7 +30,8 @@
 var ComponentRegistry = class {
 	registry = /* @__PURE__ */ new Map();
 	pending = /* @__PURE__ */ new Map();
-	cancelled = /* @__PURE__ */ new Set();
+	inFlightRegistrations = /* @__PURE__ */ new Map();
+	generation = 0;
 	adapter;
 	constructor({ adapter }) {
 		this.adapter = adapter;
@@ -73,10 +74,13 @@ var ComponentRegistry = class {
 	*/
 	getComponent(id) {
 		const e = this.ensureLocalEntry(id);
-		if (!e) return null;
 		const comp = e.raw ?? e.lazy ?? null;
 		if (!comp) return null;
 		return this.adapter.decorateComponent(comp);
+	}
+	/** Whether a component's concrete module export has already been registered. */
+	hasConcreteComponent(id) {
+		return Boolean(this.registry.get(id)?.raw);
 	}
 	/**
 	* Preload the JS chunk for a component id (use in route loaders/SSR to avoid waterfalls).
@@ -91,6 +95,33 @@ var ComponentRegistry = class {
 		const e = await this.ensureDiscovered(id);
 		if (e?.lazy || e?.raw) return;
 		throw new Error(`Component "${id}" could not be discovered (no importer, no raw/lazy).`);
+	}
+	/**
+	* Loads and registers a component's concrete export.
+	* Unknown component IDs are ignored so callers can pass IDs collected from external content.
+	*/
+	async loadAndRegister(id) {
+		const entry = this.registry.get(id);
+		if (entry?.raw || !entry?.import) return;
+		const pending = this.inFlightRegistrations.get(id);
+		if (pending) return pending;
+		const importer = entry.import;
+		const work = (async () => {
+			const module = await importer();
+			const current = this.registry.get(id);
+			if (!current || current.import !== importer) return;
+			this.registry.set(id, {
+				...current,
+				raw: module.default,
+				fallback: module.fallback ?? current.fallback
+			});
+		})();
+		this.inFlightRegistrations.set(id, work);
+		try {
+			await work;
+		} finally {
+			if (this.inFlightRegistrations.get(id) === work) this.inFlightRegistrations.delete(id);
+		}
 	}
 	/** Get loader function names for external invocation. */
 	getLoaderNames(id) {
@@ -143,9 +174,10 @@ var ComponentRegistry = class {
 	* Useful for testing or hot module replacement.
 	*/
 	clear() {
-		for (const id of this.pending.keys()) this.cancelled.add(id);
+		this.generation += 1;
 		this.registry.clear();
 		this.pending.clear();
+		this.inFlightRegistrations.clear();
 	}
 	ensureLocalEntry(id) {
 		const cached = this.registry.get(id);
@@ -168,35 +200,36 @@ var ComponentRegistry = class {
 	async ensureDiscovered(id) {
 		const existing = this.registry.get(id);
 		if (existing?.raw) return existing;
-		if (this.pending.has(id)) return this.pending.get(id) ?? null;
+		const pending = this.pending.get(id);
+		if (pending) return pending;
+		const generation = this.generation;
 		const work = (async () => {
-			if (this.cancelled.has(id)) {
-				this.cancelled.delete(id);
-				throw new Error(`Component discovery for "${id}" was cancelled`);
-			}
 			let entry = this.registry.get(id) ?? {
 				id,
 				raw: null
 			};
 			if (entry.import) {
 				entry = await this.buildFromImporter(id, entry.import);
-				if (this.cancelled.has(id)) {
-					this.cancelled.delete(id);
-					throw new Error(`Component discovery for "${id}" was cancelled`);
-				}
-				this.registry.set(id, entry);
-				return entry;
+				if (generation !== this.generation) throw new Error(`Component discovery for "${id}" was cancelled`);
+				const current = this.registry.get(id);
+				if (!current) return null;
+				if (current.import !== entry.import) return current;
+				const discovered = {
+					...current,
+					...entry,
+					raw: current.raw,
+					fallback: entry.fallback ?? current.fallback
+				};
+				this.registry.set(id, discovered);
+				return discovered;
 			}
 			return this.registry.get(id) ?? null;
 		})();
 		this.pending.set(id, work);
 		try {
-			const done = await work;
-			this.pending.delete(id);
-			return done;
-		} catch (error) {
-			this.pending.delete(id);
-			throw error;
+			return await work;
+		} finally {
+			if (this.pending.get(id) === work) this.pending.delete(id);
 		}
 	}
 	async buildFromImporter(id, importer) {

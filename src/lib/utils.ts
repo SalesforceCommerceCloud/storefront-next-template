@@ -17,6 +17,9 @@ import { clsx, type ClassValue } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
 import type { Json } from '+types/lang';
 import { ApiError } from '@/scapi';
+import { getClientBundlePath } from '@salesforce/storefront-next-runtime/assets';
+
+export { getClientBundlePath } from '@salesforce/storefront-next-runtime/assets';
 
 /**
  * Get the configurable base path for the application.
@@ -445,8 +448,8 @@ export function parseJsonToStringRecord(value: string | null | undefined): Recor
  * This function:
  * - Returns absolute URLs (http://, https://, data:, //) unchanged
  * - Returns URLs that already contain the bundle path unchanged (e.g., statically imported images)
- * - In local dev, returns paths as-is (e.g., '/images/hero.png')
- * - In MRT, prepends the bundle path (e.g., '/mobify/bundle/60/client/images/hero.png')
+ * - In Vite dev, returns paths as-is (e.g., '/images/hero.png')
+ * - In preview and MRT, prepends the bundle path (e.g., '/mobify/bundle/60/client/images/hero.png')
  * - Works isomorphically (client and server)
  *
  * @param url The asset URL to resolve (e.g., '/images/hero.png' or 'images/hero.png')
@@ -476,23 +479,17 @@ export const resolveAssetUrl = (url: string): string => {
         return url;
     }
 
-    const basePath = getBasePath();
-
-    // Determine the bundle ID
-    // Falls back to 'local' if _BUNDLE_ID is undefined (e.g., in dev mode where bundle config isn't injected)
-    const bundleId = (typeof window !== 'undefined' ? window._BUNDLE_ID : process.env.BUNDLE_ID) || 'local';
-
-    // In local development, don't prepend bundle path
-    if (bundleId === 'local') {
+    // Vite serves public assets from the origin root in dev. A production build uses the client bundle path,
+    // including local preview where the bundle ID is also "local".
+    if (import.meta.env.DEV) {
         // Ensure the URL starts with a slash for consistency
         return url.startsWith('/') ? url : `/${url}`;
     }
 
     // In MRT, prepend the bundle path with base path
-    const bundlePath = `${basePath}/mobify/bundle/${bundleId}/client/`;
     const normalizedUrl = url.startsWith('/') ? url.slice(1) : url;
 
-    return `${bundlePath}${normalizedUrl}`;
+    return `${getClientBundlePath()}${normalizedUrl}`;
 };
 
 const twMerge = extendTailwindMerge<'border-ui'>({

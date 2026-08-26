@@ -38,6 +38,8 @@ export type ReactDesignComponentType<TProps> =
  * for the framework-agnostic component registry.
  */
 export class ReactAdapter<TProps> implements FrameworkAdapter<TProps, ReactDesignComponentType<TProps>> {
+    private readonly decoratedComponents = new WeakMap<object, ReactDesignComponentType<TProps>>();
+
     /**
      * Creates a React lazy component from an importer function.
      */
@@ -58,9 +60,13 @@ export class ReactAdapter<TProps> implements FrameworkAdapter<TProps, ReactDesig
      * Uses the React-specific design decorator directly.
      */
     decorateComponent(component: ReactDesignComponentType<TProps>): ReactDesignComponentType<TProps> {
-        const reactComponent = component as React.ComponentType<TProps>;
+        const cached = this.decoratedComponents.get(component);
+        if (cached) return cached;
 
-        return createReactComponentDesignDecorator(reactComponent) as ReactDesignComponentType<TProps>;
+        const reactComponent = component as React.ComponentType<TProps>;
+        const decorated = createReactComponentDesignDecorator(reactComponent) as ReactDesignComponentType<TProps>;
+        this.decoratedComponents.set(component, decorated);
+        return decorated;
     }
 }
 

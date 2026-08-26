@@ -33,7 +33,8 @@ import { a as LoaderNames, n as ComponentModule, r as ComponentRegistryOptions, 
 declare class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
   private readonly registry;
   private readonly pending;
-  private readonly cancelled;
+  private readonly inFlightRegistrations;
+  private generation;
   private readonly adapter;
   constructor({
     adapter
@@ -54,6 +55,8 @@ declare class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
    * is decorated via `designDecorator`.
    */
   getComponent(id: ComponentId): TFrameworkComponent | null;
+  /** Whether a component's concrete module export has already been registered. */
+  hasConcreteComponent(id: ComponentId): boolean;
   /**
    * Preload the JS chunk for a component id (use in route loaders/SSR to avoid waterfalls).
    *
@@ -64,6 +67,11 @@ declare class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
    * @throws Error if the component cannot be discovered
    */
   preload(id: ComponentId): Promise<void>;
+  /**
+   * Loads and registers a component's concrete export.
+   * Unknown component IDs are ignored so callers can pass IDs collected from external content.
+   */
+  loadAndRegister(id: ComponentId): Promise<void>;
   /** Get loader function names for external invocation. */
   getLoaderNames(id: ComponentId): LoaderNames | undefined;
   hasLoaders(id: ComponentId): boolean;

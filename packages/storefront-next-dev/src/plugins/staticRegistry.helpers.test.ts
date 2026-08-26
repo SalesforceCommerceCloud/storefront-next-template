@@ -217,6 +217,7 @@ describe('generateRegistryCode', () => {
         expect(result).toContain('No components found with @Component decorators');
         expect(result).toContain('export function initializeRegistry(targetRegistry = registry): void {');
         expect(result).toContain('// No components found with @Component decorators');
+        expect(result).toContain('export async function loadAndRegisterRegistryComponents(');
     });
 
     it('generates registrations in stable sorted order', () => {
@@ -266,8 +267,28 @@ describe('generateRegistryCode', () => {
         expect(heroIndex).toBeLessThan(carouselIndex);
         expect(heroAltIndex).toBeLessThan(carouselIndex);
 
+        expect(result).toContain('targetRegistry.loadAndRegister(id)');
+        expect(result).not.toContain("['storefrontnext_base.hero', () => import('../components/hero/index')]");
+        expect(result).not.toContain('targetRegistry.registerComponent(');
+        expect(result).toContain('await Promise.all(');
+
         // Within same id, should be sorted by relativePath (hero before hero-alt)
         expect(heroIndex).toBeLessThan(heroAltIndex);
+    });
+
+    it('keeps generation deterministic for identical component records', () => {
+        const component: ComponentInfo = {
+            id: 'storefrontnext_base.hero',
+            filePath: '/test/project/src/components/hero/index.tsx',
+            relativePath: '../components/hero/index',
+            hasLoader: false,
+            hasClientLoader: false,
+            hasFallback: false,
+        };
+
+        expect(generateRegistryCode([component, { ...component }], 'registry')).toContain(
+            'Components registered: storefrontnext_base.hero, storefrontnext_base.hero'
+        );
     });
 
     it('includes loader names when components have loaders', () => {
@@ -339,5 +360,6 @@ describe('generateRegistryCode', () => {
         const result = generateRegistryCode(components, 'customRegistry');
 
         expect(result).toContain('export function initializeRegistry(targetRegistry = customRegistry): void {');
+        expect(result).toContain('targetRegistry = customRegistry');
     });
 });

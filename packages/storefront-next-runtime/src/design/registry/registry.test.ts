@@ -224,6 +224,18 @@ describe('ComponentRegistry', () => {
             const component = registry.getComponent('null-id');
             expect(component).toBeNull();
         });
+
+        test('reports whether a concrete component export is registered', async () => {
+            const importer = vi.fn(() => Promise.resolve({ default: MockComponent }));
+            registry.registerImporter('test-id', importer);
+
+            expect(registry.hasConcreteComponent('test-id')).toBe(false);
+            await registry.preload('test-id');
+            expect(registry.hasConcreteComponent('test-id')).toBe(false);
+
+            await registry.loadAndRegister('test-id');
+            expect(registry.hasConcreteComponent('test-id')).toBe(true);
+        });
     });
 
     describe('preload', () => {
@@ -277,6 +289,160 @@ describe('ComponentRegistry', () => {
             await registry.preload('test-id');
 
             expect(registry.getFallback('test-id')).toBe(FallbackComponent);
+        });
+    });
+
+    describe('loadAndRegister', () => {
+        test('registers the concrete component and preserves importer metadata', async () => {
+            const FallbackComponent = { __componentBrand: Symbol() as any };
+            const importer = vi.fn(() =>
+                Promise.resolve({
+                    default: MockComponent,
+                    fallback: FallbackComponent,
+                })
+            );
+            const loaderNames: LoaderNames = { loader: 'loader' };
+            registry.registerImporter('test-id', importer, loaderNames);
+
+            await registry.loadAndRegister('test-id');
+
+            expect(registry.getComponent('test-id')).toBe(MockComponent);
+            expect(registry.getFallback('test-id')).toBe(FallbackComponent);
+            expect(registry.getLoaderNames('test-id')).toEqual(loaderNames);
+            expect(mockAdapter.createLazyComponent).not.toHaveBeenCalled();
+
+            await registry.loadAndRegister('test-id');
+            expect(importer).toHaveBeenCalledTimes(1);
+        });
+
+        test('ignores unknown component IDs', async () => {
+            await expect(registry.loadAndRegister('unknown-id')).resolves.toBeUndefined();
+            expect(registry.has('unknown-id')).toBe(false);
+        });
+
+        test('deduplicates concurrent load-and-register calls', async () => {
+            const importer = vi.fn(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 10));
+                return { default: MockComponent };
+            });
+            registry.registerImporter('test-id', importer);
+
+            await Promise.all([
+                registry.loadAndRegister('test-id'),
+                registry.loadAndRegister('test-id'),
+                registry.loadAndRegister('test-id'),
+            ]);
+
+            expect(importer).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not restore a component removed while its import is in flight', async () => {
+            let resolveImporter!: (module: ComponentModule<TestProps>) => void;
+            const importer = vi.fn(
+                () =>
+                    new Promise<ComponentModule<TestProps>>((resolve) => {
+                        resolveImporter = resolve;
+                    })
+            );
+            registry.registerImporter('test-id', importer);
+
+            const registration = registry.loadAndRegister('test-id');
+            registry.clear();
+            resolveImporter({ default: MockComponent });
+            await registration;
+
+            expect(registry.has('test-id')).toBe(false);
+        });
+
+        test('does not overwrite a replacement importer', async () => {
+            let resolveImporter!: (module: ComponentModule<TestProps>) => void;
+            const importer = vi.fn(
+                () =>
+                    new Promise<ComponentModule<TestProps>>((resolve) => {
+                        resolveImporter = resolve;
+                    })
+            );
+            const replacement = vi.fn(() => Promise.resolve({ default: MockComponent }));
+            registry.registerImporter('test-id', importer);
+
+            const registration = registry.loadAndRegister('test-id');
+            registry.registerImporter('test-id', replacement);
+            resolveImporter({ default: MockComponent });
+            await registration;
+
+            await registry.loadAndRegister('test-id');
+            expect(replacement).toHaveBeenCalledOnce();
+        });
+
+        test('preserves a concrete component when lazy discovery finishes later', async () => {
+            let resolveDiscovery!: (module: ComponentModule<TestProps>) => void;
+            let resolveRegistration!: (module: ComponentModule<TestProps>) => void;
+            const importer = vi
+                .fn()
+                .mockImplementationOnce(
+                    () =>
+                        new Promise<ComponentModule<TestProps>>((resolve) => {
+                            resolveDiscovery = resolve;
+                        })
+                )
+                .mockImplementationOnce(
+                    () =>
+                        new Promise<ComponentModule<TestProps>>((resolve) => {
+                            resolveRegistration = resolve;
+                        })
+                );
+            registry.registerImporter('test-id', importer);
+
+            const discovery = registry.preload('test-id');
+            const registration = registry.loadAndRegister('test-id');
+
+            resolveRegistration({ default: MockComponent });
+            await registration;
+            resolveDiscovery({ default: MockComponent });
+            await discovery;
+
+            expect(registry.getComponent('test-id')).toBe(MockComponent);
+            expect(mockAdapter.createLazyComponent).toHaveBeenCalledOnce();
+        });
+
+        test('does not overwrite an importer replaced during lazy discovery', async () => {
+            let resolveImporter!: (module: ComponentModule<TestProps>) => void;
+            const importer = vi.fn(
+                () =>
+                    new Promise<ComponentModule<TestProps>>((resolve) => {
+                        resolveImporter = resolve;
+                    })
+            );
+            const replacement = vi.fn(() => Promise.resolve({ default: MockComponent }));
+            registry.registerImporter('test-id', importer);
+
+            const discovery = registry.preload('test-id');
+            registry.registerImporter('test-id', replacement);
+            resolveImporter({ default: MockComponent });
+
+            await expect(discovery).rejects.toThrow('could not be discovered');
+            await registry.loadAndRegister('test-id');
+            expect(replacement).toHaveBeenCalledOnce();
+        });
+    });
+
+    describe('hasLoaders', () => {
+        test('reports whether a component has at least one configured loader', () => {
+            expect(registry.hasLoaders('missing')).toBe(false);
+            registry.registerImporter(
+                'without-loader',
+                vi.fn(() => Promise.resolve({ default: MockComponent }))
+            );
+            registry.registerImporter(
+                'with-loader',
+                vi.fn(() => Promise.resolve({ default: MockComponent })),
+                {
+                    loader: 'loader',
+                }
+            );
+
+            expect(registry.hasLoaders('without-loader')).toBe(false);
+            expect(registry.hasLoaders('with-loader')).toBe(true);
         });
     });
 
@@ -375,6 +541,43 @@ describe('ComponentRegistry', () => {
 
             const result = await registry.callLoader('test-id', {});
             expect(result).toBeUndefined();
+        });
+
+        test('throws when loader metadata has no importer', async () => {
+            (registry as any).registry.set('test-id', {
+                id: 'test-id',
+                raw: MockComponent,
+                loaderNames: { loader: 'loader' },
+            });
+
+            await expect(registry.callLoader('test-id', {})).rejects.toThrow('No importer found');
+        });
+
+        test('wraps importer and loader failures with component context', async () => {
+            registry.registerImporter(
+                'import-failure',
+                vi.fn(() => Promise.reject(new Error('import failed'))),
+                {
+                    loader: 'loader',
+                }
+            );
+            registry.registerImporter(
+                'loader-failure',
+                vi.fn(() =>
+                    Promise.resolve({
+                        default: MockComponent,
+                        loader: vi.fn(() => Promise.reject(new Error('loader failed'))),
+                    })
+                ),
+                { loader: 'loader' }
+            );
+
+            await expect(registry.callLoader('import-failure', {})).rejects.toThrow(
+                "Failed to call loader for component 'import-failure': import failed"
+            );
+            await expect(registry.callLoader('loader-failure', {})).rejects.toThrow(
+                "Failed to call loader for component 'loader-failure': loader failed"
+            );
         });
     });
 
@@ -516,6 +719,75 @@ describe('ComponentRegistry', () => {
     });
 
     describe('async behavior and error handling', () => {
+        test('does not let a post-clear discovery consume an earlier discovery cancellation', async () => {
+            let resolveImporter!: (value: ComponentModule<TestProps>) => void;
+            const importer = vi.fn(
+                () =>
+                    new Promise<ComponentModule<TestProps>>((resolve) => {
+                        resolveImporter = resolve;
+                    })
+            );
+            registry.registerImporter('cancelled-id', importer);
+
+            const cancelledDiscovery = registry.preload('cancelled-id');
+            registry.clear();
+            const postClearDiscovery = registry.preload('cancelled-id');
+            resolveImporter({ default: MockComponent });
+
+            const [cancelledResult, postClearResult] = await Promise.allSettled([
+                cancelledDiscovery,
+                postClearDiscovery,
+            ]);
+
+            expect(cancelledResult).toMatchObject({
+                status: 'rejected',
+                reason: expect.objectContaining({ message: 'Component discovery for "cancelled-id" was cancelled' }),
+            });
+            expect(postClearResult).toMatchObject({
+                status: 'rejected',
+                reason: expect.objectContaining({
+                    message: expect.stringContaining('Component "cancelled-id" could not be discovered'),
+                }),
+            });
+        });
+
+        test('keeps a post-clear discovery pending when the cancelled operation settles first', async () => {
+            let resolveCancelledImporter!: (value: ComponentModule<TestProps>) => void;
+            let resolveReplacementImporter!: (value: ComponentModule<TestProps>) => void;
+            const cancelledImporter = vi.fn(
+                () =>
+                    new Promise<ComponentModule<TestProps>>((resolve) => {
+                        resolveCancelledImporter = resolve;
+                    })
+            );
+            const replacementImporter = vi.fn(
+                () =>
+                    new Promise<ComponentModule<TestProps>>((resolve) => {
+                        resolveReplacementImporter = resolve;
+                    })
+            );
+            registry.registerImporter('cancelled-id', cancelledImporter);
+
+            const cancelledDiscovery = registry.preload('cancelled-id');
+            registry.clear();
+            registry.registerImporter('cancelled-id', replacementImporter);
+            const replacementDiscovery = registry.preload('cancelled-id');
+
+            resolveCancelledImporter({ default: MockComponent });
+            await expect(cancelledDiscovery).rejects.toThrow('Component discovery for "cancelled-id" was cancelled');
+
+            const concurrentReplacementDiscovery = registry.preload('cancelled-id');
+            expect(replacementImporter).toHaveBeenCalledOnce();
+
+            resolveReplacementImporter({ default: MockComponent });
+            await expect(Promise.all([replacementDiscovery, concurrentReplacementDiscovery])).resolves.toEqual([
+                undefined,
+                undefined,
+            ]);
+
+            expect(registry.getComponent('cancelled-id')).toBe(MockLazyComponent);
+        });
+
         test('handles importer rejection gracefully', async () => {
             const importError = new Error('Import failed');
             const importer = vi.fn(() => Promise.reject(importError));

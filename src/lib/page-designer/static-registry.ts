@@ -69,4 +69,16 @@ export function initializeRegistry(targetRegistry = registry): void {
     );
 }
 
+/**
+ * Load selected component modules and register their concrete exports before SSR.
+ * This keeps the component boundary out of the initial Suspense shell while
+ * preserving nested data-loading Suspense boundaries and their fallbacks.
+ */
+export async function loadAndRegisterRegistryComponents(
+    typeIds: Iterable<string>,
+    targetRegistry = registry
+): Promise<void> {
+    await Promise.all([...new Set(typeIds)].map((id) => targetRegistry.loadAndRegister(id)));
+}
+
 // STATIC_REGISTRY_END

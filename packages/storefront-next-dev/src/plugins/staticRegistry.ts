@@ -15,7 +15,7 @@
  */
 
 import type { Plugin } from 'vite';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'fs';
 import { resolve, relative, dirname } from 'path';
 import { glob } from 'glob';
 import {
@@ -29,6 +29,17 @@ import {
 } from 'ts-morph';
 import { logger } from '../logger';
 import { formatWithProjectBiome } from '../utils/format-with-project-biome';
+import {
+    buildPageDesignerPreloadManifest,
+    createEmptyPageDesignerPreloadManifest,
+    normalizePageDesignerPreloadManifestConfig,
+    parseViteManifestAsset,
+    PAGE_DESIGNER_PRELOAD_MANIFEST_ID,
+    RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID,
+    validateEmbeddedPageDesignerPreloadManifest,
+    type PageDesignerPreloadManifest,
+    type PageDesignerPreloadManifestConfig,
+} from './pageDesignerPreloadManifest';
 
 // Default component group when none is specified in the decorator
 const DEFAULT_COMPONENT_GROUP = 'storefrontnext_base';
@@ -80,6 +91,12 @@ export interface StaticRegistryPluginConfig {
      * @default true
      */
     failOnError?: boolean;
+
+    /**
+     * Emit and embed a compact Page Designer component preload manifest.
+     * Disabled by default.
+     */
+    preloadManifest?: boolean | PageDesignerPreloadManifestConfig;
 }
 
 /**
@@ -313,6 +330,14 @@ export function generateRegistryCode(components: ComponentInfo[], registryIdenti
 export function initializeRegistry(targetRegistry = ${registryIdentifier}): void {
     // No components found with @Component decorators
 }
+
+/** Load selected component modules and register their concrete exports before SSR. */
+export async function loadAndRegisterRegistryComponents(
+    typeIds: Iterable<string>,
+    targetRegistry = ${registryIdentifier}
+): Promise<void> {
+    await Promise.all([...new Set(typeIds)].map((id) => targetRegistry.loadAndRegister(id)));
+}
 `;
     }
 
@@ -349,6 +374,18 @@ export function initializeRegistry(targetRegistry = ${registryIdentifier}): void
  */
 export function initializeRegistry(targetRegistry = ${registryIdentifier}): void {
 ${registrations}
+}
+
+/**
+ * Load selected component modules and register their concrete exports before SSR.
+ * This keeps the component boundary out of the initial Suspense shell while
+ * preserving nested data-loading Suspense boundaries and their fallbacks.
+ */
+export async function loadAndRegisterRegistryComponents(
+    typeIds: Iterable<string>,
+    targetRegistry = ${registryIdentifier}
+): Promise<void> {
+    await Promise.all([...new Set(typeIds)].map((id) => targetRegistry.loadAndRegister(id)));
 }
 `;
 }
@@ -452,9 +489,17 @@ export const staticRegistryPlugin = (config: StaticRegistryPluginConfig = {}): P
         registryPath = 'src/lib/static-registry.ts',
         registryIdentifier = 'registry',
         failOnError = true,
+        preloadManifest = false,
     } = config;
 
     let projectRoot: string;
+    let isProductionBuild = false;
+    let components: ComponentInfo[] = [];
+    let embeddedManifest: PageDesignerPreloadManifest | undefined;
+    let intermediateManifestPath: string | undefined;
+    const normalizedPreloadConfig = preloadManifest
+        ? normalizePageDesignerPreloadManifestConfig(preloadManifest)
+        : undefined;
 
     const runRegistryGeneration = async () => {
         logger.debug('🚀 Starting static registry generation...');
@@ -472,7 +517,7 @@ export const staticRegistryPlugin = (config: StaticRegistryPluginConfig = {}): P
         });
 
         // Build AST, extract plain data
-        const components = await scanComponents(project, projectRoot, componentPath, registryPath);
+        components = await scanComponents(project, projectRoot, componentPath, registryPath);
 
         // From here on we do not need the AST any more.
         // `components` is just an array of plain objects.
@@ -492,8 +537,40 @@ export const staticRegistryPlugin = (config: StaticRegistryPluginConfig = {}): P
     return {
         name: 'storefrontnext:static-registry',
 
+        config(_userConfig, env) {
+            isProductionBuild = env.command === 'build' && env.mode === 'production';
+        },
+
+        configEnvironment(name) {
+            if (normalizedPreloadConfig && name === 'client') {
+                return { build: { manifest: true } };
+            }
+        },
+
         configResolved(resolvedConfig) {
             projectRoot = resolvedConfig.root;
+        },
+
+        resolveId(id) {
+            if (normalizedPreloadConfig && id === PAGE_DESIGNER_PRELOAD_MANIFEST_ID) {
+                return RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID;
+            }
+        },
+
+        load(id) {
+            if (!normalizedPreloadConfig || id !== RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID) return;
+            if (!isProductionBuild) {
+                return `export default ${JSON.stringify(createEmptyPageDesignerPreloadManifest(normalizedPreloadConfig))};`;
+            }
+            const environmentName = (this as unknown as { environment?: { name?: string } }).environment?.name;
+            if (environmentName === 'client') {
+                // The client resource graph does not exist until this environment finishes.
+                // Critical-region hints are emitted during SSR, so the shared Region module
+                // only needs a valid placeholder manifest in the browser bundle.
+                return `export default ${JSON.stringify(createEmptyPageDesignerPreloadManifest(normalizedPreloadConfig))};`;
+            }
+            validateEmbeddedPageDesignerPreloadManifest(embeddedManifest);
+            return `export default ${JSON.stringify(embeddedManifest)};`;
         },
 
         async buildStart() {
@@ -507,6 +584,42 @@ export const staticRegistryPlugin = (config: StaticRegistryPluginConfig = {}): P
                 logger.warn('⚠️  Continuing build without static registry...');
             }
         },
+
+        writeBundle(options, bundle) {
+            if (!normalizedPreloadConfig) return;
+            const environmentName = (this as unknown as { environment?: { name?: string } }).environment?.name;
+            if (environmentName !== 'client') return;
+
+            const viteManifest = parseViteManifestAsset(bundle);
+            embeddedManifest = buildPageDesignerPreloadManifest(
+                components,
+                viteManifest,
+                bundle,
+                projectRoot,
+                normalizedPreloadConfig,
+                (message) => this.warn(message)
+            );
+            validateEmbeddedPageDesignerPreloadManifest(embeddedManifest);
+
+            const outputDirectory = options.dir ?? resolve(projectRoot, 'dist');
+            intermediateManifestPath = resolve(outputDirectory, normalizedPreloadConfig.path);
+            mkdirSync(dirname(intermediateManifestPath), { recursive: true });
+            writeFileSync(intermediateManifestPath, `${JSON.stringify(embeddedManifest, null, 2)}\n`, 'utf8');
+        },
+
+        buildApp: normalizedPreloadConfig
+            ? {
+                  order: 'post',
+                  handler() {
+                      // The compact JSON is only a client-to-server build checkpoint. The production
+                      // server bundle contains the virtual module and must not read this file at runtime.
+                      if (intermediateManifestPath && existsSync(intermediateManifestPath)) {
+                          unlinkSync(intermediateManifestPath);
+                      }
+                      return Promise.resolve();
+                  },
+              }
+            : undefined,
 
         async handleHotUpdate({ file, server }) {
             const normalizedComponentPath = componentPath.replace(/\\/g, '/');

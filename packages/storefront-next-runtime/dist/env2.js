@@ -18,9 +18,10 @@
 * Runtime environment detection.
 *
 * `BUNDLE_ID` is the single signal that distinguishes a deployed (Managed
-* Runtime) environment from local development. Managed Runtime always injects a
-* real, non-'local' `BUNDLE_ID`; local `pnpm dev` leaves it unset and `pnpm
-* preview` leaves it 'local'. Asset path resolution already keys off it, so a
+* Runtime) environment from local development. Managed Runtime always provides
+* a real, non-'local' bundle ID through `process.env.BUNDLE_ID` during SSR and
+* `window._BUNDLE_ID` in the browser; local `pnpm dev` leaves it unset and
+* `pnpm preview` uses 'local'. Asset path resolution already keys off it, so a
 * deployment that failed to set it would be broken in other ways too.
 *
 * This is the canonical home for that check. It gates every behavior that must
@@ -41,16 +42,20 @@ const LOCAL_BUNDLE_ID = "local";
 /**
 * Whether the app is running on a deployed Managed Runtime environment.
 *
-* Reads (at call time, so tests and per-request logic see the live value):
-* - `process.env.BUNDLE_ID` (optional) — Managed Runtime bundle identifier. A
-*   real bundle ID (e.g. `'42'`) on deployed environments; unset or `'local'`
-*   during local `pnpm dev` / `pnpm preview`.
+* Reads at call time so tests, per-request SSR logic, and browser code see the
+* live value:
+* - `process.env.BUNDLE_ID` during SSR.
+* - `window._BUNDLE_ID` in the browser, injected before application scripts by
+*   the Storefront Next Scripts integration.
+*
+* A real bundle ID (e.g. `'42'`) identifies a deployed environment; unset,
+* empty, or `'local'` identifies local `pnpm dev` / `pnpm preview`.
 *
 * @returns `true` when `BUNDLE_ID` is set and not `'local'` (deployed, real
 * HTTPS); `false` for local development and `pnpm preview`.
 */
 function isRemote() {
-	const id = process.env.BUNDLE_ID;
+	const id = typeof window === "undefined" ? process.env.BUNDLE_ID : window._BUNDLE_ID;
 	return Boolean(id) && id !== LOCAL_BUNDLE_ID;
 }
 

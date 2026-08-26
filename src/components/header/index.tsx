@@ -130,10 +130,10 @@ export default function Header({
                     </Link>
 
                     {/* Navigation Menu - desktop only, next to logo */}
-                    <div className="hidden lg:flex items-center">{children}</div>
+                    <div className="hidden lg:flex min-w-0 flex-1 self-stretch items-center">{children}</div>
 
-                    {/* Spacer - takes remaining space */}
-                    <div className="flex-1" />
+                    {/* Spacer - takes remaining space on mobile */}
+                    <div className="flex-1 lg:hidden" />
 
                     {/* Search - desktop only */}
                     <div className="hidden lg:block" data-testid="header-search-desktop">

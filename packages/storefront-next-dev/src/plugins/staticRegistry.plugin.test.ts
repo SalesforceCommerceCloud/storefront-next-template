@@ -17,6 +17,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { vol } from 'memfs';
 import { glob } from 'glob';
 import { staticRegistryPlugin } from './staticRegistry';
+import {
+    PAGE_DESIGNER_PRELOAD_MANIFEST_ID,
+    RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID,
+} from './pageDesignerPreloadManifest';
 import { normalizePath } from '../test-utils';
 
 // Mock glob
@@ -33,20 +37,25 @@ vi.mock('fs', async () => {
         ...memfs.fs,
         writeFileSync: vi.fn(),
         existsSync: vi.fn(),
+        mkdirSync: vi.fn(),
+        unlinkSync: vi.fn(),
     };
 });
 
 const mockGlob = vi.mocked(glob);
 
 // Import mocked fs functions after the mock is set up
-import { writeFileSync, existsSync } from 'fs';
+import { writeFileSync, existsSync, unlinkSync } from 'fs';
 const mockWriteFileSync = vi.mocked(writeFileSync);
 const mockExistsSync = vi.mocked(existsSync);
+const mockUnlinkSync = vi.mocked(unlinkSync);
 
 describe('staticRegistryPlugin Integration', () => {
     beforeEach(() => {
         vol.reset();
         vi.clearAllMocks();
+        mockWriteFileSync.mockReset();
+        mockExistsSync.mockReset();
         mockExistsSync.mockReturnValue(true);
     });
 
@@ -82,6 +91,85 @@ describe('staticRegistryPlugin Integration', () => {
             };
             const plugin = staticRegistryPlugin(config);
             expect(plugin.name).toBe('storefrontnext:static-registry');
+        });
+
+        it('keeps preload manifest hooks inactive when the feature is disabled', () => {
+            const plugin = staticRegistryPlugin() as any;
+
+            plugin.config({}, { command: 'serve', mode: 'development' });
+            expect(plugin.configEnvironment('client')).toBeUndefined();
+            expect(plugin.resolveId(PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toBeUndefined();
+            expect(plugin.load(RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toBeUndefined();
+            expect(plugin.writeBundle.call({ environment: { name: 'client' } }, {}, {})).toBeUndefined();
+            expect(plugin.buildApp).toBeUndefined();
+        });
+
+        it('serves an empty virtual manifest outside production builds', async () => {
+            const plugin = staticRegistryPlugin({ preloadManifest: true }) as any;
+
+            plugin.config({}, { command: 'build', mode: 'development' });
+            expect(plugin.configEnvironment('server')).toBeUndefined();
+            expect(plugin.configEnvironment('client')).toEqual({ build: { manifest: true } });
+            expect(plugin.resolveId('unrelated')).toBeUndefined();
+            expect(plugin.resolveId(PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toBe(
+                RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID
+            );
+            expect(plugin.load('unrelated')).toBeUndefined();
+            expect(plugin.load(RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toContain('"resources":[]');
+
+            mockExistsSync.mockReturnValue(false);
+            await expect(plugin.buildApp.handler()).resolves.toBeUndefined();
+            expect(mockUnlinkSync).not.toHaveBeenCalled();
+        });
+
+        it('builds, embeds, and removes the production preload manifest checkpoint', async () => {
+            const projectRoot = '/test/project';
+            vol.fromJSON({
+                '/test/project/src/components/hero/index.tsx': `@Component('hero')\nexport default class Hero {}`,
+                '/test/project/src/lib/static-registry.ts': '// STATIC_REGISTRY_START\n// STATIC_REGISTRY_END',
+            });
+            mockGlob.mockResolvedValue(['/test/project/src/components/hero/index.tsx']);
+            const plugin = staticRegistryPlugin({ preloadManifest: true }) as any;
+            plugin.config({}, { command: 'build', mode: 'production' });
+            plugin.configResolved({ root: projectRoot });
+            await plugin.buildStart();
+
+            expect(
+                plugin.load.call({ environment: { name: 'client' } }, RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID)
+            ).toContain('"resources":[]');
+            expect(() => plugin.load(RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toThrow('missing');
+            expect(plugin.writeBundle.call({ environment: { name: 'server' } }, {}, {})).toBeUndefined();
+
+            const warn = vi.fn();
+            const bundle = {
+                'manifest.json': {
+                    type: 'asset',
+                    fileName: '.vite/manifest.json',
+                    source: '{}',
+                },
+            };
+            plugin.writeBundle.call({ environment: { name: 'client' }, warn }, {}, bundle);
+
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining('No Vite manifest record'));
+            expect(plugin.load(RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toContain('"version":1');
+            const manifestWrite = mockWriteFileSync.mock.calls.find(([, , encoding]) => encoding === 'utf8');
+            expect(normalizePath(manifestWrite?.[0] as string)).toBe(
+                '/test/project/dist/page-designer-preload-manifest.json'
+            );
+            expect(manifestWrite?.[1]).toEqual(expect.stringContaining('"version": 1'));
+
+            mockExistsSync.mockReturnValue(true);
+            await expect(plugin.buildApp.handler()).resolves.toBeUndefined();
+            expect(normalizePath(mockUnlinkSync.mock.calls[0][0] as string)).toBe(
+                '/test/project/dist/page-designer-preload-manifest.json'
+            );
+
+            plugin.writeBundle.call({ environment: { name: 'client' }, warn }, { dir: '/custom' }, bundle);
+            const [customManifestPath, customManifestContents, customManifestEncoding] =
+                mockWriteFileSync.mock.calls.at(-1) ?? [];
+            expect(normalizePath(customManifestPath as string)).toBe('/custom/page-designer-preload-manifest.json');
+            expect(customManifestContents).toEqual(expect.any(String));
+            expect(customManifestEncoding).toBe('utf8');
         });
     });
 
@@ -241,6 +329,56 @@ describe('staticRegistryPlugin Integration', () => {
 
                 expect(shouldHandle).toBe(expected);
             });
+        });
+
+        it('skips reload when regenerated registry content is unchanged', async () => {
+            const projectRoot = '/test/project';
+            const componentFile = '/test/project/src/components/hero/index.tsx';
+            const registryFile = '/test/project/src/lib/static-registry.ts';
+            vol.fromJSON({
+                [componentFile]: `@Component('hero')\nexport default class Hero {}`,
+                [registryFile]: '// STATIC_REGISTRY_START\n// STATIC_REGISTRY_END',
+            });
+            mockGlob.mockResolvedValue([componentFile]);
+            const plugin = staticRegistryPlugin() as any;
+            plugin.configResolved({ root: projectRoot });
+            await plugin.buildStart();
+            const generatedRegistry = mockWriteFileSync.mock.calls.at(-1)?.[1] as string;
+            vol.fromJSON({ [registryFile]: generatedRegistry });
+            mockWriteFileSync.mockClear();
+            const reloadModule = vi.fn();
+
+            await expect(
+                plugin.handleHotUpdate({
+                    file: componentFile,
+                    server: { moduleGraph: { getModuleById: vi.fn() }, reloadModule },
+                })
+            ).resolves.toEqual([]);
+
+            expect(reloadModule).not.toHaveBeenCalled();
+        });
+
+        it('handles changed registry content when the module is not loaded', async () => {
+            const projectRoot = '/test/project';
+            const componentFile = '/test/project/src/components/hero/index.tsx';
+            vol.fromJSON({
+                [componentFile]: `@Component('hero')\nexport default class Hero {}`,
+                '/test/project/src/lib/static-registry.ts': '// STATIC_REGISTRY_START\n// STATIC_REGISTRY_END',
+            });
+            mockGlob.mockResolvedValue([componentFile]);
+            const plugin = staticRegistryPlugin() as any;
+            plugin.configResolved({ root: projectRoot });
+            const reloadModule = vi.fn();
+
+            await expect(
+                plugin.handleHotUpdate({
+                    file: componentFile,
+                    server: { moduleGraph: { getModuleById: vi.fn(() => undefined) }, reloadModule },
+                })
+            ).resolves.toEqual([]);
+
+            expect(mockWriteFileSync).toHaveBeenCalled();
+            expect(reloadModule).not.toHaveBeenCalled();
         });
     });
 

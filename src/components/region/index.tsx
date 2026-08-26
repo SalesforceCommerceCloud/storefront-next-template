@@ -29,6 +29,8 @@ import type {
     RegionDesignMetadata,
 } from '@salesforce/storefront-next-runtime/design/react';
 import { ComponentDataProvider, useComponentData } from './component-data-context';
+import { CriticalComponentProvider } from './critical-component-context';
+import { prepareCriticalRegion } from '@/lib/page-designer/critical-region';
 
 export type { RegionDesignMetadata };
 
@@ -50,6 +52,8 @@ interface PageRegionProps extends HTMLAttributes<HTMLDivElement> {
     fallbackElement?: ReactNode;
     errorElement?: ReactNode;
     fallbackOnEmpty?: boolean;
+    /** Block the initial shell on this region's modules and emit their browser resource hints. */
+    critical?: boolean;
 }
 
 export type ComponentType = ComponentDecoratorProps<ShopperExperience.schemas['Component']>;
@@ -62,6 +66,7 @@ interface ComponentRegionProps extends HTMLAttributes<HTMLDivElement> {
     fallbackElement?: ReactNode;
     errorElement?: ReactNode;
     fallbackOnEmpty?: boolean;
+    critical?: never;
 }
 
 // Discriminated union
@@ -117,7 +122,8 @@ function renderRegionContent(
  *    <Region page={loaderData.page} regionId="main" fallbackElement={<Skeleton />} />
  *    ```
  *    - Accepts page (Promise<PageWithComponentData> or PageWithComponentData)
- *    - Wraps in Suspense for async loading; renders synchronously when the page is already resolved
+ *    - Wraps non-critical regions in Suspense for async page and module loading
+ *    - With `critical`, prepares nested component modules and lets suspension reach the outer boundary
  *    - Provides ComponentDataContext at page level
  *    - Registers PageDesignerPageMetadataProvider for root regions
  *
@@ -135,13 +141,22 @@ function renderRegionContent(
  * - Finds the region by ID within the page or component
  * - Renders all components within the region using the Component wrapper
  * - Supports region-specific fallback and error elements
+ * - Preloads modules and styles for page-level regions marked as critical
  * - Handles metadata for component type inclusions/exclusions
  *
  * Use Case: Foundational component in Salesforce's Page Designer system for rendering
  * regions that can contain multiple components managed through the Page Designer interface.
  */
 export function Region(props: RegionProps) {
-    const { regionId, className, errorElement = <></>, fallbackElement = <></>, fallbackOnEmpty, ...rest } = props;
+    const {
+        regionId,
+        className,
+        errorElement = <></>,
+        fallbackElement = <></>,
+        fallbackOnEmpty,
+        critical,
+        ...rest
+    } = props;
     const regionContext = useRegionContext();
     const existingComponentData = useComponentData();
     const { isDesignMode } = usePageDesignerMode();
@@ -182,8 +197,9 @@ export function Region(props: RegionProps) {
             | undefined;
         const metadata = designMetadata?.regionDefinitions?.find((r) => r.id === regionId);
         const { componentData: pageComponentData, ...pageData } = resolvedPage;
+        const criticalComponentIds = critical ? prepareCriticalRegion(region) : [];
 
-        const content = (
+        let content = (
             <>
                 {!regionContext && (
                     <PageDesignerPageMetadataProvider
@@ -196,24 +212,33 @@ export function Region(props: RegionProps) {
 
         // Provide ComponentDataContext at page level only
         if (pageComponentData && !existingComponentData) {
-            return <ComponentDataProvider value={pageComponentData}>{content}</ComponentDataProvider>;
+            content = <ComponentDataProvider value={pageComponentData}>{content}</ComponentDataProvider>;
+        }
+
+        if (criticalComponentIds.length) {
+            content = <CriticalComponentProvider value={criticalComponentIds}>{content}</CriticalComponentProvider>;
         }
 
         return content;
     };
 
-    // When props.page is already resolved, render synchronously and skip Suspense entirely.
-    if (props.page instanceof Promise) {
-        return (
-            <Suspense fallback={fallbackElement}>
-                <Await resolve={props.page} errorElement={errorElement}>
-                    {renderResolvedPage}
-                </Await>
-            </Suspense>
+    const regionContent =
+        props.page instanceof Promise ? (
+            <Await resolve={props.page} errorElement={errorElement}>
+                {renderResolvedPage}
+            </Await>
+        ) : (
+            renderResolvedPage(props.page)
         );
-    }
 
-    return renderResolvedPage(props.page);
+    // A critical region owns the shell-blocking boundary. Let both the page
+    // request and module registration suspend to the nearest outer boundary.
+    if (critical) return regionContent;
+
+    // Keep the same boundary around non-critical regions on the server and client. A lazy component
+    // module may suspend while its SSR markup is being hydrated; the dehydrated boundary lets React
+    // retain that server content until the client module is ready.
+    return <Suspense fallback={fallbackElement}>{regionContent}</Suspense>;
 }
 
 // Re-export RegionWrapper for direct usage if needed

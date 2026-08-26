@@ -23,6 +23,7 @@ import {
     getErrorMessage,
     parseJsonToStringRecord,
     getBasePath,
+    getClientBundlePath,
 } from './utils';
 import { ApiError } from '@/scapi';
 
@@ -237,6 +238,16 @@ describe('validatePassword', () => {
 });
 
 describe('resolveAssetUrl', () => {
+    const originalDev = import.meta.env.DEV;
+
+    beforeEach(() => {
+        import.meta.env.DEV = false;
+    });
+
+    afterEach(() => {
+        import.meta.env.DEV = originalDev;
+    });
+
     describe('with absolute URLs', () => {
         it('should return http URLs unchanged', () => {
             const url = 'http://example.com/image.jpg';
@@ -277,9 +288,9 @@ describe('resolveAssetUrl', () => {
         });
     });
 
-    describe('in local development environment (BUNDLE_ID=local)', () => {
+    describe('in local Vite development', () => {
         beforeEach(() => {
-            // Mock browser environment with local bundle ID
+            import.meta.env.DEV = true;
             (window as { _BUNDLE_ID: string })._BUNDLE_ID = 'local';
         });
 
@@ -370,15 +381,15 @@ describe('resolveAssetUrl', () => {
             expect(resolveAssetUrl('/images/hero.png')).toBe('/mobify/bundle/140/client/images/hero.png');
         });
 
-        it('should default to "local" when BUNDLE_ID is not set', () => {
+        it('should use the local preview bundle when BUNDLE_ID is not set', () => {
             delete process.env.BUNDLE_ID;
-            expect(resolveAssetUrl('/images/hero.png')).toBe('/images/hero.png');
+            expect(resolveAssetUrl('/images/hero.png')).toBe('/mobify/bundle/local/client/images/hero.png');
         });
 
-        it('should treat BUNDLE_ID=local as local development', () => {
+        it('should use the local preview bundle for BUNDLE_ID=local', () => {
             process.env.BUNDLE_ID = 'local';
-            expect(resolveAssetUrl('/images/hero.png')).toBe('/images/hero.png');
-            expect(resolveAssetUrl('images/hero.png')).toBe('/images/hero.png');
+            expect(resolveAssetUrl('/images/hero.png')).toBe('/mobify/bundle/local/client/images/hero.png');
+            expect(resolveAssetUrl('images/hero.png')).toBe('/mobify/bundle/local/client/images/hero.png');
         });
 
         it('should handle relative paths on server', () => {
@@ -510,12 +521,16 @@ describe('getBasePath', () => {
 
 describe('resolveAssetUrl with base path', () => {
     describe('in MRT environment with base path', () => {
+        const originalDev = import.meta.env.DEV;
+
         beforeEach(() => {
+            import.meta.env.DEV = false;
             (window as { _BUNDLE_ID: string })._BUNDLE_ID = '60';
             (window as { _BASE_PATH: string })._BASE_PATH = '/shop';
         });
 
         afterEach(() => {
+            import.meta.env.DEV = originalDev;
             delete (window as { _BUNDLE_ID?: string })._BUNDLE_ID;
             delete (window as { _BASE_PATH?: string })._BASE_PATH;
         });
@@ -533,6 +548,50 @@ describe('resolveAssetUrl with base path', () => {
             const url = '/mobify/bundle/60/client/images/hero.png';
             expect(resolveAssetUrl(url)).toBe(url);
         });
+    });
+});
+
+describe('getClientBundlePath', () => {
+    afterEach(() => {
+        delete (window as { _BUNDLE_ID?: string })._BUNDLE_ID;
+        delete (window as { _BUNDLE_PATH?: string })._BUNDLE_PATH;
+        delete (window as { _BASE_PATH?: string })._BASE_PATH;
+    });
+
+    it('includes the local MRT runtime prefix', () => {
+        (window as { _BUNDLE_ID: string })._BUNDLE_ID = 'local';
+        expect(getClientBundlePath()).toBe('/mobify/bundle/local/client/');
+    });
+
+    it('uses the injected browser bundle path and normalizes its trailing slash', () => {
+        (window as { _BUNDLE_PATH: string })._BUNDLE_PATH = '/shop/mobify/bundle/60/client';
+        expect(getClientBundlePath()).toBe('/shop/mobify/bundle/60/client/');
+    });
+
+    it('builds the server path from bundle ID and MRT base path', () => {
+        const originalWindow = globalThis.window;
+        vi.stubGlobal('window', undefined);
+        process.env.BUNDLE_ID = '140';
+        process.env.MRT_ENV_BASE_PATH = '/shop';
+        try {
+            expect(getClientBundlePath()).toBe('/shop/mobify/bundle/140/client/');
+        } finally {
+            vi.stubGlobal('window', originalWindow);
+            delete process.env.BUNDLE_ID;
+            delete process.env.MRT_ENV_BASE_PATH;
+        }
+    });
+
+    it('defaults the server bundle ID to local', () => {
+        const originalWindow = globalThis.window;
+        vi.stubGlobal('window', undefined);
+        delete process.env.BUNDLE_ID;
+        delete process.env.MRT_ENV_BASE_PATH;
+        try {
+            expect(getClientBundlePath()).toBe('/mobify/bundle/local/client/');
+        } finally {
+            vi.stubGlobal('window', originalWindow);
+        }
     });
 });
 

@@ -15,6 +15,7 @@
  */
 import { Scripts as ReactRouterScripts } from 'react-router';
 import { getBasePath } from '../utils/paths';
+import { getClientBundlePath } from '@salesforce/storefront-next-runtime/assets';
 
 /**
  * Determines if the code is running in a server-side rendering (SSR) environment.
@@ -42,7 +43,7 @@ const InternalServerScripts = ({ nonce }: { nonce?: string }) => {
 
     const bundleId = process.env.BUNDLE_ID || 'local';
     const basePath = getBasePath();
-    const bundlePath = `${basePath}/mobify/bundle/${bundleId}/client/`;
+    const bundlePath = getClientBundlePath();
     return (
         <script
             id="sf-next-bundle-config"

@@ -161,9 +161,9 @@ Every Page Designer component is wrapped by an internal `Component` wrapper that
 
 ### What the Wrapper Does
 
-1. **Lazy Loading** - Loads component code on demand via registry
+1. **Module Loading** - Loads component code on demand, or uses the module prepared by a critical region
 2. **Data Resolution** - Retrieves and resolves data promises via `<Await>`
-3. **Suspense Boundaries** - Shows fallback while loading
+3. **Suspense Boundaries** - Shows fallback while loading component data or non-critical modules
 4. **Design Metadata** - Injects Page Designer metadata
 5. **Error Handling** - Handles data loading errors gracefully
 
@@ -179,12 +179,12 @@ export const Component = memo(function Component({ component, regionId }) {
     const DynamicComponent = registry.getComponent(component.typeId);
     const FallbackComponent = registry.getFallback(component.typeId);
 
-    // 3. Lazy load if not available
+    // 3. Lazy load if a non-critical region has not prepared the module
     if (!DynamicComponent) {
         throw registry.preload(component.typeId); // Triggers Suspense
     }
 
-    // 4. Wrap in Suspense + Await with error handling
+    // 4. Component data retains its own Suspense boundary, including in critical regions
     return (
         <Suspense fallback={<FallbackComponent {...component.data} />}>
             <Await
@@ -221,7 +221,7 @@ export default function MyComponent({ data, ...props }) {
 }
 
 export function fallback(props) {
-    // Shown while component/data loads
+    // Shown while component data or a non-critical component module loads
     return <Skeleton />;
 }
 ```
@@ -317,9 +317,10 @@ export default function CategoryPage({ loaderData }) {
         <Region
             page={loaderData.page}                    // Promise<Page> or Page
             regionId="main"
-            fallbackElement={<Skeleton />}            // Optional: Suspense fallback
+            fallbackElement={<Skeleton />}            // Optional: non-critical Suspense fallback
             errorElement={<ErrorBoundary />}          // Optional: Error boundary
             className="my-custom-class"               // Optional: CSS classes
+            critical={false}                          // Optional: block the shell on modules/styles
         />
     );
 }
@@ -327,10 +328,65 @@ export default function CategoryPage({ loaderData }) {
 
 **Characteristics:**
 - Accepts `page` prop (Promise or synchronous)
-- Wraps in `<Suspense>` for async loading
+- Wraps non-critical regions in `<Suspense>` for async page and module loading
 - Creates `ComponentDataProvider` at page level
 - Registers `PageDesignerPageMetadataProvider` for root regions
 - Supports streaming/progressive rendering
+
+### Critical Page Regions
+
+Set `critical` only on a page-level region whose Page Designer content is required in the initial HTML, such as an above-the-fold hero or other LCP candidate:
+
+```tsx
+export async function loader(args: LoaderFunctionArgs) {
+    const page = fetchPageWithComponentData(args, { pageId: 'homepage' });
+    const recommendations = fetchRecommendations(args.context);
+
+    return {
+        page: await page, // Critical: the region structure must be known before rendering
+        recommendations, // Non-critical: keep unrelated data deferred
+    };
+}
+
+export default function HomePage({ loaderData }: Route.ComponentProps) {
+    return <Region page={loaderData.page} regionId="headerbanner" critical />;
+}
+```
+
+A critical region:
+
+- Collects the component types in the region and all of its nested regions.
+- Loads and registers those component modules before the initial SSR shell is emitted.
+- Emits production resource hints for their JavaScript modules and activates their stylesheets in Vite's cascade order.
+- Suspends at the nearest outer boundary instead of rendering the region's `fallbackElement`.
+- Keeps each component's asynchronous loader data inside its existing local `<Suspense>` boundary. `critical` does not make all component data blocking.
+
+Use `critical` sparingly. Marking a large or below-the-fold region as critical delays the initial shell and can spend the module-preload budget on resources that do not improve LCP. The prop is intentionally unavailable in component mode; nested regions are included automatically when their containing page region is critical.
+
+The Storefront Next Vite plugin must generate the Page Designer preload manifest. The template enables this in `vite-plugins/storefront-next.ts`:
+
+```tsx
+storefrontNextSdk({
+    staticRegistry: {
+        componentPath: 'src/components',
+        registryPath: 'src/lib/page-designer/static-registry.ts',
+        preloadManifest: true,
+    },
+});
+```
+
+Application, route, and extension styles rendered through React Router's `links` export must use the storefront precedence helper so critical component styles are inserted after them in a stable cascade:
+
+```tsx
+import { createStorefrontStylesheetLink } from '@salesforce/storefront-next-runtime/design/react/preload';
+import appStylesHref from '@/styles/app.css?url';
+
+export const links: Route.LinksFunction = () => [createStorefrontStylesheetLink(appStylesHref)];
+```
+
+Keep static registry initialization at module startup so registrations exist before critical regions render. The template calls `initializeRegistry()` from `entry.server.tsx` during server module initialization and once from `root.tsx` when that module loads in the browser; do not move it back into the `App` render function.
+
+Resource hints are based on the finalized production client bundle. Development uses an empty resource manifest, while component modules continue to load through the registry normally.
 
 ### Component Mode (Nested Regions)
 
@@ -367,11 +423,17 @@ TypeScript enforces correct usage:
 // ✅ Valid: page mode
 <Region page={pagePromise} regionId="main" />
 
+// ✅ Valid: critical page mode
+<Region page={resolvedPage} regionId="hero" critical />
+
 // ✅ Valid: component mode
 <Region component={component} regionId="main" />
 
 // ❌ Compile Error: can't pass both
 <Region page={pagePromise} component={component} regionId="main" />
+
+// ❌ Compile Error: critical is page-mode only
+<Region component={component} regionId="main" critical />
 
 // ❌ Compile Error: must pass one or the other
 <Region regionId="main" />
@@ -763,7 +825,7 @@ export default function MyComponent({
 
 #### ✅ DO
 
-1. **Always export a `fallback`** - Used by Suspense boundaries
+1. **Always export a `fallback`** - Used by component-data and non-critical module Suspense boundaries
 2. **Default export must be the component** - Required by component registry
 3. **Keep fallback lightweight** - No heavy computation or data fetching
 4. **Use loaders for data** - Export `loader.server` or `loader.client`
@@ -842,7 +904,7 @@ This UUID is automatically extracted and provided in the `designMetadata` prop b
 
 ### 1. Lazy Loading and Code Splitting
 
-Components are automatically lazy-loaded via the component registry. Ensure:
+Components are automatically lazy-loaded via the component registry. Modules in a page-level region marked `critical` are instead loaded and registered before the initial SSR shell, while their component data remains granular and may still suspend. Ensure:
 
 ```tsx
 // ✅ Good: Component in its own module
@@ -1133,8 +1195,9 @@ User Request
     - Returns map of componentId → Promise<data>
     ↓
 7. React Rendering
-    - Region components render from page structure
-    - Component wrapper loads component code
+    - Critical page regions prepare their complete nested component module set before the SSR shell
+    - Non-critical component modules load on demand through their local Suspense boundary
+    - Production SSR emits module hints and ordered styles for critical component types
     - Await resolves data promises
     - Components render with resolved data
 ```
@@ -1617,6 +1680,8 @@ export function loader(args: LoaderFunctionArgs) {
 // 4. Returns { page, componentData }
 ```
 
+This example keeps a non-critical page region deferred. If any region rendered from this page is marked `critical`, make the route loader `async` and await `fetchPageWithComponentData()` as shown in [Critical Page Regions](#critical-page-regions).
+
 **API Response Structure:**
 
 ```json
@@ -1807,7 +1872,9 @@ console.log('Available component data:', allData ? Object.keys(allData) : 'none'
 - [ ] Use **page mode** at route level
 - [ ] Use **component mode** for nested regions
 - [ ] Don't mix page and component props
-- [ ] Page mode: provide fallbackElement for Suspense
+- [ ] Non-critical page mode: provide `fallbackElement` when a visible loading state is needed
+- [ ] Critical page mode: await the page in the loader and omit the region-local `fallbackElement`
+- [ ] Mark only initial-render/LCP regions as `critical`; nested component regions are included automatically
 - [ ] Component mode: synchronous, no fallbackElement needed
 - [ ] ComponentDataProvider created automatically by page mode
 

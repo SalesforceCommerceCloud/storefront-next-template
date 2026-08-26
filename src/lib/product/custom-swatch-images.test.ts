@@ -84,10 +84,14 @@ describe('resolveCustomSwatchImagePath', () => {
     // resolveAssetUrl (mocked here via window._BUNDLE_ID) adds that prefix; in local dev (default) it
     // is a no-op, which the cases above already cover.
     describe('on MRT (BUNDLE_ID set)', () => {
+        const originalDev = import.meta.env.DEV;
+
         beforeEach(() => {
+            import.meta.env.DEV = false;
             (window as { _BUNDLE_ID: string })._BUNDLE_ID = '60';
         });
         afterEach(() => {
+            import.meta.env.DEV = originalDev;
             delete (window as { _BUNDLE_ID?: string })._BUNDLE_ID;
         });
 

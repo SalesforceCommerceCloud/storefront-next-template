@@ -17,16 +17,28 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { render, waitFor } from '@testing-library/react';
 import { createTestContext } from '@/lib/test-utils';
 import { type PropsWithChildren } from 'react';
+import { preinit } from 'react-dom';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { createRoutesStub, RouterContextProvider } from 'react-router';
 import type { PublicSessionData } from '@/lib/api/types';
+import { PAGE_DESIGNER_STYLESHEET_PRECEDENCE } from '@salesforce/storefront-next-runtime/design/react/preload';
 import type AppComponent from './root';
 import type { ErrorBoundary as RootErrorBoundary, Layout as RootLayout, loader as RootLoader } from './root';
+
+const registryMocks = vi.hoisted(() => ({ initializeRegistry: vi.fn() }));
+
+vi.mock('@/lib/page-designer/static-registry', async () => ({
+    ...(await vi.importActual('@/lib/page-designer/static-registry')),
+    initializeRegistry: registryMocks.initializeRegistry,
+}));
 
 let App: typeof AppComponent;
 let ErrorBoundary: typeof RootErrorBoundary;
 let Layout: typeof RootLayout;
 let loader: typeof RootLoader;
 let meta: Awaited<typeof import('./root')>['meta'];
+let links: Awaited<typeof import('./root')>['links'];
+let clientRegistryInitializationCount = 0;
 const defaultClientAuth: PublicSessionData = {
     customerId: 'test-customer',
     userType: 'registered',
@@ -181,11 +193,13 @@ vi.mock('@/middlewares/i18next', async () => {
 
 beforeAll(async () => {
     const rootModule = await import('./root');
+    clientRegistryInitializationCount = registryMocks.initializeRegistry.mock.calls.length;
     App = rootModule.default;
     ErrorBoundary = rootModule.ErrorBoundary;
     Layout = rootModule.Layout;
     loader = rootModule.loader;
     meta = rootModule.meta;
+    links = rootModule.links;
 });
 
 function createLoaderContext(options: Parameters<typeof createTestContext>[0] = {}) {
@@ -220,6 +234,11 @@ function LayoutComponent() {
     );
 }
 
+function CriticalPageDesignerStyle() {
+    preinit('/page-designer.css', { as: 'style', precedence: PAGE_DESIGNER_STYLESHEET_PRECEDENCE });
+    return null;
+}
+
 describe('root.tsx', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -227,6 +246,36 @@ describe('root.tsx', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+    });
+
+    it('initializes the Page Designer registry once when the client root module loads', () => {
+        expect(clientRegistryInitializationCount).toBe(1);
+    });
+
+    it('places application CSS in the precedence group before critical Page Designer CSS', () => {
+        const applicationStylesheet = links().find(
+            (descriptor) =>
+                'rel' in descriptor &&
+                descriptor.rel === 'stylesheet' &&
+                'precedence' in descriptor &&
+                descriptor.precedence === 'storefront'
+        );
+        if (!applicationStylesheet || !('href' in applicationStylesheet)) {
+            throw new Error('Expected the application stylesheet to use React precedence');
+        }
+
+        const markup = renderToStaticMarkup(
+            <html lang="en">
+                <head>
+                    <link rel="stylesheet" href={applicationStylesheet.href} precedence="storefront" />
+                </head>
+                <body>
+                    <CriticalPageDesignerStyle />
+                </body>
+            </html>
+        );
+
+        expect(markup.indexOf(String(applicationStylesheet.href))).toBeLessThan(markup.indexOf('/page-designer.css'));
     });
 
     describe('Layout Component', () => {

@@ -1,4 +1,5 @@
 import { Scripts as Scripts$1 } from "react-router";
+import { getClientBundlePath } from "@salesforce/storefront-next-runtime/assets";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 //#region src/utils/paths.ts
@@ -58,7 +59,7 @@ const InternalServerScripts = ({ nonce }) => {
 	if (!isSSR) return null;
 	const bundleId = process.env.BUNDLE_ID || "local";
 	const basePath = getBasePath();
-	const bundlePath = `${basePath}/mobify/bundle/${bundleId}/client/`;
+	const bundlePath = getClientBundlePath();
 	return /* @__PURE__ */ jsx("script", {
 		id: "sf-next-bundle-config",
 		nonce,

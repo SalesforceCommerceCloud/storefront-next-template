@@ -22,6 +22,8 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import HomePage, { type HomePageData, loader } from './_app._index';
 import { createTestContext } from '@/lib/test-utils';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
+import { fetchSearchProducts } from '@/lib/api/search.server';
+import { fetchCategories } from '@/lib/api/categories.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import type { AppConfig } from '@/types/config';
 
@@ -239,10 +241,10 @@ vi.mock('@/middlewares/auth.server', () => ({
 
 const renderComponent = (loaderDataOverrides?: Partial<HomePageData>) => {
     const defaultData: HomePageData = {
-        page: Promise.resolve({
+        page: {
             ...createMockPage([]),
             componentData: {},
-        }),
+        },
         searchResult: Promise.resolve(mockSearchResult),
         categories: Promise.resolve(mockCategories),
 
@@ -306,18 +308,13 @@ describe('HomePage', () => {
                 ],
             };
 
-            // Create a promise with the resolved value attached for the mock
-            const pagePromise = Promise.resolve({
-                ...createMockPage([headerBannerRegion]),
-                componentData: {},
-            });
-            (pagePromise as any)._resolvedValue = {
+            const page = {
                 ...createMockPage([headerBannerRegion]),
                 componentData: {},
             };
 
             renderComponent({
-                page: pagePromise,
+                page,
             });
 
             // Region mock always renders the error element, so check for that fallback content
@@ -384,13 +381,8 @@ describe('HomePage', () => {
             expect(screen.getByText(t('home:featuredContent.women.title'))).toBeInTheDocument();
         });
 
-        test('handles page promise rejection', () => {
-            const rejectedPromise = Promise.reject(new Error('Page failed'));
-            rejectedPromise.catch(() => {}); // Prevent unhandled promise rejection
-
-            renderComponent({
-                page: rejectedPromise,
-            });
+        test('handles a missing Page Designer page', () => {
+            renderComponent({ page: null });
 
             // Should still render other sections
             expect(screen.getByText(t('home:featuredContent.women.title'))).toBeInTheDocument();
@@ -447,7 +439,24 @@ describe('HomePage', () => {
         });
 
         describe('loader (server-side)', () => {
-            test('returns home page data with fetchPageWithComponentData', () => {
+            test('starts independent data requests before the critical page resolves', async () => {
+                let resolvePage!: (page: ShopperExperience.schemas['Page']) => void;
+                vi.mocked(fetchPageWithComponentData).mockReturnValue(
+                    new Promise((resolve) => {
+                        resolvePage = resolve;
+                    })
+                );
+
+                const result = loader(baseLoaderArgs);
+
+                expect(fetchSearchProducts).toHaveBeenCalled();
+                expect(fetchCategories).toHaveBeenCalled();
+
+                resolvePage(createMockPage([]));
+                await result;
+            });
+
+            test('awaits home page data with fetchPageWithComponentData', async () => {
                 const mockPageWithData = {
                     ...createMockPage([]),
                     componentData: { test: Promise.resolve('data') },
@@ -456,7 +465,7 @@ describe('HomePage', () => {
 
                 vi.mocked(fetchPageWithComponentData).mockReturnValue(pagePromise);
 
-                const result = loader(baseLoaderArgs);
+                const result = await loader(baseLoaderArgs);
 
                 // Assert - API calls
                 expect(vi.mocked(fetchPageWithComponentData)).toHaveBeenCalledWith(baseLoaderArgs, {
@@ -464,27 +473,41 @@ describe('HomePage', () => {
                 });
 
                 // Assert - Return value contains all expected promises
-                expect(result.page).toBe(pagePromise);
-                expect(result.page).toBeInstanceOf(Promise);
+                expect(result.page).toBe(mockPageWithData);
                 expect(result.searchResult).toBeInstanceOf(Promise);
                 expect(result.categories).toBeInstanceOf(Promise);
             });
         });
 
         describe('Error Handling', () => {
-            test('loader handles API errors gracefully', () => {
+            test('loader propagates page API errors', async () => {
                 const error = new Error('API Error');
                 vi.mocked(fetchPageWithComponentData).mockRejectedValue(error);
 
-                expect(() => loader(baseLoaderArgs)).not.toThrow();
+                await expect(loader(baseLoaderArgs)).rejects.toThrow('API Error');
+            });
 
-                const result = loader(baseLoaderArgs);
-                expect(result).toHaveProperty('page');
+            test('observes deferred request failures when the page request rejects', async () => {
+                const pageError = new Error('Page failed');
+                const searchPromise = Promise.reject(new Error('Search failed'));
+                const categoriesPromise = Promise.reject(new Error('Categories failed'));
+                const allSettledSpy = vi.spyOn(Promise, 'allSettled');
+
+                vi.mocked(fetchPageWithComponentData).mockRejectedValueOnce(pageError);
+                vi.mocked(fetchSearchProducts).mockReturnValueOnce(searchPromise);
+                vi.mocked(fetchCategories).mockReturnValueOnce(categoriesPromise);
+
+                try {
+                    await expect(loader(baseLoaderArgs)).rejects.toBe(pageError);
+                    expect(allSettledSpy).toHaveBeenCalledWith([searchPromise, categoriesPromise]);
+                } finally {
+                    allSettledSpy.mockRestore();
+                }
             });
         });
 
         describe('Data Integration', () => {
-            test('page promise is returned with componentData', () => {
+            test('resolved page is returned with componentData', async () => {
                 const mockPageWithData = {
                     ...createMockPage([]),
                     componentData: { some: Promise.resolve('data') },
@@ -493,13 +516,12 @@ describe('HomePage', () => {
 
                 vi.mocked(fetchPageWithComponentData).mockReturnValue(pagePromise);
 
-                const result = loader(baseLoaderArgs);
+                const result = await loader(baseLoaderArgs);
 
                 expect(vi.mocked(fetchPageWithComponentData)).toHaveBeenCalledWith(baseLoaderArgs, {
                     pageId: 'homepage',
                 });
-                expect(result.page).toBe(pagePromise);
-                expect(result.page).toBeInstanceOf(Promise);
+                expect(result.page).toBe(mockPageWithData);
                 expect(result.searchResult).toBeInstanceOf(Promise);
                 expect(result.categories).toBeInstanceOf(Promise);
             });

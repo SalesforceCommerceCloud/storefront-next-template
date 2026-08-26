@@ -1,6 +1,22 @@
 import { Project } from "ts-morph";
 import { Plugin, ResolvedConfig } from "vite";
 
+//#region src/plugins/pageDesignerPreloadManifest.d.ts
+
+interface PageDesignerPreloadCompressionConfig {
+  brotli?: {
+    quality?: number;
+  };
+  gzip?: {
+    level?: number;
+  };
+}
+interface PageDesignerPreloadManifestConfig {
+  path?: string;
+  requiredTypeIds?: string[];
+  compression?: PageDesignerPreloadCompressionConfig;
+}
+//#endregion
 //#region src/plugins/staticRegistry.d.ts
 
 /**
@@ -29,6 +45,11 @@ interface StaticRegistryPluginConfig {
    * @default true
    */
   failOnError?: boolean;
+  /**
+   * Emit and embed a compact Page Designer component preload manifest.
+   * Disabled by default.
+   */
+  preloadManifest?: boolean | PageDesignerPreloadManifestConfig;
 }
 //#endregion
 //#region src/plugins/eventInstrumentationValidator.d.ts

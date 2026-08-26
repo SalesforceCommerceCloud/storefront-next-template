@@ -56,6 +56,10 @@ describe('securityHeadersMiddleware (template wiring)', () => {
     const origBundle = process.env.BUNDLE_ID;
 
     beforeEach(() => {
+        // This middleware is server-only. The package-level test environment is
+        // JSDOM, so model the production runtime explicitly now that isRemote()
+        // also supports browsers.
+        vi.stubGlobal('window', undefined);
         process.env.BUNDLE_ID = 'abc123';
         // The template middleware caches its inner factory on first call;
         // reset so each test sees a fresh boot path with the current env.
@@ -64,6 +68,7 @@ describe('securityHeadersMiddleware (template wiring)', () => {
 
     afterEach(() => {
         process.env.BUNDLE_ID = origBundle;
+        vi.unstubAllGlobals();
     });
 
     it('sets all six headers on a real request through the template middleware', async () => {

@@ -10,6 +10,12 @@
         "default": "./dist/design.js"
       }
     },
+    "./design/preload": {
+      "import": {
+        "types": "./dist/design-preload.d.ts",
+        "default": "./dist/design-preload.js"
+      }
+    },
     "./design/data": {
       "import": {
         "types": "./dist/design-data.d.ts",
@@ -26,6 +32,12 @@
       "import": {
         "types": "./dist/design-react.d.ts",
         "default": "./dist/design-react.js"
+      }
+    },
+    "./design/react/preload": {
+      "import": {
+        "types": "./dist/design-react-preload.d.ts",
+        "default": "./dist/design-react-preload.js"
       }
     },
     "./design/react/core": {
@@ -60,6 +72,12 @@
       "import": {
         "types": "./dist/env.d.ts",
         "default": "./dist/env.js"
+      }
+    },
+    "./assets": {
+      "import": {
+        "types": "./dist/assets.d.ts",
+        "default": "./dist/assets.js"
       }
     },
     "./events": {

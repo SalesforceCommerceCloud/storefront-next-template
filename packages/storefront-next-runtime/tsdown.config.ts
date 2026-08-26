@@ -10,8 +10,10 @@ export default defineConfig([
     {
         entry: {
             design: 'src/design/index.ts',
+            'design-preload': 'src/design/preload/index.ts',
             'design-messaging': 'src/design/messaging-api/index.ts',
             'design-react': 'src/design/react/index.ts',
+            'design-react-preload': 'src/design/react/preload.tsx',
             'design-data': 'src/design/data/index.ts',
             // Minimal entry point for checking whether we are in design mode
             // Won't bring in the rest of the design layer dependencies.
@@ -19,6 +21,7 @@ export default defineConfig([
             'design-react-core': 'src/design/react/core/index.ts',
             config: 'src/config/index.ts',
             'config-load': 'src/config/load-config.ts',
+            assets: 'src/assets/index.ts',
             env: 'src/env/index.ts',
             events: 'src/events/index.ts',
             'data-store': 'src/data-store/index.ts',

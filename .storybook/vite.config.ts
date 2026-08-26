@@ -22,6 +22,25 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { transformTargetPlaceholderPlugin } from '@salesforce/storefront-next-dev';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PAGE_DESIGNER_PRELOAD_MANIFEST_ID = 'virtual:storefront-next/page-designer-preload-manifest';
+const RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID = '\0' + PAGE_DESIGNER_PRELOAD_MANIFEST_ID;
+
+/**
+ * Storybook only produces a browser bundle and deliberately does not run the Storefront Next
+ * static-registry plugin. Provide the same empty client-side manifest that the plugin exposes for
+ * the storefront client build so shared Region modules remain resolvable in Storybook/Chromatic.
+ */
+const pageDesignerPreloadManifestStub = {
+    name: 'storybook:page-designer-preload-manifest',
+    resolveId(id: string) {
+        if (id === PAGE_DESIGNER_PRELOAD_MANIFEST_ID) return RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID;
+    },
+    load(id: string) {
+        if (id === RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID) {
+            return 'export default {version:1,compression:{brotli:{quality:9},gzip:{level:6}},resources:[],components:{}}';
+        }
+    },
+};
 
 /**
  * Dedicated Vite configuration for Storybook
@@ -38,6 +57,7 @@ export default defineConfig({
         }), // Include React plugin for JSX processing with decorator support
         tailwindcss(), // Include Tailwind CSS plugin
         tsconfigPaths(),
+        pageDesignerPreloadManifestStub,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Plugin type mismatch with Vite plugin types
         transformTargetPlaceholderPlugin() as any, // Transform target placeholders for extensibility
     ],

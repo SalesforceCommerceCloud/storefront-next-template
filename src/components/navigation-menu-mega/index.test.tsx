@@ -269,6 +269,16 @@ describe('ResponsiveNavigationMenu Component', () => {
     });
 
     describe('Promise Handling', () => {
+        it('preserves responsive header-row height while root categories are pending', () => {
+            const { container } = renderComponent({
+                resolve: new Promise<ShopperProducts.schemas['Category']>(() => undefined),
+            });
+
+            expect(container.querySelector('[aria-hidden="true"][class~="size-9"]')).toBeInTheDocument();
+            const desktopFallback = container.querySelector('[aria-hidden="true"][class~="lg:block"]');
+            expect(desktopFallback).toHaveClass('h-full', 'w-full');
+        });
+
         it('should handle rejected resolve promise gracefully', async () => {
             const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 

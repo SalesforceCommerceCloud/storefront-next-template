@@ -33,6 +33,12 @@ import { isbot } from 'isbot';
 import { renderToPipeableStream, type RenderToPipeableStreamOptions } from 'react-dom/server';
 import { securityContext } from '@salesforce/storefront-next-runtime/security';
 import { NonceContext } from '@salesforce/storefront-next-runtime/security/react';
+import { initializeRegistry } from '@/lib/page-designer/static-registry';
+
+// Route loaders execute before the React tree renders. Initialize the static
+// registry when the server module starts so critical components can be loaded
+// and registered during the first SSR request.
+initializeRegistry();
 
 export const streamTimeout = 5_000;
 

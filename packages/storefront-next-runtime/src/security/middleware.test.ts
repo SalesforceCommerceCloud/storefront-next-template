@@ -59,12 +59,17 @@ describe('createSecurityHeadersMiddleware', () => {
     const origBundle = process.env.BUNDLE_ID;
 
     beforeEach(() => {
+        // This middleware is server-only. The package-level test environment is
+        // happy-dom, so model the production runtime explicitly now that
+        // isRemote() also supports browsers.
+        vi.stubGlobal('window', undefined);
         process.env.BUNDLE_ID = 'local';
         vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     });
 
     afterEach(() => {
         process.env.BUNDLE_ID = origBundle;
+        vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });
 

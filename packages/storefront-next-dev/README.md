@@ -47,10 +47,43 @@ export default defineConfig({
     plugins: [
         storefrontNextPlugin({
             readableChunkNames: false, // optional
+            staticRegistry: {
+                componentPath: 'src/components',
+                registryPath: 'src/lib/page-designer/static-registry.ts',
+                preloadManifest: true,
+            },
         }),
     ],
 });
 ```
+
+#### Page Designer critical-region preload manifest
+
+Set `staticRegistry.preloadManifest` to `true` when the application renders page-level Page Designer regions with `<Region critical>`. During a production application build, the plugin correlates statically discovered `@Component` modules with the finalized Vite client manifest, embeds a compact resource manifest in the server bundle, and enables Vite's standard client manifest. Development builds expose an empty preload manifest; normal registry loading still works.
+
+The preload manifest is disabled by default for SDK consumers. It can also be configured explicitly:
+
+```typescript
+storefrontNextPlugin({
+    staticRegistry: {
+        componentPath: 'src/components',
+        registryPath: 'src/lib/page-designer/static-registry.ts',
+        preloadManifest: {
+            // Relative to the client output directory. This client-to-server
+            // checkpoint is removed after a successful application build.
+            path: 'page-designer-preload-manifest.json',
+            // Fail the build unless these type IDs were discovered and mapped.
+            requiredTypeIds: ['hero'],
+            compression: {
+                brotli: { quality: 9 }, // integer from 0 through 11
+                gzip: { level: 6 },     // integer from 0 through 9
+            },
+        },
+    },
+});
+```
+
+Defaults are `page-designer-preload-manifest.json`, Brotli quality `9`, and Gzip level `6`. Duplicate Page Designer `typeId` values fail manifest generation. A discovered component that cannot be correlated to a client chunk produces a build warning, or a build error when its ID appears in `requiredTypeIds`.
 
 ### React Router Preset
 

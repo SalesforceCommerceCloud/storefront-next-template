@@ -390,6 +390,20 @@ interface ResponsiveNavigationMenuProps extends ComponentPropsWithoutRef<typeof 
 }
 
 /**
+ * Preserve the header row's responsive dimensions while the root navigation data suspends.
+ * The desktop placeholder fills the stable navigation slot so resolving the menu cannot
+ * redistribute the header's remaining horizontal space during hydration.
+ */
+function ResponsiveNavigationMenuFallback(): ReactElement {
+    return (
+        <>
+            <div aria-hidden="true" className="lg:hidden size-9 shrink-0" />
+            <div aria-hidden="true" className="hidden lg:block h-full w-full" />
+        </>
+    );
+}
+
+/**
  * ResponsiveNavigationMenu - A unified responsive navigation component
  *
  * This component uses CSS and Tailwind to adapt the same navigation structure
@@ -444,7 +458,7 @@ export default function ResponsiveNavigationMenu({
     );
 
     return (
-        <WithCategoryNavigationMenu resolve={resolve} defer={defer}>
+        <WithCategoryNavigationMenu resolve={resolve} defer={defer} fallback={<ResponsiveNavigationMenuFallback />}>
             {({ categories }) => {
                 const mobileMenuContext: MobileMenuContextType = {
                     isOpen: mobileMenuOpen,
@@ -470,7 +484,7 @@ export default function ResponsiveNavigationMenu({
                         </Button>
 
                         {/* Desktop: Mega menu (always rendered, hidden on mobile with CSS) */}
-                        <div className="hidden lg:flex items-center h-full">
+                        <div className="hidden lg:flex h-full w-full items-center">
                             <CategoryNavigationMenu
                                 categories={categories}
                                 delayDuration={0}

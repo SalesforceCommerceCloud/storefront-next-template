@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { hydrateRoot } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import { vi } from 'vitest';
 import { type ComponentType, Region, type RegionDesignMetadata } from './index';
 import type { RegionDefinitionConfig } from '@/lib/decorators';
 import type { ShopperExperience } from '@/scapi';
+import { prepareCriticalRegion } from '@/lib/page-designer/critical-region';
 import type { PageWithComponentData } from '@/lib/page-designer/page-loader.server';
 import {
     useRegionContext,
@@ -32,10 +35,29 @@ vi.mock('./component', () => ({
     ),
 }));
 
+vi.mock('@/lib/page-designer/critical-region', () => ({
+    prepareCriticalRegion: vi.fn(),
+}));
+
+let capturedCriticalComponentIds: readonly string[] | undefined;
+vi.mock('./critical-component-context', () => ({
+    CriticalComponentProvider: ({ children, value }: { children: React.ReactNode; value: readonly string[] }) => {
+        capturedCriticalComponentIds = value;
+        return <>{children}</>;
+    },
+}));
+
 // Mock the RegionWrapper to capture designMetadata
 let capturedDesignMetadata: any = null;
+let regionWrapperSuspension: Promise<never> | undefined;
+let regionWrapperSuspendAttempts = 0;
 vi.mock('./region-wrapper', () => ({
     RegionWrapper: ({ designMetadata, children, className }: any) => {
+        if (regionWrapperSuspension) {
+            regionWrapperSuspendAttempts += 1;
+            // oxlint-disable-next-line typescript/only-throw-error -- React Suspense consumes the test promise.
+            throw regionWrapperSuspension;
+        }
         capturedDesignMetadata = designMetadata;
         if (className) {
             return <div className={className}>{children}</div>;
@@ -53,6 +75,9 @@ vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
 describe('Region', () => {
     beforeEach(() => {
         capturedDesignMetadata = null;
+        capturedCriticalComponentIds = undefined;
+        regionWrapperSuspension = undefined;
+        regionWrapperSuspendAttempts = 0;
         vi.clearAllMocks();
         // clearAllMocks resets call records but not mockReturnValue overrides, so re-assert the
         // default here — otherwise a design-mode test would leak isDesignMode:true into later tests.
@@ -106,6 +131,21 @@ describe('Region', () => {
             expect(screen.getByText('commerce_layouts.carousel')).toBeInTheDocument();
             expect(screen.getByText('commerce_layouts.banner')).toBeInTheDocument();
         });
+    });
+
+    it('prepares a critical region and provides its recursively collected component IDs', () => {
+        vi.mocked(prepareCriticalRegion).mockReturnValue(['component-1']);
+
+        render(<Region page={mockPage} regionId="test-region" critical={true} />);
+
+        expect(prepareCriticalRegion).toHaveBeenCalledWith(mockRegion);
+        expect(capturedCriticalComponentIds).toEqual(['component-1']);
+    });
+
+    it('does not prepare or install critical rendering metadata without the critical prop', () => {
+        render(<Region page={mockPage} regionId="test-region" />);
+        expect(prepareCriticalRegion).not.toHaveBeenCalled();
+        expect(capturedCriticalComponentIds).toBeUndefined();
     });
 
     it('renders component region synchronously without Suspense', () => {
@@ -776,10 +816,33 @@ describe('Region', () => {
     });
 
     describe('Promise identity / stability', () => {
+        it('retains resolved server content when a non-critical region suspends during hydration', async () => {
+            const element = (
+                <Region
+                    page={mockPage}
+                    regionId="test-region"
+                    fallbackElement={<div data-testid="loading">Loading...</div>}
+                />
+            );
+            const container = document.createElement('div');
+            container.innerHTML = renderToString(element);
+            const serverContent = container.querySelector('[data-testid="component-component-1"]');
+            expect(serverContent).not.toBeNull();
+
+            regionWrapperSuspension = new Promise<never>(() => undefined);
+            const root = hydrateRoot(container, element);
+            await act(() => Promise.resolve());
+
+            expect(regionWrapperSuspendAttempts).toBeGreaterThan(0);
+            expect(container.querySelector('[data-testid="component-component-1"]')).toBe(serverContent);
+            expect(container.querySelector('[data-testid="loading"]')).toBeNull();
+
+            act(() => root.unmount());
+        });
+
         it('renders synchronously when page is a plain (non-thenable) value', () => {
-            // No await/waitFor — the resolved page should render in the same render pass,
-            // bypassing Suspense entirely. If Region wrapped the value in Promise.resolve,
-            // <Await> would suspend and the components would not be in the DOM yet.
+            // No await/waitFor — a resolved page still renders in the same render pass. The stable
+            // Suspense boundary must not turn the value into a new promise or show its fallback.
             render(<Region page={mockPage} regionId="test-region" fallbackElement={<div data-testid="loading" />} />);
 
             expect(screen.queryByTestId('loading')).not.toBeInTheDocument();

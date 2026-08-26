@@ -143,6 +143,14 @@ describe('ReactAdapter', () => {
             expect(result).toBe(MockDecoratedComponent);
         });
 
+        test('returns the same decorated component type across renders', () => {
+            const first = adapter.decorateComponent(MockReactComponent);
+            const second = adapter.decorateComponent(MockReactComponent);
+
+            expect(second).toBe(first);
+            expect(mockCreateReactComponentDesignDecorator).toHaveBeenCalledOnce();
+        });
+
         test('handles component type casting correctly', () => {
             const component = MockReactComponent;
 

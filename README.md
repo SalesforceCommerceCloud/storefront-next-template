@@ -177,6 +177,7 @@ src/
 - 🧪 [Tests & Coverage](./README-TESTS.md)
 - 🔍 [Linting (OxLint), Formatting (Biome) & TypeScript Enforcement](./README-LINTING.md)
 - 🖼️ [Images](./docs/README-IMAGES.md)
+- 🧩 [Page Designer Components](./docs/README-PAGE-DESIGNER.md)
 - ⚡ [Performance Best Practices](./docs/README-PERFORMANCE.md)
 - 📈 [Performance Metrics](./docs/README-PERFORMANCE-METRICS.md)
 - 🔎 [SEO (Hreflang, Canonical URLs, and Meta Tags)](./docs/README-SEO.md)
@@ -205,4 +206,3 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 ## License
 
 See [LICENSE](./LICENSE) for details.
-

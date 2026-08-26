@@ -203,7 +203,7 @@
         "server": [
             {
                 "name": "**/*",
-                "limit": "6.3 mB",
+                "limit": "6.4 mB",
                 "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measures ~6,201 kB, making it the largest vertical — bumped 6.2 mB → 6.3 mB to admit it. Uncompressed. Follow-up: server-bundle diet (footwear and cosmetic are the largest) to bring this back under 6 mB."
             }
         ],

@@ -21,6 +21,7 @@ import { createLogger } from '@/lib/logger';
 const logger = createLogger();
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { useComponentDataById } from './component-data-context';
+import { useIsCriticalComponent } from './critical-component-context';
 import type { ComponentType } from './index';
 
 export interface ComponentProps {
@@ -51,6 +52,7 @@ function ComponentErrorFallback({ componentId, componentTypeId }: { componentId:
 export const Component = memo(function Component({ component, className, regionId }: ComponentProps): ReactElement {
     // Get this component's data promise from context by its ID
     const dataPromise = useComponentDataById(component.id);
+    const isCriticalComponent = useIsCriticalComponent(component.id);
     const FallbackComponent = registry.getFallback(component.typeId);
     const DynamicComponent = registry.getComponent(component.typeId);
     if (!DynamicComponent) {
@@ -71,21 +73,33 @@ export const Component = memo(function Component({ component, className, regionI
         contentLinkUuid: component.contentLinkUuid ?? component.id,
     };
 
+    const renderComponent = (data: unknown) => (
+        <DynamicComponent
+            {...(component.data ?? {})}
+            designMetadata={designMetadata}
+            component={component}
+            data={data}
+            className={className}
+            regionId={regionId}
+        />
+    );
+
+    const fallback = FallbackComponent ? <FallbackComponent {...(component.data ?? {})} /> : <div />;
+
+    if (!(dataPromise instanceof Promise)) {
+        return isCriticalComponent ? (
+            renderComponent(undefined)
+        ) : (
+            <Suspense fallback={fallback}>{renderComponent(undefined)}</Suspense>
+        );
+    }
+
     return (
-        <Suspense fallback={FallbackComponent ? <FallbackComponent {...(component.data ?? {})} /> : <div />}>
+        <Suspense fallback={fallback}>
             <Await
                 resolve={dataPromise}
                 errorElement={<ComponentErrorFallback componentId={component.id} componentTypeId={component.typeId} />}>
-                {(data) => (
-                    <DynamicComponent
-                        {...(component.data ?? {})}
-                        designMetadata={designMetadata}
-                        component={component}
-                        data={data}
-                        className={className}
-                        regionId={regionId}
-                    />
-                )}
+                {renderComponent}
             </Await>
         </Suspense>
     );
