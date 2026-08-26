@@ -192,11 +192,30 @@ interface components$17 {
      */
     expand: ("variations" | "set_products")[];
     /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
      * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
      *
      *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
      */
     personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -228,10 +247,30 @@ interface operations$35 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$17["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$17["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$17["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$17["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -281,7 +320,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -315,7 +354,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -355,7 +394,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -424,7 +463,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -464,7 +503,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -495,7 +534,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -526,7 +565,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -557,7 +596,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -590,7 +629,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -621,7 +660,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -652,7 +691,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -689,7 +728,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -780,7 +819,7 @@ interface paths$16 {
         /** @description The ID of the item to be updated. */
         itemId: components$16["parameters"]["itemId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -821,7 +860,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -851,7 +890,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -880,7 +919,7 @@ interface paths$16 {
       path: {
         paymentInstrumentId: components$16["parameters"]["paymentInstrumentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -912,7 +951,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -940,7 +979,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -969,7 +1008,7 @@ interface paths$16 {
       path: {
         priceAdjustmentId: components$16["parameters"]["priceAdjustmentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1006,7 +1045,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1040,7 +1079,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1081,7 +1120,7 @@ interface paths$16 {
         /** @description The ID of the shipment to be modified. */
         shipmentId: components$16["parameters"]["shipmentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1125,7 +1164,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1155,7 +1194,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1185,7 +1224,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1218,7 +1257,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1246,7 +1285,7 @@ interface paths$16 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -1282,7 +1321,7 @@ interface components$16 {
      */
     SiteId: string;
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     OrganizationId: string;
@@ -2742,7 +2781,7 @@ interface components$16 {
     /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
     siteId: components$16["schemas"]["SiteId"];
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     organizationId: components$16["schemas"]["OrganizationId"];
@@ -2809,7 +2848,10 @@ interface components$16 {
     basketId: string;
     /** @description If `true` (default value), the external tax rates are removed from the basket and set to null. To add external tax rates to a basket, use the `addTaxesForBasket` or `addTaxesForBasketItem` endpoint. The removal of external tax rates depends on the update performed on the basket, for example: an update to the `currency` triggers a removal. Set this parameter to `false` to disable the removal of external tax rates/values. */
     removeExternalTax: boolean;
-    /** @example true */
+    /**
+     * @description When true, the address is also used as the shipping address.
+     * @example true
+     */
     useAsShipping: boolean;
     /** @description The ID of the coupon item. */
     couponItemId: components$16["schemas"]["CouponItemId"];
@@ -2821,10 +2863,38 @@ interface components$16 {
     priceAdjustmentId: components$16["schemas"]["PriceAdjustmentId"];
     /** @description The ID of the shipment to be modified. */
     shipmentId: components$16["schemas"]["ShipmentId"];
-    /** @example true */
+    /**
+     * @description When true, the address is also used as the billing address.
+     * @example true
+     */
     useAsBilling: boolean;
     /** @description If true, an existing storefront basket is exchanged and marked as an agent basket. If false, a `CustomerBasketsQuotaExceededException` is thrown. */
     exchange: boolean;
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -2848,10 +2918,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -2898,7 +2986,7 @@ interface operations$34 {
           "application/problem+json": components$16["schemas"]["ErrorResponse"];
         };
       };
-      /** @description Thrown if the shipment with the given shipment ID is unknown. */
+      /** @description Returned if the shipment with the given shipment ID is unknown. */
       404: {
         headers: {
           [name: string]: unknown;
@@ -2951,10 +3039,16 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3025,10 +3119,16 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3077,11 +3177,37 @@ interface operations$34 {
         siteId: components$16["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$16["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3130,10 +3256,28 @@ interface operations$34 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$16["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3184,10 +3328,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3258,7 +3420,7 @@ interface operations$34 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3305,15 +3467,36 @@ interface operations$34 {
         siteId: components$16["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
-        /** @example true */
+        /**
+         * @description When true, the address is also used as the shipping address.
+         * @example true
+         */
         useAsShipping?: components$16["parameters"]["useAsShipping"];
         /** @description If `true` (default value), the external tax rates are removed from the basket and set to null. To add external tax rates to a basket, use the `addTaxesForBasket` or `addTaxesForBasketItem` endpoint. The removal of external tax rates depends on the update performed on the basket, for example: an update to the `currency` triggers a removal. Set this parameter to `false` to disable the removal of external tax rates/values. */
         removeExternalTax?: components$16["parameters"]["removeExternalTax"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3368,10 +3551,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3429,10 +3630,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3490,10 +3709,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3555,10 +3792,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3614,10 +3869,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3660,10 +3933,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3721,10 +4012,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3806,10 +4115,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3870,12 +4197,30 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item to be updated. */
         itemId: components$16["parameters"]["itemId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3928,12 +4273,30 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item to be updated. */
         itemId: components$16["parameters"]["itemId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -3998,10 +4361,16 @@ interface operations$34 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$16["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4060,10 +4429,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4120,11 +4507,29 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         paymentInstrumentId: components$16["parameters"]["paymentInstrumentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4182,11 +4587,29 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         paymentInstrumentId: components$16["parameters"]["paymentInstrumentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4247,11 +4670,37 @@ interface operations$34 {
         siteId: components$16["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$16["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4305,7 +4754,7 @@ interface operations$34 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4369,7 +4818,7 @@ interface operations$34 {
       path: {
         priceAdjustmentId: components$16["parameters"]["priceAdjustmentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4419,7 +4868,7 @@ interface operations$34 {
       path: {
         priceAdjustmentId: components$16["parameters"]["priceAdjustmentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4474,11 +4923,25 @@ interface operations$34 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$16["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$16["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4515,10 +4978,16 @@ interface operations$34 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$16["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4559,10 +5028,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4628,12 +5115,30 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the shipment to be modified. */
         shipmentId: components$16["parameters"]["shipmentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4701,12 +5206,30 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the shipment to be modified. */
         shipmentId: components$16["parameters"]["shipmentId"];
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4764,7 +5287,10 @@ interface operations$34 {
   updateShippingAddressForShipment: {
     parameters: {
       query: {
-        /** @example true */
+        /**
+         * @description When true, the address is also used as the billing address.
+         * @example true
+         */
         useAsBilling?: components$16["parameters"]["useAsBilling"];
         /** @description If `true` (default value), the external tax rates are removed from the basket and set to null. To add external tax rates to a basket, use the `addTaxesForBasket` or `addTaxesForBasketItem` endpoint. The removal of external tax rates depends on the update performed on the basket, for example: an update to the `currency` triggers a removal. Set this parameter to `false` to disable the removal of external tax rates/values. */
         removeExternalTax?: components$16["parameters"]["removeExternalTax"];
@@ -4773,10 +5299,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4835,10 +5379,28 @@ interface operations$34 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4898,11 +5460,37 @@ interface operations$34 {
         siteId: components$16["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$16["parameters"]["locale"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$16["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$16["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$16["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4964,7 +5552,7 @@ interface operations$34 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -4984,7 +5572,7 @@ interface operations$34 {
           "application/json": components$16["schemas"]["Basket"];
         };
       };
-      /** @description Thrown if a storefront basket already exists and the query parameter `exchange` is false. */
+      /** @description Returned if a storefront basket already exists and the query parameter `exchange` is false. */
       400: {
         headers: {
           [name: string]: unknown;
@@ -5009,11 +5597,25 @@ interface operations$34 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$16["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$16["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -5062,10 +5664,16 @@ interface operations$34 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$16["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$16["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$16["parameters"]["organizationId"];
@@ -6889,6 +7497,8 @@ interface components$15 {
        *     if no tax class ID is associated with the product item. It is read only.
        */
       taxClassId?: string;
+      /** @description The individual tax items for this product line item (e.g. state tax, county tax). It is read only. */
+      taxItems?: components$15["schemas"]["TaxItem"][];
       /**
        * Format: double
        * @description The tax rate, which is the decimal tax rate to be applied
@@ -7098,6 +7708,24 @@ interface components$15 {
        * @enum {string}
        */
       type?: "product" | "gift_certificate";
+    };
+    /** @description Object representing the taxation. */
+    TaxItem: {
+      /** @description The taxation identifier. */
+      id: string;
+      /**
+       * Format: double
+       * @description The taxation rate.
+       * @example 0.13
+       */
+      rate: number;
+      /**
+       * Format: double
+       * @description The tax amount. Will be computed if not set.
+       */
+      value?: number;
+    } & {
+      [key: string]: unknown;
     };
     /** @description Document representing a basket product item. */
     BasketProductItem: components$15["schemas"]["ProductItem"];
@@ -7352,6 +7980,8 @@ interface components$15 {
        *     if no tax class ID is associated with the product item. It is read only.
        */
       taxClassId?: string;
+      /** @description The individual tax items for this shipping line item (e.g. state tax, county tax). It is read only. */
+      taxItems?: components$15["schemas"]["TaxItem"][];
       /**
        * Format: double
        * @description The tax rate applicable to this product line item. For a 10% tax rate, the value is 0.1. It is read only.
@@ -7611,22 +8241,6 @@ interface components$15 {
       instance?: string;
     } & {
       [key: string]: unknown;
-    };
-    /** @description Object representing the taxation. */
-    TaxItem: {
-      /** @description The taxation identifier. */
-      id: string;
-      /**
-       * Format: double
-       * @description The taxation rate.
-       * @example 0.13
-       */
-      rate: number;
-      /**
-       * Format: double
-       * @description The tax amount. Will be computed if not set.
-       */
-      value?: number;
     };
     /** @description Taxation for a line item. */
     TaxItems: {
@@ -8036,6 +8650,31 @@ interface components$15 {
     useAsBilling: boolean;
     /** @description If true, an existing storefront basket is exchanged and marked as an agent basket. If false, a `CustomerBasketsQuotaExceededException` is thrown. */
     exchange: boolean;
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -8073,7 +8712,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8187,7 +8844,13 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8261,7 +8924,13 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8319,8 +8988,34 @@ interface operations$33 {
          *     - approaching_discounts: The endpoint returns the approachingDiscounts array on the basket, which contains order and shipping discount entries. If you don't provide this parameter, the approachingDiscounts field isn't included in the response.
          */
         expand?: components$15["parameters"]["expand"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$15["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8372,7 +9067,25 @@ interface operations$33 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$15["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8426,7 +9139,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8531,7 +9262,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8637,7 +9386,25 @@ interface operations$33 {
         /** @description If `true` (default value), the external tax rates are removed from the basket and set to null. To add external tax rates to a basket, use the `addTaxesForBasket` or `addTaxesForBasketItem` endpoint. The removal of external tax rates depends on the update performed on the basket, for example: an update to the `currency` triggers a removal. Set this parameter to `false` to disable the removal of external tax rates/values. */
         removeExternalTax?: components$15["parameters"]["removeExternalTax"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8695,7 +9462,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8756,7 +9541,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8817,7 +9620,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8882,7 +9703,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8941,7 +9780,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -8987,7 +9844,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9048,7 +9923,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9133,7 +10026,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9197,7 +10108,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item to be updated. */
         itemId: components$15["parameters"]["itemId"];
@@ -9255,7 +10184,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item to be updated. */
         itemId: components$15["parameters"]["itemId"];
@@ -9325,7 +10272,13 @@ interface operations$33 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$15["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9387,7 +10340,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9447,7 +10418,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         paymentInstrumentId: components$15["parameters"]["paymentInstrumentId"];
         /**
@@ -9509,7 +10498,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         paymentInstrumentId: components$15["parameters"]["paymentInstrumentId"];
         /**
@@ -9574,8 +10581,34 @@ interface operations$33 {
         siteId: components$15["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$15["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9801,8 +10834,22 @@ interface operations$33 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$15["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$15["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9842,7 +10889,13 @@ interface operations$33 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$15["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9886,7 +10939,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -9955,7 +11026,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the shipment to be modified. */
         shipmentId: components$15["parameters"]["shipmentId"];
@@ -10028,7 +11117,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the shipment to be modified. */
         shipmentId: components$15["parameters"]["shipmentId"];
@@ -10100,7 +11207,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -10162,7 +11287,25 @@ interface operations$33 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -10225,8 +11368,34 @@ interface operations$33 {
         siteId: components$15["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$15["parameters"]["locale"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$15["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$15["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$15["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -10336,8 +11505,22 @@ interface operations$33 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$15["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$15["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -10389,7 +11572,13 @@ interface operations$33 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$15["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$15["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -10549,11 +11738,30 @@ interface components$14 {
     /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
     siteId: components$14["schemas"]["SiteId"];
     /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
      * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
      *
      *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
      */
     personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -10569,10 +11777,30 @@ interface operations$32 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$14["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$14["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$14["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$14["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -10685,7 +11913,7 @@ interface paths$13 {
 interface components$13 {
   schemas: {
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     OrganizationId: string;
@@ -10946,7 +12174,7 @@ interface components$13 {
   responses: never;
   parameters: {
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     organizationId: components$13["schemas"]["OrganizationId"];
@@ -10965,6 +12193,31 @@ interface components$13 {
      *     Future expansions may include additional fields.
      */
     expand: "consentStatus"[];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -10989,11 +12242,37 @@ interface operations$31 {
          *     Future expansions may include additional fields.
          */
         expand?: components$13["parameters"]["expand"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$13["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$13["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$13["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$13["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$13["parameters"]["organizationId"];
@@ -11030,10 +12309,28 @@ interface operations$31 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$13["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$13["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$13["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$13["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$13["parameters"]["organizationId"];
@@ -11074,10 +12371,28 @@ interface operations$31 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$13["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$13["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$13["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$13["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$13["parameters"]["organizationId"];
@@ -15406,13 +16721,16 @@ interface components$11 {
     addressName: string;
     /** @description The flag indicating whether all sites should be searched. This flag is ignored unless a valid User / Agent is present with a trusted agent on behalf (TAOB) token. Without a TAOB token, only the customer's orders placed on the site specified by siteId are returned. */
     crossSites: boolean;
+    /** @description The start date for the date range filter (ISO 8601 format). */
     from: string;
+    /** @description The end date for the date range filter (ISO 8601 format). */
     until: string;
+    /** @description Filter results by status. */
     status: string;
     /**
-     * @description This parameter enhances the order result with extra data. By using `expand=som`, all orders for the current customer are loaded
+     * @description This parameter enhances the order result with extra data. By using `expand=oms`, all orders for the current customer are loaded
      *     directly from Salesforce Order Management (SOM). The system returns the retrieved SOM order data, along with any orders not yet
-     *     transferred to SOM. If your instance is not integrated with SOM, the `expand=som` command is disregarded.
+     *     transferred to SOM. If your instance is not integrated with SOM, the `expand=oms` command is disregarded.
      */
     expandCustomersOrders: "oms";
     /** @description The ID of the payment instrument to be retrievedCustomer. */
@@ -15435,6 +16753,31 @@ interface components$11 {
     lastName: string;
     /** @description Expand product details. Valid values are 'product', 'images', 'availability'. For images and availability, the product must also be expanded. */
     expandProductListsItems: ("product" | "images" | "availability")[];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -15447,7 +16790,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -15498,7 +16859,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -15538,7 +16905,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -15583,8 +16956,22 @@ interface operations$29 {
         authenticationProviderId: components$11["parameters"]["authenticationProviderId"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -15631,7 +17018,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -15689,8 +17094,22 @@ interface operations$29 {
          *     - none (Excludes all expansion data)
          */
         expand?: components$11["parameters"]["expandCustomer"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -15739,7 +17158,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -15792,7 +17217,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -15844,8 +17275,22 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The name of the address to update. */
         addressName: components$11["parameters"]["addressName"];
@@ -15896,7 +17341,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The name of the address to update. */
         addressName: components$11["parameters"]["addressName"];
@@ -15945,7 +17396,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The name of the address to update. */
         addressName: components$11["parameters"]["addressName"];
@@ -15999,8 +17456,34 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -16048,13 +17531,16 @@ interface operations$29 {
       query: {
         /** @description The flag indicating whether all sites should be searched. This flag is ignored unless a valid User / Agent is present with a trusted agent on behalf (TAOB) token. Without a TAOB token, only the customer's orders placed on the site specified by siteId are returned. */
         crossSites?: components$11["parameters"]["crossSites"];
+        /** @description The start date for the date range filter (ISO 8601 format). */
         from?: components$11["parameters"]["from"];
+        /** @description The end date for the date range filter (ISO 8601 format). */
         until?: components$11["parameters"]["until"];
+        /** @description Filter results by status. */
         status?: components$11["parameters"]["status"];
         /**
-         * @description This parameter enhances the order result with extra data. By using `expand=som`, all orders for the current customer are loaded
+         * @description This parameter enhances the order result with extra data. By using `expand=oms`, all orders for the current customer are loaded
          *     directly from Salesforce Order Management (SOM). The system returns the retrieved SOM order data, along with any orders not yet
-         *     transferred to SOM. If your instance is not integrated with SOM, the `expand=som` command is disregarded.
+         *     transferred to SOM. If your instance is not integrated with SOM, the `expand=oms` command is disregarded.
          */
         expand?: components$11["parameters"]["expandCustomersOrders"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
@@ -16063,8 +17549,34 @@ interface operations$29 {
         limit?: number;
         /** @description Used to retrieve the results based on a particular resource offset. */
         offset?: number;
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -16113,7 +17625,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -16164,7 +17682,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -16216,8 +17740,22 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the payment instrument to be retrievedCustomer. */
         paymentInstrumentId: components$11["parameters"]["paymentInstrumentId"];
@@ -16268,7 +17806,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the payment instrument to be retrievedCustomer. */
         paymentInstrumentId: components$11["parameters"]["paymentInstrumentId"];
@@ -16317,7 +17873,13 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the payment instrument to be retrievedCustomer. */
         paymentInstrumentId: components$11["parameters"]["paymentInstrumentId"];
@@ -16374,7 +17936,13 @@ interface operations$29 {
         /** @description The account ID used to scope payment method references. */
         accountId: components$11["parameters"]["accountId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the payment method reference to delete. */
         paymentMethodReferenceId: components$11["parameters"]["paymentMethodReferenceId"];
@@ -16407,7 +17975,13 @@ interface operations$29 {
         /** @description The zone identifier for the payment configuration. */
         zoneId: components$11["parameters"]["zoneId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -16459,8 +18033,34 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -16509,7 +18109,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The customer ID. */
         customerId: components$11["parameters"]["customerId"];
@@ -16561,8 +18179,34 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the list. */
         listId: components$11["parameters"]["listId"];
@@ -16613,7 +18257,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the list. */
         listId: components$11["parameters"]["listId"];
@@ -16662,7 +18324,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the list. */
         listId: components$11["parameters"]["listId"];
@@ -16717,7 +18397,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the list. */
         listId: components$11["parameters"]["listId"];
@@ -16771,8 +18469,34 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item. */
         itemId: components$11["parameters"]["itemId"];
@@ -16825,7 +18549,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item. */
         itemId: components$11["parameters"]["itemId"];
@@ -16867,7 +18609,25 @@ interface operations$29 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item. */
         itemId: components$11["parameters"]["itemId"];
@@ -16920,8 +18680,34 @@ interface operations$29 {
         lastName?: components$11["parameters"]["lastName"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -16976,8 +18762,34 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the list. */
         listId: components$11["parameters"]["listId"];
@@ -17036,8 +18848,34 @@ interface operations$29 {
         expand?: components$11["parameters"]["expandProductListsItems"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the list. */
         listId: components$11["parameters"]["listId"];
@@ -17085,8 +18923,34 @@ interface operations$29 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$11["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$11["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$11["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$11["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the item. */
         itemId: components$11["parameters"]["itemId"];
@@ -17324,7 +19188,7 @@ interface components$10 {
     };
   };
   responses: {
-    /** @description Your access token is invalid or expired and can't be used to identify a user. */
+    /** @description Your access token is invalid or expired and can’t be used to identify a user. */
     "401unauthorized": {
       headers: {
         [name: string]: unknown;
@@ -17357,6 +19221,31 @@ interface components$10 {
     countryCode: components$10["schemas"]["CountryCode"];
     /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
     siteId: components$10["schemas"]["SiteId"];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -17383,8 +19272,34 @@ interface operations$28 {
         countryCode: components$10["parameters"]["countryCode"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$10["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$10["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$10["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$10["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$10["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18376,12 +20291,6 @@ interface components$9 {
     siteId: components$9["schemas"]["SiteId"];
     /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
     locale: components$9["schemas"]["LocaleCode"];
-    /**
-     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-     *
-     *     When set to `none`, the server skips applying personalization to the response.
-     */
-    personalized: "none";
     /** @description Identifier for the requested page. */
     pageId: string;
     /** @description Identifier for the requested component. */
@@ -18418,6 +20327,31 @@ interface components$9 {
      * @example homepage-folder,category-folder,product-folder
      */
     folderIds: components$9["schemas"]["FolderId"][];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -18445,10 +20379,30 @@ interface operations$27 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18504,10 +20458,30 @@ interface operations$27 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description Identifier for the requested page. */
         pageId: components$9["parameters"]["pageId"];
@@ -18568,8 +20542,34 @@ interface operations$27 {
         siteId: components$9["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$9["parameters"]["locale"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18641,10 +20641,30 @@ interface operations$27 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18694,10 +20714,30 @@ interface operations$27 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18752,18 +20792,38 @@ interface operations$27 {
         siteId: components$9["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$9["parameters"]["locale"];
-        /**
-         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-         *
-         *     When set to `none`, the server skips applying personalization to the response.
-         */
-        personalized?: components$9["parameters"]["personalized"];
         /** @description Number of records to retrieve per request. Must be between 1 (minimum) and 200 (maximum). Defaults to 50. */
         limit?: number;
         /** @description Used to retrieve the results based on a particular resource offset. */
         offset?: number;
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18808,10 +20868,30 @@ interface operations$27 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18874,10 +20954,30 @@ interface operations$27 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$9["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18919,7 +21019,25 @@ interface operations$27 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$9["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$9["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$9["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$9["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -18985,7 +21103,7 @@ interface paths$8 {
 interface components$8 {
   schemas: {
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     OrganizationId: string;
@@ -19100,12 +21218,29 @@ interface components$8 {
   responses: never;
   parameters: {
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     organizationId: components$8["schemas"]["OrganizationId"];
     /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
     siteId: components$8["schemas"]["SiteId"];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -19118,10 +21253,28 @@ interface operations$26 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$8["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$8["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$8["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$8["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$8["parameters"]["organizationId"];
@@ -19143,13 +21296,13 @@ interface operations$26 {
           "application/json": components$8["schemas"]["GiftCertificate"];
         };
       };
-      /** @description Thrown when the given gift certificate code is not valid. */
+      /** @description Returned when the given gift certificate code is not valid. */
       404: {
         headers: {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components$8["schemas"]["ErrorResponse"];
+          "application/problem+json": components$8["schemas"]["ErrorResponse"];
         };
       };
     };
@@ -24812,6 +26965,8 @@ interface components$6 {
        *     if no tax class ID is associated with the product item. It is read only.
        */
       taxClassId?: string;
+      /** @description The individual tax items for this product line item (e.g. state tax, county tax). It is read only. */
+      taxItems?: components$6["schemas"]["TaxItem"][];
       /**
        * Format: double
        * @description The tax rate, which is the decimal tax rate to be applied
@@ -25021,6 +27176,24 @@ interface components$6 {
        * @enum {string}
        */
       type?: "product" | "gift_certificate";
+    };
+    /** @description Object representing the taxation. */
+    TaxItem: {
+      /** @description The taxation identifier. */
+      id: string;
+      /**
+       * Format: double
+       * @description The taxation rate.
+       * @example 0.13
+       */
+      rate: number;
+      /**
+       * Format: double
+       * @description The tax amount. Will be computed if not set.
+       */
+      value?: number;
+    } & {
+      [key: string]: unknown;
     };
     /** @description Document representing a basket product item. */
     BasketProductItem: components$6["schemas"]["ProductItem"];
@@ -25275,6 +27448,8 @@ interface components$6 {
        *     if no tax class ID is associated with the product item. It is read only.
        */
       taxClassId?: string;
+      /** @description The individual tax items for this shipping line item (e.g. state tax, county tax). It is read only. */
+      taxItems?: components$6["schemas"]["TaxItem"][];
       /**
        * Format: double
        * @description The tax rate applicable to this product line item. For a 10% tax rate, the value is 0.1. It is read only.
@@ -25992,6 +28167,12 @@ interface components$6 {
        * @example Defect
        */
       reason?: string;
+      /**
+       * @description A free-text note that explains why the shopper is returning this product item. Use it to provide additional detail beyond the
+       *     coded `reason`, such as the shopper's own explanation.
+       * @example The item arrived with a cracked screen and won't power on.
+       */
+      reasonText?: string;
     };
     /** @description Document representing a request to initiate the return of one or more items of an order that is integrated with Order Management (OMS). */
     OmsReturnOrderRequest: {
@@ -26278,22 +28459,6 @@ interface components$6 {
       /** @description The applicable payment methods. It is read only. */
       applicablePaymentMethods?: components$6["schemas"]["PaymentMethod"][];
     };
-    /** @description Object representing the taxation. */
-    TaxItem: {
-      /** @description The taxation identifier. */
-      id: string;
-      /**
-       * Format: double
-       * @description The taxation rate.
-       * @example 0.13
-       */
-      rate: number;
-      /**
-       * Format: double
-       * @description The tax amount. Will be computed if not set.
-       */
-      value?: number;
-    };
     /** @description Taxation for a line item. */
     TaxItems: {
       /** @description The list of tax items. It is read only. */
@@ -26419,6 +28584,31 @@ interface components$6 {
      */
     expandOms: "oms"[];
     paymentInstrumentId: components$6["schemas"]["PaymentInstrumentId"];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -26433,7 +28623,25 @@ interface operations$24 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$6["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26498,8 +28706,34 @@ interface operations$24 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$6["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$6["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26540,8 +28774,34 @@ interface operations$24 {
          * @example oms,oms_shipments
          */
         expand?: components$6["parameters"]["expandOrders"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$6["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The order number of the order to be modified. */
         orderNo: components$6["parameters"]["orderNo"];
@@ -26593,7 +28853,25 @@ interface operations$24 {
          */
         expand?: components$6["parameters"]["expandOrders"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26662,7 +28940,25 @@ interface operations$24 {
          */
         reopenBasket?: components$6["parameters"]["reopenBasket"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26736,7 +29032,25 @@ interface operations$24 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$6["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26788,7 +29102,25 @@ interface operations$24 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$6["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26846,7 +29178,25 @@ interface operations$24 {
          */
         expand?: components$6["parameters"]["expandOms"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26885,7 +29235,25 @@ interface operations$24 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$6["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -26944,7 +29312,25 @@ interface operations$24 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$6["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         paymentInstrumentId: components$6["parameters"]["paymentInstrumentId"];
         /**
@@ -26992,7 +29378,25 @@ interface operations$24 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$6["parameters"]["locale"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         paymentInstrumentId: components$6["parameters"]["paymentInstrumentId"];
         /**
@@ -27057,8 +29461,34 @@ interface operations$24 {
         siteId: components$6["parameters"]["siteId"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$6["parameters"]["locale"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$6["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$6["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$6["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -27109,8 +29539,22 @@ interface operations$24 {
       query: {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$6["parameters"]["siteId"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$6["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$6["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -27174,7 +29618,7 @@ interface paths$5 {
         siteId: components$5["parameters"]["siteId"];
         /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
         currency: components$5["parameters"]["currency"];
-        /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering */
+        /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering. */
         countryCode?: components$5["parameters"]["countryCode"];
         /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
         zoneId?: components$5["parameters"]["zoneId"];
@@ -27184,7 +29628,7 @@ interface paths$5 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$5["parameters"]["organizationId"];
@@ -27224,7 +29668,7 @@ interface paths$5 {
       header?: never;
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$5["parameters"]["organizationId"];
@@ -27235,19 +29679,17 @@ interface paths$5 {
     put?: never;
     /**
      * Check payment instrument balance
-     * @description Checks the balance of a payment instrument. Currently supports gift card balance inquiries.
+     * @description Checks the balance of a payment instrument.
      *
      *     **Parameters:**
      *     - `siteId`: Required. Specifies the site identifier for context-specific configuration.
      *
      *     **Request Body:**
-     *     - `paymentMethodId`: Required. The payment method ID, for example: GIFT_CERTIFICATE
-     *     - `giftCard`: Required when paymentMethodId is GIFT_CERTIFICATE. Specifies the gift card details.
-     *       - `brand`: The gift card type or brand, for example: givex, blackhawk
-     *       - `cardNumber`: The gift card number
-     *       - `cvc`: The card verification code
-     *       - `expirationMonth`: The expiration month
-     *       - `expirationYear`: The expiration year
+     *     - `paymentMethodId`: Required. The payment method ID.
+     *     - `provider`: Required. Identifies the payment provider that handles the balance inquiry.
+     *     - `providerProperties`: Required. Provider-specific balance inquiry properties. Do not include PCI-relevant
+     *       data, such as a primary account number (PAN), in this object. Use client-side tokenization or encrypted
+     *       fields when payment-instrument data is required.
      *
      *     **Response Behavior:**
      *     - Returns the balance amount and currency when the payment instrument is valid.
@@ -27263,7 +29705,7 @@ interface paths$5 {
 interface components$5 {
   schemas: {
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     OrganizationId: string;
@@ -27399,45 +29841,31 @@ interface components$5 {
     } & {
       [key: string]: unknown;
     };
-    /** @description Represents gift card details for a request. */
-    GiftCardRequest: {
-      /**
-       * @description The gift card type or brand (for example, givex, blackhawk).
-       * @example givex
-       */
-      brand: string;
-      /**
-       * @description The gift card number.
-       * @example 6364530000000000
-       */
-      cardNumber: string;
-      /**
-       * @description The card verification code (CVC/CVV) for the gift card.
-       * @example 123
-       */
-      cvc: string;
-      /**
-       * Format: int32
-       * @description The month when the gift card expires.
-       * @example 1
-       */
-      expirationMonth?: number;
-      /**
-       * Format: int32
-       * @description The year when the gift card expires.
-       * @example 2030
-       */
-      expirationYear?: number;
-    };
-    /** @description Request body for checking the balance of a payment instrument. Currently supports gift card balance inquiries. */
+    /**
+     * @description Request body for checking the balance of a payment instrument.
+     *
+     *     The payment method ID and provider identify the payment provider. Provider-specific properties are defined and
+     *     validated by that provider.
+     */
     PaymentInstrumentBalanceRequest: {
       /**
        * @description The payment method ID.
-       * @example GIFT_CERTIFICATE
+       * @example COMMERCE_APP_GIFT_CARD
        */
       paymentMethodId: string;
-      /** @description The gift card details. */
-      giftCard: components$5["schemas"]["GiftCardRequest"];
+      /**
+       * @description Identifies the payment provider that handles the balance inquiry.
+       * @example givex
+       */
+      provider: string;
+      /**
+       * @description Provider-specific balance inquiry properties. Do not include PCI-relevant data, such as a primary account
+       *     number (PAN), in this object. Use client-side tokenization or encrypted fields when payment-instrument
+       *     data is required.
+       */
+      providerProperties: {
+        [key: string]: unknown;
+      };
     };
     /** @description Response containing the payment instrument balance information. */
     PaymentInstrumentBalanceResponse: {
@@ -27453,7 +29881,7 @@ interface components$5 {
   responses: never;
   parameters: {
     /**
-     * @description An identifier for the organization the request is being made by
+     * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
      * @example f_ecom_zzxy_prd
      */
     organizationId: components$5["schemas"]["OrganizationId"];
@@ -27461,12 +29889,37 @@ interface components$5 {
     siteId: components$5["schemas"]["SiteId"];
     /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
     currency: components$5["schemas"]["CurrencyCode"];
-    /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering */
+    /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering. */
     countryCode: components$5["schemas"]["CountryCode"];
     /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
     zoneId: components$5["schemas"]["ZoneId"];
     /** @description The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction. */
     amount: components$5["schemas"]["Amount"];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -27480,17 +29933,43 @@ interface operations$23 {
         siteId: components$5["parameters"]["siteId"];
         /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
         currency: components$5["parameters"]["currency"];
-        /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering */
+        /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering. */
         countryCode?: components$5["parameters"]["countryCode"];
         /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
         zoneId?: components$5["parameters"]["zoneId"];
         /** @description The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction. */
         amount?: components$5["parameters"]["amount"];
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$5["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$5["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$5["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$5["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$5["parameters"]["organizationId"];
@@ -27535,10 +30014,28 @@ interface operations$23 {
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components$5["parameters"]["siteId"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$5["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$5["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$5["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components$5["parameters"]["organizationId"];
@@ -27563,7 +30060,7 @@ interface operations$23 {
       /**
        * @description Possible reasons:
        *     - the provided payment method is invalid or not applicable.
-       *     - the gift card details are invalid or missing when paymentMethodId is GIFT_CERTIFICATE.
+       *     - the provider-specific request properties are invalid or missing.
        */
       400: {
         headers: {
@@ -28869,12 +31366,6 @@ interface components$4 {
     locale: components$4["schemas"]["LocaleCode"];
     /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
     currency: components$4["schemas"]["CurrencyCode"];
-    /**
-     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-     *
-     *     When set to `none`, the server skips applying personalization to the response.
-     */
-    personalized: "none";
     /** @description The ID of the requested product. */
     id: components$4["schemas"]["ProductId"];
     /**
@@ -28926,6 +31417,31 @@ interface components$4 {
     levels: 0 | 1 | 2;
     /** @description The ID of the requested category. */
     "parameters-id": components$4["schemas"]["CategoryId"];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -28979,10 +31495,30 @@ interface operations$22 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$4["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$4["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$4["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -29057,10 +31593,30 @@ interface operations$22 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$4["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$4["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$4["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -29134,10 +31690,30 @@ interface operations$22 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$4["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$4["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$4["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -29194,10 +31770,30 @@ interface operations$22 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$4["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$4["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$4["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -29257,10 +31853,30 @@ interface operations$22 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$4["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$4["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$4["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -29325,10 +31941,30 @@ interface operations$22 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$4["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$4["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$4["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -29374,10 +32010,30 @@ interface operations$22 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$4["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$4["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$4["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description The ID of the requested category. */
         id: components$4["parameters"]["parameters-id"];
@@ -29666,6 +32322,23 @@ interface components$3 {
     endDate: string;
     /** @description The currency mnemonic specified for price. This parameter is effective only for product suggestions. */
     currency: components$3["schemas"]["CurrencyCode"];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -29688,7 +32361,25 @@ interface operations$21 {
          */
         personalized?: components$3["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$3["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$3["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$3["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -29738,7 +32429,25 @@ interface operations$21 {
          */
         personalized?: components$3["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$3["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$3["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$3["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /** @description Find the promotions assigned to this campaign (mandatory). */
         campaignId: components$3["parameters"]["campaignId"];
@@ -30195,9 +32904,10 @@ interface components$2 {
       /** @description The array of actual variation groups. Only for master, variation group, and variant types. This array can be empty. */
       variationGroups?: components$2["schemas"]["VariationGroup"][];
       /**
-       * @description SEO-friendly URL slug for the product, derived from the site's configured product URL rule.
-       *     Returned only when `expand=slug` is requested. Use the slug to construct user-friendly
-       *     product detail page URLs (for example, /products/{slug}/{productId}).
+       * @description SEO-friendly slug for the product, derived from the site's configured product URL rule.
+       *     This is the slug segment only, not a full URL. Returned only when `expand=slug` is requested.
+       *     Use the slug to construct user-friendly product detail page URLs (for example,
+       *     /products/{slug}/{productId}).
        * @example modern-dress-shirt
        */
       slug?: string;
@@ -30228,6 +32938,12 @@ interface components$2 {
        */
       type?: string;
     };
+    /**
+     * @description A search matching approach. `semantic` is meaning-based matching; `lexical` is keyword/token-based matching.
+     * @example semantic
+     * @enum {string}
+     */
+    SearchMode: "semantic" | "lexical";
     /**
      * @description The query string that was searched for.
      * @example dresses
@@ -30386,6 +33102,10 @@ interface components$2 {
        * @example dresses
        */
       query: string;
+      /** @description The search matching approach the client requested for this search, echoed back from the `searchMode` query parameter. Omitted when the request did not supply one. This is the requested hint, not necessarily the mode that served the result — see `effectiveSearchMode`. */
+      searchMode?: components$2["schemas"]["SearchMode"];
+      /** @description The search matching approach the platform actually used to serve this result. May differ from the requested `searchMode` when the platform demoted the mode (for example when the semantic index is unavailable). */
+      effectiveSearchMode?: components$2["schemas"]["SearchMode"];
       /** @description The result of query processing. */
       processedQuery?: components$2["schemas"]["ProcessedQuery"];
       /** @description The sorted array of search refinements. This array can be empty. */
@@ -30486,6 +33206,14 @@ interface components$2 {
        * @example Playstation 3 Bundle
        */
       productName: string;
+      /**
+       * @description SEO-friendly slug for the product, derived from the site's configured product URL rule.
+       *     This is the slug segment only, not a full URL. Returned only when `expand=slug` is requested.
+       *     Use the slug to construct user-friendly product detail page URLs (for example,
+       *     /products/{slug}/{productId}).
+       * @example modern-dress-shirt
+       */
+      slug?: string;
     } & {
       [key: string]: unknown;
     };
@@ -30522,6 +33250,10 @@ interface components$2 {
        * @example dresses
        */
       searchPhrase: string;
+      /** @description The search matching approach the client requested for these suggestions, echoed back from the `searchMode` query parameter. Omitted when the request did not supply one. This is the requested hint, not necessarily the mode that served the suggestions — see `effectiveSearchMode`. */
+      searchMode?: components$2["schemas"]["SearchMode"];
+      /** @description The search matching approach the platform actually used to serve these suggestions. May differ from the requested `searchMode` when the platform demoted the mode (for example when the semantic index is unavailable). */
+      effectiveSearchMode?: components$2["schemas"]["SearchMode"];
     };
   };
   responses: never;
@@ -30563,9 +33295,15 @@ interface components$2 {
      *
      *     **Note:** To refine a search using multiple promotion filters—for example, to find products in both the spring and summer campaigns—see [Refining by Multiple Promotions](https://developer.salesforce.com/docs/commerce/b2c-commerce/guide/b2c-promotions-for-developers.html#refining-by-multiple-promotions).
      */
-    refine: string;
+    refine: string[];
     /** @description The ID of the sorting option to sort the search hits. */
     sort: string;
+    /**
+     * @description A hint for the search matching approach the platform should use for this request. `semantic` selects meaning-based matching; `lexical` selects keyword/token-based matching.
+     *
+     *     The hint is non-authoritative and applies only to this request: the platform runs its full routing cascade and may demote a `semantic` request to `lexical` (for example when the semantic index is unavailable). Always read the resolved `effectiveSearchMode` field in the response rather than assuming the requested mode was honored. When omitted, the platform's configured default applies.
+     */
+    searchMode: "semantic" | "lexical";
     /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
     currency: components$2["schemas"]["CurrencyCode"];
     /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
@@ -30597,25 +33335,44 @@ interface components$2 {
     allVariationProperties: boolean;
     /** @description A comma-separated list of custom property ids to be returned for variant products. The `variants` expand parameter and `allVariationProperties` query parameter are required for these properties to be returned. */
     includedCustomVariationProperties: string[];
-    /**
-     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-     *
-     *     When set to `none`, the server skips applying personalization to the response.
-     */
-    personalized: "none";
     /** @description The search phrase (q) for which suggestions are evaluated. Search suggestions are determined when the search phrase input is at least three (default) characters long. The value is configurable in the Business Manager. */
     qSearchSuggestion: string;
     /** @description The maximum number of suggestions made per request. If no value is defined, by default five suggestions per suggestion type are evaluated. This affects all types of suggestions (category, product, brand, and custom suggestions). */
     limitSearchSuggestion: number;
     /**
-     * @description A comma-separated list that allows values `images`, `prices`, `custom_product_properties`.
+     * @description A comma-separated list of the values `images`, `prices`, `custom_product_properties`, and `slug`.
      *     By default, the expand parameter includes `prices`.
      */
-    expandSearchSuggestion: ("images" | "prices" | "custom_product_properties")[];
+    expandSearchSuggestion: ("images" | "prices" | "custom_product_properties" | "slug")[];
     /** @description A comma-separated list of custom property ids to be returned for product suggestions. The `custom_product_properties` expand parameter is required for these properties to be returned. */
     includedCustomProductProperties: string[];
     /** @description The flag that determines whether or not to show recent and popular suggested phrases from Einstein. */
     includeEinsteinSuggestedPhrases: boolean;
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -30660,6 +33417,12 @@ interface operations$20 {
         refine?: components$2["parameters"]["refine"];
         /** @description The ID of the sorting option to sort the search hits. */
         sort?: components$2["parameters"]["sort"];
+        /**
+         * @description A hint for the search matching approach the platform should use for this request. `semantic` selects meaning-based matching; `lexical` selects keyword/token-based matching.
+         *
+         *     The hint is non-authoritative and applies only to this request: the platform runs its full routing cascade and may demote a `semantic` request to `lexical` (for example when the semantic index is unavailable). Always read the resolved `effectiveSearchMode` field in the response rather than assuming the requested mode was honored. When omitted, the platform's configured default applies.
+         */
+        searchMode?: components$2["parameters"]["searchMode"];
         /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
         currency?: components$2["parameters"]["currency"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
@@ -30691,18 +33454,38 @@ interface operations$20 {
         allVariationProperties?: components$2["parameters"]["allVariationProperties"];
         /** @description A comma-separated list of custom property ids to be returned for variant products. The `variants` expand parameter and `allVariationProperties` query parameter are required for these properties to be returned. */
         includedCustomVariationProperties?: components$2["parameters"]["includedCustomVariationProperties"];
-        /**
-         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-         *
-         *     When set to `none`, the server skips applying personalization to the response.
-         */
-        personalized?: components$2["parameters"]["personalized"];
         /** @description Number of records to retrieve per request. Must be between 1 (minimum) and 200 (maximum). Defaults to 25. */
         limit?: number;
         /** @description Used to retrieve the results based on a particular resource offset. */
         offset?: number;
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components$2["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$2["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$2["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$2["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -30741,6 +33524,12 @@ interface operations$20 {
         siteId: components$2["parameters"]["siteId"];
         /** @description The search phrase (q) for which suggestions are evaluated. Search suggestions are determined when the search phrase input is at least three (default) characters long. The value is configurable in the Business Manager. */
         q: components$2["parameters"]["qSearchSuggestion"];
+        /**
+         * @description A hint for the search matching approach the platform should use for this request. `semantic` selects meaning-based matching; `lexical` selects keyword/token-based matching.
+         *
+         *     The hint is non-authoritative and applies only to this request: the platform runs its full routing cascade and may demote a `semantic` request to `lexical` (for example when the semantic index is unavailable). Always read the resolved `effectiveSearchMode` field in the response rather than assuming the requested mode was honored. When omitted, the platform's configured default applies.
+         */
+        searchMode?: components$2["parameters"]["searchMode"];
         /** @description The maximum number of suggestions made per request. If no value is defined, by default five suggestions per suggestion type are evaluated. This affects all types of suggestions (category, product, brand, and custom suggestions). */
         limit?: components$2["parameters"]["limitSearchSuggestion"];
         /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
@@ -30748,7 +33537,7 @@ interface operations$20 {
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
         locale?: components$2["parameters"]["locale"];
         /**
-         * @description A comma-separated list that allows values `images`, `prices`, `custom_product_properties`.
+         * @description A comma-separated list of the values `images`, `prices`, `custom_product_properties`, and `slug`.
          *     By default, the expand parameter includes `prices`.
          */
         expand?: components$2["parameters"]["expandSearchSuggestion"];
@@ -30760,10 +33549,30 @@ interface operations$20 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$2["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$2["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$2["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$2["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -31000,11 +33809,30 @@ interface components$1 {
     /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
     locale: components$1["schemas"]["LocaleCode"];
     /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
      * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
      *
      *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
      */
     personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -31028,10 +33856,30 @@ interface operations$19 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components$1["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components$1["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components$1["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$1["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -31325,12 +34173,6 @@ interface components {
     siteId: components["schemas"]["SiteId"];
     /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
     locale: components["schemas"]["LocaleCode"];
-    /**
-     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-     *
-     *     When set to `none`, the server skips applying personalization to the response.
-     */
-    personalized: "none";
     /** @description The two letter ISO country code, such as "US". This value is required when a postalCode is provided. */
     countryCode: components["schemas"]["CountryCode"];
     /** @description The distance unit. Supported values are "mi" (miles) and "km" (kilometers). The default is "km". */
@@ -31343,6 +34185,31 @@ interface components {
     maxDistance: components["schemas"]["Distance"];
     /** @description The postal code, such as "84121". You must provide a countryCode when a postalCode is provided. */
     postalCode: components["schemas"]["PostalCode"];
+    /**
+     * @description A unique shopper identifier (USID) for tracking client context.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     This header is required for all endpoints secured with ShopperClientContextToken.
+     */
+    sfdcUsid: string;
+    /**
+     * @description Do Not Track header for privacy preferences.
+     *     Used with endpoints secured with ShopperClientContextToken.
+     *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+     */
+    sfdcDwDnt: "0" | "1";
+    /**
+     * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+     *
+     *     When set to `none`, the server skips applying personalization to the response.
+     *
+     *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+     */
+    personalized: "none";
+    /**
+     * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+     *     passed in from a trusted backend application.
+     */
+    sfdcShopperContext: string;
   };
   requestBodies: never;
   headers: never;
@@ -31362,10 +34229,30 @@ interface operations$18 {
          * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
          *
          *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
          */
         personalized?: components["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -31420,8 +34307,34 @@ interface operations$18 {
         limit?: number;
         /** @description Used to retrieve the results based on a particular resource offset. */
         offset?: number;
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized?: components["parameters"]["personalized"];
       };
-      header?: never;
+      header?: {
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdc_usid?: components["parameters"]["sfdcUsid"];
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+      };
       path: {
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).

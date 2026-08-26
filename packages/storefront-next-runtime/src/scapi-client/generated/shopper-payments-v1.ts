@@ -11,7 +11,7 @@ export interface paths {
                 siteId: components["parameters"]["siteId"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
                 currency: components["parameters"]["currency"];
-                /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering */
+                /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering. */
                 countryCode?: components["parameters"]["countryCode"];
                 /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
                 zoneId?: components["parameters"]["zoneId"];
@@ -21,7 +21,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -61,7 +61,7 @@ export interface paths {
             header?: never;
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -72,19 +72,17 @@ export interface paths {
         put?: never;
         /**
          * Check payment instrument balance
-         * @description Checks the balance of a payment instrument. Currently supports gift card balance inquiries.
+         * @description Checks the balance of a payment instrument.
          *
          *     **Parameters:**
          *     - `siteId`: Required. Specifies the site identifier for context-specific configuration.
          *
          *     **Request Body:**
-         *     - `paymentMethodId`: Required. The payment method ID, for example: GIFT_CERTIFICATE
-         *     - `giftCard`: Required when paymentMethodId is GIFT_CERTIFICATE. Specifies the gift card details.
-         *       - `brand`: The gift card type or brand, for example: givex, blackhawk
-         *       - `cardNumber`: The gift card number
-         *       - `cvc`: The card verification code
-         *       - `expirationMonth`: The expiration month
-         *       - `expirationYear`: The expiration year
+         *     - `paymentMethodId`: Required. The payment method ID.
+         *     - `provider`: Required. Identifies the payment provider that handles the balance inquiry.
+         *     - `providerProperties`: Required. Provider-specific balance inquiry properties. Do not include PCI-relevant
+         *       data, such as a primary account number (PAN), in this object. Use client-side tokenization or encrypted
+         *       fields when payment-instrument data is required.
          *
          *     **Response Behavior:**
          *     - Returns the balance amount and currency when the payment instrument is valid.
@@ -101,7 +99,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         OrganizationId: string;
@@ -237,45 +235,31 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** @description Represents gift card details for a request. */
-        GiftCardRequest: {
-            /**
-             * @description The gift card type or brand (for example, givex, blackhawk).
-             * @example givex
-             */
-            brand: string;
-            /**
-             * @description The gift card number.
-             * @example 6364530000000000
-             */
-            cardNumber: string;
-            /**
-             * @description The card verification code (CVC/CVV) for the gift card.
-             * @example 123
-             */
-            cvc: string;
-            /**
-             * Format: int32
-             * @description The month when the gift card expires.
-             * @example 1
-             */
-            expirationMonth?: number;
-            /**
-             * Format: int32
-             * @description The year when the gift card expires.
-             * @example 2030
-             */
-            expirationYear?: number;
-        };
-        /** @description Request body for checking the balance of a payment instrument. Currently supports gift card balance inquiries. */
+        /**
+         * @description Request body for checking the balance of a payment instrument.
+         *
+         *     The payment method ID and provider identify the payment provider. Provider-specific properties are defined and
+         *     validated by that provider.
+         */
         PaymentInstrumentBalanceRequest: {
             /**
              * @description The payment method ID.
-             * @example GIFT_CERTIFICATE
+             * @example COMMERCE_APP_GIFT_CARD
              */
             paymentMethodId: string;
-            /** @description The gift card details. */
-            giftCard: components["schemas"]["GiftCardRequest"];
+            /**
+             * @description Identifies the payment provider that handles the balance inquiry.
+             * @example givex
+             */
+            provider: string;
+            /**
+             * @description Provider-specific balance inquiry properties. Do not include PCI-relevant data, such as a primary account
+             *     number (PAN), in this object. Use client-side tokenization or encrypted fields when payment-instrument
+             *     data is required.
+             */
+            providerProperties: {
+                [key: string]: unknown;
+            };
         };
         /** @description Response containing the payment instrument balance information. */
         PaymentInstrumentBalanceResponse: {
@@ -291,7 +275,7 @@ export interface components {
     responses: never;
     parameters: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
@@ -299,12 +283,37 @@ export interface components {
         siteId: components["schemas"]["SiteId"];
         /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
         currency: components["schemas"]["CurrencyCode"];
-        /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering */
+        /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering. */
         countryCode: components["schemas"]["CountryCode"];
         /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
         zoneId: components["schemas"]["ZoneId"];
         /** @description The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction. */
         amount: components["schemas"]["Amount"];
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdcUsid: string;
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdcDwDnt: "0" | "1";
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized: "none";
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdcShopperContext: string;
     };
     requestBodies: never;
     headers: never;
@@ -319,17 +328,43 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
                 currency: components["parameters"]["currency"];
-                /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering */
+                /** @description The country code (ISO 3166-1 alpha-2) for country-specific payment configuration filtering. */
                 countryCode?: components["parameters"]["countryCode"];
                 /** @description The zone identifier for the payment configuration.  Optional, if specified will return zone specific payment configuration instead of resolving based on the currency and country. */
                 zoneId?: components["parameters"]["zoneId"];
                 /** @description The transaction amount. Optional. Some gateways, such as Adyen, allow for payment methods to be qualified or disqualified based on the amount of the transaction. */
                 amount?: components["parameters"]["amount"];
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 *
+                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description A unique shopper identifier (USID) for tracking client context.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     This header is required for all endpoints secured with ShopperClientContextToken.
+                 */
+                sfdc_usid?: components["parameters"]["sfdcUsid"];
+                /**
+                 * @description Do Not Track header for privacy preferences.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+                 */
+                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
+                /**
+                 * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+                 *     passed in from a trusted backend application.
+                 */
+                sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+            };
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -374,10 +409,28 @@ export interface operations {
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description A unique shopper identifier (USID) for tracking client context.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     This header is required for all endpoints secured with ShopperClientContextToken.
+                 */
+                sfdc_usid?: components["parameters"]["sfdcUsid"];
+                /**
+                 * @description Do Not Track header for privacy preferences.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+                 */
+                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
+                /**
+                 * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+                 *     passed in from a trusted backend application.
+                 */
+                sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+            };
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -402,7 +455,7 @@ export interface operations {
             /**
              * @description Possible reasons:
              *     - the provided payment method is invalid or not applicable.
-             *     - the gift card details are invalid or missing when paymentMethodId is GIFT_CERTIFICATE.
+             *     - the provider-specific request properties are invalid or missing.
              */
             400: {
                 headers: {

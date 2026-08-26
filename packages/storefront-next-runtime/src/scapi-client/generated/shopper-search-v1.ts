@@ -411,9 +411,10 @@ export interface components {
             /** @description The array of actual variation groups. Only for master, variation group, and variant types. This array can be empty. */
             variationGroups?: components["schemas"]["VariationGroup"][];
             /**
-             * @description SEO-friendly URL slug for the product, derived from the site's configured product URL rule.
-             *     Returned only when `expand=slug` is requested. Use the slug to construct user-friendly
-             *     product detail page URLs (for example, /products/{slug}/{productId}).
+             * @description SEO-friendly slug for the product, derived from the site's configured product URL rule.
+             *     This is the slug segment only, not a full URL. Returned only when `expand=slug` is requested.
+             *     Use the slug to construct user-friendly product detail page URLs (for example,
+             *     /products/{slug}/{productId}).
              * @example modern-dress-shirt
              */
             slug?: string;
@@ -444,6 +445,12 @@ export interface components {
              */
             type?: string;
         };
+        /**
+         * @description A search matching approach. `semantic` is meaning-based matching; `lexical` is keyword/token-based matching.
+         * @example semantic
+         * @enum {string}
+         */
+        SearchMode: "semantic" | "lexical";
         /**
          * @description The query string that was searched for.
          * @example dresses
@@ -602,6 +609,10 @@ export interface components {
              * @example dresses
              */
             query: string;
+            /** @description The search matching approach the client requested for this search, echoed back from the `searchMode` query parameter. Omitted when the request did not supply one. This is the requested hint, not necessarily the mode that served the result — see `effectiveSearchMode`. */
+            searchMode?: components["schemas"]["SearchMode"];
+            /** @description The search matching approach the platform actually used to serve this result. May differ from the requested `searchMode` when the platform demoted the mode (for example when the semantic index is unavailable). */
+            effectiveSearchMode?: components["schemas"]["SearchMode"];
             /** @description The result of query processing. */
             processedQuery?: components["schemas"]["ProcessedQuery"];
             /** @description The sorted array of search refinements. This array can be empty. */
@@ -702,6 +713,14 @@ export interface components {
              * @example Playstation 3 Bundle
              */
             productName: string;
+            /**
+             * @description SEO-friendly slug for the product, derived from the site's configured product URL rule.
+             *     This is the slug segment only, not a full URL. Returned only when `expand=slug` is requested.
+             *     Use the slug to construct user-friendly product detail page URLs (for example,
+             *     /products/{slug}/{productId}).
+             * @example modern-dress-shirt
+             */
+            slug?: string;
         } & {
             [key: string]: unknown;
         };
@@ -738,6 +757,10 @@ export interface components {
              * @example dresses
              */
             searchPhrase: string;
+            /** @description The search matching approach the client requested for these suggestions, echoed back from the `searchMode` query parameter. Omitted when the request did not supply one. This is the requested hint, not necessarily the mode that served the suggestions — see `effectiveSearchMode`. */
+            searchMode?: components["schemas"]["SearchMode"];
+            /** @description The search matching approach the platform actually used to serve these suggestions. May differ from the requested `searchMode` when the platform demoted the mode (for example when the semantic index is unavailable). */
+            effectiveSearchMode?: components["schemas"]["SearchMode"];
         };
     };
     responses: never;
@@ -779,9 +802,15 @@ export interface components {
          *
          *     **Note:** To refine a search using multiple promotion filters—for example, to find products in both the spring and summer campaigns—see [Refining by Multiple Promotions](https://developer.salesforce.com/docs/commerce/b2c-commerce/guide/b2c-promotions-for-developers.html#refining-by-multiple-promotions).
          */
-        refine: string;
+        refine: string[];
         /** @description The ID of the sorting option to sort the search hits. */
         sort: string;
+        /**
+         * @description A hint for the search matching approach the platform should use for this request. `semantic` selects meaning-based matching; `lexical` selects keyword/token-based matching.
+         *
+         *     The hint is non-authoritative and applies only to this request: the platform runs its full routing cascade and may demote a `semantic` request to `lexical` (for example when the semantic index is unavailable). Always read the resolved `effectiveSearchMode` field in the response rather than assuming the requested mode was honored. When omitted, the platform's configured default applies.
+         */
+        searchMode: "semantic" | "lexical";
         /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
         currency: components["schemas"]["CurrencyCode"];
         /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
@@ -813,25 +842,44 @@ export interface components {
         allVariationProperties: boolean;
         /** @description A comma-separated list of custom property ids to be returned for variant products. The `variants` expand parameter and `allVariationProperties` query parameter are required for these properties to be returned. */
         includedCustomVariationProperties: string[];
-        /**
-         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-         *
-         *     When set to `none`, the server skips applying personalization to the response.
-         */
-        personalized: "none";
         /** @description The search phrase (q) for which suggestions are evaluated. Search suggestions are determined when the search phrase input is at least three (default) characters long. The value is configurable in the Business Manager. */
         qSearchSuggestion: string;
         /** @description The maximum number of suggestions made per request. If no value is defined, by default five suggestions per suggestion type are evaluated. This affects all types of suggestions (category, product, brand, and custom suggestions). */
         limitSearchSuggestion: number;
         /**
-         * @description A comma-separated list that allows values `images`, `prices`, `custom_product_properties`.
+         * @description A comma-separated list of the values `images`, `prices`, `custom_product_properties`, and `slug`.
          *     By default, the expand parameter includes `prices`.
          */
-        expandSearchSuggestion: ("images" | "prices" | "custom_product_properties")[];
+        expandSearchSuggestion: ("images" | "prices" | "custom_product_properties" | "slug")[];
         /** @description A comma-separated list of custom property ids to be returned for product suggestions. The `custom_product_properties` expand parameter is required for these properties to be returned. */
         includedCustomProductProperties: string[];
         /** @description The flag that determines whether or not to show recent and popular suggested phrases from Einstein. */
         includeEinsteinSuggestedPhrases: boolean;
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdcUsid: string;
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdcDwDnt: "0" | "1";
+        /**
+         * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+         *
+         *     When set to `none`, the server skips applying personalization to the response.
+         *
+         *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+         */
+        personalized: "none";
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdcShopperContext: string;
     };
     requestBodies: never;
     headers: never;
@@ -877,6 +925,12 @@ export interface operations {
                 refine?: components["parameters"]["refine"];
                 /** @description The ID of the sorting option to sort the search hits. */
                 sort?: components["parameters"]["sort"];
+                /**
+                 * @description A hint for the search matching approach the platform should use for this request. `semantic` selects meaning-based matching; `lexical` selects keyword/token-based matching.
+                 *
+                 *     The hint is non-authoritative and applies only to this request: the platform runs its full routing cascade and may demote a `semantic` request to `lexical` (for example when the semantic index is unavailable). Always read the resolved `effectiveSearchMode` field in the response rather than assuming the requested mode was honored. When omitted, the platform's configured default applies.
+                 */
+                searchMode?: components["parameters"]["searchMode"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
                 currency?: components["parameters"]["currency"];
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
@@ -908,18 +962,38 @@ export interface operations {
                 allVariationProperties?: components["parameters"]["allVariationProperties"];
                 /** @description A comma-separated list of custom property ids to be returned for variant products. The `variants` expand parameter and `allVariationProperties` query parameter are required for these properties to be returned. */
                 includedCustomVariationProperties?: components["parameters"]["includedCustomVariationProperties"];
-                /**
-                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
-                 *
-                 *     When set to `none`, the server skips applying personalization to the response.
-                 */
-                personalized?: components["parameters"]["personalized"];
                 /** @description Number of records to retrieve per request. Must be between 1 (minimum) and 200 (maximum). Defaults to 25. */
                 limit?: number;
                 /** @description Used to retrieve the results based on a particular resource offset. */
                 offset?: number;
+                /**
+                 * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
+                 *
+                 *     When set to `none`, the server skips applying personalization to the response.
+                 *
+                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
+                 */
+                personalized?: components["parameters"]["personalized"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description A unique shopper identifier (USID) for tracking client context.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     This header is required for all endpoints secured with ShopperClientContextToken.
+                 */
+                sfdc_usid?: components["parameters"]["sfdcUsid"];
+                /**
+                 * @description Do Not Track header for privacy preferences.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+                 */
+                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
+                /**
+                 * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+                 *     passed in from a trusted backend application.
+                 */
+                sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+            };
             path: {
                 /**
                  * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -958,6 +1032,12 @@ export interface operations {
                 siteId: components["parameters"]["siteId"];
                 /** @description The search phrase (q) for which suggestions are evaluated. Search suggestions are determined when the search phrase input is at least three (default) characters long. The value is configurable in the Business Manager. */
                 q: components["parameters"]["qSearchSuggestion"];
+                /**
+                 * @description A hint for the search matching approach the platform should use for this request. `semantic` selects meaning-based matching; `lexical` selects keyword/token-based matching.
+                 *
+                 *     The hint is non-authoritative and applies only to this request: the platform runs its full routing cascade and may demote a `semantic` request to `lexical` (for example when the semantic index is unavailable). Always read the resolved `effectiveSearchMode` field in the response rather than assuming the requested mode was honored. When omitted, the platform's configured default applies.
+                 */
+                searchMode?: components["parameters"]["searchMode"];
                 /** @description The maximum number of suggestions made per request. If no value is defined, by default five suggestions per suggestion type are evaluated. This affects all types of suggestions (category, product, brand, and custom suggestions). */
                 limit?: components["parameters"]["limitSearchSuggestion"];
                 /** @description A three letter uppercase currency code conforming to the [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html) standard, or the string `N/A` indicating that a currency is not applicable. */
@@ -965,7 +1045,7 @@ export interface operations {
                 /** @description A descriptor for a geographical region by both a language and country code. By combining these two, regional differences in a language can be addressed, such as with the request header parameter `Accept-Language` following [RFC 2616](https://tools.ietf.org/html/rfc2616) & [RFC 1766](https://tools.ietf.org/html/rfc1766). This can also just refer to a language code, also RFC 2616/1766 compliant, as a default if there is no specific match for a country. Finally, can also be used to define default behavior if there is no locale specified. */
                 locale?: components["parameters"]["locale"];
                 /**
-                 * @description A comma-separated list that allows values `images`, `prices`, `custom_product_properties`.
+                 * @description A comma-separated list of the values `images`, `prices`, `custom_product_properties`, and `slug`.
                  *     By default, the expand parameter includes `prices`.
                  */
                 expand?: components["parameters"]["expandSearchSuggestion"];
@@ -977,10 +1057,30 @@ export interface operations {
                  * @description Controls whether personalization is applied to the response. Set to `none` to opt out of personalized response handling so the response is safe to cache at the CDN layer.
                  *
                  *     When set to `none`, the server skips applying personalization to the response.
+                 *
+                 *     Setting `personalized=none` is necessary but not sufficient for CDN caching: a response is only cached when the endpoint is also cacheable in the [server-side web-tier cache](https://developer.salesforce.com/docs/commerce/commerce-api/guide/server-side-web-tier-caching.html), subject to its TTLs and invalidation. A call that is uncacheable in the web tier is not cached at the CDN either. See [CDN caching](https://developer.salesforce.com/docs/commerce/commerce-api/guide/cdn-caching.html).
                  */
                 personalized?: components["parameters"]["personalized"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description A unique shopper identifier (USID) for tracking client context.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     This header is required for all endpoints secured with ShopperClientContextToken.
+                 */
+                sfdc_usid?: components["parameters"]["sfdcUsid"];
+                /**
+                 * @description Do Not Track header for privacy preferences.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+                 */
+                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
+                /**
+                 * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+                 *     passed in from a trusted backend application.
+                 */
+                sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+            };
             path: {
                 /**
                  * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).

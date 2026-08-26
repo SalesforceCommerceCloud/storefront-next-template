@@ -26,7 +26,7 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         OrganizationId: string;
@@ -141,12 +141,29 @@ export interface components {
     responses: never;
     parameters: {
         /**
-         * @description An identifier for the organization the request is being made by
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
          * @example f_ecom_zzxy_prd
          */
         organizationId: components["schemas"]["OrganizationId"];
         /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
         siteId: components["schemas"]["SiteId"];
+        /**
+         * @description A unique shopper identifier (USID) for tracking client context.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     This header is required for all endpoints secured with ShopperClientContextToken.
+         */
+        sfdcUsid: string;
+        /**
+         * @description Do Not Track header for privacy preferences.
+         *     Used with endpoints secured with ShopperClientContextToken.
+         *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+         */
+        sfdcDwDnt: "0" | "1";
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdcShopperContext: string;
     };
     requestBodies: never;
     headers: never;
@@ -160,10 +177,28 @@ export interface operations {
                 /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
                 siteId: components["parameters"]["siteId"];
             };
-            header?: never;
+            header?: {
+                /**
+                 * @description A unique shopper identifier (USID) for tracking client context.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     This header is required for all endpoints secured with ShopperClientContextToken.
+                 */
+                sfdc_usid?: components["parameters"]["sfdcUsid"];
+                /**
+                 * @description Do Not Track header for privacy preferences.
+                 *     Used with endpoints secured with ShopperClientContextToken.
+                 *     If this header is not passed with endpoints secured with ShopperClientContextToken default value of 0 will be used.
+                 */
+                sfdc_dw_dnt?: components["parameters"]["sfdcDwDnt"];
+                /**
+                 * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+                 *     passed in from a trusted backend application.
+                 */
+                sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+            };
             path: {
                 /**
-                 * @description An identifier for the organization the request is being made by
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
                  * @example f_ecom_zzxy_prd
                  */
                 organizationId: components["parameters"]["organizationId"];
@@ -185,13 +220,13 @@ export interface operations {
                     "application/json": components["schemas"]["GiftCertificate"];
                 };
             };
-            /** @description Thrown when the given gift certificate code is not valid. */
+            /** @description Returned when the given gift certificate code is not valid. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

@@ -1,22 +1,22 @@
 apis:
   shopper-availability-v1:
-    root: ./shopper-availability-oas-1.3.0/shopper-availability-oas-v1-public.yaml
+    root: ./shopper-availability-oas-1.4.0/shopper-availability-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-availability-v1.ts
   shopper-baskets-v1:
-    root: ./shopper-baskets-oas-1.11.0/shopper-baskets-oas-v1-public.yaml
+    root: ./shopper-baskets-oas-1.12.0/shopper-baskets-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-baskets-v1.ts
   shopper-baskets-v2:
-    root: ./shopper-baskets-oas-2.11.1/shopper-baskets-oas-v2-public.yaml
+    root: ./shopper-baskets-oas-2.12.0/shopper-baskets-oas-v2-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-baskets-v2.ts
   shopper-configurations-v1:
-    root: ./shopper-configurations-oas-1.3.0/shopper-configurations-oas-v1-public.yaml
+    root: ./shopper-configurations-oas-1.4.0/shopper-configurations-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-configurations-v1.ts
   shopper-consents-v1:
-    root: ./shopper-consents-oas-1.1.4/shopper-consents-oas-v1-public.yaml
+    root: ./shopper-consents-oas-1.2.0/shopper-consents-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-consents-v1.ts
   shopper-context-v1:
@@ -24,19 +24,19 @@ apis:
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-context-v1.ts
   shopper-customers-v1:
-    root: ./shopper-customers-oas-1.8.0/shopper-customers-oas-v1-public.yaml
+    root: ./shopper-customers-oas-1.9.0/shopper-customers-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-customers-v1.ts
   shopper-delivery-estimates-v1:
-    root: ./shopper-delivery-estimates-oas-1.1.0/shopper-delivery-estimates-oas-v1-public.yaml
+    root: ./shopper-delivery-estimates-oas-1.2.0/shopper-delivery-estimates-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-delivery-estimates-v1.ts
   shopper-experience-v1:
-    root: ./shopper-experience-oas-1.6.0/shopper-experience-oas-v1-public.yaml
+    root: ./shopper-experience-oas-1.7.0/shopper-experience-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-experience-v1.ts
   shopper-gift-certificates-v1:
-    root: ./shopper-gift-certificates-oas-1.2.0/shopper-gift-certificates-oas-v1-public.yaml
+    root: ./shopper-gift-certificates-oas-1.3.0/shopper-gift-certificates-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-gift-certificates-v1.ts
   auth-v1:
@@ -44,30 +44,30 @@ apis:
     x-openapi-ts:
       output: ../src/scapi-client/generated/auth-v1.ts
   shopper-orders-v1:
-    root: ./shopper-orders-oas-1.17.1/shopper-orders-oas-v1-public.yaml
+    root: ./shopper-orders-oas-1.21.0/shopper-orders-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-orders-v1.ts
   shopper-payments-v1:
-    root: ./shopper-payments-oas-1.5.0/shopper-payments-oas-v1-public.yaml
+    root: ./shopper-payments-oas-1.7.0/shopper-payments-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-payments-v1.ts
   shopper-products-v1:
-    root: ./shopper-products-oas-1.11.1/shopper-products-oas-v1-public.yaml
+    root: ./shopper-products-oas-1.12.0/shopper-products-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-products-v1.ts
   shopper-promotions-v1:
-    root: ./shopper-promotions-oas-1.3.0/shopper-promotions-oas-v1-public.yaml
+    root: ./shopper-promotions-oas-1.4.0/shopper-promotions-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-promotions-v1.ts
   shopper-search-v1:
-    root: ./shopper-search-oas-1.12.0/shopper-search-oas-v1-public.yaml
+    root: ./shopper-search-oas-1.15.0/shopper-search-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-search-v1.ts
   shopper-seo-v1:
-    root: ./shopper-seo-oas-1.2.0/shopper-seo-oas-v1-public.yaml
+    root: ./shopper-seo-oas-1.3.0/shopper-seo-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-seo-v1.ts
   shopper-stores-v1:
-    root: ./shopper-stores-oas-1.3.0/shopper-stores-oas-v1-public.yaml
+    root: ./shopper-stores-oas-1.4.0/shopper-stores-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-stores-v1.ts

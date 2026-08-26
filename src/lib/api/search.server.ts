@@ -20,9 +20,7 @@ import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 
-type QueryParameters = Omit<Partial<ShopperSearch.operations['productSearch']['parameters']['query']>, 'refine'> & {
-    refine?: ShopperSearch.operations['productSearch']['parameters']['query']['refine'] | string[];
-};
+type QueryParameters = Partial<ShopperSearch.operations['productSearch']['parameters']['query']>;
 
 const DEFAULT_IMAGES = { tile: 'medium', swatch: 'swatch' } as const;
 
@@ -91,9 +89,7 @@ export const fetchSearchProducts = async (
             params: {
                 query: {
                     ...(params as ShopperSearch.operations['productSearch']['parameters']['query']),
-                    // This is a known type limitation, the API intelligently serializes the refine parameter (array)
-                    // automatically, but the OAS types refers to a simple string.
-                    ...(refineSet.size > 0 && { refine: [...refineSet] as unknown as string }),
+                    ...(refineSet.size > 0 && { refine: [...refineSet] }),
                 },
             },
         });
