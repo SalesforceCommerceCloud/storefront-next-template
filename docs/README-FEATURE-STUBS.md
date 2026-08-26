@@ -213,35 +213,4 @@ Config updates:
 
 ---
 
-### Shipping & Delivery
-
-| Field | Details |
-|-------|---------|
-| **Status** | Stub — no backend integration |
-| **Location** | `src/extensions/shipping-delivery/` |
-| **Surfaces** | Product detail page (PDP delivery estimator) |
-| **Extension** | `SFDC_EXT_SHIPPING_DELIVERY` |
-
-**Current behavior:**
-The estimator requests product and postal-code-specific delivery options through Shopper Delivery Estimates. If no estimate is available, it can display the merchant-authored Shopper Products shipping-method description.
-
-**To customize:**
-Change the configured `sfcc.pdp.estimatedDelivery` target to the detailed or summary wrapper, or replace it with a merchant-specific component.
-
-**To remove:**
-Uninstall the extension by stripping the `@sfdc-extension-*` markers from core files and deleting the extension folder.
-
-Files to delete:
-- `src/extensions/shipping-delivery/` (entire folder)
-
-Parent components to update (remove the marker block):
-- `src/routes/_app.product.$productId.tsx` — the `ShippingDeliveryProvider` wrapper
-
-Config updates:
-- Remove `SFDC_EXT_SHIPPING_DELIVERY` from `src/extensions/config.json`
-- Update `SFDC_EXT_BOPIS` dependencies to remove `"SFDC_EXT_SHIPPING_DELIVERY"`
-- Re-run `pnpm locales:aggregate-extensions`
-
----
-
 <!-- Add new stubs below using the same format -->
