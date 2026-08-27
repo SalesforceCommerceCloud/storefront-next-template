@@ -37,7 +37,7 @@ root loader: getAuth(context) → full SessionData
 
 ## Cookie Architecture
 
-All auth state is stored across separate cookies, each with its own purpose, expiry, and value source. **Every cookie is `HttpOnly`** — the browser sends them on each request (so server middleware and hybrid ECOM both read them), but client JavaScript cannot. The client gets its auth state from the serialized loader data, not from reading cookies.
+All auth state is stored across separate cookies, each with its own purpose, expiry, and value source. **Every cookie is `HttpOnly`** — the browser sends them on each request (so server middleware and hybrid B2C Commerce both read them), but client JavaScript cannot. The client gets its auth state from the serialized loader data, not from reading cookies.
 
 | Cookie             | Purpose                                              | User type  | Expiry                                   | Value source            |
 | ------------------ | ---------------------------------------------------- | ---------- | ---------------------------------------- | ----------------------- |
@@ -50,7 +50,7 @@ All auth state is stored across separate cookies, each with its own purpose, exp
 | `id_token`         | OIDC ID token                                        | Both       | Access expiry                            | SLAS body               |
 | `idp_refresh_token`| IDP refresh token (social login)                     | Both       | Refresh expiry                           | SLAS body               |
 | `dw_dnt`           | Tracking consent preference (value = `TrackingConsent` enum) | Both | Session                              | Cookie (source of truth) / JWT `dnt` |
-| `dwsid`            | Hybrid storefront session ID (ECOM session bridge)   | Both       | Session                                  | SLAS `Set-Cookie` header |
+| `dwsid`            | Hybrid storefront session ID (B2C Commerce session bridge)   | Both       | Session                                  | SLAS `Set-Cookie` header |
 | `cc-cv`            | OAuth2 PKCE code verifier                            | Both       | 5 minutes                                | Generated (social flow) |
 | `cc-auth-recover`  | 401-recovery loop guard                              | Both       | 30 seconds                               | Middleware              |
 
@@ -295,12 +295,12 @@ await mergeWishlist(context, guestWishlistSnapshot);                       // AF
 
 Tracking consent is preserved across the swap: `updateAuthStorageData` restores the `dw_dnt` cookie value (the source of truth) after clearing storage, and login/refresh calls forward it to SLAS as the `dnt` parameter.
 
-### Hybrid storefronts (ECOM session bridge)
+### Hybrid storefronts (B2C Commerce session bridge)
 
 There is no client-side cookie sync. The bridge is the `dwsid` cookie:
 
 1. The SDK extracts `dwsid` from the SLAS response `Set-Cookie` header and the middleware persists it.
-2. `dwsid` (and `dw_dnt`) are **not namespaced**, so the ECOM cartridge can read/write them directly.
+2. `dwsid` (and `dw_dnt`) are **not namespaced**, so the B2C Commerce cartridge can read/write them directly.
 3. The browser sends these cookies on every request; on the next full request the React storefront's server middleware reads them from the `Cookie` header. There is no real-time iframe/SPA sync in middleware scope.
 
 See [README-HYBRID-PROXY.md](./README-HYBRID-PROXY.md) for the hybrid local-development setup.
@@ -329,13 +329,13 @@ This keeps a single server source of truth, exposes no tokens to the client, and
 
 ## Best Practices
 
-1. **Server vs. client:** `getAuth(context)` in loaders/actions; `useAuth()` in components. Tokens are server-only.
-2. **No direct cookie writes:** always go through `updateAuth()` / `destroyAuth()` — the middleware owns cookie serialization.
-3. **User-type checks:** use `auth.userType`, which is JWT-derived.
-4. **Token refresh:** handled automatically by the middleware; no manual refresh in routes.
-5. **Capture-before-swap:** on guest→registered login, snapshot guest resources before the token swap, merge after.
-6. **Security:** never log or expose `accessToken` / `refreshToken`.
-7. **No `clientLoader`/`clientAction`:** route modules use server `loader`/`action` only.
+- **Server versus client:** Use `getAuth(context)` in loaders and actions, and `useAuth()` in components. Tokens are server-only.
+- **No direct cookie writes:** Always go through `updateAuth()` or `destroyAuth()`—the middleware owns cookie serialization.
+- **User-type checks:** Use `auth.userType`, which is JWT-derived.
+- **Token refresh:** Handled automatically by the middleware. Don't refresh manually in routes.
+- **Capture before swap:** On guest-to-registered login, snapshot guest resources before the token swap and merge after.
+- **Security:** Never log or expose `accessToken` or `refreshToken`.
+- **No `clientLoader` or `clientAction`:** Route modules use the server `loader` and `action` only.
 
 ## Type Safety
 

@@ -92,8 +92,8 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | `PUBLIC__app__commerce__api__guestRefreshTokenExpirySeconds` | from API response | Override guest refresh-token TTL |
 | `PUBLIC__app__commerce__api__registeredRefreshTokenExpirySeconds` | from API response | Override registered refresh-token TTL |
 | `PUBLIC__app__features__googleCloudAPI__apiKey` | — | Google Address Autocomplete |
-| `PUBLIC__security__turnstile__enabled` | `false` | Turnstile bot protection |
-| `PUBLIC__security__turnstile__sites` | — | Turnstile per-site configuration |
+| `PUBLIC__app__security__turnstile__enabled` | `false` | Turnstile bot protection |
+| `PUBLIC__app__security__turnstile__sites` | — | Turnstile per-site configuration |
 | `PUBLIC__app__cimulateAgent` | disabled | Commerce Client (Cimulate) messaging widget config (JSON string) |
 
 ### Optional non-`PUBLIC__` runtime/deploy variables
@@ -345,7 +345,7 @@ export function loader({ context }: LoaderFunctionArgs) {
 }
 ```
 
-### 4. Add a new config value during app creation
+### 5. Add a new config value during app creation
 **In config-meta.json:**
 - Add the name and key value to the config array
 - This will cause the create-storefront script to ask for user input, using the value in `.env.default` as default value

@@ -1,6 +1,6 @@
 # SEO
 
-Storefront Next template's built-in SEO features helps optimize your store’s search and product discoverability. The storefront template provides SEO features with `hreflang` alternate links, canonical URLs, page titles, meta tags, indexing control, and structured data (JSON-LD)
+Storefront Next template’s built-in SEO features helps optimize your store’s search and product discoverability. The storefront template provides SEO features with `hreflang` alternate links, canonical URLs, page titles, meta tags, indexing control, and structured data (JSON-LD)
 
 ## Hreflang Alternate Links
 
@@ -155,7 +155,7 @@ import { SeoMeta } from '@/components/seo-meta';
 
 // `SeoMeta` is a component that you render in your route
 // Standard page — site name is appended automatically
-// Renders: <title>Classic Jacket | NextGen PWA Kit Store</title>
+// Renders: <title>Classic Jacket | My Storefront Next Store</title>
 <SeoMeta
     title="Classic Jacket"
     description="A premium leather jacket with a tailored fit."
@@ -185,24 +185,24 @@ import { SeoMeta } from '@/components/seo-meta';
 
 | Mode | Props | `<title>` output | When to use |
 |------|-------|------------------|-------------|
-| **Suffixed** (default) | `title="My Page"` | `My Page \| NextGen PWA Kit Store` | Most pages: product, category, search, account, and content pages. |
+| **Suffixed** (default) | `title="My Page"` | `My Page \| My Storefront Next Store` | Most pages: product, category, search, account, and content pages. |
 | **Raw** | `rawTitle title="My Page"` | `My Page` | Pages that need full control, for example, the homepage that passes the full store name. |
-| **Fallback** | *(no title)* | `NextGen PWA Kit Store` | Only the site name. |
+| **Fallback** | *(no title)* | `My Storefront Next Store` | Only the site name. |
 
 **Examples:**
 
 ```tsx
 // Suffixed (default) — most pages use this
 <SeoMeta title="Classic Jacket" />
-// → <title>Classic Jacket | NextGen PWA Kit Store</title>
+// → <title>Classic Jacket | My Storefront Next Store</title>
 
 // Raw — homepage or any page needing exact title control
-<SeoMeta rawTitle title="NextGen PWA Kit Store — Shop the Latest" />
-// → <title>NextGen PWA Kit Store — Shop the Latest</title>
+<SeoMeta rawTitle title="My Storefront Next Store — Shop the Latest" />
+// → <title>My Storefront Next Store — Shop the Latest</title>
 
 // Fallback — no title provided
 <SeoMeta />
-// → <title>NextGen PWA Kit Store</title>
+// → <title>My Storefront Next Store</title>
 ```
 
 ### General Meta Tag Behavior
@@ -269,7 +269,7 @@ This keeps search and social signals aligned around the same preferred URL.
 
 ### Changing the Site Name
 
-The site name appended to page titles (for example, `" | NextGen PWA Kit Store"`) comes from the `common.defaultSiteName` translation key. To change it, update the value in each locale's `translations.json`:
+The site name appended to page titles (for example, `" | My Storefront Next Store"`) comes from the `common.defaultSiteName` translation key. To change it, update the value in each locale's `translations.json`:
 
 ```json
 // src/locales/en-US/translations.json
