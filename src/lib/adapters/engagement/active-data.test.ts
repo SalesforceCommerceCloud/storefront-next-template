@@ -200,6 +200,8 @@ const mockProductViewEvent: AnalyticsEvent = {
 
 const mockSearchEvent: AnalyticsEvent = {
     eventType: 'view_search',
+    searchResultId: 'search-result-id',
+    startsSearchExecution: true,
     searchInputText: 'test search query',
     searchResults: [mockSearchResult],
     sort: 'price-asc',

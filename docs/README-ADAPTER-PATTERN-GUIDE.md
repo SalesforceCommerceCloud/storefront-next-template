@@ -12,7 +12,7 @@ Three adapters ship out of the box:
 |---------|---------|------------|
 | **Einstein** | Analytics event tracking (viewProduct, addToCart, etc.) | `engagement.adapters.einstein` |
 | **Active Data** | Analytics event tracking (dwac beacon) | `engagement.adapters.activeData` |
-| **Data 360** | Salesforce Data 360 — view/impression events only | `engagement.adapters.data360` |
+| **Data 360** | Salesforce Data 360 page, product-view, and impression interactions | `engagement.adapters.data360` |
 
 All three implement the `EngagementAdapter` interface and are registered in a shared store.
 
@@ -51,7 +51,7 @@ src/lib/adapters/
     ├── store.ts                    # addAdapter, getAdapter, getAllAdapters, removeAdapter
     ├── einstein.ts                 # createEinsteinAdapter factory (analytics events only)
     ├── active-data.ts              # createActiveDataAdapter factory
-    ├── data360.ts                  # createData360Adapter factory (view/impression events only)
+    ├── data360.ts                  # createData360Adapter factory
     ├── register.ts                 # initializeEngagementAdapters (reads config, creates + registers)
     ├── initialize.ts               # ensureAdaptersInitialized (idempotent, lazy-loads register.ts)
     ├── einstein-config.ts          # validateEinsteinConfig helper
@@ -135,7 +135,7 @@ engagement: {
 
 If an adapter's `enabled` flag is `false`, it is not registered.
 
-**Data 360 maps only view/impression events** — `view_page`, `view_product`, `view_search`, `view_category`, and `view_recommender`. Cart, checkout, wishlist, and click events have no Data 360 mapping and ship disabled in `eventToggles` (PWA Kit parity).
+**Data 360 maps page, search, product-view, and impression interactions** — `view_page`, `view_product`, `view_search`, `view_category`, and `view_recommender`. Search, category, and product events send a separate Page View interaction when shared Page View tracking blocks their path and `view_page` is enabled. A direct search sends one Search interaction per search execution and correlates its product impressions across pagination. Recommendations do not derive a Page View. Cart, checkout, wishlist, and click events have no Data 360 mapping and ship disabled in `eventToggles`.
 
 ---
 
@@ -170,4 +170,3 @@ afterEach(() => resetAdaptersInitialization());  // Clear cached promise for cle
 1. Create `src/lib/adapters/engagement/your-adapter.ts` with a factory function returning `EngagementAdapter`
 2. Register it in `src/lib/adapters/engagement/register.ts` inside `initializeEngagementAdapters()`
 3. Add configuration under `engagement.adapters.yourAdapter` in `config.server.ts`
-

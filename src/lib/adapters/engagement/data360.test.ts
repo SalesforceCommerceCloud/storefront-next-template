@@ -93,6 +93,9 @@ const mockConfig: Data360Config = {
     tenantId: 'test-tenant',
     siteId: 'RefArch',
     webStoreId: 'sfnext',
+    pageViewsBlocklist: ['/product', '/category', '/search'],
+    urlPrefix: '/:siteId/:localeId',
+    siteAliasMap: { RefArch: 'global' },
     eventToggles: {
         view_page: true,
         view_product: true,
@@ -143,6 +146,7 @@ beforeEach(() => {
     vi.clearAllMocks();
     uuidCounter = 0;
     mockCookiesGet.mockReturnValue(undefined);
+    window.history.replaceState({}, '', '/');
 });
 
 describe('Data 360 Adapter', () => {
@@ -176,7 +180,7 @@ describe('Data 360 Adapter', () => {
             const [identity, party, engagement] = events as Array<Record<string, any>>;
             expect(identity.eventType).toBe('identity');
             expect(identity.category).toBe('Profile');
-            expect(identity.isAnonymous).toBe(0); // registered
+            expect(identity.isAnonymous).toBe('0'); // registered
             expect(identity.sourceUrl).toBe('/plp/shoes');
 
             expect(party.eventType).toBe('partyIdentification');
@@ -188,7 +192,7 @@ describe('Data 360 Adapter', () => {
             expect(engagement.sourceUrl).toBe('/plp/shoes');
         });
 
-        it('sets isAnonymous 1 for guests', async () => {
+        it('sets isAnonymous "1" for guests', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 { eventType: 'view_page', payload: guestUser, path: '/home' } as AnalyticsEvent,
@@ -196,10 +200,10 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
             const identity = (await getInteraction()).events[0] as Record<string, any>;
-            expect(identity.isAnonymous).toBe(1);
+            expect(identity.isAnonymous).toBe('1');
         });
 
-        it('registered with missing customerId → isAnonymous 1 (consistent with the CC_USID party fallback)', async () => {
+        it('registered with missing customerId → isAnonymous "1" (consistent with the CC_USID party fallback)', async () => {
             // Mirrors the party-block fallback: with no resolved customerId there is no
             // durable identity, so the identity event must not claim isAnonymous 0 while
             // the party block is keyed on the ephemeral usid.
@@ -214,7 +218,7 @@ describe('Data 360 Adapter', () => {
                 defaultConsent
             );
             const identity = (await getInteraction()).events[0] as Record<string, any>;
-            expect(identity.isAnonymous).toBe(1);
+            expect(identity.isAnonymous).toBe('1');
         });
     });
 
@@ -332,6 +336,7 @@ describe('Data 360 Adapter', () => {
             expect(party.userId).toBe('test-customer-id');
             expect(party.partyIdentificationId).toBe('test-customer-id');
             expect(party.internalOrganizationId).toBe('RefArch');
+            expect(party).not.toHaveProperty('creationEventId');
             expect('email' in party).toBe(false);
             expect('contactPointEmail' in party).toBe(false);
         });
@@ -400,14 +405,34 @@ describe('Data 360 Adapter', () => {
     });
 
     describe('view_product', () => {
-        it('emits a catalog-object-view-start with webStoreId from config', async () => {
+        it('emits separate page-view and catalog-object-view-start interactions', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
-                { eventType: 'view_product', payload: registeredUser, product: mockProduct } as AnalyticsEvent,
-                undefined,
+                {
+                    eventType: 'view_product',
+                    path: '/global/en-GB/product/test-product-id?color=blue#details',
+                    payload: registeredUser,
+                    product: mockProduct,
+                } as AnalyticsEvent,
+                { siteId: 'RefArch', localeId: 'en-GB' },
                 defaultConsent
             );
-            const domain = (await getInteraction()).events[2] as Record<string, any>;
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            const pageViewEvents = (await getInteraction()).events as Array<Record<string, any>>;
+            expect(pageViewEvents).toHaveLength(3);
+            expect(pageViewEvents[0].eventType).toBe('identity');
+            expect(pageViewEvents[1].eventType).toBe('partyIdentification');
+            expect(pageViewEvents[2]).toMatchObject({
+                interactionName: 'page-view',
+                sourceUrl: '/global/en-GB/product/test-product-id?color=blue#details',
+            });
+
+            const catalogEvents = (await getInteraction(1)).events as Array<Record<string, any>>;
+            expect(catalogEvents).toHaveLength(3);
+            expect(catalogEvents[0].eventType).toBe('identity');
+            expect(catalogEvents[1].eventType).toBe('partyIdentification');
+            const domain = catalogEvents[2];
             expect(domain.eventType).toBe('catalog');
             expect(domain.interactionName).toBe('catalog-object-view-start');
             expect(domain.id).toBe('test-product-id');
@@ -418,31 +443,48 @@ describe('Data 360 Adapter', () => {
         it('defaults webStoreId to sfnext when config leaves it blank', async () => {
             const adapter = createData360Adapter({ ...mockConfig, webStoreId: '' }) as Data360Adapter;
             await adapter.sendEvent(
-                { eventType: 'view_product', payload: guestUser, product: mockProduct } as AnalyticsEvent,
+                {
+                    eventType: 'view_product',
+                    path: '/product/test-product-id',
+                    payload: guestUser,
+                    product: mockProduct,
+                } as AnalyticsEvent,
                 undefined,
                 defaultConsent
             );
-            const domain = (await getInteraction()).events[2] as Record<string, any>;
+            const domain = (await getInteraction(1)).events[2] as Record<string, any>;
             expect(domain.webStoreId).toBe('sfnext');
         });
     });
 
     describe('view_category — per-hit fan-out', () => {
-        it('emits one catalog-object-impression per search hit with categoryId + search metadata', async () => {
+        it('emits separate page-view and catalog-impression interactions', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_category',
+                    path: '/global/en-GB/category/cat-123?color=blue#grid',
                     payload: registeredUser,
                     category: { id: 'cat-123' },
                     searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
                     sort: '',
                     refinements: {},
                 } as AnalyticsEvent,
-                undefined,
+                { siteId: 'RefArch', localeId: 'en-GB' },
                 defaultConsent
             );
-            const { events } = await getInteraction();
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            const pageViewEvents = (await getInteraction()).events as Array<Record<string, any>>;
+            expect(pageViewEvents).toHaveLength(3);
+            expect(pageViewEvents[0].eventType).toBe('identity');
+            expect(pageViewEvents[1].eventType).toBe('partyIdentification');
+            expect(pageViewEvents[2]).toMatchObject({
+                interactionName: 'page-view',
+                sourceUrl: '/global/en-GB/category/cat-123?color=blue#grid',
+            });
+
+            const { events } = await getInteraction(1);
             // 2 standard + 2 hits
             expect(events).toHaveLength(4);
             const domains = events.slice(2) as Array<Record<string, any>>;
@@ -455,8 +497,8 @@ describe('Data 360 Adapter', () => {
             }
             expect(domains[0].id).toBe('hit-product-id');
             expect(domains[1].id).toBe('hit-2');
-            // Category browse carries no query — searchResultTitle is '' (PWA Kit parity).
-            expect(domains[0].searchResultTitle).toBe('');
+            expect(domains[0]).not.toHaveProperty('searchResultTitle');
+            expect(domains[0]).not.toHaveProperty('searchResultId');
         });
 
         it('emits global searchResultPosition/PageNumber from offset/limit (FU4)', async () => {
@@ -464,6 +506,7 @@ describe('Data 360 Adapter', () => {
             await adapter.sendEvent(
                 {
                     eventType: 'view_category',
+                    path: '/category/cat-123',
                     payload: registeredUser,
                     category: { id: 'cat-123' },
                     searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
@@ -475,10 +518,12 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
-            // position = offset + index (global), page = floor(offset/limit)+1
-            expect(domains[0].searchResultPosition).toBe(24);
-            expect(domains[1].searchResultPosition).toBe(25);
+            const domains = (await getInteraction(1)).events.slice(2) as Array<Record<string, any>>;
+            // positions are one-based; page = floor(offset/limit)+1
+            expect(domains[0].searchResultPosition).toBe(25);
+            expect(domains[1].searchResultPosition).toBe(26);
+            expect(domains[0].searchResultPositionInPage).toBe(1);
+            expect(domains[1].searchResultPositionInPage).toBe(2);
             expect(domains[0].searchResultPageNumber).toBe(3);
             expect(domains[1].searchResultPageNumber).toBe(3);
         });
@@ -488,6 +533,7 @@ describe('Data 360 Adapter', () => {
             await adapter.sendEvent(
                 {
                     eventType: 'view_category',
+                    path: '/category/cat-123',
                     payload: registeredUser,
                     category: { id: 'cat-123' },
                     searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
@@ -497,17 +543,20 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
-            expect(domains[0].searchResultPosition).toBe(0);
-            expect(domains[1].searchResultPosition).toBe(1);
+            const domains = (await getInteraction(1)).events.slice(2) as Array<Record<string, any>>;
+            expect(domains[0].searchResultPosition).toBe(1);
+            expect(domains[1].searchResultPosition).toBe(2);
+            expect(domains[0].searchResultPositionInPage).toBe(1);
+            expect(domains[1].searchResultPositionInPage).toBe(2);
             expect(domains[0].searchResultPageNumber).toBe(1);
         });
 
-        it('sends nothing when the search result list is empty (no identity-only beacon)', async () => {
+        it('emits only the page-view interaction when the category is empty', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_category',
+                    path: '/category/cat-123',
                     payload: registeredUser,
                     category: { id: 'cat-123' },
                     searchResults: [],
@@ -517,16 +566,269 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).not.toHaveBeenCalled();
+            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            const { events } = await getInteraction();
+            expect(events).toHaveLength(3);
+            expect(events[2]).toMatchObject({
+                interactionName: 'page-view',
+                sourceUrl: '/category/cat-123',
+            });
+        });
+
+        it('does not derive a page view when shared page tracking handles the path', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_category',
+                    path: '/sale',
+                    payload: registeredUser,
+                    category: { id: 'cat-123' },
+                    searchResults: [mockSearchHit],
+                    sort: '',
+                    refinements: {},
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect((await getInteraction()).events[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+            });
         });
     });
 
     describe('view_search — per-hit fan-out', () => {
+        it('emits separate correlated page-view, search, and impression interactions', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/global/en-GB/search?q=shoes#results',
+                    payload: registeredUser,
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: true,
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit],
+                    sort: '',
+                    refinements: {},
+                    total: 1,
+                } as AnalyticsEvent,
+                { siteId: 'RefArch', localeId: 'en-GB' },
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(3);
+            const pageViewEvents = (await getInteraction()).events;
+            const searchEvents = (await getInteraction(1)).events;
+            const impressionEvents = (await getInteraction(2)).events;
+            for (const events of [pageViewEvents, searchEvents, impressionEvents]) {
+                expect(events[0]).toMatchObject({ eventType: 'identity' });
+                expect(events[1]).toMatchObject({ eventType: 'partyIdentification' });
+                expect(events).toHaveLength(3);
+            }
+            expect(pageViewEvents[2]).toMatchObject({
+                interactionName: 'page-view',
+                sourceUrl: '/global/en-GB/search?q=shoes#results',
+            });
+            expect(searchEvents[2]).toMatchObject({
+                interactionName: 'search',
+                searchQuery: 'shoes',
+                searchResultId: 'search-result-id',
+                numberOfResultsReturned: 1,
+                resultsReturnedQuantity: 1,
+                eventStatus: 'success',
+            });
+            expect(impressionEvents[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+                searchResultId: 'search-result-id',
+            });
+        });
+
+        it('does not derive a page view when shared page tracking handles the search path', async () => {
+            const adapter = createData360Adapter({
+                ...mockConfig,
+                pageViewsBlocklist: ['/product', '/category'],
+            }) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/global/en-GB/search?q=shoes',
+                    payload: registeredUser,
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: true,
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit],
+                    sort: '',
+                    refinements: {},
+                    total: 1,
+                } as AnalyticsEvent,
+                { siteId: 'RefArch', localeId: 'en-GB' },
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'search' });
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+            });
+        });
+
+        it('omits the search interaction for pagination while preserving page-view and correlated impressions', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/global/en-GB/search?q=shoes&offset=12',
+                    payload: registeredUser,
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: false,
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit],
+                    sort: '',
+                    refinements: {},
+                    offset: 12,
+                    limit: 12,
+                    total: 20,
+                } as AnalyticsEvent,
+                { siteId: 'RefArch', localeId: 'en-GB' },
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+                searchResultId: 'search-result-id',
+            });
+        });
+
+        it('emits page-view and successful search interactions for zero results', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/global/en-GB/search?q=missing',
+                    payload: registeredUser,
+                    searchResultId: 'empty-search-result-id',
+                    startsSearchExecution: true,
+                    searchInputText: 'missing',
+                    searchResults: [],
+                    sort: '',
+                    refinements: {},
+                    total: 0,
+                } as AnalyticsEvent,
+                { siteId: 'RefArch', localeId: 'en-GB' },
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                interactionName: 'search',
+                searchResultId: 'empty-search-result-id',
+                numberOfResultsReturned: 0,
+                resultsReturnedQuantity: 0,
+                eventStatus: 'success',
+            });
+        });
+
+        it('uses the page-view toggle independently from search interactions', async () => {
+            const adapter = createData360Adapter({
+                ...mockConfig,
+                eventToggles: { ...mockConfig.eventToggles, view_page: false },
+            }) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/global/en-GB/search?q=shoes',
+                    payload: registeredUser,
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: true,
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit],
+                    sort: '',
+                    refinements: {},
+                    total: 1,
+                } as AnalyticsEvent,
+                { siteId: 'RefArch', localeId: 'en-GB' },
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'search' });
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+            });
+        });
+
+        it('attempts every search interaction when an earlier beacon is refused', async () => {
+            mockSendBeacon.mockReturnValueOnce(false).mockReturnValue(true);
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/global/en-GB/search?q=shoes',
+                    payload: registeredUser,
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: true,
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit],
+                    sort: '',
+                    refinements: {},
+                    total: 1,
+                } as AnalyticsEvent,
+                { siteId: 'RefArch', localeId: 'en-GB' },
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(3);
+            expect((await getInteraction(1)).events[2]).toMatchObject({ interactionName: 'search' });
+            expect((await getInteraction(2)).events[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+            });
+        });
+
+        it('serializes the guest search impression contract', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/search?q=shoes&offset=24',
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: false,
+                    payload: { ...guestUser, customerId: 'guest-gcid' },
+                    searchInputText: 'shoes',
+                    searchResults: [mockSearchHit],
+                    sort: '',
+                    refinements: {},
+                    offset: 24,
+                    limit: 12,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+
+            const [identity, party, impression] = (await getInteraction(1)).events as Array<Record<string, any>>;
+            expect(identity).toMatchObject({ isAnonymous: '1', guestId: 'test-usid' });
+            expect(identity).not.toHaveProperty('customerId');
+            expect(party).not.toHaveProperty('creationEventId');
+            expect(impression).toMatchObject({
+                searchResultTitle: 'Hit Product',
+                searchResultPosition: 25,
+                searchResultPositionInPage: 1,
+                searchResultPageNumber: 3,
+            });
+        });
+
         it('emits one catalog-object-impression per hit with a searchResultId and no categoryId', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
                     eventType: 'view_search',
+                    path: '/search?q=shoes',
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: false,
                     payload: registeredUser,
                     searchInputText: 'shoes',
                     searchResults: [mockSearchHit],
@@ -536,13 +838,12 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            const domain = (await getInteraction()).events[2] as Record<string, any>;
+            const domain = (await getInteraction(1)).events[2] as Record<string, any>;
             expect(domain.interactionName).toBe('catalog-object-impression');
-            expect(domain.searchResultId).toBeTruthy();
+            expect(domain.searchResultId).toBe('search-result-id');
             expect('categoryId' in domain).toBe(false);
             expect(domain.id).toBe('hit-product-id');
-            // searchResultTitle carries the query, not the product name (PWA Kit parity).
-            expect(domain.searchResultTitle).toBe('shoes');
+            expect(domain.searchResultTitle).toBe('Hit Product');
         });
 
         it('emits global searchResultPosition/PageNumber from offset/limit (FU4)', async () => {
@@ -550,6 +851,9 @@ describe('Data 360 Adapter', () => {
             await adapter.sendEvent(
                 {
                     eventType: 'view_search',
+                    path: '/search?q=shoes&offset=24',
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: false,
                     payload: registeredUser,
                     searchInputText: 'shoes',
                     searchResults: [mockSearchHit, { ...mockSearchHit, productId: 'hit-2' }],
@@ -561,9 +865,11 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
-            const domains = (await getInteraction()).events.slice(2) as Array<Record<string, any>>;
-            expect(domains[0].searchResultPosition).toBe(24);
-            expect(domains[1].searchResultPosition).toBe(25);
+            const domains = (await getInteraction(1)).events.slice(2) as Array<Record<string, any>>;
+            expect(domains[0].searchResultPosition).toBe(25);
+            expect(domains[1].searchResultPosition).toBe(26);
+            expect(domains[0].searchResultPositionInPage).toBe(1);
+            expect(domains[1].searchResultPositionInPage).toBe(2);
             expect(domains[0].searchResultPageNumber).toBe(3);
         });
 
@@ -572,23 +878,48 @@ describe('Data 360 Adapter', () => {
             await adapter.sendEvent(
                 {
                     eventType: 'view_search',
+                    path: '/search?q=t%C3%A9nis',
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: false,
                     payload: registeredUser,
                     searchInputText: 'ténis corações 👟',
-                    searchResults: [mockSearchHit],
+                    searchResults: [{ ...mockSearchHit, productName: 'Ténis corações 👟' }],
                     sort: '',
                     refinements: {},
                 } as AnalyticsEvent,
                 undefined,
                 defaultConsent
             );
-            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
-            const domain = (await getInteraction()).events[2] as Record<string, any>;
-            expect(domain.searchResultTitle).toBe('ténis corações 👟');
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            const domain = (await getInteraction(1)).events[2] as Record<string, any>;
+            expect(domain.searchResultTitle).toBe('Ténis corações 👟');
+        });
+
+        it('omits searchResultTitle when the product result has no title', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_search',
+                    path: '/search?q=shoes',
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: false,
+                    payload: registeredUser,
+                    searchInputText: 'shoes',
+                    searchResults: [{ productId: 'hit-without-title' }],
+                    sort: '',
+                    refinements: {},
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+
+            const domain = (await getInteraction(1)).events[2] as Record<string, any>;
+            expect(domain).not.toHaveProperty('searchResultTitle');
         });
     });
 
     describe('view_recommender — per-product fan-out', () => {
-        it('emits catalog-object-impression with personalization ids', async () => {
+        it('emits only catalog-object-impression with personalization ids', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
                 {
@@ -601,6 +932,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
+            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
             const domain = (await getInteraction()).events[2] as Record<string, any>;
             expect(domain.interactionName).toBe('catalog-object-impression');
             expect(domain.personalizationId).toBe('Recently Viewed');
@@ -642,6 +974,43 @@ describe('Data 360 Adapter', () => {
                 )
             ).resolves.toBeDefined();
             expect(mockSendBeacon).not.toHaveBeenCalled();
+        });
+
+        it('uses the view_page toggle independently from the specialized interaction toggle', async () => {
+            const pageViewDisabled = createData360Adapter({
+                ...mockConfig,
+                eventToggles: { ...mockConfig.eventToggles, view_page: false },
+            }) as Data360Adapter;
+            await pageViewDisabled.sendEvent(
+                {
+                    eventType: 'view_product',
+                    path: '/product/test-product-id',
+                    payload: registeredUser,
+                    product: mockProduct,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'catalog-object-view-start' });
+
+            mockSendBeacon.mockClear();
+            const productViewDisabled = createData360Adapter({
+                ...mockConfig,
+                eventToggles: { ...mockConfig.eventToggles, view_product: false },
+            }) as Data360Adapter;
+            await productViewDisabled.sendEvent(
+                {
+                    eventType: 'view_product',
+                    path: '/product/test-product-id',
+                    payload: registeredUser,
+                    product: mockProduct,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            expect(mockSendBeacon).toHaveBeenCalledTimes(1);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
         });
     });
 
@@ -690,6 +1059,26 @@ describe('Data 360 Adapter', () => {
             ]);
 
             expect(mockLoggerDebug).not.toHaveBeenCalled();
+        });
+
+        it('attempts the catalog interaction when the derived page-view beacon is refused', async () => {
+            mockSendBeacon.mockReturnValueOnce(false).mockReturnValueOnce(true);
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+
+            await adapter.sendEvent(
+                {
+                    eventType: 'view_product',
+                    path: '/product/test-product-id',
+                    payload: registeredUser,
+                    product: mockProduct,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
+            expect(mockLoggerDebug).toHaveBeenCalledTimes(1);
+            expect((await getInteraction(1)).events[2]).toMatchObject({ interactionName: 'catalog-object-view-start' });
         });
     });
 });

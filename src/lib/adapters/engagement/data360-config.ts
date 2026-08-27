@@ -23,6 +23,14 @@ export type Data360Config = EngagementAdapterConfig & {
     tenantId: string;
     /** SFCC site id — used as `siteId`/`internalOrganizationId` in interactions. */
     siteId: string;
+    /** Paths handled by specialized events instead of shared Page View tracking. */
+    pageViewsBlocklist: string[];
+    /** Optional site/locale prefix stripped before matching the Page View blocklist. */
+    urlPrefix?: string;
+    /** URL aliases used to resolve the active site's prefix. */
+    siteAliasMap?: Record<string, string>;
+    /** URL aliases used to resolve the active locale's prefix. */
+    localeAliasMap?: Record<string, string>;
     /**
      * Source discriminator on catalog events so Storefront Next traffic is
      * separable from PWA Kit's (`'pwa'`) in the shared DLO. Defaults to `'sfnext'`.

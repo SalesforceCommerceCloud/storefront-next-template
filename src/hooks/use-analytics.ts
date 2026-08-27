@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useRef, useEffect } from 'react';
+import { useLocation } from 'react-router';
 import { useAuth } from '@/providers/auth';
 import type { SessionData } from '@/lib/api/types';
 import type { ShopperBasketsV2, ShopperProducts, ShopperSearch } from '@/scapi';
@@ -105,6 +106,7 @@ async function trackEvent<TEventType extends AnalyticsEvent['eventType']>(
  */
 export const useAnalytics = () => {
     const auth = useAuth();
+    const location = useLocation();
     const appConfig = useConfig();
     const { trackingConsent, isTrackingConsentEnabled } = useTrackingConsent();
     const { site, language } = useSite();
@@ -186,6 +188,7 @@ export const useAnalytics = () => {
      */
     const trackViewProduct = async (data: { product: ShopperProducts.schemas['Product'] }) => {
         return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_product', {
+            path: `${location.pathname}${location.search}${location.hash}`,
             product: data.product,
         });
     };
@@ -227,6 +230,8 @@ export const useAnalytics = () => {
      * Track search
      */
     const trackViewSearch = async (data: {
+        searchResultId: string;
+        startsSearchExecution: boolean;
         searchInputText: string;
         searchResults: ShopperSearch.schemas['ProductSearchHit'][];
         sort: string;
@@ -236,6 +241,9 @@ export const useAnalytics = () => {
         total?: number;
     }) => {
         return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_search', {
+            path: `${location.pathname}${location.search}${location.hash}`,
+            searchResultId: data.searchResultId,
+            startsSearchExecution: data.startsSearchExecution,
             searchInputText: data.searchInputText,
             searchResults: data.searchResults,
             sort: data.sort || '',
@@ -259,6 +267,7 @@ export const useAnalytics = () => {
         total?: number;
     }) => {
         return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_category', {
+            path: `${location.pathname}${location.search}${location.hash}`,
             category: data.category,
             searchResults: data.searchResults,
             sort: data.sort || '',

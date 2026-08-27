@@ -64,6 +64,10 @@ export function initializeEngagementAdapters(appConfig: AppConfig): void {
                     webStoreId: engagementAdapterConfigs.data360.webStoreId || 'sfnext',
                     consentCategory: engagementAdapterConfigs.data360.consentCategory,
                     eventToggles: engagementAdapterConfigs.data360.eventToggles || {},
+                    pageViewsBlocklist: appConfig.engagement.analytics.pageViewsBlocklist,
+                    urlPrefix: appConfig.url?.prefix,
+                    siteAliasMap: appConfig.siteAliasMap,
+                    localeAliasMap: appConfig.localeAliasMap,
                 })
             );
         } catch (error) {

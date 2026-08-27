@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { stripPathPrefix } from '@salesforce/storefront-next-runtime/site-context';
+
 const toBase64Url = (b64: string) => b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 
 const fromBase64Url = (b64url: string) => {
@@ -65,4 +67,10 @@ export const decodeBase64Url = (input: string) => {
  */
 export const searchUrlBuilder = (query: string): string => {
     return `/search?q=${encodeURIComponent(query)}`;
+};
+
+export const isPageViewBlocked = (path: string, prefix: string, blocklist: string[]): boolean => {
+    const pathname = path.split(/[?#]/, 1)[0];
+    const normalizedPath = stripPathPrefix({ pathname, prefix }) || '/';
+    return blocklist.some((blocked) => normalizedPath === blocked || normalizedPath.startsWith(`${blocked}/`));
 };

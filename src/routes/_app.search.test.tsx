@@ -15,9 +15,10 @@
  */
 
 import 'reflect-metadata';
-import { render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router';
 import type { ShopperExperience, ShopperSearch } from '@/scapi';
 import SearchPage, { loader, shouldRevalidate, type SearchPageData, SearchPageMetadata } from './_app.search';
 import { shouldRevalidate as sharedShouldRevalidate } from '@/lib/revalidation/routes/category';
@@ -104,6 +105,29 @@ const createMockPage = (regions: any[] = []): ShopperExperience.schemas['Page'] 
         } as never,
         regions,
     }) as ShopperExperience.schemas['Page'];
+
+/** Rebuilds loader data from in-memory navigation for route analytics tests. */
+function SearchAnalyticsHarness({ loaderData }: { loaderData: SearchPageData }) {
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const offset = Number(searchParams.get('offset') ?? 0);
+    const sort = searchParams.get('sort') ?? loaderData.searchResultCritical.selectedSortingOption;
+    const pageData = React.useMemo(
+        () => ({
+            ...loaderData,
+            searchResultCritical: { ...loaderData.searchResultCritical, offset, selectedSortingOption: sort },
+            searchResultNonCritical: Promise.resolve({ ...loaderData.searchResultCritical, hits: [], offset }),
+            pageUrl: `http://localhost${location.pathname}${location.search}`,
+        }),
+        [loaderData, location.pathname, location.search, offset, sort]
+    );
+
+    return (
+        <AllProvidersWrapper>
+            <SearchPage loaderData={pageData} />
+        </AllProvidersWrapper>
+    );
+}
 
 // Mock Page Designer mode - must be before Region mock
 vi.mock('@salesforce/storefront-next-runtime/design/mode', () => ({
@@ -198,6 +222,11 @@ vi.mock('@/middlewares/auth.server', () => ({
 // Mock analytics with controllable mock functions
 const mockTrackViewSearch = vi.fn();
 const mockTrackClickProductInSearch = vi.fn();
+let uuidCounter = 0;
+Object.defineProperty(globalThis.crypto, 'randomUUID', {
+    value: vi.fn(() => `search-result-${++uuidCounter}` as `${string}-${string}-${string}-${string}-${string}`),
+    writable: true,
+});
 
 vi.mock('@/hooks/use-analytics', () => ({
     useAnalytics: vi.fn(() => ({
@@ -257,6 +286,7 @@ describe('SearchPage', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        uuidCounter = 0;
         (getConfig as any).mockReturnValue(mockConfig);
         (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
         (fetchPageWithComponentData as any).mockResolvedValue({
@@ -1282,6 +1312,101 @@ describe('SearchPage', () => {
         beforeEach(() => {
             mockTrackViewSearch.mockClear();
             mockTrackClickProductInSearch.mockClear();
+        });
+
+        test('should reuse one Search Result ID across pagination and start the execution once', async () => {
+            const pageOneData: SearchPageData = {
+                searchTerm: 'shoes',
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [] }),
+                page: { ...createMockPage(), componentData: {} },
+                currency: 'USD',
+                locale: 'en-US',
+                refine: [],
+                pageUrl: 'http://localhost/search?q=shoes',
+            };
+
+            const router = createMemoryRouter(
+                [{ path: '*', element: <SearchAnalyticsHarness loaderData={pageOneData} /> }],
+                { initialEntries: ['/global/en-US/search?q=shoes'] }
+            );
+            render(<RouterProvider router={router} />);
+
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const firstEvent = mockTrackViewSearch.mock.calls[0][0];
+
+            await act(() => router.navigate('/global/en-US/search?q=shoes&offset=10'));
+
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            const secondEvent = mockTrackViewSearch.mock.calls[1][0];
+
+            expect(firstEvent.searchResultId).toBeTruthy();
+            expect(firstEvent.searchResultId).toBe('search-result-1');
+            expect(secondEvent.searchResultId).toBe(firstEvent.searchResultId);
+            expect(firstEvent.startsSearchExecution).toBe(true);
+            expect(secondEvent.startsSearchExecution).toBe(false);
+        });
+
+        test('should start a new Search Execution when criteria change', async () => {
+            const loaderData: SearchPageData = {
+                searchTerm: 'shoes',
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [] }),
+                page: { ...createMockPage(), componentData: {} },
+                currency: 'USD',
+                locale: 'en-US',
+                refine: [],
+                pageUrl: 'http://localhost/search?q=shoes',
+            };
+            const router = createMemoryRouter(
+                [{ path: '*', element: <SearchAnalyticsHarness loaderData={loaderData} /> }],
+                { initialEntries: ['/global/en-US/search?q=shoes'] }
+            );
+            render(<RouterProvider router={router} />);
+
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const firstEvent = mockTrackViewSearch.mock.calls[0][0];
+
+            await act(() => router.navigate('/global/en-US/search?q=shoes&sort=price-low-to-high'));
+
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            const secondEvent = mockTrackViewSearch.mock.calls[1][0];
+            expect(secondEvent.searchResultId).toBe('search-result-2');
+            expect(secondEvent.searchResultId).not.toBe(firstEvent.searchResultId);
+            expect(secondEvent.startsSearchExecution).toBe(true);
+        });
+
+        test('should start a new Search Execution after leaving and returning', async () => {
+            const loaderData: SearchPageData = {
+                searchTerm: 'shoes',
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical: Promise.resolve({ ...mockSearchResult, hits: [] }),
+                page: { ...createMockPage(), componentData: {} },
+                currency: 'USD',
+                locale: 'en-US',
+                refine: [],
+                pageUrl: 'http://localhost/search?q=shoes',
+            };
+            const renderSearch = () =>
+                render(
+                    <MemoryRouter initialEntries={['/global/en-US/search?q=shoes']}>
+                        <AllProvidersWrapper>
+                            <SearchPage loaderData={loaderData} />
+                        </AllProvidersWrapper>
+                    </MemoryRouter>
+                );
+            const firstRender = renderSearch();
+
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(1));
+            const firstEvent = mockTrackViewSearch.mock.calls[0][0];
+            firstRender.unmount();
+            renderSearch();
+
+            await waitFor(() => expect(mockTrackViewSearch).toHaveBeenCalledTimes(2));
+            const secondEvent = mockTrackViewSearch.mock.calls[1][0];
+            expect(secondEvent.searchResultId).toBe('search-result-2');
+            expect(secondEvent.searchResultId).not.toBe(firstEvent.searchResultId);
+            expect(secondEvent.startsSearchExecution).toBe(true);
         });
 
         test('should call trackClickProductInSearch when product is clicked', async () => {

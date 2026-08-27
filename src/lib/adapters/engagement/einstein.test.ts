@@ -155,6 +155,8 @@ const mockProductViewEvent: AnalyticsEvent = {
 
 const mockSearchEvent: AnalyticsEvent = {
     eventType: 'view_search',
+    searchResultId: 'search-result-id',
+    startsSearchExecution: true,
     payload: mockUser,
     searchInputText: 'test search',
     searchResults: [mockSearchResult],

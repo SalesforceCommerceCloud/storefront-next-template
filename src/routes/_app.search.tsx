@@ -20,7 +20,7 @@ import type { ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
-import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { siteContext, useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { getLogger } from '@/lib/logger.server';
 import CategoryPagination from '@/components/category-pagination';
 import ActiveFilters from '@/components/category-refinements/active-filters';
@@ -191,6 +191,7 @@ export default function SearchPage({
 }) {
     const { t } = useTranslation('search');
     const config = useConfig();
+    const { site } = useSite();
     const limit = config.search.products.hits.limit;
 
     const [filtersOpen, toggleFiltersOpen] = useFiltersPanelState(initialFiltersOpen);
@@ -206,13 +207,23 @@ export default function SearchPage({
 
     const analytics = useAnalytics();
     const lastTrackedSearchRef = useRef<string | null>(null);
+    const pendingSearchRef = useRef<string | null>(null);
+    const searchExecutionRef = useRef<{ criteria: string; searchResultId: string; started: boolean } | null>(null);
 
     const location = useLocation();
     const navigation = useNavigation();
     const searchWithoutFiltersParam = useMemo(() => getSearchWithoutFiltersParam(location.search), [location.search]);
     const pageIdentity = `${currency}-${locale}`;
-    const analyticsKey = `${pageIdentity}-${searchWithoutFiltersParam}-${location.hash}`;
+    const analyticsKey = `${site.id}-${pageIdentity}-${location.pathname}-${searchWithoutFiltersParam}-${location.hash}-${limit}`;
     const productGridDataKey = `${pageIdentity}-${searchWithoutFiltersParam}`;
+    const searchCriteria = JSON.stringify([
+        searchTerm,
+        searchResultCritical.selectedSortingOption ?? '',
+        [...refine].sort(),
+        site.id,
+        locale,
+        currency,
+    ]);
     const selectedFiltersCount = useMemo(
         () => new URLSearchParams(location.search).getAll('refine').length,
         [location.search]
@@ -249,14 +260,32 @@ export default function SearchPage({
     );
 
     useEffect(() => {
-        // Only track if we haven't already tracked this search
-        if (analyticsKey !== lastTrackedSearchRef.current) {
-            lastTrackedSearchRef.current = analyticsKey;
+        if (analyticsKey !== lastTrackedSearchRef.current && analyticsKey !== pendingSearchRef.current) {
+            pendingSearchRef.current = analyticsKey;
+            let active = true;
+            if (searchExecutionRef.current?.criteria !== searchCriteria) {
+                searchExecutionRef.current = {
+                    criteria: searchCriteria,
+                    searchResultId: crypto.randomUUID(),
+                    started: false,
+                };
+            }
+            const searchResultId = searchExecutionRef.current.searchResultId;
 
             startTransition(() => {
                 void nonCriticalPromise
                     .then((searchHitsData: ShopperSearch.schemas['ProductSearchHit'][]) => {
+                        if (!active || pendingSearchRef.current !== analyticsKey) return;
+                        const startsSearchExecution = !searchExecutionRef.current?.started;
+                        if (searchExecutionRef.current) {
+                            searchExecutionRef.current.started = true;
+                        }
+                        pendingSearchRef.current = null;
+                        lastTrackedSearchRef.current = analyticsKey;
+
                         void analytics.trackViewSearch({
+                            searchResultId,
+                            startsSearchExecution,
                             searchInputText: searchTerm,
                             searchResults: [...(searchResultCritical.hits ?? []), ...searchHitsData],
                             sort:
@@ -270,12 +299,21 @@ export default function SearchPage({
                         });
                     })
                     .catch(() => {
-                        // Silently handle promise rejection
+                        if (pendingSearchRef.current === analyticsKey) {
+                            pendingSearchRef.current = null;
+                        }
                     });
             });
+
+            return () => {
+                active = false;
+                if (pendingSearchRef.current === analyticsKey) {
+                    pendingSearchRef.current = null;
+                }
+            };
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [analytics, searchTerm, analyticsKey, nonCriticalPromise]);
+    }, [searchTerm, searchCriteria, analyticsKey, nonCriticalPromise]);
 
     return (
         <>

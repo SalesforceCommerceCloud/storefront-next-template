@@ -51,6 +51,10 @@ const baseToggles = {
 function makeConfig(data360Enabled: boolean): AppConfig {
     return {
         engagement: {
+            analytics: {
+                pageViewsBlocklist: ['/product', '/category'],
+                pageViewsResetDuration: 1500,
+            },
             adapters: {
                 einstein: { enabled: false, eventToggles: baseToggles },
                 activeData: { enabled: false, eventToggles: baseToggles },
