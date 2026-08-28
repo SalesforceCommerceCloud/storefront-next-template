@@ -26,6 +26,7 @@ import ProductView from '@/components/product-view';
 import ChildProducts from '@/components/product-view/child-products';
 import CategoryBreadcrumbs from '@/components/category-breadcrumbs';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
+import { resolveSwatchProductImages } from '@/lib/product/swatch-products.server';
 import ProductRecommendations from '@/components/product-recommendations';
 import { EINSTEIN_RECOMMENDERS } from '@/lib/product/einstein-recommenders';
 import { useTranslation } from 'react-i18next';
@@ -200,6 +201,11 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
     if (!product) {
         throw new Response('Product not found', { status: 404 });
     }
+
+    // Resolve DIS-served swatch tiles for axes SCAPI doesn't natively decorate from hidden swatch
+    // products and merge them into `product.c_swatchImages` before returning, so the synchronous swatch
+    // selector has them on first paint. Data-gated (no-op without `c_swatchProductIds`) and non-fatal.
+    await resolveSwatchProductImages(context, product);
 
     const pageUrl = buildCanonicalUrl(requestUrl.origin, requestUrl.pathname, requestUrl.search);
 

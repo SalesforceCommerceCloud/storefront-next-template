@@ -77,8 +77,11 @@ export async function fetchProductRecommendations(
             allImages: true,
         });
     } catch (error) {
-        const errorName = (error as Error)?.name;
-        if (errorName !== 'AbortError' && errorName !== 'TimeoutError') {
+        // fetchProductsByIds wraps failures in NormalizedApiError, so the original error (client aborts,
+        // timeouts) is on `.cause` — check it to actually skip the warn for those (not error.name, which
+        // is always 'NormalizedApiError').
+        const causeName = ((error as Error)?.cause as Error | undefined)?.name;
+        if (causeName !== 'AbortError' && causeName !== 'TimeoutError') {
             logger.warn('Recommendations: SCAPI product enrichment failed', { error });
         }
         return {};

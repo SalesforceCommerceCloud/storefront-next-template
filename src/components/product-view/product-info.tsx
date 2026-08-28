@@ -553,7 +553,11 @@ export default function ProductInfo({
                                                         <DynamicImage
                                                             src={value.image.disBaseLink || value.image.link || ''}
                                                             alt={value.image.alt || value.name}
-                                                            widths={[96, 128, 192]}
+                                                            // Larger than the small fabric-tile swatches: the 4:3
+                                                            // option card fills its grid column, so request wider DIS
+                                                            // renders (up to ~512w @2x) to stay crisp on HiDPI. Capped
+                                                            // here because typical swatch-tile sources are ~533px wide.
+                                                            widths={[128, 192, 256]}
                                                             className="absolute inset-0 h-full w-full"
                                                             imageProps={{ className: 'h-full w-full object-cover' }}
                                                         />
