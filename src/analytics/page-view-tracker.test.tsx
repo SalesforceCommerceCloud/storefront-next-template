@@ -68,7 +68,8 @@ vi.mock('@/hooks/use-tracking-consent', () => ({
     useTrackingConsent: () => mockUseTrackingConsent(),
 }));
 
-vi.mock('@salesforce/storefront-next-runtime/site-context', () => ({
+vi.mock('@salesforce/storefront-next-runtime/site-context', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/site-context')>()),
     useSite: () => mockUseSite(),
 }));
 
@@ -355,6 +356,67 @@ describe('PageViewTracker', () => {
             renderPageViewTracker(resourceRoutes.cartItemRemove);
 
             await waitForNoTracking();
+        });
+
+        it.each([
+            '/search?q=shoes',
+            '/category/mens',
+            '/product/123',
+            '/checkout',
+            '/global/en-GB/search?q=shoes',
+            '/global/en-GB/category/mens',
+            '/global/en-GB/product/123',
+            '/global/en-GB/checkout',
+            '/action/cart-item-remove',
+            '/oauth2/callback',
+            '/resource/scapi',
+        ])('should not track blocked prefixed or infrastructure path %s', async (path) => {
+            mockUseConfig.mockReturnValue({
+                ...defaultConfig,
+                url: { prefix: '/:siteId/:localeId' },
+                siteAliasMap: { [mockSiteObject.id]: 'global' },
+                engagement: {
+                    analytics: {
+                        ...defaultConfig.engagement.analytics,
+                        pageViewsBlocklist: [
+                            '/action',
+                            '/oauth2',
+                            '/resource',
+                            '/search',
+                            '/category',
+                            '/product',
+                            '/checkout',
+                        ],
+                    },
+                },
+            });
+
+            renderPageViewTracker(path);
+
+            await waitForNoTracking();
+        });
+
+        it('should track near-prefix paths and preserve the actual relative URL', async () => {
+            mockUseConfig.mockReturnValue({
+                ...defaultConfig,
+                url: { prefix: '/:siteId/:localeId' },
+                siteAliasMap: { [mockSiteObject.id]: 'global' },
+                engagement: {
+                    analytics: {
+                        ...defaultConfig.engagement.analytics,
+                        pageViewsBlocklist: ['/product'],
+                    },
+                },
+            });
+
+            renderPageViewTracker('/global/en-GB/production?ref=summer#details');
+
+            await waitFor(() => {
+                expectPageViewTracked('/global/en-GB/production?ref=summer#details', {
+                    userType: 'guest',
+                    usid: undefined,
+                });
+            });
         });
     });
 

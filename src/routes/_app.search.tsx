@@ -20,7 +20,7 @@ import type { ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
-import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { siteContext, useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { getLogger } from '@/lib/logger.server';
 import CategoryPagination from '@/components/category-pagination';
 import ActiveFilters from '@/components/category-refinements/active-filters';
@@ -73,7 +73,7 @@ export type SearchPageData = {
     searchTerm: string;
     searchResultCritical: ShopperSearch.schemas['ProductSearchResult'];
     searchResultNonCritical: Promise<ShopperSearch.schemas['ProductSearchResult']>;
-    page: ReturnType<typeof fetchPageWithComponentData>;
+    page: Awaited<ReturnType<typeof fetchPageWithComponentData>>;
     pageUrl: string;
     refine: string[];
     currency: string;
@@ -113,7 +113,7 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
     const safeCriticalCount = Math.min(criticalCount, limit);
 
     logger.debug('Search: loader starting', { q, offset, sort, refineCount: refine.length });
-    const searchResultCritical = await fetchSearchProducts(context, {
+    const searchResultCriticalPromise = fetchSearchProducts(context, {
         q,
         limit: safeCriticalCount,
         offset,
@@ -121,6 +121,15 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
         refine,
         currency,
     });
+    const pagePromise = fetchPageWithComponentData(args, {
+        pageId: 'search',
+    });
+
+    // Observe both concurrent requests immediately so a failure in either request cannot leave the
+    // other rejection unhandled. Awaiting the original promises still propagates their errors.
+    void Promise.allSettled([searchResultCriticalPromise, pagePromise]);
+
+    const searchResultCritical = await searchResultCriticalPromise;
     logger.info('Search: results loaded', { query: q, total: searchResultCritical.total, offset });
 
     const pageUrl = buildCanonicalUrl(requestUrl.origin, requestUrl.pathname, requestUrl.search);
@@ -137,9 +146,7 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
             refine,
             currency,
         }),
-        page: fetchPageWithComponentData(args, {
-            pageId: 'search',
-        }),
+        page: await pagePromise,
         pageUrl,
         refine,
         currency,
@@ -184,6 +191,7 @@ export default function SearchPage({
 }) {
     const { t } = useTranslation('search');
     const config = useConfig();
+    const { site } = useSite();
     const limit = config.search.products.hits.limit;
 
     const [filtersOpen, toggleFiltersOpen] = useFiltersPanelState(initialFiltersOpen);
@@ -199,13 +207,23 @@ export default function SearchPage({
 
     const analytics = useAnalytics();
     const lastTrackedSearchRef = useRef<string | null>(null);
+    const pendingSearchRef = useRef<string | null>(null);
+    const searchExecutionRef = useRef<{ criteria: string; searchResultId: string; started: boolean } | null>(null);
 
     const location = useLocation();
     const navigation = useNavigation();
     const searchWithoutFiltersParam = useMemo(() => getSearchWithoutFiltersParam(location.search), [location.search]);
     const pageIdentity = `${currency}-${locale}`;
-    const analyticsKey = `${pageIdentity}-${searchWithoutFiltersParam}-${location.hash}`;
+    const analyticsKey = `${site.id}-${pageIdentity}-${location.pathname}-${searchWithoutFiltersParam}-${location.hash}-${limit}`;
     const productGridDataKey = `${pageIdentity}-${searchWithoutFiltersParam}`;
+    const searchCriteria = JSON.stringify([
+        searchTerm,
+        searchResultCritical.selectedSortingOption ?? '',
+        [...refine].sort(),
+        site.id,
+        locale,
+        currency,
+    ]);
     const selectedFiltersCount = useMemo(
         () => new URLSearchParams(location.search).getAll('refine').length,
         [location.search]
@@ -242,14 +260,32 @@ export default function SearchPage({
     );
 
     useEffect(() => {
-        // Only track if we haven't already tracked this search
-        if (analyticsKey !== lastTrackedSearchRef.current) {
-            lastTrackedSearchRef.current = analyticsKey;
+        if (analyticsKey !== lastTrackedSearchRef.current && analyticsKey !== pendingSearchRef.current) {
+            pendingSearchRef.current = analyticsKey;
+            let active = true;
+            if (searchExecutionRef.current?.criteria !== searchCriteria) {
+                searchExecutionRef.current = {
+                    criteria: searchCriteria,
+                    searchResultId: crypto.randomUUID(),
+                    started: false,
+                };
+            }
+            const searchResultId = searchExecutionRef.current.searchResultId;
 
             startTransition(() => {
                 void nonCriticalPromise
                     .then((searchHitsData: ShopperSearch.schemas['ProductSearchHit'][]) => {
+                        if (!active || pendingSearchRef.current !== analyticsKey) return;
+                        const startsSearchExecution = !searchExecutionRef.current?.started;
+                        if (searchExecutionRef.current) {
+                            searchExecutionRef.current.started = true;
+                        }
+                        pendingSearchRef.current = null;
+                        lastTrackedSearchRef.current = analyticsKey;
+
                         void analytics.trackViewSearch({
+                            searchResultId,
+                            startsSearchExecution,
                             searchInputText: searchTerm,
                             searchResults: [...(searchResultCritical.hits ?? []), ...searchHitsData],
                             sort:
@@ -263,12 +299,21 @@ export default function SearchPage({
                         });
                     })
                     .catch(() => {
-                        // Silently handle promise rejection
+                        if (pendingSearchRef.current === analyticsKey) {
+                            pendingSearchRef.current = null;
+                        }
                     });
             });
+
+            return () => {
+                active = false;
+                if (pendingSearchRef.current === analyticsKey) {
+                    pendingSearchRef.current = null;
+                }
+            };
         }
         // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [analytics, searchTerm, analyticsKey, nonCriticalPromise]);
+    }, [searchTerm, searchCriteria, analyticsKey, nonCriticalPromise]);
 
     return (
         <>
@@ -306,7 +351,7 @@ export default function SearchPage({
                     </div>
 
                     {/* searchTopFullWidth */}
-                    <Region className="mb-8" page={page} regionId="searchTopFullWidth" />
+                    <Region className="mb-8" page={page} regionId="searchTopFullWidth" critical={true} />
 
                     <div className="flex flex-col lg:flex-row gap-8">
                         {/* Filters toggle button - mobile only (above panel) */}

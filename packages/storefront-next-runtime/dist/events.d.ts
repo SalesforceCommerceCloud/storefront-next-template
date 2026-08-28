@@ -52,10 +52,14 @@ interface ViewPageEvent extends BaseEvent {
 }
 interface ViewProductEvent extends BaseEvent {
   eventType: 'view_product';
+  path?: string;
   product: ShopperProducts.schemas['Product'];
 }
 interface ViewSearchEvent extends BaseEvent {
   eventType: 'view_search';
+  path?: string;
+  searchResultId?: string;
+  startsSearchExecution?: boolean;
   searchInputText: string;
   searchResults: ShopperSearch.schemas['ProductSearchHit'][];
   sort: string;
@@ -67,6 +71,7 @@ interface ViewSearchEvent extends BaseEvent {
 }
 interface ViewCategoryEvent extends BaseEvent {
   eventType: 'view_category';
+  path?: string;
   category: ShopperProducts.schemas['Category'];
   searchResults: ShopperSearch.schemas['ProductSearchHit'][];
   sort: string;

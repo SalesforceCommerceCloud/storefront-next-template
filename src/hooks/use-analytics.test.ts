@@ -36,6 +36,14 @@ vi.mock('@/providers/auth', () => ({
     useAuth: vi.fn(),
 }));
 
+vi.mock('react-router', () => ({
+    useLocation: () => ({
+        pathname: window.location.pathname,
+        search: window.location.search,
+        hash: window.location.hash,
+    }),
+}));
+
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     useConfig: vi.fn(),
 }));
@@ -273,6 +281,7 @@ describe('useAnalytics', () => {
     describe('trackViewProduct', () => {
         it('should track product view with correct user context', async () => {
             vi.mocked(useAuth).mockReturnValue(mockAuth);
+            window.history.replaceState({}, '', '/global/en-GB/product/test-product-id?color=blue#details');
 
             const { result } = renderHook(() => useAnalytics());
 
@@ -281,6 +290,7 @@ describe('useAnalytics', () => {
             expect(mockAnalytics.track).toHaveBeenCalledWith(
                 expect.objectContaining({
                     eventType: 'view_product',
+                    path: '/global/en-GB/product/test-product-id?color=blue#details',
                     product: mockProduct,
                     payload: {
                         userType: 'registered',
@@ -375,10 +385,13 @@ describe('useAnalytics', () => {
     describe('trackViewSearch', () => {
         it('should track search with query and results', async () => {
             vi.mocked(useAuth).mockReturnValue(mockAuth);
+            window.history.replaceState({}, '', '/global/en-GB/search?q=test%20search#results');
 
             const { result } = renderHook(() => useAnalytics());
 
             await result.current.trackViewSearch({
+                searchResultId: 'search-result-id',
+                startsSearchExecution: true,
                 searchInputText: 'test search',
                 searchResults: [mockSearchResult],
                 sort: 'price-asc',
@@ -388,6 +401,9 @@ describe('useAnalytics', () => {
             expect(mockAnalytics.track).toHaveBeenCalledWith(
                 expect.objectContaining({
                     eventType: 'view_search',
+                    path: '/global/en-GB/search?q=test%20search#results',
+                    searchResultId: 'search-result-id',
+                    startsSearchExecution: true,
                     searchInputText: 'test search',
                     searchResults: [mockSearchResult],
                     payload: {
@@ -405,6 +421,7 @@ describe('useAnalytics', () => {
     describe('trackViewCategory', () => {
         it('should track category view with category and search results', async () => {
             vi.mocked(useAuth).mockReturnValue(mockAuth);
+            window.history.replaceState({}, '', '/global/en-GB/category/shoes?color=blue#grid');
 
             const { result } = renderHook(() => useAnalytics());
 
@@ -418,6 +435,7 @@ describe('useAnalytics', () => {
             expect(mockAnalytics.track).toHaveBeenCalledWith(
                 expect.objectContaining({
                     eventType: 'view_category',
+                    path: '/global/en-GB/category/shoes?color=blue#grid',
                     category: mockCategory,
                     searchResults: [mockSearchResult],
                     payload: {
@@ -439,6 +457,8 @@ describe('useAnalytics', () => {
             const { result } = renderHook(() => useAnalytics());
 
             await result.current.trackViewSearch({
+                searchResultId: 'search-result-id',
+                startsSearchExecution: false,
                 searchInputText: 'test search',
                 searchResults: [mockSearchResult],
                 sort: 'price-asc',

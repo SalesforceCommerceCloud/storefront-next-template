@@ -327,7 +327,7 @@ describe('CategoryPage', () => {
             category: mockCategory,
             searchResultCritical: mockSearchResult,
             searchResultNonCritical: Promise.resolve(mockSearchResult),
-            page: Promise.resolve({ ...createMockPage(), componentData: {} }),
+            page: { ...createMockPage(), componentData: {} },
             categoryId: 'electronics',
             refine: ['cgid=electronics'],
             currency: 'USD',

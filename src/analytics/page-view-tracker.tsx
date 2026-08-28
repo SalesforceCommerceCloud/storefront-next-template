@@ -16,12 +16,13 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { useSite } from '@salesforce/storefront-next-runtime/site-context';
+import { resolvePrefix, useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { useAuth } from '@/providers/auth';
 import { ensureAdaptersInitialized } from '@/lib/adapters/engagement/initialize';
 import { getAllAdapters, buildConsentPreferences } from '@/lib/adapters';
 import { useTrackingConsent } from '@/hooks/use-tracking-consent';
 import { createLogger } from '@/lib/logger';
+import { isPageViewBlocked } from '@/lib/url';
 
 const logger = createLogger();
 
@@ -78,10 +79,17 @@ export function PageViewTracker() {
         }
 
         // Check if this path should be tracked
-        const blockedPaths = config.engagement.analytics.pageViewsBlocklist;
-        const shouldTrackPath = !blockedPaths.some((blocked) => pathname.startsWith(blocked));
-
-        if (!shouldTrackPath) {
+        const currentPrefix =
+            config.url?.prefix && site
+                ? resolvePrefix({
+                      prefix: config.url.prefix,
+                      params: {
+                          siteId: site.alias ?? config.siteAliasMap?.[site.id] ?? site.id,
+                          localeId: config.localeAliasMap?.[language] ?? language,
+                      },
+                  })
+                : '';
+        if (isPageViewBlocked(pathname, currentPrefix, config.engagement.analytics.pageViewsBlocklist)) {
             return;
         }
 
@@ -104,7 +112,7 @@ export function PageViewTracker() {
                 // Create and send the page view event
                 // Auth is guaranteed to be defined at this point due to the check above
                 const event = createEvent('view_page', {
-                    path: pathname,
+                    path: fullPath,
                     payload: {
                         userType: auth.userType ?? 'guest',
                         encUserId: auth.encUserId ?? undefined,
