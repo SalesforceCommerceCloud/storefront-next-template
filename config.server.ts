@@ -292,6 +292,7 @@ export default defineConfig<Config>(
                     apiKey: '',
                 },
                 mrtBasedPageDesignerResolution: false,
+                livePreview: false,
             },
             // Guest Order Lookup configuration
             // Allows guests to look up past orders using order number + email + access-code verification.

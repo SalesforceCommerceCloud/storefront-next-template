@@ -1,8 +1,8 @@
 import "./modeDetection.js";
-import { n as usePageDesignerMode, t as PageDesignerProvider } from "./PageDesignerProvider.js";
+import { i as usePageDesignerMode, n as useDesignContext, r as PageDesignerProvider } from "./DesignContext2.js";
 import { i as useRegionContext, n as useIsWithinEmbeddedSubtree, t as EmbeddedSubtreeProvider } from "./EmbeddedSubtreeContext.js";
 import { r as useIsRootComponent, t as RootComponentProvider } from "./RootComponentContext.js";
-import React, { lazy } from "react";
+import React, { lazy, memo } from "react";
 import { Fragment, jsx } from "react/jsx-runtime";
 
 //#region src/design/react/core/PageDesignerPageMetadataProvider.tsx
@@ -32,13 +32,15 @@ const LazyDesignComponent = lazy(() => import("./DesignComponent.js").then((modu
 * @returns A new component with design-time capabilities
 */
 function createReactComponentDesignDecorator(Component) {
+	const MemoizedComponent = memo(Component);
 	return function DesignDecoratedComponent(props) {
 		const { designMetadata, children,...componentProps } = props;
 		const { isDesignMode } = usePageDesignerMode();
 		return isDesignMode ? /* @__PURE__ */ jsx(LazyDesignComponent, {
 			designMetadata,
-			children: /* @__PURE__ */ jsx(Component, {
-				...componentProps,
+			...componentProps,
+			children: (resolvedProps) => /* @__PURE__ */ jsx(MemoizedComponent, {
+				...resolvedProps,
 				children
 			})
 		}) : /* @__PURE__ */ jsx(Component, {
@@ -106,5 +108,5 @@ function createReactAdapter() {
 }
 
 //#endregion
-export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, RootComponentProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useIsRootComponent, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
+export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, RootComponentProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useDesignContext, useIsRootComponent, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
 //# sourceMappingURL=design-react-core.js.map

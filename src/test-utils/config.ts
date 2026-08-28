@@ -139,6 +139,7 @@ export const mockBuildConfig: Config = {
                 enabled: false,
             },
             mrtBasedPageDesignerResolution: false,
+            livePreview: false,
         },
         guestOrderLookup: {
             enabled: false,

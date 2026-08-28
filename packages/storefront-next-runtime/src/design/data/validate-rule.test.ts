@@ -311,6 +311,78 @@ describe('validateRule', () => {
         });
     });
 
+    describe('schedule with context.currentTime', () => {
+        // When `currentTime` is supplied on the context it overrides `Date.now()`
+        // for schedule evaluation, so the outcome must not depend on the wall
+        // clock. Pin the real clock far outside every window below to prove the
+        // decision comes from `currentTime`, not the ambient time.
+        const REAL_NOW = new Date('2020-01-01T00:00:00.000Z');
+        const at = (iso: string) => new Date(iso).getTime();
+
+        const windowRule: VisibilityRuleDef = {
+            activeLocales: [LOCALE],
+            schedule: {
+                start: '2026-06-01T00:00:00.000Z',
+                end: '2026-06-30T00:00:00.000Z',
+            },
+        };
+
+        test('uses currentTime instead of Date.now() when within the window', () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(REAL_NOW);
+
+            const context = { ...makeContext(), currentTime: at('2026-06-15T00:00:00.000Z') };
+            expect(validateRule(windowRule, LOCALE, context)).toBe(true);
+        });
+
+        test('fails when currentTime is before the start (even though Date.now() would also fail)', () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(REAL_NOW);
+
+            const context = { ...makeContext(), currentTime: at('2026-05-15T00:00:00.000Z') };
+            expect(validateRule(windowRule, LOCALE, context)).toBe(false);
+        });
+
+        test('fails when currentTime is after the end', () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(REAL_NOW);
+
+            const context = { ...makeContext(), currentTime: at('2026-07-15T00:00:00.000Z') };
+            expect(validateRule(windowRule, LOCALE, context)).toBe(false);
+        });
+
+        test('currentTime overrides a Date.now() that would otherwise pass', () => {
+            // Wall clock sits inside the window, but currentTime does not — the
+            // rule must fail, proving currentTime wins over Date.now().
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2026-06-15T00:00:00.000Z'));
+
+            const context = { ...makeContext(), currentTime: at('2027-01-01T00:00:00.000Z') };
+            expect(validateRule(windowRule, LOCALE, context)).toBe(false);
+        });
+
+        test('falls back to Date.now() when currentTime is absent', () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2026-06-15T00:00:00.000Z'));
+
+            // Context present (customer group path) but no currentTime — schedule
+            // still evaluates against the wall clock, which is inside the window.
+            expect(validateRule(windowRule, LOCALE, makeContext())).toBe(true);
+        });
+
+        test('respects currentTime of 0 rather than treating it as absent (?? not ||)', () => {
+            // currentTime === 0 is the Unix epoch — a real, falsy timestamp. The
+            // `?? Date.now()` guard must keep it; a `|| Date.now()` bug would fall
+            // back to the wall clock. Epoch is before the window's start, so the
+            // rule fails; a bug would make it pass against the in-window clock.
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2026-06-15T00:00:00.000Z'));
+
+            const context = { ...makeContext(), currentTime: 0 };
+            expect(validateRule(windowRule, LOCALE, context)).toBe(false);
+        });
+    });
+
     describe('campaign-based rules ignore schedule, customer groups, and activeLocales', () => {
         test('passes when campaign matches, even if customer group would fail', () => {
             const rule: VisibilityRuleDef = {

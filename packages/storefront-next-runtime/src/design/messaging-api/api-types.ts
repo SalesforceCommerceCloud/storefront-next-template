@@ -91,6 +91,7 @@ export interface ClientEventNameMapping extends IsomorphicEventNameMapping {
     ClientAcknowledged: Domain.ClientAcknowledgedEvent;
     ClientConfigurationChanged: Domain.ClientConfigurationChangedEvent;
     ComponentUpdated: Domain.ComponentUpdatedEvent;
+    ComponentReset: Domain.ComponentResetEvent;
     ClientWindowDragEntered: Domain.ClientWindowDragEnteredEvent;
     ClientWindowDragMoved: Domain.ClientWindowDragMovedEvent;
     ClientWindowDragExited: Domain.ClientWindowDragExitedEvent;
@@ -748,4 +749,20 @@ export interface HostApi extends IsomorphicApi {
      * ```
      */
     notifyComponentUpdated(event: EventPayload<Domain.ComponentUpdatedEvent>): void;
+    /**
+     * Notifies the client that a component has had it's working/pending state reset.
+     *
+     * @param event - The component reset event containing the component ID and an optional list of change types to clear.
+     *                If no change types are provided, all will be cleared.
+     * @stability development
+     *
+     * @example
+     * ```typescript
+     * api.notifyComponentReset({
+     *   componentId: 'comp-123',
+     *   changeTypes: ['properties', 'visibility'],
+     * });
+     * ```
+     */
+    notifyComponentReset(event: EventPayload<Domain.ComponentResetEvent>): void;
 }

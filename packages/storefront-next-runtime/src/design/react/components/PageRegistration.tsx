@@ -26,14 +26,14 @@ export function PageRegistration({
     page,
     children,
 }: React.PropsWithChildren<{ page: ShopperExperience.schemas['Page'] }>) {
-    const { clientApi, setClientPage } = useDesignContext();
+    const { setClientPage } = useDesignContext() ?? {};
     const { isDesignMode } = usePageDesignerMode();
 
     useEffect(() => {
         if (isDesignMode) {
-            setClientPage(page);
+            setClientPage?.(page);
         }
-    }, [clientApi, page, isDesignMode, setClientPage]);
+    }, [page, isDesignMode, setClientPage]);
 
     return <>{children}</>;
 }

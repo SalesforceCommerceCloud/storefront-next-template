@@ -19,6 +19,7 @@ import { useInteraction } from './useInteraction';
 import type { NodeToTargetMapEntry } from '../context/DesignStateContext';
 import { useComponentDiscovery, type ComponentDiscoveryResult } from './useComponentDiscovery';
 import { isComponentTypeAllowedInRegion } from '../utils/regionUtils';
+import { useMemoObject } from './useMemoObject';
 
 // The height of the scroll buffer on the top and bottom of the window
 // as a percentage of the window height.
@@ -513,7 +514,7 @@ export function useDragInteraction({
         };
     }, [dragState.scrollDirection, scrollFactorRef]);
 
-    return {
+    return useMemoObject({
         dragState,
         setPendingDragContentLinkUuid,
         commitCurrentDropTarget,
@@ -521,5 +522,5 @@ export function useDragInteraction({
         updateComponentMove,
         dropComponent,
         cancelDrag,
-    };
+    });
 }

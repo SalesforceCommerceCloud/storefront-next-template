@@ -17,7 +17,7 @@ import { useDesignContext } from '../context/DesignContext';
 import type { ComponentType } from '../../messaging-api/domain-types';
 
 export function useComponentType(componentId: string): ComponentType | null {
-    const { pageDesignerConfig } = useDesignContext();
+    const { pageDesignerConfig } = useDesignContext() ?? {};
     const { type = '' } = pageDesignerConfig?.components[componentId] ?? {};
 
     return pageDesignerConfig?.componentTypes[type] ?? null;

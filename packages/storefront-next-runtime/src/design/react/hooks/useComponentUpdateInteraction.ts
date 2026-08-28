@@ -14,16 +14,48 @@
  * limitations under the License.
  */
 import { useInteraction } from './useInteraction';
+import { useMemoObject } from './useMemoObject';
+import type { HostToClientConfiguration } from '@/design/messaging-api';
+import type { ComponentVisibilityState } from '@/design/react/core/component.types';
 
 export interface ComponentUpdate {
     name?: string;
-    [key: string]: unknown;
+    visibility?: ComponentVisibilityState;
+    properties?: Record<string, unknown>;
 }
 
 export interface ComponentUpdateInteraction {
     componentUpdates: Record<string, ComponentUpdate>;
 }
 
+function getComponentUpdatesFromComponents(
+    components: HostToClientConfiguration['components'],
+    seed: Record<string, ComponentUpdate> = {}
+): Record<string, ComponentUpdate> {
+    return Object.entries(components).reduce(
+        (acc, [id, componentInfo]) => {
+            acc[id] = {};
+
+            if (componentInfo.name) {
+                acc[id].name = seed[id]?.name ?? componentInfo.name;
+            }
+
+            if (componentInfo.properties) {
+                // Seeded overrides (prior local edits) win over the incoming
+                // host config for the same component; `seed[id]` is absent for
+                // any component the shopper hasn't locally edited, hence `?.`.
+                acc[id].properties = { ...componentInfo.properties, ...seed[id]?.properties };
+            }
+
+            if (componentInfo.visibility) {
+                acc[id].visibility = seed[id]?.visibility ?? componentInfo.visibility;
+            }
+
+            return acc;
+        },
+        {} as Record<string, ComponentUpdate>
+    );
+}
 /**
  * Custom hook that manages component update state and handles
  * client-host communication for component update events.
@@ -37,19 +69,44 @@ export function useComponentUpdateInteraction(): ComponentUpdateInteraction {
     const { state: componentUpdates } = useInteraction<Record<string, ComponentUpdate>, Record<string, never>>({
         initialState: {},
         eventHandlers: {
-            // Handle initial component names from page-init
+            ClientConfigurationChanged: {
+                handler: (event, setState) => {
+                    // 'reconcile' (default): prior local edits win over the incoming
+                    // config, so in-flight edits survive a live sync. 'replace': a
+                    // clean slate that drops local overrides, like the handshake.
+                    setState((prev) =>
+                        event.changeType === 'replace'
+                            ? getComponentUpdatesFromComponents(event.components)
+                            : getComponentUpdatesFromComponents(event.components, prev)
+                    );
+                },
+            },
             ClientAcknowledged: {
                 handler: (event, setState) => {
-                    const initialUpdates: Record<string, ComponentUpdate> = {};
-                    Object.entries(event.components).forEach(([id, componentInfo]) => {
-                        if (componentInfo.name) {
-                            initialUpdates[id] = { name: componentInfo.name };
+                    setState(getComponentUpdatesFromComponents(event.components));
+                },
+            },
+            ComponentReset: {
+                handler: (event, setState) => {
+                    setState((prev) => {
+                        if (!prev[event.componentId]) {
+                            return prev;
                         }
+
+                        if (!event.changeTypes) {
+                            const remainingUpdates = { ...prev };
+                            delete remainingUpdates[event.componentId];
+                            return remainingUpdates;
+                        }
+
+                        const updatedComponent = { ...prev[event.componentId] };
+                        event.changeTypes.forEach((type) => delete updatedComponent[type]);
+
+                        return {
+                            ...prev,
+                            [event.componentId]: updatedComponent,
+                        };
                     });
-                    // Merge to preserve ComponentUpdated changes
-                    if (Object.keys(initialUpdates).length > 0) {
-                        setState((prev) => ({ ...prev, ...initialUpdates }));
-                    }
                 },
             },
             // Handle runtime component updates
@@ -61,10 +118,18 @@ export function useComponentUpdateInteraction(): ComponentUpdateInteraction {
 
                         // Update the specific field based on changeType
                         const updated = { ...existing };
-                        if (event.changeType === 'name') {
-                            updated.name = event.newValue as string;
-                        } else if (event.changeType === 'visibility') {
-                            updated.visibility = event.newValue;
+
+                        switch (event.changeType) {
+                            case 'name': {
+                                updated.name = event.newValue;
+                                break;
+                            }
+                            case 'visibility': {
+                                updated.visibility = event.newValue;
+                                break;
+                            }
+                            default:
+                                break;
                         }
 
                         return {
@@ -74,10 +139,54 @@ export function useComponentUpdateInteraction(): ComponentUpdateInteraction {
                     });
                 },
             },
+            // Handle live property edits from the Visual Canvas
+            ComponentPropertiesChanged: {
+                handler: (event, setState) => {
+                    if (!event.properties) {
+                        return;
+                    }
+
+                    setState((prev) => {
+                        const changeType = event.changeType ?? 'partial';
+                        const componentId = event.componentId;
+                        const existing = prev[componentId] || {};
+
+                        // A 'full' change is the authoritative property set, so we
+                        // discard the previous property overrides. Non-property fields
+                        // (e.g. `name`) are independent of properties and preserved.
+                        let basisProperties: Record<string, unknown> | undefined;
+                        let isUnchanged = true;
+
+                        if (changeType === 'partial') {
+                            basisProperties = existing.properties;
+                            isUnchanged = Object.entries(event.properties).every(([key, value]) =>
+                                Object.is(value, basisProperties?.[key])
+                            );
+                        } else {
+                            isUnchanged = false;
+                        }
+
+                        if (isUnchanged) {
+                            return prev;
+                        }
+
+                        const mergedProperties = {
+                            ...basisProperties,
+                            ...event.properties,
+                        };
+
+                        return {
+                            ...prev,
+                            [componentId]: {
+                                ...existing,
+                                properties: mergedProperties,
+                            },
+                        };
+                    });
+                },
+            },
         },
     });
 
-    return {
-        componentUpdates,
-    };
+    return useMemoObject({ componentUpdates });
 }

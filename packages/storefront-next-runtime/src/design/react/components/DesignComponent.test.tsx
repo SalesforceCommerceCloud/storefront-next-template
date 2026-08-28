@@ -19,9 +19,11 @@ import { render, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DesignComponent } from './DesignComponent';
 import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
+import { useComponentVisibility } from '../hooks/useComponentVisibility';
 import { EmbeddedSubtreeProvider } from '../core/EmbeddedSubtreeContext';
 import { RootComponentProvider } from '../core/RootComponentContext';
-import type { ComponentDecoratorProps } from '../core/component.types';
+import type { DesignComponentProps } from '../core/component.types';
+import type { DesignState } from '../context/DesignStateContext';
 
 vi.mock('../hooks/useComponentDecoratorClasses', () => ({
     useComponentDecoratorClasses: () => 'mock-component-class',
@@ -45,6 +47,10 @@ vi.mock('../hooks/useComponentType', () => ({
 
 vi.mock('../hooks/useComponentInfo', () => ({
     useComponentInfo: () => ({ name: 'Test Component' }),
+}));
+
+vi.mock('../hooks/useComponentVisibility', () => ({
+    useComponentVisibility: vi.fn(() => 'visible'),
 }));
 
 vi.mock('../hooks/useThrottledCallback', () => ({
@@ -88,27 +94,33 @@ vi.mock('../core/RegionContext', () => ({
 }));
 
 const mockSetSelectedComponent = vi.fn();
-vi.mock('../hooks/useDesignState', () => ({
-    useDesignState: () => ({
-        nodeToTargetMap: new Map(),
-        selectedContentLinkUuid: null,
-        hoveredContentLinkUuid: null,
-        setSelectedComponent: mockSetSelectedComponent,
-        setHoveredComponent: vi.fn(),
-        startComponentMove: vi.fn(),
-        setPendingDragContentLinkUuid: vi.fn(),
-        dragState: {
-            pendingDragContentLinkUuid: null,
-            isDragging: false,
-            sourceContentLinkUuid: null,
-        },
-        registerContentLink: vi.fn(),
-    }),
+// DesignComponent reads state via useDesignSelector; run the real selector
+// against a fake state so the test drives selection + drag state directly.
+vi.mock('../hooks/useDesignSelector', () => ({
+    useDesignSelector: (selector: (state: DesignState) => unknown) =>
+        selector({
+            nodeToTargetMap: new Map(),
+            selectedContentLinkUuid: null,
+            hoveredContentLinkUuid: null,
+            setSelectedComponent: mockSetSelectedComponent,
+            setHoveredComponent: vi.fn(),
+            startComponentMove: vi.fn(),
+            setPendingDragContentLinkUuid: vi.fn(),
+            dragState: {
+                pendingDragContentLinkUuid: null,
+                isDragging: false,
+                sourceContentLinkUuid: null,
+            },
+            registerContentLink: vi.fn(),
+        } as unknown as DesignState),
 }));
 
 const mockUseNodeToTargetStore = vi.mocked(useNodeToTargetStore);
 
-const componentProps: ComponentDecoratorProps<unknown> = {
+// `children` is a render prop: DesignComponent resolves the wrapped component's
+// props (live overrides) and calls `children(resolvedProps)`, so the test must
+// pass a function, not a ReactNode element.
+const componentProps: DesignComponentProps<Record<string, unknown>> = {
     designMetadata: {
         id: 'test-1',
         contentLinkUuid: 'test-1-uuid',
@@ -116,8 +128,8 @@ const componentProps: ComponentDecoratorProps<unknown> = {
         isVisible: true,
         isLocalized: true,
     },
-    children: <div data-testid="inner">Test</div>,
-} as unknown as ComponentDecoratorProps<unknown>;
+    children: () => <div data-testid="inner">Test</div>,
+} as unknown as DesignComponentProps<Record<string, unknown>>;
 
 describe('DesignComponent - embedded regions', () => {
     beforeEach(() => {
@@ -201,19 +213,26 @@ describe('DesignComponent - root component', () => {
     it('does not suppress a nested child of the root (non-propagation)', () => {
         const { getAllByTestId } = render(
             <RootComponentProvider>
-                <DesignComponent {...componentProps}>
-                    <DesignComponent
-                        {...({
-                            designMetadata: {
-                                id: 'child-1',
-                                contentLinkUuid: 'child-1-uuid',
-                                isFragment: false,
-                                isVisible: true,
-                                isLocalized: true,
-                            },
-                        } as unknown as ComponentDecoratorProps<unknown>)}
-                    />
-                </DesignComponent>
+                <DesignComponent
+                    {...componentProps}
+                    // Render-prop children: the root renders a nested DesignComponent
+                    // whose own children render prop returns static content.
+                    // eslint-disable-next-line react/no-children-prop
+                    children={() => (
+                        <DesignComponent
+                            {...({
+                                designMetadata: {
+                                    id: 'child-1',
+                                    contentLinkUuid: 'child-1-uuid',
+                                    isFragment: false,
+                                    isVisible: true,
+                                    isLocalized: true,
+                                },
+                                children: () => <div data-testid="child-inner">Child</div>,
+                            } as unknown as DesignComponentProps<Record<string, unknown>>)}
+                        />
+                    )}
+                />
             </RootComponentProvider>
         );
 
@@ -256,10 +275,37 @@ describe('DesignComponent - fragment flag', () => {
                 isVisible: true,
                 isLocalized: true,
             },
-            children: <div data-testid="inner">Test</div>,
-        } as unknown as ComponentDecoratorProps<unknown>;
+            children: () => <div data-testid="inner">Test</div>,
+        } as unknown as DesignComponentProps<Record<string, unknown>>;
 
         const { getByTestId } = render(<DesignComponent {...fragmentProps} />);
         expect(getByTestId('design-frame').getAttribute('data-is-fragment')).toBe('true');
+    });
+});
+
+describe('DesignComponent - visibility', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(useComponentVisibility).mockReturnValue('visible');
+    });
+
+    afterEach(() => {
+        cleanup();
+    });
+
+    it('resolves visibility from the component metadata before rendering', () => {
+        render(<DesignComponent {...componentProps} />);
+
+        expect(useComponentVisibility).toHaveBeenCalledWith('test-1', true);
+    });
+
+    it('does not render content or design chrome when the effective visibility is hidden', () => {
+        vi.mocked(useComponentVisibility).mockReturnValue('hidden');
+
+        const { queryByTestId } = render(<DesignComponent {...componentProps} />);
+
+        expect(queryByTestId('inner')).toBeNull();
+        expect(queryByTestId('design-frame')).toBeNull();
+        expect(queryByTestId('design-component-test-1')).toBeNull();
     });
 });

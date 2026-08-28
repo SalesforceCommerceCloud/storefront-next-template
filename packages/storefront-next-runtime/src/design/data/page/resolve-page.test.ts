@@ -367,6 +367,50 @@ describe('resolvePage', () => {
         expect(result?.regions?.[0].components?.map((c) => c.id)).toEqual(['public-banner']);
     });
 
+    test('passes localeFallbacks to page component resolution', async () => {
+        const pageManifest = makePageManifest({
+            variations: {
+                default: {
+                    ruleRequiresContext: false,
+                    pageRequiresContext: false,
+                    page: {
+                        ...makePage(),
+                        regions: [
+                            {
+                                id: 'main',
+                                components: [{ id: 'banner', typeId: 'banner', regions: [] }],
+                            },
+                        ],
+                    },
+                    regions: {},
+                },
+            },
+            componentInfo: {
+                banner: {
+                    visibilityRules: [],
+                    content: {
+                        en_US: { heading: 'English' },
+                        fr_FR: { heading: 'French' },
+                    },
+                    regions: {},
+                },
+            },
+        });
+        const storage = makeStorage(pageManifest);
+
+        const result = await resolvePage({
+            id: 'homepage',
+            attrCtx: testAttrCtx,
+            identifierType: 'page',
+            locale: 'de_DE',
+            defaultLocale: 'en_US',
+            localeFallbacks: ['fr_FR'],
+            manifestStorage: storage,
+        });
+
+        expect(result?.regions?.[0].components?.[0].data).toEqual({ heading: 'French' });
+    });
+
     describe('page metadata + pageContent overlay', () => {
         const makePageWithMetadata = (id = 'resolved-page'): ShopperExperience.schemas['Page'] => ({
             id,
@@ -661,6 +705,44 @@ describe('resolvePage', () => {
             });
 
             expect(result?.regions?.[0].components?.map((c) => c.id)).toEqual(['public-logo']);
+        });
+
+        test('passes localeFallbacks to embedded component resolution', async () => {
+            const componentManifest = makeComponentManifest({
+                component: {
+                    id: 'header',
+                    typeId: 'embedded.header',
+                    regions: [
+                        {
+                            id: 'main',
+                            components: [{ id: 'greeting', typeId: 'commerce_assets.text', regions: [] }],
+                        },
+                    ],
+                },
+                componentInfo: {
+                    greeting: {
+                        visibilityRules: [],
+                        content: {
+                            en_US: { text: 'Hello' },
+                            fr_FR: { text: 'Bonjour' },
+                        },
+                        regions: {},
+                    },
+                },
+            });
+            const storage = makeStorage(null, makeSiteManifest(), componentManifest);
+
+            const result = await resolvePage({
+                id: 'header',
+                attrCtx: testAttrCtx,
+                identifierType: 'component',
+                locale: 'de_DE',
+                defaultLocale: 'en_US',
+                localeFallbacks: ['fr_FR'],
+                manifestStorage: storage,
+            });
+
+            expect(result?.regions?.[0].components?.[0].data).toEqual({ text: 'Bonjour' });
         });
 
         test('does not require aspectType for component identifier type', async () => {

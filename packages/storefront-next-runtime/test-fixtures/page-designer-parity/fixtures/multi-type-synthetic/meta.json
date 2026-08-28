@@ -5,5 +5,5 @@
     "defaultLocale": "en_US",
     "siteId": "RefArch",
     "capturedAt": "2026-05-11T00:00:00Z",
-    "description": "Multi-type fixture exercising all attribute types on a single page at a non-default locale (fr_FR). Tests locale overlay for component content, type-driven dispatch across string, image, file, markup, url, and cms_record in one pass. Also exercises the per-attribute merge (default + locale content). Synthetic capture."
+    "description": "Multi-type fixture exercising first-matching-locale component content on a page at a non-default locale (fr_FR). Its manifest declares string, image, file, markup, url, and cms_record attributes; only the attributes authored in the first matching locale are returned. Synthetic capture."
 }

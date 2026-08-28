@@ -24,6 +24,7 @@ import { prepareCriticalRegion } from '@/lib/page-designer/critical-region';
 import type { PageWithComponentData } from '@/lib/page-designer/page-loader.server';
 import {
     useRegionContext,
+    useDesignContext,
     usePageDesignerMode,
     PageDesignerPageMetadataProvider,
 } from '@salesforce/storefront-next-runtime/design/react/core';
@@ -66,11 +67,28 @@ vi.mock('./region-wrapper', () => ({
     },
 }));
 
-vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+// Partial mock: keep the real module (the registry pulled in transitively via
+// the client collector needs `createReactAdapter`) and override only the hooks
+// and provider the Region component reads directly.
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/design/react/core')>()),
     useRegionContext: vi.fn(() => ({})),
     usePageDesignerMode: vi.fn(() => ({ isDesignMode: false })),
+    useDesignContext: vi.fn(() => null),
     PageDesignerPageMetadataProvider: vi.fn(({ children }: { children: React.ReactNode }) => <>{children}</>),
 }));
+
+// <Region> reads `config.features.livePreview` to gate the live-page swap. The
+// live-page tests below depend on it being enabled; other tests keep the design
+// context null, so the flag value is irrelevant to them.
+vi.mock('@salesforce/storefront-next-runtime/config', () => ({
+    useConfig: () => ({ features: { livePreview: true } }),
+}));
+
+// The live page reaches <Region> via `useDesignContext().pageDesignerConfig.page`.
+// This helper builds the minimal context shape the component reads.
+const designContextWithPage = (page: ShopperExperience.schemas['Page'] | null) =>
+    ({ pageDesignerConfig: page ? { page } : null }) as ReturnType<typeof useDesignContext>;
 
 describe('Region', () => {
     beforeEach(() => {
@@ -878,6 +896,90 @@ describe('Region', () => {
             await waitFor(() => {
                 expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
                 expect(screen.getByTestId('component-component-1')).toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('live page override (design layer)', () => {
+        // The design layer pushes a page dynamically through the design context's
+        // `pageDesignerConfig.page`. When a live page is present, <Region> renders it
+        // in place of the loader-resolved page.
+        const liveRegion = {
+            id: 'test-region',
+            components: [
+                {
+                    id: 'live-component',
+                    typeId: 'commerce_layouts.hero',
+                },
+            ],
+        } as unknown as ShopperExperience.schemas['Region'];
+
+        const livePage: ShopperExperience.schemas['Page'] = {
+            id: 'live-page',
+            typeId: 'testPage',
+            regions: [liveRegion],
+        };
+
+        afterEach(() => {
+            // Restore the default stub so sibling tests keep seeing no live page.
+            vi.mocked(useDesignContext).mockReturnValue(null);
+        });
+
+        it('renders the live page components instead of the resolved page', async () => {
+            vi.mocked(useDesignContext).mockReturnValue(designContextWithPage(livePage));
+
+            render(<Region page={mockPage} regionId="test-region" />);
+
+            await waitFor(() => {
+                // Live page's component wins…
+                expect(screen.getByTestId('component-live-component')).toBeInTheDocument();
+                // …and the resolved page's components are not rendered.
+                expect(screen.queryByTestId('component-component-1')).not.toBeInTheDocument();
+            });
+        });
+
+        it('renders the live page region even when the resolved page is null', async () => {
+            vi.mocked(useDesignContext).mockReturnValue(designContextWithPage(livePage));
+
+            render(<Region page={null} regionId="test-region" />);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('component-live-component')).toBeInTheDocument();
+            });
+        });
+
+        it('provides componentData from the resolved page while rendering the live regions', async () => {
+            vi.mocked(useDesignContext).mockReturnValue(designContextWithPage(livePage));
+
+            const componentData = { 'live-component': Promise.resolve({ foo: 'bar' }) };
+            const resolvedPage: PageWithComponentData = {
+                id: 'resolved-page',
+                typeId: 'testPage',
+                regions: [mockRegion],
+                componentData,
+            };
+
+            render(<Region page={resolvedPage} regionId="test-region" />);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('component-live-component')).toBeInTheDocument();
+                expect(screen.queryByTestId('component-component-1')).not.toBeInTheDocument();
+            });
+        });
+
+        it('returns the errorElement when the live page lacks the requested region', async () => {
+            vi.mocked(useDesignContext).mockReturnValue(designContextWithPage(livePage));
+
+            render(
+                <Region
+                    page={mockPage}
+                    regionId="non-existent-region"
+                    errorElement={<div data-testid="live-region-error">Region not found</div>}
+                />
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('live-region-error')).toBeInTheDocument();
             });
         });
     });

@@ -1,7 +1,7 @@
 import { r as ShopperExperience } from "./types2.js";
 import { i as FrameworkAdapter, n as ComponentModule } from "./types3.js";
 import { g as IsomorphicConfiguration } from "./index.js";
-import { r as RegionDecoratorProps, t as ComponentDecoratorProps } from "./component.types.js";
+import { a as RegionDecoratorProps, i as PageUpdateMode, n as ComponentDecoratorProps, t as useDesignContext } from "./DesignContext.js";
 import React$1, { JSX, PropsWithChildren } from "react";
 import * as react_jsx_runtime1 from "react/jsx-runtime";
 
@@ -19,6 +19,7 @@ type PageDesignerProviderProps = {
   clientLogger?: IsomorphicConfiguration['logger'];
   clientConnectionTimeout?: number;
   clientConnectionInterval?: number;
+  pageUpdateMode?: PageUpdateMode;
   mode?: 'EDIT' | 'PREVIEW';
 };
 declare const PageDesignerProvider: {
@@ -27,6 +28,7 @@ declare const PageDesignerProvider: {
     targetOrigin,
     clientId,
     usid,
+    pageUpdateMode,
     clientLogger,
     clientConnectionTimeout,
     clientConnectionInterval,
@@ -147,5 +149,5 @@ declare function RootComponentProvider({
  */
 declare function useIsRootComponent(): boolean;
 //#endregion
-export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, type ReactDesignComponentType, RootComponentProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useIsRootComponent, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
+export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, type PageUpdateMode, type ReactDesignComponentType, RootComponentProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useDesignContext, useIsRootComponent, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
 //# sourceMappingURL=design-react-core.d.ts.map

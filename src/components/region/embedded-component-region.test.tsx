@@ -41,11 +41,21 @@ vi.mock('@/lib/page-designer/critical-region', () => ({
     prepareCriticalRegion: vi.fn(),
 }));
 
-vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
+// Partial mock: keep the real module (the registry pulled in transitively via
+// the client collector needs `createReactAdapter`) and override only the hooks
+// and provider the Region component reads directly.
+vi.mock('@salesforce/storefront-next-runtime/design/react/core', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@salesforce/storefront-next-runtime/design/react/core')>()),
     useRegionContext: vi.fn(() => ({})),
     usePageDesignerMode: vi.fn(() => ({ isDesignMode: false })),
+    useDesignContext: vi.fn(() => null),
     PageDesignerPageMetadataProvider: vi.fn(({ children }: { children: React.ReactNode }) => <>{children}</>),
     EmbeddedSubtreeProvider: vi.fn(({ children }: { children: React.ReactNode }) => <>{children}</>),
+}));
+
+// <Region> (used by EmbeddedComponentRegion) reads `config.features.livePreview`.
+vi.mock('@salesforce/storefront-next-runtime/config', () => ({
+    useConfig: () => ({ features: { livePreview: true } }),
 }));
 
 const mockComponent: ComponentWithComponentData = {

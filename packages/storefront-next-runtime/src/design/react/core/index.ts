@@ -20,5 +20,7 @@ export { EmbeddedSubtreeProvider, useIsWithinEmbeddedSubtree } from './EmbeddedS
 export { createReactComponentDesignDecorator } from './ComponentDecorator';
 export { createReactRegionDesignDecorator } from './RegionDecorator';
 export { createReactAdapter } from './adapter';
+export { useDesignContext } from './DesignContext';
 export type { ReactDesignComponentType } from './adapter';
+export type { PageUpdateMode } from './component.types';
 export { RootComponentProvider, useIsRootComponent } from './RootComponentContext';

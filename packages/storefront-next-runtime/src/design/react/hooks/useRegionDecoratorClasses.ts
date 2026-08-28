@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { useMemo } from 'react';
-import { useDesignState } from './useDesignState';
 import { isComponentTypeAllowedInRegion } from '../utils/regionUtils';
+import { useDesignSelector } from './useDesignSelector';
 
 export function useRegionDecoratorClasses({
     regionId,
@@ -26,11 +26,8 @@ export function useRegionDecoratorClasses({
     componentTypeInclusions: string[];
     componentTypeExclusions: string[];
 }): string {
-    const {
-        dragState: { currentDropTarget, componentType },
-    } = useDesignState();
-
-    const isHovered = regionId && currentDropTarget?.regionId === regionId;
+    const isHovered = useDesignSelector((s) => regionId && s.dragState.currentDropTarget?.regionId === regionId);
+    const componentType = useDesignSelector((s) => s.dragState.componentType);
 
     const isComponentAllowed = useMemo(
         () => isComponentTypeAllowedInRegion(componentType, componentTypeInclusions, componentTypeExclusions),

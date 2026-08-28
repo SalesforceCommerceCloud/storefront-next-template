@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import React from 'react';
+import { createDesignStore, type DesignStore } from './designStore';
+import { DesignStoreContext } from './DesignStoreContext';
 import { useSelectInteraction } from '../hooks/useSelectInteraction';
 import { useHoverInteraction } from '../hooks/useHoverInteraction';
 import { useDeleteInteraction } from '../hooks/useDeleteInteraction';
@@ -105,5 +107,22 @@ export const DesignStateProvider = ({ children }: { children: React.ReactNode })
         ]
     );
 
-    return <DesignStateContext.Provider value={state}>{children}</DesignStateContext.Provider>;
+    // The "bridge": mirror the combined `state` into an external store each
+    // render, so selector-based consumers (useDesignSelector) subscribe to
+    // slices without the interaction write-side needing to know about them. The
+    // store is created once; on every render with a new `state` object we push
+    // it in. `setState` is a no-op when the reference is unchanged.
+    const storeRef = React.useRef<DesignStore<DesignState> | null>(null);
+    if (!storeRef.current) {
+        storeRef.current = createDesignStore<DesignState>(state);
+    }
+    React.useLayoutEffect(() => {
+        storeRef.current?.setState(state);
+    }, [state]);
+
+    return (
+        <DesignStoreContext.Provider value={storeRef.current}>
+            <DesignStateContext.Provider value={state}>{children}</DesignStateContext.Provider>
+        </DesignStoreContext.Provider>
+    );
 };

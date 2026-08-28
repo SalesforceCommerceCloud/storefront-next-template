@@ -71,6 +71,7 @@ export function createHostApi({ emitter, id, logger }: HostConfiguration): HostA
         focusComponent: messenger.toEmitter('ComponentFocused'),
         setClientConfiguration: messenger.toEmitter('ClientConfigurationChanged'),
         notifyComponentUpdated: messenger.toEmitter('ComponentUpdated'),
+        notifyComponentReset: messenger.toEmitter('ComponentReset'),
         connect: ({
             configFactory = defaultConfigFactory,
             onClientConnected,

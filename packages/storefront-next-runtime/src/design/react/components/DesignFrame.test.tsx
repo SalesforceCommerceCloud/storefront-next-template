@@ -53,6 +53,7 @@ describe('DesignFrame', () => {
                                 id: 'test-1',
                                 name: 'Test Component',
                                 type: 'commerce.test',
+                                properties: {},
                             },
                         },
                         componentTypes: {
@@ -96,6 +97,7 @@ describe('DesignFrame', () => {
                                 id: 'test-1',
                                 name: 'Test Component',
                                 type: 'commerce.test',
+                                properties: {},
                             },
                         },
                         componentTypes: {
@@ -140,6 +142,7 @@ describe('DesignFrame', () => {
                                 id: 'test-1',
                                 name: 'Test Component',
                                 type: 'commerce.test',
+                                properties: {},
                             },
                         },
                         componentTypes: {
@@ -183,6 +186,7 @@ describe('DesignFrame', () => {
                                 id: 'test-1',
                                 name: 'Test Component',
                                 type: 'commerce.test',
+                                properties: {},
                             },
                         },
                         componentTypes: {

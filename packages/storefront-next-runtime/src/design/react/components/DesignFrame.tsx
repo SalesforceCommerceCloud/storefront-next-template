@@ -18,7 +18,7 @@ import { useComponentType } from '../hooks/useComponentType';
 import { DeleteToolboxButton } from './DeleteToolboxButton';
 import { FragmentIcon } from './FragmentIcon';
 import { MoveToolboxButton } from './MoveToolboxButton';
-import { useDesignState } from '../hooks/useDesignState';
+import { useDesignSelector } from '../hooks/useDesignSelector';
 import { useLabels } from '../hooks/useLabels';
 import { DesignOverlay } from './DesignOverlay';
 
@@ -51,7 +51,7 @@ export const DesignFrame = ({
     className?: string;
 }>): React.JSX.Element => {
     const componentType = useComponentType(componentId ?? '');
-    const { deleteComponent } = useDesignState();
+    const deleteComponent = useDesignSelector((s) => s.deleteComponent);
     const labels = useLabels();
     const nodeRef = React.useRef<HTMLDivElement>(null);
 

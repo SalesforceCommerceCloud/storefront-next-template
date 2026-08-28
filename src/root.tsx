@@ -36,7 +36,7 @@ import { routes } from '@/route-paths';
 // Third-party libraries
 import { createInstance, type i18n } from 'i18next';
 import { I18nextProvider, useTranslation, initReactI18next } from 'react-i18next';
-import { PageDesignerProvider } from '@salesforce/storefront-next-runtime/design/react/core';
+import { PageDesignerProvider, type PageUpdateMode } from '@salesforce/storefront-next-runtime/design/react/core';
 import { createStorefrontStylesheetLink } from '@salesforce/storefront-next-runtime/design/react/preload';
 import { isDesignModeActive, isPreviewModeActive } from '@salesforce/storefront-next-runtime/design/mode';
 import { dataStoreMiddlewareLazy, sitesMiddlewareLazy } from '@salesforce/storefront-next-runtime/data-store';
@@ -215,6 +215,7 @@ export const loader = ({
     currency: string;
     selectedStoreInfo: SelectedStoreInfo | null /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */;
     correlationId: string;
+    pageDesignerPageUpdateMode: PageUpdateMode;
     pageDesignerMode: 'EDIT' | 'PREVIEW' | undefined;
     // Pre-computed in the loader (server-only) so seo.ts stays out of the client bundle
     seoMeta: MetaDescriptor[];
@@ -293,6 +294,7 @@ export const loader = ({
         seoMeta,
         getI18next: () => i18next,
         errorTranslations: (i18next.getResourceBundle(i18next.language, 'routeError') as Record<string, unknown>) ?? {},
+        pageDesignerPageUpdateMode: appConfig.features.livePreview ? 'client' : 'server',
         pageDesignerMode: isDesignModeActive(request) ? 'EDIT' : isPreviewModeActive(request) ? 'PREVIEW' : undefined,
         nonce,
     };
@@ -668,6 +670,7 @@ export default function App({
         currency: loaderCurrency,
         correlationId,
         pageDesignerMode,
+        pageDesignerPageUpdateMode,
         site,
         locale,
         // @sfdc-extension-block-start SFDC_EXT_STORE_LOCATOR
@@ -755,6 +758,7 @@ export default function App({
                 clientId="storefront-next"
                 targetOrigin="*"
                 usid={clientAuth?.usid}
+                pageUpdateMode={pageDesignerPageUpdateMode}
                 mode={pageDesignerMode}>
                 <PageDesignerInit />
                 <Outlet />

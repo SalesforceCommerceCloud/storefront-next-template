@@ -1,10 +1,11 @@
-import { a as useDesignState, r as useDesignContext } from "./DesignContext.js";
+import { n as useDesignSelector } from "./DesignContext.js";
+import { n as useDesignContext } from "./DesignContext2.js";
 import React from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 //#region src/design/react/hooks/useNodeToTargetStore.ts
 function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId, nodeRef, type, contentLinkUuids, componentTypeInclusions, componentTypeExclusions, disabled = false }) {
-	const { nodeToTargetMap } = useDesignState();
+	const nodeToTargetMap = useDesignSelector((s) => s.nodeToTargetMap);
 	React.useEffect(() => {
 		const node = nodeRef.current;
 		if (!node) return;
@@ -40,7 +41,7 @@ function useNodeToTargetStore({ parentId, componentId, contentLinkUuid, regionId
 //#endregion
 //#region src/design/react/hooks/useComponentType.ts
 function useComponentType(componentId) {
-	const { pageDesignerConfig } = useDesignContext();
+	const { pageDesignerConfig } = useDesignContext() ?? {};
 	const { type = "" } = pageDesignerConfig?.components[componentId] ?? {};
 	return pageDesignerConfig?.componentTypes[type] ?? null;
 }
@@ -110,7 +111,7 @@ const MoveToolboxButton = ({ title }) => /* @__PURE__ */ jsx("button", {
 //#endregion
 //#region src/design/react/hooks/useLabels.ts
 function useLabels() {
-	const { pageDesignerConfig } = useDesignContext();
+	const { pageDesignerConfig } = useDesignContext() ?? {};
 	return pageDesignerConfig?.labels ?? {};
 }
 
@@ -155,7 +156,7 @@ const DesignOverlay = () => {
 //#region src/design/react/components/DesignFrame.tsx
 const DesignFrame = ({ componentId, children, name, parentId, regionId, contentLinkUuid, localized = false, isFragment = false, showFrame = false, showToolbox = true, isMoveable = true, isDeletable = true, className }) => {
 	const componentType = useComponentType(componentId ?? "");
-	const { deleteComponent } = useDesignState();
+	const deleteComponent = useDesignSelector((s) => s.deleteComponent);
 	const labels = useLabels();
 	const nodeRef = React.useRef(null);
 	const [labelInside, setLabelInside] = React.useState(false);

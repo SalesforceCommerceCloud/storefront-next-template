@@ -20,9 +20,9 @@ import {
     type AttributeDefinition,
     type AttributeResolutionContext,
 } from './attribute-resolution';
-import { validateRule } from '../validate-rule';
 import type { QualifierContext, Manifest, VariationEntry, RegionInfo } from '../types';
 import type { ShopperExperience } from '@/scapi-client/types';
+import { isVisibleForContext } from './is-visible-for-context';
 
 /**
  * Context required for content processing. Carries the shopper's runtime
@@ -53,8 +53,13 @@ export interface PageProcessorContext {
     };
     /** The locale to use when resolving locale-specific component content (e.g. `"en_US"`). */
     locale: string;
-    /** The site's default locale, used as a fallback when the current locale has no content entry (e.g. `"en_US"`). */
-    defaultLocale: string;
+    /**
+     * The site's default locale, used as a fallback when the current locale has no content entry (e.g. `"en_US"`).
+     * If `localeFallbacks` is provided, this field is ignored.
+     */
+    defaultLocale?: string;
+    /** Used as a fallback chain of locales if the main locale has no content. This is used in place of a default locale if provided */
+    localeFallbacks?: string[];
     /**
      * Per-request resolution surface used by {@link resolveAttributeValues} to
      * convert manifest envelopes into the wire shape SCAPI `getPage` /
@@ -77,6 +82,10 @@ export interface PageProcessorContext {
      * `visible: false` — used in design/preview mode so the editor can display them.
      */
     pruneInvisible?: boolean;
+    /**
+     * The current time to validate visibility rules against.
+     */
+    currentTime?: number;
 }
 
 /**
@@ -158,38 +167,22 @@ export interface PageProcessorContext {
  * emitting `componentTypes`.
  */
 function composeComponentData({
-    nodeData,
-    literalDefaultContent,
-    defaultContent,
-    localeContent,
+    content,
     typeDefs,
 }: {
-    nodeData: Record<string, unknown> | undefined;
-    literalDefaultContent: Record<string, unknown>;
-    defaultContent: Record<string, unknown>;
-    localeContent: Record<string, unknown>;
+    content: Record<string, unknown>;
     typeDefs: Record<string, AttributeDefinition> | undefined;
 }): Record<string, unknown> {
-    const fallbackContent = Object.keys(defaultContent).length > 0 ? defaultContent : literalDefaultContent;
+    const result: Record<string, unknown> = { ...content };
 
     if (!typeDefs || Object.keys(typeDefs).length === 0) {
-        return {
-            ...(nodeData ?? {}),
-            ...fallbackContent,
-            ...localeContent,
-        };
+        return result;
     }
-
-    const result: Record<string, unknown> = {};
 
     for (const attrId of Object.keys(typeDefs)) {
         const def = typeDefs[attrId];
 
-        if (Object.prototype.hasOwnProperty.call(localeContent, attrId)) {
-            result[attrId] = localeContent[attrId];
-        } else if (Object.prototype.hasOwnProperty.call(fallbackContent, attrId)) {
-            result[attrId] = fallbackContent[attrId];
-        } else if (def.defaultValue !== undefined) {
+        if (result[attrId] == null && def.defaultValue !== undefined) {
             result[attrId] = def.defaultValue;
         }
     }
@@ -210,6 +203,10 @@ export function processPage(
     processorContext: PageProcessorContext
 ): ShopperExperience.schemas['Page'] | ShopperExperience.schemas['Component'] {
     const { pruneInvisible = true } = processorContext;
+    const ruleQualifiers = {
+        ...processorContext.qualifiers,
+        currentTime: processorContext.currentTime,
+    };
 
     const visitor: PageVisitor = {
         visitPage(ctx) {
@@ -282,23 +279,13 @@ export function processPage(
         visitComponent(ctx) {
             const componentInfo = processorContext.componentInfo[ctx.node.id];
             const visibilityRules = componentInfo?.visibilityRules ?? [];
-            let isVisible = true;
+            const isVisible = isVisibleForContext(visibilityRules, {
+                qualifiers: ruleQualifiers,
+                locale: processorContext.locale,
+            });
 
-            // Visibility rules use OR logic: the component is visible
-            // if ANY rule passes. Only remove it when it has its own
-            // rules and none of them pass.
-            if (visibilityRules.length > 0) {
-                const anyRulePassed = visibilityRules.some((rule) =>
-                    validateRule(rule, processorContext.locale, processorContext.qualifiers)
-                );
-
-                if (!anyRulePassed) {
-                    if (pruneInvisible) {
-                        return null;
-                    }
-
-                    isVisible = false;
-                }
+            if (!isVisible && pruneInvisible) {
+                return null;
             }
 
             // Compose the component's `data` map per attribute definition with
@@ -310,17 +297,19 @@ export function processPage(
             // per-key merge with the site-default-locale blob.
             // When no type definitions are available, fall back to the legacy
             // merge so existing manifests still resolve.
-            const literalDefaultContent = componentInfo?.content?.default ?? {};
-            const defaultContent = componentInfo?.content?.[processorContext.defaultLocale] ?? {};
-            const localeContent = componentInfo?.content?.[processorContext.locale] ?? {};
             const isLocalized = Boolean(componentInfo?.content?.[processorContext.locale]);
             const typeDefs = processorContext.componentTypes?.[ctx.node.typeId]?.attributeDefinitions;
+            const content = [
+                processorContext.locale,
+                ...(processorContext.localeFallbacks || [processorContext.defaultLocale]),
+                'default',
+            ]
+                .filter(Boolean)
+                .map((localeId) => componentInfo?.content?.[localeId as string])
+                .find(Boolean);
 
             const composedData = composeComponentData({
-                nodeData: ctx.node.data as Record<string, unknown> | undefined,
-                literalDefaultContent,
-                defaultContent,
-                localeContent,
+                content: content ?? {},
                 typeDefs,
             });
 

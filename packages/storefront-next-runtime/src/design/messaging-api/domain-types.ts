@@ -97,6 +97,12 @@ export interface HostToClientConfiguration {
      * The regions by id that are available in the component tree.
      */
     regions: Record<string, RegionInfo>;
+    /**
+     * The initial page data to render. Only meaningful in client preview mode,
+     * where the client seeds its page from this value; a host that isn't driving
+     * live preview can omit it.
+     */
+    page?: ShopperExperience.schemas['Page'];
 }
 
 /**
@@ -117,6 +123,14 @@ export interface ComponentInfo {
      * The component type.
      */
     type: string;
+    /**
+     * The component properties.
+     */
+    properties: Record<string, unknown>;
+    /**
+     * Whether the component is visible or not.
+     */
+    visibility?: 'visible' | 'hidden';
     /**
      * The custom name for the component.
      */
@@ -286,15 +300,17 @@ export interface ClientAcknowledgedEvent extends WithBaseEvent, HostToClientConf
  */
 export interface ClientConfigurationChangedEvent extends WithBaseEvent, HostToClientConfiguration {
     eventType: 'ClientConfigurationChanged';
+    /**
+     * How the client reconciles its local component overrides against this configuration.
+     * - "reconcile" (the default): prior local edits win over the incoming configuration
+     *   for the same component, so in-flight edits survive a live config sync.
+     * - "replace": discard local overrides entirely — this configuration is a clean slate,
+     *   matching the behavior of the initial {@link ClientAcknowledgedEvent} handshake.
+     */
+    changeType?: 'reconcile' | 'replace';
 }
 
-/**
- * Emits when a component is updated in the editor.
- *
- * @target client
- * @group Events
- */
-export interface ComponentUpdatedEvent extends WithBaseEvent {
+interface BaseComponentUpdatedEvent extends WithBaseEvent {
     eventType: 'ComponentUpdated';
     /**
      * The unique identifier of the component
@@ -307,11 +323,69 @@ export interface ComponentUpdatedEvent extends WithBaseEvent {
     /**
      * The new value after the change
      */
-    newValue: unknown;
+    newValue?: unknown;
     /**
      * The old value before the change (optional)
      */
     oldValue?: unknown;
+}
+
+/**
+ * Emits when component name is updated in the editor.
+ *
+ * @target client
+ * @group Events
+ */
+interface ComponentNameUpdatedEvent extends BaseComponentUpdatedEvent {
+    changeType: 'name';
+    /**
+     * The new value after the change
+     */
+    newValue: string;
+    /**
+     * The old value before the change (optional)
+     */
+    oldValue?: string;
+}
+
+/**
+ * Emits when component visibility is updated in the editor.
+ *
+ * @target client
+ * @group Events
+ */
+interface ComponentVisibilityUpdatedEvent extends BaseComponentUpdatedEvent {
+    changeType: 'visibility';
+    /**
+     * The new value after the change
+     */
+    newValue: 'hidden' | 'visible';
+    /**
+     * The old value before the change (optional)
+     */
+    oldValue?: 'hidden' | 'visible';
+}
+
+/**
+ * Emits when component name is updated in the editor.
+ *
+ * @target client
+ * @group Events
+ */
+export type ComponentUpdatedEvent = ComponentVisibilityUpdatedEvent | ComponentNameUpdatedEvent;
+
+/**
+ * Emits when component some of it's override and updated values should be cleared from memory.
+ *
+ * @target client
+ * @group Events
+ */
+export interface ComponentResetEvent extends WithBaseEvent, WithComponentId {
+    eventType: 'ComponentReset';
+    /**
+     * The update values to reset
+     */
+    changeTypes?: ('visibility' | 'properties' | 'name')[];
 }
 
 /**
@@ -355,6 +429,12 @@ export interface ComponentPropertiesChangedEvent<TProps extends Record<string, u
     extends WithBaseEvent,
         WithComponentId {
     eventType: 'ComponentPropertiesChanged';
+    /**
+     * The type of properties change.
+     * - "partial": The properties only include properties that have changed and not a inclusive list of all properties.
+     * - "full": The properties contains all properties, including ones that may not have changed.
+     */
+    changeType?: 'partial' | 'full';
     /**
      * The new properties of the component.
      */

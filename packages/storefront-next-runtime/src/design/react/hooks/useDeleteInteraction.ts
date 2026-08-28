@@ -15,6 +15,7 @@
  */
 import { useInteraction } from './useInteraction';
 import type { ComponentDeletedEvent, EventPayload } from '../../messaging-api';
+import { useMemoObject } from './useMemoObject';
 
 export interface DeleteInteraction {
     deleteComponent: (componentId: EventPayload<ComponentDeletedEvent>) => void;
@@ -42,7 +43,5 @@ export function useDeleteInteraction({
         }),
     });
 
-    return {
-        deleteComponent,
-    };
+    return useMemoObject({ deleteComponent });
 }

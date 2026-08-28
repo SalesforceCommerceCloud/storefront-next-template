@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useInteraction } from './useInteraction';
+import { useMemoObject } from './useMemoObject';
 
 export interface FocusInteraction {
     focusedContentLinkUuid: string | null;
@@ -43,8 +44,8 @@ export function useFocusInteraction({
         }),
     });
 
-    return {
+    return useMemoObject({
         focusedContentLinkUuid,
         focusComponent,
-    };
+    });
 }

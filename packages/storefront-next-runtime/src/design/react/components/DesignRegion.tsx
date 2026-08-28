@@ -22,8 +22,8 @@ import { useLabels } from '../hooks/useLabels';
 import { RegionContext, type RegionContextType } from '../core/RegionContext';
 import { useIsWithinEmbeddedSubtree } from '../core/EmbeddedSubtreeContext';
 import { useComponentContext } from '../core/ComponentContext';
-import { useDesignState } from '../hooks/useDesignState';
 import { isComponentTypeAllowedInRegion } from '../utils/regionUtils';
+import { useDesignSelector } from '../hooks/useDesignSelector';
 
 export function DesignRegion(props: RegionDecoratorProps<unknown>): React.JSX.Element {
     const { designMetadata, children, className } = props;
@@ -40,14 +40,11 @@ export function DesignRegion(props: RegionDecoratorProps<unknown>): React.JSX.El
         componentTypeInclusions,
         componentTypeExclusions,
     });
-    const { dragState } = useDesignState();
+    const dragComponentType = useDesignSelector((s) => s.dragState.componentType);
+    const isCurrentDropTarget = useDesignSelector((s) => s.dragState.currentDropTarget?.regionId === id);
     const labels = useLabels();
-    // Embedded regions can't accept drops or be edited, so they show no frame
-    // and aren't registered as drop targets. The embedded owner declares the
-    // subtree via the provider, keyed on its own `embedded` flag — the sole
-    // source of truth, so an empty embedded region is covered too.
+    const showFrame = Boolean(id && isCurrentDropTarget);
     const isEmbedded = useIsWithinEmbeddedSubtree();
-    const showFrame = Boolean(id && dragState.currentDropTarget?.regionId === id);
     const { contentLinkUuid: parentContentLinkUuid } = useComponentContext() ?? {};
 
     useNodeToTargetStore({
@@ -69,7 +66,7 @@ export function DesignRegion(props: RegionDecoratorProps<unknown>): React.JSX.El
     const handleDragOver = useCallback(
         (event: React.DragEvent<HTMLDivElement>) => {
             const isComponentAllowed = isComponentTypeAllowedInRegion(
-                dragState.componentType,
+                dragComponentType,
                 componentTypeInclusions,
                 componentTypeExclusions
             );
@@ -78,7 +75,7 @@ export function DesignRegion(props: RegionDecoratorProps<unknown>): React.JSX.El
                 event.preventDefault();
             }
         },
-        [dragState.componentType, componentTypeInclusions, componentTypeExclusions]
+        [dragComponentType, componentTypeInclusions, componentTypeExclusions]
     );
 
     // An embedded region can't accept drops or be edited, so render its children

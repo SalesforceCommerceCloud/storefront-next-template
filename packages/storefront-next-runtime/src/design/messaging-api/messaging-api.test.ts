@@ -459,19 +459,26 @@ describe('Messaging API', () => {
         });
 
         describe('when the client configuration changes', () => {
-            it('should invoke the onHostConnected callback with the new configuration', () => {
+            it('delivers the new configuration through the ClientConfigurationChanged event, not onHostConnected', () => {
                 const config = {
-                    components: { 'test-component': { id: 'test-component', type: 'test-type' } },
+                    components: { 'test-component': { id: 'test-component', type: 'test-type', properties: {} } },
                     componentTypes: {},
                     labels: {},
                     locale: 'en-US',
                     regions: {},
                 };
+                const changes: HostToClientConfiguration[] = [];
+                client.on('ClientConfigurationChanged', (event) => changes.push(event));
+
+                // onHostConnected fires once, on the initial handshake — a later
+                // config change must not re-invoke it.
                 expect(clientConfigs).toHaveLength(1);
+
                 host.setClientConfiguration(config);
 
-                expect(clientConfigs).toHaveLength(2);
-                expect(clientConfigs[1]).toEqual(expect.objectContaining(config));
+                expect(clientConfigs).toHaveLength(1);
+                expect(changes).toHaveLength(1);
+                expect(changes[0]).toEqual(expect.objectContaining(config));
             });
         });
 
@@ -593,6 +600,8 @@ describe('Messaging API', () => {
             ${'notifyMediaChanged'}            | ${'MediaChangedEvent'}          | ${{}}
             ${'notifyError'}                   | ${'Error'}                      | ${{ message: 'Test error message', code: 'TEST_ERROR' }}
             ${'setClientConfiguration'}        | ${'ClientConfigurationChanged'} | ${{ components: {}, componentTypes: {}, labels: {}, locale: 'en-US', regions: {} }}
+            ${'notifyComponentUpdated'}        | ${'ComponentUpdated'}           | ${{ componentId: 'test-component', changeType: 'name', newValue: 'Hero' }}
+            ${'notifyComponentReset'}          | ${'ComponentReset'}             | ${{ componentId: 'test-component', changeTypes: ['name', 'properties'] }}
         `(
             'when $method is called on the host',
             ({

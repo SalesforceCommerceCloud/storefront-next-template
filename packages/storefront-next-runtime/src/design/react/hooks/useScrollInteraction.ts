@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useInteraction } from './useInteraction';
+import { useMemoObject } from './useMemoObject';
 
 export interface ScrollInteraction {
     notifyWindowScrollChange: (x: number, y: number) => void;
@@ -50,5 +51,7 @@ export function useScrollInteraction(): ScrollInteraction {
         }),
     });
 
-    return { notifyWindowScrollChange };
+    return useMemoObject({
+        notifyWindowScrollChange,
+    });
 }

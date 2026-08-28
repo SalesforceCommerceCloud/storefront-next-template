@@ -276,7 +276,7 @@ async function traceDataStoreLoad<T>(
     tracer: Tracer,
     run: (span: Span) => Promise<LoadResult<T>>
 ): Promise<LoadResult<T>> {
-    return tracer.startActiveSpan(LOAD_ENTRY_SPAN_NAME, async (span) => {
+    return await tracer.startActiveSpan(LOAD_ENTRY_SPAN_NAME, async (span) => {
         try {
             const result = await run(span);
             annotateLoadOutcome(span, result);

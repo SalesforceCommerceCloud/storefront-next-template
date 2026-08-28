@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi, afterEach } from 'vitest';
 import { processPage, type PageProcessorContext } from './process-page';
 import type { AttributeDefinition, AttributeResolutionContext } from './attribute-resolution';
 import type { ShopperExperience } from '@/scapi-client/types';
@@ -176,6 +176,73 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             expect(result.regions?.[0].components).toHaveLength(0);
+        });
+    });
+
+    describe('currentTime threading', () => {
+        // These prove processPage forwards `currentTime` down to validateRule
+        // for schedule evaluation, rather than letting each rule fall back to
+        // the wall clock. The real clock is pinned far outside the window so
+        // the decision can only come from the supplied `currentTime`.
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        const scheduledComponentInfo = {
+            sale: {
+                visibilityRules: [
+                    {
+                        activeLocales: ['en_US'],
+                        schedule: {
+                            start: '2026-06-01T00:00:00.000Z',
+                            end: '2026-06-30T00:00:00.000Z',
+                        },
+                    },
+                ],
+                regions: {},
+            },
+        };
+
+        const scheduledContext = (currentTime?: number): PageProcessorContext => ({
+            attrCtx: testAttrCtx,
+            qualifiers: null,
+            locale: 'en_US',
+            defaultLocale: 'en_US',
+            pageInfo: { regions: {} },
+            componentInfo: scheduledComponentInfo,
+            currentTime,
+        });
+
+        test('keeps a scheduled component when currentTime is inside the window', () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2020-01-01T00:00:00.000Z'));
+
+            const page = makePage([makeRegion('main', [makeComponent('sale')])]);
+            const result = processPage(page, scheduledContext(new Date('2026-06-15T00:00:00.000Z').getTime()));
+
+            expect(result.regions?.[0].components?.map((c) => c.id)).toEqual(['sale']);
+        });
+
+        test('removes a scheduled component when currentTime is outside the window', () => {
+            // Wall clock sits inside the window; currentTime does not. The
+            // component must be pruned, proving currentTime reached validateRule.
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2026-06-15T00:00:00.000Z'));
+
+            const page = makePage([makeRegion('main', [makeComponent('sale')])]);
+            const result = processPage(page, scheduledContext(new Date('2027-01-01T00:00:00.000Z').getTime()));
+
+            expect(result.regions?.[0].components).toHaveLength(0);
+        });
+
+        test('falls back to Date.now() when currentTime is absent', () => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date('2026-06-15T00:00:00.000Z'));
+
+            const page = makePage([makeRegion('main', [makeComponent('sale')])]);
+            const result = processPage(page, scheduledContext());
+
+            expect(result.regions?.[0].components?.map((c) => c.id)).toEqual(['sale']);
         });
     });
 
@@ -365,7 +432,7 @@ describe('processPage', () => {
             expect(data.heading).toBe('Winter Sale');
         });
 
-        test('leaves components unchanged when no dataBindings are provided', () => {
+        test('does not retain node data when no content or data bindings are provided', () => {
             const page = makePage([
                 makeRegion('main', [
                     makeComponent('banner', {
@@ -390,7 +457,7 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
-            expect(data.heading).toBe('Static');
+            expect(data).toEqual({});
         });
     });
 
@@ -454,7 +521,7 @@ describe('processPage', () => {
             expect(data.heading).toBe('Français');
         });
 
-        test('leaves component unchanged when no content exists for locale or default locale', () => {
+        test('returns no content when no locale bucket matches', () => {
             const page = makePage([
                 makeRegion('main', [
                     makeComponent('banner', {
@@ -482,10 +549,10 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
-            expect(data.heading).toBe('Original');
+            expect(data).toEqual({});
         });
 
-        test('leaves component unchanged when componentInfo has no content', () => {
+        test('returns no content when componentInfo has no content', () => {
             const page = makePage([
                 makeRegion('main', [
                     makeComponent('banner', {
@@ -510,7 +577,7 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
-            expect(data.heading).toBe('Original');
+            expect(data).toEqual({});
         });
 
         test('applies default content when no locale-specific content exists', () => {
@@ -539,7 +606,7 @@ describe('processPage', () => {
             expect(data.subtitle).toBe('Default Subtitle');
         });
 
-        test('locale-specific content overrides default content', () => {
+        test('uses the locale-specific content bucket without merging the default locale bucket', () => {
             const page = makePage([makeRegion('main', [makeComponent('banner')])]);
 
             const context: PageProcessorContext = {
@@ -562,10 +629,8 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
-            // Locale-specific value overrides default
             expect(data.heading).toBe('French Heading');
-            // Default value is preserved for attributes not overridden by locale
-            expect(data.subtitle).toBe('Default Subtitle');
+            expect(data).not.toHaveProperty('subtitle');
         });
 
         test('falls back to "default" bucket when locale and default locale have no content', () => {
@@ -645,6 +710,60 @@ describe('processPage', () => {
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
             expect(data.heading).toBe('Howdy');
+        });
+
+        test('uses the first available locale fallback and ignores defaultLocale', () => {
+            const page = makePage([makeRegion('main', [makeComponent('banner')])]);
+
+            const context: PageProcessorContext = {
+                attrCtx: testAttrCtx,
+                qualifiers: null,
+                locale: 'de_DE',
+                defaultLocale: 'en_US',
+                localeFallbacks: ['fr_FR', 'en_GB'],
+                pageInfo: { regions: {} },
+                componentInfo: {
+                    banner: {
+                        visibilityRules: [],
+                        content: {
+                            en_US: { heading: 'English' },
+                            en_GB: { heading: 'British English' },
+                            fr_FR: { heading: 'French' },
+                        },
+                        regions: {},
+                    },
+                },
+            };
+
+            const result = processPage(page, context);
+            const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
+            expect(data.heading).toBe('French');
+        });
+
+        test('skips unavailable locale fallbacks before using a later fallback', () => {
+            const page = makePage([makeRegion('main', [makeComponent('banner')])]);
+
+            const context: PageProcessorContext = {
+                attrCtx: testAttrCtx,
+                qualifiers: null,
+                locale: 'de_DE',
+                localeFallbacks: ['it_IT', 'en_US'],
+                pageInfo: { regions: {} },
+                componentInfo: {
+                    banner: {
+                        visibilityRules: [],
+                        content: {
+                            en_US: { heading: 'English' },
+                            default: { heading: 'Default' },
+                        },
+                        regions: {},
+                    },
+                },
+            };
+
+            const result = processPage(page, context);
+            const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
+            expect(data.heading).toBe('English');
         });
 
         test('data bindings override locale content for bound attributes', () => {
@@ -1253,7 +1372,7 @@ describe('processPage', () => {
             expect(data.heading).toBe('Titre Français');
         });
 
-        test('falls back to fallback-locale value when active locale has no value', () => {
+        test('does not merge fallback-locale values into the active locale bucket', () => {
             const page = makePage([makeRegion('main', [makeComponent('banner')])]);
 
             const context: PageProcessorContext = {
@@ -1281,7 +1400,7 @@ describe('processPage', () => {
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
             expect(data.heading).toBe('Titre Français');
-            expect(data.subtitle).toBe('English Subtitle');
+            expect(data).not.toHaveProperty('subtitle');
         });
 
         test('falls back to attrDef.defaultValue when neither locale has a value', () => {
@@ -1365,10 +1484,7 @@ describe('processPage', () => {
             expect(data).not.toHaveProperty('strayKey');
         });
 
-        test('preserves explicit null/empty-string overrides over defaultValue', () => {
-            // An attribute set to `null` or `""` in locale content is an
-            // intentional value, not "missing". It must win over the
-            // attribute-definition's defaultValue.
+        test('uses definition defaults for null content values while preserving empty strings', () => {
             const page = makePage([makeRegion('main', [makeComponent('banner')])]);
 
             const context: PageProcessorContext = {
@@ -1394,7 +1510,7 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
-            expect(data.a).toBeNull();
+            expect(data.a).toBe('def-a');
             expect(data.b).toBe('');
         });
 
@@ -1434,10 +1550,7 @@ describe('processPage', () => {
             expect(data.heading).toBe('Bound Title');
         });
 
-        test('falls back to legacy merge when no componentTypes are supplied', () => {
-            // No `componentTypes` map present. The processor should still
-            // produce something sensible — the legacy merge of node.data +
-            // defaultContent + localeContent.
+        test('uses the selected content bucket when no componentTypes are supplied', () => {
             const page = makePage([
                 makeRegion('main', [
                     makeComponent('banner', {
@@ -1466,8 +1579,8 @@ describe('processPage', () => {
 
             const result = processPage(page, context);
             const data = result.regions?.[0].components?.[0].data as Record<string, unknown>;
-            expect(data.fromNode).toBe('n');
             expect(data.heading).toBe('Titre Français');
+            expect(data).not.toHaveProperty('fromNode');
         });
     });
 

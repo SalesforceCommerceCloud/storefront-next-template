@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 import { useEffect } from 'react';
-import { useDesignState } from './useDesignState';
 import { useThrottledCallback } from './useThrottledCallback';
 import { useDebouncedCallback } from './useDebouncedCallback';
+import { useDesignSelector } from './useDesignSelector';
 
 const FPS_60 = 1000 / 60;
 
 export function useGlobalListeners(): void {
-    const { dropComponent, updateComponentMove, cancelDrag, notifyWindowScrollChange } = useDesignState();
+    const dropComponent = useDesignSelector((s) => s.dropComponent);
+    const updateComponentMove = useDesignSelector((s) => s.updateComponentMove);
+    const cancelDrag = useDesignSelector((s) => s.cancelDrag);
+    const notifyWindowScrollChange = useDesignSelector((s) => s.notifyWindowScrollChange);
+
     const dragListener = useThrottledCallback(
         (event: DragEvent) => updateComponentMove({ x: event.clientX, y: event.clientY }),
         FPS_60,

@@ -460,7 +460,7 @@ async function loadDataStoreEntry(args) {
 * always propagated unchanged, and any tracing failure is swallowed.
 */
 async function traceDataStoreLoad(tracer, run) {
-	return tracer.startActiveSpan(LOAD_ENTRY_SPAN_NAME, async (span) => {
+	return await tracer.startActiveSpan(LOAD_ENTRY_SPAN_NAME, async (span) => {
 		try {
 			const result = await run(span);
 			annotateLoadOutcome(span, result);

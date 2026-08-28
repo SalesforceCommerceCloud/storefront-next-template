@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import React from 'react';
-import { useDesignState } from './useDesignState';
 import type { NodeToTargetMapEntry } from '../context/DesignStateContext';
+import { useDesignSelector } from './useDesignSelector';
 
 export function useNodeToTargetStore({
     parentId,
@@ -37,7 +37,7 @@ export function useNodeToTargetStore({
      */
     disabled?: boolean;
 }): void {
-    const { nodeToTargetMap } = useDesignState();
+    const nodeToTargetMap = useDesignSelector((s) => s.nodeToTargetMap);
 
     React.useEffect(() => {
         const node = nodeRef.current;

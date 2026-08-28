@@ -16,7 +16,7 @@
 import { useDesignContext } from '../context/DesignContext';
 
 export function useLabels(): Record<string, string> {
-    const { pageDesignerConfig } = useDesignContext();
+    const { pageDesignerConfig } = useDesignContext() ?? {};
 
     return pageDesignerConfig?.labels ?? {};
 }

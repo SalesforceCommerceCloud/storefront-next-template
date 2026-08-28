@@ -1,6 +1,6 @@
 import "./messaging-api.js";
-import { r as useDesignContext } from "./DesignContext.js";
+import "./DesignContext.js";
 import "./modeDetection.js";
-import "./PageDesignerProvider.js";
+import { n as useDesignContext } from "./DesignContext2.js";
 
 export { useDesignContext };

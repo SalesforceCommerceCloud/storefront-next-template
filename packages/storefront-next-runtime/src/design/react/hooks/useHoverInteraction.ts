@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useInteraction } from './useInteraction';
+import { useMemoObject } from './useMemoObject';
 
 export interface HoverInteraction {
     hoveredContentLinkUuid: string | null;
@@ -58,8 +59,8 @@ export function useHoverInteraction({ contentLinkMap }: { contentLinkMap: Record
         }),
     });
 
-    return {
+    return useMemoObject({
         hoveredContentLinkUuid,
         setHoveredComponent,
-    };
+    });
 }

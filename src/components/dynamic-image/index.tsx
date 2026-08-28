@@ -355,6 +355,7 @@ const DynamicImage = ({
               ((src as Record<string, unknown>).url as string) ||
               ((src as Record<string, unknown>).disBaseLink as string) ||
               ((src as Record<string, unknown>).link as string) ||
+              ((src as Record<string, unknown>).path as string) ||
               ''
             : (src ?? '');
 

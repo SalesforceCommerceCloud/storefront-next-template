@@ -211,6 +211,7 @@ export type AppConfig = {
             apiKey: string;
         };
         mrtBasedPageDesignerResolution: boolean;
+        livePreview: boolean;
     };
     guestOrderLookup: {
         enabled: boolean;

@@ -16,6 +16,15 @@
 import type React from 'react';
 
 /**
+ * How the client applies page updates from the design layer.
+ * - 'client': Page updates are applied in-browser without reloading the page.
+ * - 'server': Page updates require a round trip to the server to render a new page.
+ */
+export type PageUpdateMode = 'client' | 'server';
+
+export type ComponentVisibilityState = 'visible' | 'hidden';
+
+/**
  * Default component constructor interface.
  * Used to define default components that should be instantiated in a region.
  */
@@ -95,6 +104,12 @@ export interface ComponentDesignMetadata {
     regionDefinitions?: RegionDesignMetadata[];
 }
 
+/**
+ * Props for a component produced by {@link createReactComponentDesignDecorator}.
+ *
+ * `children` is the decorated component's own nested content (a `ReactNode`),
+ * matching how the component renders in both design and non-design mode.
+ */
 export type ComponentDecoratorProps<TProps> = React.PropsWithChildren<
     {
         designMetadata?: ComponentDesignMetadata;
@@ -102,6 +117,20 @@ export type ComponentDecoratorProps<TProps> = React.PropsWithChildren<
         localized?: boolean;
     } & TProps
 >;
+
+/**
+ * Props for the internal `DesignComponent`.
+ *
+ * Unlike {@link ComponentDecoratorProps}, `children` is a render prop: the
+ * decorator hands `DesignComponent` a function so the wrapped component's props
+ * can be resolved (e.g. live property overrides) before it renders.
+ */
+export type DesignComponentProps<TProps> = {
+    designMetadata?: ComponentDesignMetadata;
+    visible?: boolean;
+    localized?: boolean;
+    children: (props: TProps) => React.ReactNode;
+} & TProps;
 
 export type RegionDecoratorProps<TProps> = React.PropsWithChildren<
     {

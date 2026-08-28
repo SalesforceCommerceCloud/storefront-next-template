@@ -14,50 +14,21 @@
  * limitations under the License.
  */
 import React from 'react';
-import {
-    createClientApi,
-    type ClientApi,
-    type IsomorphicConfiguration,
-    type ClientAcknowledgedEvent,
-    type EventPayload,
-    type HostToClientConfiguration,
-} from '../../messaging-api';
+import { createClientApi, type IsomorphicConfiguration, type HostToClientConfiguration } from '../../messaging-api';
 import type { ShopperExperience } from '@/scapi-client/types';
 import { DesignStateProvider } from './DesignStateContext';
 import { DesignApp } from '../components/DesignApp';
 import { usePageDesignerMode } from '../core/PageDesignerProvider';
+import type { PageUpdateMode } from '../core/component.types';
+import { DesignContext, useDesignContext, type DesignContextType } from '../core/DesignContext';
 
 const noop = () => {
     /* noop */
 };
 
-/**
- * Type definition for the Design Context
- * Extends DesignState with additional design-time properties
- */
-export interface DesignContextType {
-    /** Whether design mode is currently active */
-    isDesignMode: boolean;
-    /** Client API for host communication */
-    clientApi?: ClientApi;
-    /** Whether the client is connected to the host */
-    isConnected: boolean;
-    /** The page designer config */
-    pageDesignerConfig: EventPayload<ClientAcknowledgedEvent> | null;
-    /** Page data that the client has retrieved */
-    clientPage: ShopperExperience.schemas['Page'] | null;
-    /** Sets the client page data */
-    setClientPage: (page: ShopperExperience.schemas['Page']) => void;
-}
-
+export type { DesignContextType };
 // oxlint-disable-next-line react-refresh/only-export-components
-export const DesignContext = React.createContext<DesignContextType>({
-    isDesignMode: false,
-    isConnected: false,
-    pageDesignerConfig: null,
-    clientPage: null,
-    setClientPage: noop,
-});
+export { DesignContext, useDesignContext };
 
 /**
  * Provider component that enables design-time functionality for child components.
@@ -75,6 +46,7 @@ export const DesignProvider = ({
     usid,
     clientConnectionTimeout,
     clientConnectionInterval,
+    pageUpdateMode = 'server',
     clientLogger = noop,
 }: React.PropsWithChildren<{
     targetOrigin: string;
@@ -82,6 +54,7 @@ export const DesignProvider = ({
     usid?: string;
     clientConnectionTimeout?: number;
     clientConnectionInterval?: number;
+    pageUpdateMode?: PageUpdateMode;
     clientLogger?: IsomorphicConfiguration['logger'];
 }>): React.JSX.Element => {
     const { isDesignMode } = usePageDesignerMode();
@@ -109,6 +82,12 @@ export const DesignProvider = ({
         [targetOrigin, clientId, clientLogger]
     );
 
+    const resetState = React.useCallback(() => {
+        setPageDesignerConfig(null);
+        setClientPage(null);
+        setIsConnected(false);
+    }, []);
+
     React.useEffect(() => {
         // This will poll the host for a connection until the client is acknowledged.
         clientApi.connect({
@@ -116,11 +95,15 @@ export const DesignProvider = ({
             interval: clientConnectionInterval,
             onHostConnected: (event) => {
                 setPageDesignerConfig(event);
+
+                clientApi.on('ClientConfigurationChanged', (configEvent) => {
+                    setPageDesignerConfig(configEvent);
+                });
+
                 setIsConnected(true);
             },
             onHostDisconnected: (reconnect) => {
-                setPageDesignerConfig(null);
-                setIsConnected(false);
+                resetState();
                 reconnect();
             },
             onError: () => {
@@ -131,10 +114,9 @@ export const DesignProvider = ({
 
         return () => {
             clientApi.disconnect();
-            setPageDesignerConfig(null);
-            setIsConnected(false);
+            resetState();
         };
-    }, [clientApi, clientConnectionTimeout, clientConnectionInterval, usid]);
+    }, [clientApi, clientConnectionTimeout, clientConnectionInterval, usid, resetState]);
 
     // Use the extracted state management hook
     const contextValue = React.useMemo<DesignContextType>(
@@ -143,16 +125,24 @@ export const DesignProvider = ({
             clientApi,
             isConnected,
             pageDesignerConfig,
+            pageUpdateMode,
             clientPage,
+            /**
+             * Retained for backwards compatibility. Page Designer will ignore this in future versions.
+             * @deprecated
+             */
             setClientPage: (page: ShopperExperience.schemas['Page']) => {
-                if (page !== clientPageRef.current) {
+                // Dedup by page id, not object identity: upstream (`<Region>` →
+                // `<PageRegistration>`) rebuilds an equivalent page object on every
+                // render, so an identity check would re-apply + re-render forever.
+                if (pageUpdateMode === 'server' && page.id !== clientPageRef.current?.id) {
                     clientPageRef.current = page;
                     setClientPage(page);
                     clientApi?.notifyClientPageChanged({ page });
                 }
             },
         }),
-        [isDesignMode, clientApi, isConnected, pageDesignerConfig, clientPage, setClientPage]
+        [isDesignMode, clientApi, isConnected, pageDesignerConfig, clientPage, setClientPage, pageUpdateMode]
     );
 
     return (
@@ -169,12 +159,3 @@ DesignProvider.defaultProps = {
     clientConnectionTimeout: 60_000,
     clientConnectionInterval: 1_000,
 };
-
-/**
- * Custom hook to access the design context
- * Provides access to design mode state and component selection functionality
- *
- * @returns The current design context
- */
-// oxlint-disable-next-line react-refresh/only-export-components
-export const useDesignContext = (): DesignContextType => React.useContext(DesignContext);

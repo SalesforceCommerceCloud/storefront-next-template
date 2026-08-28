@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 import { renderHook } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useComponentInfo } from './useComponentInfo';
 import { useDesignContext } from '../context/DesignContext';
-import { useDesignState } from './useDesignState';
+import { useDesignSelector } from './useDesignSelector';
+import type { DesignState } from '../context/DesignStateContext';
 
 vi.mock('../context/DesignContext');
-vi.mock('./useDesignState');
+vi.mock('./useDesignSelector');
+
+/**
+ * Drive the real selector against a fake design state. `useComponentInfo`
+ * subscribes to `s.componentUpdates?.[componentId]`, so running the actual
+ * selector here keeps the test coupled to the hook's real read path.
+ */
+function mockDesignState(state: Partial<DesignState>) {
+    vi.mocked(useDesignSelector).mockImplementation((selector) => selector(state as DesignState));
+}
 
 describe('useComponentInfo', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
     it('should return null when component does not exist in base config', () => {
         vi.mocked(useDesignContext).mockReturnValue({
             pageDesignerConfig: {
@@ -33,9 +47,7 @@ describe('useComponentInfo', () => {
             },
         } as Partial<ReturnType<typeof useDesignContext>> as ReturnType<typeof useDesignContext>);
 
-        vi.mocked(useDesignState).mockReturnValue({
-            componentUpdates: {},
-        } as Partial<ReturnType<typeof useDesignState>> as ReturnType<typeof useDesignState>);
+        mockDesignState({ componentUpdates: {} });
 
         const { result } = renderHook(() => useComponentInfo('non-existent-id'));
 
@@ -49,6 +61,7 @@ describe('useComponentInfo', () => {
                     'test-id': {
                         id: 'test-id',
                         type: 'test-type',
+                        properties: {},
                     },
                 },
                 componentTypes: {},
@@ -57,15 +70,14 @@ describe('useComponentInfo', () => {
             },
         } as Partial<ReturnType<typeof useDesignContext>> as ReturnType<typeof useDesignContext>);
 
-        vi.mocked(useDesignState).mockReturnValue({
-            componentUpdates: {},
-        } as Partial<ReturnType<typeof useDesignState>> as ReturnType<typeof useDesignState>);
+        mockDesignState({ componentUpdates: {} });
 
         const { result } = renderHook(() => useComponentInfo('test-id'));
 
         expect(result.current).toEqual({
             id: 'test-id',
             type: 'test-type',
+            properties: {},
         });
     });
 
@@ -77,6 +89,7 @@ describe('useComponentInfo', () => {
                         id: 'test-id',
                         type: 'test-type',
                         name: 'Original Name',
+                        properties: {},
                     },
                 },
                 componentTypes: {},
@@ -85,13 +98,13 @@ describe('useComponentInfo', () => {
             },
         } as Partial<ReturnType<typeof useDesignContext>> as ReturnType<typeof useDesignContext>);
 
-        vi.mocked(useDesignState).mockReturnValue({
+        mockDesignState({
             componentUpdates: {
                 'test-id': {
                     name: 'Updated Name',
                 },
             },
-        } as Partial<ReturnType<typeof useDesignState>> as ReturnType<typeof useDesignState>);
+        });
 
         const { result } = renderHook(() => useComponentInfo('test-id'));
 
@@ -99,38 +112,7 @@ describe('useComponentInfo', () => {
             id: 'test-id',
             type: 'test-type',
             name: 'Updated Name',
-        });
-    });
-
-    it('should reflect updated visibility when user hides component during editing', () => {
-        vi.mocked(useDesignContext).mockReturnValue({
-            pageDesignerConfig: {
-                components: {
-                    'test-id': {
-                        id: 'test-id',
-                        type: 'test-type',
-                    },
-                },
-                componentTypes: {},
-                labels: {},
-                regions: {},
-            },
-        } as Partial<ReturnType<typeof useDesignContext>> as ReturnType<typeof useDesignContext>);
-
-        vi.mocked(useDesignState).mockReturnValue({
-            componentUpdates: {
-                'test-id': {
-                    visibility: false,
-                },
-            },
-        } as Partial<ReturnType<typeof useDesignState>> as ReturnType<typeof useDesignState>);
-
-        const { result } = renderHook(() => useComponentInfo('test-id'));
-
-        expect(result.current).toEqual({
-            id: 'test-id',
-            type: 'test-type',
-            visibility: false,
+            properties: {},
         });
     });
 
@@ -142,6 +124,7 @@ describe('useComponentInfo', () => {
                         id: 'test-id',
                         type: 'test-type',
                         name: 'Test Component',
+                        properties: {},
                     },
                 },
                 componentTypes: {},
@@ -150,11 +133,11 @@ describe('useComponentInfo', () => {
             },
         } as Partial<ReturnType<typeof useDesignContext>> as ReturnType<typeof useDesignContext>);
 
-        vi.mocked(useDesignState).mockReturnValue({
+        mockDesignState({
             componentUpdates: {
                 'test-id': {},
             },
-        } as Partial<ReturnType<typeof useDesignState>> as ReturnType<typeof useDesignState>);
+        });
 
         const { result } = renderHook(() => useComponentInfo('test-id'));
 
@@ -162,6 +145,7 @@ describe('useComponentInfo', () => {
             id: 'test-id',
             type: 'test-type',
             name: 'Test Component',
+            properties: {},
         });
     });
 
@@ -170,9 +154,7 @@ describe('useComponentInfo', () => {
             pageDesignerConfig: null,
         } as Partial<ReturnType<typeof useDesignContext>> as ReturnType<typeof useDesignContext>);
 
-        vi.mocked(useDesignState).mockReturnValue({
-            componentUpdates: {},
-        } as Partial<ReturnType<typeof useDesignState>> as ReturnType<typeof useDesignState>);
+        mockDesignState({ componentUpdates: {} });
 
         const { result } = renderHook(() => useComponentInfo('test-id'));
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useInteraction } from './useInteraction';
+import { useMemoObject } from './useMemoObject';
 
 export interface SelectInteraction {
     selectedContentLinkUuid: string;
@@ -56,8 +57,8 @@ export function useSelectInteraction({
         }),
     });
 
-    return {
+    return useMemoObject({
         selectedContentLinkUuid,
         setSelectedComponent,
-    };
+    });
 }

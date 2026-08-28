@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import React, { useRef, useCallback } from 'react';
-import type { ComponentDecoratorProps } from '../core/component.types';
+import type { DesignComponentProps } from '../core/component.types';
 import { useComponentDecoratorClasses } from '../hooks/useComponentDecoratorClasses';
-import { useDesignState } from '../hooks/useDesignState';
 import { useFocusedComponentHandler } from '../hooks/useFocusedComponentHandler';
 import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
 import { DesignFrame } from './DesignFrame';
@@ -27,10 +26,13 @@ import { useComponentDiscovery } from '../hooks/useComponentDiscovery';
 import { useComponentType } from '../hooks/useComponentType';
 import { useThrottledCallback } from '../hooks/useThrottledCallback';
 import { useComponentInfo } from '../hooks/useComponentInfo';
+import { useComponentProps } from '../hooks/useComponentProps';
+import { useDesignSelector } from '../hooks/useDesignSelector';
 import { useIsRootComponent, RootComponentResetProvider } from '../core/RootComponentContext';
+import { useComponentVisibility } from '../hooks/useComponentVisibility';
 
-export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.JSX.Element {
-    const { designMetadata, children } = props;
+export function DesignComponent(props: DesignComponentProps<Record<string, unknown>>): React.JSX.Element {
+    const { designMetadata, children, ...componentProps } = props;
     const {
         id = '',
         contentLinkUuid = '',
@@ -42,13 +44,29 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     const componentId = id;
     const componentType = useComponentType(componentId);
     const componentInfo = useComponentInfo(componentId);
-    const { nodeToTargetMap } = useDesignState();
+    const componentVisibility = useComponentVisibility(componentId, isVisible);
+    const resolvedComponentProps = useComponentProps(componentId, componentProps);
 
     const componentName = componentInfo?.name || componentType?.label || name || 'Component';
     const dragRef = useRef<HTMLDivElement>(null);
     const { regionId } = useRegionContext() ?? {};
     const { componentId: parentComponentId } = useComponentContext() ?? {};
 
+    const nodeToTargetMap = useDesignSelector((s) => s.nodeToTargetMap);
+    const isSelectedContentLinkUuid = useDesignSelector((s) => s.selectedContentLinkUuid === contentLinkUuid);
+    const isHoveredContentLinkUuid = useDesignSelector((s) => s.hoveredContentLinkUuid === contentLinkUuid);
+    const setSelectedComponent = useDesignSelector((s) => s.setSelectedComponent);
+    const setHoveredComponent = useDesignSelector((s) => s.setHoveredComponent);
+    const startComponentMove = useDesignSelector((s) => s.startComponentMove);
+    const setPendingDragContentLinkUuid = useDesignSelector((s) => s.setPendingDragContentLinkUuid);
+    const isPendingDrag = useDesignSelector((s) => s.dragState.pendingDragContentLinkUuid === contentLinkUuid);
+    const showFrame = useDesignSelector(
+        (s) => (isSelectedContentLinkUuid || isHoveredContentLinkUuid) && !s.dragState.isDragging
+    );
+    const isDraggingSourceContentLinkUuid = useDesignSelector(
+        (s) => s.dragState.sourceContentLinkUuid === contentLinkUuid
+    );
+    const registerContentLink = useDesignSelector((s) => s.registerContentLink);
     // Embedded content-block (ECB) children can't be resolved by the host for
     // select / delete / move, so we render them as static, non-interactive
     // content. The embedded owner declares the subtree via the provider, keyed
@@ -60,17 +78,6 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     // The template declares this via RootComponentProvider; root-ness is reset
     // for descendants below so nested children keep their handles.
     const isRoot = useIsRootComponent();
-
-    const {
-        selectedContentLinkUuid,
-        hoveredContentLinkUuid,
-        setSelectedComponent,
-        setHoveredComponent,
-        startComponentMove,
-        setPendingDragContentLinkUuid,
-        dragState: { pendingDragContentLinkUuid, isDragging, sourceContentLinkUuid: draggingSourceContentLinkUuid },
-        registerContentLink,
-    } = useDesignState();
 
     // Registering the uuid → componentId link is what lets host-driven select /
     // hover / focus events resolve back to this node. Gate on !isEmbedded so an
@@ -98,7 +105,6 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
         nodeToTargetMap,
     });
 
-    const isPendingDrag = pendingDragContentLinkUuid === contentLinkUuid;
     const findAndSetHoveredComponent = useCallback(
         (x: number, y: number) => {
             // If we hover off a component, we could still be hovering over a parent component
@@ -142,7 +148,6 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
         [setSelectedComponent, contentLinkUuid]
     );
 
-    const showFrame = [selectedContentLinkUuid, hoveredContentLinkUuid].includes(contentLinkUuid ?? '') && !isDragging;
     const isDraggable = Boolean(componentId && regionId && componentType?.id);
 
     const classes = useComponentDecoratorClasses({
@@ -163,11 +168,11 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
             // We depend on the global listener to handle the drag over event.
             // If we are moving a component, don't let it be droppable on itself.
             // Compare by contentLinkUuid to handle duplicate components correctly.
-            if (draggingSourceContentLinkUuid !== contentLinkUuid) {
+            if (!isDraggingSourceContentLinkUuid) {
                 event.preventDefault();
             }
         },
-        [draggingSourceContentLinkUuid, contentLinkUuid]
+        [isDraggingSourceContentLinkUuid]
     );
 
     // When dragging, we don't consider the component as dragging until the drag start event
@@ -201,7 +206,7 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     // Don't render anything if the components is hidden via visibility rules.
     // We still want the component to be reactive in case the use changes the
     // visibility rules or the render context.
-    if (!isVisible) {
+    if (componentVisibility !== 'visible') {
         return <></>;
     }
 
@@ -210,7 +215,9 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
     // or interaction handlers. Hooks above still run (Rules of Hooks) but wire
     // to nothing here — registration is gated and the target store is disabled.
     if (isEmbedded) {
-        return <ComponentContext.Provider value={context}>{children}</ComponentContext.Provider>;
+        return (
+            <ComponentContext.Provider value={context}>{children(resolvedComponentProps)}</ComponentContext.Provider>
+        );
     }
 
     return (
@@ -240,7 +247,9 @@ export function DesignComponent(props: ComponentDecoratorProps<unknown>): React.
                 isDeletable={!isRoot}
                 regionId={regionId}>
                 <RootComponentResetProvider>
-                    <ComponentContext.Provider value={context}>{children}</ComponentContext.Provider>
+                    <ComponentContext.Provider value={context}>
+                        {children(resolvedComponentProps)}
+                    </ComponentContext.Provider>
                 </RootComponentResetProvider>
             </DesignFrame>
         </div>

@@ -16,6 +16,7 @@
 import { Suspense, lazy, useMemo, createContext, useContext } from 'react';
 import { isDesignModeActive, isPreviewModeActive } from '../../modeDetection';
 import type { IsomorphicConfiguration } from '../../messaging-api';
+import type { PageUpdateMode } from './component.types';
 
 // Lazy load the context providers so that they are only loaded when needed and don't impact runtime performance
 const LazyDesignProvider = lazy(() =>
@@ -57,6 +58,7 @@ type PageDesignerProviderProps = {
     clientLogger?: IsomorphicConfiguration['logger'];
     clientConnectionTimeout?: number;
     clientConnectionInterval?: number;
+    pageUpdateMode?: PageUpdateMode;
     mode?: 'EDIT' | 'PREVIEW';
 };
 
@@ -65,6 +67,7 @@ export const PageDesignerProvider = ({
     targetOrigin,
     clientId,
     usid,
+    pageUpdateMode,
     clientLogger,
     clientConnectionTimeout,
     clientConnectionInterval,
@@ -108,6 +111,7 @@ export const PageDesignerProvider = ({
                     targetOrigin={targetOrigin}
                     clientId={clientId}
                     usid={usid}
+                    pageUpdateMode={pageUpdateMode}
                     clientLogger={clientLogger}
                     clientConnectionTimeout={clientConnectionTimeout}
                     clientConnectionInterval={clientConnectionInterval}>

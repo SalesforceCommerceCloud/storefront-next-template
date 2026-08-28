@@ -491,8 +491,13 @@ interface PageProcessorContext {
   };
   /** The locale to use when resolving locale-specific component content (e.g. `"en_US"`). */
   locale: string;
-  /** The site's default locale, used as a fallback when the current locale has no content entry (e.g. `"en_US"`). */
-  defaultLocale: string;
+  /**
+   * The site's default locale, used as a fallback when the current locale has no content entry (e.g. `"en_US"`).
+   * If `localeFallbacks` is provided, this field is ignored.
+   */
+  defaultLocale?: string;
+  /** Used as a fallback chain of locales if the main locale has no content. This is used in place of a default locale if provided */
+  localeFallbacks?: string[];
   /**
    * Per-request resolution surface used by {@link resolveAttributeValues} to
    * convert manifest envelopes into the wire shape SCAPI `getPage` /
@@ -517,9 +522,32 @@ interface PageProcessorContext {
    * `visible: false` — used in design/preview mode so the editor can display them.
    */
   pruneInvisible?: boolean;
+  /**
+   * The current time to validate visibility rules against.
+   */
+  currentTime?: number;
 }
 declare function processPage(node: ShopperExperience.schemas['Page'], processorContext: PageProcessorContext): ShopperExperience.schemas['Page'];
 declare function processPage(node: ShopperExperience.schemas['Component'], processorContext: PageProcessorContext): ShopperExperience.schemas['Component'];
+//#endregion
+//#region src/design/data/page/is-visible-for-context.d.ts
+interface VisibilityContext {
+  locale: string;
+  qualifiers: (QualifierContext & {
+    currentTime?: number;
+  }) | null;
+}
+/**
+ * Determines whether a component is visible for the current locale and shopper qualifiers.
+ *
+ * Components without visibility rules are visible. When rules are present, the
+ * component is visible if at least one rule matches the provided context.
+ *
+ * @param rules - The component's visibility rules.
+ * @param ctx - The locale and shopper qualifiers used to evaluate each rule.
+ * @returns `true` when the component has no rules or at least one rule matches.
+ */
+declare function isVisibleForContext(rules: VisibilityRuleDef[], ctx: VisibilityContext): boolean;
 //#endregion
 //#region src/design/data/page/transform.d.ts
 /**
@@ -831,7 +859,8 @@ interface ResolvePageOptions {
    */
   categoryId?: string | Promise<string | null | undefined> | null;
   locale: string;
-  defaultLocale: string;
+  defaultLocale?: string;
+  localeFallbacks?: string[];
   manifestStorage: ManifestStorage;
   contextResolver?: ContextResolver;
   /**
@@ -843,6 +872,7 @@ interface ResolvePageOptions {
    */
   attrCtx: AttributeResolutionContext;
   pruneInvisible?: boolean;
+  currentTime?: number;
 }
 /**
  * Main entry point for the Page Designer content resolution pipeline. Handles
@@ -948,7 +978,9 @@ declare function resolvePage(options: ResolvePageOptions): Promise<ShopperExperi
  * };
  * ```
  */
-declare function validateRule(rule: VisibilityRuleDef, locale: string, context?: QualifierContext | null): boolean;
+declare function validateRule(rule: VisibilityRuleDef, locale: string, context?: (QualifierContext & {
+  currentTime?: number;
+}) | null): boolean;
 //#endregion
-export { type AttributeResolutionContext, type AttributeResolutionWarning, type ComponentInfoEntry, type ComponentManifest, type ContextResolver, type IdentifierType, type InferNodeFromType, type Manifest, type ManifestStorage, type PageManifest, type PageProcessorContext, type PageVisitor, type QualifierContext, RequiredError, type ResolvePageOptions, type ResolvedDataBinding, type SiteManifest, type VisibilityRuleDef, type VisitorContext, type VisitorContextType, processPage, resolvePage, transformComponent, transformPage, transformRegion, validateRule };
+export { type AttributeResolutionContext, type AttributeResolutionWarning, type ComponentInfoEntry, type ComponentManifest, type ContextResolver, type IdentifierType, type InferNodeFromType, type Manifest, type ManifestStorage, type PageManifest, type PageProcessorContext, type PageVisitor, type QualifierContext, RequiredError, type ResolvePageOptions, type ResolvedDataBinding, type SiteManifest, type VisibilityRuleDef, type VisitorContext, type VisitorContextType, isVisibleForContext, processPage, resolvePage, transformComponent, transformPage, transformRegion, validateRule };
 //# sourceMappingURL=design-data.d.ts.map

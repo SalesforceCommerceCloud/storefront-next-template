@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Suspense, type HTMLAttributes, type ReactNode } from 'react';
+import { useMemo, Suspense, type HTMLAttributes, type ReactNode } from 'react';
 import { Await } from 'react-router';
 import { Component } from './component';
 import { RegionWrapper } from './region-wrapper';
@@ -22,6 +22,7 @@ import {
     PageDesignerPageMetadataProvider,
     useRegionContext,
     usePageDesignerMode,
+    useDesignContext,
 } from '@salesforce/storefront-next-runtime/design/react/core';
 import type {
     ComponentDecoratorProps,
@@ -29,6 +30,8 @@ import type {
     RegionDesignMetadata,
 } from '@salesforce/storefront-next-runtime/design/react';
 import { ComponentDataProvider, useComponentData } from './component-data-context';
+import { collectClientComponentData } from '@/lib/page-designer/collect-component-data.client';
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { CriticalComponentProvider } from './critical-component-context';
 import { prepareCriticalRegion } from '@/lib/page-designer/critical-region';
 
@@ -112,6 +115,29 @@ function renderRegionContent(
     );
 }
 
+// Collects client-loader component data for the live page's target region.
+// Called unconditionally at the top level of `Region` (like `useDesignContext`)
+// so the hook count stays stable across component/page modes — the caller merges
+// the result onto the resolved page's own component data.
+function useLiveComponentData(
+    livePage: ShopperExperience.schemas['Page'] | null,
+    regionId: string,
+    locale: string | undefined
+): PageWithDesignMetadata['componentData'] {
+    return useMemo(() => {
+        if (!livePage) return undefined;
+
+        const region = livePage.regions?.find((r) => r.id === regionId);
+        if (!region) return undefined;
+
+        const data: Record<string, Promise<unknown>> = {};
+
+        collectClientComponentData({ locale }, [region], data);
+
+        return data;
+    }, [livePage, regionId, locale]);
+}
+
 /**
  * Region - Renders a Page Designer region from Salesforce's ShopperExperience API data
  *
@@ -160,6 +186,17 @@ export function Region(props: RegionProps) {
     const regionContext = useRegionContext();
     const existingComponentData = useComponentData();
     const { isDesignMode } = usePageDesignerMode();
+    // Null when not in design mode
+    const designContext = useDesignContext();
+    const config = useConfig();
+    // If the live preview feature is off or this is a component region, return null.
+    const livePage =
+        config.features.livePreview && !props.component ? (designContext?.pageDesignerConfig?.page ?? null) : null;
+    const liveLocale = designContext?.pageDesignerConfig?.locale;
+    // Client-loader data for the live page. Kept at the top level (not inside the
+    // render closure below) so the hook count is stable across both render modes.
+    // Returns null if there is no live page.
+    const liveComponentData = useLiveComponentData(livePage, regionId, liveLocale);
 
     // COMPONENT MODE: Rendering a component-level region (nested)
     if (props.component !== undefined) {
@@ -180,11 +217,20 @@ export function Region(props: RegionProps) {
 
     // PAGE MODE: Rendering a page-level region
     const renderResolvedPage = (resolvedPage: PageWithDesignMetadata | null) => {
-        if (!resolvedPage) {
+        const effectivePage = livePage
+            ? {
+                  ...livePage,
+                  // Merge the client-collected live data over the resolved page's
+                  // own component data so nested/streamed data still resolves.
+                  componentData: { ...resolvedPage?.componentData, ...liveComponentData },
+              }
+            : resolvedPage;
+
+        if (!effectivePage) {
             return errorElement ?? null;
         }
 
-        const region = resolvedPage.regions?.find((r) => r.id === regionId);
+        const region = effectivePage.regions?.find((r) => r.id === regionId);
         if (!region || (fallbackOnEmpty && !region.components?.length)) {
             return errorElement ?? null;
         }
@@ -192,11 +238,11 @@ export function Region(props: RegionProps) {
         // SCAPI types `designMetadata` as `Record<string, never>` but the runtime
         // payload follows `PageDesignMetadata` — cast through `unknown` so we can
         // read `regionDefinitions`.
-        const designMetadata = resolvedPage.designMetadata as
+        const designMetadata = effectivePage.designMetadata as
             | { regionDefinitions?: RegionDesignMetadata[] }
             | undefined;
         const metadata = designMetadata?.regionDefinitions?.find((r) => r.id === regionId);
-        const { componentData: pageComponentData, ...pageData } = resolvedPage;
+        const { componentData: pageComponentData, ...pageData } = effectivePage;
         const criticalComponentIds = critical ? prepareCriticalRegion(region) : [];
 
         let content = (

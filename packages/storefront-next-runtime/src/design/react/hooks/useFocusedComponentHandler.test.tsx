@@ -17,18 +17,22 @@ import React from 'react';
 import { render, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useFocusedComponentHandler } from './useFocusedComponentHandler';
+import type { DesignState } from '../context/DesignStateContext';
 
 const mockFocusComponent = vi.fn();
 let mockFocusedContentLinkUuid: string | null = null;
 
-vi.mock('./useDesignState', () => ({
-    useDesignState: () => ({
-        focusedContentLinkUuid: mockFocusedContentLinkUuid,
-        focusComponent: mockFocusComponent,
-    }),
+// The hook reads state via useDesignSelector; run the real selector against a
+// fake state so the test controls the focused uuid and focus action directly.
+vi.mock('./useDesignSelector', () => ({
+    useDesignSelector: (selector: (state: DesignState) => unknown) =>
+        selector({
+            focusedContentLinkUuid: mockFocusedContentLinkUuid,
+            focusComponent: mockFocusComponent,
+        } as unknown as DesignState),
 }));
 
-function Harness({ contentLinkUuid, disabled }: { contentLinkUuid: string; disabled?: boolean }) {
+function Harness({ contentLinkUuid, disabled = false }: { contentLinkUuid: string; disabled?: boolean }) {
     const ref = React.useRef<HTMLDivElement>(null);
     useFocusedComponentHandler(contentLinkUuid, ref, disabled);
     return <div ref={ref} data-testid="target" />;

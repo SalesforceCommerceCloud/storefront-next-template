@@ -21,6 +21,7 @@ import { DesignRegion } from './DesignRegion';
 import { useNodeToTargetStore } from '../hooks/useNodeToTargetStore';
 import { EmbeddedSubtreeProvider } from '../core/EmbeddedSubtreeContext';
 import type { RegionDecoratorProps } from '../core/component.types';
+import type { DesignState } from '../context/DesignStateContext';
 
 // Mock dependencies
 vi.mock('../hooks/useRegionDecoratorClasses', () => ({
@@ -52,13 +53,16 @@ vi.mock('../core/ComponentContext', () => ({
     useComponentContext: () => mockUseComponentContext(),
 }));
 
-vi.mock('../hooks/useDesignState', () => ({
-    useDesignState: () => ({
-        dragState: {
-            currentDropTarget: null,
-            componentType: 'test-type',
-        },
-    }),
+// DesignRegion reads drag state via useDesignSelector; run the real selector
+// against a fake state so the component sees no active drop target.
+vi.mock('../hooks/useDesignSelector', () => ({
+    useDesignSelector: (selector: (state: DesignState) => unknown) =>
+        selector({
+            dragState: {
+                currentDropTarget: null,
+                componentType: 'test-type',
+            },
+        } as DesignState),
 }));
 
 vi.mock('../utils/regionUtils', () => ({

@@ -169,7 +169,6 @@ function createClientApi({ emitter, id, forwardedKeys = [], logger }) {
 	const subscriptions = [];
 	let isConnected = false;
 	let connectionTimeoutId = null;
-	let hostConfig = null;
 	const clearConnectionTimeout = () => {
 		if (connectionTimeoutId) {
 			clearTimeout(connectionTimeoutId);
@@ -192,7 +191,7 @@ function createClientApi({ emitter, id, forwardedKeys = [], logger }) {
 		const { markIsReady, emptyQueue } = messenger.connect();
 		subscriptions.push(messenger.on("ClientAcknowledged", async (event) => {
 			if (event.meta.hostId === messenger.getRemoteId()) return;
-			hostConfig = event;
+			const hostConfig = event;
 			messenger.setRemoteId(event.meta.hostId);
 			clearConnectionTimeout();
 			try {
@@ -204,9 +203,6 @@ function createClientApi({ emitter, id, forwardedKeys = [], logger }) {
 			} catch (error) {
 				onError?.(error);
 			}
-		}), messenger.on("ClientConfigurationChanged", (event) => {
-			hostConfig = event;
-			onHostConnected?.(hostConfig);
 		}), messenger.on("HostDisconnected", () => {
 			disconnect();
 			onHostDisconnected?.(() => connect({
@@ -305,6 +301,7 @@ function createHostApi({ emitter, id, logger }) {
 		focusComponent: messenger.toEmitter("ComponentFocused"),
 		setClientConfiguration: messenger.toEmitter("ClientConfigurationChanged"),
 		notifyComponentUpdated: messenger.toEmitter("ComponentUpdated"),
+		notifyComponentReset: messenger.toEmitter("ComponentReset"),
 		connect: ({ configFactory = defaultConfigFactory, onClientConnected, onClientDisconnected, onError }) => {
 			if (isConnected) disconnect();
 			const { markIsReady, emptyQueue } = messenger.connect();

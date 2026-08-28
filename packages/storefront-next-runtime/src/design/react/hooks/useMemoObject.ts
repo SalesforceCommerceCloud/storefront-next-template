@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
-import { DesignStateContext, type DesignState } from '../context/DesignStateContext';
+import { useRef } from 'react';
+import { isValueChanged } from '../utils/isValueChanged';
 
-/**
- * Custom hook that manages design-time component state by composing
- * individual interaction hooks for better maintainability and testability.
- *
- * @returns Combined design state from all interactions
- */
-export const useDesignState = (): DesignState => {
-    const context = React.useContext(DesignStateContext);
+export function useMemoObject<TObject>(obj: TObject): TObject {
+    const objRef = useRef<TObject | null>(null);
 
-    if (!context) {
-        throw new Error('useDesignState must be used within a DesignStateProvider');
+    if (!objRef.current || isValueChanged(objRef.current, obj)) {
+        objRef.current = obj;
     }
 
-    return context;
-};
+    return objRef.current;
+}

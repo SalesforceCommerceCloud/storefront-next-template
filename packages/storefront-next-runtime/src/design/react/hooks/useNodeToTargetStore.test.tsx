@@ -17,12 +17,15 @@ import React from 'react';
 import { render, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useNodeToTargetStore } from './useNodeToTargetStore';
-import type { NodeToTargetMapEntry } from '../context/DesignStateContext';
+import type { DesignState, NodeToTargetMapEntry } from '../context/DesignStateContext';
 
 const nodeToTargetMap = new Map<Element, NodeToTargetMapEntry>();
 
-vi.mock('./useDesignState', () => ({
-    useDesignState: () => ({ nodeToTargetMap }),
+// The hook reads the node→target map via useDesignSelector; run the real
+// selector against a fake state carrying the shared map the test inspects.
+vi.mock('./useDesignSelector', () => ({
+    useDesignSelector: (selector: (state: DesignState) => unknown) =>
+        selector({ nodeToTargetMap } as unknown as DesignState),
 }));
 
 function Harness({ disabled }: { disabled?: boolean }) {

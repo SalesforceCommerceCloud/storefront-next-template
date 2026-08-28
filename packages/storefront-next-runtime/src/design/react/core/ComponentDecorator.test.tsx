@@ -248,11 +248,13 @@ describe('design/react/ComponentDecorator', () => {
                                         id: 'test-1',
                                         name: 'Test Component',
                                         type: 'commerce.test',
+                                        properties: {},
                                     },
                                     'test-2': {
                                         id: 'test-1', // Same componentId as test-1
                                         name: 'Test Component',
                                         type: 'commerce.test',
+                                        properties: {},
                                     },
                                 },
                                 componentTypes: {
@@ -374,6 +376,7 @@ describe('design/react/ComponentDecorator', () => {
                                 'test-1': {
                                     id: 'test-1',
                                     type: 'test-type',
+                                    properties: {},
                                 },
                             },
                             componentTypes: {
@@ -415,6 +418,7 @@ describe('design/react/ComponentDecorator', () => {
                                 'test-1': {
                                     id: 'test-1',
                                     type: 'commerce.test',
+                                    properties: {},
                                 },
                             },
                             componentTypes: {},
@@ -448,6 +452,7 @@ describe('design/react/ComponentDecorator', () => {
                                 'test-1': {
                                     id: 'test-1',
                                     type: 'commerce.test',
+                                    properties: {},
                                 },
                             },
                             componentTypes: {},
@@ -517,6 +522,7 @@ describe('design/react/ComponentDecorator', () => {
                                 id: 'test-1',
                                 name: 'Test Component',
                                 type: 'commerce.test',
+                                properties: {},
                             },
                         },
                         componentTypes: {
@@ -560,6 +566,7 @@ describe('design/react/ComponentDecorator', () => {
                                 id: 'test-1',
                                 name: 'Test Component',
                                 type: 'commerce.test',
+                                properties: {},
                             },
                         },
                         componentTypes: {
@@ -604,6 +611,7 @@ describe('design/react/ComponentDecorator', () => {
                                 id: 'test-1',
                                 name: 'Test Component',
                                 type: 'commerce.test',
+                                properties: {},
                             },
                         },
                         componentTypes: {

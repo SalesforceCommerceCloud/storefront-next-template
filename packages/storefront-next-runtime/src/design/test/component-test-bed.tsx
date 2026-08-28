@@ -124,6 +124,7 @@ export function createComponentTestBed<TState extends Record<string, unknown>>(s
                             id: 'test-1',
                             name: 'Test 1',
                             type: 'commerce.test',
+                            properties: {},
                         },
                     },
                     componentTypes: {

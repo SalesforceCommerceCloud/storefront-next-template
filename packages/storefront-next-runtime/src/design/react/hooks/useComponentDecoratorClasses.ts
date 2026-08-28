@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useDesignState } from './useDesignState';
+import { useDesignSelector } from './useDesignSelector';
 
 export function useComponentDecoratorClasses({
     contentLinkUuid,
@@ -24,15 +24,22 @@ export function useComponentDecoratorClasses({
     isFragment: boolean;
     isLocalized: boolean;
 }): string {
-    const { selectedContentLinkUuid, hoveredContentLinkUuid, dragState } = useDesignState();
+    const isSelected = useDesignSelector((s) => s.selectedContentLinkUuid === contentLinkUuid);
+    const isHoveredContentLink = useDesignSelector((s) => s.hoveredContentLinkUuid === contentLinkUuid);
+    const isHovered = useDesignSelector((s) => isHoveredContentLink && !s.dragState.isDragging);
+    const showFrame = useDesignSelector((s) => (isSelected || isHovered) && !s.dragState.isDragging);
+    const isSourceContentLinkUuid = useDesignSelector((s) => s.dragState.sourceContentLinkUuid === contentLinkUuid);
+    const isMoving = useDesignSelector((s) => s.dragState.isDragging && isSourceContentLinkUuid);
+    const isDropTarget = useDesignSelector((s) => s.dragState.currentDropTarget?.contentLinkUuid === contentLinkUuid);
+    const dropTargetClass = useDesignSelector((s) => {
+        const insertType = s.dragState.currentDropTarget?.insertType;
 
-    const isSelected = selectedContentLinkUuid === contentLinkUuid;
-    const isHovered = !dragState.isDragging && hoveredContentLinkUuid === contentLinkUuid;
-    const showFrame = (isSelected || isHovered) && !dragState.isDragging;
-    const isMoving = dragState.isDragging && dragState.sourceContentLinkUuid === contentLinkUuid;
-    const isDropTarget = dragState.currentDropTarget?.contentLinkUuid === contentLinkUuid;
-    const dropTargetInsertType = dragState.currentDropTarget?.insertType;
-    const dropTargetAxis = dropTargetInsertType?.axis;
+        if (isDropTarget && insertType?.axis && insertType?.type) {
+            return `pd-design__drop-target__${insertType.axis}-${insertType.type}`;
+        }
+
+        return null;
+    });
 
     return [
         'pd-design__decorator',
@@ -42,10 +49,7 @@ export function useComponentDecoratorClasses({
         isHovered && 'pd-design__decorator--hovered',
         isMoving && 'pd-design__decorator--moving',
         !isLocalized && 'pd-design__component--unlocalized',
-        isDropTarget &&
-            dropTargetAxis &&
-            dropTargetInsertType &&
-            `pd-design__drop-target__${dropTargetAxis}-${dropTargetInsertType.type}`,
+        dropTargetClass,
     ]
         .filter(Boolean)
         .join(' ');

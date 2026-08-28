@@ -96,7 +96,8 @@ export interface ResolvePageOptions {
      */
     categoryId?: string | Promise<string | null | undefined> | null;
     locale: string;
-    defaultLocale: string;
+    defaultLocale?: string;
+    localeFallbacks?: string[];
     manifestStorage: ManifestStorage;
     contextResolver?: ContextResolver;
     /**
@@ -108,6 +109,7 @@ export interface ResolvePageOptions {
      */
     attrCtx: AttributeResolutionContext;
     pruneInvisible?: boolean;
+    currentTime?: number;
 }
 
 /**
@@ -192,10 +194,12 @@ async function resolveComponentFlow({
     id,
     locale,
     defaultLocale,
+    localeFallbacks,
     manifestStorage,
     contextResolver,
     attrCtx,
     pruneInvisible = true,
+    currentTime,
 }: ResolvePageOptions): Promise<ShopperExperience.schemas['Component'] | null> {
     const componentManifest = await manifestStorage.getComponentManifest(id);
 
@@ -222,8 +226,10 @@ async function resolveComponentFlow({
         // configuration. (Flow selection is via `kind`, not `pageInfo`.)
         locale,
         defaultLocale,
+        localeFallbacks,
         attrCtx,
         pruneInvisible,
+        currentTime,
     });
 }
 
@@ -246,6 +252,8 @@ async function resolvePageFlow({
     contextResolver,
     attrCtx,
     pruneInvisible = true,
+    currentTime,
+    localeFallbacks,
 }: ResolvePageOptions): Promise<ShopperExperience.schemas['Page'] | null> {
     let resolvedId: string | null = null;
 
@@ -311,11 +319,13 @@ async function resolvePageFlow({
         },
         locale,
         defaultLocale,
+        localeFallbacks,
         attrCtx: resolvedAttrCtx,
         // `componentTypes` lives on the manifest. May be `undefined` for
         // older manifests; the optional typing on `PageProcessorContext`
         // covers that case.
         componentTypes: pageManifest.componentTypes,
         pruneInvisible,
+        currentTime,
     });
 }

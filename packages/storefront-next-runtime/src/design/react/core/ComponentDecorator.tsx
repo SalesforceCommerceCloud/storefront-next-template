@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { lazy } from 'react';
+import { lazy, memo } from 'react';
 import type { ComponentDecoratorProps } from './component.types';
 import { usePageDesignerMode } from './PageDesignerProvider';
 
@@ -35,6 +35,15 @@ const LazyDesignComponent = lazy(() =>
 export function createReactComponentDesignDecorator<TProps>(
     Component: React.ComponentType<TProps>
 ): (props: ComponentDecoratorProps<TProps>) => React.JSX.Element {
+    // Wrap once, at decorator-creation time, so the memoized type is referentially
+    // stable for the life of the decorated component. Creating it inside the render
+    // body would mint a new component type every render, forcing React to unmount and
+    // remount the subtree (losing state) on any decorator re-render (e.g. add/remove/reorder).
+    // `DesignComponent` recreates its props bag during chrome updates, but JSX
+    // spreads its stable top-level values here. React's shallow comparator then
+    // avoids recursively walking large component data.
+    const MemoizedComponent = memo(Component);
+
     return function DesignDecoratedComponent(props: ComponentDecoratorProps<TProps>) {
         const { designMetadata, children, ...componentProps } = props;
 
@@ -42,8 +51,10 @@ export function createReactComponentDesignDecorator<TProps>(
         const { isDesignMode } = usePageDesignerMode();
 
         return isDesignMode ? (
-            <LazyDesignComponent designMetadata={designMetadata}>
-                <Component {...(componentProps as unknown as TProps)}>{children}</Component>
+            <LazyDesignComponent designMetadata={designMetadata} {...componentProps}>
+                {(resolvedProps: unknown) => (
+                    <MemoizedComponent {...(resolvedProps as TProps)}>{children}</MemoizedComponent>
+                )}
             </LazyDesignComponent>
         ) : (
             <Component {...(componentProps as unknown as TProps)}>{children}</Component>

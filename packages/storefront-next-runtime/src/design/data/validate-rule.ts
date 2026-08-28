@@ -58,7 +58,11 @@ import type { QualifierContext, VisibilityRuleDef } from './types';
  * };
  * ```
  */
-export function validateRule(rule: VisibilityRuleDef, locale: string, context?: QualifierContext | null): boolean {
+export function validateRule(
+    rule: VisibilityRuleDef,
+    locale: string,
+    context?: (QualifierContext & { currentTime?: number }) | null
+): boolean {
     // Campaign-based rules and non-campaign rules are mutually exclusive
     // paths, mirroring the server's if/else-if branching.
     if (rule.campaignQualifiers?.length) {
@@ -81,7 +85,7 @@ export function validateRule(rule: VisibilityRuleDef, locale: string, context?: 
 
         // Rule schedule times are in ISO 8601 format, so we need to convert them to milliseconds
         if (rule.schedule) {
-            const now = Date.now();
+            const now = context?.currentTime ?? Date.now();
 
             if (rule.schedule.start) {
                 const startTimeInMillis = new Date(rule.schedule.start).getTime();

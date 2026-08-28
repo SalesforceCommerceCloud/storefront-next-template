@@ -801,7 +801,7 @@ function validateRule(rule, locale, context) {
 	} else {
 		if (rule.activeLocales && !rule.activeLocales.includes(locale)) return false;
 		if (rule.schedule) {
-			const now = Date.now();
+			const now = context?.currentTime ?? Date.now();
 			if (rule.schedule.start) {
 				const startTimeInMillis = new Date(rule.schedule.start).getTime();
 				if (Number.isNaN(startTimeInMillis) || startTimeInMillis >= now) return false;
@@ -816,6 +816,22 @@ function validateRule(rule, locale, context) {
 		}
 	}
 	return true;
+}
+
+//#endregion
+//#region src/design/data/page/is-visible-for-context.ts
+/**
+* Determines whether a component is visible for the current locale and shopper qualifiers.
+*
+* Components without visibility rules are visible. When rules are present, the
+* component is visible if at least one rule matches the provided context.
+*
+* @param rules - The component's visibility rules.
+* @param ctx - The locale and shopper qualifiers used to evaluate each rule.
+* @returns `true` when the component has no rules or at least one rule matches.
+*/
+function isVisibleForContext(rules, ctx) {
+	return rules.length === 0 || rules.some((rule) => validateRule(rule, ctx.locale, ctx.qualifiers));
 }
 
 //#endregion
@@ -898,24 +914,21 @@ function validateRule(rule, locale, context) {
 * already-deployed manifests rendering until the manifest builder starts
 * emitting `componentTypes`.
 */
-function composeComponentData({ nodeData, literalDefaultContent, defaultContent, localeContent, typeDefs }) {
-	const fallbackContent = Object.keys(defaultContent).length > 0 ? defaultContent : literalDefaultContent;
-	if (!typeDefs || Object.keys(typeDefs).length === 0) return {
-		...nodeData ?? {},
-		...fallbackContent,
-		...localeContent
-	};
-	const result = {};
+function composeComponentData({ content, typeDefs }) {
+	const result = { ...content };
+	if (!typeDefs || Object.keys(typeDefs).length === 0) return result;
 	for (const attrId of Object.keys(typeDefs)) {
 		const def = typeDefs[attrId];
-		if (Object.prototype.hasOwnProperty.call(localeContent, attrId)) result[attrId] = localeContent[attrId];
-		else if (Object.prototype.hasOwnProperty.call(fallbackContent, attrId)) result[attrId] = fallbackContent[attrId];
-		else if (def.defaultValue !== void 0) result[attrId] = def.defaultValue;
+		if (result[attrId] == null && def.defaultValue !== void 0) result[attrId] = def.defaultValue;
 	}
 	return result;
 }
 function processPage(node, processorContext) {
 	const { pruneInvisible = true } = processorContext;
+	const ruleQualifiers = {
+		...processorContext.qualifiers,
+		currentTime: processorContext.currentTime
+	};
 	const visitor = {
 		visitPage(ctx) {
 			const pageNode = ctx.node;
@@ -955,24 +968,19 @@ function processPage(node, processorContext) {
 		},
 		visitComponent(ctx) {
 			const componentInfo = processorContext.componentInfo[ctx.node.id];
-			const visibilityRules = componentInfo?.visibilityRules ?? [];
-			let isVisible = true;
-			if (visibilityRules.length > 0) {
-				if (!visibilityRules.some((rule) => validateRule(rule, processorContext.locale, processorContext.qualifiers))) {
-					if (pruneInvisible) return null;
-					isVisible = false;
-				}
-			}
-			const literalDefaultContent = componentInfo?.content?.default ?? {};
-			const defaultContent = componentInfo?.content?.[processorContext.defaultLocale] ?? {};
-			const localeContent = componentInfo?.content?.[processorContext.locale] ?? {};
+			const isVisible = isVisibleForContext(componentInfo?.visibilityRules ?? [], {
+				qualifiers: ruleQualifiers,
+				locale: processorContext.locale
+			});
+			if (!isVisible && pruneInvisible) return null;
 			const isLocalized = Boolean(componentInfo?.content?.[processorContext.locale]);
 			const typeDefs = processorContext.componentTypes?.[ctx.node.typeId]?.attributeDefinitions;
 			const composedData = composeComponentData({
-				nodeData: ctx.node.data,
-				literalDefaultContent,
-				defaultContent,
-				localeContent,
+				content: [
+					processorContext.locale,
+					...processorContext.localeFallbacks || [processorContext.defaultLocale],
+					"default"
+				].filter(Boolean).map((localeId) => componentInfo?.content?.[localeId]).find(Boolean) ?? {},
 				typeDefs
 			});
 			const name = componentInfo?.name ?? ctx.node.name;
@@ -1315,7 +1323,7 @@ async function resolvePage(options) {
 * no page-level variations. The qualifier context is only resolved when the
 * manifest's pre-computed `requiresContext` flag is `true`.
 */
-async function resolveComponentFlow({ id, locale, defaultLocale, manifestStorage, contextResolver, attrCtx, pruneInvisible = true }) {
+async function resolveComponentFlow({ id, locale, defaultLocale, localeFallbacks, manifestStorage, contextResolver, attrCtx, pruneInvisible = true, currentTime }) {
 	const componentManifest = await manifestStorage.getComponentManifest(id);
 	if (!componentManifest) return null;
 	let context = null;
@@ -1326,8 +1334,10 @@ async function resolveComponentFlow({ id, locale, defaultLocale, manifestStorage
 		componentInfo: componentManifest.componentInfo,
 		locale,
 		defaultLocale,
+		localeFallbacks,
 		attrCtx,
-		pruneInvisible
+		pruneInvisible,
+		currentTime
 	});
 }
 /**
@@ -1338,7 +1348,7 @@ async function resolveComponentFlow({ id, locale, defaultLocale, manifestStorage
 * returns a SCAPI Page — or `null` when the id can't be resolved, the manifest
 * is missing, or no variation qualifies.
 */
-async function resolvePageFlow({ id, identifierType, aspectType, categoryId, locale, defaultLocale, manifestStorage, contextResolver, attrCtx, pruneInvisible = true }) {
+async function resolvePageFlow({ id, identifierType, aspectType, categoryId, locale, defaultLocale, manifestStorage, contextResolver, attrCtx, pruneInvisible = true, currentTime, localeFallbacks }) {
 	let resolvedId = null;
 	if (ContentAssignmentResolvers.has(identifierType)) {
 		const siteManifest = await manifestStorage.getSiteManifest();
@@ -1373,12 +1383,14 @@ async function resolvePageFlow({ id, identifierType, aspectType, categoryId, loc
 		pageInfo: { regions: pageResults.entry.regions },
 		locale,
 		defaultLocale,
+		localeFallbacks,
 		attrCtx: resolvedAttrCtx,
 		componentTypes: pageManifest.componentTypes,
-		pruneInvisible
+		pruneInvisible,
+		currentTime
 	});
 }
 
 //#endregion
-export { RequiredError, processPage, resolvePage, transformComponent, transformPage, transformRegion, validateRule };
+export { RequiredError, isVisibleForContext, processPage, resolvePage, transformComponent, transformPage, transformRegion, validateRule };
 //# sourceMappingURL=design-data.js.map

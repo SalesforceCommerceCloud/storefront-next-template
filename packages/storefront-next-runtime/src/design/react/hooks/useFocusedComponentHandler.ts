@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { useDesignState } from './useDesignState';
+import { useDesignSelector } from './useDesignSelector';
 
 /**
  * Focuses a component when the focused component id matches the content link UUID.
@@ -27,13 +27,14 @@ import { useDesignState } from './useDesignState';
 export function useFocusedComponentHandler(
     contentLinkUuid: string,
     nodeRef: React.RefObject<Element | null>,
-    disabled = false
+    disabled: boolean
 ): void {
-    const { focusedContentLinkUuid, focusComponent } = useDesignState();
+    const focusComponent = useDesignSelector((s) => s.focusComponent);
+    const isFocused = useDesignSelector((s) => s.focusedContentLinkUuid === contentLinkUuid);
 
     React.useEffect(() => {
-        if (!disabled && focusedContentLinkUuid === contentLinkUuid && nodeRef.current) {
+        if (!disabled && isFocused && nodeRef.current) {
             focusComponent(nodeRef.current);
         }
-    }, [disabled, focusedContentLinkUuid, contentLinkUuid, focusComponent, nodeRef]);
+    }, [isFocused, focusComponent, nodeRef, disabled]);
 }

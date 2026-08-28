@@ -15,12 +15,6 @@
                     "visible": true,
                     "data": {
                         "heading": "Collection Été",
-                        "backgroundImage": {
-                            "focalPoint": { "x": 0.5, "y": 0.25 },
-                            "metaData": { "width": 1920, "height": 1080 },
-                            "url": "https://www.shop.example/on/demandware.static/-/Library-Sites-RefArchSharedLibrary/fr_FR/v1/heroes/summer-2026.jpg"
-                        },
-                        "ctaLink": "/search?cgid=new-arrivals",
                         "body": "<p>Découvrez notre <a href=\"/page/summer-lookbook\">lookbook</a>. <img src=\"https://www.shop.example/on/demandware.static/-/Library-Sites-RefArchSharedLibrary/fr_FR/v1/icons/arrow.svg\"/></p>"
                     }
                 },
@@ -32,25 +26,7 @@
                     "localized": true,
                     "visible": true,
                     "data": {
-                        "title": "Guide Livraison Gratuite",
-                        "document": "https://www.shop.example/on/demandware.static/-/Library-Sites-RefArchSharedLibrary/fr_FR/v1/docs/shipping-guide.pdf",
-                        "relatedContent": {
-                            "id": "promo-banner-rec",
-                            "type": {
-                                "id": "promo_record",
-                                "attributeDefinitions": [
-                                    { "id": "promoName", "type": "string" },
-                                    { "id": "promoImage", "type": "image" }
-                                ]
-                            },
-                            "attributes": {
-                                "promoName": "Holiday Promo",
-                                "promoImage": {
-                                    "metaData": { "width": 400, "height": 200 },
-                                    "url": "https://www.shop.example/on/demandware.static/-/Library-Sites-RefArchSharedLibrary/fr_FR/v1/promos/holiday.png"
-                                }
-                            }
-                        }
+                        "title": "Guide Livraison Gratuite"
                     }
                 }
             ]

@@ -1,8 +1,38 @@
 import { n as createClientApi } from "./messaging-api.js";
-import { n as usePageDesignerMode } from "./PageDesignerProvider.js";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { i as usePageDesignerMode, n as useDesignContext, t as DesignContext } from "./DesignContext2.js";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Fragment, jsx } from "react/jsx-runtime";
 
+//#region src/design/react/context/designStore.ts
+function createDesignStore(initial) {
+	let snapshot = initial;
+	const listeners = /* @__PURE__ */ new Set();
+	return {
+		getSnapshot: () => snapshot,
+		subscribe: (listener) => {
+			listeners.add(listener);
+			return () => {
+				listeners.delete(listener);
+			};
+		},
+		setState: (next) => {
+			if (next === snapshot) return;
+			snapshot = next;
+			listeners.forEach((listener) => listener());
+		}
+	};
+}
+
+//#endregion
+//#region src/design/react/context/DesignStoreContext.ts
+/**
+* Carries the external design-state store to consumers via `useDesignSelector`.
+* Runs alongside `DesignStateContext`, which remains the write-side source of
+* truth that the store mirrors.
+*/
+const DesignStoreContext = React.createContext(null);
+
+//#endregion
 //#region src/design/react/hooks/useInteraction.ts
 /**
 * Base hook that provides common interaction patterns for design-time functionality.
@@ -13,22 +43,74 @@ import { Fragment, jsx } from "react/jsx-runtime";
 */
 function useInteraction(config) {
 	const [state, setState] = useState(config.initialState);
-	const { isDesignMode, clientApi } = useDesignContext();
+	const { isDesignMode, clientApi } = useDesignContext() ?? {};
+	const stateRef = useRef(state);
+	stateRef.current = state;
+	const clientApiRef = useRef(clientApi ?? null);
+	clientApiRef.current = clientApi ?? null;
+	const actionsFactoryRef = useRef(config.actions);
+	actionsFactoryRef.current = config.actions;
+	const eventHandlersRef = useRef(config.eventHandlers);
+	eventHandlersRef.current = config.eventHandlers;
 	useEffect(() => {
 		if (!isDesignMode || !clientApi) return () => {};
-		const unsubscribeFunctions = Object.entries(config.eventHandlers ?? {}).map(([eventName, entry]) => clientApi.on(eventName, (event) => entry.handler(event, setState)));
+		const unsubscribeFunctions = Object.keys(eventHandlersRef.current ?? {}).map((eventName) => clientApi.on(eventName, (event) => eventHandlersRef.current?.[eventName]?.handler(event, setState)));
 		return () => {
 			unsubscribeFunctions.forEach((unsubscribe) => unsubscribe());
 		};
-	}, [
-		isDesignMode,
-		clientApi,
-		config.eventHandlers
-	]);
-	return {
+	}, [isDesignMode, clientApi]);
+	const stableActionsRef = useRef(null);
+	if (stableActionsRef.current === null && config.actions) {
+		const initialActions = config.actions(stateRef.current, setState, clientApiRef.current);
+		const wrapped = {};
+		for (const key of Object.keys(initialActions)) wrapped[key] = (...args) => actionsFactoryRef.current?.(stateRef.current, setState, clientApiRef.current)[key](...args);
+		stableActionsRef.current = wrapped;
+	}
+	return useMemo(() => ({
 		state,
-		...config.actions?.(state, setState, clientApi ?? null) ?? {}
-	};
+		...stableActionsRef.current
+	}), [state]);
+}
+
+//#endregion
+//#region src/design/react/utils/isValueChanged.ts
+/**
+* Copyright 2026 Salesforce, Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+/**
+* Shallow, by-value inequality check for two plain-object maps.
+*
+* Returns `true` when the objects differ by key count or by any top-level
+* value reference, `false` when they are shallowly equal.
+*/
+function isValueChanged(obj1, obj2) {
+	if (Object.is(obj1, obj2)) return false;
+	if (Array.isArray(obj1)) {
+		if (Array.isArray(obj2)) return obj1.length !== obj2.length || obj1.some((value, index) => !Object.is(value, obj2[index]));
+		return true;
+	}
+	if (typeof obj1 === "object" && obj1 !== null && typeof obj2 === "object" && obj2 !== null) return Object.keys(obj1).length !== Object.keys(obj2).length || Object.entries(obj1).some(([key, value]) => !Object.is(value, obj2?.[key]));
+	return true;
+}
+
+//#endregion
+//#region src/design/react/hooks/useMemoObject.ts
+function useMemoObject(obj) {
+	const objRef = useRef(null);
+	if (!objRef.current || isValueChanged(objRef.current, obj)) objRef.current = obj;
+	return objRef.current;
 }
 
 //#endregion
@@ -58,10 +140,10 @@ function useSelectInteraction({ contentLinkMap }) {
 			});
 		} })
 	});
-	return {
+	return useMemoObject({
 		selectedContentLinkUuid,
 		setSelectedComponent
-	};
+	});
 }
 
 //#endregion
@@ -91,10 +173,10 @@ function useHoverInteraction({ contentLinkMap }) {
 			setState(componentUuid);
 		} })
 	});
-	return {
+	return useMemoObject({
 		hoveredContentLinkUuid,
 		setHoveredComponent
-	};
+	});
 }
 
 //#endregion
@@ -108,7 +190,7 @@ function useDeleteInteraction({ selectedContentLinkUuid, setSelectedComponent })
 			if (selectedContentLinkUuid === event.contentLinkUuid) setSelectedComponent("");
 		} })
 	});
-	return { deleteComponent };
+	return useMemoObject({ deleteComponent });
 }
 
 //#endregion
@@ -125,10 +207,10 @@ function useFocusInteraction({ setSelectedComponent }) {
 			setState(null);
 		} })
 	});
-	return {
+	return useMemoObject({
 		focusedContentLinkUuid,
 		focusComponent
-	};
+	});
 }
 
 //#endregion
@@ -155,7 +237,7 @@ function useScrollInteraction() {
 			});
 		} })
 	});
-	return { notifyWindowScrollChange };
+	return useMemoObject({ notifyWindowScrollChange });
 }
 
 //#endregion
@@ -511,7 +593,7 @@ function useDragInteraction({ nodeToTargetMap }) {
 		}
 		return () => {};
 	}, [dragState.scrollDirection, scrollFactorRef]);
-	return {
+	return useMemoObject({
 		dragState,
 		setPendingDragContentLinkUuid,
 		commitCurrentDropTarget,
@@ -519,11 +601,23 @@ function useDragInteraction({ nodeToTargetMap }) {
 		updateComponentMove,
 		dropComponent,
 		cancelDrag
-	};
+	});
 }
 
 //#endregion
 //#region src/design/react/hooks/useComponentUpdateInteraction.ts
+function getComponentUpdatesFromComponents(components, seed = {}) {
+	return Object.entries(components).reduce((acc, [id, componentInfo]) => {
+		acc[id] = {};
+		if (componentInfo.name) acc[id].name = seed[id]?.name ?? componentInfo.name;
+		if (componentInfo.properties) acc[id].properties = {
+			...componentInfo.properties,
+			...seed[id]?.properties
+		};
+		if (componentInfo.visibility) acc[id].visibility = seed[id]?.visibility ?? componentInfo.visibility;
+		return acc;
+	}, {});
+}
 /**
 * Custom hook that manages component update state and handles
 * client-host communication for component update events.
@@ -537,31 +631,76 @@ function useComponentUpdateInteraction() {
 	const { state: componentUpdates } = useInteraction({
 		initialState: {},
 		eventHandlers: {
+			ClientConfigurationChanged: { handler: (event, setState) => {
+				setState((prev) => event.changeType === "replace" ? getComponentUpdatesFromComponents(event.components) : getComponentUpdatesFromComponents(event.components, prev));
+			} },
 			ClientAcknowledged: { handler: (event, setState) => {
-				const initialUpdates = {};
-				Object.entries(event.components).forEach(([id, componentInfo]) => {
-					if (componentInfo.name) initialUpdates[id] = { name: componentInfo.name };
+				setState(getComponentUpdatesFromComponents(event.components));
+			} },
+			ComponentReset: { handler: (event, setState) => {
+				setState((prev) => {
+					if (!prev[event.componentId]) return prev;
+					if (!event.changeTypes) {
+						const remainingUpdates = { ...prev };
+						delete remainingUpdates[event.componentId];
+						return remainingUpdates;
+					}
+					const updatedComponent = { ...prev[event.componentId] };
+					event.changeTypes.forEach((type) => delete updatedComponent[type]);
+					return {
+						...prev,
+						[event.componentId]: updatedComponent
+					};
 				});
-				if (Object.keys(initialUpdates).length > 0) setState((prev) => ({
-					...prev,
-					...initialUpdates
-				}));
 			} },
 			ComponentUpdated: { handler: (event, setState) => {
 				setState((prev) => {
 					const componentId = event.componentId;
 					const updated = { ...prev[componentId] || {} };
-					if (event.changeType === "name") updated.name = event.newValue;
-					else if (event.changeType === "visibility") updated.visibility = event.newValue;
+					switch (event.changeType) {
+						case "name":
+							updated.name = event.newValue;
+							break;
+						case "visibility":
+							updated.visibility = event.newValue;
+							break;
+						default: break;
+					}
 					return {
 						...prev,
 						[componentId]: updated
 					};
 				});
+			} },
+			ComponentPropertiesChanged: { handler: (event, setState) => {
+				if (!event.properties) return;
+				setState((prev) => {
+					const changeType = event.changeType ?? "partial";
+					const componentId = event.componentId;
+					const existing = prev[componentId] || {};
+					let basisProperties;
+					let isUnchanged = true;
+					if (changeType === "partial") {
+						basisProperties = existing.properties;
+						isUnchanged = Object.entries(event.properties).every(([key, value]) => Object.is(value, basisProperties?.[key]));
+					} else isUnchanged = false;
+					if (isUnchanged) return prev;
+					const mergedProperties = {
+						...basisProperties,
+						...event.properties
+					};
+					return {
+						...prev,
+						[componentId]: {
+							...existing,
+							properties: mergedProperties
+						}
+					};
+				});
 			} }
 		}
 	});
-	return { componentUpdates };
+	return useMemoObject({ componentUpdates });
 }
 
 //#endregion
@@ -612,24 +751,18 @@ const DesignStateProvider = ({ children }) => {
 		contentLinkMap,
 		registerContentLink
 	]);
-	return /* @__PURE__ */ jsx(DesignStateContext.Provider, {
-		value: state,
-		children
+	const storeRef = React.useRef(null);
+	if (!storeRef.current) storeRef.current = createDesignStore(state);
+	React.useLayoutEffect(() => {
+		storeRef.current?.setState(state);
+	}, [state]);
+	return /* @__PURE__ */ jsx(DesignStoreContext.Provider, {
+		value: storeRef.current,
+		children: /* @__PURE__ */ jsx(DesignStateContext.Provider, {
+			value: state,
+			children
+		})
 	});
-};
-
-//#endregion
-//#region src/design/react/hooks/useDesignState.ts
-/**
-* Custom hook that manages design-time component state by composing
-* individual interaction hooks for better maintainability and testability.
-*
-* @returns Combined design state from all interactions
-*/
-const useDesignState = () => {
-	const context = React.useContext(DesignStateContext);
-	if (!context) throw new Error("useDesignState must be used within a DesignStateProvider");
-	return context;
 };
 
 //#endregion
@@ -670,10 +803,44 @@ function useDebouncedCallback(callback, interval, deps = []) {
 }
 
 //#endregion
+//#region src/design/react/hooks/useDesignSelector.ts
+/**
+* Subscribe to a slice of design state; re-render only when that slice changes
+* per the equality function (default `Object.is`).
+*
+* The `useSyncExternalStore` selector overload is intentionally not used because
+* it re-runs the selector on every store change and compares results with
+* `Object.is` only — a selector that derives a NEW object (e.g. a merged props
+* bag) would loop forever. Instead we cache the last selected value in a ref and
+* only publish a new value when `isEqual` reports a real change, so derived
+* objects are safe.
+*/
+function useDesignSelector(selector, isEqual = Object.is) {
+	const store = React.useContext(DesignStoreContext);
+	if (!store) throw new Error("useDesignSelector must be used within a DesignStateProvider");
+	const selectorRef = React.useRef(selector);
+	const isEqualRef = React.useRef(isEqual);
+	selectorRef.current = selector;
+	isEqualRef.current = isEqual;
+	const lastSelectedRef = React.useRef(null);
+	const getSelectedSnapshot = React.useCallback(() => {
+		const selected = selectorRef.current(store.getSnapshot());
+		const cached = lastSelectedRef.current;
+		if (cached && isEqualRef.current(cached.value, selected)) return cached.value;
+		lastSelectedRef.current = { value: selected };
+		return selected;
+	}, [store]);
+	return React.useSyncExternalStore(store.subscribe, getSelectedSnapshot, getSelectedSnapshot);
+}
+
+//#endregion
 //#region src/design/react/hooks/useGlobalListeners.ts
 const FPS_60 = 1e3 / 60;
 function useGlobalListeners() {
-	const { dropComponent, updateComponentMove, cancelDrag, notifyWindowScrollChange } = useDesignState();
+	const dropComponent = useDesignSelector((s) => s.dropComponent);
+	const updateComponentMove = useDesignSelector((s) => s.updateComponentMove);
+	const cancelDrag = useDesignSelector((s) => s.cancelDrag);
+	const notifyWindowScrollChange = useDesignSelector((s) => s.notifyWindowScrollChange);
 	const dragListener = useThrottledCallback((event) => updateComponentMove({
 		x: event.clientX,
 		y: event.clientY
@@ -731,13 +898,6 @@ const DesignApp = ({ children }) => {
 //#endregion
 //#region src/design/react/context/DesignContext.tsx
 const noop = () => {};
-const DesignContext = React.createContext({
-	isDesignMode: false,
-	isConnected: false,
-	pageDesignerConfig: null,
-	clientPage: null,
-	setClientPage: noop
-});
 /**
 * Provider component that enables design-time functionality for child components.
 * Sets up client-host communication and manages component selection state.
@@ -747,7 +907,7 @@ const DesignContext = React.createContext({
 * @param clientId - Id for the client API
 * @returns JSX element wrapping children with design context
 */
-const DesignProvider = ({ children, targetOrigin, clientId, usid, clientConnectionTimeout, clientConnectionInterval, clientLogger = noop }) => {
+const DesignProvider = ({ children, targetOrigin, clientId, usid, clientConnectionTimeout, clientConnectionInterval, pageUpdateMode = "server", clientLogger = noop }) => {
 	const { isDesignMode } = usePageDesignerMode();
 	const [isConnected, setIsConnected] = React.useState(false);
 	const [pageDesignerConfig, setPageDesignerConfig] = React.useState(null);
@@ -769,17 +929,24 @@ const DesignProvider = ({ children, targetOrigin, clientId, usid, clientConnecti
 		clientId,
 		clientLogger
 	]);
+	const resetState = React.useCallback(() => {
+		setPageDesignerConfig(null);
+		setClientPage(null);
+		setIsConnected(false);
+	}, []);
 	React.useEffect(() => {
 		clientApi.connect({
 			timeout: clientConnectionTimeout,
 			interval: clientConnectionInterval,
 			onHostConnected: (event) => {
 				setPageDesignerConfig(event);
+				clientApi.on("ClientConfigurationChanged", (configEvent) => {
+					setPageDesignerConfig(configEvent);
+				});
 				setIsConnected(true);
 			},
 			onHostDisconnected: (reconnect) => {
-				setPageDesignerConfig(null);
-				setIsConnected(false);
+				resetState();
 				reconnect();
 			},
 			onError: () => {},
@@ -787,23 +954,24 @@ const DesignProvider = ({ children, targetOrigin, clientId, usid, clientConnecti
 		});
 		return () => {
 			clientApi.disconnect();
-			setPageDesignerConfig(null);
-			setIsConnected(false);
+			resetState();
 		};
 	}, [
 		clientApi,
 		clientConnectionTimeout,
 		clientConnectionInterval,
-		usid
+		usid,
+		resetState
 	]);
 	const contextValue = React.useMemo(() => ({
 		isDesignMode,
 		clientApi,
 		isConnected,
 		pageDesignerConfig,
+		pageUpdateMode,
 		clientPage,
 		setClientPage: (page) => {
-			if (page !== clientPageRef.current) {
+			if (pageUpdateMode === "server" && page.id !== clientPageRef.current?.id) {
 				clientPageRef.current = page;
 				setClientPage(page);
 				clientApi?.notifyClientPageChanged({ page });
@@ -815,7 +983,8 @@ const DesignProvider = ({ children, targetOrigin, clientId, usid, clientConnecti
 		isConnected,
 		pageDesignerConfig,
 		clientPage,
-		setClientPage
+		setClientPage,
+		pageUpdateMode
 	]);
 	return /* @__PURE__ */ jsx(DesignContext.Provider, {
 		value: contextValue,
@@ -827,14 +996,7 @@ DesignProvider.defaultProps = {
 	clientConnectionTimeout: 6e4,
 	clientConnectionInterval: 1e3
 };
-/**
-* Custom hook to access the design context
-* Provides access to design mode state and component selection functionality
-*
-* @returns The current design context
-*/
-const useDesignContext = () => React.useContext(DesignContext);
 
 //#endregion
-export { useDesignState as a, useThrottledCallback as i, DesignProvider as n, isComponentTypeAllowedInRegion as o, useDesignContext as r, useComponentDiscovery as s, DesignContext as t };
+export { useComponentDiscovery as a, isComponentTypeAllowedInRegion as i, useDesignSelector as n, useThrottledCallback as r, DesignProvider as t };
 //# sourceMappingURL=DesignContext.js.map

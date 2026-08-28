@@ -71,6 +71,12 @@ interface HostToClientConfiguration {
    * The regions by id that are available in the component tree.
    */
   regions: Record<string, RegionInfo>;
+  /**
+   * The initial page data to render. Only meaningful in client preview mode,
+   * where the client seeds its page from this value; a host that isn't driving
+   * live preview can omit it.
+   */
+  page?: ShopperExperience.schemas['Page'];
 }
 /**
  * The default keys that are forwarded from the host to the client.
@@ -89,6 +95,14 @@ interface ComponentInfo {
    * The component type.
    */
   type: string;
+  /**
+   * The component properties.
+   */
+  properties: Record<string, unknown>;
+  /**
+   * Whether the component is visible or not.
+   */
+  visibility?: 'visible' | 'hidden';
   /**
    * The custom name for the component.
    */
@@ -240,14 +254,16 @@ interface ClientAcknowledgedEvent extends WithBaseEvent, HostToClientConfigurati
  */
 interface ClientConfigurationChangedEvent extends WithBaseEvent, HostToClientConfiguration {
   eventType: 'ClientConfigurationChanged';
+  /**
+   * How the client reconciles its local component overrides against this configuration.
+   * - "reconcile" (the default): prior local edits win over the incoming configuration
+   *   for the same component, so in-flight edits survive a live config sync.
+   * - "replace": discard local overrides entirely — this configuration is a clean slate,
+   *   matching the behavior of the initial {@link ClientAcknowledgedEvent} handshake.
+   */
+  changeType?: 'reconcile' | 'replace';
 }
-/**
- * Emits when a component is updated in the editor.
- *
- * @target client
- * @group Events
- */
-interface ComponentUpdatedEvent extends WithBaseEvent {
+interface BaseComponentUpdatedEvent extends WithBaseEvent {
   eventType: 'ComponentUpdated';
   /**
    * The unique identifier of the component
@@ -260,11 +276,65 @@ interface ComponentUpdatedEvent extends WithBaseEvent {
   /**
    * The new value after the change
    */
-  newValue: unknown;
+  newValue?: unknown;
   /**
    * The old value before the change (optional)
    */
   oldValue?: unknown;
+}
+/**
+ * Emits when component name is updated in the editor.
+ *
+ * @target client
+ * @group Events
+ */
+interface ComponentNameUpdatedEvent extends BaseComponentUpdatedEvent {
+  changeType: 'name';
+  /**
+   * The new value after the change
+   */
+  newValue: string;
+  /**
+   * The old value before the change (optional)
+   */
+  oldValue?: string;
+}
+/**
+ * Emits when component visibility is updated in the editor.
+ *
+ * @target client
+ * @group Events
+ */
+interface ComponentVisibilityUpdatedEvent extends BaseComponentUpdatedEvent {
+  changeType: 'visibility';
+  /**
+   * The new value after the change
+   */
+  newValue: 'hidden' | 'visible';
+  /**
+   * The old value before the change (optional)
+   */
+  oldValue?: 'hidden' | 'visible';
+}
+/**
+ * Emits when component name is updated in the editor.
+ *
+ * @target client
+ * @group Events
+ */
+type ComponentUpdatedEvent = ComponentVisibilityUpdatedEvent | ComponentNameUpdatedEvent;
+/**
+ * Emits when component some of it's override and updated values should be cleared from memory.
+ *
+ * @target client
+ * @group Events
+ */
+interface ComponentResetEvent extends WithBaseEvent, WithComponentId {
+  eventType: 'ComponentReset';
+  /**
+   * The update values to reset
+   */
+  changeTypes?: ('visibility' | 'properties' | 'name')[];
 }
 /**
  * Emits when dragging from the host enters the client window.
@@ -305,6 +375,12 @@ interface ClientWindowDragDroppedEvent extends WithBaseEvent, WithComponentType,
  */
 interface ComponentPropertiesChangedEvent<TProps extends Record<string, unknown> = Record<string, unknown>> extends WithBaseEvent, WithComponentId {
   eventType: 'ComponentPropertiesChanged';
+  /**
+   * The type of properties change.
+   * - "partial": The properties only include properties that have changed and not a inclusive list of all properties.
+   * - "full": The properties contains all properties, including ones that may not have changed.
+   */
+  changeType?: 'partial' | 'full';
   /**
    * The new properties of the component.
    */
@@ -594,6 +670,7 @@ interface ClientEventNameMapping extends IsomorphicEventNameMapping {
   ClientAcknowledged: ClientAcknowledgedEvent;
   ClientConfigurationChanged: ClientConfigurationChangedEvent;
   ComponentUpdated: ComponentUpdatedEvent;
+  ComponentReset: ComponentResetEvent;
   ClientWindowDragEntered: ClientWindowDragEnteredEvent;
   ClientWindowDragMoved: ClientWindowDragMovedEvent;
   ClientWindowDragExited: ClientWindowDragExitedEvent;
@@ -1208,6 +1285,22 @@ interface HostApi extends IsomorphicApi {
    * ```
    */
   notifyComponentUpdated(event: EventPayload<ComponentUpdatedEvent>): void;
+  /**
+   * Notifies the client that a component has had it's working/pending state reset.
+   *
+   * @param event - The component reset event containing the component ID and an optional list of change types to clear.
+   *                If no change types are provided, all will be cleared.
+   * @stability development
+   *
+   * @example
+   * ```typescript
+   * api.notifyComponentReset({
+   *   componentId: 'comp-123',
+   *   changeTypes: ['properties', 'visibility'],
+   * });
+   * ```
+   */
+  notifyComponentReset(event: EventPayload<ComponentResetEvent>): void;
 }
 //#endregion
 //#region src/design/messaging-api/client.d.ts
@@ -1239,5 +1332,5 @@ declare function createHostApi({
   logger
 }: HostConfiguration): HostApi;
 //#endregion
-export { WindowScrollChangedEvent as $, ClientWindowDragExitedEvent as A, ComponentMovedToRegionEvent as B, ClientConfigurationChangedEvent as C, ClientReady as D, ClientPageChangedEvent as E, ComponentDragStartedEvent as F, DefaultForwardedKeys as G, ComponentSelectedEvent as H, ComponentFocusedEvent as I, HostKeyPressedEvent as J, ErrorEvent as K, ComponentHoveredInEvent as L, ComponentAddedToRegionEvent as M, ComponentDeletedEvent as N, ClientWindowDragDroppedEvent as O, ComponentDeselectedEvent as P, RegionInfo as Q, ComponentHoveredOutEvent as R, ClientAcknowledgedEvent as S, ClientInitializedEvent as T, ComponentType as U, ComponentPropertiesChangedEvent as V, ComponentUpdatedEvent as W, MediaChangedEvent as X, HostToClientConfiguration as Y, PageSettingsChangedEvent as Z, IsomorphicEventNameMapping as _, ClientEventNameMapping as a, WithEventType as b, EventHandler as c, HostApi as d, HostConfiguration as f, IsomorphicConfiguration as g, IsomorphicApi as h, ClientConfiguration as i, ClientWindowDragMovedEvent as j, ClientWindowDragEnteredEvent as k, EventPayload as l, HostMessage as m, createClientApi as n, ClientMessage as o, HostEventNameMapping as p, HostDisconnected as q, ClientApi as r, ConfigFactory as s, createHostApi as t, EventTypeName as u, MessageEmitter as v, ClientDisconnectedEvent as w, WithMeta as x, Source as y, ComponentInfo as z };
+export { RegionInfo as $, ClientWindowDragExitedEvent as A, ComponentMovedToRegionEvent as B, ClientConfigurationChangedEvent as C, ClientReady as D, ClientPageChangedEvent as E, ComponentDragStartedEvent as F, ComponentUpdatedEvent as G, ComponentResetEvent as H, ComponentFocusedEvent as I, HostDisconnected as J, DefaultForwardedKeys as K, ComponentHoveredInEvent as L, ComponentAddedToRegionEvent as M, ComponentDeletedEvent as N, ClientWindowDragDroppedEvent as O, ComponentDeselectedEvent as P, PageSettingsChangedEvent as Q, ComponentHoveredOutEvent as R, ClientAcknowledgedEvent as S, ClientInitializedEvent as T, ComponentSelectedEvent as U, ComponentPropertiesChangedEvent as V, ComponentType as W, HostToClientConfiguration as X, HostKeyPressedEvent as Y, MediaChangedEvent as Z, IsomorphicEventNameMapping as _, ClientEventNameMapping as a, WithEventType as b, EventHandler as c, HostApi as d, WindowScrollChangedEvent as et, HostConfiguration as f, IsomorphicConfiguration as g, IsomorphicApi as h, ClientConfiguration as i, ClientWindowDragMovedEvent as j, ClientWindowDragEnteredEvent as k, EventPayload as l, HostMessage as m, createClientApi as n, ClientMessage as o, HostEventNameMapping as p, ErrorEvent as q, ClientApi as r, ConfigFactory as s, createHostApi as t, EventTypeName as u, MessageEmitter as v, ClientDisconnectedEvent as w, WithMeta as x, Source as y, ComponentInfo as z };
 //# sourceMappingURL=index.d.ts.map

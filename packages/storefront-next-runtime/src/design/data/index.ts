@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export { type PageProcessorContext, processPage } from './page/process-page';
+export { isVisibleForContext } from './page/is-visible-for-context';
 export {
     type PageVisitor,
     type VisitorContext,

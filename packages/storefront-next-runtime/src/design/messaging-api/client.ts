@@ -41,7 +41,6 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
 
     let isConnected = false;
     let connectionTimeoutId: number | null = null;
-    let hostConfig: HostToClientConfiguration | null = null;
 
     const clearConnectionTimeout = () => {
         if (connectionTimeoutId) {
@@ -89,7 +88,7 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
                     return;
                 }
 
-                hostConfig = event;
+                const hostConfig = event;
                 messenger.setRemoteId(event.meta.hostId);
                 clearConnectionTimeout();
 
@@ -103,10 +102,6 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
                 } catch (error) {
                     onError?.(error as Error);
                 }
-            }),
-            messenger.on('ClientConfigurationChanged', (event) => {
-                hostConfig = event;
-                onHostConnected?.(hostConfig);
             }),
             messenger.on('HostDisconnected', () => {
                 disconnect();

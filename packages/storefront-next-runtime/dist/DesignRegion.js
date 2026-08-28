@@ -1,7 +1,7 @@
 import "./messaging-api.js";
-import { a as useDesignState, o as isComponentTypeAllowedInRegion } from "./DesignContext.js";
+import { i as isComponentTypeAllowedInRegion, n as useDesignSelector } from "./DesignContext.js";
 import "./modeDetection.js";
-import "./PageDesignerProvider.js";
+import "./DesignContext2.js";
 import { n as useIsWithinEmbeddedSubtree, r as RegionContext } from "./EmbeddedSubtreeContext.js";
 import { i as useLabels, n as useComponentContext, o as useNodeToTargetStore, r as DesignFrame } from "./ComponentContext.js";
 import React, { useCallback, useMemo } from "react";
@@ -9,8 +9,8 @@ import { jsx } from "react/jsx-runtime";
 
 //#region src/design/react/hooks/useRegionDecoratorClasses.ts
 function useRegionDecoratorClasses({ regionId, componentTypeInclusions, componentTypeExclusions }) {
-	const { dragState: { currentDropTarget, componentType } } = useDesignState();
-	const isHovered = regionId && currentDropTarget?.regionId === regionId;
+	const isHovered = useDesignSelector((s) => regionId && s.dragState.currentDropTarget?.regionId === regionId);
+	const componentType = useDesignSelector((s) => s.dragState.componentType);
 	const isComponentAllowed = useMemo(() => isComponentTypeAllowedInRegion(componentType, componentTypeInclusions, componentTypeExclusions), [
 		componentType,
 		componentTypeInclusions,
@@ -34,10 +34,11 @@ function DesignRegion(props) {
 		componentTypeInclusions,
 		componentTypeExclusions
 	});
-	const { dragState } = useDesignState();
+	const dragComponentType = useDesignSelector((s) => s.dragState.componentType);
+	const isCurrentDropTarget = useDesignSelector((s) => s.dragState.currentDropTarget?.regionId === id);
 	const labels = useLabels();
+	const showFrame = Boolean(id && isCurrentDropTarget);
 	const isEmbedded = useIsWithinEmbeddedSubtree();
-	const showFrame = Boolean(id && dragState.currentDropTarget?.regionId === id);
 	const { contentLinkUuid: parentContentLinkUuid } = useComponentContext() ?? {};
 	useNodeToTargetStore({
 		type: "region",
@@ -54,9 +55,9 @@ function DesignRegion(props) {
 		contentLinkUuids
 	}), [id, contentLinkUuids]);
 	const handleDragOver = useCallback((event) => {
-		if (isComponentTypeAllowedInRegion(dragState.componentType, componentTypeInclusions, componentTypeExclusions)) event.preventDefault();
+		if (isComponentTypeAllowedInRegion(dragComponentType, componentTypeInclusions, componentTypeExclusions)) event.preventDefault();
 	}, [
-		dragState.componentType,
+		dragComponentType,
 		componentTypeInclusions,
 		componentTypeExclusions
 	]);

@@ -15,7 +15,7 @@
  */
 import type { ComponentInfo } from '../../messaging-api';
 import { useDesignContext } from '../context/DesignContext';
-import { useDesignState } from './useDesignState';
+import { useDesignSelector } from './useDesignSelector';
 
 /**
  * Hook that returns the current ComponentInfo for a given component ID,
@@ -25,14 +25,16 @@ import { useDesignState } from './useDesignState';
  * @returns The merged ComponentInfo or null if the component doesn't exist
  */
 export function useComponentInfo(componentId: string): ComponentInfo | null {
-    const { pageDesignerConfig } = useDesignContext();
-    const { componentUpdates } = useDesignState();
+    const { pageDesignerConfig } = useDesignContext() ?? {};
+    // id-scoped selector — subscribe to only this component's update record.
+    const componentUpdate = useDesignSelector((s) => s.componentUpdates?.[componentId]) ?? {};
     const baseComponentInfo = pageDesignerConfig?.components?.[componentId];
-    const updates = componentUpdates?.[componentId] ?? {};
 
     if (!baseComponentInfo) {
         return null;
     }
 
-    return { ...baseComponentInfo, ...updates };
+    const { name } = componentUpdate;
+
+    return { ...baseComponentInfo, name: name ?? baseComponentInfo.name };
 }
