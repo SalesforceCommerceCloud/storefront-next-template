@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import ProductQuantityPicker from '@/components/product-quantity-picker';
 import { useProductView } from '@/providers/product-view';
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
+import { addToCartWithAddons, type AdditionalItem } from '@/lib/product/add-to-cart-with-addons';
 import { useCheckAndExecutePendingAction } from '@/hooks/check-and-execute-pending-action';
 import { useTranslation } from 'react-i18next';
 import { UITarget } from '@/targets/ui-target';
@@ -26,11 +27,10 @@ import { UITarget } from '@/targets/ui-target';
 /** @feature-stub Express checkout buttons — remove this import and its JSX below to strip the stub */
 const ExpressPayments = lazy(() => import('@/components/checkout/components/express-payments'));
 
-export interface AdditionalItem {
-    productId: string;
-    quantity: number;
-    price?: number;
-}
+// `AdditionalItem` and the add-with-add-ons batching live in @/lib/product/add-to-cart-with-addons so
+// this component and the furniture ProductBottomBar share one implementation. Re-exported here for the
+// existing consumers that import it from this module.
+export type { AdditionalItem };
 
 interface ProductCartActionsProps {
     product: ShopperProducts.schemas['Product'];
@@ -142,25 +142,18 @@ export default function ProductCartActions({
         }
 
         try {
-            // Use handleUpdateCart in edit mode, handleAddToCart in add mode
+            // Use handleUpdateCart in edit mode; in add mode, batch any selected add-ons via the shared helper.
             if (isEditMode) {
                 await handleUpdateCart();
-            } else if (additionalItems.length > 0) {
-                // Additional items provided (e.g. service add-ons): add the main variant and the
-                // additional products together in one batch via the product-set path (separate line items).
-                await handleProductSetAddToCart([
-                    { product, variant: currentVariant ?? undefined, quantity },
-                    // Contract: the product-set add path reads ONLY `id` and `price` off each selection's
-                    // product (see `handleProductSetAddToCart` in use-product-actions.ts — it maps to
-                    // `productId`/`price`). We therefore synthesize a minimal stub rather than fetch the full
-                    // Product. If that path ever starts reading other fields, this cast must be revisited.
-                    ...additionalItems.map((item) => ({
-                        product: { id: item.productId, price: item.price } as ShopperProducts.schemas['Product'],
-                        quantity: item.quantity,
-                    })),
-                ]);
             } else {
-                await handleAddToCart();
+                await addToCartWithAddons({
+                    product,
+                    currentVariant,
+                    quantity,
+                    additionalItems,
+                    handleAddToCart,
+                    handleProductSetAddToCart,
+                });
             }
             // Call success callback after API completes
             onCartSuccess?.();

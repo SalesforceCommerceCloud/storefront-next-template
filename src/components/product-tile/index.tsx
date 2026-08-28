@@ -40,6 +40,7 @@ import {
     type DecoratedVariationAttributeValue,
 } from '@/lib/product/product-utils';
 import { getProductRating } from '@/lib/product/product-utils-plp';
+import { uiConfig } from '@/lib/config.ui';
 import { isDesktopViewport, useProductTileContext } from './context';
 import { DeferredWishlistButton } from './deferred-wishlist-button';
 import { useWishlistLoader } from '@/providers/wishlist';
@@ -364,7 +365,13 @@ const ProductTile = memo(
             const representedVariant = isMasterProd
                 ? product?.variants?.find((variant) => variant?.productId === product?.representedProduct?.id)
                 : undefined;
-            const defaultVariantPid = isMasterProd && !isBundleOrSet ? (product?.representedProduct?.id ?? null) : null;
+            // By default a master tile deep-links to the search API's represented variant (`?pid=…`)
+            // so the PDP opens on the variant shown in the tile. Verticals can opt every tile into
+            // linking to the bare master PDP instead (config flag) — furniture does, so the shopper
+            // configures from scratch. Bundles/sets never carry a variant pid.
+            const linkToMaster = uiConfig.pages.category.tileLinksToMasterProduct ?? false;
+            const defaultVariantPid =
+                isMasterProd && !isBundleOrSet && !linkToMaster ? (product?.representedProduct?.id ?? null) : null;
 
             // use the representedVariant values to get a product for PDP
             const initialVariationValue =

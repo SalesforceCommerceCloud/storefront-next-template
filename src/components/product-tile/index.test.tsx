@@ -55,6 +55,29 @@ vi.mock('@salesforce/storefront-next-runtime/design/react/core', async (importOr
     return { ...actual, usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }) };
 });
 
+// Drives the per-vertical "tiles link to the master PDP instead of the represented variant" flag
+// (furniture opts in). Partial mock so every other uiConfig value stays real; only the one flag is
+// made mutable via a getter read at render time.
+let mockTileLinksToMaster = false;
+vi.mock('@/lib/config.ui', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/config.ui')>();
+    return {
+        ...actual,
+        uiConfig: {
+            ...actual.uiConfig,
+            pages: {
+                ...actual.uiConfig.pages,
+                category: {
+                    ...actual.uiConfig.pages.category,
+                    get tileLinksToMasterProduct() {
+                        return mockTileLinksToMaster;
+                    },
+                },
+            },
+        },
+    };
+});
+
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 vi.mock('@/extensions/ratings-reviews/providers/product-reviews-context', () => ({
     ProductReviewsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -253,6 +276,16 @@ describe('ProductTile — lazy wishlist load on tile intent', () => {
 describe('ProductTile — PDP URL', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        mockTileLinksToMaster = false;
+    });
+
+    test('master product links to the master (no pid) when tileLinksToMasterProduct is enabled', () => {
+        mockTileLinksToMaster = true;
+        renderTile({ product: mockMasterProduct });
+        expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
+            'href',
+            `/global/en-GB/product/${mockMasterProduct.productId}`
+        );
     });
 
     test('standard product links to the product route without a pid', () => {
