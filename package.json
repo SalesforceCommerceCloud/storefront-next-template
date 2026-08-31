@@ -251,8 +251,8 @@
             },
             {
                 "name": "assets/\\(components\\)-\\(product-view\\)-child-products.*.js",
-                "limit": "90 kB",
-                "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection"
+                "limit": "91 kB",
+                "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection plus delivery-option presentation. The footwear mirror measures 90.7 kB; retain 0.3 kB of headroom."
             },
             {
                 "name": "assets/\\(components\\)-\\(cart-item-modal\\)-index.*.js",
@@ -261,13 +261,13 @@
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-                "limit": "93 kB",
-                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the Mirror footwear CI build measures it at 91.6 kB, so the 93 kB limit retains about 1.4 kB of headroom."
+                "limit": "95 kB",
+                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the direct footwear build measures it at 93.9 kB, so the 95 kB limit retains about 1.1 kB of headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-                "limit": "93 kB",
-                "comment": "English (GB) locale chunk. Same limit as en-US — translations are near-identical in size. Includes the shared PDP delivery-estimate content plus the footwear home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the Mirror footwear CI build measures it at 91.9 kB, so the 93 kB limit retains about 1.1 kB of headroom."
+                "limit": "95 kB",
+                "comment": "English (GB) locale chunk. Same limit as en-US; translations are near-identical in size. Includes the shared PDP delivery-estimate content plus the footwear home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the direct footwear build measures it at 94.6 kB, so the 95 kB limit retains about 0.4 kB of headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",

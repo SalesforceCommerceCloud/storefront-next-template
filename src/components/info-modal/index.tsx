@@ -115,6 +115,7 @@ export default function InfoModal({
     onOpenChange,
     onCloseAutoFocus,
     onOpenAutoFocus,
+    titleRef,
     data,
     className,
 }: InfoModalProps): ReactElement {
@@ -247,7 +248,7 @@ export default function InfoModal({
                     <>
                         <DialogHeader className="p-6 pt-8 pb-0 pr-12 text-left">
                             <DialogTitle
-                                id="estimated-delivery-modal-title"
+                                ref={titleRef}
                                 tabIndex={-1}
                                 className="text-2xl font-semibold text-foreground focus:outline-none">
                                 {data.title}
@@ -256,7 +257,10 @@ export default function InfoModal({
                         <div className="mt-4 border-b border-muted-foreground/25" aria-hidden />
                         <div className="overflow-y-auto max-h-[calc(90vh-180px)]">
                             <div className="p-6 space-y-6">
-                                <EstimatedDeliveryModalContent shippingOptions={data.shippingOptions} />
+                                <EstimatedDeliveryModalContent
+                                    contentTitle={data.contentTitle}
+                                    shippingOptions={data.shippingOptions}
+                                />
                             </div>
                             <div className="sticky bottom-0 border-t border-border bg-background p-6 pt-4">
                                 <Button className="w-full" onClick={() => onOpenChange(false)}>

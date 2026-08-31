@@ -98,6 +98,64 @@ describe('FulfillmentOptionPicker', () => {
         );
     });
 
+    it('supports a visually hidden radio description alongside interactive details', () => {
+        render(
+            <FulfillmentOptionPicker
+                options={options.map((option) => ({ ...option, description: undefined }))}
+                getOptionAriaDescription={(option) =>
+                    option.id === FULFILLMENT_OPTION_IDS.DELIVERY ? 'Enter a postal code for an estimate' : undefined
+                }
+                renderDetails={(option) =>
+                    option.id === FULFILLMENT_OPTION_IDS.DELIVERY ? (
+                        <button type="button">Enter postal code</button>
+                    ) : null
+                }
+            />
+        );
+
+        expect(screen.getByRole('radio', { name: /send to my address/i })).toHaveAccessibleDescription(
+            'Enter a postal code for an estimate'
+        );
+        expect(screen.getByText('Enter a postal code for an estimate')).toHaveClass('sr-only');
+        expect(screen.getByRole('button', { name: 'Enter postal code' })).toBeInTheDocument();
+    });
+
+    it('keeps a caller-provided title control interactive while preserving label in name', async () => {
+        const onChange = vi.fn();
+        const onTitleClick = vi.fn();
+        const user = userEvent.setup();
+        render(
+            <FulfillmentOptionPicker
+                value={FULFILLMENT_OPTION_IDS.PICKUP}
+                options={options}
+                onChange={onChange}
+                getOptionAriaLabel={(option) =>
+                    option.id === FULFILLMENT_OPTION_IDS.DELIVERY ? `${option.label}, Send to 94105` : option.label
+                }
+                renderTitle={(option) =>
+                    option.id === FULFILLMENT_OPTION_IDS.DELIVERY ? (
+                        <>
+                            Send to
+                            <button className="pointer-events-auto" onClick={onTitleClick}>
+                                94105
+                            </button>
+                        </>
+                    ) : undefined
+                }
+            />
+        );
+
+        expect(screen.getByRole('radio', { name: /send to my address/i })).toHaveAccessibleName(
+            'Send to my address, Send to 94105'
+        );
+        expect(screen.getByText('Send to').parentElement).not.toHaveClass('pointer-events-auto');
+        expect(screen.getByRole('button', { name: '94105' })).toHaveClass('pointer-events-auto');
+        await user.click(screen.getByRole('button', { name: '94105' }));
+
+        expect(onTitleClick).toHaveBeenCalledOnce();
+        expect(onChange).not.toHaveBeenCalled();
+    });
+
     it('does not render a picker for a single contributor', () => {
         render(<FulfillmentOptionPicker options={[options[0]]} />);
 

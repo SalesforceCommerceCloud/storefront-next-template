@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import type { Ref } from 'react';
+
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 import type { WriteReviewFormData, ReviewItem } from '@/extensions/ratings-reviews/lib/api/reviews.server';
 // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
@@ -101,6 +103,7 @@ export interface StarRatingDistributionModalData extends InfoModalDataBase {
 /** Data for destination-specific delivery options. */
 export interface EstimatedDeliveryModalData extends InfoModalDataBase {
     type: 'estimated-delivery';
+    contentTitle?: string;
     shippingOptions: ShippingEstimateOption[];
 }
 
@@ -138,6 +141,8 @@ export interface InfoModalProps {
     onCloseAutoFocus?: (event: Event) => void;
     /** Called before Dialog moves focus after opening. */
     onOpenAutoFocus?: (event: Event) => void;
+    /** Optional reference to the modal title for caller-managed initial focus. */
+    titleRef?: Ref<HTMLHeadingElement>;
     /** Modal data - structured data from adapter */
     data?: InfoModalData;
     /** Optional custom className for the dialog content */

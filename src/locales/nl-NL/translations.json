@@ -1435,6 +1435,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "Bezorgmethode",
+            "deliveryAddressDescription": "Bezorgen op het verzendadres",
             "deliveryDescription": "Voer uw postcode in om de leveringsschatting te zien"
         },
         "recommendations": {

@@ -45,7 +45,7 @@ describe('useFulfillmentOptions', () => {
         expect(synchronizeSelection).toHaveBeenCalledWith('delivery');
     });
 
-    it('does not auto-select a guarded contributor when the default is unavailable during server rendering', () => {
+    it('leaves fulfillment unselected when no available contributor can be selected automatically during server rendering', () => {
         function Probe() {
             const { value } = useFulfillmentOptions({
                 contributors: [
@@ -63,7 +63,7 @@ describe('useFulfillmentOptions', () => {
                             label: 'Pickup',
                             availability: available,
                         },
-                        onSelect: () => false,
+                        canAutoSelect: false,
                     },
                 ],
             });
@@ -71,7 +71,7 @@ describe('useFulfillmentOptions', () => {
             return createElement('span', null, value);
         }
 
-        expect(renderToString(createElement(Probe))).toContain('pickup');
+        expect(renderToString(createElement(Probe))).not.toContain('pickup');
     });
 
     it('orders static contributors and synchronizes selection', () => {
@@ -109,7 +109,7 @@ describe('useFulfillmentOptions', () => {
         expect(synchronizeSelection).toHaveBeenCalledWith('pickup');
     });
 
-    it('initially selects an available guarded contributor without invoking its handler', async () => {
+    it('does not initially select a contributor that cannot be selected automatically', async () => {
         const onSelect = vi.fn(() => false);
         const { result } = renderHook(() =>
             useFulfillmentOptions({
@@ -128,13 +128,14 @@ describe('useFulfillmentOptions', () => {
                             label: 'Pickup',
                             availability: available,
                         },
+                        canAutoSelect: false,
                         onSelect,
                     },
                 ],
             })
         );
 
-        await waitFor(() => expect(result.current.value).toBe('pickup'));
+        await waitFor(() => expect(result.current.value).toBeUndefined());
         expect(onSelect).not.toHaveBeenCalled();
     });
 
@@ -199,7 +200,7 @@ describe('useFulfillmentOptions', () => {
         expect(synchronizeSelection).toHaveBeenCalledWith('delivery');
     });
 
-    it('moves an unavailable selection to an available guarded contributor without invoking its handler', async () => {
+    it('clears an unavailable selection when its only fallback cannot be selected automatically', async () => {
         const onSelect = vi.fn(() => false);
         const { result, rerender } = renderHook(
             ({ deliveryAvailable }) =>
@@ -215,6 +216,7 @@ describe('useFulfillmentOptions', () => {
                         },
                         {
                             option: { id: 'pickup', label: 'Pickup', availability: available },
+                            canAutoSelect: false,
                             onSelect,
                         },
                     ],
@@ -226,7 +228,7 @@ describe('useFulfillmentOptions', () => {
 
         rerender({ deliveryAvailable: false });
 
-        await waitFor(() => expect(result.current.value).toBe('pickup'));
+        await waitFor(() => expect(result.current.value).toBeUndefined());
         expect(onSelect).not.toHaveBeenCalled();
     });
 
@@ -261,7 +263,7 @@ describe('useFulfillmentOptions', () => {
         expect(synchronizeSelection).toHaveBeenCalledWith('delivery');
     });
 
-    it('falls back to an available contributor when the default is unavailable', async () => {
+    it('does not fall back to a contributor that cannot be selected automatically when the default is unavailable', async () => {
         const synchronizeSelection = vi.fn();
         const onSelect = vi.fn(() => false);
         const { result } = renderHook(() =>
@@ -283,6 +285,7 @@ describe('useFulfillmentOptions', () => {
                             label: 'Pickup',
                             availability: available,
                         },
+                        canAutoSelect: false,
                         onSelect,
                     },
                 ],
@@ -290,9 +293,9 @@ describe('useFulfillmentOptions', () => {
             })
         );
 
-        await waitFor(() => expect(result.current.value).toBe('pickup'));
+        await waitFor(() => expect(result.current.value).toBeUndefined());
         expect(onSelect).not.toHaveBeenCalled();
-        expect(synchronizeSelection).toHaveBeenCalledWith('pickup');
+        expect(synchronizeSelection).not.toHaveBeenCalled();
     });
 
     it('selects the canonical delivery contributor when it is the default', async () => {

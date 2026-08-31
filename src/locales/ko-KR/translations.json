@@ -1494,6 +1494,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "수령 방법",
+            "deliveryAddressDescription": "배송지로 배송",
             "deliveryDescription": "우편번호을(를) 입력하여 배송 예상을 확인하세요"
         },
         "recommendations": {

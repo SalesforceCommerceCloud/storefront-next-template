@@ -1434,6 +1434,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "Fulfillment-Methode",
+            "deliveryAddressDescription": "An Lieferadresse liefern",
             "deliveryDescription": "PLZ eingeben, um die Lieferschätzung anzuzeigen"
         },
         "recommendations": {

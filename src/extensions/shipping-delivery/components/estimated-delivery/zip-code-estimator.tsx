@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import type { PostalCodeFormat } from '@/lib/shipping-estimate/postal-code-formats';
 
 interface ZipCodeEstimatorProps {
+    idPrefix: string;
     inputValue: string;
     isLoading: boolean;
     hasLookupFailure?: boolean;
@@ -31,6 +32,7 @@ interface ZipCodeEstimatorProps {
 }
 
 export default function ZipCodeEstimator({
+    idPrefix,
     inputValue,
     isLoading,
     hasLookupFailure = false,
@@ -50,31 +52,33 @@ export default function ZipCodeEstimator({
         ? t('postalCodePlaceholderExample', { term: termLabel, example: format.example })
         : t('postalCodePlaceholder', { term: termLabel });
 
-    const instructions = format.example
-        ? t('postalCodeInstructions', { term: termLabel, example: format.example })
-        : t('postalCodeInstructionsNoExample', { term: termLabel });
-
     const invalidMessage = format.example
         ? t('postalCodeInvalid', { term: termLabel, example: format.example })
         : t('postalCodeInvalidNoExample', { term: termLabel });
+    const inputId = `${idPrefix}-input`;
+    const messageId = `${idPrefix}-message`;
+    const errorId = `${idPrefix}-error`;
 
     return (
-        <div className="mt-3 space-y-3">
+        <form
+            className="mt-3 space-y-3"
+            onSubmit={(event) => {
+                event.preventDefault();
+                onCalculate();
+            }}>
             <div className="flex gap-2">
                 <div className="flex-1">
-                    <label htmlFor="estimated-delivery-zip-input" className="sr-only">
+                    <label htmlFor={inputId} className="sr-only">
                         {termLabel}
                     </label>
                     <input
-                        id="estimated-delivery-zip-input"
+                        id={inputId}
                         inputMode={format.inputMode}
                         maxLength={format.maxLength}
                         placeholder={placeholder}
                         aria-invalid={hasValidationError}
                         autoComplete="postal-code"
-                        aria-describedby={
-                            hasValidationError ? 'estimated-delivery-error' : 'estimated-delivery-message'
-                        }
+                        aria-describedby={hasValidationError ? errorId : hasLookupFailure ? messageId : undefined}
                         className={cn(
                             'w-full px-3 py-2 text-sm border rounded-ui transition-colors focus:outline-none focus:ring-2 bg-background',
                             hasValidationError
@@ -87,21 +91,17 @@ export default function ZipCodeEstimator({
                     />
                 </div>
                 <button
-                    type="button"
+                    type="submit"
                     className="px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap rounded-ui bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
                     disabled={isLoading}
-                    onClick={onCalculate}
-                    aria-label={t('calculateAriaLabel')}>
+                    aria-label={isLoading ? t('calculating') : t('calculateAriaLabel')}>
                     {isLoading ? t('calculating') : t('calculateButton')}
                 </button>
             </div>
 
-            {!isLoading && !hasValidationError && (
-                <p
-                    id="estimated-delivery-message"
-                    role={hasLookupFailure ? 'status' : undefined}
-                    className="text-xs text-muted-foreground">
-                    {hasLookupFailure ? (fallbackDeliveryDescription ?? t('deliveryDatesUnavailable')) : instructions}
+            {!isLoading && !hasValidationError && hasLookupFailure && (
+                <p id={messageId} role="status" className="text-xs text-muted-foreground">
+                    {fallbackDeliveryDescription ?? t('deliveryDatesUnavailable')}
                 </p>
             )}
 
@@ -109,13 +109,13 @@ export default function ZipCodeEstimator({
                 <div role="alert" className="bg-destructive/10 border border-destructive/20 rounded-ui p-3">
                     <div className="flex items-start gap-2">
                         <div className="flex-1">
-                            <p id="estimated-delivery-error" className="text-sm text-destructive">
+                            <p id={errorId} className="text-sm text-destructive">
                                 {invalidMessage}
                             </p>
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </form>
     );
 }

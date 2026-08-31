@@ -542,7 +542,7 @@ exports[`ChildProducts stories snapshot > Playground story renders and matches s
                 id="fulfillment-option-womens-jewelry-bundleM-delivery-description"
               >
                 <p>
-                  Enter postal code to see delivery estimate
+                  Deliver to shipping address
                 </p>
               </div>
             </div>

@@ -6,6 +6,7 @@
     "changeDestination": "Skift destination",
     "changeDestinationAriaLabel": "Skift destination: {{postalCode}}",
     "arrivalMessage": "Ankommer {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Forventet {{deliveryWindow}}",
     "shippingCost": "Forsendelsesomkostninger:",
     "postalTerms": {
         "zip": "postnummer",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Indtast et gyldigt {{term}}.",
     "deliveryDatesUnavailable": "Leveringsdatoer er ikke tilgængelige. Se muligheder og omkostninger ved kassen.",
     "moreDeliveryOptions": "Flere leveringsmuligheder",
-    "seeAllDeliveryOptions": "Se alle leveringsmuligheder",
+    "viewAllShippingOptions": "Se alle forsendelsesmuligheder",
     "openingDeliveryOptions": "Åbner leveringsmuligheder...",
     "calculateButton": "Beregn",
     "calculateAriaLabel": "Beregn leveringsestimat",

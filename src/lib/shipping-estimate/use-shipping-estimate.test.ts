@@ -16,7 +16,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useFetcher } from 'react-router';
-import { useShippingEstimate } from './use-shipping-estimate';
+import { useShippingEstimate, type ShippingEstimateResponse } from './use-shipping-estimate';
 
 vi.mock('react-router', () => ({
     useFetcher: vi.fn(),
@@ -199,7 +199,7 @@ describe('useShippingEstimate', () => {
         expect(result.current.autoFetchInFlight).toBe(true);
     });
 
-    it('does not churn state when loading the same destination again', () => {
+    it('only advances request lifecycle when loading the same destination again', () => {
         let renderCount = 0;
         const { result } = renderHook(() => {
             renderCount += 1;
@@ -211,8 +211,72 @@ describe('useShippingEstimate', () => {
         const requestCountAfterFirstLoad = load.mock.calls.length;
         act(() => result.current.load('M5V 3A8', 'CA'));
 
-        expect(renderCount).toBe(renderCountAfterFirstLoad);
+        expect(renderCount).toBe(renderCountAfterFirstLoad + 1);
         expect(load).toHaveBeenCalledTimes(requestCountAfterFirstLoad + 1);
+    });
+
+    it('settles each request even when a retry returns the same response object', () => {
+        const response = {
+            success: false as const,
+            productId: 'product-1',
+            zipcode: '94105',
+            fallbackDeliveryDescription: 'Delivered in 2-3 business days',
+        };
+        const fetcher = { state: 'idle' as 'idle' | 'loading', data: response, load };
+        vi.mocked(useFetcher).mockReturnValue(fetcher as never);
+        const { result, rerender } = renderHook(() => useShippingEstimate({ productId: 'product-1' }));
+
+        act(() => result.current.load('94105'));
+        expect(result.current.requestSequence).toBe(1);
+
+        fetcher.state = 'loading';
+        rerender();
+        fetcher.state = 'idle';
+        rerender();
+
+        expect(result.current.settledSequence).toBe(1);
+
+        act(() => result.current.load('94105'));
+        fetcher.state = 'loading';
+        rerender();
+        fetcher.state = 'idle';
+        rerender();
+
+        expect(result.current.requestSequence).toBe(2);
+        expect(result.current.settledSequence).toBe(2);
+        expect(result.current.fallbackDeliveryDescription).toBe('Delivered in 2-3 business days');
+    });
+
+    it('settles the latest request when it supersedes an already-loading request', () => {
+        const fetcher = {
+            state: 'idle' as 'idle' | 'loading',
+            data: undefined as ShippingEstimateResponse<{ product: string }> | undefined,
+            load,
+        };
+        vi.mocked(useFetcher).mockReturnValue(fetcher as never);
+        const { result, rerender } = renderHook(() =>
+            useShippingEstimate<{ product: string }>({ productId: 'product-1' })
+        );
+
+        act(() => result.current.load('94105'));
+        fetcher.state = 'loading';
+        rerender();
+
+        act(() => result.current.load('10001'));
+        expect(result.current.requestSequence).toBe(2);
+
+        fetcher.data = {
+            success: true,
+            productId: 'product-1',
+            zipcode: '10001',
+            countryCode: 'US',
+            estimate: { product: 'second-request' },
+        };
+        fetcher.state = 'idle';
+        rerender();
+
+        expect(result.current.settledSequence).toBe(2);
+        expect(result.current.estimate).toEqual({ product: 'second-request' });
     });
 
     it('normalizes an explicit country before querying and matching the response', () => {

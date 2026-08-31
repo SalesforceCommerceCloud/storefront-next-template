@@ -58,6 +58,7 @@ export function useBopisFulfillmentOption({ product, quantity, basketPickupStore
                     : t('deliveryOptions.pickupOrDelivery.selectStore'),
                 availability: { available: !isPickupOutOfStock },
             },
+            canAutoSelect: Boolean(pickupStore?.id && pickupStore.inventoryId),
             onSelect: () => {
                 if (!pickupStore) {
                     openStoreLocator();

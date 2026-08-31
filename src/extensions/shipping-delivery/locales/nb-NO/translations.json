@@ -6,6 +6,7 @@
     "changeDestination": "Endre destinasjon",
     "changeDestinationAriaLabel": "Endre destinasjon: {{postalCode}}",
     "arrivalMessage": "Ankommer {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Forventet {{deliveryWindow}}",
     "shippingCost": "Fraktkostnad:",
     "postalTerms": {
         "zip": "postnummer",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Skriv inn et gyldig {{term}}.",
     "deliveryDatesUnavailable": "Leveringsdatoer er ikke tilgjengelige. Se alternativer og kostnader i kassen.",
     "moreDeliveryOptions": "Flere leveringsalternativer",
-    "seeAllDeliveryOptions": "Se alle leveringsalternativer",
+    "viewAllShippingOptions": "Se alle fraktalternativer",
     "openingDeliveryOptions": "Åpner leveringsalternativer...",
     "calculateButton": "Beregn",
     "calculateAriaLabel": "Beregn leveringsestimat",

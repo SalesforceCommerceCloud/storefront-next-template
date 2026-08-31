@@ -1498,6 +1498,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "受け取り方法",
+            "deliveryAddressDescription": "配送先住所にお届け",
             "deliveryDescription": "郵便番号を入力してお届け予定を確認"
         },
         "recommendations": {

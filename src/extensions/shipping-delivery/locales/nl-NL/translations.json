@@ -6,6 +6,7 @@
     "changeDestination": "Bestemming wijzigen",
     "changeDestinationAriaLabel": "Bestemming wijzigen: {{postalCode}}",
     "arrivalMessage": "Komt aan {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Geschat {{deliveryWindow}}",
     "shippingCost": "Verzendkosten:",
     "postalTerms": {
         "zip": "postcode",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Voer een geldige {{term}} in.",
     "deliveryDatesUnavailable": "Leveringsdata niet beschikbaar. Bekijk de opties en kosten bij het afrekenen.",
     "moreDeliveryOptions": "Meer leveringsopties",
-    "seeAllDeliveryOptions": "Alle leveringsopties bekijken",
+    "viewAllShippingOptions": "Alle verzendopties bekijken",
     "openingDeliveryOptions": "Bezorgopties openen...",
     "calculateButton": "Berekenen",
     "calculateAriaLabel": "Bezorgschatting berekenen",

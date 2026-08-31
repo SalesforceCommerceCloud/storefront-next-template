@@ -6,6 +6,7 @@
     "changeDestination": "變更配送地點",
     "changeDestinationAriaLabel": "變更配送地點: {{postalCode}}",
     "arrivalMessage": "預計 {{deliveryWindow}} 送達",
+    "estimatedArrivalMessage": "預計 {{deliveryWindow}}",
     "shippingCost": "運費:",
     "postalTerms": {
         "zip": "郵遞區號",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "請輸入有效的{{term}}。",
     "deliveryDatesUnavailable": "無法提供送達日期。請在結帳時查看選項和費用。",
     "moreDeliveryOptions": "更多配送選項",
-    "seeAllDeliveryOptions": "查看所有配送選項",
+    "viewAllShippingOptions": "查看所有配送選項",
     "openingDeliveryOptions": "正在開啟運送選項...",
     "calculateButton": "計算",
     "calculateAriaLabel": "計算送達估計",

@@ -6,6 +6,7 @@
     "changeDestination": "Cambiar destino",
     "changeDestinationAriaLabel": "Cambiar destino: {{postalCode}}",
     "arrivalMessage": "Llega {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Estimado {{deliveryWindow}}",
     "shippingCost": "Coste de envío:",
     "postalTerms": {
         "zip": "código postal",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Introduce un {{term}} válido.",
     "deliveryDatesUnavailable": "Fechas de entrega no disponibles. Consulta las opciones y los costes al finalizar la compra.",
     "moreDeliveryOptions": "Más opciones de entrega",
-    "seeAllDeliveryOptions": "Ver todas las opciones",
+    "viewAllShippingOptions": "Ver todas las opciones de envío",
     "openingDeliveryOptions": "Abriendo opciones de envío...",
     "calculateButton": "Calcular",
     "calculateAriaLabel": "Calcular estimación de entrega",

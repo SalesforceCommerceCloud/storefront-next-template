@@ -1472,6 +1472,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "Metoda dostawy",
+            "deliveryAddressDescription": "Dostawa na adres wysyłki",
             "deliveryDescription": "Wpisz swój kod pocztowy, aby zobaczyć szacowaną dostawę"
         },
         "recommendations": {

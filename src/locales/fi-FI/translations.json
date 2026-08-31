@@ -1443,6 +1443,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "Toimitustapa",
+            "deliveryAddressDescription": "Toimitus toimitusosoitteeseen",
             "deliveryDescription": "Anna postinumero nähdäksesi toimitusarvion"
         },
         "recommendations": {

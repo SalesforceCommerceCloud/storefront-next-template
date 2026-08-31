@@ -34,6 +34,7 @@ function EstimatorStory({
     const [inputValue, setInputValue] = useState('');
     return (
         <ZipCodeEstimator
+            idPrefix="storybook-estimated-delivery"
             inputValue={inputValue}
             isLoading={false}
             hasValidationError={hasValidationError}

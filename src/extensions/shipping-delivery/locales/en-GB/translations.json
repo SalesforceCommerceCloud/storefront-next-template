@@ -6,6 +6,7 @@
     "changeDestination": "Change destination",
     "changeDestinationAriaLabel": "Change destination: {{postalCode}}",
     "arrivalMessage": "Arrives {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Estimated {{deliveryWindow}}",
     "shippingCost": "Delivery cost:",
     "postalTerms": {
         "zip": "ZIP code",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Enter a valid {{term}}.",
     "deliveryDatesUnavailable": "Delivery dates unavailable. See checkout for options and costs.",
     "moreDeliveryOptions": "More Delivery Options",
-    "seeAllDeliveryOptions": "See All Delivery Options",
+    "viewAllShippingOptions": "View All Shipping Options",
     "openingDeliveryOptions": "Opening delivery options...",
     "calculateButton": "Calculate",
     "calculateAriaLabel": "Calculate delivery estimate",

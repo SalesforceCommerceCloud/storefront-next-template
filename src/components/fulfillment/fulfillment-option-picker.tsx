@@ -25,6 +25,9 @@ export interface FulfillmentOptionPickerProps<OptionId extends string> {
     value?: OptionId;
     options: FulfillmentOptionDescriptor<OptionId>[];
     onChange?: (value: OptionId) => void;
+    renderTitle?: (option: FulfillmentOptionDescriptor<OptionId>) => ReactNode;
+    getOptionAriaLabel?: (option: FulfillmentOptionDescriptor<OptionId>) => string;
+    getOptionAriaDescription?: (option: FulfillmentOptionDescriptor<OptionId>) => string | undefined;
     renderDetails?: (option: FulfillmentOptionDescriptor<OptionId>) => ReactNode;
     onOptionClick?: (option: FulfillmentOptionDescriptor<OptionId>) => void;
     dataTestId?: string;
@@ -38,6 +41,9 @@ export function FulfillmentOptionPicker<OptionId extends string>({
     value,
     options,
     onChange,
+    renderTitle,
+    getOptionAriaLabel,
+    getOptionAriaDescription,
     renderDetails,
     onOptionClick,
     dataTestId = 'fulfillment-option-select',
@@ -62,9 +68,14 @@ export function FulfillmentOptionPicker<OptionId extends string>({
                     const optionId = getOptionId?.(option) ?? `${idPrefix}-${option.id}`;
                     const selected = value === option.id;
                     const disabled = !option.availability.available;
+                    const title = renderTitle?.(option);
+                    const optionAriaLabel = getOptionAriaLabel?.(option) ?? option.label;
+                    const optionAriaDescription = getOptionAriaDescription?.(option);
                     const details = renderDetails?.(option);
                     const descriptionId = `${optionId}-description`;
-                    const hasDescription = Boolean(option.description || option.availability.disabledReason);
+                    const hasDescription = Boolean(
+                        option.description || optionAriaDescription || option.availability.disabledReason
+                    );
 
                     return (
                         <div
@@ -85,7 +96,7 @@ export function FulfillmentOptionPicker<OptionId extends string>({
                             <label
                                 htmlFor={optionId}
                                 className={cn('absolute inset-0 cursor-pointer', disabled && 'cursor-not-allowed')}>
-                                <span className="sr-only">{option.label}</span>
+                                <span className="sr-only">{optionAriaLabel}</span>
                             </label>
                             <div className="relative z-10 mt-0.5 shrink-0 pointer-events-none" aria-hidden="true">
                                 <div
@@ -99,7 +110,7 @@ export function FulfillmentOptionPicker<OptionId extends string>({
                             <div className="relative z-10 flex-1 min-w-0 pointer-events-none">
                                 <div className={cn('cursor-pointer', disabled && 'cursor-not-allowed')}>
                                     <span className="text-sm font-medium leading-none text-foreground">
-                                        {option.label}
+                                        {title ?? option.label}
                                     </span>
                                 </div>
                                 {hasDescription && (
@@ -107,6 +118,7 @@ export function FulfillmentOptionPicker<OptionId extends string>({
                                         id={descriptionId}
                                         className="text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground mt-0.5">
                                         {option.description && <p>{option.description}</p>}
+                                        {optionAriaDescription && <p className="sr-only">{optionAriaDescription}</p>}
                                         {option.availability.disabledReason && (
                                             <p>{option.availability.disabledReason}</p>
                                         )}

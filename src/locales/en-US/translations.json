@@ -1804,6 +1804,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "Fulfillment method",
+            "deliveryAddressDescription": "Deliver to shipping address",
             "deliveryDescription": "Enter postal code to see delivery estimate"
         },
         "recommendations": {

@@ -24,8 +24,10 @@ import type { ShippingEstimateOption } from '@/lib/shipping-estimate/types';
 
 /** Renders every deliverable shipping method returned for the shopper's destination. */
 export function EstimatedDeliveryModalContent({
+    contentTitle,
     shippingOptions,
 }: {
+    contentTitle?: string;
     shippingOptions: ShippingEstimateOption[];
 }): ReactElement {
     const { t } = useTranslation('extShippingDelivery');
@@ -33,9 +35,11 @@ export function EstimatedDeliveryModalContent({
 
     return (
         <div>
-            <Typography variant="h5" as="h3" className="mb-3 font-medium">
-                {t('shippingOptionsOnlyHeading')}
-            </Typography>
+            {contentTitle && (
+                <Typography variant="h5" as="h3" className="mb-3 font-medium">
+                    {contentTitle}
+                </Typography>
+            )}
             <div className="space-y-3">
                 {shippingOptions.map((option) => {
                     const deliveryWindow = formatDeliveryWindow(option.deliveryWindow, language);
