@@ -259,6 +259,7 @@ export const useAnalytics = () => {
      */
     const trackViewCategory = async (data: {
         category: ShopperProducts.schemas['Category'];
+        isNavigation?: boolean;
         searchResults: ShopperSearch.schemas['ProductSearchHit'][];
         sort: string;
         refinements: ShopperSearch.schemas['ProductSearchResult']['selectedRefinements'];
@@ -269,6 +270,7 @@ export const useAnalytics = () => {
         return trackEvent(authPromiseRef.current, appConfig, consentPreferences, siteInfo, 'view_category', {
             path: `${location.pathname}${location.search}${location.hash}`,
             category: data.category,
+            isNavigation: data.isNavigation,
             searchResults: data.searchResults,
             sort: data.sort || '',
             refinements: data.refinements || {},

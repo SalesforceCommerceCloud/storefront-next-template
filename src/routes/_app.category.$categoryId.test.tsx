@@ -1596,6 +1596,7 @@ describe('CategoryPage', () => {
             await waitFor(() =>
                 expect(mockTrackViewCategory).toHaveBeenCalledWith({
                     category: mockCategory,
+                    isNavigation: false,
                     searchResults: [loadedProduct],
                     sort: 'best-matches',
                     refinements: {},

@@ -420,6 +420,7 @@ export default function CategoryPage({
             if (analytics && hits.length > 0) {
                 void analytics.trackViewCategory({
                     category,
+                    isNavigation: false,
                     searchResults: hits,
                     sort:
                         searchResultCritical.selectedSortingOption ||
