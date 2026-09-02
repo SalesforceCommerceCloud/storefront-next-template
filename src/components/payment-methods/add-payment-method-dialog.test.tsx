@@ -32,6 +32,11 @@ vi.mock('@/components/address-form-fields', () => ({
     AddressFormFields: () => <div data-testid="address-form-fields">Address Fields</div>,
 }));
 
+// Passthrough — transformTargets strips <UITarget> at compile time in tests.
+vi.mock('@/targets/ui-target', () => ({
+    UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
+
 describe('AddPaymentMethodDialog', () => {
     const mockAddresses: ShopperCustomers.schemas['CustomerAddress'][] = [
         {

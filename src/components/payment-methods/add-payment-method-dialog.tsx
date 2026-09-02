@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { type ReactElement, useState, useEffect } from 'react';
+import { type ReactElement, useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Plus, X, CreditCard } from 'lucide-react';
@@ -33,6 +33,8 @@ import { accountDestructiveAlertClasses } from '@/lib/account-action-styles';
 import { createPaymentSchema, type PaymentData } from '@/lib/checkout/schemas';
 import { detectCardType } from '@/lib/payment/payment-utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { UITarget } from '@/targets/ui-target';
+import { AddPaymentMethodDialogProvider } from './account-payment-dialog-context';
 
 type AddPaymentData = PaymentData & { saveAsDefault?: boolean };
 
@@ -43,10 +45,15 @@ export interface AddPaymentMethodDialogProps {
     onSubmitForm: (formData: FormData) => void;
     addresses: ShopperCustomers.schemas['CustomerAddress'][];
     isLoading?: boolean;
+    /** CAP finished setup/complete — host closes, toasts, revalidates. */
+    onComplete?: () => void;
+    /** CAP setup/complete failed. */
+    onError?: (error?: unknown) => void;
 }
 
 /**
- * Add payment method dialog. Uses CreditCardInputFields; submits card data via FormData to server action.
+ * Add payment method dialog shell. Native form (and CAP replacements) render inside
+ * `sfcc.myAccount.payments.addMethod`. Host owns open/close; CAP uses dialog context.
  */
 export function AddPaymentMethodDialog({
     open,
@@ -54,6 +61,8 @@ export function AddPaymentMethodDialog({
     onSubmitForm,
     addresses,
     isLoading = false,
+    onComplete,
+    onError,
 }: AddPaymentMethodDialogProps): ReactElement {
     const { t } = useTranslation('account');
     const [countryCode] = useState<CountryCode>('US');
@@ -166,6 +175,32 @@ export function AddPaymentMethodDialog({
         }
     }, [open, paymentForm]);
 
+    const handleCloseShell = useCallback(() => {
+        if (!isLoading) onOpenChange(false);
+    }, [isLoading, onOpenChange]);
+
+    const handleComplete = useCallback(() => {
+        onComplete?.();
+    }, [onComplete]);
+
+    const handleError = useCallback(
+        (error?: unknown) => {
+            onError?.(error);
+        },
+        [onError]
+    );
+
+    const dialogContextValue = useMemo(
+        () => ({
+            addresses,
+            isLoading,
+            onClose: handleCloseShell,
+            onComplete: handleComplete,
+            onError: handleError,
+        }),
+        [addresses, isLoading, handleCloseShell, handleComplete, handleError]
+    );
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -175,100 +210,110 @@ export function AddPaymentMethodDialog({
                     </DialogTitle>
                 </DialogHeader>
 
-                {formError && (
-                    <Alert className={accountDestructiveAlertClasses}>
-                        <AlertDescription>{formError}</AlertDescription>
-                    </Alert>
-                )}
+                <AddPaymentMethodDialogProvider value={dialogContextValue}>
+                    <UITarget targetId="sfcc.myAccount.payments.addMethod">
+                        {formError && (
+                            <Alert className={accountDestructiveAlertClasses}>
+                                <AlertDescription>{formError}</AlertDescription>
+                            </Alert>
+                        )}
 
-                <div className="space-y-5">
-                    <div className="border border-primary bg-background">
-                        <label className="flex items-center gap-3 p-4 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="paymentMethod"
-                                className="w-4 h-4 text-primary border-input"
-                                defaultChecked
-                            />
-                            <span className="text-sm font-medium">{t('paymentMethods.creditCard')}</span>
-                            <div className="ml-auto">
-                                <CreditCard className="w-5 h-5 text-primary" />
-                            </div>
-                        </label>
-                        <div className="px-4 pb-4 space-y-3 border-t pt-3">
-                            <Form {...paymentForm}>
-                                <CreditCardInputFields
-                                    form={paymentForm as unknown as Parameters<typeof CreditCardInputFields>[0]['form']}
-                                    showIsDefaultOption
-                                    defaultOptionLabel={t('paymentMethods.saveAsDefault')}
-                                />
-                            </Form>
-                        </div>
-                    </div>
-
-                    <div className="pt-2">
-                        <Label htmlFor="billing-address" className="text-sm font-medium mb-2 block">
-                            {t('paymentMethods.billingAddress')}
-                        </Label>
-                        <div className="[&_[data-slot=native-select-wrapper]]:w-full">
-                            <NativeSelect
-                                id="billing-address"
-                                value={selectedAddress}
-                                onChange={(e) => {
-                                    setSelectedAddress(e.target.value);
-                                    if (e.target.value) setIsAddingNewAddress(false);
-                                }}
-                                required
-                                aria-required="true">
-                                <NativeSelectOption value="">{t('paymentMethods.selectAddress')}</NativeSelectOption>
-                                {addresses.map((address) => (
-                                    <NativeSelectOption key={address.addressId} value={address.addressId || ''}>
-                                        {address.firstName} {address.lastName} - {address.address1}
-                                        {address.city && `, ${address.city}`}...
-                                    </NativeSelectOption>
-                                ))}
-                            </NativeSelect>
-                        </div>
-                        {!isAddingNewAddress ? (
-                            <button
-                                type="button"
-                                onClick={handleToggleAddAddress}
-                                className="flex items-center gap-1 mt-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
-                                <Plus className="w-4 h-4" />
-                                {t('paymentMethods.addNewAddress')}
-                            </button>
-                        ) : (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={handleToggleAddAddress}
-                                    className="flex items-center gap-1 mt-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
-                                    <X className="w-4 h-4" />
-                                    {t('paymentMethods.cancel')}
-                                </button>
-                                <div className="mt-4">
+                        <div className="space-y-5">
+                            <div className="border border-primary bg-background">
+                                <label className="flex items-center gap-3 p-4 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        className="w-4 h-4 text-primary border-input"
+                                        defaultChecked
+                                    />
+                                    <span className="text-sm font-medium">{t('paymentMethods.creditCard')}</span>
+                                    <div className="ml-auto">
+                                        <CreditCard className="w-5 h-5 text-primary" />
+                                    </div>
+                                </label>
+                                <div className="px-4 pb-4 space-y-3 border-t pt-3">
                                     <Form {...paymentForm}>
-                                        <AddressFormFields<AddPaymentData>
-                                            form={paymentForm}
-                                            fieldPrefix="billing"
-                                            showPhone={false}
-                                            countryCode={countryCode}
+                                        <CreditCardInputFields
+                                            form={
+                                                paymentForm as unknown as Parameters<
+                                                    typeof CreditCardInputFields
+                                                >[0]['form']
+                                            }
+                                            showIsDefaultOption
+                                            defaultOptionLabel={t('paymentMethods.saveAsDefault')}
                                         />
                                     </Form>
                                 </div>
-                            </>
-                        )}
-                    </div>
+                            </div>
 
-                    <div className="flex items-center justify-end gap-3 mt-2 pt-6 border-t">
-                        <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-                            {t('paymentMethods.cancel')}
-                        </Button>
-                        <Button onClick={() => void handleSubmit()} disabled={isLoading}>
-                            {t('paymentMethods.save')}
-                        </Button>
-                    </div>
-                </div>
+                            <div className="pt-2">
+                                <Label htmlFor="billing-address" className="text-sm font-medium mb-2 block">
+                                    {t('paymentMethods.billingAddress')}
+                                </Label>
+                                <div className="[&_[data-slot=native-select-wrapper]]:w-full">
+                                    <NativeSelect
+                                        id="billing-address"
+                                        value={selectedAddress}
+                                        onChange={(e) => {
+                                            setSelectedAddress(e.target.value);
+                                            if (e.target.value) setIsAddingNewAddress(false);
+                                        }}
+                                        required
+                                        aria-required="true">
+                                        <NativeSelectOption value="">
+                                            {t('paymentMethods.selectAddress')}
+                                        </NativeSelectOption>
+                                        {addresses.map((address) => (
+                                            <NativeSelectOption key={address.addressId} value={address.addressId || ''}>
+                                                {address.firstName} {address.lastName} - {address.address1}
+                                                {address.city && `, ${address.city}`}...
+                                            </NativeSelectOption>
+                                        ))}
+                                    </NativeSelect>
+                                </div>
+                                {!isAddingNewAddress ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleAddAddress}
+                                        className="flex items-center gap-1 mt-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+                                        <Plus className="w-4 h-4" />
+                                        {t('paymentMethods.addNewAddress')}
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleToggleAddAddress}
+                                            className="flex items-center gap-1 mt-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+                                            <X className="w-4 h-4" />
+                                            {t('paymentMethods.cancel')}
+                                        </button>
+                                        <div className="mt-4">
+                                            <Form {...paymentForm}>
+                                                <AddressFormFields<AddPaymentData>
+                                                    form={paymentForm}
+                                                    fieldPrefix="billing"
+                                                    showPhone={false}
+                                                    countryCode={countryCode}
+                                                />
+                                            </Form>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 mt-2 pt-6 border-t">
+                                <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+                                    {t('paymentMethods.cancel')}
+                                </Button>
+                                <Button onClick={() => void handleSubmit()} disabled={isLoading}>
+                                    {t('paymentMethods.save')}
+                                </Button>
+                            </div>
+                        </div>
+                    </UITarget>
+                </AddPaymentMethodDialogProvider>
             </DialogContent>
         </Dialog>
     );

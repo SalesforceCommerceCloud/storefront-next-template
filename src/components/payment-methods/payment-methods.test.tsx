@@ -23,19 +23,25 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
 
-// Mock child components
 vi.mock('./payment-method-card', () => ({
-    PaymentMethodCard: ({ paymentMethod }: { paymentMethod: { last4: string } }) => (
-        <div data-testid="payment-method-card">Card ending in {paymentMethod.last4}</div>
+    PaymentMethodCard: ({ paymentMethod, onRemove }: { paymentMethod: { last4: string }; onRemove?: () => void }) => (
+        <div data-testid="payment-method-card">
+            <span>Card ending in {paymentMethod.last4}</span>
+            <button type="button" onClick={onRemove}>
+                Remove
+            </button>
+        </div>
     ),
 }));
 
 vi.mock('./add-payment-method-dialog', () => ({
-    AddPaymentMethodDialog: () => <div data-testid="add-dialog">Add Dialog</div>,
+    AddPaymentMethodDialog: ({ open }: { open?: boolean }) =>
+        open ? <div data-testid="add-dialog">Add Dialog</div> : null,
 }));
 
 vi.mock('./remove-payment-method-dialog', () => ({
-    RemovePaymentMethodDialog: () => <div data-testid="remove-dialog">Remove Dialog</div>,
+    RemovePaymentMethodDialog: ({ open }: { open?: boolean }) =>
+        open ? <div data-testid="remove-dialog">Remove Dialog</div> : null,
 }));
 
 vi.mock('react-router', async () => {
@@ -51,6 +57,7 @@ vi.mock('@/components/toast', () => ({
     useToast: () => ({ addToast: vi.fn() }),
 }));
 
+// Passthrough only — transformTargets strips <UITarget> at compile time in tests.
 vi.mock('@/targets/ui-target', () => ({
     UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
@@ -59,6 +66,20 @@ describe('PaymentMethods', () => {
     const mockCustomer: ShopperCustomers.schemas['Customer'] = {
         customerId: 'customer-1',
         addresses: [],
+        paymentInstruments: [
+            {
+                paymentInstrumentId: 'pi-1',
+                default: false,
+                paymentCard: {
+                    cardType: 'Visa',
+                    maskedNumber: '************1111',
+                    numberLastDigits: '1111',
+                    expirationMonth: 12,
+                    expirationYear: 2030,
+                    holder: 'Test User',
+                },
+            },
+        ],
     };
 
     test('renders payment methods page with header', () => {
@@ -78,9 +99,21 @@ describe('PaymentMethods', () => {
         const user = userEvent.setup();
         render(<PaymentMethods customer={mockCustomer} />);
 
-        const addButton = screen.getByText(t('account:paymentMethods.addPaymentMethod'));
-        await user.click(addButton);
+        expect(screen.queryByTestId('add-dialog')).not.toBeInTheDocument();
+
+        await user.click(screen.getByText(t('account:paymentMethods.addPaymentMethod')));
 
         expect(screen.getByTestId('add-dialog')).toBeInTheDocument();
+    });
+
+    test('opens remove dialog when remove is clicked', async () => {
+        const user = userEvent.setup();
+        render(<PaymentMethods customer={mockCustomer} />);
+
+        expect(screen.queryByTestId('remove-dialog')).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'Remove' }));
+
+        expect(screen.getByTestId('remove-dialog')).toBeInTheDocument();
     });
 });

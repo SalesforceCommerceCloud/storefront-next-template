@@ -23,6 +23,11 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
 
+// Passthrough — transformTargets strips <UITarget> at compile time in tests.
+vi.mock('@/targets/ui-target', () => ({
+    UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
+
 describe('RemovePaymentMethodDialog', () => {
     const mockPaymentMethod: PaymentMethod = {
         id: '1',

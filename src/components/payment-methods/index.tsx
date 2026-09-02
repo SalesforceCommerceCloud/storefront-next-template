@@ -21,6 +21,17 @@ export { PaymentMethods } from './payment-methods';
 export { AddPaymentMethodDialog } from './add-payment-method-dialog';
 export { RemovePaymentMethodDialog } from './remove-payment-method-dialog';
 
+// Dialog context providers for CAP replacements of add/remove form bodies.
+// Hooks: import from `./account-payment-dialog-context` (barrel cannot re-export hooks).
+export {
+    AddPaymentMethodDialogProvider,
+    RemovePaymentMethodDialogProvider,
+} from './account-payment-dialog-context';
+export type {
+    AddPaymentMethodDialogContextValue,
+    RemovePaymentMethodDialogContextValue,
+} from './account-payment-dialog-context';
+
 // Card components
 export { PaymentMethodCard } from './payment-method-card';
 export type { PaymentMethod } from './payment-method-card';

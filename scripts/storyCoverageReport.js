@@ -82,6 +82,10 @@ const EXCLUDED_COMPONENTS = new Set([
     'ratings-reviews/components/order-line-review-context',
     // Context provider that forwards the storefront's payment-submission ref to extension components rendered at a UITarget.
     'checkout/payment-submission-context',
+    // Headless providers + hooks for CAP replacements of My Account add/remove payment dialog bodies
+    // (sfcc.myAccount.payments.addMethod / removeMethod). No visual surface of their own; covered by unit tests
+    // and exercised via add/remove payment method dialog stories.
+    'payment-methods/account-payment-dialog-context',
     'product-content/components/target/returns-and-warranty-target',
     'product-content/components/target/faq-target',
     'product-content/components/target/pdp-collapsibles-target',

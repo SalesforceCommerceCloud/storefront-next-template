@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { type ReactElement } from 'react';
+import { type ReactElement, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -25,6 +25,8 @@ import { getCardIcon } from '@/lib/payment/card-icon-utils';
 import { getCardTypeDisplay } from '@/lib/payment/payment-utils';
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { PaymentMethod } from './payment-method-card';
+import { UITarget } from '@/targets/ui-target';
+import { RemovePaymentMethodDialogProvider } from './account-payment-dialog-context';
 
 export interface RemovePaymentMethodDialogProps {
     open: boolean;
@@ -32,10 +34,15 @@ export interface RemovePaymentMethodDialogProps {
     paymentMethod: PaymentMethod | null;
     onConfirm: (paymentInstrumentId: string) => void;
     isLoading?: boolean;
+    /** CAP finished remove successfully — host closes, toasts, revalidates. */
+    onComplete?: () => void;
+    /** CAP remove failed. */
+    onError?: (error?: unknown) => void;
 }
 
 /**
- * Remove payment method confirmation dialog
+ * Remove payment method confirmation dialog shell. Native body (and CAP replacements)
+ * render inside `sfcc.myAccount.payments.removeMethod`. Host owns open/close.
  */
 export function RemovePaymentMethodDialog({
     open,
@@ -43,22 +50,49 @@ export function RemovePaymentMethodDialog({
     paymentMethod,
     onConfirm,
     isLoading = false,
+    onComplete,
+    onError,
 }: RemovePaymentMethodDialogProps): ReactElement | null {
     const { t } = useTranslation('account');
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         if (!isLoading) {
             onOpenChange(false);
         }
-    };
+    }, [isLoading, onOpenChange]);
 
-    const handleConfirm = () => {
+    const handleConfirm = useCallback(() => {
         if (paymentMethod?.id && !isLoading) {
             onConfirm(paymentMethod.id);
         }
-    };
+    }, [paymentMethod, isLoading, onConfirm]);
 
-    if (!paymentMethod) return null;
+    const handleComplete = useCallback(() => {
+        onComplete?.();
+    }, [onComplete]);
+
+    const handleError = useCallback(
+        (error?: unknown) => {
+            onError?.(error);
+        },
+        [onError]
+    );
+
+    const dialogContextValue = useMemo(
+        () =>
+            paymentMethod
+                ? {
+                      paymentMethod,
+                      isLoading,
+                      onClose: handleClose,
+                      onComplete: handleComplete,
+                      onError: handleError,
+                  }
+                : null,
+        [paymentMethod, isLoading, handleClose, handleComplete, handleError]
+    );
+
+    if (!paymentMethod || !dialogContextValue) return null;
 
     // Use lib utility to normalize card type
     const displayName = getCardTypeDisplay({
@@ -75,51 +109,59 @@ export function RemovePaymentMethodDialog({
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">{t('paymentMethods.removeConfirmation')}</p>
+                <RemovePaymentMethodDialogProvider value={dialogContextValue}>
+                    <UITarget targetId="sfcc.myAccount.payments.removeMethod">
+                        <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">{t('paymentMethods.removeConfirmation')}</p>
 
-                    <Card className="rounded-ui border-border bg-muted/60 py-0">
-                        <div className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">{t('paymentMethods.paymentMethod')}</span>
-                                <div className="flex items-center" aria-hidden="true">
-                                    <CardIcon width={40} height={32} className="max-w-[40px] max-h-[32px]" />
+                            <Card className="rounded-ui border-border bg-muted/60 py-0">
+                                <div className="p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium">{t('paymentMethods.paymentMethod')}</span>
+                                        <div className="flex items-center" aria-hidden="true">
+                                            <CardIcon width={40} height={32} className="max-w-[40px] max-h-[32px]" />
+                                        </div>
+                                    </div>
+                                    <p className="text-base font-semibold mb-1">
+                                        {displayName} **** {paymentMethod.last4}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {paymentMethod.expiryMonth}/{paymentMethod.expiryYear} |{' '}
+                                        {paymentMethod.cardholderName}
+                                    </p>
+                                    {paymentMethod.isDefault && (
+                                        <div className="mt-2">
+                                            <span className="px-2 py-0.5 bg-muted border border-border text-primary text-xs font-semibold rounded-ui">
+                                                {t('paymentMethods.default')}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                            <p className="text-base font-semibold mb-1">
-                                {displayName} **** {paymentMethod.last4}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                {paymentMethod.expiryMonth}/{paymentMethod.expiryYear} | {paymentMethod.cardholderName}
-                            </p>
+                            </Card>
+
                             {paymentMethod.isDefault && (
-                                <div className="mt-2">
-                                    <span className="px-2 py-0.5 bg-muted border border-border text-primary text-xs font-semibold rounded-ui">
-                                        {t('paymentMethods.default')}
-                                    </span>
+                                <div className="mt-4 flex gap-3 p-3 bg-warning-bg border border-warning-border">
+                                    <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" aria-hidden />
+                                    <p className="text-xs text-warning-foreground">
+                                        {t('paymentMethods.defaultRemovalWarning')}
+                                    </p>
                                 </div>
                             )}
                         </div>
-                    </Card>
 
-                    {paymentMethod.isDefault && (
-                        <div className="mt-4 flex gap-3 p-3 bg-warning-bg border border-warning-border">
-                            <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" aria-hidden />
-                            <p className="text-xs text-warning-foreground">
-                                {t('paymentMethods.defaultRemovalWarning')}
-                            </p>
+                        <div className="flex items-center justify-end gap-3 pt-4">
+                            <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+                                {t('paymentMethods.cancel')}
+                            </Button>
+                            <Button
+                                className={accountDestructiveButtonClasses}
+                                onClick={handleConfirm}
+                                disabled={isLoading}>
+                                {t('paymentMethods.remove')}
+                            </Button>
                         </div>
-                    )}
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-4">
-                    <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-                        {t('paymentMethods.cancel')}
-                    </Button>
-                    <Button className={accountDestructiveButtonClasses} onClick={handleConfirm} disabled={isLoading}>
-                        {t('paymentMethods.remove')}
-                    </Button>
-                </div>
+                    </UITarget>
+                </RemovePaymentMethodDialogProvider>
             </DialogContent>
         </Dialog>
     );
