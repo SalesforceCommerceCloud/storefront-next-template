@@ -38,12 +38,34 @@ import type { AppConfig } from '@/types/config';
 // data URI to avoid the React empty-`src` warning.
 const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const capturedImageGalleryProps: { last: any } = { last: null };
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+// @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+const capturedProductInfoProps: { last: any } = { last: null };
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 vi.mock('@/components/image-gallery', () => ({
     default: (props: any) => {
         capturedImageGalleryProps.last = props;
         return <img alt={props.productName ?? ''} src={TRANSPARENT_PIXEL} data-testid="image-gallery" />;
     },
 }));
+
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+vi.mock('@/components/product-view/product-info', async () => {
+    const actual = await vi.importActual<typeof import('@/components/product-view/product-info')>(
+        '@/components/product-view/product-info'
+    );
+    return {
+        ...actual,
+        default: (props: React.ComponentProps<typeof actual.default>) => {
+            capturedProductInfoProps.last = props;
+            const ProductInfo = actual.default;
+            return <ProductInfo {...props} />;
+        },
+    };
+});
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
 
 // Mock useToast
 const mockAddToast = vi.fn();
@@ -117,6 +139,10 @@ describe('ProductView', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         capturedImageGalleryProps.last = null;
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+        capturedProductInfoProps.last = null;
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
         mockWriteText.mockResolvedValue(undefined);
         mockShare.mockResolvedValue(undefined);
         mockWindowOpen.mockClear();
@@ -150,6 +176,13 @@ describe('ProductView', () => {
             expect(screen.getByRole('button', { name: /add to wishlist/i })).toBeInTheDocument();
             // Share button should be visible
             expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();
+            // @sfdc-extension-block-start SFDC_EXT_BOPIS
+            // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+            expect(capturedProductInfoProps.last).toEqual(
+                expect.objectContaining({ enableDeliveryEstimatePresentation: true })
+            );
+            // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+            // @sfdc-extension-block-end SFDC_EXT_BOPIS
         });
     });
 

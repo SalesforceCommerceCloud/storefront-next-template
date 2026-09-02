@@ -1448,6 +1448,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "Método de entrega",
+            "deliveryAddressDescription": "Entregar a la dirección de envío",
             "deliveryDescription": "Introduce tu código postal para ver la estimación de entrega"
         },
         "recommendations": {

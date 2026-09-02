@@ -6,6 +6,7 @@
     "changeDestination": "Vaihda toimituskohde",
     "changeDestinationAriaLabel": "Vaihda toimituskohde: {{postalCode}}",
     "arrivalMessage": "Saapuu {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Arvioitu {{deliveryWindow}}",
     "shippingCost": "Toimituskulut:",
     "postalTerms": {
         "zip": "postinumero",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Anna kelvollinen {{term}}.",
     "deliveryDatesUnavailable": "Toimituspäiviä ei ole saatavilla. Tarkista vaihtoehdot ja hinnat kassalla.",
     "moreDeliveryOptions": "Lisää toimitusvaihtoehtoja",
-    "seeAllDeliveryOptions": "Näytä kaikki toimitusvaihtoehdot",
+    "viewAllShippingOptions": "Näytä kaikki toimitusvaihtoehdot",
     "openingDeliveryOptions": "Avataan toimitusvaihtoehtoja...",
     "calculateButton": "Laske",
     "calculateAriaLabel": "Laske toimitusarvio",

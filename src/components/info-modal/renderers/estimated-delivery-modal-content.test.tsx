@@ -54,15 +54,23 @@ const renderWithConfig = (ui: React.ReactElement) =>
     );
 
 describe('EstimatedDeliveryModalContent', () => {
-    it('renders each calculated delivery option with its delivery window and price', () => {
+    it('renders each calculated delivery option without a heading when the dialog title owns it', () => {
         renderWithConfig(<EstimatedDeliveryModalContent shippingOptions={shippingOptions} />);
 
-        expect(screen.getByRole('heading', { name: 'Shipping Options' })).toBeInTheDocument();
+        expect(screen.queryByRole('heading')).not.toBeInTheDocument();
         expect(screen.getByText('Ground')).toBeInTheDocument();
         expect(screen.getByText('Express')).toBeInTheDocument();
         expect(screen.getByText('Free')).toBeInTheDocument();
         expect(screen.getByText('$9.99')).toBeInTheDocument();
         expect(screen.getByText('Fast delivery')).toBeInTheDocument();
         expect(screen.getAllByText(/Jan/)).toHaveLength(2);
+    });
+
+    it('preserves the standalone shipping options heading', () => {
+        renderWithConfig(
+            <EstimatedDeliveryModalContent contentTitle="Shipping Options" shippingOptions={shippingOptions} />
+        );
+
+        expect(screen.getByRole('heading', { name: 'Shipping Options', level: 3 })).toBeInTheDocument();
     });
 });

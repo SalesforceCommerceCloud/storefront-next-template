@@ -1434,6 +1434,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "Leveringsmetode",
+            "deliveryAddressDescription": "Lever til leveringsadresse",
             "deliveryDescription": "Indtast dit postnummer for at se leveringsestimat"
         },
         "recommendations": {

@@ -44,6 +44,7 @@ const defaultClientAuth: PublicSessionData = {
     userType: 'registered',
 };
 import { mockConfig, mockBuildConfig, mockSiteObject } from '@/test-utils/config';
+import serverConfig from '@/config/server';
 // ErrorBoundary creates its own isolated i18next instance from errorTranslations —
 // it does not use the global i18next singleton, so getTranslation() would return key strings here.
 // Importing the JSON directly is the correct source of truth for the translated path assertion.
@@ -57,6 +58,14 @@ const mockSite = {
     ...mockSiteObject,
     alias: mockBuildConfig.app.siteAliasMap?.[mockSiteObject.id] ?? undefined,
 };
+
+// The loader returns the resolved locale straight from site-context middleware, which
+// createLoaderContext derives from the active site config. Currency therefore varies by
+// vertical (RefArchGlobal is GBP; MarketStreet/BeautyStreet are USD), so the expectation
+// tracks the config rather than a hardcoded currency.
+const expectedLoaderLocale = serverConfig.app.commerce.sites[0].supportedLocales.find(
+    (locale: { id: string }) => locale.id === 'en-GB'
+) ?? { id: 'en-GB', preferredCurrency: 'GBP' };
 
 vi.mock('@salesforce/storefront-next-runtime/i18n/client', async () => {
     const i18next = await import('i18next');
@@ -1004,7 +1013,7 @@ describe('root.tsx', () => {
             expect(result).toHaveProperty('getI18next');
             expect(typeof result.clientAuth).toBe('object');
             expect(typeof result.getI18next).toBe('function');
-            expect(result.locale).toEqual({ id: 'en-GB', preferredCurrency: 'GBP' });
+            expect(result.locale).toEqual(expectedLoaderLocale);
         });
 
         it('should return clientAuth with non-sensitive session data', async () => {
@@ -1045,7 +1054,7 @@ describe('root.tsx', () => {
             expect(result.clientAuth).not.toHaveProperty('accessToken');
             expect(result.clientAuth).not.toHaveProperty('refreshToken');
             expect(result.appConfig).toBeDefined();
-            expect(result.locale).toEqual({ id: 'en-GB', preferredCurrency: 'GBP' });
+            expect(result.locale).toEqual(expectedLoaderLocale);
             expect(typeof result.getI18next).toBe('function');
         });
 

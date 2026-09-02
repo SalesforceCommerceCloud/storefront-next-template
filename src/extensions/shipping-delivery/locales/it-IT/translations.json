@@ -6,6 +6,7 @@
     "changeDestination": "Modifica destinazione",
     "changeDestinationAriaLabel": "Modifica destinazione: {{postalCode}}",
     "arrivalMessage": "Arrivo {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Stimato {{deliveryWindow}}",
     "shippingCost": "Costo di spedizione:",
     "postalTerms": {
         "zip": "CAP",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Inserisci un {{term}} valido.",
     "deliveryDatesUnavailable": "Date di consegna non disponibili. Consulta le opzioni e i costi al checkout.",
     "moreDeliveryOptions": "Altre opzioni di consegna",
-    "seeAllDeliveryOptions": "Vedi tutte le opzioni",
+    "viewAllShippingOptions": "Vedi tutte le opzioni di spedizione",
     "openingDeliveryOptions": "Apertura delle opzioni di spedizione...",
     "calculateButton": "Calcola",
     "calculateAriaLabel": "Calcola la stima di consegna",

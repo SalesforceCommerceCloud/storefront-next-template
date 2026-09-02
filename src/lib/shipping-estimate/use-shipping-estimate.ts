@@ -97,6 +97,10 @@ export interface UseShippingEstimateResult<TEstimate> {
     matchedZipcode: string | null;
     /** True while an automatic ZIP lookup awaits a response for the current product. */
     autoFetchInFlight: boolean;
+    /** Monotonic identity of the latest request started by this hook. */
+    requestSequence?: number;
+    /** Latest request sequence whose fetcher lifecycle returned to idle. */
+    settledSequence?: number;
     load: (zipcode: string, countryCode?: string) => void;
 }
 
@@ -120,10 +124,26 @@ export function useShippingEstimate<TEstimate>({
     );
     const autoFetchProductIdRef = useRef<string | null>(null);
     const requestIdentityRef = useRef<ShippingEstimateRequestIdentity | null>(null);
+    // Request-settling invariant: a request only counts as "settled" (drives `settledSequence`) once we've
+    // observed the fetcher actually enter a non-idle state for it. Otherwise a request whose fetcher never
+    // leaves 'idle' (e.g. a synchronously-resolved or deduped load) would be treated as settled without ever
+    // having run. `activeRequestSequenceRef` is the latest issued request; `observedLoadingSequenceRef` is the
+    // one the idle effect is allowed to settle; `enteredNonIdleSequenceRef` gates that settle on a real non-idle
+    // transition having happened for it.
+    const activeRequestSequenceRef = useRef(0);
+    const observedLoadingSequenceRef = useRef(0);
+    const enteredNonIdleSequenceRef = useRef(0);
+    const [requestSequence, setRequestSequence] = useState(0);
+    const [settledSequence, setSettledSequence] = useState(0);
     const [opaqueFailureRequest, setOpaqueFailureRequest] = useState<ShippingEstimateRequestIdentity | null>(null);
 
     const fetchEstimate = useCallback(
         (zipcode: string, countryCode: string | undefined, persistDestination: boolean) => {
+            const nextSequence = activeRequestSequenceRef.current + 1;
+            activeRequestSequenceRef.current = nextSequence;
+            observedLoadingSequenceRef.current = nextSequence;
+            if (fetcher.state !== 'idle') enteredNonIdleSequenceRef.current = nextSequence;
+            setRequestSequence(nextSequence);
             requestIdentityRef.current = {
                 productId,
                 destination: { postalCode: zipcode, ...(countryCode ? { countryCode } : {}) },
@@ -134,7 +154,7 @@ export function useShippingEstimate<TEstimate>({
                 `/resource/shipping-estimate?productId=${encodeURIComponent(productId)}&zipcode=${encodeURIComponent(zipcode)}${countryQuery}${persistenceQuery}`
             );
         },
-        [fetcherLoad, productId]
+        [fetcher.state, fetcherLoad, productId]
     );
 
     const load = useCallback(
@@ -171,7 +191,17 @@ export function useShippingEstimate<TEstimate>({
     }, [enabled, fetchEstimate, initialDestination, productId, requestedDestination]);
 
     useEffect(() => {
-        if (fetcher.state === 'idle') return;
+        if (fetcher.state === 'idle') {
+            if (
+                enteredNonIdleSequenceRef.current >= observedLoadingSequenceRef.current &&
+                observedLoadingSequenceRef.current > settledSequence
+            ) {
+                setSettledSequence(observedLoadingSequenceRef.current);
+            }
+            return;
+        }
+        observedLoadingSequenceRef.current = activeRequestSequenceRef.current;
+        enteredNonIdleSequenceRef.current = activeRequestSequenceRef.current;
         const requestIdentity = requestIdentityRef.current;
         if (!requestIdentity) return;
 
@@ -182,7 +212,7 @@ export function useShippingEstimate<TEstimate>({
                 ? current
                 : requestIdentity
         );
-    }, [fetcher.state]);
+    }, [fetcher.state, settledSequence]);
 
     const normalizedRequestedDestination = normalizeDestination(requestedDestination ?? initialDestination);
     const requestCountry = normalizeCountryCode((requestedDestination ?? initialDestination)?.countryCode);
@@ -239,6 +269,8 @@ export function useShippingEstimate<TEstimate>({
                 Boolean(requestedDestination?.postalCode ?? initialDestination?.postalCode) &&
                 Boolean(normalizedMatchDestination?.postalCode) &&
                 (fetcher.state !== 'idle' || !(matched || neutral || failed)),
+            requestSequence,
+            settledSequence,
             load,
         }),
         [
@@ -250,6 +282,8 @@ export function useShippingEstimate<TEstimate>({
             initialDestination?.postalCode,
             requestedDestination?.postalCode,
             normalizedMatchDestination?.postalCode,
+            requestSequence,
+            settledSequence,
             load,
         ]
     );

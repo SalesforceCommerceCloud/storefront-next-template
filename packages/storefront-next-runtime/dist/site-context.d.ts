@@ -1,7 +1,7 @@
 import { n as Site$1, r as Url, t as Locale$1 } from "./types.js";
 import { PropsWithChildren } from "react";
 import * as react_jsx_runtime1 from "react/jsx-runtime";
-import * as react_router16 from "react-router";
+import * as react_router17 from "react-router";
 import { Cookie, CookieOptions, MiddlewareFunction, RouterContextProvider } from "react-router";
 import { RouteConfigEntry } from "@react-router/dev/routes";
 
@@ -227,7 +227,7 @@ declare function buildUrl({
 }): string;
 //#endregion
 //#region src/site-context/middleware.d.ts
-declare const siteContext: react_router16.RouterContext<SiteContext | null>;
+declare const siteContext: react_router17.RouterContext<SiteContext | null>;
 /**
  * Resolved site context result from {@link resolveSiteContext}.
  */
@@ -275,9 +275,9 @@ declare function resolveSiteContext(request: Request, settings: SiteSettings): P
  * ```
  */
 declare function getSiteContextCookies(context: Readonly<RouterContextProvider>): {
-  siteCookie: react_router16.Cookie;
-  localeCookie: react_router16.Cookie;
-  currencyCookie: react_router16.Cookie;
+  siteCookie: react_router17.Cookie;
+  localeCookie: react_router17.Cookie;
+  currencyCookie: react_router17.Cookie;
 } | null;
 /**
  * Creates a site context middleware that resolves the current site from

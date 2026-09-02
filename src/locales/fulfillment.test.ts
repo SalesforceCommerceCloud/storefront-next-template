@@ -27,8 +27,14 @@ describe('Fulfillment translations', () => {
 
         for (const translationFile of translationFiles) {
             const translations = JSON.parse(readFileSync(translationFile, 'utf-8')) as {
-                product?: { fulfillment?: { deliveryDescription?: unknown } };
+                product?: {
+                    fulfillment?: {
+                        deliveryAddressDescription?: unknown;
+                        deliveryDescription?: unknown;
+                    };
+                };
             };
+            expect(translations.product?.fulfillment?.deliveryAddressDescription).toEqual(expect.any(String));
             expect(translations.product?.fulfillment?.deliveryDescription).toEqual(expect.any(String));
         }
     });

@@ -6,6 +6,7 @@
     "changeDestination": "Zmień miejsce dostawy",
     "changeDestinationAriaLabel": "Zmień miejsce dostawy: {{postalCode}}",
     "arrivalMessage": "Dotrze {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Szacowana dostawa {{deliveryWindow}}",
     "shippingCost": "Koszt wysyłki:",
     "postalTerms": {
         "zip": "kod pocztowy",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Wpisz prawidłowy {{term}}.",
     "deliveryDatesUnavailable": "Daty dostawy są niedostępne. Zobacz opcje i koszty w kasie.",
     "moreDeliveryOptions": "Więcej opcji dostawy",
-    "seeAllDeliveryOptions": "Zobacz wszystkie opcje dostawy",
+    "viewAllShippingOptions": "Zobacz wszystkie opcje dostawy",
     "openingDeliveryOptions": "Otwieranie opcji dostawy...",
     "calculateButton": "Oblicz",
     "calculateAriaLabel": "Oblicz szacowaną dostawę",

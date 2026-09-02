@@ -45,6 +45,9 @@ const meta = {
     argTypes: {
         onChange: { table: { disable: true } },
         onOptionClick: { table: { disable: true } },
+        renderTitle: { table: { disable: true } },
+        getOptionAriaLabel: { table: { disable: true } },
+        getOptionAriaDescription: { table: { disable: true } },
         renderDetails: { table: { disable: true } },
         getOptionId: { table: { disable: true } },
     },

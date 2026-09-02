@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 // @sfdc-extension-file SFDC_EXT_BOPIS
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
@@ -61,6 +61,32 @@ describe('DeliveryOptions with BOPIS', () => {
 
         expect(pickup).not.toBeChecked();
         expect(onSelectionChange).not.toHaveBeenCalled();
+    });
+
+    it('clears unavailable Delivery rather than automatically selecting Pickup without a store', async () => {
+        const onSelectionChange = vi.fn();
+        const user = userEvent.setup();
+        const { rerender } = render(
+            <DeliveryOptions product={product as never} quantity={1} onSelectionChange={onSelectionChange} />,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        await user.click(screen.getByRole('radio', { name: 'Delivery' }));
+        await waitFor(() => expect(onSelectionChange).toHaveBeenCalledWith({ optionId: 'delivery' }));
+        onSelectionChange.mockClear();
+
+        rerender(
+            <DeliveryOptions
+                product={{ ...product, inventory: { ats: 0, orderable: false } } as never}
+                quantity={1}
+                onSelectionChange={onSelectionChange}
+            />
+        );
+
+        await waitFor(() => expect(screen.getByRole('radio', { name: 'Delivery' })).not.toBeChecked());
+        expect(screen.getByRole('radio', { name: /pickup in/i })).not.toBeChecked();
+        expect(onSelectionChange).toHaveBeenCalledOnce();
+        expect(onSelectionChange).toHaveBeenCalledWith(undefined);
     });
 
     it('publishes Pickup store metadata from the direct BOPIS integration', () => {

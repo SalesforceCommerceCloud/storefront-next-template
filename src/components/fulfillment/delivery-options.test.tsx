@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 import { act, render, screen } from '@testing-library/react';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import userEvent from '@testing-library/user-event';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import DeliveryOptions from './delivery-options';
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+import {
+    ShippingDeliveryProvider,
+    useShippingDelivery,
+} from '@/extensions/shipping-delivery/context/shipping-delivery-context';
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
+import DeliveryOptions, {
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+    isDeliveryEstimatePresentationHost,
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+} from './delivery-options';
 
 describe('DeliveryOptions', () => {
     const product = { id: 'product-1', inventory: { ats: 1, orderable: true } };
@@ -39,7 +53,7 @@ describe('DeliveryOptions', () => {
         if (expectedOptionCount > 0) {
             expect(screen.getByRole('radiogroup', { name: 'Fulfillment method' })).toBeInTheDocument();
             expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
-                'Enter postal code to see delivery estimate'
+                'Deliver to shipping address'
             );
         } else {
             expect(screen.queryByRole('radiogroup', { name: 'Fulfillment method' })).not.toBeInTheDocument();
@@ -64,6 +78,29 @@ describe('DeliveryOptions', () => {
             expect(screen.queryByRole('radio', { name: 'Delivery' })).not.toBeInTheDocument();
         }
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+    it('uses delivery-address guidance when delivery estimates are unavailable', () => {
+        render(
+            <DeliveryOptions
+                enableDeliveryEstimatePresentation
+                product={product as never}
+                quantity={1}
+                pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+            />,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
+            'Deliver to shipping address'
+        );
+        expect(
+            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+        ).not.toBeInTheDocument();
+    });
+    // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     it('hydrates the delivery-only picker without a mismatch', () => {
         const serverHtml = renderToString(
@@ -208,4 +245,134 @@ describe('DeliveryOptions', () => {
             expect(onSelectionChange).not.toHaveBeenCalled();
         }
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+    it('requires the exact Delivery and Pickup pair for estimate presentation', () => {
+        expect(isDeliveryEstimatePresentationHost([{ id: 'delivery' }, { id: 'pickup' }])).toBe(true);
+        expect(isDeliveryEstimatePresentationHost([{ id: 'delivery' }])).toBe(false);
+        expect(
+            isDeliveryEstimatePresentationHost([{ id: 'delivery' }, { id: 'pickup' }, { id: 'ship-to-store' }])
+        ).toBe(false);
+    });
+
+    it('keeps the owning Delivery title and details hosts mounted while selection changes', async () => {
+        const user = userEvent.setup();
+
+        function PresentationSource() {
+            const shippingDelivery = useShippingDelivery();
+            const sourceId = useRef({});
+            const registerPresentationSource = shippingDelivery?.registerPresentationSource;
+            const publishPresentation = shippingDelivery?.publishPresentation;
+
+            useLayoutEffect(
+                () =>
+                    registerPresentationSource?.({
+                        sourceId: sourceId.current,
+                        productId: 'product-1',
+                        estimateProductId: 'product-1',
+                    }),
+                [registerPresentationSource]
+            );
+            useLayoutEffect(() => {
+                publishPresentation?.(
+                    {
+                        kind: 'resolved',
+                        sourceId: sourceId.current,
+                        productId: 'product-1',
+                        title: 'Deliver to 94105',
+                        text: 'Sat 2 Jan - Tue 5 Jan',
+                    },
+                    sourceId.current
+                );
+            }, [publishPresentation]);
+
+            const host = shippingDelivery?.presentationHost;
+            return (
+                <output data-testid="presentation-hosts">
+                    {host?.titleElement?.isConnected && host.detailsElement?.isConnected ? 'connected' : 'missing'}
+                </output>
+            );
+        }
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={product as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <PresentationSource />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(await screen.findByTestId('presentation-hosts')).toHaveTextContent('connected');
+        await user.click(screen.getByRole('radio', { name: /pickup in/i }));
+        expect(screen.getByTestId('presentation-hosts')).toHaveTextContent('connected');
+        await user.click(screen.getByRole('radio', { name: /^Delivery/ }));
+        expect(screen.getByTestId('presentation-hosts')).toHaveTextContent('connected');
+    });
+
+    it('renders the estimate prompt as Delivery description text before composed disclosure', () => {
+        function PresentationSource() {
+            const shippingDelivery = useShippingDelivery();
+            const sourceId = useRef({});
+            const registerPresentationSource = shippingDelivery?.registerPresentationSource;
+
+            useLayoutEffect(
+                () =>
+                    registerPresentationSource?.({
+                        sourceId: sourceId.current,
+                        productId: 'product-1',
+                        estimateProductId: 'product-1',
+                    }),
+                [registerPresentationSource]
+            );
+            return null;
+        }
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={product as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <PresentationSource />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
+            'Enter postal code to see delivery estimate'
+        );
+        expect(
+            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+        ).not.toBeInTheDocument();
+        expect(screen.getAllByText('Enter postal code to see delivery estimate')).toHaveLength(2);
+        expect(screen.getAllByText('Enter postal code to see delivery estimate')[0]).toHaveClass('sr-only');
+        expect(screen.getAllByText('Enter postal code to see delivery estimate')[1].tagName).toBe('P');
+    });
+    // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    it('uses caller instance IDs to keep multiple picker controls unique', () => {
+        render(
+            <>
+                <DeliveryOptions product={product as never} quantity={1} instanceId="first" />
+                <DeliveryOptions product={product as never} quantity={1} instanceId="second" />
+            </>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(document.querySelectorAll('#fulfillment-option-first-delivery')).toHaveLength(1);
+        expect(document.querySelectorAll('#fulfillment-option-second-delivery')).toHaveLength(1);
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
 });

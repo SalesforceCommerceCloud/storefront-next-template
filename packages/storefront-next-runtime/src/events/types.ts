@@ -105,6 +105,8 @@ export interface ViewSearchEvent extends BaseEvent {
 export interface ViewCategoryEvent extends BaseEvent {
     eventType: 'view_category';
     path?: string;
+    /** Whether the event represents category navigation rather than appended results. */
+    isNavigation?: boolean;
     category: ShopperProducts.schemas['Category'];
     searchResults: ShopperSearch.schemas['ProductSearchHit'][];
     sort: string;

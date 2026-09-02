@@ -81,7 +81,13 @@ export default function ProductView({ product, mode = 'add' }: ProductViewProps)
             </div>
 
             <div className="order-2">
-                <ProductInfo product={product} />
+                <ProductInfo
+                    product={product}
+                    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                    // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+                    enableDeliveryEstimatePresentation
+                    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+                />
                 <ProductCartActions product={product} />
                 <UITarget targetId="sfcc.pdp.returnsWarranty" />
                 <UITarget targetId="sfcc.pdp.collapsibles" />

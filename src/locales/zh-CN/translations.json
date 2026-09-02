@@ -1501,6 +1501,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "配送方式",
+            "deliveryAddressDescription": "配送至收货地址",
             "deliveryDescription": "输入邮政编码以查看配送估算"
         },
         "recommendations": {

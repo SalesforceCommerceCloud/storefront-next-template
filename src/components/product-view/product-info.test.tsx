@@ -18,7 +18,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 // React Router
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
@@ -35,6 +35,32 @@ import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import type { ShopperProducts } from '@/scapi';
 
 const { t } = getTranslation();
+
+// @sfdc-extension-block-start SFDC_EXT_BOPIS
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+const { deliveryOptionsSpy } = vi.hoisted(() => ({ deliveryOptionsSpy: vi.fn() }));
+
+vi.mock('@/components/fulfillment/delivery-options', async () => {
+    const actual = await vi.importActual<typeof import('@/components/fulfillment/delivery-options')>(
+        '@/components/fulfillment/delivery-options'
+    );
+    return {
+        ...actual,
+        default: (props: React.ComponentProps<typeof actual.default>) => {
+            deliveryOptionsSpy(props);
+            const DeliveryOptions = actual.default;
+            return <DeliveryOptions {...props} />;
+        },
+    };
+});
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+// @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+// @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+vi.mock('@/extensions/shipping-delivery/components/target/delivery-estimate-summary-target', () => ({
+    default: () => <div data-testid="estimated-delivery-target" />,
+}));
+// @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
 const renderProductInfo = (props: React.ComponentProps<typeof ProductInfo>) => {
     // Using createMemoryRouter in framework mode is fine
@@ -66,6 +92,13 @@ const renderProductInfo = (props: React.ComponentProps<typeof ProductInfo>) => {
 };
 
 describe('ProductInfo', () => {
+    beforeEach(() => {
+        // @sfdc-extension-block-start SFDC_EXT_BOPIS
+        // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
+        deliveryOptionsSpy.mockClear();
+        // @sfdc-extension-block-end SFDC_EXT_BOPIS
+    });
+
     describe('basic rendering', () => {
         test('should render product name and description on desktop', () => {
             renderProductInfo({ product: mockProduct });
@@ -626,11 +659,28 @@ describe('ProductInfo', () => {
     // so these assertions only hold when the BOPIS extension is present. Guard the whole describe with
     // the extension marker so it is stripped alongside BOPIS in the extensions-stripped test run.
     describe('delivery options visibility', () => {
-        test('renders the delivery/pickup options by default for an in-stock product', () => {
+        test('renders the delivery/pickup options without opting a reusable ProductInfo into estimate presentation', () => {
             renderProductInfo({ product: mockProduct });
 
             expect(screen.getByTestId('delivery-option-select')).toBeInTheDocument();
+            // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+            expect(deliveryOptionsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ instanceId: `${mockProduct.id}-pdp-delivery-options` })
+            );
+            expect(deliveryOptionsSpy.mock.lastCall?.[0]).toHaveProperty('enableDeliveryEstimatePresentation', false);
+            expect(screen.getAllByTestId('estimated-delivery-target')).toHaveLength(1);
+            // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
         });
+
+        // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+        test('passes the explicit estimate-presentation opt-in to the primary picker', () => {
+            renderProductInfo({ product: mockProduct, enableDeliveryEstimatePresentation: true });
+
+            expect(deliveryOptionsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ enableDeliveryEstimatePresentation: true })
+            );
+        });
+        // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
         test('suppresses the delivery/pickup options when hideDeliveryOptions is set', () => {
             renderProductInfo({ product: mockProduct, hideDeliveryOptions: true });
@@ -640,6 +690,19 @@ describe('ProductInfo', () => {
         });
     });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+    // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+    test('keeps the estimated-delivery target suppressed for deferred availability', () => {
+        renderProductInfo({
+            product: {
+                ...standardProd,
+                inventory: { id: 'deferred-inventory', ats: 0, orderable: true, preorderable: true },
+            },
+        });
+
+        expect(screen.queryByTestId('estimated-delivery-target')).not.toBeInTheDocument();
+    });
+    // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
     describe('image swatches on non-color axes', () => {
         // A product whose `fabric` axis ships per-value swatch imagery (furniture-style). The

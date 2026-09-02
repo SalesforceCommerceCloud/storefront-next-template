@@ -6,6 +6,7 @@
     "changeDestination": "配送先を変更",
     "changeDestinationAriaLabel": "配送先を変更: {{postalCode}}",
     "arrivalMessage": "{{deliveryWindow}}に到着予定",
+    "estimatedArrivalMessage": "到着予定 {{deliveryWindow}}",
     "shippingCost": "配送料:",
     "postalTerms": {
         "zip": "郵便番号",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "有効な{{term}}を入力してください。",
     "deliveryDatesUnavailable": "配送予定を確認できません。オプションと料金はチェックアウトでご確認ください。",
     "moreDeliveryOptions": "その他の配送オプション",
-    "seeAllDeliveryOptions": "すべての配送オプションを見る",
+    "viewAllShippingOptions": "すべての配送オプションを見る",
     "openingDeliveryOptions": "配送オプションを開いています...",
     "calculateButton": "計算する",
     "calculateAriaLabel": "配送予定を計算",

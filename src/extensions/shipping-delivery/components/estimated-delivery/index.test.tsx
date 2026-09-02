@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 /** @sfdc-extension-file SFDC_EXT_SHIPPING_DELIVERY */
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { type ComponentProps, useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import type { ShippingEstimate } from '@/lib/shipping-estimate/types';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import DeliveryOptions from '@/components/fulfillment/delivery-options';
+// @sfdc-extension-line SFDC_EXT_BOPIS
+import { ShippingDeliveryProvider } from '@/extensions/shipping-delivery/context/shipping-delivery-context';
 import EstimatedDelivery from './index';
 
 const useShippingEstimate = vi.hoisted(() => vi.fn());
@@ -108,6 +112,69 @@ describe('EstimatedDelivery', () => {
         expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeInTheDocument();
     });
 
+    test('focuses the postal-code input when a composed calculator is explicitly disclosed', () => {
+        render(<EstimatedDelivery productId="product-1" focusPostalCodeOnMount />, {
+            wrapper: AllProvidersWrapper,
+        });
+
+        return waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus());
+    });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    test('keeps the fallback postal-code editor open after a composed disclosure clears its focus request', () => {
+        function FallbackDisclosure() {
+            const [focusPostalCodeOnMount, setFocusPostalCodeOnMount] = useState(true);
+
+            return (
+                <EstimatedDelivery
+                    productId="product-1"
+                    initialDestination={{ postalCode: 'SW1A 1AA', countryCode: 'GB' }}
+                    focusPostalCodeOnMount={focusPostalCodeOnMount}
+                    onPostalCodeFocusHandled={() => setFocusPostalCodeOnMount(false)}
+                />
+            );
+        }
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <FallbackDisclosure />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        return waitFor(() => {
+            expect(screen.getByRole('textbox')).toHaveFocus();
+            expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeEnabled();
+        });
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+    test('shows a standalone loading card while calculating', () => {
+        useShippingEstimate.mockReturnValue({
+            isLoading: true,
+            estimate: null,
+            hasError: false,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+
+        render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
+
+        expect(screen.getByRole('status')).toHaveTextContent('Calculating...');
+        expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
     test('renders a polite loading card for a saved destination', () => {
         useShippingEstimate.mockReturnValue({
             isLoading: true,
@@ -187,6 +254,43 @@ describe('EstimatedDelivery', () => {
         });
     });
 
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    test('does not coordinate loading while fulfillment presentation is disabled', () => {
+        useShippingEstimate.mockReturnValue({
+            isLoading: true,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: true,
+            load: vi.fn(),
+        });
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="standalone-target">
+                    <EstimatedDelivery
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('status'));
+        expect(screen.getByRole('radio', { name: 'Delivery' }).parentElement).not.toContainElement(
+            screen.getByRole('status')
+        );
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
     test('shows the primary shipping method date window and lets shoppers edit the displayed postal code', async () => {
         const user = userEvent.setup();
         render(
@@ -222,6 +326,8 @@ describe('EstimatedDelivery', () => {
                 matchAgainst === 'SW1A 1AA' ? 'Order received within 7-10 business days' : null,
             matchedZipcode: null,
             autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
             load,
         }));
 
@@ -249,7 +355,7 @@ describe('EstimatedDelivery', () => {
 
         const input = screen.getByLabelText('postcode');
         expect(input).toHaveValue('SW1A 1AA');
-        expect(input).toHaveAttribute('aria-describedby', 'estimated-delivery-message');
+        expect(input.getAttribute('aria-describedby')).toMatch(/^estimated-delivery-.*-message$/);
         expect(screen.getByRole('status')).toHaveTextContent('Order received within 7-10 business days');
         expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeEnabled();
         await waitFor(() => expect(input).toHaveFocus());
@@ -258,10 +364,10 @@ describe('EstimatedDelivery', () => {
         expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
 
         expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Change destination: SW1A 1AA' })).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent('Calculating...');
     });
 
-    test('returns to neutral instructions when the shopper edits a failed lookup', async () => {
+    test('removes failed lookup guidance when the shopper edits the postal code', async () => {
         const user = userEvent.setup();
         useShippingEstimate.mockImplementation(({ matchAgainst }: { matchAgainst?: string }) => ({
             isLoading: false,
@@ -285,7 +391,9 @@ describe('EstimatedDelivery', () => {
         await user.type(input, 'SW1A2AA');
 
         expect(screen.queryByRole('status')).not.toBeInTheDocument();
-        expect(screen.getByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')).toBeInTheDocument();
+        expect(
+            screen.queryByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')
+        ).not.toBeInTheDocument();
     });
 
     test('clears a previous estimate when a subsequent lookup fails', () => {
@@ -341,6 +449,8 @@ describe('EstimatedDelivery', () => {
             hasError: false,
             matchedZipcode: null,
             autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
             load,
         });
         render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
@@ -353,6 +463,26 @@ describe('EstimatedDelivery', () => {
         expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
     });
 
+    test('submits a valid postal code when the shopper presses Enter', async () => {
+        const user = userEvent.setup();
+        const load = vi.fn();
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
+            load,
+        });
+        render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
+
+        await user.type(screen.getByLabelText('postcode'), 'SW1A1AA{Enter}');
+
+        expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
+    });
+
     test('retains the persisted destination country for manual recalculation', () => {
         const load = vi.fn();
         useShippingEstimate.mockReturnValue({
@@ -361,6 +491,8 @@ describe('EstimatedDelivery', () => {
             hasError: false,
             matchedZipcode: 'M5V 3A8',
             autoFetchInFlight: false,
+            requestSequence: 1,
+            settledSequence: 1,
             load,
         });
         render(
@@ -417,6 +549,8 @@ describe('EstimatedDelivery', () => {
             hasError: false,
             matchedZipcode: 'SW1A 1AA',
             autoFetchInFlight: false,
+            requestSequence: 1,
+            settledSequence: 1,
             load,
         });
         rerender(<EstimatedDelivery productId="product-1" />);
@@ -424,6 +558,328 @@ describe('EstimatedDelivery', () => {
         const result = await screen.findByRole('status');
         await waitFor(() => expect(result).toHaveFocus());
         expect(result).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
+    });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    test('keeps focus on Pickup when a coordinated estimate settles after Pickup is selected', async () => {
+        const user = userEvent.setup();
+        const load = vi.fn();
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
+            load,
+        });
+        const { rerender } = render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery enableFulfillmentPresentation productId="product-1" />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const delivery = screen.getByRole('radio', { name: 'Delivery' });
+        const pickup = screen.getByRole('radio', { name: /pickup in/i });
+        await user.click(delivery);
+        await user.type(screen.getByRole('textbox'), 'SW1A1AA');
+        await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+        expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
+
+        await user.click(pickup);
+        expect(pickup).toHaveFocus();
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: 'SW1A 1AA',
+            autoFetchInFlight: false,
+            requestSequence: 1,
+            settledSequence: 1,
+            load,
+        });
+        rerender(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery enableFulfillmentPresentation productId="product-1" />
+            </ShippingDeliveryProvider>
+        );
+
+        await waitFor(() => expect(screen.getByRole('radio', { name: /pickup in/i })).toHaveFocus());
+        expect(document.activeElement).not.toBe(screen.getByRole('status'));
+    });
+
+    test.each([
+        {
+            name: 'a resolved estimate',
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+        },
+        {
+            name: 'merchant fallback guidance',
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            matchedZipcode: null,
+        },
+    ])('moves focus to Delivery when a composed request settles with $name', async (result) => {
+        const user = userEvent.setup();
+        const load = vi.fn();
+        const renderEstimator = () => (
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>
+        );
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+            autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
+            load,
+        });
+        const { rerender } = render(renderEstimator(), { wrapper: AllProvidersWrapper });
+
+        const delivery = await screen.findByRole('radio', { name: /^Delivery/ });
+        await user.click(delivery);
+        await user.click(screen.getByRole('button', { name: 'Change destination: 94105' }));
+        await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+        expect(load).toHaveBeenCalledWith('94105', 'US');
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            ...result,
+            autoFetchInFlight: false,
+            requestSequence: 1,
+            settledSequence: 1,
+            load,
+        });
+        rerender(renderEstimator());
+
+        await waitFor(() => expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveFocus());
+    });
+
+    test.each([
+        {
+            name: 'an empty estimate',
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+        },
+        {
+            name: 'a retryable lookup failure',
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+        },
+    ])('keeps focus in the composed calculator when a request settles with $name', async (result) => {
+        const user = userEvent.setup();
+        const load = vi.fn();
+        const renderEstimator = () => (
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>
+        );
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+            autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
+            load,
+        });
+        const { rerender } = render(renderEstimator(), { wrapper: AllProvidersWrapper });
+
+        await user.click(await screen.findByRole('radio', { name: /^Delivery/ }));
+        await user.click(screen.getByRole('button', { name: 'Change destination: 94105' }));
+        const calculate = screen.getByRole('button', { name: 'Calculate delivery estimate' });
+        await user.click(calculate);
+        expect(load).toHaveBeenCalledWith('94105', 'US');
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            ...result,
+            autoFetchInFlight: false,
+            requestSequence: 1,
+            settledSequence: 1,
+            load,
+        });
+        rerender(renderEstimator());
+
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toHaveFocus());
+        expect(document.activeElement).not.toBe(screen.getByRole('radio', { name: /^Delivery/ }));
+    });
+
+    test('does not move focus when the previous product request settles after a variant change', async () => {
+        const user = userEvent.setup();
+        const load = vi.fn();
+        const renderProduct = (productId: string) => (
+            <>
+                <button type="button">Select blue variant</button>
+                <ShippingDeliveryProvider productId={productId}>
+                    <DeliveryOptions
+                        enableDeliveryEstimatePresentation
+                        instanceId="primary"
+                        product={{ id: productId, inventory: { ats: 1, orderable: true } } as never}
+                        quantity={1}
+                        pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                    />
+                    <EstimatedDelivery enableFulfillmentPresentation productId={productId} />
+                </ShippingDeliveryProvider>
+            </>
+        );
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            requestSequence: 0,
+            settledSequence: 0,
+            load,
+        });
+        const { rerender } = render(renderProduct('product-a'), { wrapper: AllProvidersWrapper });
+
+        await user.click(screen.getByRole('radio', { name: /^Delivery/ }));
+        await user.type(screen.getByRole('textbox'), 'SW1A1AA');
+        await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+        expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
+
+        const variantChange = screen.getByRole('button', { name: 'Select blue variant' });
+        await user.click(variantChange);
+        expect(variantChange).toHaveFocus();
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: true,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: true,
+            requestSequence: 2,
+            settledSequence: 0,
+            load,
+        });
+        rerender(renderProduct('product-b'));
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: 'SW1A 1AA',
+            autoFetchInFlight: false,
+            requestSequence: 2,
+            settledSequence: 2,
+            load,
+        });
+        rerender(renderProduct('product-b'));
+
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Select blue variant' })).toHaveFocus());
+        expect(document.activeElement).not.toBe(screen.getByRole('radio', { name: /^Delivery/ }));
+        expect(document.activeElement).not.toBe(screen.getByRole('status'));
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+    test('focuses a standalone merchant fallback after an edited estimate settles', async () => {
+        const user = userEvent.setup();
+        const load = vi.fn();
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            requestSequence: 1,
+            settledSequence: 1,
+            load,
+        });
+        const { rerender } = render(
+            <EstimatedDelivery
+                productId="product-1"
+                initialDestination={{ postalCode: 'SW1A 1AA', countryCode: 'GB' }}
+            />,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Change destination: SW1A 1AA' }));
+        await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+        expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            requestSequence: 2,
+            settledSequence: 2,
+            load,
+        });
+        rerender(
+            <EstimatedDelivery
+                productId="product-1"
+                initialDestination={{ postalCode: 'SW1A 1AA', countryCode: 'GB' }}
+            />
+        );
+
+        const fallbackStatus = screen.getByRole('status');
+        await waitFor(() => expect(fallbackStatus).toHaveFocus());
+        expect(fallbackStatus).toHaveTextContent('Order received within 7-10 business days');
+        expect(document.activeElement).not.toBe(document.body);
     });
 
     test('rejects invalid postal codes without starting an estimate lookup', () => {
@@ -458,7 +914,8 @@ describe('EstimatedDelivery', () => {
             }
         );
 
-        const trigger = screen.getByRole('button', { name: 'See All Delivery Options' });
+        const trigger = screen.getByRole('button', { name: 'View All Shipping Options' });
+        expect(trigger).toHaveClass('underline');
         await waitFor(() =>
             expect(infoModalProps).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -470,10 +927,11 @@ describe('EstimatedDelivery', () => {
 
         await user.click(trigger);
         expect(screen.queryByText('Calculating...')).not.toBeInTheDocument();
-        await screen.findByRole('dialog');
+        const dialog = await screen.findByRole('dialog', { name: 'Estimated Delivery Date' });
         expect(infoModalProps).toHaveBeenLastCalledWith(expect.objectContaining({ open: true }));
-        expect(screen.getByText('Ground')).toBeInTheDocument();
-        expect(screen.getByText('Express')).toBeInTheDocument();
+        expect(within(dialog).getByRole('heading', { name: 'Shipping Options', level: 3 })).toBeInTheDocument();
+        expect(within(dialog).getByText('Ground')).toBeInTheDocument();
+        expect(within(dialog).getByText('Express')).toBeInTheDocument();
 
         await user.keyboard('{Escape}');
         await waitFor(() => expect(trigger).toHaveFocus());
@@ -492,7 +950,7 @@ describe('EstimatedDelivery', () => {
             }
         );
 
-        const trigger = screen.getByRole('button', { name: 'See All Delivery Options' });
+        const trigger = screen.getByRole('button', { name: 'View All Shipping Options' });
         await waitFor(() => expect(infoModalProps).toHaveBeenCalled());
         expect(screen.queryByText('Opening delivery options...')).not.toBeInTheDocument();
 
@@ -529,10 +987,862 @@ describe('EstimatedDelivery', () => {
         }
 
         render(<Harness />, { wrapper: AllProvidersWrapper });
-        await user.click(await screen.findByRole('button', { name: 'See All Delivery Options' }));
+        await user.click(await screen.findByRole('button', { name: 'View All Shipping Options' }));
         await screen.findByRole('dialog');
 
         act(() => setVisible(false));
         await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Pickup' })));
     });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    test('coordinates a resolved estimate with the explicitly eligible Delivery host', async () => {
+        const user = userEvent.setup();
+        const hostProps = {
+            enableDeliveryEstimatePresentation: true,
+            instanceId: 'primary-pdp-picker',
+        } as ComponentProps<typeof DeliveryOptions>;
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    {...hostProps}
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="standalone-target">
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                        displayStyle="detailed"
+                    />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const delivery = await screen.findByRole('radio', { name: /^Delivery, Deliver to 94105$/ });
+        const pickup = screen.getByRole('radio', { name: /pickup in/i });
+        await waitFor(() =>
+            expect(delivery).toHaveAccessibleDescription(expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/))
+        );
+        const coordinatedStatus = screen.getByRole('status');
+        expect(screen.getByTestId('standalone-target')).toContainElement(coordinatedStatus);
+        expect(screen.getByTestId('standalone-target').querySelector('.rounded-ui')).toBeNull();
+        const unresolvedSelectionDestination = screen.getByRole('button', { name: 'Change destination: 94105' });
+        expect(delivery).not.toBeChecked();
+        expect(delivery.parentElement).toContainElement(unresolvedSelectionDestination);
+        expect(delivery.parentElement).toHaveTextContent(/Deliver to\s*94105/);
+        expect(delivery.parentElement).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
+        expect(delivery.parentElement).not.toHaveTextContent('Arrives');
+
+        await user.click(delivery);
+
+        const changeDestination = screen.getByRole('button', { name: 'Change destination: 94105' });
+        const allOptions = screen.getByRole('button', { name: 'View All Shipping Options' });
+        expect(allOptions).toHaveClass('underline');
+        expect(delivery.parentElement).toContainElement(changeDestination);
+        expect(delivery.parentElement).toContainElement(allOptions);
+        expect(delivery.parentElement).toHaveTextContent(/Deliver to\s*94105/);
+        expect(delivery.parentElement).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
+        expect(delivery.parentElement).not.toHaveTextContent('Arrives');
+        expect(screen.getAllByRole('button', { name: 'Change destination: 94105' })).toHaveLength(1);
+        expect(screen.getAllByRole('button', { name: 'View All Shipping Options' })).toHaveLength(1);
+
+        await user.click(allOptions);
+        const dialog = await screen.findByRole('dialog', { name: 'Shipping Options' });
+        const modalHeading = within(dialog).getByRole('heading', { name: 'Shipping Options' });
+        expect(within(dialog).getAllByRole('heading')).toHaveLength(1);
+        expect(modalHeading).toHaveFocus();
+        expect(within(dialog).queryByRole('heading', { name: 'Estimated Delivery Date' })).not.toBeInTheDocument();
+        act(() => pickup.click());
+
+        expect(delivery.parentElement).toContainElement(
+            screen.getByRole('button', { name: 'Change destination: 94105' })
+        );
+        const persistentAllOptions = screen.getByRole('button', { name: 'View All Shipping Options' });
+        expect(delivery.parentElement).toContainElement(persistentAllOptions);
+        expect(delivery).toHaveAccessibleDescription(expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/));
+        await waitFor(() => expect(pickup).toHaveFocus());
+        expect(pickup).toHaveAttribute('id', 'fulfillment-option-primary-pdp-picker-pickup');
+    });
+
+    test('shows cookie-restoration loading only in Delivery for an eligible host', async () => {
+        const user = userEvent.setup();
+        useShippingEstimate.mockReturnValue({
+            isLoading: true,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: true,
+            load: vi.fn(),
+        });
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="standalone-target">
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const delivery = screen.getByRole('radio', { name: 'Delivery' });
+        const loading = await screen.findByRole('status');
+        expect(screen.getAllByRole('status')).toHaveLength(1);
+        expect(delivery.parentElement).toContainElement(loading);
+        expect(screen.getByTestId('standalone-target')).not.toContainElement(loading);
+        expect(screen.getByTestId('standalone-target')).toBeEmptyDOMElement();
+
+        await user.click(screen.getByRole('radio', { name: /pickup in/i }));
+        expect(delivery.parentElement).toContainElement(loading);
+        expect(screen.getAllByRole('status')).toHaveLength(1);
+    });
+
+    test('keeps resolved estimate controls at the standalone target without an eligible host', () => {
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="standalone-target">
+                    <EstimatedDelivery
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(screen.getByTestId('standalone-target')).toContainElement(
+            screen.getByRole('button', { name: 'Change destination: 94105' })
+        );
+        expect(screen.getByRole('heading', { name: 'Estimated Delivery Date' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Change destination: 94105' }).closest('section')).toHaveClass(
+            'mt-4'
+        );
+        expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+            'Enter postal code to see delivery estimate'
+        );
+    });
+
+    test('defaults a direct estimator to standalone presentation even with an eligible provider host', () => {
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(screen.getByRole('button', { name: 'Change destination: 94105' })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
+            'Enter postal code to see delivery estimate'
+        );
+    });
+
+    test('coordinates a variant estimate with the master product presentation host', async () => {
+        render(
+            <ShippingDeliveryProvider productId="master-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'variant-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="variant-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+        expect(screen.getByRole('status')).toHaveClass('sr-only');
+        expect(screen.getByRole('radio', { name: /^Delivery/ }).parentElement).toContainElement(
+            screen.getByRole('button', { name: 'Change destination: 94105' })
+        );
+    });
+
+    test('restores the estimate prompt when a new variant has no estimate', async () => {
+        const renderProduct = (productId: string) => (
+            <AllProvidersWrapper>
+                <ShippingDeliveryProvider productId="master-1">
+                    <DeliveryOptions
+                        enableDeliveryEstimatePresentation
+                        instanceId="primary"
+                        product={{ id: 'master-1', inventory: { ats: 1, orderable: true } } as never}
+                        quantity={1}
+                        pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                    />
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId={productId}
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </ShippingDeliveryProvider>
+            </AllProvidersWrapper>
+        );
+        const { rerender } = render(renderProduct('variant-1'));
+
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+        rerender(renderProduct('variant-2'));
+
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
+                'Enter postal code to see delivery estimate'
+            )
+        );
+        expect(screen.queryByRole('button', { name: 'Change destination: 94105' })).not.toBeInTheDocument();
+    });
+
+    test('shows loading, not a blank Delivery option, when returning to a resolved variant whose estimate is refetching', async () => {
+        // A variant with an empty merchant fallback forces the estimator open (recovery effect). Switching
+        // back to a previously resolved variant must not leave that per-variant edit state stuck: while the
+        // returning variant's estimate refetches, the recovery effect cannot clear editing (no estimate yet),
+        // so without a variant-change reset the option publishes `editing` and renders blank.
+        const renderProduct = (productId: string) => (
+            <AllProvidersWrapper>
+                <ShippingDeliveryProvider productId="master-1">
+                    <DeliveryOptions
+                        enableDeliveryEstimatePresentation
+                        instanceId="primary"
+                        product={{ id: 'master-1', inventory: { ats: 1, orderable: true } } as never}
+                        quantity={1}
+                        pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                    />
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId={productId}
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </ShippingDeliveryProvider>
+            </AllProvidersWrapper>
+        );
+
+        // Variant 1 resolves — its arrival window coordinates into the Delivery option.
+        const { rerender } = render(renderProduct('variant-1'));
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+
+        // Variant 2 returns an empty merchant fallback: no estimate and no fallback text force the editor open.
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: '',
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+        rerender(renderProduct('variant-2'));
+
+        // Return to variant 1 while its estimate is still refetching (stale fetcher data → in-flight).
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: true,
+            load: vi.fn(),
+        });
+        rerender(renderProduct('variant-1'));
+
+        const delivery = screen.getByRole('radio', { name: /^Delivery/ });
+        await waitFor(() => {
+            const loading = within(delivery.parentElement as HTMLElement).queryByRole('status');
+            expect(loading).toHaveTextContent('Calculating...');
+        });
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
+
+    test('uses unique IDs for multiple standalone estimators', () => {
+        const { container } = render(
+            <>
+                <EstimatedDelivery productId="product-1" />
+                <EstimatedDelivery productId="product-2" />
+            </>,
+            { wrapper: AllProvidersWrapper }
+        );
+        const ids = [...container.querySelectorAll('[id]')].map(({ id }) => id);
+
+        expect(new Set(ids).size).toBe(ids.length);
+        for (const input of screen.getAllByRole('textbox')) {
+            expect(input).not.toHaveAttribute('aria-describedby');
+        }
+    });
+
+    // @sfdc-extension-block-start SFDC_EXT_BOPIS
+    test('keeps input and hard-error branches at the standalone target when composition is disabled', () => {
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary-pdp-picker"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="standalone-target">
+                    <EstimatedDelivery productId="product-1" />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('textbox'));
+        expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('status'));
+        expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
+            'Enter postal code to see delivery estimate'
+        );
+    });
+
+    test('keeps a hard-error calculator at the standalone target', () => {
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary-pdp-picker"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="standalone-target">
+                    <EstimatedDelivery enableFulfillmentPresentation productId="product-1" />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const delivery = screen.getByRole('radio', { name: 'Delivery' });
+        const standaloneTarget = screen.getByTestId('standalone-target');
+        expect(standaloneTarget).toContainElement(screen.getByRole('textbox'));
+        expect(standaloneTarget).toContainElement(screen.getByRole('status'));
+        expect(delivery.parentElement).not.toContainElement(screen.getByRole('textbox'));
+        expect(screen.getByRole('heading', { name: 'Estimated Delivery Date' })).toBeInTheDocument();
+    });
+
+    test('uses only the primary matching host and ignores stale host cleanup', async () => {
+        const user = userEvent.setup();
+
+        function Host({ instanceId }: { instanceId: string }) {
+            return (
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId={instanceId}
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+            );
+        }
+
+        const { rerender } = render(
+            <ShippingDeliveryProvider productId="product-1">
+                <Host instanceId="primary" />
+                <Host instanceId="secondary" />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const primaryDelivery = document.getElementById('fulfillment-option-primary-delivery');
+        const secondaryDelivery = document.getElementById('fulfillment-option-secondary-delivery');
+        expect(primaryDelivery).not.toBeNull();
+        expect(secondaryDelivery).not.toBeNull();
+        if (!primaryDelivery || !secondaryDelivery) throw new Error('Expected both delivery controls');
+        await waitFor(() =>
+            expect(primaryDelivery).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+        expect(secondaryDelivery).toHaveAccessibleDescription('Enter postal code to see delivery estimate');
+
+        await user.click(primaryDelivery);
+        expect(primaryDelivery.parentElement).toContainElement(
+            screen.getByRole('button', { name: 'Change destination: 94105' })
+        );
+
+        rerender(
+            <AllProvidersWrapper>
+                <ShippingDeliveryProvider productId="product-1">
+                    <Host instanceId="secondary" />
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </ShippingDeliveryProvider>
+            </AllProvidersWrapper>
+        );
+
+        const replacementDelivery = document.getElementById('fulfillment-option-secondary-delivery');
+        expect(replacementDelivery).not.toBeNull();
+        if (!replacementDelivery) throw new Error('Expected replacement delivery control');
+        await waitFor(() =>
+            expect(replacementDelivery).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+    });
+
+    test('clears coordinated success before showing destination editing', async () => {
+        const user = userEvent.setup();
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const delivery = screen.getByRole('radio', { name: /^Delivery/ });
+        await waitFor(() =>
+            expect(delivery).toHaveAccessibleDescription(expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/))
+        );
+        await user.click(delivery);
+        await user.click(screen.getByRole('button', { name: 'Change destination: 94105' }));
+
+        expect(screen.getByRole('textbox')).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /^Delivery/ })).not.toHaveAccessibleDescription();
+        expect(screen.queryByRole('button', { name: 'More Delivery Options' })).not.toBeInTheDocument();
+    });
+
+    test('moves coordinated cookie-restoration loading into Delivery', async () => {
+        const load = vi.fn();
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+            autoFetchInFlight: false,
+            load,
+        });
+        const { rerender } = render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const delivery = screen.getByRole('radio', { name: /^Delivery/ });
+        await waitFor(() =>
+            expect(delivery).toHaveAccessibleDescription(expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/))
+        );
+        useShippingEstimate.mockReturnValue({
+            isLoading: true,
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+            autoFetchInFlight: true,
+            load,
+        });
+        rerender(
+            <AllProvidersWrapper>
+                <ShippingDeliveryProvider productId="product-1">
+                    <DeliveryOptions
+                        enableDeliveryEstimatePresentation
+                        instanceId="primary"
+                        product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                        quantity={1}
+                        pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                    />
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </ShippingDeliveryProvider>
+            </AllProvidersWrapper>
+        );
+
+        const loading = screen.getByRole('status');
+        expect(loading).toHaveTextContent('Calculating...');
+        const refreshedDelivery = screen.getByRole('radio', { name: /^Delivery/ });
+        expect(refreshedDelivery.parentElement).toContainElement(loading);
+        expect(loading.closest('[data-testid="standalone-target"]')).toBeNull();
+    });
+
+    test('uses the destination link and fallback guidance in the composed Delivery option', async () => {
+        const user = userEvent.setup();
+        const load = vi.fn();
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load,
+        });
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 0, orderable: false } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="standalone-target">
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId="product-1"
+                        initialDestination={{ postalCode: 'SW1A 1AA', countryCode: 'GB' }}
+                    />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        const delivery = screen.getByRole('radio', { name: 'Delivery, Deliver to SW1A 1AA' });
+        expect(delivery).toBeDisabled();
+        expect(delivery).not.toBeChecked();
+        const changeDestination = screen.getByRole('button', { name: 'Change destination: SW1A 1AA' });
+        expect(delivery.parentElement).toContainElement(changeDestination);
+        expect(delivery).toHaveAccessibleDescription('Order received within 7-10 business days');
+        expect(
+            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+        ).not.toBeInTheDocument();
+        expect(screen.getByTestId('standalone-target')).not.toContainElement(changeDestination);
+        expect(screen.queryByRole('heading', { name: 'Estimated Delivery Date' })).not.toBeInTheDocument();
+        expect(screen.getAllByText(/Deliver to\s*SW1A 1AA/)).toHaveLength(1);
+        await user.click(changeDestination);
+
+        expect(screen.getByTestId('standalone-target')).toContainElement(screen.getByRole('textbox'));
+        expect(delivery.parentElement).not.toContainElement(screen.getByRole('textbox'));
+        await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+        expect(load).toHaveBeenCalledWith('SW1A 1AA', 'GB');
+        expect(screen.getByRole('radio', { name: 'Delivery, Deliver to SW1A 1AA' })).toHaveAccessibleDescription(
+            'Order received within 7-10 business days'
+        );
+        expect(screen.getByRole('status')).toHaveTextContent('Calculating...');
+    });
+
+    test('retains the postal-code disclosure when a resolved estimate changes to fallback guidance', async () => {
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: deliveryEstimate,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: '94105',
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+        const renderEstimator = () => (
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>
+        );
+        const { rerender } = render(renderEstimator(), { wrapper: AllProvidersWrapper });
+
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+        rerender(renderEstimator());
+
+        expect(await screen.findByRole('radio', { name: 'Delivery, Deliver to 94105' })).toBeInTheDocument();
+    });
+
+    test('clears coordinated presentation on product change', async () => {
+        const { rerender } = render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+
+        useShippingEstimate.mockReturnValue({
+            isLoading: false,
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            autoFetchInFlight: false,
+            load: vi.fn(),
+        });
+        rerender(
+            <AllProvidersWrapper>
+                <ShippingDeliveryProvider productId="product-2">
+                    <DeliveryOptions
+                        enableDeliveryEstimatePresentation
+                        instanceId="primary"
+                        product={{ id: 'product-2', inventory: { ats: 1, orderable: true } } as never}
+                        quantity={1}
+                        pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                    />
+                    <EstimatedDelivery productId="product-2" />
+                </ShippingDeliveryProvider>
+            </AllProvidersWrapper>
+        );
+
+        expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+            'Enter postal code to see delivery estimate'
+        );
+    });
+
+    test('coordinates only one estimator source and leaves duplicate estimators standalone', async () => {
+        const user = userEvent.setup();
+        render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <div data-testid="first-estimator">
+                    <EstimatedDelivery
+                        enableFulfillmentPresentation
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </div>
+                <div data-testid="second-estimator">
+                    <EstimatedDelivery
+                        productId="product-1"
+                        initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                    />
+                </div>
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+        expect(screen.getByTestId('first-estimator')).toContainElement(screen.getAllByRole('status')[0]);
+        expect(screen.getByTestId('second-estimator')).toContainElement(
+            within(screen.getByTestId('second-estimator')).getByRole('button', { name: 'Change destination: 94105' })
+        );
+        await user.click(screen.getByRole('radio', { name: /^Delivery/ }));
+        expect(screen.getAllByRole('button', { name: 'Change destination: 94105' })).toHaveLength(2);
+    });
+
+    test('resolves every aria-labelledby reference in coordinated presentation', async () => {
+        const { container } = render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+        await waitFor(() =>
+            expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+                expect.stringMatching(/^Estimated Sat 2 Jan.*Tue 5 Jan$/)
+            )
+        );
+
+        for (const element of container.querySelectorAll('[aria-labelledby]')) {
+            for (const id of element.getAttribute('aria-labelledby')?.split(/\s+/) ?? []) {
+                expect(container.querySelector(`#${CSS.escape(id)}`)).not.toBeNull();
+            }
+        }
+    });
+
+    test.each([
+        {
+            name: 'loading',
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            isLoading: true,
+            autoFetchInFlight: true,
+        },
+        {
+            name: 'destination editing',
+            estimate: null,
+            hasError: false,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            isLoading: false,
+            autoFetchInFlight: false,
+        },
+        {
+            name: 'hard error',
+            estimate: null,
+            hasError: true,
+            fallbackDeliveryDescription: null,
+            matchedZipcode: null,
+            isLoading: false,
+            autoFetchInFlight: false,
+        },
+    ])('does not reference a standalone heading during coordinated $name presentation', async (state) => {
+        useShippingEstimate.mockReturnValue({ ...state, load: vi.fn() });
+        const { container } = render(
+            <ShippingDeliveryProvider productId="product-1">
+                <DeliveryOptions
+                    enableDeliveryEstimatePresentation
+                    instanceId="primary"
+                    product={{ id: 'product-1', inventory: { ats: 1, orderable: true } } as never}
+                    quantity={1}
+                    pickupLocation={{ id: 'store-1', inventoryId: 'inventory-1' }}
+                />
+                <EstimatedDelivery
+                    enableFulfillmentPresentation
+                    productId="product-1"
+                    initialDestination={{ postalCode: '94105', countryCode: 'US' }}
+                />
+            </ShippingDeliveryProvider>,
+            { wrapper: AllProvidersWrapper }
+        );
+
+        await waitFor(() => expect(screen.getByRole('radio', { name: 'Delivery' })).toBeInTheDocument());
+        for (const element of container.querySelectorAll('[aria-labelledby]')) {
+            for (const id of element.getAttribute('aria-labelledby')?.split(/\s+/) ?? []) {
+                expect(container.querySelector(`#${CSS.escape(id)}`)).not.toBeNull();
+            }
+        }
+    });
+    // @sfdc-extension-block-end SFDC_EXT_BOPIS
 });

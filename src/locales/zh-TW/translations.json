@@ -1499,6 +1499,7 @@
         "fulfillment": {
             "delivery": "Delivery",
             "method": "配送方式",
+            "deliveryAddressDescription": "配送至收貨地址",
             "deliveryDescription": "輸入郵遞區號以查看送達估計"
         },
         "recommendations": {

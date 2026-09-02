@@ -372,6 +372,7 @@ export function createData360Adapter(config: Data360Config): EngagementAdapter {
                 (event.eventType === 'view_category' ||
                     event.eventType === 'view_product' ||
                     event.eventType === 'view_search') &&
+                (event.eventType !== 'view_category' || event.isNavigation !== false) &&
                 isPageViewBlocked(event.path ?? '/', pageViewPrefix, config.pageViewsBlocklist)
             ) {
                 const pageView = buildInteraction(

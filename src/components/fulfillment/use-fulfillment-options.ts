@@ -24,17 +24,21 @@ interface UseFulfillmentOptionsProps<OptionId extends string> {
     preventUnavailableSelectionChange?: boolean;
 }
 
+function canAutoSelect<OptionId extends string>(contributor: FulfillmentOptionContributor<OptionId>): boolean {
+    return contributor.option.availability.available && contributor.canAutoSelect !== false;
+}
+
 function getInitialSelectedValue<OptionId extends string>(
     contributors: FulfillmentOptionContributor<OptionId>[],
     initialValue?: OptionId
 ): OptionId | undefined {
     if (initialValue) return initialValue;
     const [soleContributor] = contributors;
-    if (contributors.length === 1 && soleContributor.option.availability.available) return soleContributor.option.id;
+    if (contributors.length === 1 && canAutoSelect(soleContributor)) return soleContributor.option.id;
     const defaultContributor = contributors.find(({ defaultSelected }) => defaultSelected);
     if (!defaultContributor) return undefined;
-    const fallback = contributors.find(({ option }) => option.availability.available);
-    return (defaultContributor.option.availability.available ? defaultContributor : fallback)?.option.id;
+    const fallback = contributors.find(canAutoSelect);
+    return (canAutoSelect(defaultContributor) ? defaultContributor : fallback)?.option.id;
 }
 
 export function orderFulfillmentOptions<OptionId extends string>(
@@ -72,7 +76,7 @@ export function useFulfillmentOptions<OptionId extends string>({
     const selectAvailable = useCallback(
         (nextValue: OptionId) => {
             const contributor = orderedContributors.find(({ option }) => option.id === nextValue);
-            if (!contributor?.option.availability.available) return false;
+            if (!contributor || !canAutoSelect(contributor)) return false;
             setValue(nextValue);
             return true;
         },
@@ -92,8 +96,9 @@ export function useFulfillmentOptions<OptionId extends string>({
         }
         const selected = orderedContributors.find(({ option }) => option.id === value);
         if (selected?.option.availability.available) return;
-        const fallback = orderedContributors.find(({ option }) => option.availability.available);
+        const fallback = orderedContributors.find(canAutoSelect);
         if (fallback) selectAvailable(fallback.option.id);
+        else setValue(undefined);
     }, [initialValue, orderedContributors, preventUnavailableSelectionChange, selectAvailable, value]);
 
     return { value, setValue, select, options };

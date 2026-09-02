@@ -52,4 +52,16 @@ describe('Shipping & Delivery translations', () => {
             expect(translations.changeDestinationAriaLabel).toEqual(expect.any(String));
         }
     });
+
+    it('defines coordinated shipping-option copy in every locale', () => {
+        const translationFiles = readdirSync(localeDirectory, { withFileTypes: true })
+            .filter((entry) => entry.isDirectory())
+            .map((entry) => resolve(localeDirectory, entry.name, 'translations.json'));
+
+        for (const translationFile of translationFiles) {
+            const translations = JSON.parse(readFileSync(translationFile, 'utf-8')) as Record<string, unknown>;
+            expect(translations.shippingOptionsOnlyHeading).toEqual(expect.any(String));
+            expect(translations.viewAllShippingOptions).toEqual(expect.any(String));
+        }
+    });
 });

@@ -458,6 +458,46 @@ describe('Data 360 Adapter', () => {
     });
 
     describe('view_category — per-hit fan-out', () => {
+        it('derives one page view while tracking initial and load-more impressions', async () => {
+            const adapter = createData360Adapter(mockConfig) as Data360Adapter;
+            const baseEvent = {
+                eventType: 'view_category',
+                path: '/category/cat-123',
+                payload: registeredUser,
+                category: { id: 'cat-123' },
+                sort: '',
+                refinements: {},
+            } as const;
+
+            await adapter.sendEvent(
+                { ...baseEvent, searchResults: [mockSearchHit], offset: 0, limit: 1 } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+            await adapter.sendEvent(
+                {
+                    ...baseEvent,
+                    isNavigation: false,
+                    searchResults: [{ ...mockSearchHit, productId: 'hit-2' }],
+                    offset: 1,
+                    limit: 1,
+                } as AnalyticsEvent,
+                undefined,
+                defaultConsent
+            );
+
+            expect(mockSendBeacon).toHaveBeenCalledTimes(3);
+            expect((await getInteraction()).events[2]).toMatchObject({ interactionName: 'page-view' });
+            expect((await getInteraction(1)).events[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+                id: 'hit-product-id',
+            });
+            expect((await getInteraction(2)).events[2]).toMatchObject({
+                interactionName: 'catalog-object-impression',
+                id: 'hit-2',
+            });
+        });
+
         it('emits separate page-view and catalog-impression interactions', async () => {
             const adapter = createData360Adapter(mockConfig) as Data360Adapter;
             await adapter.sendEvent(
@@ -518,6 +558,7 @@ describe('Data 360 Adapter', () => {
                 undefined,
                 defaultConsent
             );
+            expect(mockSendBeacon).toHaveBeenCalledTimes(2);
             const domains = (await getInteraction(1)).events.slice(2) as Array<Record<string, any>>;
             // positions are one-based; page = floor(offset/limit)+1
             expect(domains[0].searchResultPosition).toBe(25);

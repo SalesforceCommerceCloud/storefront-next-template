@@ -48,6 +48,8 @@ export interface FulfillmentOptionDescriptor<OptionId extends string = Fulfillme
 export interface FulfillmentOptionContributor<OptionId extends string = FulfillmentOptionId> {
     option: FulfillmentOptionDescriptor<OptionId>;
     defaultSelected?: boolean;
+    /** Indicates whether this available option can be selected automatically. */
+    canAutoSelect?: boolean;
     /** Return false to handle the interaction without updating the selected option. */
     onSelect?: () => boolean | void;
     createSelection?: (optionId: OptionId) => SelectedFulfillmentOption<OptionId>;

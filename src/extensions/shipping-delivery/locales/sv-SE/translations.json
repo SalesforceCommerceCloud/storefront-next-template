@@ -6,6 +6,7 @@
     "changeDestination": "Ändra destination",
     "changeDestinationAriaLabel": "Ändra destination: {{postalCode}}",
     "arrivalMessage": "Ankommer {{deliveryWindow}}",
+    "estimatedArrivalMessage": "Beräknad {{deliveryWindow}}",
     "shippingCost": "Fraktkostnad:",
     "postalTerms": {
         "zip": "postnummer",
@@ -22,7 +23,7 @@
     "postalCodeInvalidNoExample": "Ange ett giltigt {{term}}.",
     "deliveryDatesUnavailable": "Leveransdatum är inte tillgängliga. Se alternativ och kostnader i kassan.",
     "moreDeliveryOptions": "Fler leveransalternativ",
-    "seeAllDeliveryOptions": "Visa alla leveransalternativ",
+    "viewAllShippingOptions": "Visa alla fraktalternativ",
     "openingDeliveryOptions": "Öppnar leveransalternativ...",
     "calculateButton": "Beräkna",
     "calculateAriaLabel": "Beräkna leveransuppskattning",
