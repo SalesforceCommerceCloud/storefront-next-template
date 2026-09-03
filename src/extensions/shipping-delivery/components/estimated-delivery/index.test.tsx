@@ -108,8 +108,14 @@ describe('EstimatedDelivery', () => {
         render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
 
         expect(screen.getByRole('heading', { name: 'Estimated Delivery Date' })).toBeInTheDocument();
-        expect(screen.getByRole('textbox')).toHaveAttribute('autocomplete', 'postal-code');
-        expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Enter a postal code...');
+        const input = screen.getByRole('textbox');
+        const instructions = screen.getByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.');
+        expect(input).toHaveAttribute('autocomplete', 'postal-code');
+        expect(input).toHaveAttribute('placeholder', 'Enter a postal code...');
+        expect(input).toHaveAccessibleDescription('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.');
+        expect(input.compareDocumentPosition(instructions) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+            Node.DOCUMENT_POSITION_FOLLOWING
+        );
         expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeInTheDocument();
     });
 
@@ -355,7 +361,9 @@ describe('EstimatedDelivery', () => {
 
         const input = screen.getByLabelText('postcode');
         expect(input).toHaveValue('SW1A 1AA');
-        expect(input.getAttribute('aria-describedby')).toMatch(/^estimated-delivery-.*-message$/);
+        expect(input).toHaveAccessibleDescription(
+            'Enter your postcode (e.g. SW1A 1AA) to see delivery estimates. Arrives in 7–10 business days'
+        );
         expect(screen.getByRole('status')).toHaveTextContent('Arrives in 7–10 business days');
         expect(screen.getByRole('button', { name: 'Calculate delivery estimate' })).toBeEnabled();
         await waitFor(() => expect(input).toHaveFocus());
@@ -391,9 +399,20 @@ describe('EstimatedDelivery', () => {
         await user.type(input, 'SW1A2AA');
 
         expect(screen.queryByRole('status')).not.toBeInTheDocument();
-        expect(
-            screen.queryByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')
-        ).not.toBeInTheDocument();
+        expect(screen.getByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')).toBeInTheDocument();
+    });
+
+    test('keeps standalone postal-code instructions associated with invalid input', async () => {
+        const user = userEvent.setup();
+        render(<EstimatedDelivery productId="product-1" />, { wrapper: AllProvidersWrapper });
+
+        const input = screen.getByRole('textbox');
+        await user.type(input, 'invalid');
+        await user.click(screen.getByRole('button', { name: 'Calculate delivery estimate' }));
+
+        expect(input).toHaveAccessibleDescription(
+            'Enter your postcode (e.g. SW1A 1AA) to see delivery estimates. Enter a valid postcode (e.g. SW1A 1AA).'
+        );
     });
 
     test('clears a previous estimate when a subsequent lookup fails', () => {
@@ -1319,7 +1338,7 @@ describe('EstimatedDelivery', () => {
 
         expect(new Set(ids).size).toBe(ids.length);
         for (const input of screen.getAllByRole('textbox')) {
-            expect(input).not.toHaveAttribute('aria-describedby');
+            expect(input).toHaveAccessibleDescription('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.');
         }
     });
 
@@ -1489,7 +1508,12 @@ describe('EstimatedDelivery', () => {
         await user.click(screen.getByRole('button', { name: 'Change destination: 94105' }));
 
         expect(screen.getByRole('textbox')).toBeInTheDocument();
-        expect(screen.getByRole('radio', { name: /^Delivery/ })).not.toHaveAccessibleDescription();
+        expect(screen.getByRole('radio', { name: /^Delivery/ })).toHaveAccessibleDescription(
+            'Enter a postal code to get a delivery estimate'
+        );
+        expect(
+            screen.queryByText('Enter your postcode (e.g. SW1A 1AA) to see delivery estimates.')
+        ).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'More Delivery Options' })).not.toBeInTheDocument();
     });
 

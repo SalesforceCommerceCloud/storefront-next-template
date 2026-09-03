@@ -146,6 +146,9 @@ export default function DeliveryOptions({
     const estimateProductId = productView?.currentVariant?.productId ?? product.id;
     const shouldShowDeliveryEstimatePrompt =
         coordinatesPresentation && !resolvedPresentation && !shippingDelivery?.hasPublishedResolvedPresentation;
+    // Re-opening the estimator (via the "Deliver to X" link) publishes `editing` even after a prior resolve,
+    // so the Delivery row keeps its explanation description while the shopper edits the postal code.
+    const isEditingDeliveryEstimate = coordinatesPresentation && presentation?.kind === 'editing';
     const deliveryDescription: string | undefined = resolvedPresentation
         ? resolvedPresentation.text
         : coordinatesPresentation
@@ -322,7 +325,7 @@ export default function DeliveryOptions({
                         : option.label
                 }
                 getOptionAriaDescription={(option) =>
-                    shouldShowDeliveryEstimatePrompt && option.id === 'delivery'
+                    (shouldShowDeliveryEstimatePrompt || isEditingDeliveryEstimate) && option.id === 'delivery'
                         ? defaultDeliveryDescription
                         : undefined
                 }
@@ -337,7 +340,8 @@ export default function DeliveryOptions({
                                     <p role="status" className="mt-0.5 text-xs text-muted-foreground">
                                         {presentation.text}
                                     </p>
-                                ) : shouldShowDeliveryEstimatePrompt && option.availability.available ? (
+                                ) : (shouldShowDeliveryEstimatePrompt || isEditingDeliveryEstimate) &&
+                                  option.availability.available ? (
                                     <p className="mt-0.5 text-xs font-normal leading-4 tracking-[0.12px] text-muted-foreground">
                                         {defaultDeliveryDescription}
                                     </p>
