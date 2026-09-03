@@ -1,6 +1,6 @@
 {
     "cardTitle": "Estimated Delivery Date",
-    "shippingOptionsOnlyHeading": "Shipping Options",
+    "shippingOptionsOnlyHeading": "Shipping options",
     "free": "Free",
     "deliverTo": "Deliver to <postalCode>{{postalCode}}</postalCode>",
     "changeDestination": "Change destination",
@@ -15,7 +15,7 @@
         "cap": "CAP",
         "eircode": "Eircode"
     },
-    "postalCodePlaceholder": "Enter {{term}}",
+    "postalCodePlaceholder": "Enter a postal code...",
     "postalCodePlaceholderExample": "Enter {{term}} (e.g. {{example}})",
     "postalCodeInstructions": "Enter your {{term}} (e.g. {{example}}) to see delivery estimates.",
     "postalCodeInstructionsNoExample": "Enter your {{term}} to see delivery estimates.",

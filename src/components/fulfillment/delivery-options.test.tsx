@@ -96,7 +96,7 @@ describe('DeliveryOptions', () => {
             'Deliver to shipping address'
         );
         expect(
-            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
     });
     // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
@@ -349,14 +349,14 @@ describe('DeliveryOptions', () => {
         );
 
         expect(screen.getByRole('radio', { name: 'Delivery' })).toHaveAccessibleDescription(
-            'Enter postal code to see delivery estimate'
+            'Enter a postal code to get a delivery estimate'
         );
         expect(
-            screen.queryByRole('button', { name: 'Enter postal code to see delivery estimate' })
+            screen.queryByRole('button', { name: 'Enter a postal code to get a delivery estimate' })
         ).not.toBeInTheDocument();
-        expect(screen.getAllByText('Enter postal code to see delivery estimate')).toHaveLength(2);
-        expect(screen.getAllByText('Enter postal code to see delivery estimate')[0]).toHaveClass('sr-only');
-        expect(screen.getAllByText('Enter postal code to see delivery estimate')[1].tagName).toBe('P');
+        expect(screen.getAllByText('Enter a postal code to get a delivery estimate')).toHaveLength(2);
+        expect(screen.getAllByText('Enter a postal code to get a delivery estimate')[0]).toHaveClass('sr-only');
+        expect(screen.getAllByText('Enter a postal code to get a delivery estimate')[1].tagName).toBe('P');
     });
     // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
     // @sfdc-extension-block-end SFDC_EXT_BOPIS

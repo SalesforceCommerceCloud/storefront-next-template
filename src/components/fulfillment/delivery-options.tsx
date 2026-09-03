@@ -117,7 +117,7 @@ export default function DeliveryOptions({
     });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
     const defaultDeliveryDescription = t('fulfillment.deliveryDescription', {
-        defaultValue: 'Enter postal code to see delivery estimate',
+        defaultValue: 'Enter a postal code to get a delivery estimate',
     });
     // The last enabled fulfillment extension wins the Delivery description, including overriding it to undefined.
     // A mutable holder keeps this strip-safe: a removed block drops its reassignment and the prior value stands.

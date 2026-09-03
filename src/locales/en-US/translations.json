@@ -1805,7 +1805,7 @@
             "delivery": "Delivery",
             "method": "Fulfillment method",
             "deliveryAddressDescription": "Deliver to shipping address",
-            "deliveryDescription": "Enter postal code to see delivery estimate"
+            "deliveryDescription": "Enter a postal code to get a delivery estimate"
         },
         "recommendations": {
             "youMightAlsoLike": "You might also like",

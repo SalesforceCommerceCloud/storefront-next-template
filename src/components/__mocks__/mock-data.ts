@@ -93,19 +93,19 @@ export const scapiBasketWithItem = {
 export const mockShippingMethods = {
     applicableShippingMethods: [
         {
-            description: 'Order received within 7-10 business days',
+            description: 'Arrives in 7–10 business days',
             id: '001',
             name: 'Ground',
             price: 15.99,
         },
         {
-            description: 'Order received in 2 business days',
+            description: 'Arrives in 2 business days',
             id: '002',
             name: '2-Day Express',
             price: 20.99,
         },
         {
-            description: 'Order received the next business day',
+            description: 'Arrives the next business day',
             id: '003',
             name: 'Overnight',
             price: 29.99,
@@ -936,7 +936,7 @@ export const mockOrderHistory = {
                         stateCode: 'FL',
                     },
                     shippingMethod: {
-                        description: 'Order received within 7-10 business days',
+                        description: 'Arrives in 7–10 business days',
                         id: '001',
                         name: 'Ground',
                         c_estimatedArrivalTime: '7-10 Business Days',
@@ -1088,7 +1088,7 @@ export const mockOrderHistory = {
                         stateCode: 'FL',
                     },
                     shippingMethod: {
-                        description: 'Order received within 7-10 business days',
+                        description: 'Arrives in 7–10 business days',
                         id: '001',
                         name: 'Ground',
                         c_estimatedArrivalTime: '7-10 Business Days',
@@ -1240,7 +1240,7 @@ export const mockOrderHistory = {
                         stateCode: 'FL',
                     },
                     shippingMethod: {
-                        description: 'Order received within 7-10 business days',
+                        description: 'Arrives in 7–10 business days',
                         id: '001',
                         name: 'Ground',
                         c_estimatedArrivalTime: '7-10 Business Days',
@@ -5257,7 +5257,7 @@ export const mockEmptyBasket = {
                     shipmentId: 'me',
                     shipmentTotal: 0,
                     shippingMethod: {
-                        description: 'Order received within 7-10 business days',
+                        description: 'Arrives in 7–10 business days',
                         id: 'GBP001',
                         name: 'Ground',
                         price: 0,

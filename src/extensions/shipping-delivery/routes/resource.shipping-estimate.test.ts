@@ -274,7 +274,7 @@ describe('resource.shipping-estimate', () => {
 
     it('preserves an upstream 403, remembers the postal code, and returns catalog delivery guidance', async () => {
         vi.mocked(getShippingEstimates).mockRejectedValue(createApiError(403));
-        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Arrives in 7–10 business days');
 
         const response = await invoke(
             request({ productId: 'product-1', zipcode: 'M5V 3A8', countryCode: 'CA', persistDestination: 'true' })
@@ -286,7 +286,7 @@ describe('resource.shipping-estimate', () => {
             productId: 'product-1',
             zipcode: 'M5V 3A8',
             countryCode: 'CA',
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
         });
         expect(response.headers.get('Set-Cookie')).toBe('deliveryZipCode=94105');
         expect(serialize).toHaveBeenCalledWith({ postalCode: 'M5V 3A8', countryCode: 'CA' });
@@ -295,7 +295,7 @@ describe('resource.shipping-estimate', () => {
 
     it('preserves an upstream 500, remembers the postal code, and returns catalog delivery guidance', async () => {
         vi.mocked(getShippingEstimates).mockRejectedValue(createApiError(500));
-        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Arrives in 7–10 business days');
 
         const response = await invoke(
             request({ productId: 'product-1', zipcode: '94105', persistDestination: 'true' })
@@ -307,7 +307,7 @@ describe('resource.shipping-estimate', () => {
             productId: 'product-1',
             zipcode: '94105',
             countryCode: 'US',
-            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+            fallbackDeliveryDescription: 'Arrives in 7–10 business days',
         });
         expect(response.headers.get('Set-Cookie')).toBe('deliveryZipCode=94105');
         expect(serialize).toHaveBeenCalledWith({ postalCode: '94105', countryCode: 'US' });

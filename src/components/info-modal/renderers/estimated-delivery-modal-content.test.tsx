@@ -66,11 +66,11 @@ describe('EstimatedDeliveryModalContent', () => {
         expect(screen.getAllByText(/Jan/)).toHaveLength(2);
     });
 
-    it('preserves the standalone shipping options heading', () => {
+    it('preserves the standalone shipping options heading in sentence case', () => {
         renderWithConfig(
-            <EstimatedDeliveryModalContent contentTitle="Shipping Options" shippingOptions={shippingOptions} />
+            <EstimatedDeliveryModalContent contentTitle="Shipping options" shippingOptions={shippingOptions} />
         );
 
-        expect(screen.getByRole('heading', { name: 'Shipping Options', level: 3 })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Shipping options', level: 3 })).toBeInTheDocument();
     });
 });

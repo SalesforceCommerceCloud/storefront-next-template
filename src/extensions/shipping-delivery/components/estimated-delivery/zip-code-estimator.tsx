@@ -48,9 +48,7 @@ export default function ZipCodeEstimator({
         onInputChange(format.normalize(e.target.value));
     };
 
-    const placeholder = format.example
-        ? t('postalCodePlaceholderExample', { term: termLabel, example: format.example })
-        : t('postalCodePlaceholder', { term: termLabel });
+    const placeholder = t('postalCodePlaceholder', { term: termLabel });
 
     const invalidMessage = format.example
         ? t('postalCodeInvalid', { term: termLabel, example: format.example })
