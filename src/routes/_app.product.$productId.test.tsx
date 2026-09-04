@@ -44,6 +44,21 @@ vi.mock('@/components/product-view', () => ({
     ),
 }));
 
+// Flattened vertical mirrors import the overlay explicitly while the canonical
+// route imports the product-view barrel. Keep the route test isolated in both forms.
+vi.mock('@/components/product-view/product-view', () => ({
+    default: ({ product, category }: any) => (
+        <div data-testid="product-view">
+            <div data-testid="product-name">{product?.name}</div>
+            <div data-testid="category-name">{category?.name}</div>
+        </div>
+    ),
+}));
+
+vi.mock('@/components/product-bottom-bar', () => ({
+    default: () => <div data-testid="product-bottom-bar" />,
+}));
+
 vi.mock('@/components/product-view/child-products', () => ({
     default: ({ parentProduct }: any) => (
         <div data-testid="child-products">
@@ -127,6 +142,7 @@ vi.mock('@/providers/product-context', () => ({
 
 vi.mock('@/providers/product-view', () => ({
     default: ({ children }: any) => <div data-testid="product-view-provider">{children}</div>,
+    useOptionalProductView: vi.fn(() => null),
 }));
 
 vi.mock('@/components/region', () => ({
@@ -208,6 +224,8 @@ describe('Product Detail Route', () => {
     });
 
     const mockExtensionLoaderData = {
+        youMightAlsoLikeRecommendations: Promise.resolve({}),
+        completeTheRoomRecommendations: Promise.resolve({}),
         // @sfdc-extension-block-start SFDC_EXT_BNPL
         bnplMessage: Promise.resolve({
             paymentCount: 4,

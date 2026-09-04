@@ -253,8 +253,8 @@
             },
             {
                 "name": "assets/\\(components\\)-\\(product-view\\)-child-products.*.js",
-                "limit": "91 kB",
-                "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection plus delivery-option presentation. The footwear mirror measures 90.7 kB; retain 0.3 kB of headroom."
+                "limit": "92 kB",
+                "comment": "Child products component includes Radix UI menu and dropdown dependencies for variant selection plus delivery-option presentation. The direct Footwear build measures 91.1 kB; retain 0.9 kB of headroom."
             },
             {
                 "name": "assets/\\(components\\)-\\(cart-item-modal\\)-index.*.js",

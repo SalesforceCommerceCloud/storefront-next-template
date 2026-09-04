@@ -17,7 +17,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { action } from 'storybook/actions';
 import { useState, type ReactElement } from 'react';
-import { expect, within, userEvent } from 'storybook/test';
+import { expect, waitFor, within, userEvent } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import type { ShopperProducts } from '@/scapi';
@@ -229,6 +229,22 @@ export const Default: Story = {
         );
         await expect(modalTitle).toBeInTheDocument();
 
+        // Wait for ProductInfo rather than relying on the title, which renders the fallback
+        // productName before the asynchronous product fixture has loaded. Furniture then
+        // collapses the Color selector into a native summary; canonical ProductInfo exposes
+        // the selected swatch directly.
+        const dialog = documentBody.getByRole('dialog');
+        const collapsedSwatchSection = await waitFor(() => {
+            const summary = dialog.querySelector('details > summary');
+            if (summary) return summary;
+
+            expect(documentBody.queryByRole('radio', { name: /red/i })).toBeInTheDocument();
+            return null;
+        });
+        if (collapsedSwatchSection) {
+            await userEvent.click(collapsedSwatchSection);
+        }
+
         // Variant swatches render with the product name in the accessible label.
         // The modal auto-selects the first orderable variant on open
         // (`computeInitialVariationValues` fallback #3), so Red is pre-checked.
@@ -245,7 +261,18 @@ export const Default: Story = {
 
         // Clicking turquoise flips the selection — verifies swatch toggle behaviour.
         await userEvent.click(turquoiseSwatch);
-        await expect(turquoiseSwatch).toBeChecked();
-        await expect(redSwatch).not.toBeChecked();
+
+        // The Furniture overlay remounts its swatch section closed after a selection.
+        // Re-open and re-query because the prior radio nodes have been unmounted.
+        const remountedSwatchSection = dialog.querySelector('details > summary');
+        if (
+            remountedSwatchSection?.parentElement instanceof HTMLDetailsElement &&
+            !remountedSwatchSection.parentElement.open
+        ) {
+            await userEvent.click(remountedSwatchSection);
+        }
+
+        await expect(await documentBody.findByRole('radio', { name: /turquoise/i })).toBeChecked();
+        await expect(await documentBody.findByRole('radio', { name: /red/i })).not.toBeChecked();
     },
 };

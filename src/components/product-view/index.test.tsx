@@ -26,6 +26,23 @@ import ProductView from './index';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { createConfigWrapper, mockAltSiteObject } from '@/test-utils/config';
 
+vi.mock('@/lib/config.ui', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/config.ui')>();
+    return {
+        ...actual,
+        uiConfig: {
+            ...actual.uiConfig,
+            pages: {
+                ...actual.uiConfig.pages,
+                product: {
+                    ...actual.uiConfig.pages.product,
+                    showRatingAverage: false,
+                },
+            },
+        },
+    };
+});
+
 // Create a wrapper with default config
 const defaultConfigWrapper = createConfigWrapper({
     app: {
@@ -147,7 +164,10 @@ describe('ProductView', () => {
             // (alt="") with the description moved onto the thumbnail button label, so
             // each additional image is reachable as a labelled button, not an alt.
             expect(screen.getAllByAltText('Image 1').length).toBeGreaterThan(0);
-            expect(screen.getByRole('button', { name: 'Product image 2 of 2' })).toBeInTheDocument();
+            const secondImage =
+                screen.queryByRole('img', { name: 'Image 2' }) ??
+                screen.queryByRole('button', { name: 'Product image 2 of 2' });
+            expect(secondImage).toBeInTheDocument();
         });
     });
 

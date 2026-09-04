@@ -24,6 +24,32 @@ import { logger } from '../logger';
 
 let isCliAvailable: boolean | null = null;
 
+function filePathEndsWithRoute(filePath: string, routeFile: string): boolean {
+    const routeFileNormalized = routeFile.replace(/^\.\//, '');
+    return filePath === routeFileNormalized || filePath.endsWith(`/${routeFileNormalized}`);
+}
+
+/**
+ * Match the selected vertical route shadow to its canonical route module.
+ *
+ * `VERTICAL` is optional and selects the overlay directory reported by React Router,
+ * for example `furniture` for `verticals/furniture/routes/_app._index.tsx`.
+ */
+function routeFileMatches(filePath: string, routeFile: string): boolean {
+    if (filePathEndsWithRoute(filePath, routeFile)) {
+        return true;
+    }
+
+    const vertical = process.env.VERTICAL;
+    const verticalRoutePrefix = vertical ? `verticals/${vertical}/routes/` : undefined;
+    if (!verticalRoutePrefix || !routeFile.startsWith(verticalRoutePrefix)) {
+        return false;
+    }
+
+    const canonicalRouteFile = `routes/${routeFile.slice(verticalRoutePrefix.length)}`;
+    return filePathEndsWithRoute(filePath, canonicalRouteFile);
+}
+
 function checkReactRouterCli(projectDirectory: string): boolean {
     if (isCliAvailable !== null) {
         return isCliAvailable;
@@ -113,15 +139,8 @@ export function filePathToRoute(filePath: string, projectRoot: string): string {
     for (const route of canonicalRoutes) {
         // Normalize the route file path for comparison
         const routeFilePosix = route.file.replace(/\\/g, '/');
-        const routeFileNormalized = routeFilePosix.replace(/^\.\//, '');
 
-        // Check if the file path ends with the route file (handles relative vs. absolute paths)
-        if (
-            filePathPosix.endsWith(routeFilePosix) ||
-            filePathPosix.endsWith(`/${routeFilePosix}`) ||
-            filePathPosix.endsWith(routeFileNormalized) ||
-            filePathPosix.endsWith(`/${routeFileNormalized}`)
-        ) {
+        if (routeFileMatches(filePathPosix, routeFilePosix)) {
             return route.path;
         }
     }

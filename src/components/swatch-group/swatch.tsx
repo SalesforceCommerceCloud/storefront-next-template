@@ -23,6 +23,8 @@ import type { VariantProps } from 'class-variance-authority';
  * Props for the Swatch component
  */
 interface SwatchProps extends VariantProps<typeof swatchVariants> {
+    /** ID of content that supplements the swatch's accessible name */
+    'aria-describedby'?: string;
     /** Content to render inside the swatch */
     children?: ReactNode;
     /** Whether the swatch is disabled and non-interactive */
@@ -75,6 +77,7 @@ interface SwatchProps extends VariantProps<typeof swatchVariants> {
  * ```
  */
 export const Swatch: FC<SwatchProps> = ({
+    'aria-describedby': ariaDescribedBy,
     children,
     disabled = false,
     href,
@@ -130,6 +133,7 @@ export const Swatch: FC<SwatchProps> = ({
         'aria-label': accessibleName,
         'aria-checked': selected,
         'aria-disabled': disabled ? true : undefined,
+        'aria-describedby': ariaDescribedBy,
         'data-labeled': labeled || undefined,
         'data-swatch-type': shape,
         position: 'relative',

@@ -247,6 +247,38 @@ describe('filePathToRoute', () => {
             (readFileSync as Mock).mockReturnValue(JSON.stringify(testRoutesWithSiteContext));
         });
 
+        test('should resolve a canonical route file through the selected vertical overlay', () => {
+            const verticalRoutes = structuredClone(testRoutesWithSiteContext) as any;
+            verticalRoutes[0].children[1].children[0].children[0].file = 'verticals/furniture/routes/_app._index.tsx';
+            (readFileSync as Mock).mockReturnValue(JSON.stringify(verticalRoutes));
+            const ambientVertical = process.env.VERTICAL;
+
+            try {
+                process.env.VERTICAL = 'furniture';
+                expect(filePathToRoute('/Users/test/project/src/routes/_app._index.tsx', '/Users/test/project')).toBe(
+                    '/:siteId/:localeId'
+                );
+                expect(
+                    filePathToRoute(
+                        '/Users/test/project/src/verticals/furniture/routes/_app._index.tsx',
+                        '/Users/test/project'
+                    )
+                ).toBe('/:siteId/:localeId');
+            } finally {
+                if (ambientVertical === undefined) {
+                    delete process.env.VERTICAL;
+                } else {
+                    process.env.VERTICAL = ambientVertical;
+                }
+            }
+        });
+
+        test('does not match a non-route path that only shares a route-file suffix', () => {
+            expect(filePathToRoute('/Users/test/project/src/notroutes/_app._index.tsx', '/Users/test/project')).toBe(
+                '/unknown'
+            );
+        });
+
         test.each([
             [
                 '/Users/test/project/src/routes/_app._index.tsx',

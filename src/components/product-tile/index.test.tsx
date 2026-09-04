@@ -55,9 +55,7 @@ vi.mock('@salesforce/storefront-next-runtime/design/react/core', async (importOr
     return { ...actual, usePageDesignerMode: () => ({ isDesignMode: mockIsDesignMode }) };
 });
 
-// Drives the per-vertical "tiles link to the master PDP instead of the represented variant" flag
-// (furniture opts in). Partial mock so every other uiConfig value stays real; only the one flag is
-// made mutable via a getter read at render time.
+// Drives the "tiles link to the master PDP instead of the represented variant" flag.
 let mockTileLinksToMaster = false;
 vi.mock('@/lib/config.ui', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/lib/config.ui')>();
@@ -72,6 +70,10 @@ vi.mock('@/lib/config.ui', async (importOriginal) => {
                     get tileLinksToMasterProduct() {
                         return mockTileLinksToMaster;
                     },
+                },
+                product: {
+                    ...actual.uiConfig.pages.product,
+                    showRatingAverage: false,
                 },
             },
         },
@@ -159,6 +161,33 @@ const renderTile = (
         { initialEntries: ['/test'] }
     );
     return render(<RouterProvider router={router} />);
+};
+
+const getDialogVariationRadio = async (
+    dialog: HTMLElement,
+    user: ReturnType<typeof userEvent.setup>,
+    groupName: string,
+    optionName: string | RegExp
+) => {
+    const dialogQueries = within(dialog);
+    const accessibleGroupName = groupName === 'Color' ? /^colou?r/i : new RegExp(`^${groupName}(?::|$)`, 'i');
+    const existingGroup = dialogQueries.queryByRole('radiogroup', { name: accessibleGroupName });
+    if (existingGroup) {
+        return within(existingGroup).getByRole('radio', { name: optionName });
+    }
+
+    const summary = dialogQueries
+        .getAllByText(groupName, { exact: true })
+        .map((element) => element.closest('summary'))
+        .find((element): element is HTMLElement => element !== null);
+    if (!summary) {
+        throw new Error(`Could not find the ${groupName} collapsible swatch section`);
+    }
+    await user.click(summary);
+
+    return within(await dialogQueries.findByRole('radiogroup', { name: accessibleGroupName })).getByRole('radio', {
+        name: optionName,
+    });
 };
 
 describe('ProductTile — rendering', () => {
@@ -472,19 +501,9 @@ describe('ProductTile — quick-add pre-selection', () => {
         const dialog = await screen.findByRole('dialog');
         // Represented variant is { color: 'CHARCWL', size: '036', width: 'S' },
         // which maps to display names "Charcoal", "36", "Short".
-        expect(
-            within(within(dialog).getByRole('radiogroup', { name: /colou?r/i })).getByRole('radio', {
-                name: /Charcoal/,
-            })
-        ).toBeChecked();
-        expect(
-            within(within(dialog).getByRole('radiogroup', { name: /size/i })).getByRole('radio', {
-                name: /^(?:Size )?36(?:, available)?$/i,
-            })
-        ).toBeChecked();
-        expect(
-            within(within(dialog).getByRole('radiogroup', { name: /width/i })).getByRole('radio', { name: /Short/ })
-        ).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Color', /Charcoal/)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Size', /^(?:Size )?36(?:, available)?$/i)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Width', /Short/)).toBeChecked();
     });
 
     test('marks the represented variant swatches as selected inside the modal', async () => {
@@ -494,9 +513,9 @@ describe('ProductTile — quick-add pre-selection', () => {
         await user.click(screen.getByRole('button', { name: /quick add/i }));
 
         const dialog = await screen.findByRole('dialog');
-        expect(within(dialog).getByRole('radio', { name: /Charcoal/ })).toBeChecked();
-        expect(within(dialog).getByRole('radio', { name: /^(?:Size )?36(?:, available)?$/i })).toBeChecked();
-        expect(within(dialog).getByRole('radio', { name: /Short/ })).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Color', /Charcoal/)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Size', /^(?:Size )?36(?:, available)?$/i)).toBeChecked();
+        expect(await getDialogVariationRadio(dialog, user, 'Width', /Short/)).toBeChecked();
     });
 });
 

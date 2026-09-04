@@ -15,7 +15,7 @@
  */
 
 // Testing libraries
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 // React Router
@@ -31,6 +31,23 @@ import { setProduct } from '@/components/__mocks__/set-product';
 import { mockAltSiteObject, mockBuildConfig } from '@/test-utils/config';
 import type { AppConfig } from '@/types/config';
 
+vi.mock('@/lib/config.ui', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/config.ui')>();
+    return {
+        ...actual,
+        uiConfig: {
+            ...actual.uiConfig,
+            pages: {
+                ...actual.uiConfig.pages,
+                product: {
+                    ...actual.uiConfig.pages.product,
+                    showRatingAverage: false,
+                },
+            },
+        },
+    };
+});
+
 // Prop-capture mock for <ImageGallery>. The PDP intentionally does not pass `widths` so the
 // gallery's documented PDP-shaped defaults apply — we assert that absence below. The mock still
 // renders a real <img> with the productName alt so existing assertions like
@@ -40,7 +57,7 @@ const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAE
 const capturedImageGalleryProps: { last: any } = { last: null };
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 // @sfdc-extension-line SFDC_EXT_SHIPPING_DELIVERY
-const capturedProductInfoProps: { last: any } = { last: null };
+const capturedProductInfoProps: { last: Record<string, unknown> | null } = { last: null };
 // @sfdc-extension-block-end SFDC_EXT_BOPIS
 vi.mock('@/components/image-gallery', () => ({
     default: (props: any) => {
@@ -135,6 +152,31 @@ const renderProductView = (props: React.ComponentProps<typeof ProductView>, init
     };
 };
 
+const getVariationRadio = async (
+    user: ReturnType<typeof userEvent.setup>,
+    groupName: string,
+    optionName: string | RegExp
+) => {
+    const accessibleGroupName = groupName === 'Color' ? /^colou?r/i : new RegExp(`^${groupName}(?::|$)`, 'i');
+    const existingGroup = screen.queryByRole('radiogroup', { name: accessibleGroupName });
+    if (existingGroup) {
+        return within(existingGroup).getByRole('radio', { name: optionName });
+    }
+
+    const summary = screen
+        .getAllByText(groupName, { exact: true })
+        .map((element) => element.closest('summary'))
+        .find((element): element is HTMLElement => element !== null);
+    if (!summary) {
+        throw new Error(`Could not find the ${groupName} collapsible swatch section`);
+    }
+    await user.click(summary);
+
+    return within(await screen.findByRole('radiogroup', { name: accessibleGroupName })).getByRole('radio', {
+        name: optionName,
+    });
+};
+
 describe('ProductView', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -149,7 +191,8 @@ describe('ProductView', () => {
     });
 
     describe('basic rendering', () => {
-        test('should render product properly', () => {
+        test('should render product properly', async () => {
+            const user = userEvent.setup();
             renderProductView({ product: mockProduct });
 
             // Product name should be visible
@@ -164,9 +207,9 @@ describe('ProductView', () => {
             expect(screen.getAllByText((content) => content.includes('$299.99')).length).toBeGreaterThanOrEqual(1);
 
             // Swatches should be visible
-            expect(screen.getByLabelText('Charcoal')).toBeInTheDocument();
-            expect(screen.getByLabelText(/^(?:Size )?36(?:, available)?$/i)).toBeInTheDocument();
-            expect(screen.getByLabelText('Short')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Color', 'Charcoal')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Size', /^(?:Size )?36(?:, available)?$/i)).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Width', 'Short')).toBeInTheDocument();
 
             // Quantity picker should be visible
             expect(screen.getAllByLabelText(/quantity/i)[0]).toBeInTheDocument();
@@ -176,13 +219,16 @@ describe('ProductView', () => {
             expect(screen.getByRole('button', { name: /add to wishlist/i })).toBeInTheDocument();
             // Share button should be visible
             expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();
-            // @sfdc-extension-block-start SFDC_EXT_BOPIS
-            // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
-            expect(capturedProductInfoProps.last).toEqual(
-                expect.objectContaining({ enableDeliveryEstimatePresentation: true })
-            );
-            // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
-            // @sfdc-extension-block-end SFDC_EXT_BOPIS
+            // Furniture replaces ProductView with its HowToGetIt composition.
+            if (process.env.VERTICAL !== 'furniture') {
+                // @sfdc-extension-block-start SFDC_EXT_BOPIS
+                // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
+                expect(capturedProductInfoProps.last).toEqual(
+                    expect.objectContaining({ enableDeliveryEstimatePresentation: true })
+                );
+                // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
+                // @sfdc-extension-block-end SFDC_EXT_BOPIS
+            }
         });
     });
 
@@ -360,13 +406,14 @@ describe('ProductView', () => {
             expect(screen.getAllByText((content) => content.includes('$299.99')).length).toBeGreaterThanOrEqual(1);
         });
 
-        test('renders product with variation attributes', () => {
+        test('renders product with variation attributes', async () => {
+            const user = userEvent.setup();
             renderProductView({ product: mockProduct });
 
             // Should have variation swatches
-            expect(screen.getByLabelText('Charcoal')).toBeInTheDocument();
-            expect(screen.getByLabelText(/^(?:Size )?36(?:, available)?$/i)).toBeInTheDocument();
-            expect(screen.getByLabelText('Short')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Color', 'Charcoal')).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Size', /^(?:Size )?36(?:, available)?$/i)).toBeInTheDocument();
+            expect(await getVariationRadio(user, 'Width', 'Short')).toBeInTheDocument();
         });
 
         test('handles product without variation attributes', () => {

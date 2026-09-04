@@ -11,6 +11,23 @@ import { npmRunPathEnv } from "npm-run-path";
 
 //#region src/cartridge-services/react-router-config.ts
 let isCliAvailable = null;
+function filePathEndsWithRoute(filePath, routeFile) {
+	const routeFileNormalized = routeFile.replace(/^\.\//, "");
+	return filePath === routeFileNormalized || filePath.endsWith(`/${routeFileNormalized}`);
+}
+/**
+* Match the selected vertical route shadow to its canonical route module.
+*
+* `VERTICAL` is optional and selects the overlay directory reported by React Router,
+* for example `furniture` for `verticals/furniture/routes/_app._index.tsx`.
+*/
+function routeFileMatches(filePath, routeFile) {
+	if (filePathEndsWithRoute(filePath, routeFile)) return true;
+	const vertical = process.env.VERTICAL;
+	const verticalRoutePrefix = vertical ? `verticals/${vertical}/routes/` : void 0;
+	if (!verticalRoutePrefix || !routeFile.startsWith(verticalRoutePrefix)) return false;
+	return filePathEndsWithRoute(filePath, `routes/${routeFile.slice(verticalRoutePrefix.length)}`);
+}
 function checkReactRouterCli(projectDirectory) {
 	if (isCliAvailable !== null) return isCliAvailable;
 	try {
@@ -72,11 +89,7 @@ function getReactRouterRoutes(projectDirectory) {
 function filePathToRoute(filePath, projectRoot) {
 	const filePathPosix = filePath.replace(/\\/g, "/");
 	const canonicalRoutes = flattenRoutes(getReactRouterRoutes(projectRoot)).filter((route) => !route.id.endsWith("--root-duplicate"));
-	for (const route of canonicalRoutes) {
-		const routeFilePosix = route.file.replace(/\\/g, "/");
-		const routeFileNormalized = routeFilePosix.replace(/^\.\//, "");
-		if (filePathPosix.endsWith(routeFilePosix) || filePathPosix.endsWith(`/${routeFilePosix}`) || filePathPosix.endsWith(routeFileNormalized) || filePathPosix.endsWith(`/${routeFileNormalized}`)) return route.path;
-	}
+	for (const route of canonicalRoutes) if (routeFileMatches(filePathPosix, route.file.replace(/\\/g, "/"))) return route.path;
 	logger.warn(`Could not find route for file: ${filePath}`);
 	return "/unknown";
 }

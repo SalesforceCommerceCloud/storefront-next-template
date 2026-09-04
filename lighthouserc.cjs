@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const vertical = process.env.VERTICAL ?? 'fashion';
+const productScriptSizeLimit = vertical === 'footwear' ? 480000 : 475000;
+const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
+const cartScriptSizeLimit = vertical === 'footwear' ? 532000 : 530000;
+
 module.exports = {
     ci: {
         collect: {
@@ -106,14 +111,17 @@ module.exports = {
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
-                        // Keep the current main baseline, which includes shared PDP dependencies.
+                        // Footwear's PDP includes its size/width/colorway controls. Its mirrored
+                        // script payload measures 479620 B across five deterministic CI runs.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 475000, aggregationMethod: 'median' },
+                            { maxNumericValue: productScriptSizeLimit, aggregationMethod: 'median' },
                         ],
+                        // Furniture's PDP server-renders its service configuration and recommendation
+                        // rails. Its measured mirrored document median is 68051 B across five runs.
                         'resource-summary:document:size': [
                             'error',
-                            { maxNumericValue: 55000, aggregationMethod: 'median' },
+                            { maxNumericValue: productDocumentSizeLimit, aggregationMethod: 'median' },
                         ],
                     },
                 },
@@ -202,7 +210,7 @@ module.exports = {
                         // bundle itself has not grown by the same amount.
                         'resource-summary:script:size': [
                             'error',
-                            { maxNumericValue: 530000, aggregationMethod: 'median' },
+                            { maxNumericValue: cartScriptSizeLimit, aggregationMethod: 'median' },
                         ],
                         // Cart SSR HTML sits right at ~31025-31040 bytes across 5 runs.
                         // The 31000 ceiling was too tight - multiple unrelated PRs hit
