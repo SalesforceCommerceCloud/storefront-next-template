@@ -34,8 +34,20 @@ import { startTransition, StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 import { whenI18nReady } from '@/i18n-client-init';
+import { createLogger } from '@/lib/logger';
+import { initializeRegistry } from '@/lib/page-designer/static-registry';
+import { registerServerRenderedComponentTypes } from '@/lib/page-designer/registry-components';
 
-void whenI18nReady().then(() => {
+const logger = createLogger();
+initializeRegistry();
+
+// Scan only markers already present when the client entry executes. Later streamed or
+// client-rendered types register on first access inside their local Suspense boundary.
+const pageDesignerRegistration = registerServerRenderedComponentTypes(document).catch((error: unknown) => {
+    logger.error('Failed to prepare server-rendered Page Designer components for hydration', { error });
+});
+
+void Promise.all([whenI18nReady(), pageDesignerRegistration]).then(() => {
     startTransition(() => {
         hydrateRoot(
             document,

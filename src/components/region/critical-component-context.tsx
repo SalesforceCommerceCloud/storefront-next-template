@@ -13,16 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 
-const CriticalComponentContext = createContext<ReadonlySet<string> | undefined>(undefined);
+const CriticalRegionContext = createContext(false);
 
-export function CriticalComponentProvider({ children, value }: { children: ReactNode; value: readonly string[] }) {
-    const componentIds = useMemo(() => new Set(value), [value]);
-    return <CriticalComponentContext.Provider value={componentIds}>{children}</CriticalComponentContext.Provider>;
+function getMarkerId(componentId: string, componentTypeId: string): string {
+    return `page-designer-critical-component-${encodeURIComponent(`${componentId}:${componentTypeId}`)}`;
+}
+
+export function CriticalRegionProvider({ children }: { children: ReactNode }) {
+    return <CriticalRegionContext.Provider value={true}>{children}</CriticalRegionContext.Provider>;
 }
 
 // oxlint-disable-next-line react-refresh/only-export-components
-export function useIsCriticalComponent(componentId: string): boolean {
-    return useContext(CriticalComponentContext)?.has(componentId) ?? false;
+export function useIsInCriticalRegion(): boolean {
+    return useContext(CriticalRegionContext);
+}
+
+// oxlint-disable-next-line react-refresh/only-export-components
+export function useWasServerRendered(componentId: string, componentTypeId: string): boolean {
+    const isInCriticalRegion = useIsInCriticalRegion();
+    const markerId = getMarkerId(componentId, componentTypeId);
+    const [serverMarkerId] = useState(() => {
+        if (!isInCriticalRegion) return undefined;
+        if (import.meta.env.SSR) return markerId;
+        return typeof document !== 'undefined' && document.getElementById(markerId) ? markerId : undefined;
+    });
+    return serverMarkerId === markerId;
+}
+
+export function CriticalComponentHydrationMarker({
+    componentId,
+    componentTypeId,
+    requiresRegistration,
+}: {
+    componentId: string;
+    componentTypeId: string;
+    requiresRegistration: boolean;
+}) {
+    return (
+        <template
+            id={getMarkerId(componentId, componentTypeId)}
+            data-page-designer-component-type={requiresRegistration ? componentTypeId : undefined}
+        />
+    );
 }

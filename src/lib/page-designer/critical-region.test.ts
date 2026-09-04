@@ -15,10 +15,11 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ShopperExperience } from '@/scapi';
-import { emitCriticalRegionResourceHints, prepareCriticalRegion } from './critical-region';
+import { emitPageDesignerResourceHints, prepareCriticalRegion } from './critical-region';
 
 const mocks = vi.hoisted(() => ({
     loaded: new Set<string>(),
+    errors: new Map<string, Error>(),
     preloadModule: vi.fn(),
     preinit: vi.fn(),
     resolvePreloadResources: vi.fn((_manifest: unknown, _typeIds: Iterable<string>, _options?: unknown) => [
@@ -34,7 +35,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('react-dom', () => ({ preloadModule: mocks.preloadModule, preinit: mocks.preinit }));
 vi.mock('virtual:storefront-next/page-designer-preload-manifest', () => ({
-    default: { version: 1, compression: { brotli: { quality: 9 }, gzip: { level: 6 } }, resources: [], components: {} },
+    default: { resources: [], components: {} },
 }));
 vi.mock('@salesforce/storefront-next-runtime/design/preload', () => ({
     resolvePreloadResources: mocks.resolvePreloadResources,
@@ -44,10 +45,17 @@ vi.mock('@salesforce/storefront-next-runtime/assets', () => ({
 }));
 vi.mock('@/lib/logger', () => ({ createLogger: () => ({ warn: mocks.warn }) }));
 vi.mock('@/lib/page-designer/registry', () => ({
-    registry: { hasConcreteComponent: (typeId: string) => mocks.loaded.has(typeId) },
+    registry: {
+        hasConcreteComponent: (typeId: string) => mocks.loaded.has(typeId),
+        consumeRegistrationError: (typeId: string) => {
+            const error = mocks.errors.get(typeId);
+            mocks.errors.delete(typeId);
+            return error;
+        },
+    },
 }));
-vi.mock('./static-registry', () => ({
-    loadAndRegisterRegistryComponents: mocks.loadAndRegister,
+vi.mock('./registry-components', () => ({
+    registerComponentTypes: mocks.loadAndRegister,
 }));
 
 function component(id: string, typeId: string, regions?: ShopperExperience.schemas['Region'][]) {
@@ -61,6 +69,7 @@ function region(id: string, components: ShopperExperience.schemas['Component'][]
 describe('prepareCriticalRegion', () => {
     beforeEach(() => {
         mocks.loaded.clear();
+        mocks.errors.clear();
         vi.clearAllMocks();
         mocks.resolvePreloadResources.mockReturnValue([
             { kind: 'style', href: '/bundle/hero.css' },
@@ -72,13 +81,11 @@ describe('prepareCriticalRegion', () => {
         });
     });
 
-    it('emits resource hints, suspends for concrete modules, and returns nested component IDs on retry', async () => {
+    it('suspends until direct component modules are concretely registered', async () => {
         const criticalRegion = region('hero', [
-            component('outer', 'Layout.hero', [region('nested', [component('inner', 'Content.hero')])]),
-            component('duplicate-type', 'Content.hero'),
+            component('outer', 'Layout.hero', [region('nested', [component('inner', 'Content.nestedOnly')])]),
+            component('direct', 'Content.hero'),
         ]);
-        emitCriticalRegionResourceHints(['Layout.hero', 'Content.hero']);
-
         let preparation: Promise<void> | undefined;
         try {
             prepareCriticalRegion(criticalRegion);
@@ -88,50 +95,33 @@ describe('prepareCriticalRegion', () => {
 
         expect(preparation).toBeInstanceOf(Promise);
         expect(mocks.loadAndRegister).toHaveBeenCalledWith(['Layout.hero', 'Content.hero']);
-        expect(mocks.preinit).toHaveBeenCalledWith('/bundle/hero.css', {
-            as: 'style',
-            precedence: 'page-designer',
-        });
-        expect(mocks.preloadModule).toHaveBeenCalledWith('/bundle/hero.js', {
-            as: 'script',
-            crossOrigin: 'anonymous',
-        });
-
         await preparation;
-        const componentIds = prepareCriticalRegion(criticalRegion);
-        expect(componentIds).toEqual(['outer', 'inner', 'duplicate-type']);
-        expect(prepareCriticalRegion(criticalRegion)).toBe(componentIds);
-        expect(mocks.resolvePreloadResources).toHaveBeenCalledOnce();
+        expect(prepareCriticalRegion(criticalRegion)).toBeUndefined();
+        expect(mocks.resolvePreloadResources).not.toHaveBeenCalled();
     });
 
-    it('preserves component-type order through resource caching and hint emission', () => {
+    it('emits every regional resource in component-type discovery order', () => {
         mocks.resolvePreloadResources.mockImplementation((_manifest, typeIds: Iterable<string>) =>
             [...typeIds].map((typeId) => ({ kind: 'style' as const, href: `/bundle/${typeId}.css` }))
         );
 
-        emitCriticalRegionResourceHints(['Layout.orderZ', 'Content.orderA']);
-        emitCriticalRegionResourceHints(['Content.orderA', 'Layout.orderZ']);
+        emitPageDesignerResourceHints(['Layout.orderZ', 'Content.orderA']);
 
-        expect(mocks.resolvePreloadResources).toHaveBeenCalledTimes(2);
-        expect(mocks.resolvePreloadResources.mock.calls.map(([, typeIds]) => typeIds)).toEqual([
-            ['Layout.orderZ', 'Content.orderA'],
-            ['Content.orderA', 'Layout.orderZ'],
-        ]);
+        expect(mocks.resolvePreloadResources).toHaveBeenCalledOnce();
+        expect(mocks.resolvePreloadResources.mock.calls[0]?.[1]).toEqual(['Layout.orderZ', 'Content.orderA']);
         expect(mocks.preinit.mock.calls.map(([href]) => href)).toEqual([
             '/bundle/Layout.orderZ.css',
             '/bundle/Content.orderA.css',
-            '/bundle/Content.orderA.css',
-            '/bundle/Layout.orderZ.css',
         ]);
     });
 
     it('does nothing for an empty region', () => {
-        expect(prepareCriticalRegion(region('empty', []))).toEqual([]);
+        expect(prepareCriticalRegion(region('empty', []))).toBeUndefined();
         expect(mocks.resolvePreloadResources).not.toHaveBeenCalled();
         expect(mocks.loadAndRegister).not.toHaveBeenCalled();
     });
 
-    it('does not repeatedly suspend when an unknown type remains without a concrete export', async () => {
+    it('retries when a registration resolved without a concrete export', async () => {
         const criticalRegion = region('unknown', [component('unknown-instance', 'Content.unknown')]);
         mocks.loadAndRegister.mockResolvedValueOnce(undefined);
 
@@ -143,11 +133,18 @@ describe('prepareCriticalRegion', () => {
         }
 
         await preparation;
-        expect(prepareCriticalRegion(criticalRegion)).toEqual(['unknown-instance']);
-        expect(mocks.loadAndRegister).toHaveBeenCalledOnce();
+        let retry: Promise<void> | undefined;
+        try {
+            prepareCriticalRegion(criticalRegion);
+        } catch (thrown) {
+            retry = thrown as Promise<void>;
+        }
+        await retry;
+        expect(prepareCriticalRegion(criticalRegion)).toBeUndefined();
+        expect(mocks.loadAndRegister).toHaveBeenCalledTimes(2);
     });
 
-    it('rethrows a failed module preparation on retry', async () => {
+    it('lets a later request retry a failed module preparation', async () => {
         const error = new Error('import failed');
         const criticalRegion = region('broken', [component('broken-instance', 'Content.broken')]);
         mocks.loadAndRegister.mockRejectedValueOnce(error);
@@ -160,6 +157,13 @@ describe('prepareCriticalRegion', () => {
         }
 
         await expect(preparation).rejects.toBe(error);
-        expect(() => prepareCriticalRegion(criticalRegion)).toThrow(error);
+        let retry: Promise<void> | undefined;
+        try {
+            prepareCriticalRegion(criticalRegion);
+        } catch (thrown) {
+            retry = thrown as Promise<void>;
+        }
+        await retry;
+        expect(prepareCriticalRegion(criticalRegion)).toBeUndefined();
     });
 });

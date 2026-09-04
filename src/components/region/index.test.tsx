@@ -36,15 +36,17 @@ vi.mock('./component', () => ({
 }));
 
 vi.mock('@/lib/page-designer/critical-region', () => ({
+    emitPageDesignerResourceHints: vi.fn(),
     prepareCriticalRegion: vi.fn(),
 }));
 
-let capturedCriticalComponentIds: readonly string[] | undefined;
+let capturedCriticalRegion = false;
 vi.mock('./critical-component-context', () => ({
-    CriticalComponentProvider: ({ children, value }: { children: React.ReactNode; value: readonly string[] }) => {
-        capturedCriticalComponentIds = value;
+    CriticalRegionProvider: ({ children }: { children: React.ReactNode }) => {
+        capturedCriticalRegion = true;
         return <>{children}</>;
     },
+    useIsInCriticalRegion: () => false,
 }));
 
 // Mock the RegionWrapper to capture designMetadata
@@ -75,7 +77,7 @@ vi.mock('@salesforce/storefront-next-runtime/design/react/core', () => ({
 describe('Region', () => {
     beforeEach(() => {
         capturedDesignMetadata = null;
-        capturedCriticalComponentIds = undefined;
+        capturedCriticalRegion = false;
         regionWrapperSuspension = undefined;
         regionWrapperSuspendAttempts = 0;
         vi.clearAllMocks();
@@ -133,19 +135,46 @@ describe('Region', () => {
         });
     });
 
-    it('prepares a critical region and provides its recursively collected component IDs', () => {
-        vi.mocked(prepareCriticalRegion).mockReturnValue(['component-1']);
-
+    it('does not run server-only critical preparation in the browser', () => {
         render(<Region page={mockPage} regionId="test-region" critical={true} />);
 
-        expect(prepareCriticalRegion).toHaveBeenCalledWith(mockRegion);
-        expect(capturedCriticalComponentIds).toEqual(['component-1']);
+        expect(prepareCriticalRegion).not.toHaveBeenCalled();
+        expect(capturedCriticalRegion).toBe(true);
+    });
+
+    it('does not serialize the declared region component graph into the DOM', () => {
+        const page = {
+            ...mockPage,
+            regions: [
+                {
+                    id: 'test-region',
+                    components: [
+                        {
+                            id: 'layout',
+                            typeId: 'Layout.hero',
+                            regions: [
+                                {
+                                    id: 'nested',
+                                    components: [{ id: 'nested-hero', typeId: 'Content.hero' }],
+                                },
+                            ],
+                        },
+                        { id: 'duplicate', typeId: 'Content.hero' },
+                    ],
+                },
+            ],
+        } as unknown as ShopperExperience.schemas['Page'];
+
+        const { container } = render(<Region page={page} regionId="test-region" critical />);
+
+        expect(container.querySelector('[data-page-designer-region-component-types]')).toBeNull();
+        expect(container.querySelector('[data-page-designer-region-critical]')).toBeNull();
     });
 
     it('does not prepare or install critical rendering metadata without the critical prop', () => {
         render(<Region page={mockPage} regionId="test-region" />);
         expect(prepareCriticalRegion).not.toHaveBeenCalled();
-        expect(capturedCriticalComponentIds).toBeUndefined();
+        expect(capturedCriticalRegion).toBe(false);
     });
 
     it('renders component region synchronously without Suspense', () => {

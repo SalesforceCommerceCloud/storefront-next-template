@@ -108,17 +108,21 @@ describe('collectFromRegions', () => {
         expect(Object.keys(map)).toEqual(['hero-1', 'footer-1']);
     });
 
-    test('skips components that do not have a loader', () => {
-        mockedRegistry.hasLoaders.mockReturnValueOnce(false).mockReturnValueOnce(false);
+    test('skips fallback-only components but includes client-loader-only components', async () => {
+        mockedRegistry.hasLoaders.mockReturnValueOnce(false).mockReturnValueOnce(true);
+        mockedRegistry.callLoader.mockReturnValueOnce(Promise.resolve(undefined));
 
         const map: Record<string, Promise<unknown>> = {};
-        const regions = [createRegion([createComponent('a', 'noLoader1'), createComponent('b', 'noLoader2')])];
+        const regions = [
+            createRegion([createComponent('a', 'fallbackOnly'), createComponent('b', 'clientLoaderOnly')]),
+        ];
 
         collectFromRegions(createCtx(), regions, map);
 
-        expect(map).toEqual({});
+        expect(Object.keys(map)).toEqual(['b']);
+        await expect(map.b).resolves.toBeUndefined();
         // oxlint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockedRegistry.callLoader).not.toHaveBeenCalled();
+        expect(mockedRegistry.callLoader).toHaveBeenCalledWith('clientLoaderOnly', expect.any(Object));
     });
 
     test('passes component data and context to the registry callLoader', async () => {
@@ -134,17 +138,15 @@ describe('collectFromRegions', () => {
 
         await expect(map['hero-1']).resolves.toEqual(expected);
         // oxlint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockedRegistry.callLoader).toHaveBeenCalledWith(
-            'hero',
-            { componentData: component, context: ctx.context, request: ctx.request },
-            'loader'
-        );
+        expect(mockedRegistry.callLoader).toHaveBeenCalledWith('hero', {
+            componentData: component,
+            context: ctx.context,
+            request: ctx.request,
+        });
     });
 
     test('recursively collects data from nested regions', () => {
-        mockedRegistry.hasLoaders
-            .mockReturnValueOnce(true) // outer
-            .mockReturnValueOnce(true); // nested
+        mockedRegistry.hasLoaders.mockReturnValue(true);
         mockedRegistry.callLoader
             .mockReturnValueOnce(Promise.resolve({ id: 'outer' }))
             .mockReturnValueOnce(Promise.resolve({ id: 'nested' }));

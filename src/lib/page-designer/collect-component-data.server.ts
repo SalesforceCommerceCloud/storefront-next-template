@@ -18,36 +18,32 @@ import type { ShopperExperience } from '@/scapi';
 import { registry } from '@/lib/page-designer/registry';
 
 /**
- * Recursively collect component data promises from regions
+ * Add one component's server-loader promise to the page-level data map.
  */
+export function collectComponentData(
+    ctx: LoaderFunctionArgs,
+    component: ShopperExperience.schemas['Component'],
+    map: Record<string, Promise<unknown>>
+): void {
+    if (!registry.hasLoaders(component.typeId)) return;
+
+    map[component.id] = registry.callLoader(component.typeId, {
+        componentData: component,
+        context: ctx.context,
+        request: ctx.request,
+    });
+}
+
+/** Recursively collect component data promises from regions. */
 export function collectFromRegions(
     ctx: LoaderFunctionArgs,
     regions: ShopperExperience.schemas['Region'][] | undefined,
     map: Record<string, Promise<unknown>>
 ): void {
-    if (!regions) return;
-
-    for (const region of regions) {
-        for (const comp of region.components || []) {
-            // Check if component has a loader before calling it
-            const hasLoaders = registry.hasLoaders(comp.typeId);
-
-            if (hasLoaders) {
-                map[comp.id] = registry.callLoader(
-                    comp.typeId,
-                    {
-                        componentData: comp,
-                        context: ctx.context,
-                        request: ctx.request,
-                    },
-                    'loader'
-                );
-            }
-
-            // Recursively process nested regions (components can have their own regions)
-            if (comp.regions && comp.regions.length > 0) {
-                collectFromRegions(ctx, comp.regions, map);
-            }
+    for (const region of regions ?? []) {
+        for (const component of region.components ?? []) {
+            collectComponentData(ctx, component, map);
+            collectFromRegions(ctx, component.regions, map);
         }
     }
 }

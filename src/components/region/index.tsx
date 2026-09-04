@@ -29,7 +29,7 @@ import type {
     RegionDesignMetadata,
 } from '@salesforce/storefront-next-runtime/design/react';
 import { ComponentDataProvider, useComponentData } from './component-data-context';
-import { CriticalComponentProvider } from './critical-component-context';
+import { CriticalRegionProvider, useIsInCriticalRegion } from './critical-component-context';
 import { prepareCriticalRegion } from '@/lib/page-designer/critical-region';
 
 export type { RegionDesignMetadata };
@@ -44,17 +44,27 @@ type PageWithDesignMetadata = ShopperExperience.schemas['Page'] & {
     componentData?: Record<string, Promise<unknown>>;
 };
 
-// Props when rendering a page-level region
-interface PageRegionProps extends HTMLAttributes<HTMLDivElement> {
-    page: Promise<PageWithDesignMetadata | null> | PageWithDesignMetadata | null;
+interface PageRegionPropsBase extends HTMLAttributes<HTMLDivElement> {
     component?: never;
     regionId: string;
     fallbackElement?: ReactNode;
     errorElement?: ReactNode;
     fallbackOnEmpty?: boolean;
-    /** Block the initial shell on this region's modules and emit their browser resource hints. */
-    critical?: boolean;
 }
+
+// A critical region must be available in the synchronous shell. Its boundary-free component
+// markers form the client hydration barrier and therefore cannot arrive in a later segment.
+interface CriticalPageRegionProps extends PageRegionPropsBase {
+    page: PageWithDesignMetadata | null;
+    critical: true;
+}
+
+interface NonCriticalPageRegionProps extends PageRegionPropsBase {
+    page: Promise<PageWithDesignMetadata | null> | PageWithDesignMetadata | null;
+    critical?: false;
+}
+
+type PageRegionProps = CriticalPageRegionProps | NonCriticalPageRegionProps;
 
 export type ComponentType = ComponentDecoratorProps<ShopperExperience.schemas['Component']>;
 
@@ -89,13 +99,18 @@ function renderRegionContent(
     className: string | undefined,
     rest: HTMLAttributes<HTMLDivElement>,
     errorElement?: ReactNode,
-    isDesignMode?: boolean
+    isDesignMode?: boolean,
+    critical = false
 ) {
     // In MRT (not design mode), return errorElement for empty regions
     const hasComponents = (region.components?.length ?? 0) > 0;
     if (!hasComponents && !isDesignMode) {
         return errorElement ?? null;
     }
+
+    // Prepare one actually rendered region at a time. A conditional nested region never reaches
+    // this point, so its declared payload does not cause unused component modules to be imported.
+    if (import.meta.env.SSR && critical) prepareCriticalRegion(region);
 
     return (
         <RegionWrapper
@@ -122,8 +137,8 @@ function renderRegionContent(
  *    <Region page={loaderData.page} regionId="main" fallbackElement={<Skeleton />} />
  *    ```
  *    - Accepts page (Promise<PageWithComponentData> or PageWithComponentData)
- *    - Wraps non-critical regions in Suspense for async page and module loading
- *    - With `critical`, prepares nested component modules and lets suspension reach the outer boundary
+ *    - Wraps non-critical page promises in a region-level Suspense boundary
+ *    - With `critical`, prepares direct component modules as each region is actually rendered
  *    - Provides ComponentDataContext at page level
  *    - Registers PageDesignerPageMetadataProvider for root regions
  *
@@ -132,7 +147,7 @@ function renderRegionContent(
  *    <Region component={component} regionId="main" errorElement={children} />
  *    ```
  *    - Accepts component (ShopperExperience.schemas['Component'])
- *    - Synchronous rendering (no Suspense overhead)
+ *    - Synchronous region lookup; each child owns its component-local Suspense boundary
  *    - Inherits ComponentDataContext from parent
  *    - No PageDesignerPageMetadataProvider (only for page-level)
  *
@@ -141,7 +156,7 @@ function renderRegionContent(
  * - Finds the region by ID within the page or component
  * - Renders all components within the region using the Component wrapper
  * - Supports region-specific fallback and error elements
- * - Preloads modules and styles for page-level regions marked as critical
+ * - Emits module and style hints for every rendered region
  * - Handles metadata for component type inclusions/exclusions
  *
  * Use Case: Foundational component in Salesforce's Page Designer system for rendering
@@ -160,6 +175,7 @@ export function Region(props: RegionProps) {
     const regionContext = useRegionContext();
     const existingComponentData = useComponentData();
     const { isDesignMode } = usePageDesignerMode();
+    const isInCriticalRegion = useIsInCriticalRegion();
 
     // COMPONENT MODE: Rendering a component-level region (nested)
     if (props.component !== undefined) {
@@ -175,7 +191,16 @@ export function Region(props: RegionProps) {
         // target (e.g. a Grid column with no content yet). `errorElement` stays `undefined` here to
         // preserve the prior live-storefront behavior exactly: an empty component-mode region on the
         // storefront (`!isDesignMode`) still renders nothing, as before.
-        return renderRegionContent(region, regionId, metadata, className, rest, undefined, isDesignMode);
+        return renderRegionContent(
+            region,
+            regionId,
+            metadata,
+            className,
+            rest,
+            undefined,
+            isDesignMode,
+            isInCriticalRegion
+        );
     }
 
     // PAGE MODE: Rendering a page-level region
@@ -197,8 +222,6 @@ export function Region(props: RegionProps) {
             | undefined;
         const metadata = designMetadata?.regionDefinitions?.find((r) => r.id === regionId);
         const { componentData: pageComponentData, ...pageData } = resolvedPage;
-        const criticalComponentIds = critical ? prepareCriticalRegion(region) : [];
-
         let content = (
             <>
                 {!regionContext && (
@@ -206,7 +229,16 @@ export function Region(props: RegionProps) {
                         page={pageData as PageDecoratorProps<ShopperExperience.schemas['Page']>}
                     />
                 )}
-                {renderRegionContent(region, regionId, metadata, className, rest, errorElement, isDesignMode)}
+                {renderRegionContent(
+                    region,
+                    regionId,
+                    metadata,
+                    className,
+                    rest,
+                    errorElement,
+                    isDesignMode,
+                    Boolean(critical)
+                )}
             </>
         );
 
@@ -215,9 +247,7 @@ export function Region(props: RegionProps) {
             content = <ComponentDataProvider value={pageComponentData}>{content}</ComponentDataProvider>;
         }
 
-        if (criticalComponentIds.length) {
-            content = <CriticalComponentProvider value={criticalComponentIds}>{content}</CriticalComponentProvider>;
-        }
+        if (critical) content = <CriticalRegionProvider>{content}</CriticalRegionProvider>;
 
         return content;
     };

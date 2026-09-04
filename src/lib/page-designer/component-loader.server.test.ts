@@ -178,7 +178,7 @@ describe('componentLoader', () => {
             const tileData1 = { product: 'iphone6' };
             const tileData2 = { product: 'iphone7' };
 
-            mockedRegistry.hasLoaders.mockReturnValueOnce(true).mockReturnValueOnce(true);
+            mockedRegistry.hasLoaders.mockReturnValue(true);
 
             mockedRegistry.callLoader
                 .mockReturnValueOnce(Promise.resolve(tileData1))

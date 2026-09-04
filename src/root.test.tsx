@@ -25,20 +25,12 @@ import { PAGE_DESIGNER_STYLESHEET_PRECEDENCE } from '@salesforce/storefront-next
 import type AppComponent from './root';
 import type { ErrorBoundary as RootErrorBoundary, Layout as RootLayout, loader as RootLoader } from './root';
 
-const registryMocks = vi.hoisted(() => ({ initializeRegistry: vi.fn() }));
-
-vi.mock('@/lib/page-designer/static-registry', async () => ({
-    ...(await vi.importActual('@/lib/page-designer/static-registry')),
-    initializeRegistry: registryMocks.initializeRegistry,
-}));
-
 let App: typeof AppComponent;
 let ErrorBoundary: typeof RootErrorBoundary;
 let Layout: typeof RootLayout;
 let loader: typeof RootLoader;
 let meta: Awaited<typeof import('./root')>['meta'];
 let links: Awaited<typeof import('./root')>['links'];
-let clientRegistryInitializationCount = 0;
 const defaultClientAuth: PublicSessionData = {
     customerId: 'test-customer',
     userType: 'registered',
@@ -202,7 +194,6 @@ vi.mock('@/middlewares/i18next', async () => {
 
 beforeAll(async () => {
     const rootModule = await import('./root');
-    clientRegistryInitializationCount = registryMocks.initializeRegistry.mock.calls.length;
     App = rootModule.default;
     ErrorBoundary = rootModule.ErrorBoundary;
     Layout = rootModule.Layout;
@@ -255,10 +246,6 @@ describe('root.tsx', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-    });
-
-    it('initializes the Page Designer registry once when the client root module loads', () => {
-        expect(clientRegistryInitializationCount).toBe(1);
     });
 
     it('places application CSS in the precedence group before critical Page Designer CSS', () => {

@@ -108,7 +108,6 @@ import type { PublicSessionData } from '@/lib/api/types';
 import { useCurrency } from '@/lib/currency/use-currency';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { PageViewTracker } from '@/analytics/page-view-tracker';
-import { initializeRegistry } from '@/lib/page-designer/static-registry';
 import { buildSeoMetaDescriptors } from '@/utils/seo';
 
 // Assets
@@ -132,10 +131,6 @@ import { type Maintenance, maintenanceContext } from '@/lib/maintenance';
 // logo implementations (raster, inline-SVG, etc.) can be provided per brand.
 import Logo from '@/components/logo';
 import { SkipLink } from '@/components/skip-link';
-// The server entry initializes before route loaders run. Initialize separately
-// when this module is loaded in the browser, rather than during every App render.
-if (typeof window !== 'undefined') initializeRegistry();
-
 export const links: Route.LinksFunction = () => {
     return [
         // Preload critical fonts

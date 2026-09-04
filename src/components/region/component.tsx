@@ -13,21 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ReactElement, memo, Suspense, useEffect } from 'react';
+import {
+    Component as ReactComponent,
+    type ErrorInfo,
+    type ReactElement,
+    type ReactNode,
+    memo,
+    Suspense,
+    useEffect,
+} from 'react';
 import { registry } from '@/lib/page-designer/registry';
 import { Await, useAsyncError } from 'react-router';
 import { createLogger } from '@/lib/logger';
+import { emitPageDesignerResourceHints } from '@/lib/page-designer/critical-region';
 
 const logger = createLogger();
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import { useComponentDataById } from './component-data-context';
-import { useIsCriticalComponent } from './critical-component-context';
+import {
+    CriticalComponentHydrationMarker,
+    useIsInCriticalRegion,
+    useWasServerRendered,
+} from './critical-component-context';
 import type { ComponentType } from './index';
 
 export interface ComponentProps {
     component: ComponentType;
     className?: string;
     regionId: string;
+}
+
+interface ResolvedComponentProps extends ComponentProps {
+    data: unknown;
+    designMetadata: ComponentDesignMetadata;
+}
+
+interface ComponentErrorBoundaryProps {
+    children: ReactNode;
+    componentId: string;
+    componentTypeId: string;
+    fallback: ReactNode;
+}
+
+interface ComponentErrorBoundaryState {
+    error: Error | null;
+}
+
+/** Keep client-side Page Designer component failures local to the affected component. */
+class ComponentErrorBoundary extends ReactComponent<ComponentErrorBoundaryProps, ComponentErrorBoundaryState> {
+    state: ComponentErrorBoundaryState = { error: null };
+
+    static getDerivedStateFromError(error: Error): ComponentErrorBoundaryState {
+        return { error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+        registry.clearRegistrationError(this.props.componentTypeId);
+        logger.error(
+            `Failed to render Page Designer component "${this.props.componentId}" (${this.props.componentTypeId})`,
+            { error, errorInfo }
+        );
+    }
+
+    render(): ReactNode {
+        return this.state.error ? this.props.fallback : this.props.children;
+    }
 }
 
 /**
@@ -49,16 +99,43 @@ function ComponentErrorFallback({ componentId, componentTypeId }: { componentId:
     return null;
 }
 
+/** Resolve the concrete component inside the component-local Suspense boundary. */
+function ResolvedComponent({ component, className, regionId, data, designMetadata }: ResolvedComponentProps) {
+    if (!registry.hasConcreteComponent(component.typeId)) {
+        const registrationError = import.meta.env.SSR
+            ? registry.consumeRegistrationError(component.typeId)
+            : registry.getRegistrationError(component.typeId);
+        if (registrationError) throw registrationError;
+        // oxlint-disable-next-line @typescript-eslint/only-throw-error -- React Suspense consumes the promise.
+        throw registry.loadAndRegister(component.typeId);
+    }
+
+    const DynamicComponent = registry.getComponent(component.typeId);
+    if (!DynamicComponent) throw new Error(`Registered Page Designer component "${component.typeId}" is unavailable`);
+
+    return (
+        <DynamicComponent
+            {...(component.data ?? {})}
+            designMetadata={designMetadata}
+            component={component}
+            data={data}
+            className={className}
+            regionId={regionId}
+        />
+    );
+}
+
 export const Component = memo(function Component({ component, className, regionId }: ComponentProps): ReactElement {
     // Get this component's data promise from context by its ID
     const dataPromise = useComponentDataById(component.id);
-    const isCriticalComponent = useIsCriticalComponent(component.id);
+    const isInCriticalRegion = useIsInCriticalRegion();
+    const wasServerRendered = useWasServerRendered(component.id, component.typeId);
+    const requiresRegistration = !(dataPromise instanceof Promise);
     const FallbackComponent = registry.getFallback(component.typeId);
-    const DynamicComponent = registry.getComponent(component.typeId);
-    if (!DynamicComponent) {
-        // oxlint-disable-next-line @typescript-eslint/only-throw-error
-        throw registry.preload(component.typeId);
-    }
+
+    // Emit hints only for component wrappers that the server actually reaches. In particular,
+    // components in conditional nested-region payloads do not cause browser preloads.
+    if (import.meta.env.SSR) emitPageDesignerResourceHints([component.typeId]);
 
     const designMetadata: ComponentDesignMetadata = {
         name: component.designMetadata?.name,
@@ -74,8 +151,7 @@ export const Component = memo(function Component({ component, className, regionI
     };
 
     const renderComponent = (data: unknown) => (
-        <DynamicComponent
-            {...(component.data ?? {})}
+        <ResolvedComponent
             designMetadata={designMetadata}
             component={component}
             data={data}
@@ -86,21 +162,43 @@ export const Component = memo(function Component({ component, className, regionI
 
     const fallback = FallbackComponent ? <FallbackComponent {...(component.data ?? {})} /> : <div />;
 
-    if (!(dataPromise instanceof Promise)) {
-        return isCriticalComponent ? (
-            renderComponent(undefined)
-        ) : (
-            <Suspense fallback={fallback}>{renderComponent(undefined)}</Suspense>
-        );
-    }
-
-    return (
-        <Suspense fallback={fallback}>
+    const content =
+        dataPromise instanceof Promise ? (
             <Await
                 resolve={dataPromise}
                 errorElement={<ComponentErrorFallback componentId={component.id} componentTypeId={component.typeId} />}>
                 {renderComponent}
             </Await>
-        </Suspense>
+        ) : (
+            renderComponent(undefined)
+        );
+
+    // A critical component without deferred data must block the server shell when its module or
+    // render tree suspends. A local Suspense boundary would flush the empty component fallback and
+    // move its SSR content into a script-dependent hidden streaming segment instead.
+    const componentContent =
+        isInCriticalRegion && wasServerRendered && requiresRegistration ? (
+            content
+        ) : (
+            <Suspense fallback={fallback}>{content}</Suspense>
+        );
+
+    return (
+        <>
+            {wasServerRendered && (
+                <CriticalComponentHydrationMarker
+                    componentId={component.id}
+                    componentTypeId={component.typeId}
+                    requiresRegistration={requiresRegistration}
+                />
+            )}
+            <ComponentErrorBoundary
+                key={`${component.id}:${component.typeId}`}
+                componentId={component.id}
+                componentTypeId={component.typeId}
+                fallback={fallback}>
+                {componentContent}
+            </ComponentErrorBoundary>
+        </>
     );
 });

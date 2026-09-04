@@ -14,28 +14,99 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
-import { describe, expect, test } from 'vitest';
-import { CriticalComponentProvider, useIsCriticalComponent } from './critical-component-context';
+import { renderToString } from 'react-dom/server';
+import { describe, expect, test, vi } from 'vitest';
+import {
+    CriticalComponentHydrationMarker,
+    CriticalRegionProvider,
+    useIsInCriticalRegion,
+    useWasServerRendered,
+} from './critical-component-context';
 
-function Probe({ id }: { id: string }) {
-    return <span data-testid={id}>{String(useIsCriticalComponent(id))}</span>;
+function Probe() {
+    return (
+        <span
+            data-testid="critical-region"
+            data-server-rendered={String(useWasServerRendered('probe', 'Content.probe'))}>
+            {String(useIsInCriticalRegion())}
+        </span>
+    );
 }
 
-describe('CriticalComponentContext', () => {
-    test('marks only component IDs supplied by the current page', () => {
+describe('CriticalRegionContext', () => {
+    test('marks descendants of a critical region', () => {
         render(
-            <CriticalComponentProvider value={['critical']}>
-                <Probe id="critical" />
-                <Probe id="non-critical" />
-            </CriticalComponentProvider>
+            <CriticalRegionProvider>
+                <Probe />
+            </CriticalRegionProvider>
         );
 
-        expect(screen.getByTestId('critical')).toHaveTextContent('true');
-        expect(screen.getByTestId('non-critical')).toHaveTextContent('false');
+        expect(screen.getByTestId('critical-region')).toHaveTextContent('true');
+        expect(screen.getByTestId('critical-region')).toHaveAttribute('data-server-rendered', 'false');
+    });
+
+    test('marks an actual server render', () => {
+        vi.stubEnv('SSR', true);
+        let html: string;
+        try {
+            html = renderToString(
+                <CriticalRegionProvider>
+                    <Probe />
+                </CriticalRegionProvider>
+            );
+        } finally {
+            vi.unstubAllEnvs();
+        }
+
+        expect(html).toContain('data-server-rendered="true"');
+    });
+
+    test('recognizes an SSR instance marker without a registration attribute', () => {
+        const marker = document.createElement('template');
+        marker.id = 'page-designer-critical-component-probe%3AContent.probe';
+        document.body.append(marker);
+
+        render(
+            <CriticalRegionProvider>
+                <Probe />
+            </CriticalRegionProvider>
+        );
+
+        expect(screen.getByTestId('critical-region')).toHaveAttribute('data-server-rendered', 'true');
+        marker.remove();
+    });
+
+    test('serializes the exact critical component type when pre-hydration registration is required', () => {
+        const { container } = render(
+            <CriticalComponentHydrationMarker
+                componentId="hero-1"
+                componentTypeId="Content.hero"
+                requiresRegistration
+            />
+        );
+
+        const marker = container.querySelector<HTMLElement>('[data-page-designer-component-type]');
+        expect(marker?.id).toBe('page-designer-critical-component-hero-1%3AContent.hero');
+        expect(marker?.dataset.pageDesignerComponentType).toBe('Content.hero');
+    });
+
+    test('retains instance identity without requesting pre-hydration registration', () => {
+        const { container } = render(
+            <CriticalComponentHydrationMarker
+                componentId="carousel-1"
+                componentTypeId="Layout.heroCarousel"
+                requiresRegistration={false}
+            />
+        );
+
+        expect(container.querySelector('template')?.id).toBe(
+            'page-designer-critical-component-carousel-1%3ALayout.heroCarousel'
+        );
+        expect(container.querySelector('[data-page-designer-component-type]')).toBeNull();
     });
 
     test('defaults to non-critical outside a provider', () => {
-        render(<Probe id="component" />);
-        expect(screen.getByTestId('component')).toHaveTextContent('false');
+        render(<Probe />);
+        expect(screen.getByTestId('critical-region')).toHaveTextContent('false');
     });
 });
