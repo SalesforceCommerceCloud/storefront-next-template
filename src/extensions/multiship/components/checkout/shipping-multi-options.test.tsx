@@ -561,6 +561,103 @@ describe('ShippingMultiOptions', () => {
         expect(screen.queryByText(/2-3 business days/i)).not.toBeInTheDocument();
     });
 
+    test('summary view shows the calculated applicable method price, not the basket shippingMethod price', () => {
+        // The selected shipping method on the shipment carries the BM/catalog list price;
+        // the calculated cost lives on the matching applicableShippingMethods entry.
+        const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
+            {
+                shipmentId: 'ship-1',
+                shippingMethod: { id: 'ground', name: 'Ground', price: 5.99 },
+                shippingAddress: {
+                    firstName: 'Svetlana',
+                    lastName: 'Kostadinova',
+                    address1: '100 N. Michigan Ave.',
+                    city: 'Chicago',
+                    stateCode: 'IL',
+                    postalCode: '60602',
+                    countryCode: 'US',
+                },
+            },
+            {
+                shipmentId: 'ship-2',
+                shippingMethod: { id: 'ground', name: 'Ground', price: 5.99 },
+                shippingAddress: {
+                    firstName: 'Svetlana',
+                    lastName: 'Kostadinova',
+                    address1: '5th Avenue 2',
+                    city: 'New York',
+                    stateCode: 'NY',
+                    postalCode: '10001',
+                    countryCode: 'US',
+                },
+            },
+        ];
+
+        const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {
+            'ship-1': {
+                applicableShippingMethods: [{ id: 'ground', name: 'Ground', price: 15.63 }],
+            },
+            'ship-2': {
+                applicableShippingMethods: [{ id: 'ground', name: 'Ground', price: 13.98 }],
+            },
+        };
+
+        render(
+            <ShippingMultiOptions
+                {...createDefaultProps({
+                    shipments,
+                    shippingMethodsMap,
+                    isEditing: false,
+                    isCompleted: true,
+                })}
+            />,
+            { wrapper }
+        );
+
+        expect(screen.getByText(/\$15\.63/)).toBeInTheDocument();
+        expect(screen.getByText(/\$13\.98/)).toBeInTheDocument();
+        expect(screen.queryByText(/\$5\.99/)).not.toBeInTheDocument();
+    });
+
+    test('summary view falls back to the basket shippingMethod price when it is not in the applicable list', () => {
+        const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
+            {
+                shipmentId: 'ship-1',
+                shippingMethod: { id: 'unlisted', name: 'Custom Ground', price: 7.5 },
+                shippingAddress: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    address1: '123 Main St',
+                    city: 'Springfield',
+                    stateCode: 'IL',
+                    postalCode: '62701',
+                    countryCode: 'US',
+                },
+            },
+        ];
+
+        const shippingMethodsMap: Record<string, ShopperBasketsV2.schemas['ShippingMethodResult']> = {
+            'ship-1': {
+                applicableShippingMethods: [{ id: 'ground', name: 'Ground', price: 15.63 }],
+            },
+        };
+
+        render(
+            <ShippingMultiOptions
+                {...createDefaultProps({
+                    shipments,
+                    shippingMethodsMap,
+                    isEditing: false,
+                    isCompleted: true,
+                })}
+            />,
+            { wrapper }
+        );
+
+        expect(screen.getByText(/\$7\.50/)).toBeInTheDocument();
+        expect(screen.queryByText(/\$15\.63/)).not.toBeInTheDocument();
+    });
+
     test('summary view falls back to c_estimatedArrivalTime when the selected method has no deliveryWindow', () => {
         const shipments: ShopperBasketsV2.schemas['Shipment'][] = [
             {
