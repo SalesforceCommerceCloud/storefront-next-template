@@ -120,7 +120,7 @@ export default function CartContent({
     const { t } = useTranslation('cart');
 
     // Calculate total item count for page heading
-    const totalItems = basket?.productItems?.reduce((acc, item) => acc + (item.quantity ?? 0), 0) || 0;
+    const totalItems = (basket?.productItems || []).reduce((acc, item) => acc + (item.quantity ?? 0), 0);
     const pageHeading = t('itemCount', { count: totalItems });
 
     // TEMPORARY: State to facilitate bonus product modal development
@@ -284,12 +284,12 @@ export default function CartContent({
         };
     }, []);
 
-    // Check if cart is empty using the basket prop from loader data
-    if (!basket?.productItems?.length) {
+    // Check if cart is empty
+    if (!basket || !basket.productItems || basket.productItems.length === 0) {
         return <CartEmpty />;
     }
 
-    const deliveryItemsState = { value: basket.productItems || [] };
+    const deliveryItemsState = { value: basket.productItems };
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     // Only filter pickup items from delivery if we have a store to render them in the pickup section

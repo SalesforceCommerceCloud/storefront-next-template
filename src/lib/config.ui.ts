@@ -31,6 +31,15 @@
  * as they need overridable UI flags.
  */
 export interface UIConfig {
+    checkout: {
+        /**
+         * When true, allow placing orders with $0 total without payment
+         * instruments or billing addresses (e.g. furniture free swatches).
+         *
+         * @default false
+         */
+        allowZeroTotalOrders: boolean;
+    };
     pages: {
         cart: {
             /**
@@ -73,6 +82,21 @@ export interface UIConfig {
              * @default true
              */
             showLineItemBonusBadge: boolean;
+        };
+        swatches: {
+            /**
+             * Maximum number of distinct swatches that can be selected per order.
+             * Set to 0 to disable the swatches feature.
+             *
+             * @default 0
+             */
+            maxDistinctSwatches: number;
+            /**
+             * Maximum quantity allowed per individual swatch product.
+             *
+             * @default 1
+             */
+            maxQtyPerSwatch: number;
         };
         category: {
             /**
@@ -201,6 +225,9 @@ export interface PaginationConfig {
 }
 
 export const uiConfig: UIConfig = {
+    checkout: {
+        allowZeroTotalOrders: false,
+    },
     pages: {
         cart: {
             showRecommendations: true,
@@ -208,6 +235,10 @@ export const uiConfig: UIConfig = {
             showLineItemListPrice: true,
             showLineItemPromoBadge: true,
             showLineItemBonusBadge: true,
+        },
+        swatches: {
+            maxDistinctSwatches: 0,
+            maxQtyPerSwatch: 1,
         },
         category: {
             showCategoryLabel: false,

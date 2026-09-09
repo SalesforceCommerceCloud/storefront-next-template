@@ -27,7 +27,9 @@ import {
     saveBillingAddressToCustomer,
     updateCustomerContactInfo,
     getCustomerProfileForCheckout,
+    updateCustomerCustomAttributes,
 } from '@/lib/api/customer.server';
+import { uiConfig } from '@/lib/config.ui';
 import {
     getBasketCurrency,
     calculateBasket,
@@ -325,6 +327,329 @@ describe('action.place-order action', () => {
         // The whole point: createOrder must not run when the basket and instrument
         // are out of sync, otherwise OMS will reject the resulting order.
         expect(createOrderMock).not.toHaveBeenCalled();
+    });
+
+    test('zero-total (flag on): places a $0 order with no payment/billing and stamps c_swatchSetClaimedAt', async () => {
+        const swatchBasket = {
+            basketId: 'b-sw',
+            customerInfo: { email: 'test@example.com' },
+            productItems: [
+                {
+                    itemId: 'sw1',
+                    productId: 'fabric-swatch-slate-linen',
+                    quantity: 1,
+                    shipmentId: 's1',
+                },
+            ],
+            shipments: [
+                {
+                    shipmentId: 's1',
+                    shippingAddress: {
+                        address1: '123 Main St',
+                        city: 'Austin',
+                        postalCode: '78701',
+                        countryCode: 'US',
+                    },
+                    shippingMethod: { id: 'ground', name: 'Ground' },
+                },
+            ],
+            // No paymentInstruments, no billingAddress — the point of the zero-total path.
+            orderTotal: 0,
+        };
+
+        vi.mocked(getBasket).mockResolvedValue({ current: swatchBasket } as any);
+        vi.mocked(getAuth).mockReturnValue({ customerId: 'cust-1', userType: 'registered' } as any);
+        vi.mocked(getBasketCurrency).mockReturnValue('USD');
+        vi.mocked(calculateBasket).mockResolvedValue({ ...swatchBasket } as any);
+        vi.mocked(updateCustomerCustomAttributes).mockResolvedValue(true as any);
+        const createOrderMock = vi
+            .fn()
+            .mockResolvedValue({ data: { orderNo: 'O-SW', productItems: swatchBasket.productItems } });
+        vi.mocked(createApiClients).mockReturnValue({ shopperOrders: { createOrder: createOrderMock } } as any);
+
+        const original = uiConfig.checkout.allowZeroTotalOrders;
+        uiConfig.checkout.allowZeroTotalOrders = true;
+        try {
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            // Order placed (redirect) without a payment instrument or billing address.
+            expect(response.status).toBe(302);
+            expect(createOrderMock).toHaveBeenCalledWith(expect.objectContaining({ body: { basketId: 'b-sw' } }));
+            // Per-shopper limit stamped.
+            expect(vi.mocked(updateCustomerCustomAttributes)).toHaveBeenCalledWith(
+                mockContext,
+                'cust-1',
+                expect.objectContaining({ c_swatchSetClaimedAt: expect.any(String) })
+            );
+        } finally {
+            uiConfig.checkout.allowZeroTotalOrders = original;
+        }
+    });
+
+    test('zero-total flag off: a $0 basket without payment still requires payment (other verticals unchanged)', async () => {
+        const zeroBasket = {
+            basketId: 'b-z',
+            customerInfo: { email: 'test@example.com' },
+            productItems: [{ itemId: 'i1', productId: 'p1', quantity: 1, shipmentId: 's1' }],
+            shipments: [
+                {
+                    shipmentId: 's1',
+                    shippingAddress: {
+                        address1: '123 Main St',
+                        city: 'Austin',
+                        postalCode: '78701',
+                        countryCode: 'US',
+                    },
+                    shippingMethod: { id: 'ground', name: 'Ground' },
+                },
+            ],
+            orderTotal: 0,
+        };
+        vi.mocked(getBasket).mockResolvedValue({ current: zeroBasket } as any);
+        vi.mocked(getAuth).mockReturnValue({ customerId: 'cust-1', userType: 'registered' } as any);
+        vi.mocked(getPaymentMethodsFromCustomer).mockReturnValue([]);
+        const createOrderMock = vi.fn();
+        vi.mocked(createApiClients).mockReturnValue({ shopperOrders: { createOrder: createOrderMock } } as any);
+
+        // Force the flag off so this asserts flag-off behavior on EVERY vertical — including furniture,
+        // whose config defaults allowZeroTotalOrders to true. Relying on the vertical default made the
+        // furniture test run take the zero-total path (calling the unmocked calculateBasket) and 500.
+        const original = uiConfig.checkout.allowZeroTotalOrders;
+        uiConfig.checkout.allowZeroTotalOrders = false;
+        try {
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            // Flag off → payment gate still enforced even at $0 total.
+            expect(response.status).toBe(400);
+            expect(createOrderMock).not.toHaveBeenCalled();
+        } finally {
+            uiConfig.checkout.allowZeroTotalOrders = original;
+        }
+    });
+
+    test('zero-total flag on: a non-$0 basket without payment still requires payment (gate not bypassed)', async () => {
+        const pricedBasket = {
+            basketId: 'b-priced',
+            customerInfo: { email: 'test@example.com' },
+            productItems: [{ itemId: 'i1', productId: 'p1', quantity: 1, shipmentId: 's1' }],
+            shipments: [
+                {
+                    shipmentId: 's1',
+                    shippingAddress: {
+                        address1: '123 Main St',
+                        city: 'Austin',
+                        postalCode: '78701',
+                        countryCode: 'US',
+                    },
+                    shippingMethod: { id: 'ground', name: 'Ground' },
+                },
+            ],
+            // No paymentInstruments, no billingAddress — but the total is non-zero.
+            orderTotal: 49.99,
+        };
+
+        vi.mocked(getBasket).mockResolvedValue({ current: pricedBasket } as any);
+        vi.mocked(getAuth).mockReturnValue({ customerId: 'cust-1', userType: 'registered' } as any);
+        vi.mocked(getBasketCurrency).mockReturnValue('USD');
+        vi.mocked(calculateBasket).mockResolvedValue({ ...pricedBasket } as any);
+        vi.mocked(getPaymentMethodsFromCustomer).mockReturnValue([]);
+        const createOrderMock = vi.fn();
+        vi.mocked(createApiClients).mockReturnValue({ shopperOrders: { createOrder: createOrderMock } } as any);
+
+        const original = uiConfig.checkout.allowZeroTotalOrders;
+        uiConfig.checkout.allowZeroTotalOrders = true;
+        try {
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            // Flag on, but a non-zero total must still hit the payment gate — the zero-total path
+            // must not silently swallow priced orders.
+            expect(response.status).toBe(400);
+            const body = await parsePlaceOrderResponse(response);
+            expect(body.error).toEqual(expect.objectContaining({ message: 'Payment information is required' }));
+            expect(createOrderMock).not.toHaveBeenCalled();
+        } finally {
+            uiConfig.checkout.allowZeroTotalOrders = original;
+        }
+    });
+
+    test('zero-total flag on: rejects (409) when the basket gains a cost between the provisional and final calculate', async () => {
+        // The provisional (payment-gate) calculate sees $0, so the payment/billing gates are skipped.
+        // Between then and createOrder the basket gains a cost (a concurrent add-to-cart, or a shipping
+        // cost applied by resolveEmptyShipments). The authoritative post-shipment calculate must catch
+        // this and fail closed rather than place an unpaid, now-priced order.
+        const swatchBasket = {
+            basketId: 'b-latch',
+            customerInfo: { email: 'test@example.com' },
+            productItems: [{ itemId: 'sw1', productId: 'fabric-swatch-slate-linen', quantity: 1, shipmentId: 's1' }],
+            shipments: [
+                {
+                    shipmentId: 's1',
+                    shippingAddress: {
+                        address1: '123 Main St',
+                        city: 'Austin',
+                        postalCode: '78701',
+                        countryCode: 'US',
+                    },
+                    shippingMethod: { id: 'ground', name: 'Ground' },
+                },
+            ],
+            orderTotal: 0,
+        };
+
+        vi.mocked(getBasket).mockResolvedValue({ current: swatchBasket } as any);
+        vi.mocked(getAuth).mockReturnValue({ customerId: 'cust-1', userType: 'registered' } as any);
+        vi.mocked(getBasketCurrency).mockReturnValue('USD');
+        // First calculate (provisional gate) = $0; second calculate (authoritative) = now priced.
+        vi.mocked(calculateBasket)
+            .mockResolvedValueOnce({ ...swatchBasket, orderTotal: 0 } as any)
+            .mockResolvedValueOnce({ ...swatchBasket, orderTotal: 42.0 } as any);
+        const createOrderMock = vi.fn();
+        vi.mocked(createApiClients).mockReturnValue({ shopperOrders: { createOrder: createOrderMock } } as any);
+
+        const original = uiConfig.checkout.allowZeroTotalOrders;
+        uiConfig.checkout.allowZeroTotalOrders = true;
+        try {
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            expect(response.status).toBe(409);
+            const body = await parsePlaceOrderResponse(response);
+            expect(body.error).toEqual(expect.objectContaining({ code: 'CONFLICT' }));
+            // The now-priced order must never be placed with payment/billing/fraud bypassed.
+            expect(createOrderMock).not.toHaveBeenCalled();
+        } finally {
+            uiConfig.checkout.allowZeroTotalOrders = original;
+        }
+    });
+
+    test('zero-total flag on: blocks a repeat swatch order (403) when the customer already claimed their set', async () => {
+        // Generic-path guard: the shopper added swatch SKUs via the regular PDP/cart (bypassing the
+        // swatch action) and reached place-order. Because they already carry c_swatchSetClaimedAt, the
+        // shared place-order route must reject before createOrder rather than grant a second free set.
+        const swatchBasket = {
+            basketId: 'b-repeat',
+            customerInfo: { email: 'claimed@example.com' },
+            productItems: [{ itemId: 'sw1', productId: 'fabric-swatch-slate-linen', quantity: 1, shipmentId: 's1' }],
+            shipments: [
+                {
+                    shipmentId: 's1',
+                    shippingAddress: {
+                        address1: '123 Main St',
+                        city: 'Austin',
+                        postalCode: '78701',
+                        countryCode: 'US',
+                    },
+                    shippingMethod: { id: 'ground', name: 'Ground' },
+                },
+            ],
+            orderTotal: 0,
+        };
+
+        vi.mocked(getBasket).mockResolvedValue({ current: swatchBasket } as any);
+        vi.mocked(getAuth).mockReturnValue({ customerId: 'cust-claimed', userType: 'registered' } as any);
+        vi.mocked(getBasketCurrency).mockReturnValue('USD');
+        vi.mocked(calculateBasket).mockResolvedValue({ ...swatchBasket } as any);
+        // Profile already carries the claim stamp → the one-set limit is spent.
+        vi.mocked(getCustomerProfileForCheckout).mockResolvedValue({
+            customer: { customerId: 'cust-claimed', c_swatchSetClaimedAt: '2026-01-01T00:00:00.000Z' },
+        } as any);
+        const createOrderMock = vi.fn();
+        vi.mocked(createApiClients).mockReturnValue({ shopperOrders: { createOrder: createOrderMock } } as any);
+
+        const original = uiConfig.checkout.allowZeroTotalOrders;
+        uiConfig.checkout.allowZeroTotalOrders = true;
+        try {
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            expect(response.status).toBe(403);
+            const body = await parsePlaceOrderResponse(response);
+            expect(body.error).toEqual(
+                expect.objectContaining({ message: 'You have already ordered your free swatches' })
+            );
+            // The repeat free set must never be placed.
+            expect(createOrderMock).not.toHaveBeenCalled();
+        } finally {
+            uiConfig.checkout.allowZeroTotalOrders = original;
+        }
+    });
+
+    test('zero-total flag on: fails closed (503) when the swatch claim profile cannot be loaded', async () => {
+        // getCustomerProfileForCheckout returns null on a SCAPI failure. Because the claim stamp is the
+        // only record of the one-set limit, an unverifiable profile must NOT default to "not claimed" —
+        // the order is rejected with a retryable error instead of granting a possible second free set.
+        const swatchBasket = {
+            basketId: 'b-noprofile',
+            customerInfo: { email: 'noprofile@example.com' },
+            productItems: [{ itemId: 'sw1', productId: 'fabric-swatch-slate-linen', quantity: 1, shipmentId: 's1' }],
+            shipments: [
+                {
+                    shipmentId: 's1',
+                    shippingAddress: {
+                        address1: '123 Main St',
+                        city: 'Austin',
+                        postalCode: '78701',
+                        countryCode: 'US',
+                    },
+                    shippingMethod: { id: 'ground', name: 'Ground' },
+                },
+            ],
+            orderTotal: 0,
+        };
+
+        vi.mocked(getBasket).mockResolvedValue({ current: swatchBasket } as any);
+        vi.mocked(getAuth).mockReturnValue({ customerId: 'cust-x', userType: 'registered' } as any);
+        vi.mocked(getBasketCurrency).mockReturnValue('USD');
+        vi.mocked(calculateBasket).mockResolvedValue({ ...swatchBasket } as any);
+        // SCAPI failure loading the profile → null.
+        vi.mocked(getCustomerProfileForCheckout).mockResolvedValue(null as any);
+        const createOrderMock = vi.fn();
+        vi.mocked(createApiClients).mockReturnValue({ shopperOrders: { createOrder: createOrderMock } } as any);
+
+        const original = uiConfig.checkout.allowZeroTotalOrders;
+        uiConfig.checkout.allowZeroTotalOrders = true;
+        try {
+            const request = createFormDataRequest(`http://localhost${resourceRoutes.placeOrder}`, 'POST', {});
+            const response = await action({
+                request,
+                context: mockContext,
+                params: {},
+                pattern: resourceRoutes.placeOrder,
+            } as ActionFunctionArgs);
+
+            expect(response.status).toBe(503);
+            expect(createOrderMock).not.toHaveBeenCalled();
+        } finally {
+            uiConfig.checkout.allowZeroTotalOrders = original;
+        }
     });
 
     test('saves payment method and addresses for checkout-registration even without savePaymentToProfile', async () => {

@@ -985,3 +985,36 @@ export async function getCustomer(
     });
     return customer;
 }
+
+/**
+ * Update customer custom attributes (c_* fields).
+ *
+ * @param context - React Router context
+ * @param customerId - The customer ID to update
+ * @param attrs - Custom attribute key-value pairs to set
+ * @returns Promise<boolean> indicating success
+ */
+export async function updateCustomerCustomAttributes(
+    context: ActionFunctionArgs['context'],
+    customerId: string,
+    attrs: Record<string, unknown>
+): Promise<boolean> {
+    try {
+        const clients = createApiClients(context);
+
+        // PATCH /customers/{customerId} with c_* attributes
+        await clients.shopperCustomers.updateCustomer({
+            params: {
+                path: {
+                    customerId,
+                },
+            },
+            body: attrs as ShopperCustomers.schemas['Customer'],
+        });
+
+        return true;
+    } catch {
+        // Failed to update custom attributes
+        return false;
+    }
+}

@@ -19,11 +19,12 @@ import { useScapiFetcher } from './use-scapi-fetcher';
 
 export interface UseSearchSuggestionsOptions {
     q: string;
-    expand?: ('images' | 'prices')[];
+    expand?: ('images' | 'prices' | 'custom_product_properties')[];
     limit?: number;
     currency?: string;
     includeEinsteinSuggestedPhrases?: boolean;
     enabled?: boolean;
+    includedCustomProductProperties?: string[];
 }
 
 export interface SearchSuggestionsResult {
@@ -43,6 +44,7 @@ export function useSearchSuggestions({
     currency,
     includeEinsteinSuggestedPhrases,
     enabled = true,
+    includedCustomProductProperties,
 }: UseSearchSuggestionsOptions): SearchSuggestionsResult {
     // Prepare parameters for Commerce SDK getSearchSuggestions method
     const parameters = useMemo(
@@ -54,10 +56,11 @@ export function useSearchSuggestions({
                     ...(limit && { limit }),
                     ...(currency && { currency }),
                     ...(includeEinsteinSuggestedPhrases !== undefined && { includeEinsteinSuggestedPhrases }),
+                    ...(includedCustomProductProperties && { includedCustomProductProperties }),
                 },
             },
         }),
-        [q, expand, limit, currency, includeEinsteinSuggestedPhrases]
+        [q, expand, limit, currency, includeEinsteinSuggestedPhrases, includedCustomProductProperties]
     );
 
     // Use useScapiFetcher hook for Commerce SDK operations

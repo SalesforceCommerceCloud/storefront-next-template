@@ -49,9 +49,10 @@ export default function SearchBar(): ReactElement {
 
     const { data: suggestions, refetch } = useSearchSuggestions({
         q: query,
-        expand: ['images', 'prices'],
+        expand: ['images', 'prices', 'custom_product_properties'],
         includeEinsteinSuggestedPhrases: true,
         enabled: query.trim().length >= RECENT_SEARCH_MIN_LENGTH,
+        includedCustomProductProperties: ['c_hideFromSearchResults'],
     });
 
     const transformedSuggestions = useTransformSearchSuggestions(suggestions);

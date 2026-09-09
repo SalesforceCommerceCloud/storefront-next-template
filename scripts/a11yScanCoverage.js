@@ -122,6 +122,9 @@ const ALLOWLIST = {
     '_app.about-us': 'deferred:auto-discovery,static content page, no Scenario yet',
     '_app.find-your-shoe': 'deferred:auto-discovery,vertical-exclusive (footwear) placeholder page, no Scenario yet',
     '_app.size-guide': 'deferred:auto-discovery,vertical-exclusive (footwear) static page, no Scenario yet',
+    '_app.swatches': 'deferred:auto-discovery,vertical-exclusive (furniture) auth-gated page, no Scenario yet',
+    '_app.category.fabric-swatches':
+        'deferred:auto-discovery,vertical-exclusive (furniture) 301 redirect to /swatches, no visual content to scan',
     '_app.account.overview': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.passkeys': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.store-preferences': 'deferred:auto-discovery,auth-gated, no Scenario yet',

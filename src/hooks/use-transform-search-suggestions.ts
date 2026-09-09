@@ -78,17 +78,23 @@ export function useTransformSearchSuggestions(
             }) || [];
 
         const productSuggestions =
-            data.productSuggestions?.products?.map((product) => {
-                const image = product.image as ShopperSearch.schemas['Image'] | undefined;
-                return {
-                    name: product.productName || '',
-                    link: `/product/${product.productId}`,
-                    type: 'product',
-                    image: image?.disBaseLink || image?.link,
-                    price: product.price,
-                    currency: product.currency,
-                };
-            }) || [];
+            data.productSuggestions?.products
+                ?.filter((product) => {
+                    // Exclude products flagged as c_hideFromSearchResults (e.g. swatches)
+                    const hideFlag = (product as { c_hideFromSearchResults?: boolean }).c_hideFromSearchResults;
+                    return hideFlag !== true;
+                })
+                .map((product) => {
+                    const image = product.image as ShopperSearch.schemas['Image'] | undefined;
+                    return {
+                        name: product.productName || '',
+                        link: `/product/${product.productId}`,
+                        type: 'product',
+                        image: image?.disBaseLink || image?.link,
+                        price: product.price,
+                        currency: product.currency,
+                    };
+                }) || [];
 
         const phraseSuggestions =
             data.productSuggestions?.suggestedPhrases?.map((phrase) => ({

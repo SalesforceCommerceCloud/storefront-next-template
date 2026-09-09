@@ -26,7 +26,8 @@ const DEFAULT_IMAGES = { tile: 'medium', swatch: 'swatch' } as const;
 
 export const fetchSearchProducts = async (
     context: LoaderFunctionArgs['context'],
-    parameters: QueryParameters
+    parameters: QueryParameters,
+    options?: { includeSearchHidden?: boolean }
 ): Promise<ShopperSearch.schemas['ProductSearchResult']> => {
     const logger = getLogger(context);
     /**
@@ -93,6 +94,34 @@ export const fetchSearchProducts = async (
                 },
             },
         });
+
+        // Post-filter to exclude products flagged as c_hideFromSearchResults unless explicitly
+        // requested. Similar to orderable_only above, this lets vertical-specific routes fetch
+        // hidden products when needed (e.g. swatches in a dedicated category) while keeping them
+        // out of general keyword search and typeahead. With `expand=custom_properties`, SCAPI
+        // returns the custom attribute nested under the hit's `representedProduct` (not top-level),
+        // so read it there (with a top-level fallback for robustness).
+        //
+        // Fail-open by design: only an explicit `true` hides a product, so a hit is kept whenever
+        // the flag is absent/undefined. Hiding is therefore a positive assertion made on the
+        // datasets side (the swatch products must set c_hideFromSearchResults=true); if that flag is
+        // ever missing, a swatch leaks INTO search rather than a real product wrongly vanishing from
+        // it. We accept that direction: a missing flag over-showing is a visible, self-correcting
+        // data bug, whereas fail-closed would silently drop products that merely lack the attribute.
+        if (!options?.includeSearchHidden && data.hits) {
+            data.hits = data.hits.filter((hit) => {
+                const h = hit as {
+                    c_hideFromSearchResults?: boolean;
+                    representedProduct?: { c_hideFromSearchResults?: boolean };
+                    representedProducts?: { c_hideFromSearchResults?: boolean }[];
+                };
+                const hideFlag =
+                    h.representedProduct?.c_hideFromSearchResults ??
+                    h.representedProducts?.[0]?.c_hideFromSearchResults ??
+                    h.c_hideFromSearchResults;
+                return hideFlag !== true;
+            });
+        }
 
         return data;
     } catch (error) {

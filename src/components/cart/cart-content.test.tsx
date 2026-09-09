@@ -1139,4 +1139,23 @@ describe('CartContent', () => {
             ]);
         });
     });
+
+    describe('Hidden product IDs (display filter)', () => {
+        test('renders all products when hiddenProductIds is empty (canonical default)', () => {
+            // Canonical default: hiddenProductIds is empty, so no products are filtered from display.
+            renderCartContent({
+                basket: mockBasket,
+                productsByItemId: mockProductMap,
+                bonusProductsById: mockBonusProductsById,
+            });
+
+            // All products should be rendered (no filtering)
+            expect(screen.getByTestId('sf-product-item-product-1')).toBeInTheDocument();
+            expect(screen.getByTestId('sf-product-item-product-2')).toBeInTheDocument();
+
+            // Item count should include all products
+            const heading = screen.getByRole('heading', { level: 1 });
+            expect(heading).toHaveTextContent(t('cart:itemCount', { count: 3 }));
+        });
+    });
 });
