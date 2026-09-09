@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type RouteConfig } from '@react-router/dev/routes';
+import { type RouteConfig, route } from '@react-router/dev/routes';
 import { flatRoutes } from '@salesforce/storefront-next-runtime/routing';
 
 /**
@@ -36,5 +36,23 @@ import { flatRoutes } from '@salesforce/storefront-next-runtime/routing';
  *    so that site- and locale-aware URLs work out of the box. See `docs/README-MULTI-SITE.md`.
  *
  * Test files (`*.test.ts`, `*.test.tsx`) are ignored by default.
+ *
+ * SLAS server-to-server callback routes are registered here, outside the `/:siteId/:localeId`
+ * wrapper, so that a single URL per callback type works for all sites and locales. The
+ * site-context middleware falls back to the default site/locale when no URL prefix is present.
  */
-export default flatRoutes() satisfies RouteConfig;
+// SLAS server-to-server callback routes must be registered outside the /:siteId/:localeId
+// wrapper so a single Callback URL entry in SLAS Admin works for all sites and locales.
+// They are excluded from flatRoutes() discovery and manually registered at bare paths below.
+// Include the default test-file exclusion because specifying ignoredRouteFiles overrides it.
+const IGNORED_ROUTE_FILES = [
+    '**/*.test.{ts,tsx}',
+    '**/resource.slas-reset-password-callback.ts',
+    '**/resource.slas-passwordless-login-callback.ts',
+];
+
+export default flatRoutes({ ignoredRouteFiles: IGNORED_ROUTE_FILES }).then((appRoutes) => [
+    ...appRoutes,
+    route('/reset-password-callback', 'routes/resource.slas-reset-password-callback.ts'),
+    route('/passwordless-login-callback', 'routes/resource.slas-passwordless-login-callback.ts'),
+]) satisfies Promise<RouteConfig>;

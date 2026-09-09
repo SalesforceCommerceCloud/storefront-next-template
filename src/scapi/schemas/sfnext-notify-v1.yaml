@@ -1,0 +1,134 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: SfNext Notify API
+  description: Transactional notification API for Storefront Next
+servers:
+  - url: https://{shortCode}.api.commercecloud.salesforce.com/custom/sfnext-notify/v1
+    variables:
+      shortCode:
+        description: SCAPI short code
+        default: ''
+components:
+  securitySchemes:
+    ShopperToken:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://{shortCode}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/token
+          scopes:
+            c_sfnext_notify: Send transactional notifications via B2C Commerce
+  parameters:
+    siteId:
+      name: siteId
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    locale:
+      name: locale
+      in: query
+      required: false
+      schema:
+        type: string
+        description: BCP 47 locale tag (e.g. "en-US"). SCAPI routes this to request.locale in the cartridge, controlling the language used by Resource.msg() for subjects and plain-text content.
+paths:
+  /notify:
+    post:
+      operationId: notify
+      parameters:
+        - $ref: '#/components/parameters/siteId'
+        - $ref: '#/components/parameters/locale'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [type, recipient, data]
+                  properties:
+                    type:
+                      type: string
+                      enum: [passwordless-magic-link]
+                    recipient:
+                      type: string
+                    data:
+                      type: object
+                      required: [magicLinkPath]
+                      properties:
+                        magicLinkPath:
+                          type: string
+                          pattern: '^/'
+                          description: Path portion of the magic link (no hostname). The cartridge prepends the eCDN hostname via URLHostProvider.getInstanceHostname().
+                - type: object
+                  required: [type, recipient, data]
+                  properties:
+                    type:
+                      type: string
+                      enum: [password-reset]
+                    recipient:
+                      type: string
+                    data:
+                      type: object
+                      required: [magicLinkPath]
+                      properties:
+                        magicLinkPath:
+                          type: string
+                          pattern: '^/'
+                          description: Path portion of the magic link (no hostname). The cartridge prepends the eCDN hostname via URLHostProvider.getInstanceHostname().
+                - type: object
+                  required: [type, recipient, data]
+                  properties:
+                    type:
+                      type: string
+                      enum: [otp]
+                    recipient:
+                      type: string
+                    data:
+                      type: object
+                      required: [token]
+                      properties:
+                        token:
+                          type: string
+                - type: object
+                  required: [type, recipient, data]
+                  properties:
+                    type:
+                      type: string
+                      enum: [glo-access-code]
+                    recipient:
+                      type: string
+                    data:
+                      type: object
+                      required: [orderNo, accessCode]
+                      properties:
+                        orderNo:
+                          type: string
+                        accessCode:
+                          type: string
+              discriminator:
+                propertyName: type
+      responses:
+        '200':
+          description: Notification sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      magicLink:
+                        type: string
+                        description: Fully qualified magic link URL constructed by the cartridge (only present for magic-link notification types)
+        '400':
+          description: Invalid request
+        '500':
+          description: Notification delivery failed
+security:
+  - ShopperToken: ['c_sfnext_notify']

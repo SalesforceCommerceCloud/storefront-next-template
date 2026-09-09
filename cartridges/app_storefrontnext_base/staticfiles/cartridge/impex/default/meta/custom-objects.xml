@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+
+    <!--
+        Storefront Next global (organization-level) preferences.
+        Import via Business Manager: Administration > Site Development > Import & Export.
+    -->
+    <type-extension type-id="OrganizationPreferences">
+        <custom-attribute-definitions>
+
+            <!--
+                Set to false to disable the cartridge's built-in notification feature.
+                Use this if you have customized email delivery (e.g. Marketing Cloud, a
+                third-party provider, or your own hook) and do not want the cartridge's
+                default ISML-based emails to fire.
+
+                When unset or set to true, all notification types are active (the default
+                for new installs). Setting this to false causes the REST API to return 503
+                and the sendOrderAccessCode hook to no-op — no emails are sent by the cartridge.
+            -->
+            <attribute-definition attribute-id="sfnextNotifyEnabled">
+                <display-name xml:lang="x-default">Notifications Enabled</display-name>
+                <description xml:lang="x-default">
+                    Enable the built-in notification feature (email sending via ISML templates and dw/net/Mail).
+                    Set to false if you have a custom email provider.
+                    When unset, notifications are enabled by default.
+                </description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+
+            <attribute-definition attribute-id="sfnextStorefrontHost">
+                <display-name xml:lang="x-default">Storefront Host</display-name>
+                <description xml:lang="x-default">
+                    Public-facing hostname of the MRT/eCDN storefront, without protocol or trailing slash.
+                    Example: my-store.salesforcecommercecloudsites.com
+                    Required for magic-link emails (password reset, passwordless login) to link to the correct storefront URL.
+                    If not set, magic links will use the B2C instance hostname, which will not resolve correctly
+                    in headless deployments.
+                </description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+
+        </custom-attribute-definitions>
+
+        <group-definitions>
+            <attribute-group group-id="sfnext">
+                <display-name xml:lang="x-default">Storefront Next</display-name>
+                <attribute attribute-id="sfnextNotifyEnabled"/>
+                <attribute attribute-id="sfnextStorefrontHost"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+</metadata>

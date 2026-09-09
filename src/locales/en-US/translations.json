@@ -323,8 +323,8 @@
         },
         "passwordless": {
             "missingToken": "Missing token.",
-            "missingCallbackToken": "Missing x-slas-callback-token header.",
-            "missingRequiredFields": "Missing required fields: email_id and token."
+            "missingCallbackToken": "Unable to complete your request. Please try again.",
+            "missingRequiredFields": "Required information is missing. Please try again."
         },
         "jwks": {
             "missingEnvironmentVariables": "Missing required configuration: shortCode and organizationId.",

@@ -33,11 +33,12 @@ const MAX_OTP_LENGTH = 6;
 export interface VerifyFormProps {
     orderNumber: string;
     email: string;
+    autoCode?: string;
     onVerified: (result: { orderNumber: string; email: string }) => void;
     onCancel?: () => void;
 }
 
-export function VerifyForm({ orderNumber, email, onVerified, onCancel }: VerifyFormProps): ReactElement {
+export function VerifyForm({ orderNumber, email, autoCode, onVerified, onCancel }: VerifyFormProps): ReactElement {
     const { t } = useTranslation('orderLookup');
     const config = useConfig();
     const fetcher = useFetcher<VerifyOrderResponse>();
@@ -47,6 +48,7 @@ export function VerifyForm({ orderNumber, email, onVerified, onCancel }: VerifyF
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const hasCalledOnVerifiedRef = useRef(false);
     const lastHandledDataRef = useRef<VerifyOrderResponse | undefined>(undefined);
+    const autoSubmitDoneRef = useRef(false);
     const turnstileResetRef = useRef<(() => void) | null>(null);
 
     const { otpInputs, otpInputsRef, refCallbacks } = useOtpVerification({
@@ -78,6 +80,34 @@ export function VerifyForm({ orderNumber, email, onVerified, onCancel }: VerifyF
             }
         });
     }, [otpInputsRef]);
+
+    // Pre-fill OTP and auto-submit when an access code arrives via the magic link ?token= param
+    useEffect(() => {
+        if (!autoCode || autoSubmitDoneRef.current) return;
+        const digits = autoCode.replace(/\D/g, '').slice(0, MAX_OTP_LENGTH);
+        if (digits.length !== MAX_OTP_LENGTH) return;
+
+        autoSubmitDoneRef.current = true;
+
+        for (let i = 0; i < MAX_OTP_LENGTH; i++) {
+            otpInputsRef.current.setValue(i, digits[i]);
+        }
+
+        if (turnstileEnabled) return; // Turnstile-protected: pre-filled, user completes challenge then submits manually
+
+        const codeResult = parseOtp(digits);
+        if (!codeResult.ok) return;
+
+        setErrorCode(null);
+        hasCalledOnVerifiedRef.current = false;
+
+        const formData = new FormData();
+        formData.append('orderNumber', orderNumber);
+        formData.append('email', email);
+        formData.append('code', digits);
+        void fetcher.submit(formData, { method: 'POST', action: '/action/order-lookup-verify' });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Handle fetcher response. Guarded by lastHandledDataRef so that editing the OTP
     // (which changes enteredOtp, a dependency here) doesn't re-apply a stale response

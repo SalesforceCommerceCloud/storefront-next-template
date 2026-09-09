@@ -20,6 +20,7 @@ import { stripPathPrefix } from '@salesforce/storefront-next-runtime/site-contex
 import { handlePasswordlessCallback, handlePasswordlessLanding } from '@/lib/auth/passwordless-login.server';
 import { handleSocialLoginLanding } from '@/lib/api/auth/social-login.server';
 import { handleResetPasswordCallback, handleResetPasswordLanding } from '@/lib/api/auth/reset-password.server';
+import { handleOtpCallback } from '@/lib/api/auth/otp-callback.server';
 import { isAbsoluteURL } from '@/lib/utils';
 import { getLogger } from '@/lib/logger.server';
 
@@ -50,24 +51,42 @@ function extractPathname(uri: string): string {
 }
 
 /**
+ * Returns true when `pathname` matches `configUri`.
+ *
+ * Two forms are accepted:
+ * - Exact match after locale-prefix stripping (normal case): `/reset-password-callback`
+ * - Suffix match on the raw pathname (site-only-prefix case): `/global/reset-password-callback`
+ *
+ * The suffix check handles multi-site deployments where SLAS server-to-server
+ * callbacks are sent to `/{siteId}/callback` (no locale) so that one Callback URL
+ * entry in SLAS Admin covers all locales. The leading slash in the match prevents
+ * false positives from paths like `/other-reset-password-callback`.
+ */
+function matchesCallbackUri(strippedPathname: string, rawPathname: string, configUri: string): boolean {
+    const configPath = extractPathname(configUri);
+    return strippedPathname === configPath || rawPathname.endsWith(`/${configPath.replace(/^\//, '')}`);
+}
+
+/**
  * Get the loader handler for a given pathname
  */
-function getLoaderHandler(pathname: string, context: Readonly<RouterContextProvider>): LoaderHandler | null {
+function getLoaderHandler(
+    strippedPathname: string,
+    rawPathname: string,
+    context: Readonly<RouterContextProvider>
+): LoaderHandler | null {
     const config = getConfig(context);
 
-    // Use extractPathname to support both relative paths and absolute URLs in config.
-    // When comparing against the incoming request's pathname, we need to extract just
-    // the pathname component from potentially absolute URLs (e.g., "https://example.com/callback" -> "/callback")
     if (
         config.features.passwordlessLogin.landingUri &&
-        pathname === extractPathname(config.features.passwordlessLogin.landingUri)
+        matchesCallbackUri(strippedPathname, rawPathname, config.features.passwordlessLogin.landingUri)
     ) {
         return handlePasswordlessLanding;
     }
 
     if (
         config.features.resetPassword.landingUri &&
-        pathname === extractPathname(config.features.resetPassword.landingUri)
+        matchesCallbackUri(strippedPathname, rawPathname, config.features.resetPassword.landingUri)
     ) {
         return handleResetPasswordLanding;
     }
@@ -75,7 +94,7 @@ function getLoaderHandler(pathname: string, context: Readonly<RouterContextProvi
     if (
         config.features.socialLogin.enabled &&
         config.features.socialLogin.callbackUri &&
-        pathname === extractPathname(config.features.socialLogin.callbackUri)
+        matchesCallbackUri(strippedPathname, rawPathname, config.features.socialLogin.callbackUri)
     ) {
         return handleSocialLoginLanding;
     }
@@ -86,23 +105,34 @@ function getLoaderHandler(pathname: string, context: Readonly<RouterContextProvi
 /**
  * Get the action handler for a given pathname
  */
-function getActionHandler(pathname: string, context: Readonly<RouterContextProvider>): ActionHandler | null {
+function getActionHandler(
+    strippedPathname: string,
+    rawPathname: string,
+    context: Readonly<RouterContextProvider>
+): ActionHandler | null {
     const config = getConfig(context);
-    // Use extractPathname to support both relative paths and absolute URLs in config.
-    // When comparing against the incoming request's pathname, we need to extract just
-    // the pathname component from potentially absolute URLs (e.g., "https://example.com/callback" -> "/callback")
+
     if (
+        config.features.passwordlessLogin.mode === 'callback' &&
         config.features.passwordlessLogin.callbackUri &&
-        pathname === extractPathname(config.features.passwordlessLogin.callbackUri)
+        matchesCallbackUri(strippedPathname, rawPathname, config.features.passwordlessLogin.callbackUri)
     ) {
         return handlePasswordlessCallback;
     }
 
     if (
         config.features.resetPassword.callbackUri &&
-        pathname === extractPathname(config.features.resetPassword.callbackUri)
+        matchesCallbackUri(strippedPathname, rawPathname, config.features.resetPassword.callbackUri)
     ) {
         return handleResetPasswordCallback;
+    }
+
+    if (
+        config.features.otpRequest?.mode === 'callback' &&
+        config.features.otpRequest?.callbackUri &&
+        matchesCallbackUri(strippedPathname, rawPathname, config.features.otpRequest.callbackUri)
+    ) {
+        return handleOtpCallback;
     }
 
     return null;
@@ -114,7 +144,7 @@ export async function loader(args: Route.LoaderArgs) {
     const url = new URL(args.request.url);
     const strippedPath = stripPathPrefix({ pathname: url.pathname, prefix: config.url?.prefix ?? '' });
     logger.debug('CatchAllRoute: loader starting', { pathname: url.pathname, strippedPath });
-    const handler = getLoaderHandler(strippedPath, args.context);
+    const handler = getLoaderHandler(strippedPath, url.pathname, args.context);
 
     if (handler) {
         logger.debug('CatchAllRoute: matched loader handler', { pathname: url.pathname });
@@ -132,7 +162,7 @@ export async function action(args: Route.ActionArgs) {
     const url = new URL(args.request.url);
     const strippedPath = stripPathPrefix({ pathname: url.pathname, prefix: config.url?.prefix ?? '' });
     logger.debug('CatchAllRoute: action starting', { pathname: url.pathname, strippedPath });
-    const handler = getActionHandler(strippedPath, args.context);
+    const handler = getActionHandler(strippedPath, url.pathname, args.context);
 
     if (handler) {
         logger.debug('CatchAllRoute: matched action handler', { pathname: url.pathname });

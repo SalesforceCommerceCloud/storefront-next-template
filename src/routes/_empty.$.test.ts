@@ -43,6 +43,7 @@ vi.mock('@salesforce/storefront-next-runtime/config', () => ({
     getConfig: vi.fn(() => ({
         features: {
             passwordlessLogin: {
+                mode: 'callback',
                 landingUri: '/passwordless-login-landing',
                 callbackUri: '/passwordless-login-callback',
             },

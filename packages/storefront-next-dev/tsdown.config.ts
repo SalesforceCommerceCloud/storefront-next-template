@@ -157,6 +157,7 @@ export default defineConfig([
             'commands/generate-cartridge': 'src/commands/generate-cartridge.ts',
             'commands/deploy-cartridge': 'src/commands/deploy-cartridge.ts',
             'commands/validate-cartridge': 'src/commands/validate-cartridge.ts',
+            'commands/setup-base-cartridge': 'src/commands/setup-base-cartridge.ts',
             // Config commands
             'commands/config/inspect': 'src/commands/config/inspect.ts',
             'commands/config/aggregate-extensions': 'src/commands/config/aggregate-extensions.ts',
@@ -174,6 +175,7 @@ export default defineConfig([
             'commands/locales/aggregate-extensions': 'src/commands/locales/aggregate-extensions.ts',
             // oclif hooks
             'hooks/init': 'src/hooks/init.ts',
+            'hooks/operation-lifecycle': 'src/hooks/operation-lifecycle.ts',
         },
         platform: 'node',
         target: 'node24',

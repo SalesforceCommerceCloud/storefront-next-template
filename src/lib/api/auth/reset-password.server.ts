@@ -15,38 +15,30 @@
  */
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect, type RouterContextProvider } from 'react-router';
 import { extractResponseError } from '@/lib/utils';
-import { getAppOrigin } from '@/lib/origin';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import {
-    resetMarketingCloudTokenCache,
-    sendMarketingCloudEmail,
-    validateSlasCallbackToken,
-} from '@/lib/marketing/marketing-cloud.server';
+import { buildUrlFromContext } from '@/lib/url.server';
+import { sendNotification, validateSlasCallbackToken } from '@/lib/notify/notify.server';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getLogger } from '@/lib/logger.server';
+import { routes } from '@/route-paths';
 
-// Re-export for backwards compatibility with tests
-export { resetMarketingCloudTokenCache };
+/** @deprecated No-op kept for test backwards compatibility */
+// oxlint-disable-next-line no-empty-function
+export function resetMarketingCloudTokenCache() {}
 
 /**
- * Sends a magic link email for reset password
+ * Sends a magic link email for reset password.
  */
 async function sendResetPasswordEmail(
     context: Readonly<RouterContextProvider>,
     email_id: string,
     token: string
-): Promise<object> {
-    const base = getAppOrigin(context);
-
+): Promise<void> {
     const config = getConfig(context);
-    const landingPath = config.features.resetPassword.landingUri;
-    const magicLink = `${base}${landingPath}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email_id)}`;
+    const landingPath = buildUrlFromContext(config.features.resetPassword.landingUri ?? '/reset-password', context);
+    const magicLinkPath = `${landingPath}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email_id)}`;
 
-    const templateId = process.env.MARKETING_CLOUD_PASSWORDLESS_LOGIN_TEMPLATE;
-    if (!templateId) {
-        throw new Error('MARKETING_CLOUD_PASSWORDLESS_LOGIN_TEMPLATE is not set in the environment variables.');
-    }
-    return await sendMarketingCloudEmail(email_id, magicLink, templateId);
+    await sendNotification(context, { type: 'password-reset', recipient: email_id, data: { magicLinkPath } });
 }
 
 /**
@@ -56,6 +48,19 @@ async function sendResetPasswordEmail(
 export async function handleResetPasswordCallback({ request, context }: ActionFunctionArgs) {
     const logger = getLogger(context);
     const { t } = getTranslation(context);
+
+    const config = getConfig(context);
+    if (config?.features?.resetPassword?.mode !== 'callback') {
+        return { success: false, error: t('errors:passwordless.missingCallbackToken') };
+    }
+
+    const url = new URL(request.url);
+    logger.info('ResetPassword: callback received', {
+        pathname: url.pathname,
+        method: request.method,
+        hasSlasCallbackToken: Boolean(request.headers.get('x-slas-callback-token')),
+        contentType: request.headers.get('content-type'),
+    });
 
     try {
         const slasCallbackToken = request.headers.get('x-slas-callback-token');
@@ -68,10 +73,22 @@ export async function handleResetPasswordCallback({ request, context }: ActionFu
             };
         }
 
-        await validateSlasCallbackToken(context, slasCallbackToken);
+        try {
+            await validateSlasCallbackToken(context, slasCallbackToken);
+            logger.info('ResetPassword: SLAS callback token validated');
+        } catch (tokenError) {
+            const msg = tokenError instanceof Error ? tokenError.message : String(tokenError);
+            logger.error('ResetPassword: SLAS callback token validation failed', { error: msg });
+            throw tokenError;
+        }
 
         const body = await request.json();
         const { email_id, token } = body as { email_id: string; token: string };
+
+        logger.info('ResetPassword: parsed callback body', {
+            hasEmailId: Boolean(email_id),
+            hasToken: Boolean(token),
+        });
 
         if (!email_id || !token) {
             logger.warn('ResetPassword: missing required fields', {
@@ -84,16 +101,25 @@ export async function handleResetPasswordCallback({ request, context }: ActionFu
             };
         }
 
-        const result = await sendResetPasswordEmail(context, email_id, token);
+        try {
+            await sendResetPasswordEmail(context, email_id, token);
+            logger.info('ResetPassword: email sent', { recipient: email_id });
+        } catch (emailError) {
+            const rawBody =
+                emailError && typeof emailError === 'object' && 'rawBody' in emailError
+                    ? emailError.rawBody
+                    : undefined;
+            logger.error('ResetPassword: sendNotification failed', { error: emailError, rawBody });
+            throw emailError;
+        }
 
-        logger.info('ResetPassword: email sent');
         return {
             success: true,
-            result,
+            result: {},
         };
     } catch (error) {
         const { responseMessage } = await extractResponseError(error);
-        logger.error('ResetPassword: callback failed', { error });
+        logger.error('ResetPassword: callback failed', { error, responseMessage });
 
         return {
             success: false,
@@ -112,5 +138,5 @@ export function handleResetPasswordLanding({ request }: LoaderFunctionArgs) {
     const token = url.searchParams.get('token') || '';
     const email = url.searchParams.get('email') || '';
 
-    return redirect(`/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
+    return redirect(`${routes.resetPassword}?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`);
 }

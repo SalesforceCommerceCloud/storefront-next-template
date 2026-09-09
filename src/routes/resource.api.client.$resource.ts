@@ -56,6 +56,10 @@ export type {
 // Proxy client members that are not SCAPI operations and must not be invocable from a crafted resource URL.
 const RESERVED_PROXY_MEMBERS = new Set(['use', 'eject']);
 
+// Clients that are server-only and must never be callable through this generic route.
+// sfnextNotify bypasses the origin-validation guard in sendNotification() when called directly.
+const DENIED_CLIENTS = new Set<string>(['sfnextNotify']);
+
 // Default empty array string for resource parameter fallback
 const DEFAULT_RESOURCE_ARRAY = '[]';
 
@@ -148,7 +152,12 @@ export async function loader<
         const client = clients[clientKey] as Record<string, unknown>;
         const methodName = resource[1] as string;
 
-        if (!client || typeof client[methodName] !== 'function' || RESERVED_PROXY_MEMBERS.has(methodName)) {
+        if (
+            !client ||
+            DENIED_CLIENTS.has(clientKey as string) ||
+            typeof client[methodName] !== 'function' ||
+            RESERVED_PROXY_MEMBERS.has(methodName)
+        ) {
             throw new TypeError(`Method not found: "${String(resource[0])}.${methodName}"`);
         }
 
@@ -295,7 +304,12 @@ export async function action<
         const client = clients[clientKey] as Record<string, unknown>;
         const methodName = resource[1] as string;
 
-        if (!client || typeof client[methodName] !== 'function' || RESERVED_PROXY_MEMBERS.has(methodName)) {
+        if (
+            !client ||
+            DENIED_CLIENTS.has(clientKey as string) ||
+            typeof client[methodName] !== 'function' ||
+            RESERVED_PROXY_MEMBERS.has(methodName)
+        ) {
             throw new TypeError(`Method not found: "${String(resource[0])}.${methodName}"`);
         }
 

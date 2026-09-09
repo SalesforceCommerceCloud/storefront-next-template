@@ -314,6 +314,7 @@ export async function getPasswordResetToken(
     const logger = getLogger(context);
     logger.debug('Auth: getPasswordResetToken starting', { mode });
 
+    logger.info('Auth: getPasswordResetToken request', { callbackUri, mode });
     try {
         const result = await clients.auth.password.requestReset({
             userId: parameters.email,
@@ -324,7 +325,8 @@ export async function getPasswordResetToken(
         logger.debug('Auth: getPasswordResetToken succeeded');
         return result;
     } catch (error) {
-        logger.error('Auth: getPasswordResetToken failed', { error });
+        const rawBody = error && typeof error === 'object' && 'rawBody' in error ? error.rawBody : undefined;
+        logger.error('Auth: getPasswordResetToken failed', { error, rawBody });
         throw error;
     } finally {
         performanceTimer?.mark(PERFORMANCE_MARKS.authGetPasswordResetToken, 'end');

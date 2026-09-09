@@ -65,9 +65,9 @@ export async function action({ request, context }: Route.ActionArgs): Promise<Fo
         logger.info('ForgotPassword: reset token sent');
         return { success: true, email };
     } catch (error) {
-        logger.error('ForgotPassword: failed', { error });
         const errorMessage = extractErrorMessage(error);
         const errorKey = getPasswordResetErrorMessageKey(errorMessage);
+        logger.error('ForgotPassword: failed', { error, errorMessage, errorKey });
         return { error: t(errorKey) };
     }
 }

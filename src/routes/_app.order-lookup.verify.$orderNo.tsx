@@ -73,8 +73,11 @@ export async function loader({ request, context, params }: Route.LoaderArgs) {
                 );
             }
 
+            const url = new URL(request.url);
+            const autoCode = url.searchParams.get('token') ?? undefined;
+
             return data(
-                { email: orderState.email ?? '', orderNumber: orderNumberResult.value },
+                { email: orderState.email ?? '', orderNumber: orderNumberResult.value, autoCode },
                 {
                     headers: {
                         'Cache-Control': 'no-store, no-cache, must-revalidate',
@@ -101,7 +104,7 @@ export function shouldRevalidate() {
 export default function OrderLookupVerifyPage(): ReactElement {
     const { t } = useTranslation('orderLookup');
     const navigate = useNavigate();
-    const { email, orderNumber } = useLoaderData<typeof loader>();
+    const { email, orderNumber, autoCode } = useLoaderData<typeof loader>();
     const [isNavigatingToResults, setIsNavigatingToResults] = useState(false);
 
     const handleVerified = ({ orderNumber: verifiedOrderNumber }: { orderNumber: string; email: string }) => {
@@ -147,6 +150,7 @@ export default function OrderLookupVerifyPage(): ReactElement {
                 <VerifyForm
                     orderNumber={orderNumber}
                     email={email}
+                    autoCode={autoCode}
                     onVerified={handleVerified}
                     onCancel={handleCancel}
                 />

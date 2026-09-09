@@ -30,6 +30,7 @@ const apiClientMocks = vi.hoisted(() => ({
     mockBasketGetOrCreateBasket: vi.fn(),
     mockAuthLoginAsGuest: vi.fn(),
     mockLoyaltyGetLoyaltyPoints: vi.fn(),
+    mockSfnextEmailSendEmail: vi.fn(),
 }));
 
 // Mock dependencies
@@ -53,6 +54,7 @@ const {
     mockBasketGetOrCreateBasket,
     mockAuthLoginAsGuest,
     mockLoyaltyGetLoyaltyPoints,
+    mockSfnextEmailSendEmail,
 } = apiClientMocks;
 const mockExtractResponseError = vi.mocked(extractResponseError);
 const mockGetErrorMessage = vi.mocked(getErrorMessage);
@@ -79,6 +81,9 @@ vi.mock('@/lib/api-clients.server', () => ({
         },
         loyalty: {
             getLoyaltyPoints: mockLoyaltyGetLoyaltyPoints,
+        },
+        sfnextNotify: {
+            notify: mockSfnextEmailSendEmail,
         },
     })),
 }));
@@ -334,6 +339,20 @@ describe('Commerce SDK resource', () => {
                 });
                 expect(mockShopperCustomersUse).not.toHaveBeenCalled();
                 expect(mockShopperCustomersEject).not.toHaveBeenCalled();
+            });
+
+            it('should deny server-only sfnextNotify client in loader calls', async () => {
+                const deniedResource = encodeBase64Url(
+                    JSON.stringify(['sfnextNotify', 'notify', { params: {}, body: { type: 'otp' } }])
+                );
+
+                const result = await loader(createLoaderArgs(deniedResource));
+
+                expect(result).toEqual({
+                    success: false,
+                    errors: ['Method not found: "sfnextNotify.notify"'],
+                });
+                expect(mockSfnextEmailSendEmail).not.toHaveBeenCalled();
             });
         });
     });
@@ -758,6 +777,20 @@ describe('Commerce SDK resource', () => {
                 });
                 expect(mockShopperCustomersUse).not.toHaveBeenCalled();
                 expect(mockShopperCustomersEject).not.toHaveBeenCalled();
+            });
+
+            it('should deny server-only sfnextNotify client in action calls', async () => {
+                const deniedResource = encodeBase64Url(
+                    JSON.stringify(['sfnextNotify', 'notify', { params: {}, body: { type: 'otp' } }])
+                );
+
+                const result = await action(createActionArgs(deniedResource));
+
+                expect(result).toEqual({
+                    success: false,
+                    errors: ['Method not found: "sfnextNotify.notify"'],
+                });
+                expect(mockSfnextEmailSendEmail).not.toHaveBeenCalled();
             });
         });
     });

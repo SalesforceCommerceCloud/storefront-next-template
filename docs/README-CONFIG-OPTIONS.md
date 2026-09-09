@@ -660,14 +660,16 @@ Type: `'email' | 'callback'` | Default: `'email'`
 
 Determines how passwordless login links are delivered to users.
 
-- **`'email'`** (default): The system sends the passwordless login link email directly to the user.
-- **`'callback'`**: Uses a callback flow where the system calls your server's callback endpoint with the token and user information. This mode requires the `callbackUri` to be configured and registered for your SLAS client and is useful when using an external email or SMS provider.
+- **`'email'`** (default): SLAS sends the magic link email directly. Requires a sender email configured in the SLAS client. No storefront callback is involved.
+- **`'callback'`**: SLAS POSTs the token to the storefront's `/passwordless-login-callback` endpoint, which validates the SLAS JWT and sends the magic link via the email cartridge. **Required when using the storefront email cartridge for delivery.**
 
-Example:
+Set to `callback` when using the `app_storefrontnext_base` cartridge:
 
 ```bash
-PUBLIC__app__features__passwordlessLogin__mode="email"
+PUBLIC__app__features__passwordlessLogin__mode=callback
 ```
+
+See [Passwordless login callback mode](./README-EMAIL-CARTRIDGE.md#passwordless-login-callback-mode) for SLAS Admin setup and the `SLAS_JWKS_JSON` sandbox workaround.
 
 ---
 
@@ -706,9 +708,15 @@ PUBLIC__app__features__otpRequest__mode="email"
 
 ### features.otpRequest.callbackUri
 
-Type: `string` Optional | Default: `undefined`
+Type: `string` Optional | Default: `''`
 
-The callback URI sent to SLAS when requesting an OTP code. Required when mode is `callback`. Must be an absolute URL pointing to an external service (e.g., `https://example.com/otp-callback`).
+The callback URI sent to SLAS when requesting an OTP code. Required when `mode` is `'callback'`. Must be an absolute URL pointing to your storefront's OTP callback endpoint.
+
+> **Note:** The OTP callback route carries a site/locale prefix (`/:siteId/:localeId/otp-callback`), unlike the password-reset and passwordless-login callbacks which are bare routes. Register a URL that includes the prefix for each site.
+
+```bash
+PUBLIC__app__features__otpRequest__callbackUri=https://your-storefront.example.com/en-US/otp-callback
+```
 
 ---
 
@@ -733,7 +741,15 @@ PUBLIC__app__features__resetPassword__mode="email"
 
 Type: `string` Optional | Default: `'/reset-password-callback'`
 
-The callback URI sent to SLAS when requesting an password reset. Required when mode is `callback`.
+The callback URI sent to SLAS when requesting a password reset. Required when `mode` is `callback`. Must be an absolute URL that exactly matches a Callback URL registered in SLAS Admin (no wildcards).
+
+The default path `/reset-password-callback` is registered at a bare URL (no `/:siteId/:localeId` prefix), so one SLAS Admin entry covers all sites and locales. Set this to the full absolute URL for the target environment:
+
+```bash
+PUBLIC__app__features__resetPassword__callbackUri=https://your-storefront.example.com/reset-password-callback
+```
+
+See [Password reset callback mode](./README-EMAIL-CARTRIDGE.md#password-reset-callback-mode) for setup details and the `SLAS_JWKS_JSON` sandbox workaround.
 
 ---
 
