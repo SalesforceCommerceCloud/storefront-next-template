@@ -15,7 +15,7 @@
  */
 import type { Preview } from '@storybook/react-vite';
 import { StoryShell, withRouter } from './decorators';
-import '@/theme/index.css'; // Import global CSS — alias goes through vertical-first resolver
+import '@/theme/storybook.css'; // Alias goes through the vertical-first resolver
 
 const a11yTestMode: 'off' | 'todo' | 'error' =
     process.env.STORYBOOK_DISABLE_A11Y === 'true'

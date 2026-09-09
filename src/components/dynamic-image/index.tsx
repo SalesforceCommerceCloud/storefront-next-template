@@ -233,12 +233,28 @@ const getImageStyleClasses = ({
 
     // Padding
     if (padding && padding !== '0') {
-        classes.push(`p-${padding}`);
+        const paddingMap: Record<string, string> = {
+            '1': 'p-1',
+            '2': 'p-2',
+            '3': 'p-3',
+            '4': 'p-4',
+            '6': 'p-6',
+            '8': 'p-8',
+        };
+        classes.push(paddingMap[padding]);
     }
 
     // Margin
     if (margin && margin !== '0') {
-        classes.push(`m-${margin}`);
+        const marginMap: Record<string, string> = {
+            '1': 'm-1',
+            '2': 'm-2',
+            '3': 'm-3',
+            '4': 'm-4',
+            '6': 'm-6',
+            '8': 'm-8',
+        };
+        classes.push(marginMap[margin]);
     }
 
     // Hover effects
