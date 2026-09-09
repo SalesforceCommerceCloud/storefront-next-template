@@ -16,7 +16,6 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 import type { ShopperCustomers } from '@/scapi';
-import type { PaymentMethod } from './payment-method-card';
 
 /**
  * Host-owned add-payment dialog contract for extensions that replace
@@ -34,20 +33,7 @@ export type AddPaymentMethodDialogContextValue = {
     onError: (error?: unknown) => void;
 };
 
-/**
- * Host-owned remove-payment dialog contract for extensions that replace
- * `sfcc.myAccount.payments.removeMethod`.
- */
-export type RemovePaymentMethodDialogContextValue = {
-    paymentMethod: PaymentMethod;
-    isLoading: boolean;
-    onClose: () => void;
-    onComplete: () => void;
-    onError: (error?: unknown) => void;
-};
-
 const AddPaymentMethodDialogContext = createContext<AddPaymentMethodDialogContextValue | null>(null);
-const RemovePaymentMethodDialogContext = createContext<RemovePaymentMethodDialogContextValue | null>(null);
 
 export function AddPaymentMethodDialogProvider({
     value,
@@ -57,18 +43,6 @@ export function AddPaymentMethodDialogProvider({
     children: ReactNode;
 }) {
     return <AddPaymentMethodDialogContext.Provider value={value}>{children}</AddPaymentMethodDialogContext.Provider>;
-}
-
-export function RemovePaymentMethodDialogProvider({
-    value,
-    children,
-}: {
-    value: RemovePaymentMethodDialogContextValue;
-    children: ReactNode;
-}) {
-    return (
-        <RemovePaymentMethodDialogContext.Provider value={value}>{children}</RemovePaymentMethodDialogContext.Provider>
-    );
 }
 
 /**
@@ -81,21 +55,6 @@ export function useAddPaymentMethodDialog(): AddPaymentMethodDialogContextValue 
     if (!value) {
         throw new Error(
             'useAddPaymentMethodDialog must be used inside <AddPaymentMethodDialogProvider> (add payment dialog shell).'
-        );
-    }
-    return value;
-}
-
-/**
- * Context for the remove-payment shared dialog shell. Use from extensions registered
- * on `sfcc.myAccount.payments.removeMethod`.
- */
-// oxlint-disable-next-line react-refresh/only-export-components
-export function useRemovePaymentMethodDialog(): RemovePaymentMethodDialogContextValue {
-    const value = useContext(RemovePaymentMethodDialogContext);
-    if (!value) {
-        throw new Error(
-            'useRemovePaymentMethodDialog must be used inside <RemovePaymentMethodDialogProvider> (remove payment dialog shell).'
         );
     }
     return value;

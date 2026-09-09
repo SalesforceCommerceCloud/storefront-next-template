@@ -16,12 +16,17 @@
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, test, expect, vi } from 'vitest';
+import { beforeEach, describe, test, expect, vi } from 'vitest';
 import type { ShopperCustomers } from '@/scapi';
 import { PaymentMethods } from './payment-methods';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
+
+const { addToast, revalidate } = vi.hoisted(() => ({
+    addToast: vi.fn(),
+    revalidate: vi.fn(),
+}));
 
 vi.mock('./payment-method-card', () => ({
     PaymentMethodCard: ({ paymentMethod, onRemove }: { paymentMethod: { last4: string }; onRemove?: () => void }) => (
@@ -34,10 +39,34 @@ vi.mock('./payment-method-card', () => ({
     ),
 }));
 
-vi.mock('./add-payment-method-dialog', () => ({
-    AddPaymentMethodDialog: ({ open }: { open?: boolean }) =>
-        open ? <div data-testid="add-dialog">Add Dialog</div> : null,
-}));
+vi.mock('./add-payment-method-dialog', () => {
+    return {
+        AddPaymentMethodDialog: ({
+            open,
+            onComplete,
+            onError,
+        }: {
+            open?: boolean;
+            onComplete: () => void;
+            onError: (error?: unknown) => void;
+        }) =>
+            open ? (
+                <div data-testid="add-dialog">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onComplete();
+                            onComplete();
+                        }}>
+                        Complete extension add
+                    </button>
+                    <button type="button" onClick={() => onError(new Error('setup failed'))}>
+                        Fail extension add
+                    </button>
+                </div>
+            ) : null,
+    };
+});
 
 vi.mock('./remove-payment-method-dialog', () => ({
     RemovePaymentMethodDialog: ({ open }: { open?: boolean }) =>
@@ -48,13 +77,13 @@ vi.mock('react-router', async () => {
     const actual = await vi.importActual('react-router');
     return {
         ...actual,
-        useRevalidator: () => ({ revalidate: vi.fn(), state: 'idle' }),
+        useRevalidator: () => ({ revalidate, state: 'idle' }),
         useFetcher: () => ({ state: 'idle', data: null, submit: vi.fn() }),
     };
 });
 
 vi.mock('@/components/toast', () => ({
-    useToast: () => ({ addToast: vi.fn() }),
+    useToast: () => ({ addToast }),
 }));
 
 // Passthrough only — transformTargets strips <UITarget> at compile time in tests.
@@ -81,6 +110,11 @@ describe('PaymentMethods', () => {
             },
         ],
     };
+
+    beforeEach(() => {
+        addToast.mockClear();
+        revalidate.mockClear();
+    });
 
     test('renders payment methods page with header', () => {
         render(<PaymentMethods customer={mockCustomer} />);
@@ -115,5 +149,31 @@ describe('PaymentMethods', () => {
         await user.click(screen.getByRole('button', { name: 'Remove' }));
 
         expect(screen.getByTestId('remove-dialog')).toBeInTheDocument();
+    });
+
+    test('handles extension add completion through the dialog context', async () => {
+        const user = userEvent.setup();
+        render(<PaymentMethods customer={mockCustomer} />);
+
+        await user.click(screen.getByText(t('account:paymentMethods.addPaymentMethod')));
+        await user.click(screen.getByRole('button', { name: 'Complete extension add' }));
+
+        expect(screen.queryByTestId('add-dialog')).not.toBeInTheDocument();
+        expect(addToast).toHaveBeenCalledOnce();
+        expect(addToast).toHaveBeenCalledWith(t('account:paymentMethods.addSuccess'), 'success');
+        expect(revalidate).toHaveBeenCalledOnce();
+    });
+
+    test('keeps the dialog open when an extension add fails', async () => {
+        const user = userEvent.setup();
+        render(<PaymentMethods customer={mockCustomer} />);
+
+        await user.click(screen.getByText(t('account:paymentMethods.addPaymentMethod')));
+        await user.click(screen.getByRole('button', { name: 'Fail extension add' }));
+
+        expect(screen.getByTestId('add-dialog')).toBeInTheDocument();
+        expect(addToast).toHaveBeenCalledOnce();
+        expect(addToast).toHaveBeenCalledWith(t('account:paymentMethods.addError'), 'error');
+        expect(revalidate).not.toHaveBeenCalled();
     });
 });

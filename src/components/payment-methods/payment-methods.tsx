@@ -75,6 +75,7 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
     >();
     const previousFetcherStateRef = useRef(paymentFetcher.state);
     const currentIntentRef = useRef<string | null>(null);
+    const didCompleteAddRef = useRef(false);
 
     const paymentMethods = useMemo(() => {
         return (customer?.paymentInstruments || [])
@@ -90,7 +91,10 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
 
     const hasPaymentMethods = paymentMethods.length > 0;
 
-    const handleAddClick = () => setIsAddDialogOpen(true);
+    const handleAddClick = () => {
+        didCompleteAddRef.current = false;
+        setIsAddDialogOpen(true);
+    };
 
     const handleAddSubmitForm = (formData: FormData) => {
         currentIntentRef.current = 'add';
@@ -123,6 +127,8 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
     };
 
     const handleAddComplete = () => {
+        if (didCompleteAddRef.current) return;
+        didCompleteAddRef.current = true;
         setIsAddDialogOpen(false);
         addToast(t('paymentMethods.addSuccess'), 'success');
         void revalidator.revalidate();
@@ -130,17 +136,6 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
 
     const handleAddError = () => {
         addToast(t('paymentMethods.addError'), 'error');
-    };
-
-    const handleRemoveComplete = () => {
-        setIsRemoveDialogOpen(false);
-        setSelectedPaymentMethod(null);
-        addToast(t('paymentMethods.removeSuccess'), 'success');
-        void revalidator.revalidate();
-    };
-
-    const handleRemoveError = () => {
-        addToast(t('paymentMethods.removeError'), 'error');
     };
 
     useEffect(() => {
@@ -237,7 +232,7 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
             </Card>
             <UITarget targetId="sfcc.myAccountPaymentMethods.giftCards.manage" />
 
-            {/* Shared dialog shells — CAP replaces the form body via inner UITargets */}
+            {/* CAP replaces the native add form body inside the host-owned dialog shell. */}
             <AddPaymentMethodDialog
                 open={isAddDialogOpen}
                 onOpenChange={setIsAddDialogOpen}
@@ -259,8 +254,6 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
                     (paymentFetcher.state === 'submitting' || paymentFetcher.state === 'loading') &&
                     currentIntentRef.current === 'delete'
                 }
-                onComplete={handleRemoveComplete}
-                onError={handleRemoveError}
             />
         </div>
     );

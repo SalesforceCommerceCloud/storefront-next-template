@@ -22,6 +22,7 @@ import { AddPaymentMethodDialog } from './add-payment-method-dialog';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
+const { captureDialogContext } = vi.hoisted(() => ({ captureDialogContext: vi.fn() }));
 
 // Mock child components
 vi.mock('@/components/credit-card-input-fields', () => ({
@@ -35,6 +36,13 @@ vi.mock('@/components/address-form-fields', () => ({
 // Passthrough — transformTargets strips <UITarget> at compile time in tests.
 vi.mock('@/targets/ui-target', () => ({
     UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock('./account-payment-dialog-context', () => ({
+    AddPaymentMethodDialogProvider: ({ value, children }: { value: unknown; children: React.ReactNode }) => {
+        captureDialogContext(value);
+        return <>{children}</>;
+    },
 }));
 
 describe('AddPaymentMethodDialog', () => {
@@ -102,5 +110,24 @@ describe('AddPaymentMethodDialog', () => {
             screen.getByText(t('account:paymentMethods.selectAddressError', 'Please select a billing address'))
         ).toBeInTheDocument();
         expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    test('wires completion and error callbacks into the add dialog provider', () => {
+        const onComplete = vi.fn();
+        const onError = vi.fn();
+
+        render(<AddPaymentMethodDialog {...defaultProps} onComplete={onComplete} onError={onError} />);
+
+        const context = captureDialogContext.mock.lastCall?.[0] as {
+            onComplete: () => void;
+            onError: (error?: unknown) => void;
+        };
+        const error = new Error('setup failed');
+        context.onComplete();
+        context.onError(error);
+
+        expect(onComplete).toHaveBeenCalledOnce();
+        expect(onError).toHaveBeenCalledOnce();
+        expect(onError).toHaveBeenCalledWith(error);
     });
 });
