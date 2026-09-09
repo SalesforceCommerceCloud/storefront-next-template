@@ -24,7 +24,7 @@
  * - `clientAppConfigContext` — router context for the precomputed client-safe view (template strips server-only namespaces once at startup)
  * - `ConfigProvider` — React provider that powers `useConfig()`
  * - `BaseConfig`, `DefineConfigOptions` — types for `defineConfig`
- * - `Locale`, `Site`, `Url` — opt-in baseline shapes templates can use in their `AppConfig`
+ * - `Locale`, `SeoRoutesConfig`, `Site`, `Url` — opt-in baseline shapes templates can use in their `AppConfig`
  * - `AppConfigShape` — augmentation hook for typing `getConfig()` / `useConfig()` (see JSDoc on `AppConfigShape`)
  * - `ClientFacingAppConfigShape` — augmentation hook for the client-facing narrow used by `useConfig()` and `getConfig()`'s no-arg + maybe-context overloads (see JSDoc)
  * - `ClientFacingAppConfig` — default return type for those client-facing reads (resolves to `ClientFacingAppConfigShape` when augmented, `AppConfigShape` otherwise)
@@ -35,7 +35,7 @@
  */
 
 // Types
-export type { Locale, Site, Url } from './types';
+export type { Locale, SeoRoutesConfig, Site, Url } from './types';
 export type { BaseConfig, DefineConfigOptions } from './schema';
 export type { AppConfigShape, ClientFacingAppConfigShape, ClientFacingAppConfig } from './get-config';
 

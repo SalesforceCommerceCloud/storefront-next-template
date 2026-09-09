@@ -17,6 +17,7 @@ import { flatRoutes as _flatRoutes } from '@react-router/fs-routes';
 import type { RouteConfigEntry } from '@react-router/dev/routes';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { applySeoUrlConfig } from './apply-seo-url-config';
 import { mergeRoutes } from './merge-routes';
 import { applyUrlConfig } from '../site-context/apply-url-config';
 import { loadConfig } from '../config/load-config';
@@ -104,8 +105,9 @@ async function discoverVerticalRoutes(ignoredRouteFiles: string[], routes: Route
  * 2. Scan `src/extensions/` for extension routes and merge them into the route tree.
  * 3. If `process.env.VERTICAL` is set, scan `src/verticals/${VERTICAL}/routes/` and
  *    merge any matching overrides on top (vertical wins on file-id collision).
- * 4. Load `config.server.ts` from the project root and, if `app.url` is configured,
- *    wrap routes under the URL prefix (e.g. `/:siteId/:localeId`).
+ * 4. Load `config.server.ts` from the project root and compile configured SEO aliases.
+ * 5. If `app.url.prefix` is configured, wrap routes under the URL prefix
+ *    (e.g. `/:siteId/:localeId`).
  *
  * @param options.ignoredRouteFiles - Glob patterns for files to ignore. Defaults to test files.
  * @param options.rootDirectory - Root directory for route discovery, relative to appDirectory.
@@ -127,26 +129,41 @@ export async function flatRoutes(options?: {
     //    or the vertical has no routes/ overlay — i.e. in the flattened customer artifact)
     await discoverVerticalRoutes(ignoredRouteFiles, routes);
 
-    // 4. Try to load URL config from template's config file
+    // 4. Load build-time URL config from the template's config file
     const { app } = await loadConfig();
     const urlConfig = app?.url as Url | undefined;
-    if (urlConfig?.prefix) {
+    if (urlConfig?.prefix || urlConfig?.seoRoutes) {
         try {
             await fs.access(path.join('.', APP_SRC_DIR, APP_WRAPPER_FILE));
         } catch {
+            const configuredRouteFeature = urlConfig.prefix
+                ? `URL prefix "${urlConfig.prefix}" is`
+                : 'SEO route aliases are';
             throw new Error(
-                `[storefront-next-runtime] URL prefix "${urlConfig.prefix}" is configured but ` +
+                `[storefront-next-runtime] ${configuredRouteFeature} configured but ` +
                     `"${APP_SRC_DIR}/${APP_WRAPPER_FILE}" does not exist. ` +
                     `Create this file with: export { default } from '@salesforce/storefront-next-runtime/routing/app-wrapper';`
             );
         }
+    }
 
+    const seoRoutes = applySeoUrlConfig({
+        routes,
+        config: urlConfig?.seoRoutes,
+        routeIds: {
+            product: 'routes/_app.product.$productId',
+            category: 'routes/_app.category.$categoryId',
+        },
+        wrapperFile: APP_WRAPPER_FILE,
+    });
+
+    if (urlConfig?.prefix) {
         return applyUrlConfig({
-            routes,
+            routes: seoRoutes,
             urlConfig,
             wrapperFile: APP_WRAPPER_FILE,
         });
     }
 
-    return routes;
+    return seoRoutes;
 }

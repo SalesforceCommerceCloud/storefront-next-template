@@ -172,6 +172,14 @@ describe('mergeEnvConfig - protectedPaths option', () => {
         );
     });
 
+    it('should throw when the protected path itself is not lowercase', () => {
+        const mixedCaseOptions = { protectedPaths: ['app__url__seoRoutes'] };
+        const env = { PUBLIC__app__url__seoRoutes: '{}' };
+        expect(() => mergeEnvConfig(env, baseConfig, mixedCaseOptions)).toThrow(
+            'attempts to override protected config path'
+        );
+    });
+
     it('should allow overriding non-protected paths', () => {
         const env = { PUBLIC__app__site__locale: 'fr-FR' };
         const result = mergeEnvConfig(env, baseConfig, options);

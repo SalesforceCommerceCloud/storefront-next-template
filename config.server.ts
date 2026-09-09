@@ -725,6 +725,7 @@ export default defineConfig<Config>(
             'app__engagement__adapters__activeData__eventToggles',
             'app__url__prefix',
             'app__url__excludeRoutes',
+            'app__url__seoRoutes',
         ],
     }
 );

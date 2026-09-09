@@ -45,6 +45,34 @@ export type Site = {
     supportedLocales: Array<Locale>;
 };
 
+/**
+ * Build-time SEO route settings keyed directly by Commerce site ID.
+ *
+ * These values mirror Business Manager URL settings. They affect the compiled
+ * React Router manifest and therefore require a rebuild and deployment when
+ * changed.
+ */
+export type SeoRoutesConfig = Record<
+    string,
+    {
+        product: {
+            /** Static path segment without leading or trailing slashes. */
+            prefix: string;
+        };
+        category: {
+            /** Static path segment without leading or trailing slashes. */
+            prefix: string;
+            /** Determines whether the category path ends in an ID or is entirely slug-based. */
+            mode: 'id-suffix' | 'slug-path';
+        };
+        /** Optional BM-mirrored prefix for standalone content URLs. */
+        content?: {
+            /** Static path segment without leading or trailing slashes. */
+            prefix: string;
+        };
+    }
+>;
+
 export type Url = {
     /**
      * URL path prefix using React Router param syntax — interpolated by the
@@ -60,4 +88,7 @@ export type Url = {
     search?: string;
 
     excludeRoutes?: string[];
+
+    /** Per-site SEO routes compiled into the React Router manifest at build time. */
+    seoRoutes?: SeoRoutesConfig;
 };

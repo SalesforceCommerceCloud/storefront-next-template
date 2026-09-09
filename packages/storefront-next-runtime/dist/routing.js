@@ -4,6 +4,152 @@ import path from "node:path";
 import { flatRoutes as flatRoutes$1 } from "@react-router/fs-routes";
 import fs from "node:fs/promises";
 
+//#region src/routing/route-tree.ts
+function resolveRoutePath(parentPath, routePath) {
+	if (!routePath) return parentPath;
+	if (routePath.startsWith("/")) return routePath.slice(1);
+	return [parentPath, routePath].filter(Boolean).join("/");
+}
+/**
+* Visits a nested React Router config depth-first and resolves each route's
+* complete path relative to the route tree root.
+*/
+function visitRouteTree(routes, visitor, parentPath = "") {
+	for (const route of routes) {
+		const resolvedPath = resolveRoutePath(parentPath, route.path);
+		visitor(route, resolvedPath);
+		if (route.children) visitRouteTree(route.children, visitor, resolvedPath);
+	}
+}
+
+//#endregion
+//#region src/routing/seo-route-config.ts
+const VALID_PREFIX = /^[A-Za-z0-9_-]+$/;
+const RESERVED_PREFIXES = new Set(["action", "resource"]);
+function normalizeSeoRoutePrefix(prefix) {
+	return prefix.toLowerCase();
+}
+function validatePrefix(prefix, siteId, resourceType) {
+	if (typeof prefix !== "string" || !VALID_PREFIX.test(prefix)) throw new Error(`[storefront-next-runtime] Invalid SEO route prefix for site "${siteId}" ${resourceType}. Expected one static segment containing only letters, digits, hyphens, or underscores; received "${String(prefix)}".`);
+	if (RESERVED_PREFIXES.has(normalizeSeoRoutePrefix(prefix))) throw new Error(`[storefront-next-runtime] Reserved SEO route prefix "${prefix}" cannot be used for ${resourceType}.`);
+}
+function claimPrefixOwner(owners, prefix, resourceType) {
+	const normalized = normalizeSeoRoutePrefix(prefix);
+	const existingOwner = owners.get(normalized);
+	if (existingOwner && existingOwner !== resourceType) throw new Error(`[storefront-next-runtime] SEO route prefix "${prefix}" is used by both ${existingOwner} and ${resourceType}.`);
+	owners.set(normalized, resourceType);
+	return normalized;
+}
+function addAlias(aliases, owners, prefix, resourceType) {
+	const normalized = claimPrefixOwner(owners, prefix, resourceType);
+	const existingPrefix = aliases.get(normalized);
+	if (!existingPrefix || prefix < existingPrefix) aliases.set(normalized, prefix);
+}
+/** Validates per-site SEO settings and returns deterministic route aliases. */
+function collectSeoRouteAliases(config) {
+	const siteEntries = Object.entries(config).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0);
+	if (siteEntries.length === 0) throw new Error("[storefront-next-runtime] SEO route configuration must contain at least one site.");
+	const aliases = {
+		product: /* @__PURE__ */ new Map(),
+		category: /* @__PURE__ */ new Map()
+	};
+	const owners = /* @__PURE__ */ new Map();
+	for (const [siteId, siteConfig] of siteEntries) {
+		if (!siteId.trim()) throw new Error("[storefront-next-runtime] SEO route configuration contains an empty site ID.");
+		if (!siteConfig || typeof siteConfig !== "object") throw new Error(`[storefront-next-runtime] SEO route configuration for site "${siteId}" is invalid.`);
+		validatePrefix(siteConfig.product?.prefix, siteId, "product");
+		validatePrefix(siteConfig.category?.prefix, siteId, "category");
+		if (siteConfig.category.mode !== "id-suffix" && siteConfig.category.mode !== "slug-path") throw new Error(`[storefront-next-runtime] Site "${siteId}" has unsupported category mode "${String(siteConfig.category.mode)}".`);
+		addAlias(aliases.product, owners, siteConfig.product.prefix, "product");
+		addAlias(aliases.category, owners, siteConfig.category.prefix, "category");
+		if (siteConfig.content) {
+			validatePrefix(siteConfig.content.prefix, siteId, "content");
+			claimPrefixOwner(owners, siteConfig.content.prefix, "content");
+		}
+	}
+	const sortAliases = (values) => [...values.values()].sort((left, right) => {
+		const a = normalizeSeoRoutePrefix(left);
+		const b = normalizeSeoRoutePrefix(right);
+		return a < b ? -1 : a > b ? 1 : 0;
+	});
+	return {
+		product: sortAliases(aliases.product),
+		category: sortAliases(aliases.category)
+	};
+}
+
+//#endregion
+//#region src/routing/apply-seo-url-config.ts
+function findRouteMatches(routes, routeId) {
+	const matches = [];
+	visitRouteTree(routes, (route) => {
+		if (route.id === routeId) matches.push(route);
+	});
+	return matches;
+}
+function collectExistingStaticPrefixes(routes, excludedRouteIds) {
+	const prefixes = /* @__PURE__ */ new Map();
+	visitRouteTree(routes, (route, fullPath) => {
+		if (!excludedRouteIds.has(route.id ?? "")) {
+			const firstSegment = fullPath.split("/").find(Boolean);
+			if (firstSegment && !firstSegment.startsWith(":") && firstSegment !== "*") {
+				const seoPrefix = normalizeSeoRoutePrefix(firstSegment.replace(/\?$/, ""));
+				if (!prefixes.has(seoPrefix)) prefixes.set(seoPrefix, fullPath);
+			}
+		}
+	});
+	return prefixes;
+}
+function validateNoStaticCollisions(routes, routeIds, aliases) {
+	const existingPrefixes = collectExistingStaticPrefixes(routes, new Set(Object.values(routeIds)));
+	for (const prefix of [...aliases.product, ...aliases.category]) {
+		const existingPath = existingPrefixes.get(normalizeSeoRoutePrefix(prefix));
+		if (existingPath) throw new Error(`[storefront-next-runtime] SEO route prefix "${prefix}" collides with existing route "${existingPath}".`);
+	}
+}
+function createAliasRoutes(routeId, aliases, wrapperFile) {
+	return aliases.map((prefix) => ({
+		id: `${routeId}--seo-alias--${normalizeSeoRoutePrefix(prefix)}`,
+		file: wrapperFile,
+		path: `${prefix}/*`
+	}));
+}
+function transformTargetRoutes(routes, routeIds, aliases, wrapperFile) {
+	const aliasesByRouteId = new Map([[routeIds.product, aliases.product], [routeIds.category, aliases.category]]);
+	return routes.map((route) => {
+		const routeAliases = route.id ? aliasesByRouteId.get(route.id) : void 0;
+		if (route.id && routeAliases) return {
+			...route,
+			path: void 0,
+			children: createAliasRoutes(route.id, routeAliases, wrapperFile)
+		};
+		return {
+			...route,
+			children: route.children ? transformTargetRoutes(route.children, routeIds, aliases, wrapperFile) : route.children
+		};
+	});
+}
+/**
+* Compiles per-site SEO prefixes into static React Router route aliases.
+*
+* The canonical product and category route modules become pathless parents so
+* their IDs remain stable for `useRouteLoaderData()` and extension consumers.
+* Pass-through alias children own the configured static-prefix splats.
+*/
+function applySeoUrlConfig({ routes, config, routeIds, wrapperFile }) {
+	if (!config) return routes;
+	const aliases = collectSeoRouteAliases(config);
+	for (const routeId of Object.values(routeIds)) {
+		const matches = findRouteMatches(routes, routeId);
+		if (matches.length === 0) throw new Error(`[storefront-next-runtime] SEO target route ID "${routeId}" was not found.`);
+		if (matches.length > 1) throw new Error(`[storefront-next-runtime] SEO target route ID "${routeId}" was found more than once.`);
+		if (matches[0].children?.length) throw new Error(`[storefront-next-runtime] SEO target route ID "${routeId}" must be a leaf route.`);
+	}
+	validateNoStaticCollisions(routes, routeIds, aliases);
+	return transformTargetRoutes(routes, routeIds, aliases, wrapperFile);
+}
+
+//#endregion
 //#region src/routing/merge-routes.ts
 /**
 * Find the nearest route by its ID in the route tree
@@ -143,8 +289,9 @@ async function discoverVerticalRoutes(ignoredRouteFiles, routes) {
 * 2. Scan `src/extensions/` for extension routes and merge them into the route tree.
 * 3. If `process.env.VERTICAL` is set, scan `src/verticals/${VERTICAL}/routes/` and
 *    merge any matching overrides on top (vertical wins on file-id collision).
-* 4. Load `config.server.ts` from the project root and, if `app.url` is configured,
-*    wrap routes under the URL prefix (e.g. `/:siteId/:localeId`).
+* 4. Load `config.server.ts` from the project root and compile configured SEO aliases.
+* 5. If `app.url.prefix` is configured, wrap routes under the URL prefix
+*    (e.g. `/:siteId/:localeId`).
 *
 * @param options.ignoredRouteFiles - Glob patterns for files to ignore. Defaults to test files.
 * @param options.rootDirectory - Root directory for route discovery, relative to appDirectory.
@@ -160,19 +307,27 @@ async function flatRoutes(options) {
 	await discoverVerticalRoutes(ignoredRouteFiles, routes);
 	const { app } = await loadConfig();
 	const urlConfig = app?.url;
-	if (urlConfig?.prefix) {
-		try {
-			await fs.access(path.join(".", APP_SRC_DIR, APP_WRAPPER_FILE));
-		} catch {
-			throw new Error(`[storefront-next-runtime] URL prefix "${urlConfig.prefix}" is configured but "${APP_SRC_DIR}/${APP_WRAPPER_FILE}" does not exist. Create this file with: export { default } from '@salesforce/storefront-next-runtime/routing/app-wrapper';`);
-		}
-		return applyUrlConfig({
-			routes,
-			urlConfig,
-			wrapperFile: APP_WRAPPER_FILE
-		});
+	if (urlConfig?.prefix || urlConfig?.seoRoutes) try {
+		await fs.access(path.join(".", APP_SRC_DIR, APP_WRAPPER_FILE));
+	} catch {
+		const configuredRouteFeature = urlConfig.prefix ? `URL prefix "${urlConfig.prefix}" is` : "SEO route aliases are";
+		throw new Error(`[storefront-next-runtime] ${configuredRouteFeature} configured but "${APP_SRC_DIR}/${APP_WRAPPER_FILE}" does not exist. Create this file with: export { default } from '@salesforce/storefront-next-runtime/routing/app-wrapper';`);
 	}
-	return routes;
+	const seoRoutes = applySeoUrlConfig({
+		routes,
+		config: urlConfig?.seoRoutes,
+		routeIds: {
+			product: "routes/_app.product.$productId",
+			category: "routes/_app.category.$categoryId"
+		},
+		wrapperFile: APP_WRAPPER_FILE
+	});
+	if (urlConfig?.prefix) return applyUrlConfig({
+		routes: seoRoutes,
+		urlConfig,
+		wrapperFile: APP_WRAPPER_FILE
+	});
+	return seoRoutes;
 }
 
 //#endregion

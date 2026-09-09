@@ -60,24 +60,41 @@ The homepage lives at the prefixed path (e.g., `/global/en-GB/`). Bare `/` redir
 
 ### URL Config
 
-The `url` config in `config.server.ts` controls how site context URLs are constructed. It has three properties:
+The `url` config in `config.server.ts` controls how site context URLs and build-time SEO routes are constructed:
 
 ```typescript
 url: {
     prefix: '/:siteId/:localeId',
     search: '?lng=:localeId',
     excludeRoutes: ['/resource/**', '/action/**'],
+    seoRoutes: {
+        RefArchGlobal: {
+            product: {prefix: 'p'},
+            category: {prefix: 'c', mode: 'id-suffix'},
+        },
+        RefArch: {
+            product: {prefix: 'product'},
+            category: {prefix: 'category', mode: 'slug-path'},
+        },
+    },
 }
 ```
 
 - **`prefix`** — Path segments prepended to every subpage URL. Uses `:param` placeholders that are replaced with values from `params` at build time.
 - **`search`** — Query parameters appended to every subpage URL. Uses the same `:param` placeholder syntax. The **keys are literal query param names** — you choose them (see [Search Params](#search-params-urlsearch) below).
 - **`excludeRoutes`** — Glob patterns for routes that should NOT be wrapped with the prefix (e.g., API resource routes, server actions).
+- **`seoRoutes`** — Business Manager-mirrored product and category prefixes keyed directly by Commerce site ID. Prefixes are static segments without slashes. Category mode is `id-suffix` or `slug-path`.
 
-Both `prefix` and `search` are optional. You can use either, both, or neither depending on your URL strategy.
+All properties are optional. Use only the values required by your URL strategy.
 
-> **Important: `url.prefix` and `url.excludeRoutes` require a rebuild.**
-> These values are protected by `protectedPaths` in the config and **cannot be overridden via `PUBLIC__` environment variables** at runtime. Attempting to set `PUBLIC__app__url__prefix` or `PUBLIC__app__url__excludeRoutes` will throw an error. This is because `prefix` determines the React Router route structure, which is baked into the build — changing it at runtime would cause a mismatch between the routes the server expects and the routes the client has bundled. To change the URL prefix pattern, update `config.server.ts` and rebuild the application.
+> **Important: `url.prefix`, `url.excludeRoutes`, and `url.seoRoutes` require a rebuild.**
+> These values are protected by `protectedPaths` and cannot be overridden with `PUBLIC__` environment variables. React Router compiles them during development startup, type generation, and production build. Update `config.server.ts`, then rebuild and redeploy.
+
+`seoRoutes` registers the deduplicated union of every configured site's product and category prefix as static `{prefix}/*` routes. Configuration fails the build when a prefix is invalid, reserved, shared across resource types, or collides with another route branch. The outer site/locale shape remains in `url.prefix`.
+
+The canonical product and category route modules must be leaf routes (no nested child routes) when `seoRoutes` is enabled — each becomes a pathless parent owning its prefix aliases, so the build fails with a "must be a leaf route" error if either already has children. Move any nested routes elsewhere before enabling.
+
+Do not enable `seoRoutes` until the PDP and PLP loaders and URL builders support the configured splat grammars. The route-registration layer does not parse resource IDs or generate links. The optional typed content prefix is reserved for standalone-content routing and is not registered by this capability.
 
 ### URL Config Use Cases
 

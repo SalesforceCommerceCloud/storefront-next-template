@@ -53,6 +53,19 @@ function indexRoute(id: string, file: string): RouteConfigEntry {
     return { id, file, index: true } as RouteConfigEntry;
 }
 
+function route(id: string, file: string, routePath: string): RouteConfigEntry {
+    return { id, file, path: routePath } as RouteConfigEntry;
+}
+
+function findRoute(routes: RouteConfigEntry[], id: string): RouteConfigEntry | undefined {
+    for (const entry of routes) {
+        if (entry.id === id) return entry;
+        const match = entry.children ? findRoute(entry.children, id) : undefined;
+        if (match) return match;
+    }
+    return undefined;
+}
+
 describe('flatRoutes', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -141,6 +154,86 @@ describe('flatRoutes', () => {
         expect(wrapper).toBeDefined();
         expect(wrapper?.path).toBe(':siteId/:localeId');
         expect(wrapper?.file).toBe('app-wrapper.tsx');
+    });
+
+    it('should register SEO aliases before applying the site and locale wrapper', async () => {
+        const baseRoutes: RouteConfigEntry[] = [
+            layoutRoute('routes/_app', 'routes/_app.tsx', [
+                indexRoute('routes/_app._index', 'routes/_app._index.tsx'),
+                route('routes/_app.product.$productId', 'routes/_app.product.$productId.tsx', 'product/:productId'),
+                route(
+                    'routes/_app.category.$categoryId',
+                    'routes/_app.category.$categoryId.tsx',
+                    'category/:categoryId'
+                ),
+            ]),
+        ];
+        mockFlatRoutes.mockResolvedValue(baseRoutes);
+        mockLoadConfig.mockResolvedValue({
+            metadata: { projectName: 'Test', projectSlug: 'test' },
+            app: {
+                commerce: { api: { clientId: '', organizationId: '', siteId: '', shortCode: '' }, sites: [] },
+                defaultSiteId: '',
+                url: {
+                    prefix: '/:siteId/:localeId',
+                    excludeRoutes: [],
+                    seoRoutes: {
+                        RefArchGlobal: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                    },
+                },
+            },
+        } as BaseConfig);
+
+        vi.mocked(fs.access).mockImplementation((p) => {
+            if (String(p) === path.join('.', 'src', 'app-wrapper.tsx')) return Promise.resolve();
+            return Promise.reject(new Error('ENOENT'));
+        });
+
+        const result = await flatRoutes();
+
+        const siteWrapper = findRoute(result, 'site-context-wrapper');
+        const product = findRoute(result, 'routes/_app.product.$productId');
+        const category = findRoute(result, 'routes/_app.category.$categoryId');
+        expect(siteWrapper?.path).toBe(':siteId/:localeId');
+        expect(product?.path).toBeUndefined();
+        expect(product?.children?.[0]).toMatchObject({ path: 'p/*', file: 'app-wrapper.tsx' });
+        expect(category?.path).toBeUndefined();
+        expect(category?.children?.[0]).toMatchObject({ path: 'c/*', file: 'app-wrapper.tsx' });
+        expect(mockLoadConfig).toHaveBeenCalledOnce();
+    });
+
+    it('should require the pass-through wrapper when SEO routes are configured without an outer prefix', async () => {
+        mockFlatRoutes.mockResolvedValue([
+            layoutRoute('routes/_app', 'routes/_app.tsx', [
+                route('routes/_app.product.$productId', 'routes/_app.product.$productId.tsx', 'product/:productId'),
+                route(
+                    'routes/_app.category.$categoryId',
+                    'routes/_app.category.$categoryId.tsx',
+                    'category/:categoryId'
+                ),
+            ]),
+        ]);
+        mockLoadConfig.mockResolvedValue({
+            metadata: { projectName: 'Test', projectSlug: 'test' },
+            app: {
+                commerce: { api: { clientId: '', organizationId: '', siteId: '', shortCode: '' }, sites: [] },
+                defaultSiteId: '',
+                url: {
+                    seoRoutes: {
+                        RefArchGlobal: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                    },
+                },
+            },
+        } as BaseConfig);
+        vi.mocked(fs.access).mockRejectedValue(new Error('ENOENT'));
+
+        await expect(flatRoutes()).rejects.toThrow(/"src\/app-wrapper\.tsx" does not exist/);
     });
 
     it('should throw if wrapper file does not exist', async () => {

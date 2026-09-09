@@ -1,4 +1,4 @@
-import { n as Site, r as Url, t as Locale } from "./types.js";
+import { i as Url, n as SeoRoutesConfig, r as Site, t as Locale } from "./types.js";
 import { n as DefineConfigOptions, r as defineConfig, t as BaseConfig } from "./schema.js";
 import { n as defaultSecurityHeaders } from "./defaults.js";
 import { ReactNode } from "react";
@@ -124,5 +124,5 @@ declare function getConfig<T extends Record<string, unknown> = ClientFacingAppCo
  */
 declare function useConfig<T extends Record<string, unknown> = ClientFacingAppConfig>(): T;
 //#endregion
-export { type AppConfigShape, type BaseConfig, type ClientFacingAppConfig, type ClientFacingAppConfigShape, ConfigProvider, type DefineConfigOptions, type Locale, type Site, type Url, appConfigContext, clientAppConfigContext, defaultSecurityHeaders, defineConfig, getConfig, useConfig };
+export { type AppConfigShape, type BaseConfig, type ClientFacingAppConfig, type ClientFacingAppConfigShape, ConfigProvider, type DefineConfigOptions, type Locale, type SeoRoutesConfig, type Site, type Url, appConfigContext, clientAppConfigContext, defaultSecurityHeaders, defineConfig, getConfig, useConfig };
 //# sourceMappingURL=config.d.ts.map

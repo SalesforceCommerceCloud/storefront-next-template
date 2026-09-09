@@ -302,9 +302,12 @@ export const mergeEnvConfig = (
         }
 
         const normalizedPath = path.toLowerCase();
-        const isProtected = protectedPaths.some(
-            (protectedPath) => normalizedPath === protectedPath || normalizedPath.startsWith(`${protectedPath}__`)
-        );
+        const isProtected = protectedPaths.some((protectedPath) => {
+            const normalizedProtectedPath = protectedPath.toLowerCase();
+            return (
+                normalizedPath === normalizedProtectedPath || normalizedPath.startsWith(`${normalizedProtectedPath}__`)
+            );
+        });
 
         if (isProtected) {
             throw new Error(

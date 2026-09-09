@@ -1,1 +1,1 @@
-{"version":3,"file":"routing.d.ts","names":[],"sources":["../src/routing/flat-routes.ts","../src/routing/merge-routes.ts"],"sourcesContent":[],"mappings":";;;;;;AAiHA;;;;AClDA;;;;;;;;;;iBDkDsB,UAAA;;;IAGlB,QAAQ;;;;;;;;;;;;;;;;;;iBCrDI,WAAA,SACJ,qCACS"}
+{"version":3,"file":"routing.d.ts","names":[],"sources":["../src/routing/flat-routes.ts","../src/routing/merge-routes.ts"],"sourcesContent":[],"mappings":";;;;;;AAmHA;;;;ACpDA;;;;;;;;;;;iBDoDsB,UAAA;;;IAGlB,QAAQ;;;;;;;;;;;;;;;;;;iBCvDI,WAAA,SACJ,qCACS"}

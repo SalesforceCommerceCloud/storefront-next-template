@@ -217,7 +217,10 @@ const mergeEnvConfig = (env = typeof process !== "undefined" ? process.env : {},
 		const depth = path.split("__").length;
 		if (depth > MAX_DEPTH) throw new Error(`Environment variable "${varName}" exceeds maximum path depth of ${MAX_DEPTH}. Current depth: ${depth}. Consider consolidating with JSON values or reducing nesting levels.`);
 		const normalizedPath = path.toLowerCase();
-		if (protectedPaths.some((protectedPath) => normalizedPath === protectedPath || normalizedPath.startsWith(`${protectedPath}__`))) throw new Error(`Environment variable "${varName}" attempts to override protected config path "${path}".\n\nProtected paths cannot be overridden via environment variables. Update config.server.ts directly, or remove the path from \`protectedPaths\` if env override is intended.`);
+		if (protectedPaths.some((protectedPath) => {
+			const normalizedProtectedPath = protectedPath.toLowerCase();
+			return normalizedPath === normalizedProtectedPath || normalizedPath.startsWith(`${normalizedProtectedPath}__`);
+		})) throw new Error(`Environment variable "${varName}" attempts to override protected config path "${path}".\n\nProtected paths cannot be overridden via environment variables. Update config.server.ts directly, or remove the path from \`protectedPaths\` if env override is intended.`);
 		if (baseConfig && validPaths.length > 0) {
 			if (!validPaths.includes(normalizedPath)) {
 				console.warn(`[Config Warning] Ignoring environment variable "${varName}": Config path "${path}" does not exist in config.server.ts.`);

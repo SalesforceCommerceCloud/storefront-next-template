@@ -11,8 +11,9 @@ import { RouteConfigEntry } from "@react-router/dev/routes";
  * 2. Scan `src/extensions/` for extension routes and merge them into the route tree.
  * 3. If `process.env.VERTICAL` is set, scan `src/verticals/${VERTICAL}/routes/` and
  *    merge any matching overrides on top (vertical wins on file-id collision).
- * 4. Load `config.server.ts` from the project root and, if `app.url` is configured,
- *    wrap routes under the URL prefix (e.g. `/:siteId/:localeId`).
+ * 4. Load `config.server.ts` from the project root and compile configured SEO aliases.
+ * 5. If `app.url.prefix` is configured, wrap routes under the URL prefix
+ *    (e.g. `/:siteId/:localeId`).
  *
  * @param options.ignoredRouteFiles - Glob patterns for files to ignore. Defaults to test files.
  * @param options.rootDirectory - Root directory for route discovery, relative to appDirectory.
