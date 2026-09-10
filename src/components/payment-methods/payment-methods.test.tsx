@@ -86,7 +86,8 @@ vi.mock('@/components/toast', () => ({
     useToast: () => ({ addToast }),
 }));
 
-// Passthrough only — transformTargets strips <UITarget> at compile time in tests.
+// Passthrough only — unused when transformTargets replaces the UITarget, but kept for
+// targets that have no extension registration (e.g. gift-cards).
 vi.mock('@/targets/ui-target', () => ({
     UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
@@ -120,7 +121,7 @@ describe('PaymentMethods', () => {
         render(<PaymentMethods customer={mockCustomer} />);
 
         expect(screen.getAllByText(t('account:navigation.paymentMethods'))[0]).toBeInTheDocument();
-        expect(screen.getByText(t('account:paymentMethods.pageSubtitle'))).toBeInTheDocument();
+        expect(screen.getByText(t('account:paymentMethods.subtitle'))).toBeInTheDocument();
     });
 
     test('renders add payment method button', () => {

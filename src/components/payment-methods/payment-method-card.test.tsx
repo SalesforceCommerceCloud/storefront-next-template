@@ -37,8 +37,14 @@ describe('PaymentMethodCard', () => {
         render(<PaymentMethodCard paymentMethod={mockPaymentMethod} />);
 
         expect(screen.getByText(/4242/)).toBeInTheDocument();
-        expect(screen.getByText(/12\/2026/)).toBeInTheDocument();
-        expect(screen.getByText(/John Doe/)).toBeInTheDocument();
+        expect(screen.getByText(/Expires 12\/2026 \| John Doe/)).toBeInTheDocument();
+    });
+
+    test('omits pipe when cardholder name is empty', () => {
+        render(<PaymentMethodCard paymentMethod={{ ...mockPaymentMethod, cardholderName: '' }} />);
+
+        expect(screen.getByText(/^Expires 12\/2026$/)).toBeInTheDocument();
+        expect(screen.queryByText(/\|/)).not.toBeInTheDocument();
     });
 
     test('displays default badge when isDefault is true', () => {
@@ -68,9 +74,49 @@ describe('PaymentMethodCard', () => {
 
     test('disables set default button when card is already default', () => {
         const defaultPayment = { ...mockPaymentMethod, isDefault: true };
-        render(<PaymentMethodCard paymentMethod={defaultPayment} />);
+        render(<PaymentMethodCard paymentMethod={defaultPayment} onSetDefault={vi.fn()} />);
 
         const setDefaultButton = screen.getByText(t('account:paymentMethods.setDefault'));
         expect(setDefaultButton.closest('button')).toBeDisabled();
+    });
+
+    test('hides Set Default when onSetDefault is omitted', () => {
+        const defaultPayment = { ...mockPaymentMethod, isDefault: true };
+        render(<PaymentMethodCard paymentMethod={defaultPayment} onRemove={vi.fn()} />);
+
+        expect(screen.queryByText(t('account:paymentMethods.setDefault'))).not.toBeInTheDocument();
+        expect(screen.getByText(t('account:paymentMethods.default'))).toBeInTheDocument();
+        expect(screen.getByText(t('account:paymentMethods.remove'))).toBeInTheDocument();
+    });
+
+    test('hides Remove when onRemove is omitted', () => {
+        render(<PaymentMethodCard paymentMethod={mockPaymentMethod} onSetDefault={vi.fn()} />);
+
+        expect(screen.queryByText(t('account:paymentMethods.remove'))).not.toBeInTheDocument();
+        expect(screen.getByText(t('account:paymentMethods.setDefault'))).toBeInTheDocument();
+    });
+
+    test('derives Remove aria-label from title', () => {
+        render(<PaymentMethodCard paymentMethod={mockPaymentMethod} onRemove={vi.fn()} />);
+
+        expect(screen.getByRole('button', { name: /Remove Visa \*\*\*\* 4242/i })).toBeInTheDocument();
+    });
+
+    test('renders SEPA debit with label, last4, and account holder only', () => {
+        const sepaMethod: PaymentMethod = {
+            id: 'sepa_1',
+            type: 'sepa_debit',
+            last4: '7890',
+            expiryMonth: '',
+            expiryYear: '',
+            cardholderName: 'Jane Doe',
+            isDefault: false,
+        };
+        render(<PaymentMethodCard paymentMethod={sepaMethod} onRemove={vi.fn()} />);
+
+        expect(screen.getByText(/SEPA Debit \*\*\*\* 7890/)).toBeInTheDocument();
+        expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+        expect(screen.queryByText(/Expires/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(t('account:paymentMethods.setDefault'))).not.toBeInTheDocument();
     });
 });

@@ -86,6 +86,9 @@ const EXCLUDED_COMPONENTS = new Set([
     // (sfcc.myAccount.payments.addMethod / removeMethod). No visual surface of their own; covered by unit tests
     // and exercised via add/remove payment method dialog stories.
     'payment-methods/account-payment-dialog-context',
+    // Headless list-actions context so CAP empty-state CTAs can open the host Add dialog.
+    // No visual surface; covered by unit tests and payment-methods stories.
+    'payment-methods/account-payment-methods-list-context',
     'product-content/components/target/returns-and-warranty-target',
     'product-content/components/target/faq-target',
     'product-content/components/target/pdp-collapsibles-target',

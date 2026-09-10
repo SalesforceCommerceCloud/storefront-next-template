@@ -25,6 +25,7 @@ import type { ShopperBasketsV2 } from '@/scapi';
 
 export interface PaymentMethod {
     id: string;
+    /** Card brand (visa, mastercard, …) or `sepa_debit` for SEPA rows. */
     type: string;
     last4: string;
     expiryMonth: string;
@@ -35,66 +36,103 @@ export interface PaymentMethod {
 
 export interface PaymentMethodCardProps {
     paymentMethod: PaymentMethod;
+    /** When set, shows Remove. Omit to hide (e.g. read-only rows). */
     onRemove?: () => void;
+    /** When set, shows Set Default. Omit to hide (e.g. SFP SPMs until Set Default ships). */
     onSetDefault?: () => void;
 }
 
+function resolveDisplayName(
+    paymentMethod: PaymentMethod,
+    isSepa: boolean,
+    sepaLabel: string,
+    genericCardLabel: string
+): string {
+    if (isSepa) return sepaLabel;
+    return getCardTypeDisplay(
+        {
+            paymentCard: { cardType: paymentMethod.type },
+        } as ShopperBasketsV2.schemas['OrderPaymentInstrument'],
+        genericCardLabel
+    );
+}
+
+function buildDetailsLine(paymentMethod: PaymentMethod, isSepa: boolean, expiresLabel: string): string | null {
+    if (isSepa) {
+        return paymentMethod.cardholderName || null;
+    }
+
+    const expiry =
+        paymentMethod.expiryMonth && paymentMethod.expiryYear
+            ? `${expiresLabel} ${paymentMethod.expiryMonth}/${paymentMethod.expiryYear}`
+            : null;
+    const name = (paymentMethod.cardholderName ?? '').trim();
+
+    if (expiry && name) return `${expiry} | ${name}`;
+    if (expiry) return expiry;
+    return name || null;
+}
+
 /**
- * Payment method card component that displays a payment method
- * with actions to remove or set as default
+ * Payment method card for My Account.
+ * Action buttons follow callbacks: pass onRemove / onSetDefault only when that action is available.
+ * Default pill follows paymentMethod.isDefault (SFP rows map isDefault: false).
  */
 export function PaymentMethodCard({ paymentMethod, onRemove, onSetDefault }: PaymentMethodCardProps): ReactElement {
     const { t } = useTranslation('account');
 
-    // Use lib utility to normalize card type
-    const displayName = getCardTypeDisplay({
-        paymentCard: { cardType: paymentMethod.type },
-    } as ShopperBasketsV2.schemas['OrderPaymentInstrument']);
-    const CardIcon = getCardIcon(displayName);
+    const isSepa = paymentMethod.type.toLowerCase() === 'sepa_debit';
+
+    const displayName = resolveDisplayName(
+        paymentMethod,
+        isSepa,
+        t('paymentMethods.sepaDebit', { defaultValue: 'SEPA Debit' }),
+        t('paymentMethods.creditCard')
+    );
+    const CardIcon = getCardIcon(isSepa ? '' : displayName);
+    const title = paymentMethod.last4.length > 0 ? `${displayName} **** ${paymentMethod.last4}` : displayName;
+    const details = buildDetailsLine(paymentMethod, isSepa, t('paymentMethods.expires'));
+    const removeLabel = t('paymentMethods.remove');
 
     return (
-        <Card className={`p-6 ${paymentMethod.isDefault ? 'border-primary' : ''}`}>
+        <Card className={`p-6 ${paymentMethod.isDefault ? 'border-primary' : ''}`} data-testid="payment-method-card">
             <div className="flex items-start justify-between">
                 <div className="flex-1 pr-4">
-                    {/* Card Title */}
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="text-base font-medium text-foreground">
-                            {displayName} **** {paymentMethod.last4}
-                        </span>
-                        {paymentMethod.isDefault && (
+                        <span className="text-base font-medium text-foreground">{title}</span>
+                        {paymentMethod.isDefault ? (
                             <Badge variant="secondary" className="text-xs font-normal bg-primary/10 text-primary">
                                 {t('paymentMethods.default')}
                             </Badge>
-                        )}
+                        ) : null}
                     </div>
 
-                    {/* Card Details */}
-                    <p className="text-sm text-muted-foreground mb-4">
-                        {t('paymentMethods.expires')} {paymentMethod.expiryMonth}/{paymentMethod.expiryYear} |{' '}
-                        {paymentMethod.cardholderName}
-                    </p>
+                    {details ? <p className="text-sm text-muted-foreground mb-4">{details}</p> : null}
 
-                    {/* Actions */}
                     <div className="flex items-center gap-4">
-                        <Button
-                            variant="link"
-                            size="sm"
-                            disabled={paymentMethod.isDefault}
-                            onClick={onSetDefault}
-                            className="h-auto p-0 text-sm cursor-pointer">
-                            {t('paymentMethods.setDefault')}
-                        </Button>
-                        <Button
-                            variant="link"
-                            size="sm"
-                            onClick={onRemove}
-                            className="h-auto p-0 text-sm cursor-pointer">
-                            {t('paymentMethods.remove')}
-                        </Button>
+                        {onSetDefault ? (
+                            <Button
+                                variant="link"
+                                size="sm"
+                                disabled={paymentMethod.isDefault}
+                                onClick={onSetDefault}
+                                className="h-auto p-0 text-sm cursor-pointer">
+                                {t('paymentMethods.setDefault')}
+                            </Button>
+                        ) : null}
+                        {onRemove ? (
+                            <Button
+                                variant="link"
+                                size="sm"
+                                onClick={onRemove}
+                                className="h-auto p-0 text-sm cursor-pointer"
+                                aria-label={`${removeLabel} ${title}`}>
+                                {removeLabel}
+                            </Button>
+                        ) : null}
                     </div>
                 </div>
 
-                {/* Card Type Icon - Right Side */}
                 <div className="flex-shrink-0 flex items-center" aria-hidden="true">
                     <CardIcon width={40} height={32} className="max-w-[40px] max-h-[32px]" />
                 </div>

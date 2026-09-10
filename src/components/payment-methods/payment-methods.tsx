@@ -29,6 +29,7 @@ import { useToast } from '@/components/toast';
 import { getLastFourDigits } from '@/lib/payment/payment-utils';
 import { UITarget } from '@/targets/ui-target';
 import { resourceRoutes } from '@/route-paths';
+import { AccountPaymentMethodsListActionsProvider } from './account-payment-methods-list-context';
 
 export interface PaymentMethodsProps {
     customer: ShopperCustomers.schemas['Customer'] | null;
@@ -201,33 +202,35 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
                 </div>
 
                 <div className="pt-2">
-                    <UITarget targetId="sfcc.accountPaymentOptions.payments.savedPaymentMethods">
-                        {!hasPaymentMethods ? (
-                            /* Empty State */
-                            <div className="py-8 text-center">
-                                <div className="flex flex-col items-center gap-4">
-                                    <div className="text-muted-foreground">
-                                        <p className="text-sm font-medium">
-                                            {t('paymentMethods.noSavedPaymentMethods')}
-                                        </p>
-                                        <p className="text-sm mt-1">{t('paymentMethods.empty')}</p>
+                    <AccountPaymentMethodsListActionsProvider value={{ openAdd: handleAddClick }}>
+                        <UITarget targetId="sfcc.accountPaymentOptions.payments.savedPaymentMethods">
+                            {!hasPaymentMethods ? (
+                                /* Empty State */
+                                <div className="py-8 text-center">
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="text-muted-foreground">
+                                            <p className="text-sm font-medium">
+                                                {t('paymentMethods.noSavedPaymentMethods')}
+                                            </p>
+                                            <p className="text-sm mt-1">{t('paymentMethods.empty')}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : (
-                            /* Payment Methods List */
-                            <div className="space-y-6">
-                                {paymentMethods.map((method) => (
-                                    <PaymentMethodCard
-                                        key={method.id}
-                                        paymentMethod={method}
-                                        onRemove={() => handleRemoveClick(method)}
-                                        onSetDefault={() => handleSetDefault(method)}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </UITarget>
+                            ) : (
+                                /* Payment Methods List */
+                                <div className="space-y-6">
+                                    {paymentMethods.map((method) => (
+                                        <PaymentMethodCard
+                                            key={method.id}
+                                            paymentMethod={method}
+                                            onRemove={() => handleRemoveClick(method)}
+                                            onSetDefault={() => handleSetDefault(method)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </UITarget>
+                    </AccountPaymentMethodsListActionsProvider>
                 </div>
             </Card>
             <UITarget targetId="sfcc.myAccountPaymentMethods.giftCards.manage" />
