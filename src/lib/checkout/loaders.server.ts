@@ -591,14 +591,14 @@ export async function initializeBasketForReturningCustomer(
                 const { addPaymentInstrumentToBasket } = await import('@/lib/api/basket.server');
                 const { getPaymentMethodsFromCustomer } = await import('@/lib/customer/profile-utils');
 
-                const { normalizeCardType } = await import('@/lib/payment/payment-utils');
                 const savedPaymentMethods = getPaymentMethodsFromCustomer(customerProfile);
                 if (savedPaymentMethods.length > 0) {
                     const preferredMethod =
                         savedPaymentMethods.find((method) => method.preferred) || savedPaymentMethods[0];
-                    const normalizedCardType = normalizeCardType(preferredMethod.cardType);
+                    // Pass Commerce cardType through unchanged (e.g. MasterCard). Do not remap.
+                    const cardType = preferredMethod.cardType;
 
-                    if (!normalizedCardType || normalizedCardType === 'unknown') {
+                    if (!cardType || cardType === 'unknown') {
                         logger.warn('Checkout: invalid card type for saved payment method', {
                             cardType: preferredMethod.cardType,
                         });
@@ -608,7 +608,7 @@ export async function initializeBasketForReturningCustomer(
                             paymentMethodId: 'CREDIT_CARD',
                             amount: updatedBasket.orderTotal ?? 0,
                             paymentCard: {
-                                cardType: normalizedCardType,
+                                cardType,
                                 holder: preferredMethod.cardholderName || '',
                                 maskedNumber: preferredMethod.maskedNumber || '',
                                 expirationMonth: preferredMethod.expirationMonth,

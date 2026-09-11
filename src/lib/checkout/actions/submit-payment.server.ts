@@ -17,12 +17,13 @@ import type { ActionFunctionArgs } from 'react-router';
 import type { ShopperBasketsV2 } from '@/scapi';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { createPaymentSchema, parsePaymentFromFormData } from '@/lib/checkout/schemas';
+import { resolveCardPaymentFromApplicableMethods } from '@/lib/payment/payment-utils';
 import {
     addPaymentInstrumentToBasket,
+    getPaymentMethodsForBasket,
     removePaymentInstrumentFromBasket,
     updateBillingAddressForBasket,
 } from '@/lib/api/basket.server';
-import { detectCardType, normalizeCardType } from '@/lib/payment/payment-utils';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { getAuth } from '@/middlewares/auth.server';
 import { getCustomerProfileForCheckout, saveBillingAddressToCustomer } from '@/lib/api/customer.server';
@@ -133,14 +134,16 @@ export async function action(formData: FormData, context: ActionFunctionArgs['co
                 const savedMethods = getPaymentMethodsFromCustomer(customerProfile ?? undefined);
                 const savedMethod = savedMethods.find((m) => m.id === selectedSavedPaymentMethod) || savedMethods[0];
                 if (savedMethod) {
-                    const normalizedCardType = normalizeCardType(savedMethod.cardType);
+                    // Pass Commerce cardType through unchanged. BM ids are site-configured
+                    // (e.g. MasterCard); remapping breaks real processors.
+                    const cardType = savedMethod.cardType;
                     paymentInfo = {
                         paymentMethodId: 'CREDIT_CARD',
                         amount: basket?.orderTotal ?? 0,
-                        ...(normalizedCardType && normalizedCardType !== 'unknown'
+                        ...(cardType && cardType !== 'unknown'
                             ? {
                                   paymentCard: {
-                                      cardType: normalizedCardType,
+                                      cardType,
                                       holder: savedMethod.cardholderName || '',
                                       maskedNumber: savedMethod.maskedNumber || '',
                                       expirationMonth: savedMethod.expirationMonth,
@@ -203,15 +206,41 @@ export async function action(formData: FormData, context: ActionFunctionArgs['co
             );
         }
 
-        // SFCC expects cardType to match Business Manager (e.g. "Visa", "Mastercard", "Amex").
-        // detectCardType returns "American Express" for Amex; normalizeCardType maps it to "Amex".
-        const detectedType = detectCardType(cleanCardNumber);
-        const cardType = normalizeCardType(detectedType) ?? detectedType;
+        // Resolve paymentMethodId + cardType from the site BM catalog (exact ids).
+        // Fail closed if we cannot — do not invent BM values (old MasterCard → "Master Card" bug).
+        let resolvedPayment: { paymentMethodId: string; cardType: string } | undefined;
+        if (basketId) {
+            try {
+                const paymentMethods = await getPaymentMethodsForBasket(context, basketId);
+                resolvedPayment = resolveCardPaymentFromApplicableMethods(
+                    cleanCardNumber,
+                    paymentMethods.applicablePaymentMethods
+                );
+            } catch (error) {
+                logger.warn('SubmitPayment: failed to load payment methods for cardType resolution', { error });
+            }
+        }
+        if (!resolvedPayment) {
+            logger.warn('SubmitPayment: could not resolve cardType from site payment-methods catalog', {
+                basketId: Boolean(basketId),
+            });
+            return Response.json(
+                {
+                    success: false,
+                    error: createActionError({
+                        code: ErrorCode.REQUIRED_FIELD,
+                        message: 'Unable to determine card type for this payment method',
+                    }),
+                    step: 'payment',
+                },
+                { status: 400 }
+            );
+        }
         paymentInfo = {
-            paymentMethodId: 'CREDIT_CARD',
+            paymentMethodId: resolvedPayment.paymentMethodId,
             amount: basket?.orderTotal ?? 0,
             paymentCard: {
-                cardType,
+                cardType: resolvedPayment.cardType,
                 holder: cardholderName,
                 maskedNumber: cleanCardNumber.slice(0, -4).replace(/\d/g, '*') + cleanCardNumber.slice(-4),
                 expirationMonth: parseInt(expiryMonth),

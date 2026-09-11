@@ -19,6 +19,8 @@ import {
     getFormattedMaskedCardNumber,
     getLastFourDigits,
     hasValidPaymentCard,
+    resolveCardPaymentFromApplicableMethods,
+    resolveCardTypeFromCatalog,
 } from './payment-utils';
 
 describe('detectCardType', () => {
@@ -29,17 +31,17 @@ describe('detectCardType', () => {
         expect(detectCardType('4111111111111')).toBe('Visa'); // 13-digit Visa
     });
 
-    test('detects Mastercard', () => {
-        expect(detectCardType('5555555555554444')).toBe('Mastercard'); // Classic range 5[1-5]
-        expect(detectCardType('5105105105105100')).toBe('Mastercard');
-        expect(detectCardType('2223000048400011')).toBe('Mastercard'); // New range 2[2-7]
-        expect(detectCardType('2720990000000015')).toBe('Mastercard');
+    test('detects MasterCard using the common BM id (not Master Card)', () => {
+        expect(detectCardType('5555555555554444')).toBe('MasterCard'); // Classic range 5[1-5]
+        expect(detectCardType('5105105105105100')).toBe('MasterCard');
+        expect(detectCardType('2223000048400011')).toBe('MasterCard'); // New range 2[2-7]
+        expect(detectCardType('2720990000000015')).toBe('MasterCard');
     });
 
-    test('detects American Express', () => {
-        expect(detectCardType('378282246310005')).toBe('American Express'); // Starts with 37
-        expect(detectCardType('371449635398431')).toBe('American Express');
-        expect(detectCardType('343434343434343')).toBe('American Express'); // Starts with 34
+    test('detects Amex', () => {
+        expect(detectCardType('378282246310005')).toBe('Amex'); // Starts with 37
+        expect(detectCardType('371449635398431')).toBe('Amex');
+        expect(detectCardType('343434343434343')).toBe('Amex'); // Starts with 34
     });
 
     test('detects Discover', () => {
@@ -47,10 +49,10 @@ describe('detectCardType', () => {
         expect(detectCardType('6011000990139424')).toBe('Discover');
     });
 
-    test('detects Diners Club', () => {
-        expect(detectCardType('30569309025904')).toBe('Diners Club'); // Starts with 30[0-5]
-        expect(detectCardType('36227206271667')).toBe('Diners Club'); // Starts with 36
-        expect(detectCardType('38520000023237')).toBe('Diners Club'); // Starts with 38
+    test('detects DinersClub', () => {
+        expect(detectCardType('30569309025904')).toBe('DinersClub'); // Starts with 30[0-5]
+        expect(detectCardType('36227206271667')).toBe('DinersClub'); // Starts with 36
+        expect(detectCardType('38520000023237')).toBe('DinersClub'); // Starts with 38
     });
 
     test('detects JCB', () => {
@@ -67,14 +69,14 @@ describe('detectCardType', () => {
 
     test('handles cards with formatting', () => {
         expect(detectCardType('4111-1111-1111-1111')).toBe('Visa');
-        expect(detectCardType('5555 5555 5555 4444')).toBe('Mastercard');
-        expect(detectCardType('3782-822463-10005')).toBe('American Express');
+        expect(detectCardType('5555 5555 5555 4444')).toBe('MasterCard');
+        expect(detectCardType('3782-822463-10005')).toBe('Amex');
     });
 
     test('validates card length requirements', () => {
         expect(detectCardType('4111111111111')).toBe('Visa'); // 13 digits - valid Visa
         expect(detectCardType('41111111111111111111')).toBe('Credit Card'); // 20 digits - too long for Visa
-        expect(detectCardType('51111111111111111')).toBe('Credit Card'); // 17 digits - wrong length for Mastercard
+        expect(detectCardType('51111111111111111')).toBe('Credit Card'); // 17 digits - wrong length for MasterCard
         expect(detectCardType('34343434343434')).toBe('Credit Card'); // 14 digits - too short for Amex
     });
 });
@@ -86,10 +88,13 @@ describe('getCardTypeDisplay', () => {
         expect(getCardTypeDisplay({} as any, 'Card')).toBe('Card');
     });
 
-    test('normalizes common card types', () => {
+    test('maps BM ids to display labels without requiring exact casing', () => {
         expect(getCardTypeDisplay({ paymentCard: { cardType: 'discover' } } as any)).toBe('Discover');
         expect(getCardTypeDisplay({ paymentCard: { cardType: 'diners' } } as any)).toBe('Diners Club');
         expect(getCardTypeDisplay({ paymentCard: { cardType: 'jcb' } } as any)).toBe('JCB');
+        expect(getCardTypeDisplay({ paymentCard: { cardType: 'MasterCard' } } as any)).toBe('Mastercard');
+        expect(getCardTypeDisplay({ paymentCard: { cardType: 'Master Card' } } as any)).toBe('Mastercard');
+        expect(getCardTypeDisplay({ paymentCard: { cardType: 'Amex' } } as any)).toBe('American Express');
     });
 
     test('falls back to original when no normalization match', () => {
@@ -167,5 +172,95 @@ describe('hasValidPaymentCard', () => {
         );
         expect(hasValidPaymentCard({ paymentCard: { maskedNumber: '1234567890123456' } } as any)).toBe(true);
         expect(hasValidPaymentCard({} as any)).toBe(false);
+    });
+});
+
+describe('resolveCardTypeFromCatalog', () => {
+    const refArchCards = [
+        { cardType: 'Visa', numberPrefixes: ['4'], numberLengths: ['13', '16', '19'] },
+        {
+            cardType: 'Master Card',
+            numberPrefixes: ['51-55', '2221-2720'],
+            numberLengths: ['16'],
+        },
+        { cardType: 'Amex', numberPrefixes: ['34', '37'], numberLengths: ['15'] },
+    ];
+
+    test('returns exact BM id Master Card for RefArch-style catalog', () => {
+        expect(resolveCardTypeFromCatalog('5555555555554444', refArchCards)).toBe('Master Card');
+        expect(resolveCardTypeFromCatalog('2223000048400011', refArchCards)).toBe('Master Card');
+    });
+
+    test('returns MasterCard when that is the catalog id', () => {
+        expect(
+            resolveCardTypeFromCatalog('5555555555554444', [
+                { cardType: 'MasterCard', numberPrefixes: ['51-55'], numberLengths: ['16'] },
+            ])
+        ).toBe('MasterCard');
+    });
+
+    test('returns undefined when catalog has no match', () => {
+        expect(resolveCardTypeFromCatalog('5555555555554444', [{ cardType: 'Visa', numberPrefixes: ['4'] }])).toBe(
+            undefined
+        );
+        expect(resolveCardTypeFromCatalog('5555555555554444', undefined)).toBe(undefined);
+    });
+});
+
+describe('resolveCardPaymentFromApplicableMethods', () => {
+    test('prefers CREDIT_CARD / BASIC_CREDIT and returns that method id + cardType', () => {
+        expect(
+            resolveCardPaymentFromApplicableMethods('5555555555554444', [
+                {
+                    id: 'CUSTOM_CARD',
+                    cards: [
+                        {
+                            cardType: 'MasterCard',
+                            numberPrefixes: ['51-55'],
+                            numberLengths: ['16'],
+                        },
+                    ],
+                },
+                {
+                    id: 'CREDIT_CARD',
+                    paymentProcessorId: 'BASIC_CREDIT',
+                    cards: [
+                        {
+                            cardType: 'Master Card',
+                            numberPrefixes: ['51-55'],
+                            numberLengths: ['16'],
+                        },
+                    ],
+                },
+            ])
+        ).toEqual({ paymentMethodId: 'CREDIT_CARD', cardType: 'Master Card' });
+    });
+
+    test('falls back to any applicable method that has matching cards[]', () => {
+        expect(
+            resolveCardPaymentFromApplicableMethods('5555555555554444', [
+                { id: 'PAYPAL', cards: [] },
+                {
+                    id: 'CYBERSOURCE_CREDIT',
+                    paymentProcessorId: 'CYBERSOURCE',
+                    cards: [
+                        {
+                            cardType: 'MasterCard',
+                            numberPrefixes: ['51-55'],
+                            numberLengths: ['16'],
+                        },
+                    ],
+                },
+            ])
+        ).toEqual({ paymentMethodId: 'CYBERSOURCE_CREDIT', cardType: 'MasterCard' });
+    });
+
+    test('returns undefined when no method matches (fail closed)', () => {
+        expect(
+            resolveCardPaymentFromApplicableMethods('5555555555554444', [
+                { id: 'CREDIT_CARD', cards: [{ cardType: 'Visa', numberPrefixes: ['4'] }] },
+            ])
+        ).toBe(undefined);
+        expect(resolveCardPaymentFromApplicableMethods('5555555555554444', undefined)).toBe(undefined);
     });
 });

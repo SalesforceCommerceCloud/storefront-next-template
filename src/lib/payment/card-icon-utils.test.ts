@@ -22,16 +22,25 @@ describe('getCardIcon', () => {
         const AmexWrapper = getCardIcon('American Express');
         const DiscoverWrapper = getCardIcon('Discover');
 
-        // Test that the functions are defined and callable
         expect(typeof VisaWrapper).toBe('function');
         expect(typeof MastercardWrapper).toBe('function');
         expect(typeof AmexWrapper).toBe('function');
         expect(typeof DiscoverWrapper).toBe('function');
 
-        // Test that they return different wrapper functions
         expect(VisaWrapper).not.toBe(MastercardWrapper);
         expect(VisaWrapper).not.toBe(AmexWrapper);
         expect(MastercardWrapper).not.toBe(DiscoverWrapper);
+    });
+
+    test('accepts BM MasterCard id and spaced Master Card for the same icon', () => {
+        const fromBm = getCardIcon('MasterCard');
+        const fromSpaced = getCardIcon('Master Card');
+        const fromDisplay = getCardIcon('Mastercard');
+        const generic = getCardIcon('Unknown');
+
+        expect(fromBm).toBe(fromSpaced);
+        expect(fromBm).toBe(fromDisplay);
+        expect(fromBm).not.toBe(generic);
     });
 
     test('returns GenericCardIcon for unknown card types', () => {
@@ -41,7 +50,6 @@ describe('getCardIcon', () => {
         const DinersIcon = getCardIcon('Diners Club');
         const JCBIcon = getCardIcon('JCB');
 
-        // All unknown types should return the same GenericCardIcon component
         expect(UnknownIcon).toBe(RandomIcon);
         expect(UnknownIcon).toBe(EmptyIcon);
         expect(UnknownIcon).toBe(DinersIcon);
@@ -49,14 +57,12 @@ describe('getCardIcon', () => {
         expect(typeof UnknownIcon).toBe('function');
     });
 
-    test('is case sensitive', () => {
+    test('matches card brands case-insensitively for icons only', () => {
         const GenericIcon = getCardIcon('Unknown');
 
-        // Lowercase should fallback to generic
-        expect(getCardIcon('visa')).toBe(GenericIcon);
-        // Uppercase should fallback to generic
-        expect(getCardIcon('VISA')).toBe(GenericIcon);
-        // Exact case match should return wrapper
+        expect(getCardIcon('visa')).not.toBe(GenericIcon);
+        expect(getCardIcon('VISA')).not.toBe(GenericIcon);
         expect(getCardIcon('Visa')).not.toBe(GenericIcon);
+        expect(getCardIcon('amex')).not.toBe(GenericIcon);
     });
 });
