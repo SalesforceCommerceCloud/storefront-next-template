@@ -87,7 +87,7 @@ describe('resource.shipping-estimate', () => {
 
     it('accepts a same-origin Referer when Origin is unavailable', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
             shippingOptions: [],
         });
 
@@ -135,7 +135,7 @@ describe('resource.shipping-estimate', () => {
 
     it('does not persist a destination from an automatic successful lookup', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
             shippingOptions: [],
         });
 
@@ -148,7 +148,7 @@ describe('resource.shipping-estimate', () => {
 
     it('returns every deliverable method and stores an explicitly submitted postal code after a successful lookup', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-02T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
             shippingOptions: [
                 {
                     shippingMethodId: 'ground',
@@ -177,7 +177,7 @@ describe('resource.shipping-estimate', () => {
             zipcode: '94105',
             countryCode: 'US',
             estimate: {
-                deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+                deliveryWindow: { startAt: '2027-01-02T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
                 shippingOptions: [
                     {
                         shippingMethodId: 'ground',
@@ -205,7 +205,7 @@ describe('resource.shipping-estimate', () => {
 
     it('normalizes, forwards, echoes, and persists an explicit country', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue({
-            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+            deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
             shippingOptions: [],
         });
 
@@ -220,7 +220,7 @@ describe('resource.shipping-estimate', () => {
             zipcode: 'M5V 3A8',
             countryCode: 'CA',
             estimate: {
-                deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-03T00:00:00Z' },
+                deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-02T00:00:00Z' },
                 shippingOptions: [],
             },
         });

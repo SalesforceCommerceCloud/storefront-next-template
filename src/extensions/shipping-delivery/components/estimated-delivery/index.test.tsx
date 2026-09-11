@@ -69,7 +69,7 @@ vi.mock('@/components/info-modal', async (importOriginal) => {
 });
 
 const deliveryEstimate: ShippingEstimate = {
-    deliveryWindow: { startAt: '2027-01-01T00:00:00Z', endAt: '2027-01-05T00:00:00Z' },
+    deliveryWindow: { startAt: '2027-01-02T00:00:00Z', endAt: '2027-01-05T00:00:00Z' },
     shippingOptions: [
         {
             shippingMethodId: 'ground',
@@ -298,7 +298,7 @@ describe('EstimatedDelivery', () => {
     });
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
-    test('shows the primary shipping method date window and lets shoppers edit the displayed postal code', async () => {
+    test('shows the slowest shipping date window and lets shoppers edit the displayed postal code', async () => {
         const user = userEvent.setup();
         render(
             <EstimatedDelivery
@@ -311,7 +311,10 @@ describe('EstimatedDelivery', () => {
             }
         );
 
-        expect(screen.getByText(/Sat 2 Jan.*Tue 5 Jan/)).toBeInTheDocument();
+        const arrival = screen.getByRole('status');
+        expect(arrival).toHaveTextContent('Arrives');
+        expect(arrival).not.toHaveTextContent('Ground');
+        expect(arrival).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
         const postalCode = screen.getByRole('button', { name: 'Change destination: 94105' });
         expect(postalCode).toHaveClass('underline');
         expect(postalCode).toHaveClass('focus-visible:ring-2');
@@ -949,8 +952,11 @@ describe('EstimatedDelivery', () => {
         const dialog = await screen.findByRole('dialog', { name: 'Estimated Delivery Date' });
         expect(infoModalProps).toHaveBeenLastCalledWith(expect.objectContaining({ open: true }));
         expect(within(dialog).getByRole('heading', { name: 'Shipping options', level: 3 })).toBeInTheDocument();
-        expect(within(dialog).getByText('Ground')).toBeInTheDocument();
-        expect(within(dialog).getByText('Express')).toBeInTheDocument();
+        const ground = within(dialog).getByText('Ground');
+        const express = within(dialog).getByText('Express');
+        expect(ground.compareDocumentPosition(express) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+            Node.DOCUMENT_POSITION_FOLLOWING
+        );
 
         await user.keyboard('{Escape}');
         await waitFor(() => expect(trigger).toHaveFocus());
@@ -1053,6 +1059,7 @@ describe('EstimatedDelivery', () => {
         expect(delivery).not.toBeChecked();
         expect(delivery.parentElement).toContainElement(unresolvedSelectionDestination);
         expect(delivery.parentElement).toHaveTextContent(/Deliver to\s*94105/);
+        expect(delivery.parentElement).not.toHaveTextContent('Ground');
         expect(delivery.parentElement).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
         expect(delivery.parentElement).not.toHaveTextContent('Arrives');
 
@@ -1064,6 +1071,7 @@ describe('EstimatedDelivery', () => {
         expect(delivery.parentElement).toContainElement(changeDestination);
         expect(delivery.parentElement).toContainElement(allOptions);
         expect(delivery.parentElement).toHaveTextContent(/Deliver to\s*94105/);
+        expect(delivery.parentElement).not.toHaveTextContent('Ground');
         expect(delivery.parentElement).toHaveTextContent(/Sat 2 Jan.*Tue 5 Jan/);
         expect(delivery.parentElement).not.toHaveTextContent('Arrives');
         expect(screen.getAllByRole('button', { name: 'Change destination: 94105' })).toHaveLength(1);

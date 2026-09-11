@@ -12,13 +12,14 @@ The estimator:
 
 - Validates and normalizes postal codes for the destination country. The country comes from the active site locale unless a saved destination supplies a country code.
 - Requests delivery options for the selected product and destination.
-- Displays only shipping options that include a delivery window.
-- Uses the lowest-priced available option as the primary summary. When prices are unavailable, it uses the earliest delivery-window end date among the unpriced options.
-- Shows a dialog with all available delivery options when more than one option is returned.
+- Displays only shipping options with a valid, chronological delivery window. Timestamps must use a calendar-valid RFC 3339 date-time with `Z` or a known numeric offset; leap-second and `-00:00` unknown-offset timestamps are excluded.
+- Uses the slowest displayed option as the primary display summary: latest delivery-window start time, then latest end time, and shipping method ID for exact ties. This is a presentation heuristic until the API provides the merchant's default shipping method.
+- Identifies the primary display shipping method next to its arrival range.
+- Shows a dialog with all available delivery options in slowest-first order when more than one option is returned.
 
-The PDP still renders one `sfcc.pdp.estimatedDelivery` target. When BOPIS is installed, the primary **Delivery** option initially describes that a postal code is needed to see an estimate. Selecting Delivery reveals the standalone calculator. The Delivery option presents a resolved destination and delivery window, or merchant fallback guidance, after a response. Postal-code entry, calculation, validation, loading, and error states remain in the standalone target. Selecting the resolved destination opens the calculator at that location. Resolved details remain available when the fulfillment selection changes. Without BOPIS or an eligible host, all states remain standalone. When BOPIS is installed without Shipping & Delivery, the Delivery option instead shows “Deliver to shipping address.”
+The PDP still renders one `sfcc.pdp.estimatedDelivery` target. When BOPIS is installed, the primary **Delivery** option initially describes that a postal code is needed to see an estimate. Selecting Delivery reveals the standalone calculator. The Delivery option presents a resolved destination, the primary display shipping method, and its delivery window, or merchant fallback guidance, after a response. Postal-code entry, calculation, validation, loading, and error states remain in the standalone target. Selecting the resolved destination opens the calculator at that location. Resolved details remain available when the fulfillment selection changes. Without BOPIS or an eligible host, all states remain standalone. When BOPIS is installed without Shipping & Delivery, the Delivery option instead shows “Deliver to shipping address.”
 
-The default summary target hides the primary shipping price. The detailed target also shows the price when the API returned one.
+The default summary target shows the primary display shipping method and arrival window while hiding its price. The detailed target also shows the primary option's price when the API returned one.
 
 Delivery estimates are a PDP feature. They do not select a shipping method, alter a basket, or replace checkout shipping-method selection.
 
@@ -83,16 +84,15 @@ You can also point the target to a merchant-owned component. Target replacements
 
 The resource routes are same-origin only and return `Cache-Control: no-store`. Do not move the Shopper Delivery Estimates API call into a browser component, because the SDK server client supplies the required shopper authentication and request middleware.
 
-For merchant-specific presentation, point the target to a component in your storefront. See the extension override guidance in [`src/extensions/README.md`](../src/extensions/README.md).
+For a vertical-specific presentation change, override the target component under the vertical overlay rather than changing canonical presentation for every vertical. See the extension override guidance in [`src/extensions/README.md`](../src/extensions/README.md).
 
 ## Empty Results and Failures
 
-An estimate is available only when SCAPI returns at least one shipping option with a delivery window.
+An estimate is available only when SCAPI returns at least one shipping option with a valid, chronological delivery window.
 
 | Condition | Storefront behavior |
 |---|---|
-| Invalid postal code | The UI validates the value before requesting an estimate and asks the shopper to correct it. |
-| Invalid product ID or country code | The resource route rejects the request and the UI shows that delivery dates are unavailable. |
+| Invalid product ID, country code, or postal code | The resource route rejects the request. The UI asks the shopper to correct the postal code. |
 | No product estimate, no shipping options, or no delivery windows | No delivery date is displayed. The entered destination is not persisted. |
 | Delivery Estimates API returns `403` or `500` | The extension tries to display the first non-pickup shipping-method description configured on the product. This is general merchant guidance, not a destination-specific estimate. |
 | Other upstream or catalog-fallback failure | The UI shows that delivery dates are unavailable and lets the shopper try another destination. |
@@ -106,7 +106,7 @@ After configuring the Commerce App, binding, product assignment, and scopes:
 1. Start the storefront and open a PDP for an online product assigned to the active site.
 2. Scroll to the delivery-estimate target. A known destination loads lazily when the target enters the viewport. With BOPIS and an eligible fulfillment host, select **Delivery** to reveal the standalone calculator; otherwise, enter a postal code directly in that calculator.
 3. Enter a valid postal code for a destination the provider can serve, then select **Calculate**.
-4. Confirm that the PDP shows the returned destination and delivery window. With BOPIS and an eligible fulfillment host, confirm the resolved destination and estimate appear in the primary Delivery option and remain available after selecting Pickup. Confirm postal-code entry, loading, validation, and errors remain in the standalone target. Otherwise, confirm the standalone target shows the estimate. If multiple methods are available, confirm the additional-options dialog lists them.
+4. Confirm that the PDP shows the returned destination, slowest shipping method, and delivery window, ranked by latest window start and then latest end. With BOPIS and an eligible fulfillment host, confirm the resolved destination and estimate appear in the primary Delivery option and remain available after selecting Pickup. Confirm postal-code entry, loading, validation, and errors remain in the standalone target. Otherwise, confirm the standalone target shows the estimate. If multiple methods are available, confirm the additional-options dialog lists them in slowest-first order.
 5. Refresh the PDP and confirm that a successful manually entered destination is reused. It should not be saved after an empty result.
 6. Test a postal code with no deliverable method and confirm no date is displayed.
 7. Temporarily test a provider failure in a non-production environment. For `403` or `500`, confirm that a configured non-pickup shipping-method description is shown; otherwise confirm the unavailable state is shown.
@@ -119,7 +119,7 @@ After configuring the Commerce App, binding, product assignment, and scopes:
 | The target never makes an estimate request | Scroll the target into view. The calculator is intentionally deferred until it is visible. |
 | The estimate remains standalone with BOPIS | Confirm the host opted into Shipping & Delivery presentation and exposes exactly the Delivery and Pickup options. Merchant-owned target replacements remain standalone unless they participate in the presentation context. |
 | SCAPI returns `403` | Verify the SLAS client has `sfcc.shopper-delivery-estimates` and `sfcc.shopper-standard`, and verify the `sfcc.app.shipping.estimate` binding. |
-| No delivery dates are returned | Verify the product is online and site-assigned and that the provider can return a delivery window for the submitted destination. |
+| No delivery dates are returned | Verify the product is online and site-assigned, has applicable shipping methods, and that the provider can return a valid, chronological delivery window for the submitted destination. |
 | The fallback message is missing | Add a non-empty description to a non-pickup product shipping method. The fallback is attempted only for Delivery Estimates `403` and `500` responses. |
 | The wrong postal-code format is shown | Verify the site's active locale or the saved destination country code. Postal-code validation follows that country. |
 

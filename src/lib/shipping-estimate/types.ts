@@ -15,6 +15,7 @@
  */
 
 export interface ShippingEstimate {
+    /** Slowest-first display options; deliveryWindow repeats the first option's window. */
     shippingOptions: ShippingEstimateOption[];
     deliveryWindow: ShippingEstimateOption['deliveryWindow'];
 }
