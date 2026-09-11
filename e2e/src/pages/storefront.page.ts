@@ -224,6 +224,76 @@ class StorefrontPage {
     }
 
     /**
+     * Viewport-safe scan-readiness gate for the homepage a11y scan.
+     *
+     * Waits (bounded) for the two things the axe scan depends on, then RETURNS regardless:
+     *
+     *  1. The navigation menu is PRESENT (`[data-slot="navigation-menu"]`). It is rendered
+     *     only after the `_app` layout's streamed root-category `<Await>` resolves (the
+     *     fallback skeleton has no `data-slot`), so its presence means the body has real
+     *     content to scan, not a skeleton.
+     *  2. `<html lang>` is non-empty and `<title>` is non-empty (the exact attributes the
+     *     `html-has-lang` / `document-title` rules read). Both are server-rendered (`lang`
+     *     defaults to `'en'` in root.tsx; `<title>` comes from `<SeoMeta>` in the synchronous
+     *     shell). Gating on them DIRECTLY, rather than inferring them from nav presence, keeps
+     *     this correct even if `<SeoMeta>` is later moved behind a Suspense boundary.
+     *
+     * The wait lives inside the recorded Playwright step and the timeout is handled INSIDE the
+     * callback, so on the a11y path it never leaves CodeceptJS's recorder rejected (which would
+     * skip the axe step). Only a wait TIMEOUT is interpreted here; any other Playwright rejection
+     * (page crash, execution context destroyed) is rethrown so an infrastructure failure is never
+     * masked. On timeout the two conditions are handled differently, because they
+     * deserve opposite treatment:
+     *   - nav present but `lang`/`title` missing: fall through to the scan, so axe reports the
+     *     genuine `html-has-lang` / `document-title` as a real (un-retried) `A11yBaselineError`
+     *     rather than this becoming a masked/retried timeout.
+     *   - nav absent (the body never rendered real content, e.g. the streamed category `<Await>`
+     *     never resolved): throw, so it surfaces as a retriable readiness failure (the suite
+     *     retries infra timeouts) instead of silently scanning a skeleton — preserving the prior
+     *     nav-presence wait's coverage of a non-rendering homepage.
+     *
+     * Unlike {@link validatePageLoaded}, this asserts PRESENCE, not visibility: on the mobile
+     * viewport the nav is collapsed behind the hamburger (present but `display:none`), so a
+     * visibility assert would fail there. The a11y suite runs the homepage on both viewports.
+     */
+    async waitForHomepageReady(timeoutSeconds: number = 30): Promise<void> {
+        // Selector mirrors `locators.navMenu`; a CodeceptJS locate() object can't cross into the
+        // browser context, so it is inlined and passed to the predicate as an argument.
+        const navSelector = '[data-slot="navigation-menu"]';
+        await (I.usePlaywrightTo('wait for homepage a11y scan-readiness (nav + lang + title)', async ({ page }) => {
+            try {
+                await page.waitForFunction(
+                    (sel: string) =>
+                        !!document.querySelector(sel) &&
+                        !!document.documentElement.lang?.trim() &&
+                        document.title.trim().length > 0,
+                    navSelector,
+                    { timeout: timeoutSeconds * 1000 }
+                );
+            } catch (err) {
+                // Only a wait TIMEOUT means the readiness conditions were not met in time — that is
+                // the case interpreted below. Any other rejection (page crash, execution context
+                // destroyed, navigation) is an infrastructure failure that must surface as a
+                // retriable error (not an A11yBaselineError), never be masked by the fall-through.
+                // A non-Error rejection is wrapped so it keeps a stack/message; a non-timeout Error
+                // is rethrown unchanged.
+                if (!(err instanceof Error)) {
+                    throw new Error('Homepage readiness wait failed', { cause: err });
+                }
+                if (err.name !== 'TimeoutError') {
+                    throw err;
+                }
+                const navPresent = await page.evaluate((sel: string) => !!document.querySelector(sel), navSelector);
+                if (!navPresent) {
+                    throw new Error(`Homepage navigation did not render within ${timeoutSeconds}s`);
+                }
+                // Nav present but lang/title still missing: fall through so axe reports the real
+                // html-has-lang / document-title violation instead of a masked/retried timeout.
+            }
+        }) as unknown as Promise<void>);
+    }
+
+    /**
      * Navigate to cart page via cart icon
      */
     goToCart(): void {

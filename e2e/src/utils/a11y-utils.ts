@@ -224,6 +224,14 @@ async function assertNotErrorPage(pageKey: string): Promise<void> {
  * Run an axe scan and either update the baseline (update mode) or assert that
  * no new violations have appeared since the last baseline commit.
  *
+ * Scan readiness is the caller's responsibility: each scenario waits on its
+ * page's real content (e.g. `validatePageLoaded()` / `waitForPageReady()`)
+ * before calling this, exactly as the content scenarios already do. That wait
+ * ensures the document has committed with its `<head>` in place, so the
+ * server-rendered `<html lang>` and `<title>` are already present when axe runs.
+ * This helper only asserts, it deliberately adds no readiness logic of its own,
+ * so nothing here can mask a genuinely missing lang/title.
+ *
  * @param pageKey - Short identifier for the page, e.g. 'homepage'.
  * @param viewport - Viewport key returned by {@link beginScan}.
  */

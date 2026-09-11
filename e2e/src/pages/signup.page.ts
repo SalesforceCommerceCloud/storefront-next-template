@@ -68,6 +68,24 @@ class SignupPage {
     }
 
     /**
+     * Auth-mode-agnostic readiness gate for the a11y scan. Waits for the fields shared
+     * by both password signup and email-verification (passwordless) signup: first/last
+     * name, email, and the submit button (matched by `type`, not label). Does NOT assert
+     * the password / confirm-password fields, which passwordless signup omits, so this
+     * holds under either supported configuration. These are body elements, so their
+     * presence also guarantees the `<head>` (`<html lang>` / `<title>`) has committed,
+     * past the scan-race window.
+     */
+    validateA11yReady(timeoutSeconds: number = 30): void {
+        I.waitInUrl('/signup', timeoutSeconds / 2);
+        I.waitForElement(this.locators.firstNameInput, timeoutSeconds);
+        I.seeElement(this.locators.firstNameInput);
+        I.seeElement(this.locators.lastNameInput);
+        I.seeElement(this.locators.emailInput);
+        I.seeElement(this.locators.createAccountButton);
+    }
+
+    /**
      * Fill in the first name field
      */
     fillFirstName(firstName: string): void {
