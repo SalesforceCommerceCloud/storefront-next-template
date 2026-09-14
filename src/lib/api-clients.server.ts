@@ -529,6 +529,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     const scapiProxyHost = typeof window === 'undefined' ? process.env.SCAPI_PROXY_HOST : undefined;
 
     const baseUrl = scapiProxyHost || getScapiBaseUrl(shortCode);
+    const scapiOrigin = new URL(baseUrl).origin;
     // Use absolute URL if provided, otherwise construct from app origin
     const redirectUri = callback && isAbsoluteURL(callback) ? callback : `${appOrigin}${callback || ''}`;
 
@@ -547,6 +548,14 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
         }
     };
 
+    const originBoundFetch: typeof globalThis.fetch = (input, init) => {
+        const requestUrl = input instanceof Request ? input.url : input instanceof URL ? input.href : String(input);
+        if (new URL(requestUrl).origin !== scapiOrigin) {
+            return Promise.reject(new Error('SCAPI request origin does not match the configured origin'));
+        }
+        return globalThis.fetch(input, init);
+    };
+
     // Wrap the base fetch so every SCAPI request participates in request-scoped GET/HEAD deduplication and
     // mutation invalidation. Layer order is `dedupe(timeout(healthObserver(globalThis.fetch)))`:
     //   - SCAPI health observer innermost: every real network response is inspected so we log SCAPI's
@@ -559,7 +568,7 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     // See `createHealthObserverFetch`, `createTimeoutFetch`, and `createDedupedFetch`.
     const dedupedFetch = createDedupedFetch(
         context,
-        createTimeoutFetch(context, createHealthObserverFetch(context, globalThis.fetch), getMrtRequestTimeoutMs())
+        createTimeoutFetch(context, createHealthObserverFetch(context, originBoundFetch), getMrtRequestTimeoutMs())
     );
 
     // Note: Currency is NOT passed as a global parameter because not all Shopper* APIs support it.
@@ -581,6 +590,9 @@ export function createApiClients(context: RouterContextProvider | Readonly<Route
     const authMiddleware: Middleware = {
         async onRequest({ request }) {
             const url = new URL(request.url);
+            if (url.origin !== scapiOrigin) {
+                throw new Error('SCAPI request origin does not match the configured origin');
+            }
             const isSlasAuthEndpoint = SLAS_AUTH_ENDPOINTS.some((path) => url.pathname.includes(path));
 
             // Get the auth session from context
