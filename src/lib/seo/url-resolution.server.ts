@@ -51,7 +51,7 @@ export function decodeFinalRawSegment(url: URL, params?: Record<string, string |
         return decodeURIComponent(rawSegment);
     } catch {
         // Malformed percent-encoding is client-supplied input at the URL boundary. Keep the
-        // raw segment so the product lookup 404s cleanly rather than throwing a 500 from decode.
+        // raw segment so the resource lookup 404s cleanly rather than throwing a 500 from decode.
         return rawSegment;
     }
 }

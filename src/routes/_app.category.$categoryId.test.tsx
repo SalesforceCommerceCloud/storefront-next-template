@@ -380,6 +380,27 @@ describe('CategoryPage', () => {
             expect(result.searchResultCritical).toEqual(mockSearchResult);
         });
 
+        test('resolves the category ID from the final raw path segment, not the route param', async () => {
+            // Under the SEO route alias the id-suffix URL routes through a pathless parent whose
+            // `{prefix}/*` alias child owns the splat, so the authoritative category ID is the final
+            // raw path segment, not the `:categoryId` route param (stale/undefined on aliased URLs).
+            // The `createLoaderArgs` default leaves a stale `electronics` param to prove it's ignored.
+            const args = createLoaderArgs('https://example.com/c/womens/shoes/mens-clothing');
+
+            const result = await loader(args);
+
+            expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'mens-clothing', 1);
+            expect(fetchSearchProducts).toHaveBeenCalledWith(
+                mockContext,
+                expect.objectContaining({ refine: ['cgid=mens-clothing'] })
+            );
+            expect(fetchPageWithComponentData).toHaveBeenCalledWith(args, {
+                aspectType: 'plp',
+                categoryId: 'mens-clothing',
+            });
+            expect(result.categoryId).toBe('mens-clothing');
+        });
+
         test('starts independent loader requests before the category resolves', async () => {
             let resolveCategory!: (category: ShopperProducts.schemas['Category']) => void;
             vi.mocked(fetchCategory).mockReturnValue(

@@ -21,6 +21,7 @@ import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { fetchCategory } from '@/lib/api/categories.server';
 import { fetchSearchProducts } from '@/lib/api/search.server';
+import { decodeFinalRawSegment } from '@/lib/seo/url-resolution.server';
 import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
@@ -112,12 +113,11 @@ type CategoryPageData = {
  * @returns Object containing search results, category data, and page metadata
  */
 export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> {
-    const {
-        context,
-        request,
-        params: { categoryId },
-    } = args;
+    const { context, request } = args;
     const requestUrl = new URL(request.url);
+    // Resolves the id-suffix and legacy `/category/:categoryId` grammars; slug-path mode (where
+    // the final segment is a slug, not the category ID) is not resolved here.
+    const categoryId = decodeFinalRawSegment(requestUrl, args.params);
     const { searchParams } = requestUrl;
     const logger = getLogger(context);
     logger.debug('Category: loader starting', {
