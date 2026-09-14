@@ -311,6 +311,24 @@ describe('Product Route Loaders', () => {
             // Should use the pid parameter instead of productId
             expect(mockFetchProductById.mock.calls[0][1]).toBe('variant-123');
         });
+
+        test('resolves the product ID from the final raw path segment, not the route param', async () => {
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+
+            // Under the SEO route aliases the product ID arrives on the alias splat, so the
+            // route param no longer carries it. The final raw path segment is authoritative.
+            const request = new Request('https://example.com/en-US/p/mens/shirts/test-product-123');
+
+            await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'stale-route-param' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/product/:productId',
+            });
+
+            expect(mockFetchProductById.mock.calls[0][1]).toBe('test-product-123');
+        });
     });
 
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
