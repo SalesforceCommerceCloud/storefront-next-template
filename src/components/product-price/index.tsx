@@ -16,6 +16,7 @@
 
 import { type ComponentProps, type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '@/lib/currency';
 import { cn } from '@/lib/utils';
 import type { ShopperBasketsV2, ShopperOrders, ShopperProducts, ShopperSearch } from '@/scapi';
 import CurrentPrice from './current-price';
@@ -88,8 +89,8 @@ export default function ProductPrice({
     currentPriceOnly = false,
     allowMissingPrice = false,
 }: ProductPriceProps) {
-    const { t } = useTranslation('product');
-    const priceData = useMemo(() => getPriceData(product, { quantity }), [product, quantity]);
+    const { t, i18n } = useTranslation('product');
+    const priceData = useMemo(() => getPriceData(product, { quantity, currency }), [product, quantity, currency]);
     const { listPrice, currentPrice, isASet, isMaster, isOnSale, isRange, maxPrice, hasPrice } = priceData;
 
     // No price-book entry for the active currency: SCAPI omits the price, so show "Price unavailable"
@@ -112,7 +113,13 @@ export default function ProductPrice({
 
     // Show strikethrough (list price) only for single price, not when displaying price range (min – max)
     const showPriceRange = isRange && maxPrice != null && maxPrice > currentPrice;
-    const showListPrice = isOnSale && listPrice && !showPriceRange;
+    // A line-total discount may not survive division into a displayable unit price. Avoid rendering
+    // identical current and list prices when both round to the same currency value.
+    const hasDistinctUnitPrices =
+        type !== 'unit' ||
+        formatCurrency(currentPrice, i18n.language, currency) !==
+            formatCurrency(listPrice ?? 0, i18n.language, currency);
+    const showListPrice = isOnSale && listPrice && !showPriceRange && hasDistinctUnitPrices;
 
     if (currentPriceOnly) {
         return (

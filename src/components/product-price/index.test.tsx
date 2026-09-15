@@ -91,6 +91,49 @@ describe('ProductPrice', () => {
         expect(screen.queryByText('$59.98 – $79.98')).not.toBeInTheDocument();
     });
 
+    test('does not render a list price for a basket item whose derived unit price equals its list price', () => {
+        render(
+            <ProductPrice
+                product={
+                    {
+                        itemId: 'cart-item',
+                        basePrice: 34.99,
+                        price: 174.95,
+                        priceAfterItemDiscount: 174.95,
+                        quantity: 5,
+                    } as unknown as Parameters<typeof ProductPrice>[0]['product']
+                }
+                currency="USD"
+                quantity={5}
+            />
+        );
+
+        expect(screen.getAllByText('$174.95')).toHaveLength(1);
+        expect(document.querySelector('.line-through')).not.toBeInTheDocument();
+    });
+
+    test('does not render indistinguishable unit prices for a discounted basket item', () => {
+        render(
+            <ProductPrice
+                product={
+                    {
+                        itemId: 'cart-item',
+                        basePrice: 10,
+                        price: 29.99,
+                        priceAfterItemDiscount: 29.99,
+                        quantity: 3,
+                    } as unknown as Parameters<typeof ProductPrice>[0]['product']
+                }
+                currency="USD"
+                quantity={3}
+                type="unit"
+            />
+        );
+
+        expect(screen.getAllByText('$10.00')).toHaveLength(1);
+        expect(document.querySelector('.line-through')).not.toBeInTheDocument();
+    });
+
     test('renders "Price unavailable" when the product has no price for the currency', () => {
         const noPriceProduct = {
             id: 'test-product',

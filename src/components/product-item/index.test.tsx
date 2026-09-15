@@ -606,6 +606,20 @@ describe('ProductItem', () => {
             expect(screen.queryByText(/Saved/)).not.toBeInTheDocument();
         });
 
+        test('does not render "Saved" badge when equivalent prices differ only by floating-point precision', () => {
+            const productWithEquivalentPrices = {
+                ...mockProduct,
+                basePrice: 34.99,
+                price: 174.95,
+                priceAfterItemDiscount: 174.95,
+                quantity: 5,
+            };
+
+            renderWithRouter(<ProductItem productItem={productWithEquivalentPrices} />);
+
+            expect(screen.queryByText(/Saved/)).not.toBeInTheDocument();
+        });
+
         test('does not render PromoPopover when no promotions or discounts', () => {
             const productWithoutPromotions = {
                 ...mockProduct,

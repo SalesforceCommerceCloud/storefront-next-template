@@ -99,7 +99,7 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
             const quantity = item.quantity ?? 1;
 
             // Calculate savings using getPriceData (same logic as ProductPrice component)
-            const priceData = getPriceData(enrichedProduct, { quantity });
+            const priceData = getPriceData(enrichedProduct, { quantity, currency });
             const savings =
                 priceData.isOnSale && priceData.listPrice
                     ? (priceData.listPrice - priceData.currentPrice) * quantity

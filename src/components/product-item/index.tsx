@@ -228,7 +228,7 @@ export function ProductItemPromotions({
     const isBonusProduct = Boolean(productItem?.bonusProductLineItem);
     if (isBonusProduct) return null;
 
-    const { listPrice, currentPrice } = getPriceData(productItem);
+    const { listPrice, currentPrice } = getPriceData(productItem, { currency });
     if (!listPrice) return null;
     const discount = (listPrice - currentPrice) * (productItem?.quantity ?? 1);
     if (discount <= 0) return null;
