@@ -214,7 +214,8 @@ export interface MergeEnvConfigOptions {
     /**
      * Config paths that cannot be overridden by environment variables.
      * Paths are matched case-insensitively with double underscore separators.
-     * Any env var targeting a protected path or a sub-path of it will throw an error.
+     * Any env var targeting a protected path, its descendants, or an ancestor
+     * object containing it will throw an error.
      *
      * @example ['app__engagement'] — prevents PUBLIC__app__engagement__* from being set via env
      */
@@ -267,6 +268,7 @@ export const mergeEnvConfig = (
     const MAX_DEPTH = 10;
 
     const protectedPaths = options?.protectedPaths ?? [];
+    const normalizedProtectedPaths = protectedPaths.map((protectedPath) => protectedPath.toLowerCase());
     const validPaths = baseConfig ? extractValidPaths(baseConfig) : [];
 
     const envVars: EnvVar[] = [];
@@ -302,10 +304,11 @@ export const mergeEnvConfig = (
         }
 
         const normalizedPath = path.toLowerCase();
-        const isProtected = protectedPaths.some((protectedPath) => {
-            const normalizedProtectedPath = protectedPath.toLowerCase();
+        const isProtected = normalizedProtectedPaths.some((normalizedProtectedPath) => {
             return (
-                normalizedPath === normalizedProtectedPath || normalizedPath.startsWith(`${normalizedProtectedPath}__`)
+                normalizedPath === normalizedProtectedPath ||
+                normalizedPath.startsWith(`${normalizedProtectedPath}__`) ||
+                normalizedProtectedPath.startsWith(`${normalizedPath}__`)
             );
         });
 

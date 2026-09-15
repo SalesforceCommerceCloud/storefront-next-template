@@ -180,6 +180,15 @@ describe('mergeEnvConfig - protectedPaths option', () => {
         );
     });
 
+    it('should throw when overriding an ancestor of a protected path', () => {
+        const leafOptions = { protectedPaths: ['app__engagement__adapters__einstein'] };
+        const env = { PUBLIC__app__engagement: '{"adapters":{"einstein":{"enabled":false}}}' };
+
+        expect(() => mergeEnvConfig(env, baseConfig, leafOptions)).toThrow(
+            'attempts to override protected config path'
+        );
+    });
+
     it('should allow overriding non-protected paths', () => {
         const env = { PUBLIC__app__site__locale: 'fr-FR' };
         const result = mergeEnvConfig(env, baseConfig, options);

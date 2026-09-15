@@ -205,6 +205,48 @@ describe('flatRoutes', () => {
         expect(mockLoadConfig).toHaveBeenCalledOnce();
     });
 
+    it('should register SEO aliases from a custom route directory', async () => {
+        const rootDirectory = 'custom/routes';
+        const productRouteId = `${rootDirectory}/_app.product.$productId`;
+        const categoryRouteId = `${rootDirectory}/_app.category.$categoryId`;
+        mockFlatRoutes.mockResolvedValue([
+            layoutRoute(`${rootDirectory}/_app`, `${rootDirectory}/_app.tsx`, [
+                route(productRouteId, `${rootDirectory}/_app.product.$productId.tsx`, 'product/:productId'),
+                route(categoryRouteId, `${rootDirectory}/_app.category.$categoryId.tsx`, 'category/:categoryId'),
+            ]),
+        ]);
+        mockLoadConfig.mockResolvedValue({
+            metadata: { projectName: 'Test', projectSlug: 'test' },
+            app: {
+                commerce: { api: { clientId: '', organizationId: '', siteId: '', shortCode: '' }, sites: [] },
+                defaultSiteId: '',
+                url: {
+                    seoRoutes: {
+                        RefArchGlobal: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                    },
+                },
+            },
+        } as BaseConfig);
+        vi.mocked(fs.access).mockImplementation((p) => {
+            if (String(p) === path.join('.', 'src', 'app-wrapper.tsx')) return Promise.resolve();
+            return Promise.reject(new Error('ENOENT'));
+        });
+
+        const result = await flatRoutes({ rootDirectory });
+
+        expect(findRoute(result, productRouteId)?.children?.[0]).toMatchObject({
+            path: 'p/*',
+            file: 'app-wrapper.tsx',
+        });
+        expect(findRoute(result, categoryRouteId)?.children?.[0]).toMatchObject({
+            path: 'c/*',
+            file: 'app-wrapper.tsx',
+        });
+    });
+
     it('should require the pass-through wrapper when SEO routes are configured without an outer prefix', async () => {
         mockFlatRoutes.mockResolvedValue([
             layoutRoute('routes/_app', 'routes/_app.tsx', [

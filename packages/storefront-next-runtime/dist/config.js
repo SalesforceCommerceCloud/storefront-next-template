@@ -205,7 +205,7 @@ const mergeEnvConfig = (env = typeof process !== "undefined" ? process.env : {},
 	const MAX_VAR_NAME_LENGTH = 512;
 	const MAX_TOTAL_VALUE_SIZE = 32 * 1024;
 	const MAX_DEPTH = 10;
-	const protectedPaths = options?.protectedPaths ?? [];
+	const normalizedProtectedPaths = (options?.protectedPaths ?? []).map((protectedPath) => protectedPath.toLowerCase());
 	const validPaths = baseConfig ? extractValidPaths(baseConfig) : [];
 	const envVars = [];
 	let totalValueSize = 0;
@@ -217,9 +217,8 @@ const mergeEnvConfig = (env = typeof process !== "undefined" ? process.env : {},
 		const depth = path.split("__").length;
 		if (depth > MAX_DEPTH) throw new Error(`Environment variable "${varName}" exceeds maximum path depth of ${MAX_DEPTH}. Current depth: ${depth}. Consider consolidating with JSON values or reducing nesting levels.`);
 		const normalizedPath = path.toLowerCase();
-		if (protectedPaths.some((protectedPath) => {
-			const normalizedProtectedPath = protectedPath.toLowerCase();
-			return normalizedPath === normalizedProtectedPath || normalizedPath.startsWith(`${normalizedProtectedPath}__`);
+		if (normalizedProtectedPaths.some((normalizedProtectedPath) => {
+			return normalizedPath === normalizedProtectedPath || normalizedPath.startsWith(`${normalizedProtectedPath}__`) || normalizedProtectedPath.startsWith(`${normalizedPath}__`);
 		})) throw new Error(`Environment variable "${varName}" attempts to override protected config path "${path}".\n\nProtected paths cannot be overridden via environment variables. Update config.server.ts directly, or remove the path from \`protectedPaths\` if env override is intended.`);
 		if (baseConfig && validPaths.length > 0) {
 			if (!validPaths.includes(normalizedPath)) {

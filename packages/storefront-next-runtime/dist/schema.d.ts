@@ -37,7 +37,8 @@ interface DefineConfigOptions {
   /**
    * Config paths that cannot be overridden by environment variables.
    * Paths use double underscore separators and are matched case-insensitively.
-   * Any env var targeting a protected path or a sub-path of it will throw.
+   * Any env var targeting a protected path, its descendants, or an ancestor
+   * object containing it will throw.
    *
    * @example ['app__analytics'] — prevents PUBLIC__app__analytics__* from being set via env
    */
