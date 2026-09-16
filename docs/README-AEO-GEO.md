@@ -31,7 +31,7 @@ The loader resolves product data from SCAPI, then builds a **promise** of JSON-L
 - **Commercial** — `offers` with `Offer`: price, currency, availability (`InStock` / `OutOfStock` / `BackOrder` / `PreOrder` from inventory), product URL, `itemCondition`, optional `lowPrice` / `highPrice` for ranges, `priceValidUntil` (default horizon)
 - **Merchandising** — `brand`, `mpn`, `gtin` (from EAN when present), `category` (primary category id), `color` and **`additionalProperty`** from variation attributes and custom attributes
 
-**Important:** Product URLs in JSON-LD are built from the **public storefront origin** and current path (`getPublicOrigin` + pathname/search), **not** from `product.slugUrl`, so Managed Runtime or proxy hosts do not leak internal origins into structured data.
+**Important:** Product URLs in JSON-LD reuse the loader's **canonical page URL** (the same value behind the canonical `<link>` and `og:url`), **not** `product.slugUrl`, so structured data agrees with the other crawler-visible surfaces and Managed Runtime or proxy hosts do not leak internal origins.
 
 ### Document Head Tags (`SeoMeta`)
 
@@ -59,7 +59,7 @@ The loader merges **critical** and **non-critical** search hits before schema ge
 
 ### Document Head Tags (`SeoMeta`)
 
-`SeoMeta` sets the category **name** as `<title>`, **page description or general description** as the meta description, and Open Graph **`type: 'website'`** with the canonical `pageUrl` from `buildCanonicalUrl` (aligned with how the root layout builds the canonical link).
+`SeoMeta` sets the category **name** as `<title>`, **page description or general description** as the meta description, and Open Graph **`type: 'website'`** with the loader's canonical `pageUrl` (the same value behind the canonical `<link>` the root layout builds).
 
 ### Rendering
 
@@ -67,9 +67,8 @@ The loader merges **critical** and **non-critical** search hits before schema ge
 
 ## URL Construction and Multi-Site
 
-[`schema-url.ts`](../src/utils/schema-url.ts) centralizes:
+The origin for every schema URL comes from the loader's **canonical page URL** (`getAppOrigin` resolves the public forwarded host, so URLs match the shopper-facing domain behind CDNs and serverless runtimes). On top of that origin, [`schema-url.ts`](../src/utils/schema-url.ts) centralizes:
 
-- **`getPublicOrigin(request)`** — Respects `x-forwarded-host` / `x-forwarded-proto` (and `host`) so JSON-LD URLs match the shopper-facing domain behind CDNs and serverless runtimes.
 - **`buildProductSchemaUrl` / `buildCategorySchemaUrl`** — Preserve the **site/locale path prefix** extracted from the current page URL when building linked product and category URLs inside PLP breadcrumbs and list items.
 
 This keeps AEO/GEO signals consistent across locales and avoids broken or internal-only URLs in training and citation contexts.

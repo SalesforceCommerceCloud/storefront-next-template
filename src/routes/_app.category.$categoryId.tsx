@@ -49,8 +49,9 @@ import { SeoMeta } from '@/components/seo-meta';
 import { useTranslation } from 'react-i18next';
 import { UITarget } from '@/targets/ui-target';
 import { generateCategorySchema } from '@/utils/category-schema';
-import { getPublicOrigin } from '@/utils/schema-url';
-import { buildCanonicalUrl } from '@/utils/canonical-url';
+import { getAppOrigin } from '@/lib/origin';
+import { buildSeoPageUrl } from '@/lib/seo/page-url.server';
+import { redirectToCanonicalPath } from '@/lib/seo/canonical-redirect.server';
 import {
     getInitialFiltersOpen,
     getSearchWithoutClientOnlyParams,
@@ -115,6 +116,7 @@ type CategoryPageData = {
 export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> {
     const { context, request } = args;
     const requestUrl = new URL(request.url);
+    redirectToCanonicalPath(requestUrl);
     // Resolves the id-suffix and legacy `/category/:categoryId` grammars; slug-path mode (where
     // the final segment is a slug, not the category ID) is not resolved here.
     const categoryId = decodeFinalRawSegment(requestUrl, args.params);
@@ -205,7 +207,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         currency,
     });
 
-    const pageUrl = buildCanonicalUrl(requestUrl.origin, requestUrl.pathname, requestUrl.search);
+    const pageUrl = buildSeoPageUrl(context, requestUrl);
 
     // SEO / crawler pagination (load-more mode only). Expose `rel=prev/next` URLs so bots can discover
     // and crawl the full result set via `?page=N` even though shoppers use the JS "load more" flow.
@@ -219,7 +221,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         if (sort) params.set('sort', sort);
         if (p > 1) params.set('page', String(p));
         const qs = params.toString();
-        return `${requestUrl.origin}${requestUrl.pathname}${qs ? `?${qs}` : ''}`;
+        return `${getAppOrigin(context)}${requestUrl.pathname}${qs ? `?${qs}` : ''}`;
     };
     const seoPagination = isLoadMoreMode
         ? {
@@ -232,11 +234,6 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     const categorySchemaPromise = searchResultNonCritical
         .then((searchResult: ShopperSearch.schemas['ProductSearchResult']) => {
             try {
-                // Use public origin from request headers instead of request.url
-                // to avoid exposing internal AWS Lambda URLs in schema
-                const publicOrigin = getPublicOrigin(request);
-                const url = new URL(request.url);
-                const schemaPageUrl = `${publicOrigin}${url.pathname}${url.search}`;
                 // Validate inputs before generating schema
                 if (!categoryData || !searchResult) {
                     return null;
@@ -253,7 +250,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
                         urlPrefix: config.url?.prefix,
                         seoRoutes: config.url?.seoRoutes,
                     },
-                    pageUrl: schemaPageUrl,
+                    pageUrl,
                     defaultCurrency: currency,
                 });
             } catch (error) {

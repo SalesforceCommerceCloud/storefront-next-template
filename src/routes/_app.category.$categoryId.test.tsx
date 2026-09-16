@@ -754,9 +754,31 @@ describe('CategoryPage', () => {
                     urlPrefix: undefined,
                     seoRoutes: undefined,
                 },
-                pageUrl: 'https://example.com/category/electronics',
+                pageUrl: 'http://localhost:3000/category/electronics',
                 defaultCurrency: 'GBP',
             });
+        });
+
+        test('converges the schema URL onto the canonical page URL, dropping the request origin and tracking params', async () => {
+            // The request arrives on example.com carrying a tracking param; structured data must
+            // point at the public app origin with the tracking param stripped, matching the
+            // canonical <link> and og:url rather than echoing the raw request URL.
+            await loader(createLoaderArgs('https://example.com/category/electronics?utm_source=news&sort=price'));
+
+            expect(generateCategorySchema).toHaveBeenCalledWith(
+                expect.objectContaining({ pageUrl: 'http://localhost:3000/category/electronics?sort=price' })
+            );
+        });
+
+        test('301-redirects a trailing-slash category path to the canonical path, preserving the query', async () => {
+            try {
+                await loader(createLoaderArgs('https://example.com/category/electronics/?sort=price'));
+                expect.fail('Expected loader to throw a redirect');
+            } catch (error: any) {
+                expect(error).toBeInstanceOf(Response);
+                expect(error.status).toBe(301);
+                expect(error.headers.get('Location')).toBe('/category/electronics?sort=price');
+            }
         });
 
         test('should handle category schema generation errors gracefully', async () => {

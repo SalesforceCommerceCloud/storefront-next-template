@@ -34,7 +34,8 @@ import { PageType } from '@/lib/decorators/page-type';
 import { RegionDefinition } from '@/lib/decorators/region-definition';
 import { Region } from '@/components/region';
 import { SeoMeta } from '@/components/seo-meta';
-import { buildCanonicalUrl } from '@/utils/canonical-url';
+import { buildSeoPageUrl } from '@/lib/seo/page-url.server';
+import { redirectToCanonicalPath } from '@/lib/seo/canonical-redirect.server';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
 import {
     getInitialFiltersOpen,
@@ -89,6 +90,7 @@ export type SearchPageData = {
 export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
     const { context, request } = args;
     const requestUrl = new URL(request.url);
+    redirectToCanonicalPath(requestUrl);
     const { searchParams } = requestUrl;
     const offset = parseInt(searchParams.get('offset') || '0', 10);
     const q = searchParams.get('q') ?? '';
@@ -132,7 +134,7 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
     const searchResultCritical = await searchResultCriticalPromise;
     logger.info('Search: results loaded', { query: q, total: searchResultCritical.total, offset });
 
-    const pageUrl = buildCanonicalUrl(requestUrl.origin, requestUrl.pathname, requestUrl.search);
+    const pageUrl = buildSeoPageUrl(context, requestUrl);
     const effectiveCriticalCount = searchResultCritical.hits?.length ?? 0;
 
     return {

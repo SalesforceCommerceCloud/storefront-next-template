@@ -74,6 +74,20 @@ It applies three normalizations:
 2. **Sorted parameters** — Retained params are sorted alphabetically so that `?sort=price&q=jacket` and `?q=jacket&sort=price` produce the same canonical URL.
 3. **Trailing slash removal** — Trailing slashes are removed from non-root paths (`/product/jacket/` → `/product/jacket`).
 
+### One page URL across every crawler-visible surface
+
+The canonical `<link>`, `og:url`, and JSON-LD `url` must all point at the same preferred URL, or search engines see the page disagreeing with itself. Product, category, and search loaders build that URL once through [`src/lib/seo/page-url.server.ts`](../src/lib/seo/page-url.server.ts):
+
+```typescript
+const pageUrl = buildSeoPageUrl(context, requestUrl);
+```
+
+`buildSeoPageUrl` resolves the public-facing origin (`getAppOrigin`, which honors the forwarded host and falls back to `EXTERNAL_DOMAIN_NAME`) and runs it through `buildCanonicalUrl`, so the result carries the allowlisted, sorted, trailing-slash-stripped form on the public origin — never the internal serverless URL the request actually arrived on. Loaders reuse this single `pageUrl` for `og:url` and structured data rather than recomputing an origin per surface.
+
+Pagination `rel="prev"`/`rel="next"` links are the deliberate exception: they are distinct crawlable URLs that carry a `page` param, so they can't be the single `pageUrl`. They resolve their origin through the same `getAppOrigin`, keeping them on the public host, but build their own path + query so the `page` param survives (the canonical `<link>` stays the base URL).
+
+Loaders also call [`redirectToCanonicalPath(requestUrl)`](../src/lib/seo/canonical-redirect.server.ts) at the top, which issues a 301 to the trailing-slash-free path (preserving the query, exempting root). Because a React Router loader runs on both full document requests and client `.data` navigations, the redirect applies identically whether a shopper lands cold or navigates in-app. It stays loop-safe because the target path already normalizes to itself, and it only touches the path — tracking params such as `utm_*` are stripped by the canonical tag, not by a redirect, so campaign attribution survives.
+
 ### Query Parameter Allowlist
 
 The canonical URL uses an **allowlist** that specifies which query parameters are kept in canonical URLs. Storefront Next strips any parameter not explicitly listed, such as tracking parameters, analytics IDs, and other non-content parameters.

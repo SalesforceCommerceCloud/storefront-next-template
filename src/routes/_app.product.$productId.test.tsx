@@ -18,7 +18,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { use } from 'react';
 import type { ShopperProducts } from '@/scapi';
-import { type ProductPageData } from './_app.product.$productId';
+import { loader, type ProductPageData } from './_app.product.$productId';
 
 // ProductPage reads `nonce` from the root loader. Tests render the page outside
 // a real data router, so stub `useRouteLoaderData` with a deterministic value.
@@ -175,7 +175,9 @@ vi.mock('@/extensions/ratings-reviews/components/target/reviews-summary-target',
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 vi.mock('@/extensions/store-locator/middlewares/selected-store.server', () => ({
-    selectedStoreContext: { id: 'selectedStoreContext' },
+    // `defaultValue: null` so the loader's `context.get(selectedStoreContext)` resolves to null
+    // (no store selected) instead of throwing, since the test context never sets this key.
+    selectedStoreContext: { id: 'selectedStoreContext', defaultValue: null },
 }));
 
 vi.mock('@/extensions/bopis/context/pickup-context', () => ({
@@ -193,8 +195,60 @@ vi.mock('@/extensions/shipping-delivery/context/shipping-delivery-context', () =
 }));
 // @sfdc-extension-block-end SFDC_EXT_SHIPPING_DELIVERY
 
+// Server-side loader dependencies. Mocked so the loader can run in isolation and its
+// SEO-URL wiring (buildSeoPageUrl / redirectToCanonicalPath, both left real) can be asserted.
+vi.mock('@/lib/api/products.server', () => ({
+    fetchProductById: vi.fn(),
+}));
+
+vi.mock('@/lib/seo/url-resolution.server', () => ({
+    decodeFinalRawSegment: vi.fn(),
+}));
+
+vi.mock('@/lib/product/swatch-products.server', () => ({
+    resolveSwatchProductImages: vi.fn(),
+}));
+
+vi.mock('@/lib/page-designer/page-loader.server', () => ({
+    fetchPageWithComponentData: vi.fn(),
+}));
+
+vi.mock('@/utils/product-schema', () => ({
+    generateProductSchema: vi.fn(),
+}));
+
+vi.mock('@/extensions/ratings-reviews/lib/api/reviews.server', () => ({
+    getReviewsSummary: vi.fn(),
+    getReviews: vi.fn(),
+    getWriteReviewForm: vi.fn(),
+}));
+
+vi.mock('@/extensions/bnpl/lib/api/bnpl.server', () => ({
+    getBuyNowPayLaterMessage: vi.fn(),
+    getBuyNowPayLaterLearnMore: vi.fn(),
+}));
+
+vi.mock('@/extensions/product-content/lib/api/product-content.server', () => ({
+    getReturnsAndWarranty: vi.fn(),
+    pdpSectionApi: {},
+}));
+
+vi.mock('@/extensions/product-content/lib/pdp-sections', () => ({
+    resolvePdpSections: vi.fn(() => []),
+}));
+
 // Import the functions we want to test
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
+import { createTestContext } from '@/lib/test-utils';
+import { fetchProductById } from '@/lib/api/products.server';
+import { decodeFinalRawSegment } from '@/lib/seo/url-resolution.server';
+import { resolveSwatchProductImages } from '@/lib/product/swatch-products.server';
+import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
+import { generateProductSchema } from '@/utils/product-schema';
+import { getReviewsSummary, getReviews, getWriteReviewForm } from '@/extensions/ratings-reviews/lib/api/reviews.server';
+import { getBuyNowPayLaterMessage, getBuyNowPayLaterLearnMore } from '@/extensions/bnpl/lib/api/bnpl.server';
+import { getReturnsAndWarranty } from '@/extensions/product-content/lib/api/product-content.server';
+import type { Route } from './+types/_app.product.$productId';
 
 // Import the route module after mocks are set up
 
@@ -565,5 +619,62 @@ describe('Product Detail Route', () => {
             const { getByTestId } = render(<ProductPage loaderData={mockLoaderData} />);
             expect(getByTestId('category-breadcrumbs')).toHaveTextContent('Test Category');
         });
+    });
+});
+
+describe('Product Detail Route loader', () => {
+    const mockContext = createTestContext();
+    const mockProduct = {
+        id: 'test-product-123',
+        name: 'Test Product',
+    } as ShopperProducts.schemas['Product'];
+
+    const createLoaderArgs = (url: string): Route.LoaderArgs => ({
+        request: new Request(url),
+        url: new URL(url),
+        context: mockContext,
+        params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
+        pattern: '/product/:productId',
+    });
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.mocked(decodeFinalRawSegment).mockReturnValue('test-product-123');
+        vi.mocked(fetchProductById).mockResolvedValue(mockProduct);
+        vi.mocked(resolveSwatchProductImages).mockResolvedValue(undefined);
+        vi.mocked(fetchPageWithComponentData).mockResolvedValue({} as never);
+        vi.mocked(generateProductSchema).mockReturnValue({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+        } as never);
+        vi.mocked(getReviewsSummary).mockResolvedValue({} as never);
+        vi.mocked(getReviews).mockResolvedValue({} as never);
+        vi.mocked(getWriteReviewForm).mockResolvedValue({} as never);
+        vi.mocked(getBuyNowPayLaterMessage).mockResolvedValue({} as never);
+        vi.mocked(getBuyNowPayLaterLearnMore).mockResolvedValue({} as never);
+        vi.mocked(getReturnsAndWarranty).mockResolvedValue({} as never);
+    });
+
+    test('converges the schema URL onto the canonical page URL, dropping the request origin and tracking params', async () => {
+        // The request arrives on example.com carrying a tracking param; structured data must point
+        // at the public app origin with the tracking param stripped, matching the canonical <link>
+        // and og:url rather than echoing the raw request URL.
+        await loader(createLoaderArgs('https://example.com/product/test-product-123?utm_source=news&sort=price'));
+
+        expect(generateProductSchema).toHaveBeenCalledWith(
+            mockProduct,
+            'http://localhost:3000/product/test-product-123?sort=price'
+        );
+    });
+
+    test('301-redirects a trailing-slash product path to the canonical path, preserving the query', async () => {
+        try {
+            await loader(createLoaderArgs('https://example.com/product/test-product-123/?sort=price'));
+            expect.fail('Expected loader to throw a redirect');
+        } catch (error: any) {
+            expect(error).toBeInstanceOf(Response);
+            expect(error.status).toBe(301);
+            expect(error.headers.get('Location')).toBe('/product/test-product-123?sort=price');
+        }
     });
 });

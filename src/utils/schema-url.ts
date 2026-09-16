@@ -20,7 +20,6 @@
  * and never expose internal routing URLs (AWS Lambda, CDN origins, etc.).
  */
 
-import { resolveRequestOrigin } from '@/lib/origin';
 import {
     extractPrefixParamValues,
     resolvePrefix,
@@ -41,45 +40,12 @@ function extractResolvedOuterPrefix(pathname: string, urlPrefix?: string): strin
 }
 
 /**
- * Get the public origin (scheme + host) from a request, respecting proxy headers.
- *
- * In serverless/proxied environments (AWS Lambda, Managed Runtime, CDN), the request.url
- * contains internal routing URLs. The actual public URL is available through forwarding headers.
- *
- * Delegates to `resolveRequestOrigin` so the auth and schema-URL paths share one parser
- * — same comma-split, leading-empty handling, and exact-match localhost detection.
- * Falls back to `request.url.origin` (which may be an internal URL on serverless) when
- * no headers are available, preserving JSON-LD's prior behavior of always returning a
- * non-null string.
- *
- * @param request - The incoming HTTP request
- * @returns The public origin (e.g., "https://example.com"), or falls back to request.url origin
- *
- * @example
- * ```ts
- * // In a loader:
- * const origin = getPublicOrigin(request);
- * const pageUrl = `${origin}${new URL(request.url).pathname}`;
- * ```
- */
-export function getPublicOrigin(request: Request): string {
-    const resolved = resolveRequestOrigin(request);
-    if (resolved) return resolved;
-
-    try {
-        return new URL(request.url).origin;
-    } catch {
-        return '';
-    }
-}
-
-/**
  * Build a complete public URL for use in JSON-LD schema.
  * This ensures schema URLs always use the public storefront domain and preserve
  * site/locale prefixes from the current page URL.
  *
  * @param options - URL building options
- * @param options.origin - Public origin from getPublicOrigin()
+ * @param options.origin - Public origin (scheme + host), e.g. the origin of the loader's canonical page URL
  * @param options.currentPageUrl - Current page URL (used to extract site/locale prefix)
  * @param options.path - Path to build (e.g., '/product/123', '/category/456')
  * @param options.seoUrlContext - Active site's optional SEO route configuration
@@ -155,7 +121,7 @@ export function buildSchemaUrl({
  * @param options - Product URL building options
  * @param options.productId - Product ID
  * @param options.slug - Product slug returned by SCAPI `expand=slug`
- * @param options.origin - Public origin from getPublicOrigin()
+ * @param options.origin - Public origin (scheme + host), e.g. the origin of the loader's canonical page URL
  * @param options.currentPageUrl - Current page URL (to preserve site/locale prefix)
  * @param options.seoUrlContext - Active site's optional SEO route configuration
  * @returns Complete product URL for schema, or undefined if productId is missing
@@ -199,7 +165,7 @@ export function buildProductSchemaUrl({
  * @param options - Category URL building options
  * @param options.categoryId - Category ID
  * @param options.slugSegments - Authoritative category slug hierarchy, when available
- * @param options.origin - Public origin from getPublicOrigin()
+ * @param options.origin - Public origin (scheme + host), e.g. the origin of the loader's canonical page URL
  * @param options.currentPageUrl - Current page URL (to preserve site/locale prefix)
  * @param options.seoUrlContext - Active site's optional SEO route configuration
  * @returns Complete category URL for schema, or undefined if categoryId is missing
