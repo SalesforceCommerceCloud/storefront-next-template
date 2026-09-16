@@ -20,7 +20,7 @@ This reference provides detailed documentation for all configuration options ava
     - [search](#search) - Search-specific settings
     - [performance](#performance) - Performance optimization settings
     - [engagement](#engagement) - Analytics and engagement adapters
-    - [cimulateAgent](#cimulateagent) - Commerce Client (Cimulate) messaging widget
+    - [commerce.shopperAgent / cimulateAgent](#commerceshopperagent-preferred--cimulateagent-deprecated) - Shopper Agent (Commerce Client messaging widget)
     - [development](#development) - Development tools and features
 
 ---
@@ -1690,11 +1690,18 @@ PUBLIC__app__engagement__analytics__pageViewsResetDuration=2000
 
 ---
 
-## cimulateAgent
+## commerce.shopperAgent (preferred) / cimulateAgent (deprecated)
 
-Commerce Client (Cimulate) messaging widget configuration. When enabled, loads the Cimulate UMD bundle and injects a chat widget accessible via the header sparkles icon or Account Help "Ask a question" button.
+Shopper Agent (Commerce Client messaging widget) configuration. When enabled, loads the widget bundle and injects a chat surface accessible via the header sparkles icon or Account Help "Ask a question" button.
 
-Override via `PUBLIC__app__cimulateAgent` as a single JSON string. Defaults in `config.server.ts` are empty or disabled. See `src/components/cimulate/README.md` for setup.
+Two env var names are accepted:
+
+- **`PUBLIC__app__commerce__shopperAgent`** — preferred. Populates `config.commerce.shopperAgent`.
+- **`PUBLIC__app__cimulateAgent`** — deprecated legacy alias. Kept for backward compatibility.
+
+When both are set, `commerce.shopperAgent` wins and `cimulateAgent` is ignored. Read the effective value from consumer code via `resolveShopperAgentConfig(config)` from `@/components/cimulate`.
+
+Set as a single JSON string. Defaults in `config.server.ts` are empty or disabled. Today the widget is provided by Cimulate (`provider: 'commerce-client'`); the `shopperAgent` naming leaves room for other agent implementations via the `provider` field. See `src/components/cimulate/README.md` for setup.
 
 | Path                            | Type                                        | Description                                                          |
 | ------------------------------- | ------------------------------------------- | -------------------------------------------------------------------- |

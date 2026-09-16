@@ -18,7 +18,7 @@ import type { CspContributor, CspContribution } from '@salesforce/storefront-nex
 import type { AppConfig } from '@/types/config';
 import { toCspOrigin } from './to-csp-origin.js';
 
-type CimulateAgentConfig = AppConfig['cimulateAgent'];
+type ShopperAgentCspConfig = AppConfig['cimulateAgent'];
 
 const isEnabled = (e: string | boolean | undefined): boolean => e === true || e === 'true';
 
@@ -32,11 +32,13 @@ function origins(...urls: (string | undefined)[]): string[] {
 }
 
 /**
- * CSP contributor for the Commerce Client (Cimulate) messaging widget.
- * Boot-static: derives EXACT origins from the merchant's cimulateAgent config.
- * Inactive (contributes nothing) when Cimulate is disabled or unconfigured.
+ * CSP contributor for the Shopper Agent (Commerce Client / Cimulate) messaging widget.
+ * Boot-static: derives EXACT origins from the merchant's resolved shopper-agent config
+ * (either `commerce.shopperAgent` or the legacy top-level `cimulateAgent`). Callers
+ * should pass the result of `resolveShopperAgentConfig(config)`.
+ * Inactive (contributes nothing) when the widget is disabled or unconfigured.
  */
-export function createCimulateCspContributor(config: CimulateAgentConfig): CspContributor {
+export function createCimulateCspContributor(config: ShopperAgentCspConfig): CspContributor {
     return {
         id: 'cimulate',
         isActive: () => isEnabled(config?.enabled),

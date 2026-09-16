@@ -224,6 +224,13 @@ export default defineConfig<Config>(
                 // the DAL entry is missing, unavailable, or yields no usable sites.
                 // Override via PUBLIC__app__commerce__sitesFromDal=false.
                 sitesFromDal: true,
+                // Shopper Agent (Commerce Client messaging widget) — preferred config path.
+                // No default block: the field is undefined until a merchant sets
+                // PUBLIC__app__commerce__shopperAgent (single JSON string; see
+                // src/components/cimulate/README.md). When set, it takes precedence over the
+                // legacy top-level `cimulateAgent` (PUBLIC__app__cimulateAgent). Keeping this
+                // undefined by default avoids shipping empty-string placeholders to every
+                // storefront's `window.__APP_CONFIG__`.
             },
             // Global default cookie attributes applied to ALL storefront cookies
             // (auth/session + site-context: site_id, locale, currency). A per-site
@@ -637,7 +644,9 @@ export default defineConfig<Config>(
             // Development tools and features
             // See CONFIG-OPTIONS.md#development for detailed documentation
             development: { enableDevtools: true, hotReload: true, strictMode: true },
-            // Cimulate Agent (Commerce Client messaging widget)
+            // Legacy Shopper Agent config (kept for backward compatibility).
+            // Prefer `commerce.shopperAgent` (PUBLIC__app__commerce__shopperAgent); when both
+            // are set, `commerce.shopperAgent` wins and this value is ignored.
             // Override via PUBLIC__app__cimulateAgent (single JSON string; see src/components/cimulate/README.md).
             cimulateAgent: {
                 enabled: '',

@@ -16,6 +16,7 @@
 import { type MiddlewareFunction } from 'react-router';
 import { createSecurityHeadersMiddleware } from '@salesforce/storefront-next-runtime/security';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { resolveShopperAgentConfig } from '@/components/cimulate';
 import { createCimulateCspContributor } from './csp-contributors/cimulate.js';
 import { createData360CspContributor } from './csp-contributors/data360.js';
 
@@ -32,7 +33,7 @@ export const securityHeadersMiddleware: MiddlewareFunction<Response> = async (ar
     if (!middleware) {
         const config = getConfig(args.context);
         const contributors = [
-            createCimulateCspContributor(config.cimulateAgent),
+            createCimulateCspContributor(resolveShopperAgentConfig(config)),
             createData360CspContributor(config.engagement?.adapters?.data360),
         ];
         middleware = createSecurityHeadersMiddleware(config.security?.headers ?? {}, contributors);

@@ -108,6 +108,39 @@ export function isCimulateEnabled(enabled: string | boolean | undefined): boolea
 }
 
 /**
+ * Resolves the effective Shopper Agent configuration from the app config, preferring
+ * the new `commerce.shopperAgent` (`PUBLIC__app__commerce__shopperAgent`) over the
+ * legacy top-level `cimulateAgent` (`PUBLIC__app__cimulateAgent`).
+ *
+ * Precedence:
+ *   1. `commerce.shopperAgent` when it is "populated" — i.e. has a truthy `enabled`
+ *      value or a non-empty `commerceClientScriptSourceUrl`. This is the signal that
+ *      the merchant set `PUBLIC__app__commerce__shopperAgent`; the shipped default
+ *      leaves both fields empty.
+ *   2. Otherwise the legacy top-level `cimulateAgent`, if any.
+ *
+ * Returning `undefined` means neither key is configured.
+ */
+export function resolveShopperAgentConfig<
+    T extends {
+        commerce?: { shopperAgent?: CimulateConfig };
+        cimulateAgent?: CimulateConfig;
+    },
+>(appConfig: T | undefined | null): CimulateConfig | undefined {
+    if (!appConfig) return undefined;
+    const preferred = appConfig.commerce?.shopperAgent;
+    if (preferred && isShopperAgentPopulated(preferred)) {
+        return preferred;
+    }
+    return appConfig.cimulateAgent;
+}
+
+function isShopperAgentPopulated(cfg: CimulateConfig): boolean {
+    if (cfg.enabled === true || cfg.enabled === 'true') return true;
+    return typeof cfg.commerceClientScriptSourceUrl === 'string' && cfg.commerceClientScriptSourceUrl !== '';
+}
+
+/**
  * Opens the Commerce Client widget via the Cimulate SDK.
  * If the SDK hasn't loaded yet, queues the request for when it becomes available.
  */

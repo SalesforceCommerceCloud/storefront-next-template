@@ -109,6 +109,7 @@ export {
     openAgentWidget,
     validateCimulateConfig,
     isCimulateEnabled,
+    resolveShopperAgentConfig,
     CIMULATE_LOAD_EVENT,
 } from './cimulate.utils';
 export type { CimulateConfig } from './cimulate.utils';

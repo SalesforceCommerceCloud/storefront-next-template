@@ -18,7 +18,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { SparklesIcon } from '@/components/icons';
-import { openAgentWidget, isCimulateEnabled, validateCimulateConfig } from '@/components/cimulate';
+import {
+    openAgentWidget,
+    isCimulateEnabled,
+    validateCimulateConfig,
+    resolveShopperAgentConfig,
+} from '@/components/cimulate';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 
 /**
@@ -31,8 +36,8 @@ export function AccountHelp(): ReactElement {
     const { t } = useTranslation('account');
     const config = useConfig();
 
-    const showAskQuestionButton =
-        isCimulateEnabled(config.cimulateAgent?.enabled) && validateCimulateConfig(config.cimulateAgent);
+    const shopperAgent = resolveShopperAgentConfig(config);
+    const showAskQuestionButton = isCimulateEnabled(shopperAgent?.enabled) && validateCimulateConfig(shopperAgent);
 
     const handleAskQuestion = () => {
         openAgentWidget();

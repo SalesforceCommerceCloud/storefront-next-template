@@ -136,14 +136,17 @@ function validateConfig(logger: ReturnType<typeof getLogger>): void {
  * Server middleware to ensure app config is in context before any other middleware runs
  * This MUST run first so that scapi.ts can access config during auth middleware
  *
- * Note: We reference config.app.cimulateAgent so the server bundle keeps it when tree-shaking.
- * Root and header read it via getConfig(context); the bundler does not trace that back to this module.
+ * Note: We reference the Shopper Agent config paths so the server bundle keeps them when
+ * tree-shaking. Root, header, and CSP contributors read them via getConfig(context);
+ * the bundler does not trace that back to this module.
  */
 export const appConfigMiddlewareServer: MiddlewareFunction<Response> = ({ context }, next) => {
     const logger = getLogger(context);
     logger.debug('AppConfig: middleware starting');
     validateConfig(logger);
-    // Ensure cimulateAgent is not tree-shaken from the config (used by root.tsx and header for cimulate agent)
+    // Ensure Shopper Agent config keys are not tree-shaken (read via getConfig by root, header,
+    // and CSP contributors). Reference both the preferred and legacy paths.
+    void config.app.commerce.shopperAgent;
     void config.app.cimulateAgent;
     context.set(appConfigContext, config.app);
     context.set(clientAppConfigContext, CLIENT_APP_CONFIG);

@@ -94,7 +94,8 @@ Every variable the storefront recognizes is listed here. Set the **Required** ro
 | `PUBLIC__app__features__googleCloudAPI__apiKey` | — | Google Address Autocomplete |
 | `PUBLIC__app__security__turnstile__enabled` | `false` | Turnstile bot protection |
 | `PUBLIC__app__security__turnstile__sites` | — | Turnstile per-site configuration |
-| `PUBLIC__app__cimulateAgent` | disabled | Commerce Client (Cimulate) messaging widget config (JSON string) |
+| `PUBLIC__app__commerce__shopperAgent` | disabled | Shopper Agent (Commerce Client messaging widget) config (JSON string). Preferred over the legacy `PUBLIC__app__cimulateAgent`; when both are set, `commerce.shopperAgent` wins and `cimulateAgent` is ignored. |
+| `PUBLIC__app__cimulateAgent` | disabled | **Deprecated.** Legacy alias for the Shopper Agent widget config. Kept for backward compatibility — new deployments should use `PUBLIC__app__commerce__shopperAgent`. |
 
 ### Optional non-`PUBLIC__` runtime/deploy variables
 
@@ -632,13 +633,18 @@ Cloudflare Turnstile is disabled by default. The test site key below always pass
 
 See [README-TURNSTILE.md](./README-TURNSTILE.md) and `e2e/feature-specs/checkout/turnstile-protection.spec.md`.
 
-### Commerce Client (Cimulate)
+### Shopper Agent (Commerce Client messaging widget)
 
 ```bash
+# Preferred (new)
+# PUBLIC__app__commerce__shopperAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
+
+# Legacy (deprecated) — still supported for backward compatibility.
+# When both are set, PUBLIC__app__commerce__shopperAgent wins and PUBLIC__app__cimulateAgent is ignored.
 # PUBLIC__app__cimulateAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
 ```
 
-Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. See `src/components/cimulate/README.md` for setup.
+Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. Today the widget is provided by Cimulate (`provider: 'commerce-client'`); the top-level naming leaves room for other agent implementations in the future. See `src/components/cimulate/README.md` for setup.
 
 ### Cookie domain
 

@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 const vertical = process.env.VERTICAL ?? 'fashion';
-const productScriptSizeLimit = vertical === 'footwear' ? 482000 : 475000;
+// PDP script budget raised @W-24210721 (+1000 B, 482000 → 483000 footwear /
+// 475000 → 476000 others): the Shopper Agent env-var rename adds a
+// `resolveShopperAgentConfig` helper plus imports in `root.tsx`, both headers,
+// and Account Help so the "new wins over legacy" precedence lives in one
+// place. Footwear PDP CI measured 482434 across five runs (over the prior 482000
+// ceiling); the helper is irreducible — it is the compatibility gate — so absorb
+// the ~434 B with modest headroom rather than dropping the deprecation shim.
+const productScriptSizeLimit = vertical === 'footwear' ? 483000 : 476000;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
 const cartScriptSizeLimit = vertical === 'footwear' ? 534000 : 530000;
 

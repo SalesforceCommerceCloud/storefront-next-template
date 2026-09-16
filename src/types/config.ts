@@ -51,6 +51,42 @@ export type BadgeDetail = {
 };
 
 /**
+ * Shopper Agent (Commerce Client messaging widget) configuration.
+ *
+ * Preferred config path is `commerce.shopperAgent`, populated from
+ * `PUBLIC__app__commerce__shopperAgent` (single JSON string).
+ * The legacy top-level `cimulateAgent` (populated from `PUBLIC__app__cimulateAgent`)
+ * still works for backward compatibility; when both are provided, the new
+ * `commerce.shopperAgent` wins. Use `resolveShopperAgentConfig` from
+ * `@/components/cimulate` to read the effective value from consumer code.
+ */
+export type ShopperAgentConfig = {
+    enabled: string | boolean;
+    commerceClientScriptSourceUrl: string;
+    scrt2Url: string;
+    salesforceOrgId: string;
+    esDeveloperName: string;
+    commerceClientDisplayMode?: 'panel' | 'dialog' | 'modal';
+    commerceClientElementId?: string;
+    commerceClientLogoUrl?: string;
+    commerceClientPanelWidth?: string;
+    commerceClientMode?: string;
+    headerText?: string;
+    disclaimerMarkdown?: string;
+    commerceClientSearchConfig?: {
+        placeholder?: string;
+        buttonLabel?: string;
+        buttonType?: string;
+        buttonIconUrl?: string;
+    };
+    commerceClientTheme?: Record<string, string>;
+    routingAttributes?: Record<string, unknown>;
+    isDevelopment?: string;
+    /** Optional provider identifier. Currently only `commerce-client` (Cimulate) is supported. */
+    provider?: string;
+};
+
+/**
  * Recursively strip `readonly` so an extension config authored with `as const` still merges
  * into the mutable `AppConfig`. The generated barrel is the source of both the value (in
  * config.server.ts) and this type, so the two can never drift.
@@ -80,6 +116,13 @@ export type AppConfig = {
          * template enables this by default in `config.server.ts`.
          */
         sitesFromDal?: boolean;
+        /**
+         * Shopper Agent widget configuration. Preferred config path.
+         * Override via `PUBLIC__app__commerce__shopperAgent` (single JSON string).
+         * When both this and the legacy top-level `cimulateAgent` are set,
+         * `commerce.shopperAgent` wins.
+         */
+        shopperAgent?: ShopperAgentConfig;
     };
     /**
      * Global default cookie attributes applied to ALL storefront cookies (auth/session and
@@ -91,29 +134,12 @@ export type AppConfig = {
         /** Cookie domain, e.g. `.example.com` to share across subdomains. */
         domain?: string;
     };
-    cimulateAgent?: {
-        enabled: string | boolean;
-        commerceClientScriptSourceUrl: string;
-        scrt2Url: string;
-        salesforceOrgId: string;
-        esDeveloperName: string;
-        commerceClientDisplayMode?: 'panel' | 'dialog' | 'modal';
-        commerceClientElementId?: string;
-        commerceClientLogoUrl?: string;
-        commerceClientPanelWidth?: string;
-        commerceClientMode?: string;
-        headerText?: string;
-        disclaimerMarkdown?: string;
-        commerceClientSearchConfig?: {
-            placeholder?: string;
-            buttonLabel?: string;
-            buttonType?: string;
-            buttonIconUrl?: string;
-        };
-        commerceClientTheme?: Record<string, string>;
-        routingAttributes?: Record<string, unknown>;
-        isDevelopment?: string;
-    };
+    /**
+     * @deprecated Use `commerce.shopperAgent` (populated from
+     * `PUBLIC__app__commerce__shopperAgent`). This top-level key remains supported
+     * for backward compatibility; it is ignored when `commerce.shopperAgent` is set.
+     */
+    cimulateAgent?: ShopperAgentConfig;
     defaultSiteId: string;
     development: {
         enableDevtools: boolean;

@@ -97,7 +97,7 @@ import { correlationContext } from '@/lib/correlation';
 // Components
 import { AppToaster } from '@/components/toast';
 import { TrackingConsentBanner } from '@/components/tracking-consent-banner';
-import CimulateAgent, { isCimulateEnabled } from '@/components/cimulate';
+import CimulateAgent, { isCimulateEnabled, resolveShopperAgentConfig } from '@/components/cimulate';
 
 // Hooks
 import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
@@ -744,6 +744,9 @@ export default function App({
 
     const passkeyEnabled = Boolean(appConfig?.features?.passkey?.enabled);
 
+    const shopperAgent = resolveShopperAgentConfig(appConfig);
+    const shopperAgentEnabled = isCimulateEnabled(shopperAgent?.enabled);
+
     const innerTree = (
         <UITargetProviders>
             <AuthActionExecutor />
@@ -766,9 +769,7 @@ export default function App({
     return (
         <ComposeProviders providers={providers}>
             {passkeyEnabled ? <PasskeyRegistrationProvider>{innerTree}</PasskeyRegistrationProvider> : innerTree}
-            {isCimulateEnabled(appConfig.cimulateAgent?.enabled) && (
-                <CimulateAgent cimulateConfiguration={appConfig.cimulateAgent} />
-            )}
+            {shopperAgentEnabled && <CimulateAgent cimulateConfiguration={shopperAgent} />}
         </ComposeProviders>
     );
 }
