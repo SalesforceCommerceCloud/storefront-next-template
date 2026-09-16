@@ -1,9 +1,9 @@
 import { r as ShopperExperience } from "./types2.js";
 import { i as FrameworkAdapter, n as ComponentModule } from "./types3.js";
-import { g as IsomorphicConfiguration } from "./index.js";
+import { g as IsomorphicConfiguration, r as ClientApi } from "./index.js";
 import { a as RegionDecoratorProps, i as PageUpdateMode, n as ComponentDecoratorProps, t as useDesignContext } from "./DesignContext.js";
 import React$1, { JSX, PropsWithChildren } from "react";
-import * as react_jsx_runtime3 from "react/jsx-runtime";
+import * as react_jsx_runtime2 from "react/jsx-runtime";
 
 //#region src/design/react/core/PageDesignerProvider.d.ts
 type PageDesignerContextType = {
@@ -22,25 +22,17 @@ type PageDesignerProviderProps = {
   pageUpdateMode?: PageUpdateMode;
   mode?: 'EDIT' | 'PREVIEW';
 };
-declare const PageDesignerProvider: {
-  ({
-    children,
-    targetOrigin,
-    clientId,
-    usid,
-    pageUpdateMode,
-    clientLogger,
-    clientConnectionTimeout,
-    clientConnectionInterval,
-    mode
-  }: PageDesignerProviderProps): React.JSX.Element;
-  defaultProps: {
-    clientConnectionTimeout: number;
-    clientConnectionInterval: number;
-    mode: undefined;
-    clientLogger: () => void;
-  };
-};
+declare const PageDesignerProvider: ({
+  children,
+  targetOrigin,
+  clientId,
+  usid,
+  pageUpdateMode,
+  clientLogger,
+  clientConnectionTimeout,
+  clientConnectionInterval,
+  mode
+}: PageDesignerProviderProps) => React.JSX.Element;
 //#endregion
 //#region src/design/react/core/PageDesignerPageMetadataProvider.d.ts
 /**
@@ -51,7 +43,7 @@ declare function PageDesignerPageMetadataProvider({
   children
 }: React.PropsWithChildren<{
   page: ShopperExperience.schemas['Page'];
-}>): react_jsx_runtime3.JSX.Element;
+}>): react_jsx_runtime2.JSX.Element;
 //#endregion
 //#region src/design/react/core/RegionContext.d.ts
 interface RegionContextType {
@@ -149,5 +141,28 @@ declare function RootComponentProvider({
  */
 declare function useIsRootComponent(): boolean;
 //#endregion
-export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, type PageUpdateMode, type ReactDesignComponentType, RootComponentProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useDesignContext, useIsRootComponent, useIsWithinEmbeddedSubtree, usePageDesignerMode, useRegionContext };
+//#region src/design/react/core/PreviewContext.d.ts
+/**
+ * Tokens for the Preview Context. Kept in `core/` so lightweight consumers
+ * (`usePreviewContext`) can be imported by the shopper-facing template without
+ * dragging `PreviewProvider` — and its `createClientApi` dependency — into the
+ * main bundle. The runtime provider lives in `../context/PreviewContext`.
+ */
+interface PreviewContextType {
+  /** Whether preview mode is currently active */
+  isPreviewMode: boolean;
+  /** Client API for host communication. Undefined until the provider has mounted. */
+  clientApi?: ClientApi;
+  /** Whether the client is connected to the host. */
+  isConnected: boolean;
+  /**
+   * Emits a `ClientRouteChanged` event to the host with the current URL.
+   * A no-op outside a `PreviewProvider`. Mirrors `setClientPage` on
+   * `DesignContext`, which fires `ClientPageChanged`.
+   */
+  notifyClientRouteChanged: (url: string) => void;
+}
+declare const usePreviewContext: () => PreviewContextType;
+//#endregion
+export { EmbeddedSubtreeProvider, PageDesignerPageMetadataProvider, PageDesignerProvider, type PageUpdateMode, type PreviewContextType, type ReactDesignComponentType, RootComponentProvider, createReactAdapter, createReactComponentDesignDecorator, createReactRegionDesignDecorator, useDesignContext, useIsRootComponent, useIsWithinEmbeddedSubtree, usePageDesignerMode, usePreviewContext, useRegionContext };
 //# sourceMappingURL=design-react-core.d.ts.map

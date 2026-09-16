@@ -547,6 +547,7 @@ describe('Messaging API', () => {
             ${'deleteComponent'}           | ${'ComponentDeleted'}       | ${{ componentId: 'test-component', contentLinkUuid: 'test-component-uuid', sourceComponentId: 'source-component', sourceRegionId: 'source-region' }}
             ${'notifyWindowScrollChanged'} | ${'WindowScrollChanged'}    | ${{ scrollX: 100, scrollY: 200 }}
             ${'notifyError'}               | ${'Error'}                  | ${{ message: 'Test error message', code: 'TEST_ERROR' }}
+            ${'notifyClientRouteChanged'}  | ${'ClientRouteChanged'}     | ${{ url: 'https://storefront.example.com/product/abc' }}
         `(
             'when $method is called on the client',
             ({

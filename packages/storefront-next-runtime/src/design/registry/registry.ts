@@ -55,6 +55,7 @@ export class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
     private readonly registry = new Map<ComponentId, Entry<TProps, TFrameworkComponent>>();
     private readonly pending = new Map<ComponentId, Promise<Entry<TProps, TFrameworkComponent> | null>>();
     private readonly inFlightRegistrations = new Map<ComponentId, Promise<void>>();
+    private readonly registrationErrors = new Map<ComponentId, Error>();
     private generation = 0;
 
     private readonly adapter: FrameworkAdapter<TProps, TFrameworkComponent>;
@@ -81,7 +82,19 @@ export class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
         loaderNames?: LoaderNames
     ): void {
         const prev = this.registry.get(id) ?? ({ id, raw: null } as Entry<TProps, TFrameworkComponent>);
-        this.registry.set(id, { ...prev, id, import: importer, loaderNames });
+        const importerChanged = prev.import !== importer;
+        const replacesImporter = Boolean(prev.import && importerChanged);
+        this.registry.set(id, {
+            ...prev,
+            id,
+            import: importer,
+            loaderNames,
+            ...(replacesImporter ? { raw: null, lazy: undefined, fallback: undefined } : {}),
+        });
+        if (importerChanged) {
+            this.inFlightRegistrations.delete(id);
+            this.registrationErrors.delete(id);
+        }
     }
 
     /**
@@ -128,36 +141,73 @@ export class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
         throw new Error(`Component "${id}" could not be discovered (no importer, no raw/lazy).`);
     }
 
-    /**
-     * Loads and registers a component's concrete export.
-     * Unknown component IDs are ignored so callers can pass IDs collected from external content.
-     */
-    async loadAndRegister(id: ComponentId): Promise<void> {
+    /** Load and register a component's concrete export. */
+    loadAndRegister(id: ComponentId): Promise<void> {
         const entry = this.registry.get(id);
-        if (entry?.raw || !entry?.import) return;
+        if (!entry?.import) {
+            const error = new Error(`Unknown component type "${id}"`);
+            this.registrationErrors.set(id, error);
+            return Promise.reject(error);
+        }
+        if (entry.raw) return Promise.resolve();
 
         const pending = this.inFlightRegistrations.get(id);
         if (pending) return pending;
+        this.registrationErrors.delete(id);
 
         const importer = entry.import;
-        const work = (async () => {
-            const module = await importer();
-            const current = this.registry.get(id);
-            if (!current || current.import !== importer) return;
-
-            this.registry.set(id, {
-                ...current,
-                raw: module.default,
-                fallback: module.fallback ?? current.fallback,
-            });
-        })();
-
-        this.inFlightRegistrations.set(id, work);
+        let importedModule: ReturnType<typeof importer>;
         try {
-            await work;
-        } finally {
-            if (this.inFlightRegistrations.get(id) === work) this.inFlightRegistrations.delete(id);
+            importedModule = importer();
+        } catch (cause) {
+            const error = cause instanceof Error ? cause : new Error(`Failed to load component "${id}"`, { cause });
+            this.registrationErrors.set(id, error);
+            return Promise.reject(error);
         }
+
+        const registration = Promise.resolve(importedModule)
+            .then((module) => {
+                if (!module.default) throw new Error(`Component "${id}" has no default export`);
+
+                const current = this.registry.get(id);
+                if (!current) throw new Error(`Component registration for "${id}" was cancelled`);
+                if (current.import !== importer) return this.loadAndRegister(id);
+
+                this.registry.set(id, {
+                    ...current,
+                    raw: module.default,
+                    fallback: module.fallback ?? current.fallback,
+                });
+            })
+            .catch((cause: unknown) => {
+                const error = cause instanceof Error ? cause : new Error(`Failed to load component "${id}"`, { cause });
+                if (this.registry.get(id)?.import === importer) this.registrationErrors.set(id, error);
+                throw error;
+            });
+        const trackedRegistration = registration.finally(() => {
+            if (this.inFlightRegistrations.get(id) === trackedRegistration) {
+                this.inFlightRegistrations.delete(id);
+            }
+        });
+
+        this.inFlightRegistrations.set(id, trackedRegistration);
+        return trackedRegistration;
+    }
+
+    /** Return a terminal concrete-registration error without clearing it. */
+    getRegistrationError(id: ComponentId): Error | undefined {
+        return this.registrationErrors.get(id);
+    }
+
+    clearRegistrationError(id: ComponentId): void {
+        this.registrationErrors.delete(id);
+    }
+
+    /** Return and clear a terminal registration error so a later attempt can retry. */
+    consumeRegistrationError(id: ComponentId): Error | undefined {
+        const error = this.getRegistrationError(id);
+        this.clearRegistrationError(id);
+        return error;
     }
 
     /** Get loader function names for external invocation. */
@@ -166,7 +216,8 @@ export class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
     }
 
     hasLoaders(id: ComponentId): boolean {
-        return Object.values(this.registry.get(id)?.loaderNames || {}).filter(Boolean).length > 0;
+        const loaderNames = this.registry.get(id)?.loaderNames;
+        return Boolean(loaderNames?.loader || loaderNames?.clientLoader);
     }
 
     /**
@@ -183,7 +234,7 @@ export class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
         const loaderName = loaderNames?.[loaderType];
 
         if (!loaderName) {
-            return Promise.resolve(undefined);
+            return undefined;
         }
 
         // Get the entry to access the import function
@@ -238,6 +289,7 @@ export class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
         this.registry.clear();
         this.pending.clear();
         this.inFlightRegistrations.clear();
+        this.registrationErrors.clear();
     }
 
     /* ==================== Private Methods ==================== */

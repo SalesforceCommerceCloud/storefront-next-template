@@ -52,7 +52,7 @@ const SCAFFOLD = `import { registry } from '@/lib/page-designer/registry';
 // STATIC_REGISTRY_END
 `;
 
-// A registration whose single-line form is 163 chars — past the 120-col Biome lineWidth — so a
+// A registration whose single-line form exceeds the 120-col Biome lineWidth, so a
 // Biome pass is forced to wrap it. Its presence verbatim in the output means no formatting ran.
 const LONG_COMPONENT: ComponentInfo[] = [
     {
@@ -66,7 +66,7 @@ const LONG_COMPONENT: ComponentInfo[] = [
 ];
 
 const LONG_SINGLE_LINE =
-    "    targetRegistry.registerImporter('Layout.productCarousel', () => import('../../components/product-carousel/index'), { loader: 'loader', fallback: 'fallback' });";
+    "    targetRegistry.registerImporter('Layout.productCarousel', staticRegistryImporters[0], { loader: 'loader', fallback: 'fallback' });";
 
 describe('updateRegistryFile formatting', () => {
     beforeEach(() => {

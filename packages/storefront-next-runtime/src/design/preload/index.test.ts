@@ -18,30 +18,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { dedupePreloadResources, resolvePreloadResources, type PageDesignerPreloadManifest } from '.';
 
 const manifest: PageDesignerPreloadManifest = {
-    version: 1,
-    compression: { brotli: { quality: 9 }, gzip: { level: 6 } },
     resources: [
-        {
-            file: 'assets/shared.js',
-            kind: 'module',
-            bytes: 300,
-            estimatedBrotliBytes: 80,
-            estimatedGzipBytes: 100,
-        },
-        {
-            file: 'assets/hero.js',
-            kind: 'module',
-            bytes: 200,
-            estimatedBrotliBytes: 60,
-            estimatedGzipBytes: 70,
-        },
-        {
-            file: 'assets/hero.css',
-            kind: 'style',
-            bytes: 100,
-            estimatedBrotliBytes: 30,
-            estimatedGzipBytes: 40,
-        },
+        { file: 'assets/shared.js', kind: 'module' },
+        { file: 'assets/hero.js', kind: 'module' },
+        { file: 'assets/hero.css', kind: 'style' },
     ],
     components: {
         'Content.hero': { dependencies: [0], entries: [1], styles: [2] },
@@ -73,9 +53,6 @@ describe('resolvePreloadResources', () => {
         const dependency = {
             file: 'assets/a-dependency.js',
             kind: 'module' as const,
-            bytes: 100,
-            estimatedBrotliBytes: 30,
-            estimatedGzipBytes: 40,
         };
         const dependencyIndex = manifest.resources.length;
 
@@ -98,7 +75,7 @@ describe('resolvePreloadResources', () => {
         ]);
     });
 
-    it('sorts resources with the same role by file name', () => {
+    it('preserves encounter order for resources with the same role', () => {
         expect(
             resolvePreloadResources(
                 { ...manifest, components: { 'Layout.shared': { dependencies: [0, 1] } } },
@@ -106,8 +83,8 @@ describe('resolvePreloadResources', () => {
                 { bundlePath: '/' }
             )
         ).toEqual([
-            { kind: 'module', href: '/assets/hero.js' },
             { kind: 'module', href: '/assets/shared.js' },
+            { kind: 'module', href: '/assets/hero.js' },
         ]);
     });
 
@@ -116,16 +93,10 @@ describe('resolvePreloadResources', () => {
             {
                 file: 'assets/z-dependency.css',
                 kind: 'style' as const,
-                bytes: 20,
-                estimatedBrotliBytes: 10,
-                estimatedGzipBytes: 10,
             },
             {
                 file: 'assets/a-component.css',
                 kind: 'style' as const,
-                bytes: 20,
-                estimatedBrotliBytes: 10,
-                estimatedGzipBytes: 10,
             },
         ];
         const firstStyleIndex = manifest.resources.length;
@@ -146,86 +117,6 @@ describe('resolvePreloadResources', () => {
         ]);
     });
 
-    it('keeps every ordered stylesheet outside the module preload budget', () => {
-        const onWarning = vi.fn();
-        const styles = [
-            {
-                file: 'assets/z-first.css',
-                kind: 'style' as const,
-                bytes: 10,
-                estimatedBrotliBytes: 10,
-                estimatedGzipBytes: 10,
-            },
-            {
-                file: 'assets/a-too-large.css',
-                kind: 'style' as const,
-                bytes: 100,
-                estimatedBrotliBytes: 100,
-                estimatedGzipBytes: 100,
-            },
-            {
-                file: 'assets/m-would-fit.css',
-                kind: 'style' as const,
-                bytes: 10,
-                estimatedBrotliBytes: 10,
-                estimatedGzipBytes: 10,
-            },
-        ];
-
-        expect(
-            resolvePreloadResources(
-                {
-                    ...manifest,
-                    resources: styles,
-                    components: { 'Content.ordered': { styles: [0, 1, 2] } },
-                },
-                ['Content.ordered'],
-                { bundlePath: '/', maxModuleEstimatedTransferBytes: 0, maxModuleRawBytes: 0, onWarning }
-            )
-        ).toEqual([
-            { kind: 'style', href: '/assets/z-first.css' },
-            { kind: 'style', href: '/assets/a-too-large.css' },
-            { kind: 'style', href: '/assets/m-would-fit.css' },
-        ]);
-        expect(onWarning).not.toHaveBeenCalled();
-    });
-
-    it.each([
-        ['brotli', 59] as const,
-        ['gzip', 69] as const,
-        ['max', 69] as const,
-    ])('charges the %s estimate', (compressedSizeStrategy, budget) => {
-        const result = resolvePreloadResources(manifest, ['Content.hero'], {
-            bundlePath: '/',
-            compressedSizeStrategy,
-            maxModuleEstimatedTransferBytes: budget,
-            maxModuleRawBytes: 1_000,
-        });
-        expect(result).toEqual([{ kind: 'style', href: '/assets/hero.css' }]);
-    });
-
-    it('enforces raw and compressed module budgets independently and reports one structured warning', () => {
-        const onWarning = vi.fn();
-        const result = resolvePreloadResources(manifest, ['Content.hero'], {
-            bundlePath: '/',
-            maxModuleEstimatedTransferBytes: 70,
-            maxModuleRawBytes: 200,
-            onWarning,
-        });
-        expect(result).toEqual([
-            { kind: 'style', href: '/assets/hero.css' },
-            { kind: 'module', href: '/assets/hero.js' },
-        ]);
-        expect(onWarning).toHaveBeenCalledWith(
-            expect.objectContaining({
-                code: 'module-budget-exceeded',
-                selectedModuleEstimatedTransferBytes: 70,
-                selectedModuleRawBytes: 200,
-                omittedModules: [expect.objectContaining({ file: 'assets/shared.js' })],
-            })
-        );
-    });
-
     it('warns for unknown IDs and warns at the resource threshold without truncating', () => {
         const onWarning = vi.fn();
         const result = resolvePreloadResources(manifest, ['missing', 'Content.hero'], {
@@ -240,16 +131,14 @@ describe('resolvePreloadResources', () => {
 
     it.each([
         null,
-        { ...manifest, version: 2 },
         { ...manifest, resources: null },
         { ...manifest, components: null },
-        { ...manifest, compression: null },
-    ])('rejects unsupported or malformed manifests', (invalidManifest) => {
+    ])('rejects malformed manifests', (invalidManifest) => {
         expect(() =>
             resolvePreloadResources(invalidManifest as unknown as PageDesignerPreloadManifest, [], {
                 bundlePath: '/',
             })
-        ).toThrow('Unsupported or malformed');
+        ).toThrow('Malformed');
     });
 
     it('rejects component references to missing resources', () => {

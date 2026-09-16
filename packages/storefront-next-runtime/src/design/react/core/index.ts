@@ -24,3 +24,4 @@ export { useDesignContext } from './DesignContext';
 export type { ReactDesignComponentType } from './adapter';
 export type { PageUpdateMode } from './component.types';
 export { RootComponentProvider, useIsRootComponent } from './RootComponentContext';
+export { usePreviewContext, type PreviewContextType } from './PreviewContext';

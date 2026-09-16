@@ -231,6 +231,20 @@ interface ClientPageChangedEvent extends WithBaseEvent {
   page: ShopperExperience.schemas['Page'];
 }
 /**
+ * Emits when the storefront navigates to a new URL inside the preview iframe.
+ * The host uses this to keep its URL bar and stored `currentUrl` in sync with
+ * shopper navigation without reloading the iframe.
+ * @target host
+ * @group Events
+ */
+interface ClientRouteChangedEvent extends WithBaseEvent {
+  eventType: 'ClientRouteChanged';
+  /**
+   * The fully-qualified URL the client has navigated to.
+   */
+  url: string;
+}
+/**
  * Emits when the host disconnects from the client.
  * @target client
  * @group Events
@@ -658,6 +672,7 @@ interface HostEventNameMapping extends IsomorphicEventNameMapping {
   ClientReady: ClientReady;
   ClientDisconnected: ClientDisconnectedEvent;
   ClientPageChanged: ClientPageChangedEvent;
+  ClientRouteChanged: ClientRouteChangedEvent;
 }
 /**
  * The mapping of client events to their corresponding event.
@@ -1015,6 +1030,20 @@ interface ClientApi extends IsomorphicApi {
    */
   notifyClientPageChanged(event: EventPayload<ClientPageChangedEvent>): void;
   /**
+   * Notifies the host that the storefront has navigated to a new URL inside the preview iframe.
+   *
+   * @param event - The route change event containing the fully-qualified URL
+   * @stability development
+   *
+   * @example
+   * ```typescript
+   * api.notifyClientRouteChanged({ url: window.location.href });
+   * ```
+   *
+   * @see {Domain.ClientRouteChangedEvent}
+   */
+  notifyClientRouteChanged(event: EventPayload<ClientRouteChangedEvent>): void;
+  /**
    * Registers an event handler for client-side events.
    *
    * @template TEvent - The type of client event to listen for
@@ -1332,5 +1361,5 @@ declare function createHostApi({
   logger
 }: HostConfiguration): HostApi;
 //#endregion
-export { RegionInfo as $, ClientWindowDragExitedEvent as A, ComponentMovedToRegionEvent as B, ClientConfigurationChangedEvent as C, ClientReady as D, ClientPageChangedEvent as E, ComponentDragStartedEvent as F, ComponentUpdatedEvent as G, ComponentResetEvent as H, ComponentFocusedEvent as I, HostDisconnected as J, DefaultForwardedKeys as K, ComponentHoveredInEvent as L, ComponentAddedToRegionEvent as M, ComponentDeletedEvent as N, ClientWindowDragDroppedEvent as O, ComponentDeselectedEvent as P, PageSettingsChangedEvent as Q, ComponentHoveredOutEvent as R, ClientAcknowledgedEvent as S, ClientInitializedEvent as T, ComponentSelectedEvent as U, ComponentPropertiesChangedEvent as V, ComponentType as W, HostToClientConfiguration as X, HostKeyPressedEvent as Y, MediaChangedEvent as Z, IsomorphicEventNameMapping as _, ClientEventNameMapping as a, WithEventType as b, EventHandler as c, HostApi as d, WindowScrollChangedEvent as et, HostConfiguration as f, IsomorphicConfiguration as g, IsomorphicApi as h, ClientConfiguration as i, ClientWindowDragMovedEvent as j, ClientWindowDragEnteredEvent as k, EventPayload as l, HostMessage as m, createClientApi as n, ClientMessage as o, HostEventNameMapping as p, ErrorEvent as q, ClientApi as r, ConfigFactory as s, createHostApi as t, EventTypeName as u, MessageEmitter as v, ClientDisconnectedEvent as w, WithMeta as x, Source as y, ComponentInfo as z };
+export { PageSettingsChangedEvent as $, ClientWindowDragEnteredEvent as A, ComponentInfo as B, ClientConfigurationChangedEvent as C, ClientReady as D, ClientPageChangedEvent as E, ComponentDeselectedEvent as F, ComponentType as G, ComponentPropertiesChangedEvent as H, ComponentDragStartedEvent as I, ErrorEvent as J, ComponentUpdatedEvent as K, ComponentFocusedEvent as L, ClientWindowDragMovedEvent as M, ComponentAddedToRegionEvent as N, ClientRouteChangedEvent as O, ComponentDeletedEvent as P, MediaChangedEvent as Q, ComponentHoveredInEvent as R, ClientAcknowledgedEvent as S, ClientInitializedEvent as T, ComponentResetEvent as U, ComponentMovedToRegionEvent as V, ComponentSelectedEvent as W, HostKeyPressedEvent as X, HostDisconnected as Y, HostToClientConfiguration as Z, IsomorphicEventNameMapping as _, ClientEventNameMapping as a, WithEventType as b, EventHandler as c, HostApi as d, RegionInfo as et, HostConfiguration as f, IsomorphicConfiguration as g, IsomorphicApi as h, ClientConfiguration as i, ClientWindowDragExitedEvent as j, ClientWindowDragDroppedEvent as k, EventPayload as l, HostMessage as m, createClientApi as n, ClientMessage as o, HostEventNameMapping as p, DefaultForwardedKeys as q, ClientApi as r, ConfigFactory as s, createHostApi as t, WindowScrollChangedEvent as tt, EventTypeName as u, MessageEmitter as v, ClientDisconnectedEvent as w, WithMeta as x, Source as y, ComponentHoveredOutEvent as z };
 //# sourceMappingURL=index.d.ts.map

@@ -15,28 +15,7 @@
  */
 import type { ShopperExperience } from '@/scapi';
 
-export interface ComponentIdentifiers {
-    typeIds: Set<string>;
-    componentIds: Set<string>;
-}
-
-/** Collect every component in a region, including components in nested regions. */
-export function collectComponentIdentifiers(
-    region: ShopperExperience.schemas['Region'] | undefined
-): ComponentIdentifiers {
-    const typeIds = new Set<string>();
-    const componentIds = new Set<string>();
-
-    const visitRegions = (regions: ShopperExperience.schemas['Region'][] | undefined): void => {
-        for (const nestedRegion of regions ?? []) {
-            for (const component of nestedRegion.components ?? []) {
-                typeIds.add(component.typeId);
-                componentIds.add(component.id);
-                visitRegions(component.regions);
-            }
-        }
-    };
-
-    if (region) visitRegions([region]);
-    return { typeIds, componentIds };
+/** Collect unique direct-child component type IDs in payload order. */
+export function collectComponentTypeIds(region: ShopperExperience.schemas['Region'] | undefined): Set<string> {
+    return new Set((region?.components ?? []).map((component) => component.typeId));
 }

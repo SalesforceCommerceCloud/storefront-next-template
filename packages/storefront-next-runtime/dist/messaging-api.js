@@ -240,6 +240,7 @@ function createClientApi({ emitter, id, forwardedKeys = [], logger }) {
 		notifyClientReady: messenger.toEmitter("ClientReady"),
 		notifyError: messenger.toEmitter("Error"),
 		notifyClientPageChanged: messenger.toEmitter("ClientPageChanged"),
+		notifyClientRouteChanged: messenger.toEmitter("ClientRouteChanged"),
 		connect,
 		on: (eventName, handler) => messenger.on(eventName, (event) => {
 			if (eventName === "ClientAcknowledged" || messenger.isReady()) handler(event);

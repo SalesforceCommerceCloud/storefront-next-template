@@ -195,6 +195,8 @@ export function useScapiFetchClient<
  * revalidation. Use this for helper-namespace mutations that affect a localized
  * UI element rather than page-level state.
  *
+ * @deprecated Helper namespace operations are no longer supported by the SCAPI resource route.
+ *
  * @example
  * ```ts
  * const fetch = useScapiFetchHelper('basket', 'getOrCreateBasket', {

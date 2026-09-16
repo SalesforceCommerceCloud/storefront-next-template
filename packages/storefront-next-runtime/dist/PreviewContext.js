@@ -1,18 +1,14 @@
-import { r as isPreviewModeActive } from "./modeDetection.js";
-import { createContext, useMemo } from "react";
-import { jsx } from "react/jsx-runtime";
+import { createContext, useContext } from "react";
 
-//#region src/design/react/context/PreviewContext.tsx
-const PreviewContext = createContext({ isPreviewMode: false });
-const PreviewProvider = ({ children }) => {
-	const isPreviewMode = isPreviewModeActive();
-	const contextValue = useMemo(() => ({ isPreviewMode }), [isPreviewMode]);
-	return /* @__PURE__ */ jsx(PreviewContext.Provider, {
-		value: contextValue,
-		children
-	});
-};
+//#region src/design/react/core/PreviewContext.tsx
+const noop = () => {};
+const PreviewContext = createContext({
+	isPreviewMode: false,
+	isConnected: false,
+	notifyClientRouteChanged: noop
+});
+const usePreviewContext = () => useContext(PreviewContext);
 
 //#endregion
-export { PreviewContext, PreviewProvider };
+export { usePreviewContext as n, PreviewContext as t };
 //# sourceMappingURL=PreviewContext.js.map

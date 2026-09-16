@@ -20,14 +20,13 @@ import { createApiClients } from '@/lib/api-clients.server';
 import type { AppClients } from '@/scapi/custom-clients';
 import { ApiError } from '@/scapi';
 import {
-    HELPER_NAMESPACES,
     type ApiResponse,
     type CommerceSdkKeyMap,
     type CommerceSdkMethodName,
     type CommerceSdkMethodParameters,
     type CommerceSdkMethodReturnType,
-    type HelperNamespaceKeyMap,
 } from '@/lib/scapi/types';
+import { isResourceOperationAllowed, sanitizeResourceOptions } from '@/lib/scapi/resource-policy';
 
 import type { Route } from './+types/resource.api.client.$resource';
 import { getLogger } from '@/lib/logger.server';
@@ -46,19 +45,18 @@ export type {
     CommerceSdkMethodName,
     CommerceSdkMethodParameters,
     CommerceSdkMethodReturnType,
-    HelperMethodName,
-    HelperMethodParameters,
-    HelperMethodReturnType,
-    HelperNamespaceKeyMap,
-    HelperNamespaces,
 } from '@/lib/scapi/types';
 
-// Proxy client members that are not SCAPI operations and must not be invocable from a crafted resource URL.
-const RESERVED_PROXY_MEMBERS = new Set(['use', 'eject']);
-
-// Clients that are server-only and must never be callable through this generic route.
-// sfnextNotify bypasses the origin-validation guard in sendNotification() when called directly.
-const DENIED_CLIENTS = new Set<string>(['sfnextNotify']);
+/** @deprecated Helper namespace operations are no longer supported by the SCAPI resource route. */
+export type { HelperMethodName } from '@/lib/scapi/types';
+/** @deprecated Helper namespace operations are no longer supported by the SCAPI resource route. */
+export type { HelperMethodParameters } from '@/lib/scapi/types';
+/** @deprecated Helper namespace operations are no longer supported by the SCAPI resource route. */
+export type { HelperMethodReturnType } from '@/lib/scapi/types';
+/** @deprecated Helper namespace operations are no longer supported by the SCAPI resource route. */
+export type { HelperNamespaceKeyMap } from '@/lib/scapi/types';
+/** @deprecated Helper namespace operations are no longer supported by the SCAPI resource route. */
+export type { HelperNamespaces } from '@/lib/scapi/types';
 
 // Default empty array string for resource parameter fallback
 const DEFAULT_RESOURCE_ARRAY = '[]';
@@ -78,30 +76,6 @@ function parseResourceParameter<T = [unknown, string, unknown[]]>(resourceParam:
     }
 
     return resource as T;
-}
-
-/**
- * Resolves a helper namespace function and parsed options from a resource tuple.
- * Used by both loader and action to avoid duplicating validation logic.
- * @param clients - The Clients object from createApiClients
- * @param resource - The parsed resource tuple [client, method, payload]
- * @returns The resolved helper function (bound), helper name, and parsed options
- */
-function resolveHelper(clients: ReturnType<typeof createApiClients>, resource: [unknown, unknown, unknown]) {
-    const namespace = resource[1] as string;
-    if (!HELPER_NAMESPACES.has(namespace)) {
-        throw new TypeError(`Unknown helper namespace: "${namespace}"`);
-    }
-    const { helperName, ...options } = (resource[2] as Record<string, unknown>) || {};
-    const helper = clients[namespace as HelperNamespaceKeyMap] as unknown as Record<string, unknown>;
-    const methodName = String(helperName);
-
-    if (!helper || typeof helper[methodName] !== 'function') {
-        throw new TypeError(`Helper method not found: "helpers.${namespace}.${methodName}"`);
-    }
-
-    const fn = helper[methodName].bind(helper) as (...args: unknown[]) => Promise<unknown>;
-    return { fn, helperName: methodName, options };
 }
 
 /**
@@ -138,34 +112,21 @@ export async function loader<
     }
 
     try {
-        const clients = createApiClients(context);
-
-        // Handle helper namespace calls (e.g., ['helpers', 'basket', { helperName: 'getOrCreateBasket', ...options }])
-        if ((resource[0] as string) === 'helpers') {
-            const { fn, options } = resolveHelper(clients, resource as [unknown, unknown, unknown]);
-            // Helpers return data directly (not { data, response })
-            const data = (await fn(Object.keys(options).length > 0 ? options : undefined)) as Awaited<R>;
-            return { success: true, data };
-        }
-
         const clientKey = resource[0] as keyof AppClients;
-        const client = clients[clientKey] as Record<string, unknown>;
         const methodName = resource[1] as string;
 
-        if (
-            !client ||
-            DENIED_CLIENTS.has(clientKey as string) ||
-            typeof client[methodName] !== 'function' ||
-            RESERVED_PROXY_MEMBERS.has(methodName)
-        ) {
+        if (!isResourceOperationAllowed('loader', clientKey, methodName)) {
             throw new TypeError(`Method not found: "${String(resource[0])}.${methodName}"`);
         }
 
-        // Parameters are already in the new format: { params: { path: {...}, query: {...} }, body: {...} }
-        const options = (resource[2] as Record<string, unknown>) || {};
+        const clients = createApiClients(context);
+        const client = clients[clientKey] as Record<string, unknown>;
+        if (!client || typeof client[methodName] !== 'function') {
+            throw new TypeError(`Method not found: "${String(resource[0])}.${methodName}"`);
+        }
 
         // Call the method - new API returns { data, response }
-        const result = (await client[methodName](options)) as Record<string, unknown>;
+        const result = (await client[methodName](sanitizeResourceOptions(resource[2]))) as Record<string, unknown>;
 
         // Extract data from the new response format
         const data = result?.data as Awaited<R>;
@@ -179,9 +140,6 @@ export async function loader<
             error: reason,
             client: resource[0],
             method: resource[1],
-            ...((resource[0] as string) === 'helpers' && {
-                helper: (resource[2] as Record<string, unknown>)?.helperName,
-            }),
         });
         let errorMessage: string;
         // Use getErrorMessage for ApiError instances (new Commerce SDK format)
@@ -269,52 +227,24 @@ export async function action<
             bodyData = formBody;
         }
 
-        const clients = createApiClients(context);
-
-        // Handle helper namespace calls
-        if ((resource[0] as string) === 'helpers') {
-            const { fn, options } = resolveHelper(clients, resource as [unknown, unknown, unknown]);
-
-            // Merge strategy depends on the helper's argument shape:
-            // - If options already has a `body` key (e.g., basket helpers), merge form data into body
-            // - Otherwise (e.g., auth helpers with flat args), merge form data at top level
-            const mergedOptions =
-                'body' in options
-                    ? { ...options, body: { ...(options.body as Record<string, unknown>), ...bodyData } }
-                    : { ...options, ...bodyData };
-
-            // Helpers return data directly (not { data, response })
-            const data = (await fn(Object.keys(mergedOptions).length > 0 ? mergedOptions : undefined)) as Awaited<R>;
-            return { success: true, data };
-        }
-
-        // Parameters are already in the new format: { params: { path: {...}, query: {...} }, body: {...} }
-        const options = (resource[2] as Record<string, unknown>) || {};
-
-        // Merge form data into the body
-        const newParams = {
-            ...options,
-            body: {
-                ...((options.body as Record<string, unknown>) || {}),
-                ...bodyData,
-            },
-        };
-
         const clientKey = resource[0] as keyof AppClients;
-        const client = clients[clientKey] as Record<string, unknown>;
         const methodName = resource[1] as string;
 
-        if (
-            !client ||
-            DENIED_CLIENTS.has(clientKey as string) ||
-            typeof client[methodName] !== 'function' ||
-            RESERVED_PROXY_MEMBERS.has(methodName)
-        ) {
+        if (!isResourceOperationAllowed('action', clientKey, methodName)) {
+            throw new TypeError(`Method not found: "${String(resource[0])}.${methodName}"`);
+        }
+
+        const clients = createApiClients(context);
+        const client = clients[clientKey] as Record<string, unknown>;
+        if (!client || typeof client[methodName] !== 'function') {
             throw new TypeError(`Method not found: "${String(resource[0])}.${methodName}"`);
         }
 
         // Call the method - new API returns { data, response }
-        const result = (await client[methodName](newParams)) as Record<string, unknown>;
+        const result = (await client[methodName]({
+            ...sanitizeResourceOptions(resource[2]),
+            body: bodyData,
+        })) as Record<string, unknown>;
 
         // Extract data from the new response format
         const data = result?.data as Awaited<R>;
@@ -328,9 +258,6 @@ export async function action<
             error: reason,
             client: resource[0],
             method: resource[1],
-            ...((resource[0] as string) === 'helpers' && {
-                helper: (resource[2] as Record<string, unknown>)?.helperName,
-            }),
         });
         let errorMessage: string;
         // Use getErrorMessage for ApiError instances (new Commerce SDK format)

@@ -78,6 +78,7 @@ export interface HostEventNameMapping extends IsomorphicEventNameMapping {
     ClientReady: Domain.ClientReady;
     ClientDisconnected: Domain.ClientDisconnectedEvent;
     ClientPageChanged: Domain.ClientPageChangedEvent;
+    ClientRouteChanged: Domain.ClientRouteChangedEvent;
 }
 
 /**
@@ -458,6 +459,20 @@ export interface ClientApi extends IsomorphicApi {
      * ```
      */
     notifyClientPageChanged(event: EventPayload<Domain.ClientPageChangedEvent>): void;
+    /**
+     * Notifies the host that the storefront has navigated to a new URL inside the preview iframe.
+     *
+     * @param event - The route change event containing the fully-qualified URL
+     * @stability development
+     *
+     * @example
+     * ```typescript
+     * api.notifyClientRouteChanged({ url: window.location.href });
+     * ```
+     *
+     * @see {Domain.ClientRouteChangedEvent}
+     */
+    notifyClientRouteChanged(event: EventPayload<Domain.ClientRouteChangedEvent>): void;
     /**
      * Registers an event handler for client-side events.
      *

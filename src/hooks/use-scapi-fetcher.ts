@@ -132,6 +132,8 @@ export type ScapiFetcher<TData = unknown, TSubmitPayload = unknown> = Omit<
  * Overload for calling helper namespace methods.
  * Helpers are domain-specific utility methods (e.g., basket, auth) that are not direct SCAPI proxy operations.
  *
+ * @deprecated Helper namespace operations are no longer supported by the SCAPI resource route.
+ *
  * @example
  * ```typescript
  * const fetcher = useScapiFetcher('helpers', 'basket', 'getOrCreateBasket', {

@@ -15,10 +15,10 @@
  */
 import type { LoaderFunctionArgs } from 'react-router';
 import type { ShopperExperience } from '@/scapi';
-import { registry } from '@/lib/page-designer/registry';
 import { PREVIEW_PAGE_ID, PREVIEW_REGION_ID } from './preview-page';
 import type { PageWithComponentData } from './page-loader.server';
 import type { ComponentWithComponentData } from './component-loader.server';
+import { collectComponentData } from './collect-component-data.server';
 
 // Re-export the client-safe region id so existing `preview-page.server` importers
 // keep working; the canonical definition lives in the non-`.server` sibling module
@@ -63,19 +63,8 @@ export function injectIntoPreviewRegion(
 
     const componentData: Record<string, Promise<unknown>> = { ...(descendantData ?? {}) };
 
-    // Register the previewed root component's own loader data (descendants only are
-    // collected upstream by collectFromRegions).
-    if (registry.hasLoaders(strippedComponent.typeId)) {
-        componentData[strippedComponent.id] = registry.callLoader(
-            strippedComponent.typeId,
-            {
-                componentData: strippedComponent,
-                context: args.context,
-                request: args.request,
-            },
-            'loader'
-        );
-    }
+    // Descendants were collected upstream; add the previewed root itself.
+    collectComponentData(args, strippedComponent, componentData);
 
     const region = {
         id: PREVIEW_REGION_ID,

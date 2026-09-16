@@ -217,7 +217,7 @@ describe('generateRegistryCode', () => {
         expect(result).toContain('No components found with @Component decorators');
         expect(result).toContain('export function initializeRegistry(targetRegistry = registry): void {');
         expect(result).toContain('// No components found with @Component decorators');
-        expect(result).toContain('export async function loadAndRegisterRegistryComponents(');
+        expect(result).not.toContain('registerComponentTypes');
     });
 
     it('generates registrations in stable sorted order', () => {
@@ -267,10 +267,12 @@ describe('generateRegistryCode', () => {
         expect(heroIndex).toBeLessThan(carouselIndex);
         expect(heroAltIndex).toBeLessThan(carouselIndex);
 
-        expect(result).toContain('targetRegistry.loadAndRegister(id)');
         expect(result).not.toContain("['storefrontnext_base.hero', () => import('../components/hero/index')]");
         expect(result).not.toContain('targetRegistry.registerComponent(');
-        expect(result).toContain('await Promise.all(');
+        expect(result).not.toContain('registerComponentTypes');
+        expect(result).toContain(
+            "targetRegistry.registerImporter('storefrontnext_base.hero', staticRegistryImporters[0])"
+        );
 
         // Within same id, should be sorted by relativePath (hero before hero-alt)
         expect(heroIndex).toBeLessThan(heroAltIndex);
@@ -305,7 +307,9 @@ describe('generateRegistryCode', () => {
 
         const result = generateRegistryCode(components, 'registry');
 
-        expect(result).toContain("targetRegistry.registerImporter('storefrontnext_base.hero'");
+        expect(result).toContain(
+            "targetRegistry.registerImporter('storefrontnext_base.hero', staticRegistryImporters[0]"
+        );
         expect(result).toContain("{ loader: 'loader' }");
     });
 

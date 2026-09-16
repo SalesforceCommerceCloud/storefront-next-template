@@ -17,9 +17,6 @@
 export interface PageDesignerPreloadManifestResource {
     file: string;
     kind: 'module' | 'style';
-    bytes: number;
-    estimatedBrotliBytes: number;
-    estimatedGzipBytes: number;
 }
 
 export interface PageDesignerPreloadManifestComponentResources {
@@ -29,39 +26,18 @@ export interface PageDesignerPreloadManifestComponentResources {
 }
 
 export interface PageDesignerPreloadManifest {
-    version: 1;
-    compression: {
-        brotli: { quality: number };
-        gzip: { level: number };
-    };
     resources: PageDesignerPreloadManifestResource[];
     components: Record<string, PageDesignerPreloadManifestComponentResources>;
 }
 
 export type PreloadResource = { kind: 'module'; href: string } | { kind: 'style'; href: string };
-export type CompressedSizeStrategy = 'brotli' | 'gzip' | 'max';
 
 export type PreloadWarning =
     | { code: 'unknown-type-ids'; typeIds: string[] }
-    | {
-          code: 'module-budget-exceeded';
-          selectedModuleEstimatedTransferBytes: number;
-          selectedModuleRawBytes: number;
-          omittedModules: Array<{
-              file: string;
-              estimatedTransferBytes: number;
-              rawBytes: number;
-          }>;
-      }
     | { code: 'resource-count'; selectedResources: number; warnAtResources: number };
 
 export interface ResolvePreloadResourcesOptions {
     bundlePath: string;
-    /** Maximum estimated transfer bytes spent on optional module hints; required styles are excluded. */
-    maxModuleEstimatedTransferBytes?: number;
-    /** Maximum raw bytes spent on optional module hints; required styles are excluded. */
-    maxModuleRawBytes?: number;
-    compressedSizeStrategy?: CompressedSizeStrategy;
     warnAtResources?: number;
     onWarning?: (warning: PreloadWarning) => void;
 }
@@ -80,21 +56,9 @@ const PRIORITY: Record<ResourceRole, number> = {
 };
 
 function validateManifest(manifest: PageDesignerPreloadManifest): void {
-    if (
-        !manifest ||
-        manifest.version !== 1 ||
-        !Array.isArray(manifest.resources) ||
-        !manifest.components ||
-        !manifest.compression
-    ) {
-        throw new Error('Unsupported or malformed Page Designer preload manifest');
+    if (!manifest || !Array.isArray(manifest.resources) || !manifest.components) {
+        throw new Error('Malformed Page Designer preload manifest');
     }
-}
-
-function estimatedBytes(resource: PageDesignerPreloadManifestResource, strategy: CompressedSizeStrategy): number {
-    if (strategy === 'brotli') return resource.estimatedBrotliBytes;
-    if (strategy === 'gzip') return resource.estimatedGzipBytes;
-    return Math.max(resource.estimatedBrotliBytes, resource.estimatedGzipBytes);
 }
 
 function joinBundlePath(bundlePath: string, file: string): string {
@@ -123,9 +87,6 @@ export function resolvePreloadResources(
     options: ResolvePreloadResourcesOptions
 ): PreloadResource[] {
     validateManifest(manifest);
-    const strategy = options.compressedSizeStrategy ?? 'max';
-    const maxModuleEstimatedTransferBytes = options.maxModuleEstimatedTransferBytes ?? 250_000;
-    const maxModuleRawBytes = options.maxModuleRawBytes ?? 750_000;
     const warnAtResources = options.warnAtResources ?? 40;
     const unknownTypeIds = new Set<string>();
     const byFile = new Map<string, RankedResource>();
@@ -161,47 +122,13 @@ export function resolvePreloadResources(
     const candidates = [...byFile.values()].sort((a, b) => {
         const roleDifference = PRIORITY[a.role] - PRIORITY[b.role];
         if (roleDifference !== 0) return roleDifference;
-        // Stylesheets are active resources, so preserve Vite's encounter order for the CSS cascade.
-        // Module preloads only affect fetching and can retain a deterministic filename tie-breaker.
-        return a.role === 'style' ? a.encounterOrder - b.encounterOrder : a.file.localeCompare(b.file);
+        return a.encounterOrder - b.encounterOrder;
     });
-    let selectedModuleEstimatedTransferBytes = 0;
-    let selectedModuleRawBytes = 0;
-    const selected: RankedResource[] = [];
-    const omittedModules: Extract<PreloadWarning, { code: 'module-budget-exceeded' }>['omittedModules'] = [];
-
-    for (const resource of candidates) {
-        // Active styles are required for the SSR content and cannot be budget-truncated safely.
-        // The budget applies only to optional module preload hints.
-        if (resource.role === 'style') {
-            selected.push(resource);
-            continue;
-        }
-        const charge = estimatedBytes(resource, strategy);
-        const exceedsBudget =
-            selectedModuleEstimatedTransferBytes + charge > maxModuleEstimatedTransferBytes ||
-            selectedModuleRawBytes + resource.bytes > maxModuleRawBytes;
-        if (exceedsBudget) {
-            omittedModules.push({ file: resource.file, estimatedTransferBytes: charge, rawBytes: resource.bytes });
-            continue;
-        }
-        selected.push(resource);
-        selectedModuleEstimatedTransferBytes += charge;
-        selectedModuleRawBytes += resource.bytes;
-    }
-    if (omittedModules.length > 0) {
-        options.onWarning?.({
-            code: 'module-budget-exceeded',
-            selectedModuleEstimatedTransferBytes,
-            selectedModuleRawBytes,
-            omittedModules,
-        });
-    }
-    if (selected.length >= warnAtResources) {
-        options.onWarning?.({ code: 'resource-count', selectedResources: selected.length, warnAtResources });
+    if (candidates.length >= warnAtResources) {
+        options.onWarning?.({ code: 'resource-count', selectedResources: candidates.length, warnAtResources });
     }
 
-    return selected.map((resource) => ({
+    return candidates.map((resource) => ({
         kind: resource.kind,
         href: joinBundlePath(options.bundlePath, resource.file),
     }));

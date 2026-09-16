@@ -145,6 +145,7 @@ export function createClientApi({ emitter, id, forwardedKeys = [], logger }: Cli
         notifyClientReady: messenger.toEmitter('ClientReady'),
         notifyError: messenger.toEmitter('Error'),
         notifyClientPageChanged: messenger.toEmitter('ClientPageChanged'),
+        notifyClientRouteChanged: messenger.toEmitter('ClientRouteChanged'),
         connect,
         on: <TEvent extends keyof ClientEventNameMapping>(
             eventName: TEvent,

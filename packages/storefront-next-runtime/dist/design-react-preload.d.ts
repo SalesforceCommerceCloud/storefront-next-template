@@ -1,4 +1,4 @@
-import { a as PreloadResource } from "./index2.js";
+import { i as PreloadResource } from "./index2.js";
 import * as react_jsx_runtime0 from "react/jsx-runtime";
 
 //#region src/design/react/stylesheet-precedence.d.ts

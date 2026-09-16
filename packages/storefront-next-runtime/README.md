@@ -43,7 +43,7 @@ Utilities for detecting and managing the current application mode (Design or Pre
 
 ### `/design/preload` Page Designer Preload Resources
 
-Exports the public Page Designer preload manifest types and utilities for resolving component type IDs to deduplicated module and stylesheet URLs. `resolvePreloadResources()` prioritizes styles, component entry modules, and then shared module dependencies. Styles are never removed by the module budgets.
+Exports the public Page Designer preload manifest types and utilities for resolving component type IDs to deduplicated module and stylesheet URLs. `resolvePreloadResources()` prioritizes styles, component entry modules, and then shared module dependencies while preserving component discovery order within each role.
 
 ```typescript
 import { resolvePreloadResources } from '@salesforce/storefront-next-runtime/design/preload';
@@ -51,15 +51,12 @@ import { getClientBundlePath } from '@salesforce/storefront-next-runtime/assets'
 
 const resources = resolvePreloadResources(manifest, criticalTypeIds, {
     bundlePath: getClientBundlePath(),
-    maxModuleEstimatedTransferBytes: 250_000,
-    maxModuleRawBytes: 750_000,
-    compressedSizeStrategy: 'max',
     warnAtResources: 40,
     onWarning: (warning) => logger.warn('Page Designer preload warning', warning),
 });
 ```
 
-The shown limits are also the defaults. `compressedSizeStrategy` accepts `brotli`, `gzip`, or `max`; `max` conservatively uses the larger estimate. Warnings report unknown component type IDs, modules omitted by the budgets, and large resource selections.
+Regional plans emit every known resource. Warnings report unknown component type IDs and unusually large resource selections.
 
 ### `/design/react` Design-Time React Components
 

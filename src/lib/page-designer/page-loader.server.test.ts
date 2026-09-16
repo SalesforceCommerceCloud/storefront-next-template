@@ -259,15 +259,11 @@ describe('pageLoader', () => {
             const componentData = await result.componentData?.['hero-1'];
 
             // oxlint-disable-next-line @typescript-eslint/unbound-method
-            expect(mockedRegistry.callLoader).toHaveBeenCalledWith(
-                'hero',
-                {
-                    componentData: component,
-                    context: TEST_CONTEXT,
-                    request: args.request,
-                },
-                'loader'
-            );
+            expect(mockedRegistry.callLoader).toHaveBeenCalledWith('hero', {
+                componentData: component,
+                context: TEST_CONTEXT,
+                request: args.request,
+            });
             expect(componentData).toEqual(expectedData);
         });
 

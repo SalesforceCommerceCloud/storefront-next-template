@@ -34,6 +34,7 @@ declare class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
   private readonly registry;
   private readonly pending;
   private readonly inFlightRegistrations;
+  private readonly registrationErrors;
   private generation;
   private readonly adapter;
   constructor({
@@ -67,11 +68,13 @@ declare class ComponentRegistry<TProps, TFrameworkComponent = unknown> {
    * @throws Error if the component cannot be discovered
    */
   preload(id: ComponentId): Promise<void>;
-  /**
-   * Loads and registers a component's concrete export.
-   * Unknown component IDs are ignored so callers can pass IDs collected from external content.
-   */
+  /** Load and register a component's concrete export. */
   loadAndRegister(id: ComponentId): Promise<void>;
+  /** Return a terminal concrete-registration error without clearing it. */
+  getRegistrationError(id: ComponentId): Error | undefined;
+  clearRegistrationError(id: ComponentId): void;
+  /** Return and clear a terminal registration error so a later attempt can retry. */
+  consumeRegistrationError(id: ComponentId): Error | undefined;
   /** Get loader function names for external invocation. */
   getLoaderNames(id: ComponentId): LoaderNames | undefined;
   hasLoaders(id: ComponentId): boolean;

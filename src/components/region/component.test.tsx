@@ -15,10 +15,12 @@
  */
 import { type FC, lazy, Suspense } from 'react';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { Await } from 'react-router';
 import { Component } from './component';
+import { CriticalRegionProvider } from './critical-component-context';
 import type { ComponentType } from './index';
 
 const mockLogger = vi.hoisted(() => ({
@@ -30,13 +32,20 @@ const mockLogger = vi.hoisted(() => ({
 vi.mock('@/lib/logger', () => ({
     createLogger: vi.fn(() => mockLogger),
 }));
+vi.mock('@/lib/page-designer/critical-region', () => ({
+    emitPageDesignerResourceHints: vi.fn(),
+}));
 
 // Mock registry
 vi.mock('@/lib/page-designer/registry', () => ({
     registry: {
         getFallback: vi.fn(),
         getComponent: vi.fn(),
-        preload: vi.fn(),
+        hasConcreteComponent: vi.fn(),
+        getRegistrationError: vi.fn(),
+        clearRegistrationError: vi.fn(),
+        consumeRegistrationError: vi.fn(),
+        loadAndRegister: vi.fn(),
     },
 }));
 
@@ -63,11 +72,6 @@ const mockUseComponentDataById = vi.fn();
 vi.mock('./component-data-context', () => ({
     useComponentDataById: (id: string) => mockUseComponentDataById(id),
 }));
-const mockUseIsCriticalComponent = vi.fn();
-vi.mock('./critical-component-context', () => ({
-    useIsCriticalComponent: (id: string) => mockUseIsCriticalComponent(id),
-}));
-
 import { registry } from '@/lib/page-designer/registry';
 
 // Helper for creating deferred promises
@@ -85,8 +89,9 @@ describe('Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockUseComponentDataById.mockReset();
-        mockUseIsCriticalComponent.mockReset();
-        mockUseIsCriticalComponent.mockReturnValue(false);
+        (registry.hasConcreteComponent as any).mockReturnValue(true);
+        (registry.getRegistrationError as any).mockReturnValue(undefined);
+        (registry.consumeRegistrationError as any).mockReturnValue(undefined);
         mockAsyncError = undefined;
         shouldTriggerError = false;
     });
@@ -174,12 +179,36 @@ describe('Component', () => {
     });
 
     describe('Synchronous rendering', () => {
-        test('renders a critical concrete no-data component without a Suspense boundary', () => {
+        test('renders a critical no-data component without a local Suspense boundary', () => {
+            (registry.getFallback as any).mockReturnValue(() => <div>Component fallback</div>);
+            (registry.getComponent as any).mockReturnValue(() => <div>Critical server content</div>);
+            mockUseComponentDataById.mockReturnValue(undefined);
+
+            vi.stubEnv('SSR', true);
+            let html: string;
+            try {
+                html = renderToString(
+                    <CriticalRegionProvider>
+                        <Component
+                            component={{ id: 'critical', typeId: 'critical' } as ComponentType}
+                            regionId="main"
+                        />
+                    </CriticalRegionProvider>
+                );
+            } finally {
+                vi.unstubAllEnvs();
+            }
+
+            expect(html).toContain('Critical server content');
+            expect(html).not.toContain('Component fallback');
+            expect(html).not.toContain('<!--$-->');
+        });
+
+        test('keeps a concrete no-data component inside a stable Suspense boundary', () => {
             const Fallback: FC = () => <div>Component fallback</div>;
             (registry.getFallback as any).mockReturnValue(Fallback);
             (registry.getComponent as any).mockReturnValue(() => <div>Server content</div>);
             mockUseComponentDataById.mockReturnValue(undefined);
-            mockUseIsCriticalComponent.mockReturnValue(true);
 
             const html = renderToString(
                 <Component component={{ id: 'server', typeId: 'server' } as ComponentType} regionId="main" />
@@ -187,7 +216,7 @@ describe('Component', () => {
 
             expect(html).toContain('Server content');
             expect(html).not.toContain('Component fallback');
-            expect(html).not.toContain('<!--$-->');
+            expect(html).toContain('<!--$-->');
             expect(Await).not.toHaveBeenCalled();
         });
 
@@ -213,7 +242,6 @@ describe('Component', () => {
                 <div data-testid="server-content">Server content</div>
             ));
             mockUseComponentDataById.mockReturnValue(dataPromise.promise);
-            mockUseIsCriticalComponent.mockReturnValue(true);
 
             render(<Component component={{ id: 'server', typeId: 'server' } as ComponentType} regionId="main" />);
 
@@ -234,7 +262,6 @@ describe('Component', () => {
             (registry.getFallback as any).mockReturnValue(() => <div>Framework fallback</div>);
             (registry.getComponent as any).mockReturnValue(Dynamic);
             mockUseComponentDataById.mockReturnValue(undefined);
-            mockUseIsCriticalComponent.mockReturnValue(true);
 
             render(<Component component={{ id: 'server', typeId: 'server' } as ComponentType} regionId="main" />);
 
@@ -340,6 +367,92 @@ describe('Component', () => {
     });
 
     describe('Component registry and lazy loading', () => {
+        test('keeps a client-only critical-region registry miss local', () => {
+            const Fallback: FC = () => <div data-testid="critical-component-fallback">Component loading</div>;
+            const registration = deferred<void>();
+            mockUseComponentDataById.mockReturnValue(undefined);
+            (registry.getFallback as any).mockReturnValue(Fallback);
+            (registry.hasConcreteComponent as any).mockReturnValue(false);
+            (registry.getComponent as any).mockReturnValue(undefined);
+            (registry.loadAndRegister as any).mockReturnValue(registration.promise);
+
+            render(
+                <Suspense fallback={<div data-testid="outer-critical-fallback">Region loading</div>}>
+                    <CriticalRegionProvider>
+                        <Component
+                            component={{ id: 'client-only', typeId: 'Content.clientOnly' } as ComponentType}
+                            regionId="main"
+                        />
+                    </CriticalRegionProvider>
+                </Suspense>
+            );
+
+            expect(screen.queryByTestId('outer-critical-fallback')).not.toBeInTheDocument();
+            expect(screen.getByTestId('critical-component-fallback')).toBeInTheDocument();
+        });
+
+        test('retains the exact server node while its concrete module registers during hydration', async () => {
+            const Dynamic: FC = () => <div data-testid="server-content">Server content</div>;
+            const component = { id: 'hydrated', typeId: 'hydrated-hero' } as ComponentType;
+            const registration = deferred<void>();
+            mockUseComponentDataById.mockReturnValue(undefined);
+            (registry.getFallback as any).mockReturnValue(undefined);
+            (registry.getComponent as any).mockReturnValue(Dynamic);
+
+            const element = <Component component={component} regionId="main" />;
+            const container = document.createElement('div');
+            container.innerHTML = renderToString(element);
+            const serverContent = container.querySelector('[data-testid="server-content"]');
+            expect(serverContent).not.toBeNull();
+
+            (registry.getComponent as any).mockReturnValue(undefined);
+            (registry.hasConcreteComponent as any).mockReturnValue(false);
+            (registry.loadAndRegister as any).mockReturnValue(registration.promise);
+            const root = hydrateRoot(container, element);
+            await act(() => Promise.resolve());
+
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
+            expect(registry.loadAndRegister).toHaveBeenCalledWith('hydrated-hero');
+            expect(container.querySelector('[data-testid="server-content"]')).toBe(serverContent);
+
+            (registry.getComponent as any).mockReturnValue(Dynamic);
+            (registry.hasConcreteComponent as any).mockReturnValue(true);
+            await act(async () => {
+                registration.resolve();
+                await registration.promise;
+            });
+            expect(container.querySelector('[data-testid="server-content"]')).toBe(serverContent);
+            act(() => root.unmount());
+        });
+
+        test('retains the exact server node while component data suspends during hydration', async () => {
+            const Dynamic: FC = () => <div data-testid="server-data-content">Stable content</div>;
+            const component = { id: 'hydrated-data', typeId: 'Content.withData' } as ComponentType;
+            mockUseComponentDataById.mockReturnValue(undefined);
+            (registry.getFallback as any).mockReturnValue(undefined);
+            (registry.getComponent as any).mockReturnValue(Dynamic);
+
+            const element = <Component component={component} regionId="main" />;
+            const container = document.createElement('div');
+            container.innerHTML = renderToString(element);
+            const serverContent = container.querySelector('[data-testid="server-data-content"]');
+            expect(serverContent).not.toBeNull();
+
+            const data = deferred<Record<string, never>>();
+            mockUseComponentDataById.mockReturnValue(data.promise);
+            const root = hydrateRoot(container, element);
+            await act(() => Promise.resolve());
+
+            expect(container.querySelector('[data-testid="server-data-content"]')).toBe(serverContent);
+
+            await act(async () => {
+                data.resolve({});
+                await data.promise;
+            });
+            expect(container.querySelector('[data-testid="server-data-content"]')).toBe(serverContent);
+            act(() => root.unmount());
+        });
+
         test('keeps a no-data lazy component inside its local fallback boundary', async () => {
             const Fallback: FC = () => <div data-testid="component-fallback">Component loading</div>;
             (registry.getFallback as any).mockReturnValue(Fallback);
@@ -361,11 +474,15 @@ describe('Component', () => {
             await waitFor(() => expect(screen.getByTestId('lazy-content')).toBeInTheDocument());
         });
 
-        test('triggers preload when component not yet loaded', async () => {
+        test('loads and registers a missing concrete component inside the local boundary', async () => {
             (registry.getComponent as any).mockReturnValue(undefined);
-            const preloadPromise = deferred<void>();
-            const mockPreload = vi.fn().mockReturnValue(preloadPromise.promise);
-            (registry.preload as any) = mockPreload;
+            (registry.hasConcreteComponent as any).mockReturnValue(false);
+            const registration = deferred<void>();
+            const loadAndRegister = vi.fn().mockReturnValue(registration.promise);
+            (registry.loadAndRegister as any).mockImplementation(loadAndRegister);
+            (registry.getFallback as any).mockReturnValue(() => (
+                <div data-testid="component-loading">Loading component...</div>
+            ));
 
             const component: ComponentType = { id: 'comp6', typeId: 'lazy-hero' };
             mockUseComponentDataById.mockReturnValue(undefined);
@@ -376,18 +493,68 @@ describe('Component', () => {
                 </Suspense>
             );
 
-            // Verify preload was called
-            expect(mockPreload).toHaveBeenCalledWith('lazy-hero');
-            expect(screen.getByTestId('loading')).toBeInTheDocument();
+            expect(loadAndRegister).toHaveBeenCalledWith('lazy-hero');
+            expect(screen.getByTestId('component-loading')).toBeInTheDocument();
+            expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
 
             // Simulate component loading
             const DynamicComponent: FC<any> = () => <div data-testid="loaded" />;
             (registry.getComponent as any).mockReturnValue(DynamicComponent);
-            preloadPromise.resolve();
+            (registry.hasConcreteComponent as any).mockReturnValue(true);
+            registration.resolve();
 
             await waitFor(() => {
                 expect(screen.getByTestId('loaded')).toBeInTheDocument();
             });
+        });
+
+        test('does not bypass concrete registration when the registry exposes a lazy component', () => {
+            const LazyComponent: FC = () => <div data-testid="registry-lazy" />;
+            (registry.getFallback as any).mockReturnValue(() => <div data-testid="component-loading" />);
+            (registry.getComponent as any).mockReturnValue(LazyComponent);
+            (registry.hasConcreteComponent as any).mockReturnValue(false);
+            (registry.loadAndRegister as any).mockReturnValue(new Promise<void>(() => undefined));
+            mockUseComponentDataById.mockReturnValue(undefined);
+
+            render(
+                <Component component={{ id: 'known-cold', typeId: 'Content.known' } as ComponentType} regionId="main" />
+            );
+
+            // oxlint-disable-next-line @typescript-eslint/unbound-method
+            expect(registry.loadAndRegister).toHaveBeenCalledWith('Content.known');
+            expect(screen.getByTestId('component-loading')).toBeInTheDocument();
+            expect(screen.queryByTestId('registry-lazy')).not.toBeInTheDocument();
+        });
+
+        test('contains registration failures within the affected component', async () => {
+            const failure = new Error('module failed');
+            const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+            (registry.getFallback as any).mockReturnValue(() => <div data-testid="module-error-fallback" />);
+            (registry.hasConcreteComponent as any).mockReturnValue(false);
+            (registry.getRegistrationError as any).mockReturnValue(failure);
+            mockUseComponentDataById.mockReturnValue(undefined);
+
+            try {
+                render(
+                    <div data-testid="surrounding-content">
+                        <Component
+                            component={{ id: 'broken', typeId: 'Content.broken' } as ComponentType}
+                            regionId="main"
+                        />
+                    </div>
+                );
+
+                await waitFor(() => expect(screen.getByTestId('module-error-fallback')).toBeInTheDocument());
+                expect(screen.getByTestId('surrounding-content')).toBeInTheDocument();
+                expect(mockLogger.error).toHaveBeenCalledWith(
+                    'Failed to render Page Designer component "broken" (Content.broken)',
+                    expect.objectContaining({ error: failure })
+                );
+                // oxlint-disable-next-line @typescript-eslint/unbound-method
+                expect(registry.clearRegistrationError).toHaveBeenCalledWith('Content.broken');
+            } finally {
+                consoleError.mockRestore();
+            }
         });
     });
 

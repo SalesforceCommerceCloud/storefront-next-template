@@ -13,26 +13,96 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext, useMemo } from 'react';
-import { isPreviewModeActive } from '../../modeDetection';
-
-type PreviewContextType = {
-    isPreviewMode: boolean;
-};
+import { useCallback, useEffect, useMemo, useState, type JSX, type PropsWithChildren } from 'react';
+import { createClientApi, type IsomorphicConfiguration } from '../../messaging-api';
+import { PreviewContext, type PreviewContextType } from '../core/PreviewContext';
 
 // oxlint-disable-next-line react-refresh/only-export-components
-export const PreviewContext = createContext<PreviewContextType>({
-    isPreviewMode: false,
-});
+export { PreviewContext, usePreviewContext, type PreviewContextType } from '../core/PreviewContext';
 
-export const PreviewProvider = ({ children }: { children: React.ReactNode }): React.JSX.Element => {
-    const isPreviewMode = isPreviewModeActive();
+const noop = () => {
+    /* noop */
+};
+
+/**
+ * Provider component that enables preview-time functionality for child components.
+ *
+ * Unlike {@link DesignProvider}, this provider does NOT mount the editor overlays or
+ * seed a page from the host — the storefront renders exactly as it does for a real
+ * shopper. It opens the messaging channel purely so the client can push events
+ * (route changes, scroll, errors) back to the host.
+ */
+export const PreviewProvider = ({
+    children,
+    targetOrigin,
+    clientId,
+    usid,
+    clientConnectionTimeout,
+    clientConnectionInterval,
+    clientLogger = noop,
+}: PropsWithChildren<{
+    targetOrigin: string;
+    clientId: string;
+    usid?: string;
+    clientConnectionTimeout?: number;
+    clientConnectionInterval?: number;
+    clientLogger?: IsomorphicConfiguration['logger'];
+}>): JSX.Element => {
+    const [isConnected, setIsConnected] = useState(false);
+
+    const clientApi = useMemo(
+        () =>
+            createClientApi({
+                logger: clientLogger,
+                emitter: {
+                    postMessage: (message) => window.parent.postMessage(message, targetOrigin),
+                    addEventListener: (handler) => {
+                        const listener = (event: MessageEvent) => handler(event.data);
+
+                        window.addEventListener('message', listener);
+
+                        return () => window.removeEventListener('message', listener);
+                    },
+                },
+                id: clientId,
+            }),
+        [targetOrigin, clientId, clientLogger]
+    );
+
+    useEffect(() => {
+        clientApi.connect({
+            timeout: clientConnectionTimeout,
+            interval: clientConnectionInterval,
+            onHostConnected: () => {
+                setIsConnected(true);
+            },
+            onHostDisconnected: (reconnect) => {
+                setIsConnected(false);
+                reconnect();
+            },
+            onError: noop,
+            usid,
+        });
+
+        return () => {
+            clientApi.disconnect();
+            setIsConnected(false);
+        };
+    }, [clientApi, clientConnectionTimeout, clientConnectionInterval, usid]);
+
+    const notifyClientRouteChanged = useCallback(
+        (url: string) => clientApi.notifyClientRouteChanged({ url }),
+        [clientApi]
+    );
 
     const contextValue = useMemo<PreviewContextType>(
         () => ({
-            isPreviewMode,
+            isPreviewMode: true,
+            clientApi,
+            isConnected,
+            notifyClientRouteChanged,
         }),
-        [isPreviewMode]
+        [clientApi, isConnected, notifyClientRouteChanged]
     );
 
     return <PreviewContext.Provider value={contextValue}>{children}</PreviewContext.Provider>;

@@ -355,7 +355,7 @@ describe('createApiClients', () => {
 
         describe('onRequest handler', () => {
             it('should add Authorization header with Bearer token', async () => {
-                const mockRequest = new Request('https://api.example.com/test');
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test');
                 const mockSession: SessionData = {
                     accessToken: 'test-access-token-123',
                     customerId: 'test-customer',
@@ -372,7 +372,7 @@ describe('createApiClients', () => {
             });
 
             it('should add dwsid header when present in session', async () => {
-                const mockRequest = new Request('https://api.example.com/test');
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test');
                 const mockSession: SessionData = {
                     accessToken: 'test-access-token-123',
                     customerId: 'test-customer',
@@ -390,7 +390,7 @@ describe('createApiClients', () => {
             });
 
             it('should retrieve auth session from context', async () => {
-                const mockRequest = new Request('https://api.example.com/test');
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test');
                 const mockSession: SessionData = {
                     accessToken: 'another-token',
                     customerId: 'customer-456',
@@ -407,7 +407,7 @@ describe('createApiClients', () => {
             });
 
             it('should throw error when no session found', async () => {
-                const mockRequest = new Request('https://api.example.com/test');
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test');
 
                 mockContextProvider.set(authContext, {
                     ref: Promise.resolve(undefined),
@@ -417,7 +417,7 @@ describe('createApiClients', () => {
             });
 
             it('should throw error when session is null', async () => {
-                const mockRequest = new Request('https://api.example.com/test');
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test');
 
                 mockContextProvider.set(authContext, {
                     ref: Promise.resolve(null as unknown as SessionData),
@@ -427,7 +427,7 @@ describe('createApiClients', () => {
             });
 
             it('should preserve existing request headers', async () => {
-                const mockRequest = new Request('https://api.example.com/test', {
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test', {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Custom-Header': 'custom-value',
@@ -453,7 +453,7 @@ describe('createApiClients', () => {
             });
 
             it('should handle auth promise rejection', async () => {
-                const mockRequest = new Request('https://api.example.com/test');
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test');
                 const authError = new Error('Auth service unavailable');
 
                 mockContextProvider.set(authContext, {
@@ -466,7 +466,7 @@ describe('createApiClients', () => {
             });
 
             it('should return the modified request', async () => {
-                const mockRequest = new Request('https://api.example.com/test');
+                const mockRequest = new Request('https://kv7kzm78.api.commercecloud.salesforce.com/test');
                 const mockSession: SessionData = {
                     accessToken: 'test-token',
                     customerId: 'test-customer',
@@ -485,7 +485,7 @@ describe('createApiClients', () => {
 
             it('should skip Authorization and sfdc_dwsid for non-refresh SLAS auth endpoints', async () => {
                 const mockRequest = new Request(
-                    'https://api.example.com/shopper/auth/v1/organizations/test/oauth2/token',
+                    'https://kv7kzm78.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/test/oauth2/token',
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -511,7 +511,7 @@ describe('createApiClients', () => {
 
             it('should inject sfdc_dwsid for SLAS refresh_token calls', async () => {
                 const mockRequest = new Request(
-                    'https://api.example.com/shopper/auth/v1/organizations/test/oauth2/token',
+                    'https://kv7kzm78.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/test/oauth2/token',
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -537,7 +537,7 @@ describe('createApiClients', () => {
 
             it('should not inject sfdc_dwsid for SLAS auth endpoints when session has no dwsid', async () => {
                 const mockRequest = new Request(
-                    'https://api.example.com/shopper/auth/v1/organizations/test/oauth2/token'
+                    'https://kv7kzm78.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/test/oauth2/token'
                 );
                 const mockSession: SessionData = {
                     accessToken: 'test-token',

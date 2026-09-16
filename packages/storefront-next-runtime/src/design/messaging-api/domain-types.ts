@@ -270,6 +270,21 @@ export interface ClientPageChangedEvent extends WithBaseEvent {
     page: ShopperExperience.schemas['Page'];
 }
 
+/**
+ * Emits when the storefront navigates to a new URL inside the preview iframe.
+ * The host uses this to keep its URL bar and stored `currentUrl` in sync with
+ * shopper navigation without reloading the iframe.
+ * @target host
+ * @group Events
+ */
+export interface ClientRouteChangedEvent extends WithBaseEvent {
+    eventType: 'ClientRouteChanged';
+    /**
+     * The fully-qualified URL the client has navigated to.
+     */
+    url: string;
+}
+
 /// /////////////////////////////////////////////////////////////////
 // Client Events - Events that are subscribed on the client side. //
 /// /////////////////////////////////////////////////////////////////

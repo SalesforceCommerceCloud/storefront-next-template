@@ -315,9 +315,10 @@ describe('ComponentRegistry', () => {
             expect(importer).toHaveBeenCalledTimes(1);
         });
 
-        test('ignores unknown component IDs', async () => {
-            await expect(registry.loadAndRegister('unknown-id')).resolves.toBeUndefined();
+        test('rejects unknown component IDs and records the registration error', async () => {
+            await expect(registry.loadAndRegister('unknown-id')).rejects.toThrow('Unknown component type "unknown-id"');
             expect(registry.has('unknown-id')).toBe(false);
+            expect(registry.getRegistrationError('unknown-id')).toBeInstanceOf(Error);
         });
 
         test('deduplicates concurrent load-and-register calls', async () => {
@@ -327,13 +328,66 @@ describe('ComponentRegistry', () => {
             });
             registry.registerImporter('test-id', importer);
 
-            await Promise.all([
-                registry.loadAndRegister('test-id'),
-                registry.loadAndRegister('test-id'),
-                registry.loadAndRegister('test-id'),
-            ]);
+            const first = registry.loadAndRegister('test-id');
+            const second = registry.loadAndRegister('test-id');
+            const third = registry.loadAndRegister('test-id');
+
+            expect(second).toBe(first);
+            expect(third).toBe(first);
+            await Promise.all([first, second, third]);
 
             expect(importer).toHaveBeenCalledTimes(1);
+        });
+
+        test('keeps an in-flight registration when the same importer is registered again', async () => {
+            let resolveImporter!: (module: ComponentModule<TestProps>) => void;
+            const importer = vi.fn(
+                () =>
+                    new Promise<ComponentModule<TestProps>>((resolve) => {
+                        resolveImporter = resolve;
+                    })
+            );
+            registry.registerImporter('test-id', importer);
+
+            const first = registry.loadAndRegister('test-id');
+            registry.registerImporter('test-id', importer);
+            const second = registry.loadAndRegister('test-id');
+
+            expect(second).toBe(first);
+            expect(importer).toHaveBeenCalledOnce();
+
+            resolveImporter({ default: MockComponent });
+            await Promise.all([first, second]);
+        });
+
+        test('preserves a concrete component when the same importer is registered again', async () => {
+            const FallbackComponent = { __componentBrand: Symbol() as any };
+            const importer = vi.fn().mockResolvedValue({ default: MockComponent, fallback: FallbackComponent });
+            registry.registerImporter('test-id', importer);
+            await registry.loadAndRegister('test-id');
+
+            registry.registerImporter('test-id', importer);
+
+            expect(registry.hasConcreteComponent('test-id')).toBe(true);
+            expect(registry.getComponent('test-id')).toBe(MockComponent);
+            expect(registry.getFallback('test-id')).toBe(FallbackComponent);
+            await registry.loadAndRegister('test-id');
+            expect(importer).toHaveBeenCalledOnce();
+        });
+
+        test('records a failed registration until it is consumed, then permits retry', async () => {
+            const failure = new Error('Import failed');
+            const importer = vi.fn().mockRejectedValueOnce(failure).mockResolvedValueOnce({ default: MockComponent });
+            registry.registerImporter('test-id', importer);
+
+            await expect(registry.loadAndRegister('test-id')).rejects.toBe(failure);
+            expect(registry.getRegistrationError('test-id')).toBe(failure);
+            expect(registry.consumeRegistrationError('test-id')).toBe(failure);
+            expect(registry.getRegistrationError('test-id')).toBeUndefined();
+
+            await expect(registry.loadAndRegister('test-id')).resolves.toBeUndefined();
+            expect(registry.hasConcreteComponent('test-id')).toBe(true);
+            expect(importer).toHaveBeenCalledTimes(2);
         });
 
         test('does not restore a component removed while its import is in flight', async () => {
@@ -349,7 +403,7 @@ describe('ComponentRegistry', () => {
             const registration = registry.loadAndRegister('test-id');
             registry.clear();
             resolveImporter({ default: MockComponent });
-            await registration;
+            await expect(registration).rejects.toThrow('Component registration for "test-id" was cancelled');
 
             expect(registry.has('test-id')).toBe(false);
         });
@@ -371,6 +425,21 @@ describe('ComponentRegistry', () => {
             await registration;
 
             await registry.loadAndRegister('test-id');
+            expect(replacement).toHaveBeenCalledOnce();
+        });
+
+        test('invalidates a concrete export when its importer is replaced', async () => {
+            const OriginalComponent = { __componentBrand: Symbol() as any };
+            const ReplacementComponent = { __componentBrand: Symbol() as any };
+            registry.registerImporter('test-id', vi.fn().mockResolvedValue({ default: OriginalComponent }));
+            await registry.loadAndRegister('test-id');
+
+            const replacement = vi.fn().mockResolvedValue({ default: ReplacementComponent });
+            registry.registerImporter('test-id', replacement);
+
+            expect(registry.hasConcreteComponent('test-id')).toBe(false);
+            await registry.loadAndRegister('test-id');
+            expect(registry.getComponent('test-id')).toBe(ReplacementComponent);
             expect(replacement).toHaveBeenCalledOnce();
         });
 
@@ -427,7 +496,7 @@ describe('ComponentRegistry', () => {
     });
 
     describe('hasLoaders', () => {
-        test('reports whether a component has at least one configured loader', () => {
+        test('reports whether a component has a server or client data loader', () => {
             expect(registry.hasLoaders('missing')).toBe(false);
             registry.registerImporter(
                 'without-loader',
@@ -440,9 +509,25 @@ describe('ComponentRegistry', () => {
                     loader: 'loader',
                 }
             );
+            registry.registerImporter(
+                'with-client-loader',
+                vi.fn(() => Promise.resolve({ default: MockComponent })),
+                {
+                    clientLoader: 'clientLoader',
+                }
+            );
+            registry.registerImporter(
+                'with-fallback-only',
+                vi.fn(() => Promise.resolve({ default: MockComponent })),
+                {
+                    fallback: 'fallback',
+                }
+            );
 
             expect(registry.hasLoaders('without-loader')).toBe(false);
             expect(registry.hasLoaders('with-loader')).toBe(true);
+            expect(registry.hasLoaders('with-client-loader')).toBe(true);
+            expect(registry.hasLoaders('with-fallback-only')).toBe(false);
         });
     });
 

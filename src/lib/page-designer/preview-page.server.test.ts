@@ -128,11 +128,11 @@ describe('injectIntoPreviewRegion', () => {
         expect(page.componentData?.['child-1']).toBe(childPromise);
         // callLoader invoked with the stripped component (no componentData field)
         // oxlint-disable-next-line @typescript-eslint/unbound-method
-        expect(mockedRegistry.callLoader).toHaveBeenCalledWith(
-            'hero',
-            { componentData: { id: 'c-1', typeId: 'hero' }, context: args.context, request: args.request },
-            'loader'
-        );
+        expect(mockedRegistry.callLoader).toHaveBeenCalledWith('hero', {
+            componentData: { id: 'c-1', typeId: 'hero' },
+            context: args.context,
+            request: args.request,
+        });
     });
 
     test('does not register a root entry when the root component has no loader', () => {

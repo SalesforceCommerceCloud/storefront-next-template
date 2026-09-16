@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
 import { relative } from 'node:path';
 import type { Rollup } from 'vite';
 import type {
@@ -31,24 +30,14 @@ export type {
 export const PAGE_DESIGNER_PRELOAD_MANIFEST_ID = 'virtual:storefront-next/page-designer-preload-manifest';
 export const RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID = `\0${PAGE_DESIGNER_PRELOAD_MANIFEST_ID}`;
 
-export interface PageDesignerPreloadCompressionConfig {
-    brotli?: { quality?: number };
-    gzip?: { level?: number };
-}
-
 export interface PageDesignerPreloadManifestConfig {
     path?: string;
     requiredTypeIds?: string[];
-    compression?: PageDesignerPreloadCompressionConfig;
 }
 
 export interface NormalizedPageDesignerPreloadManifestConfig {
     path: string;
     requiredTypeIds: string[];
-    compression: {
-        brotli: { quality: number };
-        gzip: { level: number };
-    };
 }
 
 export interface ViteManifestRecord {
@@ -113,14 +102,6 @@ function assertViteManifestStructure(value: unknown): asserts value is ViteManif
     }
 }
 
-function integerInRange(value: unknown, path: string, min: number, max: number, fallback: number): number {
-    if (value === undefined) return fallback;
-    if (!Number.isInteger(value) || (value as number) < min || (value as number) > max) {
-        throw new Error(`${path} must be an integer between ${min} and ${max}`);
-    }
-    return value as number;
-}
-
 export function normalizePageDesignerPreloadManifestConfig(
     config: boolean | PageDesignerPreloadManifestConfig
 ): NormalizedPageDesignerPreloadManifestConfig {
@@ -128,33 +109,11 @@ export function normalizePageDesignerPreloadManifestConfig(
     return {
         path: options.path ?? 'page-designer-preload-manifest.json',
         requiredTypeIds: [...new Set(options.requiredTypeIds ?? [])].sort(),
-        compression: {
-            brotli: {
-                quality: integerInRange(
-                    options.compression?.brotli?.quality,
-                    'preloadManifest.compression.brotli.quality',
-                    0,
-                    11,
-                    9
-                ),
-            },
-            gzip: {
-                level: integerInRange(
-                    options.compression?.gzip?.level,
-                    'preloadManifest.compression.gzip.level',
-                    0,
-                    9,
-                    6
-                ),
-            },
-        },
     };
 }
 
-export function createEmptyPageDesignerPreloadManifest(
-    config: NormalizedPageDesignerPreloadManifestConfig
-): PageDesignerPreloadManifest {
-    return { version: 1, compression: config.compression, resources: [], components: {} };
+export function createEmptyPageDesignerPreloadManifest(): PageDesignerPreloadManifest {
+    return { resources: [], components: {} };
 }
 
 export function normalizeSourceId(projectRoot: string, id: string): string {
@@ -165,29 +124,14 @@ export function normalizeSourceId(projectRoot: string, id: string): string {
     return withoutQuery.startsWith('/') ? relative(projectRoot, withoutQuery).replace(/\\/g, '/') : withoutQuery;
 }
 
-function outputBytes(output: Rollup.OutputChunk | Rollup.OutputAsset): Buffer {
-    if (output.type === 'chunk') return Buffer.from(output.code);
-    return Buffer.isBuffer(output.source) ? output.source : Buffer.from(output.source);
-}
-
 function describeResource(
     file: string,
     kind: PageDesignerPreloadManifestResource['kind'],
-    bundle: Rollup.OutputBundle,
-    config: NormalizedPageDesignerPreloadManifestConfig
+    bundle: Rollup.OutputBundle
 ): PageDesignerPreloadManifestResource {
     const output = bundle[file];
     if (!output) throw new Error(`Vite manifest references missing emitted resource "${file}"`);
-    const bytes = outputBytes(output);
-    return {
-        file,
-        kind,
-        bytes: bytes.byteLength,
-        estimatedBrotliBytes: brotliCompressSync(bytes, {
-            params: { [constants.BROTLI_PARAM_QUALITY]: config.compression.brotli.quality },
-        }).byteLength,
-        estimatedGzipBytes: gzipSync(bytes, { level: config.compression.gzip.level }).byteLength,
-    };
+    return { file, kind };
 }
 
 function assertUniqueTypeIds(components: ComponentInfo[]): void {
@@ -295,15 +239,8 @@ export function buildPageDesignerPreloadManifest(
     const resourceIndices = Object.fromEntries(resourceFiles.map((file, index) => [file, index]));
     const toIndices = (files: string[]): number[] => files.map((file) => resourceIndices[file]);
     return {
-        version: 1,
-        compression: config.compression,
         resources: resourceFiles.map((file) =>
-            describeResource(
-                file,
-                resourceKinds.get(file) as PageDesignerPreloadManifestResource['kind'],
-                bundle,
-                config
-            )
+            describeResource(file, resourceKinds.get(file) as PageDesignerPreloadManifestResource['kind'], bundle)
         ),
         components: Object.fromEntries(
             Object.entries(componentFiles).map(([typeId, files]) => [
@@ -339,16 +276,11 @@ export function parseViteManifestAsset(bundle: Rollup.OutputBundle): ViteManifes
 export function validateEmbeddedPageDesignerPreloadManifest(
     value: unknown
 ): asserts value is PageDesignerPreloadManifest {
-    if (!value || typeof value !== 'object' || (value as { version?: unknown }).version !== 1) {
-        throw new Error('Page Designer preload manifest is missing, malformed, or uses an unsupported version');
+    if (!value || typeof value !== 'object') {
+        throw new Error('Page Designer preload manifest is missing or malformed');
     }
     const candidate = value as Partial<PageDesignerPreloadManifest>;
-    if (
-        !candidate.compression ||
-        !Array.isArray(candidate.resources) ||
-        !candidate.components ||
-        typeof candidate.components !== 'object'
-    ) {
+    if (!Array.isArray(candidate.resources) || !candidate.components || typeof candidate.components !== 'object') {
         throw new Error('Page Designer preload manifest is incomplete');
     }
 }

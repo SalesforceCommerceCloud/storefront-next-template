@@ -180,7 +180,8 @@ export default class ServerOnly {}
 export function loader() { return {}; }`,
                 },
                 expectedRegistrations: [
-                    "targetRegistry.registerImporter('storefrontnext_base.serverOnly', () => import('../components/server-only/index'), { loader: 'loader' });",
+                    "() => import('../components/server-only/index')",
+                    "targetRegistry.registerImporter('storefrontnext_base.serverOnly', staticRegistryImporters[0], { loader: 'loader' });",
                 ],
             },
             {
@@ -192,7 +193,8 @@ export function loader() { return {}; }
 export const clientLoader = () => {};`,
                 },
                 expectedRegistrations: [
-                    "targetRegistry.registerImporter('storefrontnext_base.withLoaders', () => import('../components/with-loaders/index'), { loader: 'loader', clientLoader: 'clientLoader' });",
+                    "() => import('../components/with-loaders/index')",
+                    "targetRegistry.registerImporter('storefrontnext_base.withLoaders', staticRegistryImporters[0], { loader: 'loader', clientLoader: 'clientLoader' });",
                 ],
             },
             {
@@ -814,7 +816,7 @@ export const registry = new ComponentRegistry();
                 }
                 if (!shouldHaveFallback && !shouldHaveLoader && !shouldHaveClientLoader) {
                     expect(generatedCode).toContain(
-                        "targetRegistry.registerImporter('storefrontnext_base.hero', () => import('../components/hero/index'));"
+                        "targetRegistry.registerImporter('storefrontnext_base.hero', staticRegistryImporters[0]);"
                     );
                 }
             });

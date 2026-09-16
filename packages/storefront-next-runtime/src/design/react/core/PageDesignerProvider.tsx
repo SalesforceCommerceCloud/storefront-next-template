@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Suspense, lazy, useMemo, createContext, useContext } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState, createContext, useContext } from 'react';
 import { isDesignModeActive, isPreviewModeActive } from '../../modeDetection';
 import type { IsomorphicConfiguration } from '../../messaging-api';
 import type { PageUpdateMode } from './component.types';
@@ -33,6 +33,13 @@ const LazyPreviewProvider = lazy(() =>
 
 // Fallback component for loading states
 const LoadingFallback: React.FC = () => null;
+
+// Module-scoped so identity is stable across renders — an inline `() => {}` default
+// would create a new function every render, busting downstream memoization in
+// PreviewProvider / DesignProvider that keys on `clientLogger`.
+const noopLogger: IsomorphicConfiguration['logger'] = () => {
+    /* noop */
+};
 
 // PageDesigner context to expose mode information to children
 type PageDesignerContextType = {
@@ -68,23 +75,40 @@ export const PageDesignerProvider = ({
     clientId,
     usid,
     pageUpdateMode,
-    clientLogger,
-    clientConnectionTimeout,
-    clientConnectionInterval,
+    clientLogger = noopLogger,
+    clientConnectionTimeout = 60_000,
+    clientConnectionInterval = 1_000,
     mode,
 }: PageDesignerProviderProps): React.JSX.Element => {
+    // Page Designer mode is sticky for the lifetime of the client-side session. `mode` (from the
+    // host's loader) and `?mode=...` in the URL are only present on the initial load; internal
+    // client-side navigations drop the query param, and the root loader re-runs and returns
+    // undefined. Without the latch below, `PreviewProvider` would unmount on the first inner
+    // navigation, killing the messaging channel and the preview URL-bar tracking.
+    const [stickyMode, setStickyMode] = useState<'EDIT' | 'PREVIEW' | undefined>(() => {
+        if (mode) return mode;
+        if (isDesignModeActive()) return 'EDIT';
+        if (isPreviewModeActive()) return 'PREVIEW';
+        return undefined;
+    });
+    useEffect(() => {
+        if (mode && mode !== stickyMode) {
+            setStickyMode(mode);
+        }
+    }, [mode, stickyMode]);
+
     const contextValue = useMemo(
         () => ({
-            isDesignMode: mode === 'EDIT' || isDesignModeActive(),
-            isPreviewMode: mode === 'PREVIEW' || isPreviewModeActive(),
+            isDesignMode: stickyMode === 'EDIT',
+            isPreviewMode: stickyMode === 'PREVIEW',
         }),
-        [mode]
+        [stickyMode]
     );
     const { isDesignMode, isPreviewMode } = contextValue;
 
-    if (isDesignMode && !targetOrigin) {
+    if ((isDesignMode || isPreviewMode) && !targetOrigin) {
         throw new Error(
-            'PageDesignerProvider: targetOrigin is required when in design mode for security reasons. ' +
+            'PageDesignerProvider: targetOrigin is required in design and preview modes for security reasons. ' +
                 'This should be the origin of the host application that contains this iframe '
         );
     }
@@ -99,7 +123,15 @@ export const PageDesignerProvider = ({
     if (isPreviewMode) {
         content = (
             <Suspense fallback={<LoadingFallback />}>
-                <LazyPreviewProvider>{content}</LazyPreviewProvider>
+                <LazyPreviewProvider
+                    targetOrigin={targetOrigin}
+                    clientId={clientId}
+                    usid={usid}
+                    clientLogger={clientLogger}
+                    clientConnectionTimeout={clientConnectionTimeout}
+                    clientConnectionInterval={clientConnectionInterval}>
+                    {content}
+                </LazyPreviewProvider>
             </Suspense>
         );
     }
@@ -122,13 +154,4 @@ export const PageDesignerProvider = ({
     }
 
     return <PageDesignerContext.Provider value={contextValue}>{content}</PageDesignerContext.Provider>;
-};
-
-PageDesignerProvider.defaultProps = {
-    clientConnectionTimeout: 60_000,
-    clientConnectionInterval: 1_000,
-    mode: undefined,
-    clientLogger: () => {
-        // noop
-    },
 };

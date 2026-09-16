@@ -15,7 +15,7 @@
  */
 import { describe, expect, test } from 'vitest';
 import type { ShopperExperience } from '@/scapi';
-import { collectComponentIdentifiers } from './component-identifiers';
+import { collectComponentTypeIds } from './component-identifiers';
 
 const createComponent = (id: string, typeId: string, regions: ShopperExperience.schemas['Region'][] = []) =>
     ({ id, typeId, regions }) as ShopperExperience.schemas['Component'];
@@ -23,9 +23,9 @@ const createComponent = (id: string, typeId: string, regions: ShopperExperience.
 const createRegion = (components: ShopperExperience.schemas['Component'][], id = 'region') =>
     ({ id, components }) as ShopperExperience.schemas['Region'];
 
-describe('collectComponentIdentifiers', () => {
-    test('recurses nested regions and dedupes identifiers', () => {
-        const nested = createComponent('nested', 'Content.shared');
+describe('collectComponentTypeIds', () => {
+    test('collects only direct children and dedupes type IDs in payload order', () => {
+        const nested = createComponent('nested', 'Content.nestedOnly');
         const selected = createRegion(
             [
                 createComponent('hero', 'Content.hero', [createRegion([nested], 'nested')]),
@@ -33,24 +33,17 @@ describe('collectComponentIdentifiers', () => {
             ],
             'main'
         );
-        const result = collectComponentIdentifiers(selected);
+        const result = collectComponentTypeIds(selected);
 
-        expect([...result.typeIds]).toEqual(['Content.hero', 'Content.shared']);
-        expect([...result.componentIds]).toEqual(['hero', 'nested', 'again']);
+        expect([...result]).toEqual(['Content.hero', 'Content.shared']);
     });
 
     test('returns empty sets for a missing region', () => {
-        expect(collectComponentIdentifiers(undefined)).toEqual({
-            typeIds: new Set(),
-            componentIds: new Set(),
-        });
+        expect(collectComponentTypeIds(undefined)).toEqual(new Set());
     });
 
     test('returns empty sets for an empty region', () => {
-        expect(collectComponentIdentifiers(createRegion([], 'main'))).toEqual({
-            typeIds: new Set(),
-            componentIds: new Set(),
-        });
+        expect(collectComponentTypeIds(createRegion([], 'main'))).toEqual(new Set());
     });
 
     test('handles regions and components without nested collections', () => {
@@ -64,13 +57,7 @@ describe('collectComponentIdentifiers', () => {
             components: undefined,
         } as ShopperExperience.schemas['Region'];
 
-        expect(collectComponentIdentifiers(createRegion([component], 'main'))).toEqual({
-            typeIds: new Set(['Content.hero']),
-            componentIds: new Set(['hero']),
-        });
-        expect(collectComponentIdentifiers(withoutComponents)).toEqual({
-            typeIds: new Set(),
-            componentIds: new Set(),
-        });
+        expect(collectComponentTypeIds(createRegion([component], 'main'))).toEqual(new Set(['Content.hero']));
+        expect(collectComponentTypeIds(withoutComponents)).toEqual(new Set());
     });
 });

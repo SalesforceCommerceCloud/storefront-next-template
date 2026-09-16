@@ -31,6 +31,7 @@ var ComponentRegistry = class {
 	registry = /* @__PURE__ */ new Map();
 	pending = /* @__PURE__ */ new Map();
 	inFlightRegistrations = /* @__PURE__ */ new Map();
+	registrationErrors = /* @__PURE__ */ new Map();
 	generation = 0;
 	adapter;
 	constructor({ adapter }) {
@@ -59,12 +60,23 @@ var ComponentRegistry = class {
 			id,
 			raw: null
 		};
+		const importerChanged = prev.import !== importer;
+		const replacesImporter = Boolean(prev.import && importerChanged);
 		this.registry.set(id, {
 			...prev,
 			id,
 			import: importer,
-			loaderNames
+			loaderNames,
+			...replacesImporter ? {
+				raw: null,
+				lazy: void 0,
+				fallback: void 0
+			} : {}
 		});
+		if (importerChanged) {
+			this.inFlightRegistrations.delete(id);
+			this.registrationErrors.delete(id);
+		}
 	}
 	/**
 	* Retrieves a component by id. Returns a framework-specific component type.
@@ -96,39 +108,67 @@ var ComponentRegistry = class {
 		if (e?.lazy || e?.raw) return;
 		throw new Error(`Component "${id}" could not be discovered (no importer, no raw/lazy).`);
 	}
-	/**
-	* Loads and registers a component's concrete export.
-	* Unknown component IDs are ignored so callers can pass IDs collected from external content.
-	*/
-	async loadAndRegister(id) {
+	/** Load and register a component's concrete export. */
+	loadAndRegister(id) {
 		const entry = this.registry.get(id);
-		if (entry?.raw || !entry?.import) return;
+		if (!entry?.import) {
+			const error = /* @__PURE__ */ new Error(`Unknown component type "${id}"`);
+			this.registrationErrors.set(id, error);
+			return Promise.reject(error);
+		}
+		if (entry.raw) return Promise.resolve();
 		const pending = this.inFlightRegistrations.get(id);
 		if (pending) return pending;
+		this.registrationErrors.delete(id);
 		const importer = entry.import;
-		const work = (async () => {
-			const module = await importer();
+		let importedModule;
+		try {
+			importedModule = importer();
+		} catch (cause) {
+			const error = cause instanceof Error ? cause : new Error(`Failed to load component "${id}"`, { cause });
+			this.registrationErrors.set(id, error);
+			return Promise.reject(error);
+		}
+		const trackedRegistration = Promise.resolve(importedModule).then((module) => {
+			if (!module.default) throw new Error(`Component "${id}" has no default export`);
 			const current = this.registry.get(id);
-			if (!current || current.import !== importer) return;
+			if (!current) throw new Error(`Component registration for "${id}" was cancelled`);
+			if (current.import !== importer) return this.loadAndRegister(id);
 			this.registry.set(id, {
 				...current,
 				raw: module.default,
 				fallback: module.fallback ?? current.fallback
 			});
-		})();
-		this.inFlightRegistrations.set(id, work);
-		try {
-			await work;
-		} finally {
-			if (this.inFlightRegistrations.get(id) === work) this.inFlightRegistrations.delete(id);
-		}
+		}).catch((cause) => {
+			const error = cause instanceof Error ? cause : new Error(`Failed to load component "${id}"`, { cause });
+			if (this.registry.get(id)?.import === importer) this.registrationErrors.set(id, error);
+			throw error;
+		}).finally(() => {
+			if (this.inFlightRegistrations.get(id) === trackedRegistration) this.inFlightRegistrations.delete(id);
+		});
+		this.inFlightRegistrations.set(id, trackedRegistration);
+		return trackedRegistration;
+	}
+	/** Return a terminal concrete-registration error without clearing it. */
+	getRegistrationError(id) {
+		return this.registrationErrors.get(id);
+	}
+	clearRegistrationError(id) {
+		this.registrationErrors.delete(id);
+	}
+	/** Return and clear a terminal registration error so a later attempt can retry. */
+	consumeRegistrationError(id) {
+		const error = this.getRegistrationError(id);
+		this.clearRegistrationError(id);
+		return error;
 	}
 	/** Get loader function names for external invocation. */
 	getLoaderNames(id) {
 		return this.registry.get(id)?.loaderNames;
 	}
 	hasLoaders(id) {
-		return Object.values(this.registry.get(id)?.loaderNames || {}).filter(Boolean).length > 0;
+		const loaderNames = this.registry.get(id)?.loaderNames;
+		return Boolean(loaderNames?.loader || loaderNames?.clientLoader);
 	}
 	/**
 	* Call a loader function for a component externally.
@@ -140,7 +180,7 @@ var ComponentRegistry = class {
 	*/
 	async callLoader(id, loaderArgs, loaderType = "loader") {
 		const loaderName = this.getLoaderNames(id)?.[loaderType];
-		if (!loaderName) return Promise.resolve(void 0);
+		if (!loaderName) return;
 		const entry = this.registry.get(id);
 		if (!entry?.import) throw new Error(`No importer found for component: ${id}`);
 		try {
@@ -178,6 +218,7 @@ var ComponentRegistry = class {
 		this.registry.clear();
 		this.pending.clear();
 		this.inFlightRegistrations.clear();
+		this.registrationErrors.clear();
 	}
 	ensureLocalEntry(id) {
 		const cached = this.registry.get(id);

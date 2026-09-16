@@ -3,18 +3,9 @@ import { Plugin, ResolvedConfig } from "vite";
 
 //#region src/plugins/pageDesignerPreloadManifest.d.ts
 
-interface PageDesignerPreloadCompressionConfig {
-  brotli?: {
-    quality?: number;
-  };
-  gzip?: {
-    level?: number;
-  };
-}
 interface PageDesignerPreloadManifestConfig {
   path?: string;
   requiredTypeIds?: string[];
-  compression?: PageDesignerPreloadCompressionConfig;
 }
 //#endregion
 //#region src/plugins/staticRegistry.d.ts

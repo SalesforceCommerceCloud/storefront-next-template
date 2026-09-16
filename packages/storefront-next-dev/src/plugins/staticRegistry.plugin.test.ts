@@ -151,12 +151,12 @@ describe('staticRegistryPlugin Integration', () => {
             plugin.writeBundle.call({ environment: { name: 'client' }, warn }, {}, bundle);
 
             expect(warn).toHaveBeenCalledWith(expect.stringContaining('No Vite manifest record'));
-            expect(plugin.load(RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toContain('"version":1');
+            expect(plugin.load(RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID)).toContain('"resources":[]');
             const manifestWrite = mockWriteFileSync.mock.calls.find(([, , encoding]) => encoding === 'utf8');
             expect(normalizePath(manifestWrite?.[0] as string)).toBe(
                 '/test/project/dist/page-designer-preload-manifest.json'
             );
-            expect(manifestWrite?.[1]).toEqual(expect.stringContaining('"version": 1'));
+            expect(manifestWrite?.[1]).toEqual(expect.stringContaining('"resources": []'));
 
             mockExistsSync.mockReturnValue(true);
             await expect(plugin.buildApp.handler()).resolves.toBeUndefined();

@@ -17,9 +17,6 @@
 interface PageDesignerPreloadManifestResource {
   file: string;
   kind: 'module' | 'style';
-  bytes: number;
-  estimatedBrotliBytes: number;
-  estimatedGzipBytes: number;
 }
 interface PageDesignerPreloadManifestComponentResources {
   styles?: number[];
@@ -27,15 +24,6 @@ interface PageDesignerPreloadManifestComponentResources {
   dependencies?: number[];
 }
 interface PageDesignerPreloadManifest {
-  version: 1;
-  compression: {
-    brotli: {
-      quality: number;
-    };
-    gzip: {
-      level: number;
-    };
-  };
   resources: PageDesignerPreloadManifestResource[];
   components: Record<string, PageDesignerPreloadManifestComponentResources>;
 }
@@ -46,19 +34,9 @@ type PreloadResource = {
   kind: 'style';
   href: string;
 };
-type CompressedSizeStrategy = 'brotli' | 'gzip' | 'max';
 type PreloadWarning = {
   code: 'unknown-type-ids';
   typeIds: string[];
-} | {
-  code: 'module-budget-exceeded';
-  selectedModuleEstimatedTransferBytes: number;
-  selectedModuleRawBytes: number;
-  omittedModules: Array<{
-    file: string;
-    estimatedTransferBytes: number;
-    rawBytes: number;
-  }>;
 } | {
   code: 'resource-count';
   selectedResources: number;
@@ -66,16 +44,11 @@ type PreloadWarning = {
 };
 interface ResolvePreloadResourcesOptions {
   bundlePath: string;
-  /** Maximum estimated transfer bytes spent on optional module hints; required styles are excluded. */
-  maxModuleEstimatedTransferBytes?: number;
-  /** Maximum raw bytes spent on optional module hints; required styles are excluded. */
-  maxModuleRawBytes?: number;
-  compressedSizeStrategy?: CompressedSizeStrategy;
   warnAtResources?: number;
   onWarning?: (warning: PreloadWarning) => void;
 }
 declare function dedupePreloadResources(resources: PreloadResource[]): PreloadResource[];
 declare function resolvePreloadResources(manifest: PageDesignerPreloadManifest, typeIds: Iterable<string>, options: ResolvePreloadResourcesOptions): PreloadResource[];
 //#endregion
-export { PreloadResource as a, dedupePreloadResources as c, PageDesignerPreloadManifestResource as i, resolvePreloadResources as l, PageDesignerPreloadManifest as n, PreloadWarning as o, PageDesignerPreloadManifestComponentResources as r, ResolvePreloadResourcesOptions as s, CompressedSizeStrategy as t };
+export { PreloadWarning as a, resolvePreloadResources as c, PreloadResource as i, PageDesignerPreloadManifestComponentResources as n, ResolvePreloadResourcesOptions as o, PageDesignerPreloadManifestResource as r, dedupePreloadResources as s, PageDesignerPreloadManifest as t };
 //# sourceMappingURL=index2.d.ts.map

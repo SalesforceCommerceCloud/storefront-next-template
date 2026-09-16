@@ -60,30 +60,21 @@ const bundle = outputBundle({
 });
 
 describe('Page Designer preload build manifest', () => {
-    it('creates an empty manifest with normalized compression settings', () => {
-        const config = normalizePageDesignerPreloadManifestConfig(true);
-
-        expect(createEmptyPageDesignerPreloadManifest(config)).toEqual({
-            version: 1,
-            compression: config.compression,
-            resources: [],
-            components: {},
-        });
+    it('creates an empty manifest', () => {
+        expect(createEmptyPageDesignerPreloadManifest()).toEqual({ resources: [], components: {} });
     });
 
-    it('correlates source, walks static imports and CSS, and produces deterministic sizes', () => {
+    it('correlates source, walks static imports and CSS, and produces a deterministic resource graph', () => {
         const config = normalizePageDesignerPreloadManifestConfig(true);
         const first = buildPageDesignerPreloadManifest([component()], viteManifest, bundle, '/app', config, vi.fn());
         const second = buildPageDesignerPreloadManifest([component()], viteManifest, bundle, '/app', config, vi.fn());
         expect(first).toEqual(second);
-        expect(first.compression).toEqual({ brotli: { quality: 9 }, gzip: { level: 6 } });
         expect(first.resources.map(({ file, kind }) => ({ file, kind }))).toEqual([
             { file: 'assets/hero.css', kind: 'style' },
             { file: 'assets/hero.js', kind: 'module' },
             { file: 'assets/vendor.js', kind: 'module' },
         ]);
         expect(first.components['Content.hero']).toEqual({ styles: [0], entries: [1], dependencies: [2] });
-        expect(first.resources[0].bytes).toBe(Buffer.byteLength('.hero{color:red}'));
     });
 
     it('preserves Vite dependency-first stylesheet order instead of sorting hashed filenames', () => {
@@ -216,19 +207,6 @@ describe('Page Designer preload build manifest', () => {
         ).toThrow('Ambiguous Vite manifest correlation');
     });
 
-    it('validates custom compression bounds and records custom values', () => {
-        expect(
-            normalizePageDesignerPreloadManifestConfig({ compression: { brotli: { quality: 4 }, gzip: { level: 2 } } })
-                .compression
-        ).toEqual({ brotli: { quality: 4 }, gzip: { level: 2 } });
-        expect(() => normalizePageDesignerPreloadManifestConfig({ compression: { brotli: { quality: 2.5 } } })).toThrow(
-            'preloadManifest.compression.brotli.quality'
-        );
-        expect(() => normalizePageDesignerPreloadManifestConfig({ compression: { gzip: { level: 10 } } })).toThrow(
-            'preloadManifest.compression.gzip.level'
-        );
-    });
-
     it('normalizes configured paths, required IDs, and source IDs', () => {
         expect(
             normalizePageDesignerPreloadManifestConfig({
@@ -238,7 +216,6 @@ describe('Page Designer preload build manifest', () => {
         ).toEqual({
             path: '.vite/custom.json',
             requiredTypeIds: ['Content.hero', 'Layout.grid'],
-            compression: { brotli: { quality: 9 }, gzip: { level: 6 } },
         });
         expect(normalizeSourceId('/app/', '/app')).toBe('');
         expect(normalizeSourceId('/app', '/app/src/hero.tsx?raw')).toBe('src/hero.tsx');
@@ -304,7 +281,7 @@ describe('Page Designer preload build manifest', () => {
             vi.fn()
         );
         expect(() => validateEmbeddedPageDesignerPreloadManifest(valid)).not.toThrow();
-        for (const invalid of [null, {}, { version: 2 }, { version: 1 }, { version: 1, compression: {} }]) {
+        for (const invalid of [null, {}, { resources: [] }, { components: {} }]) {
             expect(() => validateEmbeddedPageDesignerPreloadManifest(invalid)).toThrow('manifest');
         }
     });

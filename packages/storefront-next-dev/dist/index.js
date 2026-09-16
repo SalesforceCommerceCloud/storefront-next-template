@@ -12,7 +12,6 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "
 import { glob } from "glob";
 import { Node, Project, ts } from "ts-morph";
 import { spawnSync } from "child_process";
-import { brotliCompressSync, constants, gzipSync } from "node:zlib";
 import fs$1, { existsSync as existsSync$1, readFileSync as readFileSync$1 } from "node:fs";
 import { deadCodeElimination, findReferencedIdentifiers } from "babel-dead-code-elimination";
 import httpProxy from "http-proxy";
@@ -893,26 +892,15 @@ function assertViteManifestStructure(value) {
 		if (!("file" in record) || typeof record.file !== "string" || record.file.length === 0) throw new Error(`Invalid standard Vite manifest: record "${key}" must have a non-empty string "file"`);
 	}
 }
-function integerInRange(value, path$2, min, max, fallback) {
-	if (value === void 0) return fallback;
-	if (!Number.isInteger(value) || value < min || value > max) throw new Error(`${path$2} must be an integer between ${min} and ${max}`);
-	return value;
-}
 function normalizePageDesignerPreloadManifestConfig(config) {
 	const options = typeof config === "object" ? config : {};
 	return {
 		path: options.path ?? "page-designer-preload-manifest.json",
-		requiredTypeIds: [...new Set(options.requiredTypeIds ?? [])].sort(),
-		compression: {
-			brotli: { quality: integerInRange(options.compression?.brotli?.quality, "preloadManifest.compression.brotli.quality", 0, 11, 9) },
-			gzip: { level: integerInRange(options.compression?.gzip?.level, "preloadManifest.compression.gzip.level", 0, 9, 6) }
-		}
+		requiredTypeIds: [...new Set(options.requiredTypeIds ?? [])].sort()
 	};
 }
-function createEmptyPageDesignerPreloadManifest(config) {
+function createEmptyPageDesignerPreloadManifest() {
 	return {
-		version: 1,
-		compression: config.compression,
 		resources: [],
 		components: {}
 	};
@@ -924,20 +912,11 @@ function normalizeSourceId(projectRoot, id) {
 	if (withoutQuery.startsWith(`${normalizedRoot}/`)) return withoutQuery.slice(normalizedRoot.length + 1);
 	return withoutQuery.startsWith("/") ? relative(projectRoot, withoutQuery).replace(/\\/g, "/") : withoutQuery;
 }
-function outputBytes(output) {
-	if (output.type === "chunk") return Buffer.from(output.code);
-	return Buffer.isBuffer(output.source) ? output.source : Buffer.from(output.source);
-}
-function describeResource(file, kind, bundle, config) {
-	const output = bundle[file];
-	if (!output) throw new Error(`Vite manifest references missing emitted resource "${file}"`);
-	const bytes = outputBytes(output);
+function describeResource(file, kind, bundle) {
+	if (!bundle[file]) throw new Error(`Vite manifest references missing emitted resource "${file}"`);
 	return {
 		file,
-		kind,
-		bytes: bytes.byteLength,
-		estimatedBrotliBytes: brotliCompressSync(bytes, { params: { [constants.BROTLI_PARAM_QUALITY]: config.compression.brotli.quality } }).byteLength,
-		estimatedGzipBytes: gzipSync(bytes, { level: config.compression.gzip.level }).byteLength
+		kind
 	};
 }
 function assertUniqueTypeIds(components) {
@@ -1004,9 +983,7 @@ function buildPageDesignerPreloadManifest(components, viteManifest, bundle, proj
 	const resourceIndices = Object.fromEntries(resourceFiles.map((file, index) => [file, index]));
 	const toIndices = (files) => files.map((file) => resourceIndices[file]);
 	return {
-		version: 1,
-		compression: config.compression,
-		resources: resourceFiles.map((file) => describeResource(file, resourceKinds.get(file), bundle, config)),
+		resources: resourceFiles.map((file) => describeResource(file, resourceKinds.get(file), bundle)),
 		components: Object.fromEntries(Object.entries(componentFiles).map(([typeId, files]) => [typeId, {
 			...files.styles ? { styles: toIndices(files.styles) } : {},
 			...files.entries ? { entries: toIndices(files.entries) } : {},
@@ -1027,9 +1004,9 @@ function parseViteManifestAsset(bundle) {
 	return parsed;
 }
 function validateEmbeddedPageDesignerPreloadManifest(value) {
-	if (!value || typeof value !== "object" || value.version !== 1) throw new Error("Page Designer preload manifest is missing, malformed, or uses an unsupported version");
+	if (!value || typeof value !== "object") throw new Error("Page Designer preload manifest is missing or malformed");
 	const candidate = value;
-	if (!candidate.compression || !Array.isArray(candidate.resources) || !candidate.components || typeof candidate.components !== "object") throw new Error("Page Designer preload manifest is incomplete");
+	if (!Array.isArray(candidate.resources) || !candidate.components || typeof candidate.components !== "object") throw new Error("Page Designer preload manifest is incomplete");
 }
 
 //#endregion
@@ -1160,25 +1137,22 @@ function generateRegistryCode(components, registryIdentifier = "registry") {
 export function initializeRegistry(targetRegistry = ${registryIdentifier}): void {
     // No components found with @Component decorators
 }
-
-/** Load selected component modules and register their concrete exports before SSR. */
-export async function loadAndRegisterRegistryComponents(
-    typeIds: Iterable<string>,
-    targetRegistry = ${registryIdentifier}
-): Promise<void> {
-    await Promise.all([...new Set(typeIds)].map((id) => targetRegistry.loadAndRegister(id)));
-}
 `;
-	const registrations = sorted.map(({ id, relativePath, hasLoader, hasClientLoader, hasFallback }) => {
+	const importers = sorted.map(({ relativePath }) => `    () => import('${relativePath}'),`).join("\n");
+	const registrations = sorted.map(({ id, hasLoader, hasClientLoader, hasFallback }, index) => {
 		if (hasLoader || hasClientLoader || hasFallback) {
 			const metadata = [];
 			if (hasLoader) metadata.push(`loader: 'loader'`);
 			if (hasClientLoader) metadata.push(`clientLoader: 'clientLoader'`);
 			if (hasFallback) metadata.push(`fallback: 'fallback'`);
-			return `    targetRegistry.registerImporter('${id}', () => import('${relativePath}'), { ${metadata.join(", ")} });`;
-		} else return `    targetRegistry.registerImporter('${id}', () => import('${relativePath}'));`;
+			return `    targetRegistry.registerImporter('${id}', staticRegistryImporters[${index}], { ${metadata.join(", ")} });`;
+		} else return `    targetRegistry.registerImporter('${id}', staticRegistryImporters[${index}]);`;
 	}).join("\n");
 	return `
+const staticRegistryImporters = [
+${importers}
+] as const;
+
 /**
  * Initialize the static component registry.
  * This function is auto-generated by the staticRegistry Vite plugin.
@@ -1189,18 +1163,6 @@ export async function loadAndRegisterRegistryComponents(
  */
 export function initializeRegistry(targetRegistry = ${registryIdentifier}): void {
 ${registrations}
-}
-
-/**
- * Load selected component modules and register their concrete exports before SSR.
- * This keeps the component boundary out of the initial Suspense shell while
- * preserving nested data-loading Suspense boundaries and their fallbacks.
- */
-export async function loadAndRegisterRegistryComponents(
-    typeIds: Iterable<string>,
-    targetRegistry = ${registryIdentifier}
-): Promise<void> {
-    await Promise.all([...new Set(typeIds)].map((id) => targetRegistry.loadAndRegister(id)));
 }
 `;
 }
@@ -1312,8 +1274,8 @@ const staticRegistryPlugin = (config = {}) => {
 		},
 		load(id) {
 			if (!normalizedPreloadConfig || id !== RESOLVED_PAGE_DESIGNER_PRELOAD_MANIFEST_ID) return;
-			if (!isProductionBuild) return `export default ${JSON.stringify(createEmptyPageDesignerPreloadManifest(normalizedPreloadConfig))};`;
-			if (this.environment?.name === "client") return `export default ${JSON.stringify(createEmptyPageDesignerPreloadManifest(normalizedPreloadConfig))};`;
+			if (!isProductionBuild) return `export default ${JSON.stringify(createEmptyPageDesignerPreloadManifest())};`;
+			if (this.environment?.name === "client") return `export default ${JSON.stringify(createEmptyPageDesignerPreloadManifest())};`;
 			validateEmbeddedPageDesignerPreloadManifest(embeddedManifest);
 			return `export default ${JSON.stringify(embeddedManifest)};`;
 		},
