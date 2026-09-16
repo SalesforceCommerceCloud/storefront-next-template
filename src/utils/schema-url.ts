@@ -21,6 +21,24 @@
  */
 
 import { resolveRequestOrigin } from '@/lib/origin';
+import {
+    extractPrefixParamValues,
+    resolvePrefix,
+    stripPathPrefix,
+} from '@salesforce/storefront-next-runtime/site-context';
+import { createCategoryUrl, createProductUrl, getSiteSeoRoutes, type SeoUrlContext } from '@/route-paths';
+
+function extractResolvedOuterPrefix(pathname: string, urlPrefix?: string): string {
+    if (!urlPrefix || urlPrefix === '/') return '';
+
+    const innerPath = stripPathPrefix({ pathname, prefix: urlPrefix });
+    if (innerPath === pathname) return '';
+
+    return resolvePrefix({
+        prefix: urlPrefix,
+        params: extractPrefixParamValues({ pathname, prefix: urlPrefix }),
+    });
+}
 
 /**
  * Get the public origin (scheme + host) from a request, respecting proxy headers.
@@ -64,6 +82,7 @@ export function getPublicOrigin(request: Request): string {
  * @param options.origin - Public origin from getPublicOrigin()
  * @param options.currentPageUrl - Current page URL (used to extract site/locale prefix)
  * @param options.path - Path to build (e.g., '/product/123', '/category/456')
+ * @param options.seoUrlContext - Active site's optional SEO route configuration
  * @returns Complete absolute URL for schema, or undefined if inputs are invalid
  *
  * @example
@@ -82,10 +101,12 @@ export function buildSchemaUrl({
     origin,
     currentPageUrl,
     path,
+    seoUrlContext,
 }: {
     origin: string;
     currentPageUrl: string;
     path: string;
+    seoUrlContext?: SeoUrlContext;
 }): string | undefined {
     if (!origin || !path) return undefined;
 
@@ -97,14 +118,21 @@ export function buildSchemaUrl({
         // - /global/en-GB/category/123 -> prefix is /global/en-GB
         // - /en-US/product/456 -> prefix is /en-US
         // - /category/789 -> prefix is empty
-        const pageTypeSegments = ['/category/', '/product/', '/search'];
-        let prefix = '';
+        let prefix = extractResolvedOuterPrefix(pageUrl.pathname, seoUrlContext?.urlPrefix);
 
-        for (const segment of pageTypeSegments) {
-            const segmentIndex = pageUrl.pathname.indexOf(segment);
-            if (segmentIndex >= 0) {
-                prefix = pageUrl.pathname.slice(0, segmentIndex);
-                break;
+        // Preserve the legacy inference for direct utility callers that do not have URL configuration.
+        if (!seoUrlContext?.urlPrefix) {
+            const siteSeoRoutes = getSiteSeoRoutes(seoUrlContext);
+            const pageTypeSegments = siteSeoRoutes
+                ? [`/${siteSeoRoutes.category.prefix}/`, `/${siteSeoRoutes.product.prefix}/`, '/search']
+                : ['/category/', '/product/', '/search'];
+
+            for (const segment of pageTypeSegments) {
+                const segmentIndex = pageUrl.pathname.indexOf(segment);
+                if (segmentIndex >= 0) {
+                    prefix = pageUrl.pathname.slice(0, segmentIndex);
+                    break;
+                }
             }
         }
 
@@ -126,8 +154,10 @@ export function buildSchemaUrl({
  *
  * @param options - Product URL building options
  * @param options.productId - Product ID
+ * @param options.slug - Product slug returned by SCAPI `expand=slug`
  * @param options.origin - Public origin from getPublicOrigin()
  * @param options.currentPageUrl - Current page URL (to preserve site/locale prefix)
+ * @param options.seoUrlContext - Active site's optional SEO route configuration
  * @returns Complete product URL for schema, or undefined if productId is missing
  *
  * @example
@@ -142,19 +172,24 @@ export function buildSchemaUrl({
  */
 export function buildProductSchemaUrl({
     productId,
+    slug,
     origin,
     currentPageUrl,
+    seoUrlContext,
 }: {
     productId?: string;
+    slug?: string;
     origin: string;
     currentPageUrl: string;
+    seoUrlContext?: SeoUrlContext;
 }): string | undefined {
     if (!productId) return undefined;
 
     return buildSchemaUrl({
         origin,
         currentPageUrl,
-        path: `/product/${productId}`,
+        path: createProductUrl({ productId, slugSegments: slug ? [slug] : undefined }, seoUrlContext),
+        seoUrlContext,
     });
 }
 
@@ -163,8 +198,10 @@ export function buildProductSchemaUrl({
  *
  * @param options - Category URL building options
  * @param options.categoryId - Category ID
+ * @param options.slugSegments - Authoritative category slug hierarchy, when available
  * @param options.origin - Public origin from getPublicOrigin()
  * @param options.currentPageUrl - Current page URL (to preserve site/locale prefix)
+ * @param options.seoUrlContext - Active site's optional SEO route configuration
  * @returns Complete category URL for schema, or undefined if categoryId is missing
  *
  * @example
@@ -179,18 +216,26 @@ export function buildProductSchemaUrl({
  */
 export function buildCategorySchemaUrl({
     categoryId,
+    slugSegments,
     origin,
     currentPageUrl,
+    seoUrlContext,
 }: {
     categoryId?: string;
+    slugSegments?: readonly string[];
     origin: string;
     currentPageUrl: string;
+    seoUrlContext?: SeoUrlContext;
 }): string | undefined {
     if (!categoryId) return undefined;
+
+    const categoryConfig = getSiteSeoRoutes(seoUrlContext)?.category;
+    if (categoryConfig?.mode === 'slug-path' && !slugSegments?.length) return undefined;
 
     return buildSchemaUrl({
         origin,
         currentPageUrl,
-        path: `/category/${categoryId}`,
+        path: createCategoryUrl({ categoryId, slugSegments: slugSegments ?? [] }, seoUrlContext),
+        seoUrlContext,
     });
 }

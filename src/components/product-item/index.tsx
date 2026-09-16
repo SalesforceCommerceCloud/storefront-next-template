@@ -35,6 +35,7 @@ import { getPriceData } from '../product-price/utils';
 
 // Hooks
 import { useItemFetcherLoading } from '@/hooks/use-item-fetcher';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { uiConfig } from '@/lib/config.ui';
@@ -42,7 +43,11 @@ import { uiConfig } from '@/lib/config.ui';
 // Utils
 import { formatCurrency } from '@/lib/currency';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
-import { createProductUrl, getDisplayVariationValues, type EnrichedProductItem } from '@/lib/product/product-utils';
+import {
+    createProductUrlFromAttributes,
+    getDisplayVariationValues,
+    type EnrichedProductItem,
+} from '@/lib/product/product-utils';
 // @sfdc-extension-line SFDC_EXT_BOPIS
 import { getEffectiveStockLevel } from '@/lib/product/inventory-utils';
 import { cn } from '@/lib/utils';
@@ -128,11 +133,12 @@ export function ProductItemVariantName({
 }): ReactElement {
     const { t: tCart } = useTranslation('cart');
     const { t: tProduct } = useTranslation('product');
+    const seoUrlContext = useSeoUrlContext();
     if (!productItem) {
         return <div className="text-sm font-medium">{tCart('product.defaultName') || 'Product Name'}</div>;
     }
 
-    const productId = productItem?.master?.masterId || productItem?.id;
+    const productId = productItem?.master?.masterId || productItem?.id || productItem?.productId;
     const productName = productItem?.productName || productItem?.name || tCart('product.defaultName') || 'Product Name';
 
     const isBonusProduct = Boolean(productItem?.bonusProductLineItem);
@@ -147,12 +153,18 @@ export function ProductItemVariantName({
                 variant="h2"
                 as={headingLevel}
                 className="text-xl font-semibold leading-7 tracking-[-0.5px] text-card-foreground min-w-0 flex-1">
-                <Link
-                    to={createProductUrl(productId)}
-                    className="hover:text-primary block break-words"
-                    title={productName}>
-                    {productName}
-                </Link>
+                {productId ? (
+                    <Link
+                        to={createProductUrlFromAttributes(productId, null, 'color', null, {
+                            context: seoUrlContext,
+                        })}
+                        className="hover:text-primary block break-words"
+                        title={productName}>
+                        {productName}
+                    </Link>
+                ) : (
+                    productName
+                )}
             </Typography>
         </div>
     );

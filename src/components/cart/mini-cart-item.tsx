@@ -43,6 +43,8 @@ import QuantityPicker from '@/components/quantity-picker/quantity-picker';
 import { Label } from '@/components/ui/label';
 import { ProductItemPromotions } from '@/components/product-item';
 import { UITarget } from '@/targets/ui-target';
+import { createProductUrl } from '@/route-paths';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 
 /**
  * Basket item data enriched with product details for mini cart display
@@ -113,6 +115,7 @@ export default function MiniCartItem({
     const { t: tMiniCart, i18n } = useTranslation('miniCart');
     const { t: tRemoveItem } = useTranslation('removeItem');
     const { currency } = useSite();
+    const seoUrlContext = useSeoUrlContext();
     const productAltFallback = tMiniCart('productAltFallback') || 'Product';
 
     const fetcher = useItemFetcher({
@@ -152,7 +155,9 @@ export default function MiniCartItem({
     );
 
     // Build product URL for linking to PDP
-    const productUrl = product.productId ? `/product/${product.productId}` : undefined;
+    const productUrl = product.productId
+        ? createProductUrl({ productId: product.productId }, seoUrlContext)
+        : undefined;
 
     return (
         <div className="flex gap-4" data-testid="mini-cart-item">

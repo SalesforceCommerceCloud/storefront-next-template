@@ -138,6 +138,27 @@ describe('useTransformSearchSuggestions', () => {
         ]);
     });
 
+    it('uses an explicit suggestion slug with the active site SEO configuration', () => {
+        const data = {
+            productSuggestions: {
+                products: [{ productId: 'prod1', productName: 'iPhone 15', slug: 'iphone-15' }],
+            },
+        } as unknown as ShopperSearch.schemas['SuggestionResult'];
+        const seoUrlContext = {
+            siteId: 'RefArch',
+            seoRoutes: {
+                RefArch: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'c', mode: 'id-suffix' as const },
+                },
+            },
+        };
+
+        const { result } = renderHook(() => useTransformSearchSuggestions(data, seoUrlContext));
+
+        expect(result.current?.productSuggestions[0]?.link).toBe('/p/iphone-15/prod1');
+    });
+
     it('should transform phrase suggestions correctly', () => {
         const data = {
             productSuggestions: {

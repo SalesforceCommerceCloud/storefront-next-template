@@ -18,7 +18,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ShopperBasketsV2, ShopperProducts, ShopperSearch } from '@/scapi';
 import {
     getDisplayVariationValues,
-    createProductUrl,
+    createProductUrlFromAttributes,
     getDecoratedVariationAttributes,
     getImagesForColor,
     isProductBundle,
@@ -207,47 +207,64 @@ describe('product-utils', () => {
         });
     });
 
-    describe('createProductUrl', () => {
+    describe('createProductUrlFromAttributes', () => {
         it('should create basic product URL without color', () => {
-            const result = createProductUrl('12345');
+            const result = createProductUrlFromAttributes('12345');
 
             expect(result).toBe('/product/12345');
         });
 
         it('should create product URL with color parameter', () => {
-            const result = createProductUrl('12345', 'red');
+            const result = createProductUrlFromAttributes('12345', 'red');
 
             expect(result).toBe('/product/12345?color=red');
         });
 
         it('should create product URL with custom attribute type', () => {
-            const result = createProductUrl('12345', 'L', 'size');
+            const result = createProductUrlFromAttributes('12345', 'L', 'size');
 
             expect(result).toBe('/product/12345?size=L');
         });
 
         it('should default to color when attribute type not specified', () => {
-            const result = createProductUrl('12345', 'blue');
+            const result = createProductUrlFromAttributes('12345', 'blue');
 
             expect(result).toBe('/product/12345?color=blue');
         });
 
         it('should create product URL with variant pid', () => {
-            const result = createProductUrl('master-123', null, 'color', 'variant-456');
+            const result = createProductUrlFromAttributes('master-123', null, 'color', 'variant-456');
 
             expect(result).toBe('/product/master-123?pid=variant-456');
         });
 
         it('should create product URL with both color and variant pid', () => {
-            const result = createProductUrl('master-123', 'red', 'color', 'variant-456');
+            const result = createProductUrlFromAttributes('master-123', 'red', 'color', 'variant-456');
 
             expect(result).toBe('/product/master-123?color=red&pid=variant-456');
         });
 
         it('should not include pid when variantPid is null', () => {
-            const result = createProductUrl('12345', 'red', 'color', null);
+            const result = createProductUrlFromAttributes('12345', 'red', 'color', null);
 
             expect(result).toBe('/product/12345?color=red');
+        });
+
+        it('delegates configured paths and explicit slugs to the shared URL builder', () => {
+            const result = createProductUrlFromAttributes('12345', 'red', 'color', 'variant-456', {
+                context: {
+                    siteId: 'RefArch',
+                    seoRoutes: {
+                        RefArch: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                    },
+                },
+                slugSegments: ['summer-dress'],
+            });
+
+            expect(result).toBe('/p/summer-dress/12345?color=red&pid=variant-456');
         });
     });
 
@@ -293,6 +310,28 @@ describe('product-utils', () => {
                     ],
                 },
             ]);
+        });
+
+        it('uses the configured product prefix and explicit search-hit slug for swatch links', () => {
+            const product: ShopperSearch.schemas['ProductSearchHit'] = {
+                productId: 'M123',
+                slug: 'modern-shirt',
+                variationAttributes: [{ id: 'color', values: [{ value: 'RED' }] }],
+            };
+
+            const [color] = getDecoratedVariationAttributes(product, {
+                seoUrlContext: {
+                    siteId: 'RefArch',
+                    seoRoutes: {
+                        RefArch: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                    },
+                },
+            });
+
+            expect(color?.values?.[0]?.href).toBe('/p/modern-shirt/M123?color=RED');
         });
 
         it('synthesizes variationAttributes from variants when the hit omits them', () => {

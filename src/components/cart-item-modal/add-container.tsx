@@ -18,6 +18,8 @@ import type { ShopperProducts } from '@/scapi';
 import { useTranslation } from 'react-i18next';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
 import { useProductImages } from '@/hooks/product/use-product-images';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
+import { createProductUrl } from '@/route-paths';
 import { isProductBundle, isProductSet } from '@/lib/product/product-utils';
 import { computeInitialVariationValues } from '@/lib/product/initial-variation-values';
 import { CartItemModalView } from './view';
@@ -218,6 +220,7 @@ export function CartItemModalAddContainer({
     }, []);
 
     const currentProduct = baseProduct;
+    const seoUrlContext = useSeoUrlContext();
     const safeProduct = currentProduct ?? ({} as Product);
     const { galleryImages } = useProductImages({ product: safeProduct, selectedAttributes: variationValues });
 
@@ -248,9 +251,8 @@ export function CartItemModalAddContainer({
         if (selectedVariantId) {
             params.set('pid', selectedVariantId);
         }
-        const search = params.toString();
-        return search ? `/product/${baseProductId}?${search}` : `/product/${baseProductId}`;
-    }, [currentProduct?.id, productId, variationValues, selectedVariantId]);
+        return createProductUrl({ productId: baseProductId, searchParams: params }, seoUrlContext);
+    }, [currentProduct?.id, productId, variationValues, selectedVariantId, seoUrlContext]);
 
     return (
         <CartItemModalView

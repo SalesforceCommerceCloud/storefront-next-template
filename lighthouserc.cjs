@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 const vertical = process.env.VERTICAL ?? 'fashion';
-const productScriptSizeLimit = vertical === 'footwear' ? 481000 : 475000;
+const productScriptSizeLimit = vertical === 'footwear' ? 482000 : 475000;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
-const cartScriptSizeLimit = vertical === 'footwear' ? 532000 : 530000;
+const cartScriptSizeLimit = vertical === 'footwear' ? 534000 : 530000;
 
 module.exports = {
     ci: {
@@ -111,9 +111,9 @@ module.exports = {
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
-                        // Footwear's PDP includes its size/width/colorway controls. The current
-                        // mirrored payload measures 480064 B across five deterministic CI runs,
-                        // so retain modest headroom above the observed baseline.
+                        // Footwear's PDP includes its size/width/colorway controls and the configurable
+                        // SEO URL generator. The mirrored payload measures 481979 B across five
+                        // deterministic CI runs, so retain modest headroom above the observed baseline.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: productScriptSizeLimit, aggregationMethod: 'median' },
@@ -209,6 +209,8 @@ module.exports = {
                         // component modules before hydration. Lighthouse counts those intentionally
                         // early module requests as cart script resources even though the cart entry
                         // bundle itself has not grown by the same amount.
+                        // Footwear additionally loads the configurable SEO URL generator for cart-item
+                        // PDP links. Its mirrored payload measures 533586 B across five deterministic runs.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: cartScriptSizeLimit, aggregationMethod: 'median' },

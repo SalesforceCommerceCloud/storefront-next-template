@@ -94,7 +94,29 @@ All properties are optional. Use only the values required by your URL strategy.
 
 The canonical product and category route modules must be leaf routes (no nested child routes) when `seoRoutes` is enabled — each becomes a pathless parent owning its prefix aliases, so the build fails with a "must be a leaf route" error if either already has children. Move any nested routes elsewhere before enabling.
 
-Do not enable `seoRoutes` until the PDP and PLP loaders and URL builders support the configured splat grammars. The route-registration layer does not parse resource IDs or generate links. The optional typed content prefix is reserved for standalone-content routing and is not registered by this capability.
+Use the semantic builders for product and category destinations. They return the functional path only; the storefront's `Link` and navigation wrappers continue to add the outer site/locale prefix.
+
+```tsx
+const seoUrlContext = useSeoUrlContext()
+
+createProductUrl(
+    {productId: product.productId, slugSegments: product.slug ? [product.slug] : undefined},
+    seoUrlContext,
+)
+
+createCategoryUrl(
+    {categoryId: category.id, slugSegments: categorySlugPath},
+    seoUrlContext,
+)
+```
+
+Product slugs are optional because the product ID remains authoritative. Category slug segments are explicit so callers cannot mistake display names for Business Manager slugs. The builders encode each segment independently and make no SCAPI or Shopper SEO calls.
+
+Product search and search-suggestion requests include `expand=slug` in their existing calls, so product tiles, typeahead results, and PLP structured data can use the configured product slug without another request. For merchant-authored internal links stored as legacy `/category/...` strings, use `createCategoryUrlFromLegacyPath()`; external and non-category destinations pass through unchanged.
+
+When `seoRoutes` is present, every active site must have an entry. URL generation fails fast for an omitted site because the compiled manifest no longer contains the legacy product and category routes.
+
+Do not enable `seoRoutes` until every active site's PDP/PLP grammar and category-slug data source are available. The route-registration layer does not parse IDs or fetch slugs. The optional content prefix remains reserved for standalone-content routing.
 
 ### URL Config Use Cases
 

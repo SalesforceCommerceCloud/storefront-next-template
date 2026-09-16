@@ -28,7 +28,8 @@ import { toImageUrl } from '@/lib/images/dynamic-image';
 import { useTranslation } from 'react-i18next';
 import heroImage from '/images/hero-03.webp';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { routes, routeHref } from '@/route-paths';
+import { createCategoryUrl } from '@/route-paths';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 
 /**
  * Public-dir path to the shared authoring placeholder. Referenced by URL (not a module import) so
@@ -125,6 +126,7 @@ export default function PopularCategory({
     const { t } = useTranslation('home');
     const { t: tCommon } = useTranslation('common');
     const config = useConfig();
+    const seoUrlContext = useSeoUrlContext();
     const { isDesignMode } = usePageDesignerMode();
 
     // Use data from loader (Page Designer) or category prop (programmatic use)
@@ -165,7 +167,7 @@ export default function PopularCategory({
     if (labelPosition === 'below') {
         return (
             <Link
-                to={routeHref(routes.category, { categoryId: finalCategoryId })}
+                to={createCategoryUrl({ categoryId: finalCategoryId, slugSegments: [] }, seoUrlContext)}
                 className={cn(
                     'group flex flex-col items-center gap-3',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui',
@@ -201,7 +203,7 @@ export default function PopularCategory({
 
     return (
         <Link
-            to={routeHref(routes.category, { categoryId: finalCategoryId })}
+            to={createCategoryUrl({ categoryId: finalCategoryId, slugSegments: [] }, seoUrlContext)}
             className={cn(
                 'block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                 className

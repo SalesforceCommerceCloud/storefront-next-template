@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import Suggestions from '@/components/search/suggestions';
 import { useSearchSuggestions } from '@/hooks/use-search-suggestions';
 import { useTransformSearchSuggestions } from '@/hooks/use-transform-search-suggestions';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
 
@@ -36,6 +37,7 @@ export default function SearchBar(): ReactElement {
     const { t } = useTranslation('header');
     const navigate = useNavigate();
     const config = useConfig();
+    const seoUrlContext = useSeoUrlContext();
     const inputRef = useRef<HTMLInputElement | null>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [query, setQuery] = useState('');
@@ -49,13 +51,13 @@ export default function SearchBar(): ReactElement {
 
     const { data: suggestions, refetch } = useSearchSuggestions({
         q: query,
-        expand: ['images', 'prices', 'custom_product_properties'],
+        expand: ['images', 'prices', 'custom_product_properties', 'slug'],
         includeEinsteinSuggestedPhrases: true,
         enabled: query.trim().length >= RECENT_SEARCH_MIN_LENGTH,
         includedCustomProductProperties: ['c_hideFromSearchResults'],
     });
 
-    const transformedSuggestions = useTransformSearchSuggestions(suggestions);
+    const transformedSuggestions = useTransformSearchSuggestions(suggestions, seoUrlContext);
 
     useEffect(() => {
         queryRef.current = query;

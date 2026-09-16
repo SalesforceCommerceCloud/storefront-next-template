@@ -15,6 +15,7 @@
  */
 
 import { href } from 'react-router';
+import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
 
 /**
  * Centralized route path constants for the storefront application.
@@ -66,7 +67,7 @@ import { href } from 'react-router';
  * <Link to={routes.cart}>View Cart</Link>
  *
  * // Dynamic route — interpolate params with routeHref()
- * <Link to={routeHref(routes.product, { productId: '12345' })}>Product</Link>
+ * <Link to={createProductUrl({ productId: '12345' }, seoUrlContext)}>Product</Link>
  * <Link to={routeHref(routes.accountOrderDetail, { orderNo: 'ORD-001' })}>Order</Link>
  * ```
  *
@@ -79,14 +80,8 @@ import { href } from 'react-router';
  * throw redirect(buildUrlFromContext(routes.login, context));
  * ```
  *
- * ## Customizing route paths
- *
- * To rename a route (e.g., `/product` → `/p`):
- * 1. Rename the route file: `_app.product.$productId.tsx` → `_app.p.$productId.tsx`
- * 2. Update the constant here: `product: '/p/:productId'`
- * 3. Run `pnpm typecheck` and `pnpm test` to verify nothing broke.
- *
- * All references across the codebase will automatically pick up the new path.
+ * Product and category routes are build-time configurable. Use `createProductUrl()` and
+ * `createCategoryUrl()` instead of static route patterns for those destinations.
  */
 
 /**
@@ -96,8 +91,6 @@ import { href } from 'react-router';
  */
 export const routes = {
     home: '/',
-    product: '/product/:productId',
-    category: '/category/:categoryId',
     cart: '/cart',
     checkout: '/checkout',
     login: '/login',
@@ -189,9 +182,6 @@ export const resourceRoutes = {
  * silently producing malformed URLs.
  *
  * @example
- * routeHref(routes.product, { productId: 'sneaker-123' })
- * // → '/product/sneaker-123'
- *
  * routeHref(routes.accountOrderDetail, { orderNo: 'ORD-456' })
  * // → '/account/orders/ORD-456'
  *
@@ -215,4 +205,107 @@ export function routeHref(pattern: RoutePattern, params?: Record<string, string>
     // (/:siteId/:localeId/...), but our constants use the short form without the prefix.
     // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     return href(pattern as any, params);
+}
+
+export type SeoUrlContext = {
+    siteId: string;
+    /** Configured outer path pattern, such as `/:siteId/:localeId`. */
+    urlPrefix?: string;
+    seoRoutes?: SeoRoutesConfig;
+};
+
+export type ProductUrlInput = {
+    productId?: string;
+    slugSegments?: readonly string[];
+    searchParams?: URLSearchParams;
+};
+
+export type CategoryUrlInput = {
+    categoryId?: string;
+    slugSegments: readonly string[];
+};
+
+function buildPath(segments: readonly string[]): string {
+    if (segments.some((segment) => segment.length === 0)) {
+        throw new Error('URL path segments must not be empty');
+    }
+    return `/${segments.map(encodePathSegment).join('/')}`;
+}
+
+function encodePathSegment(segment: string): string {
+    return encodeURIComponent(segment).replace(
+        /[!'()*]/g,
+        (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`
+    );
+}
+
+function appendSearchParams(path: string, searchParams?: URLSearchParams): string {
+    const search = searchParams?.toString();
+    return search ? `${path}?${search}` : path;
+}
+
+export function getSiteSeoRoutes(context?: SeoUrlContext) {
+    if (!context?.seoRoutes) return undefined;
+
+    const siteRoutes = context.seoRoutes[context.siteId];
+    if (!siteRoutes) {
+        throw new Error(`SEO routes are configured, but site "${context.siteId}" has no SEO route configuration`);
+    }
+    return siteRoutes;
+}
+
+/**
+ * Rewrite a merchant-authored legacy category path through the active SEO route settings.
+ * External URLs and non-category paths are returned unchanged.
+ */
+export function createCategoryUrlFromLegacyPath(destination: string, context?: SeoUrlContext): string {
+    const match = destination.match(/^\/category\/([^?#]+)([?#].*)?$/);
+    if (!match) return destination;
+
+    const categoryConfig = getSiteSeoRoutes(context)?.category;
+    if (!categoryConfig) return destination;
+
+    let segments: string[];
+    try {
+        const normalizedPath = match[1].replace(/\/+$/, '');
+        if (!normalizedPath) return destination;
+        segments = normalizedPath.split('/').map((segment) => decodeURIComponent(segment));
+    } catch {
+        return destination;
+    }
+    const categoryId = segments.at(-1);
+    const slugSegments = categoryConfig.mode === 'slug-path' ? segments : segments.slice(0, -1);
+    return `${createCategoryUrl({ categoryId, slugSegments }, context)}${match[2] ?? ''}`;
+}
+
+/** Build a product URL without the outer site/locale prefix. */
+export function createProductUrl(
+    { productId, slugSegments = [], searchParams }: ProductUrlInput,
+    context?: SeoUrlContext
+): string {
+    if (!productId) return '#';
+
+    const productConfig = getSiteSeoRoutes(context)?.product;
+    const segments = productConfig ? [productConfig.prefix, ...slugSegments, productId] : ['product', productId];
+    return appendSearchParams(buildPath(segments), searchParams);
+}
+
+/** Build a category URL without the outer site/locale prefix. */
+export function createCategoryUrl({ categoryId, slugSegments }: CategoryUrlInput, context?: SeoUrlContext): string {
+    const categoryConfig = getSiteSeoRoutes(context)?.category;
+    if (!categoryConfig) {
+        if (categoryId === undefined) return '#';
+        return categoryId ? buildPath(['category', categoryId]) : '/category/';
+    }
+    if (!slugSegments) {
+        throw new Error('Category slug segments are required when SEO routes are configured');
+    }
+    if (categoryConfig.mode === 'slug-path') {
+        if (slugSegments.length === 0) {
+            throw new Error('Category slug-path mode requires at least one slug segment');
+        }
+        return buildPath([categoryConfig.prefix, ...slugSegments]);
+    }
+    if (!categoryId) return '#';
+    return buildPath([categoryConfig.prefix, ...slugSegments, categoryId]);
 }

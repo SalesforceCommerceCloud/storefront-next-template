@@ -31,7 +31,7 @@ exports[`MyCart stories snapshot > Default story renders and matches snapshot 1`
           >
             <a
               class="text-sm font-semibold text-foreground hover:text-primary"
-              href="/RefArchGlobal/en-GB/product/:productId"
+              href="/RefArchGlobal/en-GB/product/25502228M"
             >
               Button Front Jacket
             </a>
@@ -147,7 +147,7 @@ exports[`MyCart stories snapshot > Default story renders and matches snapshot 1`
           >
             <a
               class="text-sm font-semibold text-foreground hover:text-primary"
-              href="/RefArchGlobal/en-GB/product/:productId"
+              href="/RefArchGlobal/en-GB/product/25592770M"
             >
               Casual To Dressy Trousers
             </a>
@@ -297,7 +297,7 @@ exports[`MyCart stories snapshot > SingleItem story renders and matches snapshot
           >
             <a
               class="text-sm font-semibold text-foreground hover:text-primary"
-              href="/RefArchGlobal/en-GB/product/:productId"
+              href="/RefArchGlobal/en-GB/product/25502228M"
             >
               Button Front Jacket
             </a>
@@ -427,7 +427,7 @@ exports[`MyCart stories snapshot > WithPromotion story renders and matches snaps
           >
             <a
               class="text-sm font-semibold text-foreground hover:text-primary"
-              href="/RefArchGlobal/en-GB/product/:productId"
+              href="/RefArchGlobal/en-GB/product/25502228M"
             >
               Button Front Jacket
             </a>

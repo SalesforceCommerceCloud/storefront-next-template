@@ -22,7 +22,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { ProductTile } from './index';
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
-import { mockConfig } from '@/test-utils/config';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
 import type { AppConfig } from '@/types/config';
 import { masterProduct } from '@/components/__mocks__/master-variant-product';
 
@@ -202,6 +202,29 @@ describe('ProductTile — rendering', () => {
         expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
             'href',
             '/global/en-GB/product/simple-001'
+        );
+    });
+
+    test('uses the active site SEO prefix and an explicit search-hit slug', () => {
+        const product = { ...mockSingleVariantProduct, slug: 'simple-product' };
+        const config: AppConfig = {
+            ...mockConfig,
+            url: {
+                ...mockConfig.url,
+                seoRoutes: {
+                    [mockSiteObject.id]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        };
+
+        renderTile({ product }, { config });
+
+        expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
+            'href',
+            '/global/en-GB/p/simple-product/simple-001'
         );
     });
 

@@ -35,7 +35,8 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { NavigationMenuLink } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { useSubCategory } from '@/components/navigation-menu/context';
-import { routes, routeHref } from '@/route-paths';
+import { createCategoryUrl } from '@/route-paths';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import { Component } from '@/lib/decorators/component';
 import { RegionDefinition } from '@/lib/decorators';
 import { getRegionIds } from '@/lib/decorators/region-definition';
@@ -116,6 +117,7 @@ function CategoryBanner({
     ...props
 }: ComponentPropsWithoutRef<'a'> & { category: ShopperProducts.schemas['Category'] }) {
     const config = useConfig();
+    const seoUrlContext = useSeoUrlContext();
     const imageSrc = toImageUrl({ src: (category?.c_slotBannerImage as string) ?? '', config });
 
     // Transform any image URLs in the HTML banner to use DIS with WebP optimization
@@ -123,7 +125,7 @@ function CategoryBanner({
 
     return (
         <NavigationMenuLink asChild>
-            <NavLink {...props} to={routeHref(routes.category, { categoryId: category.id })}>
+            <NavLink {...props} to={createCategoryUrl({ categoryId: category.id, slugSegments: [] }, seoUrlContext)}>
                 {imageSrc ? (
                     <img
                         className="object-contain w-full max-w-full max-h-[512px]"
@@ -214,10 +216,11 @@ function MegaMenuFeaturedSlot({
 
 function ShopAllCategoryLink({ category }: { category: ShopperProducts.schemas['Category'] }): ReactElement {
     const { t } = useTranslation('header');
+    const seoUrlContext = useSeoUrlContext();
     return (
         <NavigationMenuLink asChild>
             <NavLink
-                to={routeHref(routes.category, { categoryId: category.id })}
+                to={createCategoryUrl({ categoryId: category.id, slugSegments: [] }, seoUrlContext)}
                 // When the panel has a featured column it is a 2-col grid whose other
                 // children are the submenu list and the banner/region aside. Span both
                 // columns so this link sits on its own row above them and the list and
@@ -254,6 +257,7 @@ function MobileMenuCategory({
     onNavigate: () => void;
 }): ReactElement {
     const { t } = useTranslation('header');
+    const seoUrlContext = useSeoUrlContext();
     const enrichedCategory = useSubCategory(rawCategory.id);
     const category = enrichedCategory ?? rawCategory;
     const hasChildren = hasSubcategories(category);
@@ -266,7 +270,7 @@ function MobileMenuCategory({
         subcategories?.map((subcategory) => (
             <li key={subcategory.id}>
                 <NavLink
-                    to={routeHref(routes.category, { categoryId: subcategory.id })}
+                    to={createCategoryUrl({ categoryId: subcategory.id, slugSegments: [] }, seoUrlContext)}
                     onClick={onNavigate}
                     className={cn(
                         'block py-2 text-sm font-medium hover:opacity-70 transition-opacity',
@@ -284,7 +288,7 @@ function MobileMenuCategory({
         <li>
             <div className="flex items-center justify-between">
                 <NavLink
-                    to={routeHref(routes.category, { categoryId: category.id })}
+                    to={createCategoryUrl({ categoryId: category.id, slugSegments: [] }, seoUrlContext)}
                     onClick={onNavigate}
                     className="flex-1 py-3 text-base font-medium hover:opacity-70 transition-opacity">
                     {category.name}

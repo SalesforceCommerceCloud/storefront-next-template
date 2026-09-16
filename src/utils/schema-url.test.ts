@@ -246,6 +246,47 @@ describe('buildProductSchemaUrl', () => {
 
         expect(url).toBe('https://example.com/global/en-GB/product/99999');
     });
+
+    it('uses the active site product prefix and slug', () => {
+        const url = buildProductSchemaUrl({
+            productId: '99999',
+            slug: 'modern-shirt',
+            origin,
+            currentPageUrl: 'https://example.com/global/en-GB/c/mens',
+            seoUrlContext: {
+                siteId: 'RefArch',
+                seoRoutes: {
+                    RefArch: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        });
+
+        expect(url).toBe('https://example.com/global/en-GB/p/modern-shirt/99999');
+    });
+
+    it('preserves the resolved outer prefix when it shares the product route prefix', () => {
+        const url = buildProductSchemaUrl({
+            productId: '99999',
+            slug: 'modern-shirt',
+            origin,
+            currentPageUrl: 'https://example.com/shop/en-US/shop/current-shirt/88888',
+            seoUrlContext: {
+                siteId: 'RefArch',
+                urlPrefix: '/shop/:localeId',
+                seoRoutes: {
+                    RefArch: {
+                        product: { prefix: 'shop' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        });
+
+        expect(url).toBe('https://example.com/shop/en-US/shop/modern-shirt/99999');
+    });
 });
 
 describe('buildCategorySchemaUrl', () => {
@@ -299,5 +340,63 @@ describe('buildCategorySchemaUrl', () => {
         });
 
         expect(url).toBe('https://example.com/global/en-GB/category/accessories');
+    });
+
+    it('uses the active site category prefix for an ID-suffix URL', () => {
+        const url = buildCategorySchemaUrl({
+            categoryId: 'womens-clothing',
+            origin,
+            currentPageUrl: 'https://example.com/global/en-GB/c/dresses',
+            seoUrlContext: {
+                siteId: 'RefArch',
+                seoRoutes: {
+                    RefArch: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        });
+
+        expect(url).toBe('https://example.com/global/en-GB/c/womens-clothing');
+    });
+
+    it('preserves the resolved outer prefix when it shares the category route prefix', () => {
+        const url = buildCategorySchemaUrl({
+            categoryId: 'womens-clothing',
+            origin,
+            currentPageUrl: 'https://example.com/shop/en-US/shop/dresses',
+            seoUrlContext: {
+                siteId: 'RefArch',
+                urlPrefix: '/shop/:localeId',
+                seoRoutes: {
+                    RefArch: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'shop', mode: 'id-suffix' },
+                    },
+                },
+            },
+        });
+
+        expect(url).toBe('https://example.com/shop/en-US/shop/womens-clothing');
+    });
+
+    it('does not invent a slug-only category URL when authoritative slugs are unavailable', () => {
+        const url = buildCategorySchemaUrl({
+            categoryId: 'internal-id',
+            origin,
+            currentPageUrl: 'https://example.com/global/en-GB/catalog/mens/clothing',
+            seoUrlContext: {
+                siteId: 'RefArch',
+                seoRoutes: {
+                    RefArch: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'catalog', mode: 'slug-path' },
+                    },
+                },
+            },
+        });
+
+        expect(url).toBeUndefined();
     });
 });

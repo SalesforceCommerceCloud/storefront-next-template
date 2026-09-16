@@ -16,11 +16,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Link } from '@/components/link';
 import type { ShopperSearch } from '@/scapi';
-import { createProductUrl, getImagesForColor } from '@/lib/product/product-utils';
+import { createProductUrlFromAttributes, getImagesForColor } from '@/lib/product/product-utils';
 import { useDynamicImageContext } from '@/providers/dynamic-image';
 import { ProductImage } from './product-image';
 import ImageNavArrows from '@/components/image-nav-arrows';
 import { useTranslation } from 'react-i18next';
+import type { SeoUrlContext } from '@/route-paths';
 
 interface ProductImageContainerProps {
     product: ShopperSearch.schemas['ProductSearchHit'];
@@ -31,6 +32,8 @@ interface ProductImageContainerProps {
     imgAspectRatio?: number;
     /** Show prev/next navigation arrows when multiple images are available */
     showNavigationArrows?: boolean;
+    /** Active site URL settings supplied by the product-tile boundary. */
+    seoUrlContext?: SeoUrlContext;
 }
 
 const ProductImageContainer = ({
@@ -40,6 +43,7 @@ const ProductImageContainer = ({
     handleProductClick,
     imgAspectRatio = 1,
     showNavigationArrows = false,
+    seoUrlContext,
 }: ProductImageContainerProps) => {
     const { t } = useTranslation('product');
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -78,7 +82,18 @@ const ProductImageContainer = ({
                 exposes a single PDP link (the product name) to screen readers and
                 the keyboard tab order. */}
             <Link
-                to={createProductUrl(product.productId, selectedColorValue)}
+                to={createProductUrlFromAttributes(
+                    product.productId,
+                    selectedColorValue,
+                    'color',
+                    null,
+                    seoUrlContext
+                        ? {
+                              context: seoUrlContext,
+                              slugSegments: product.slug ? [product.slug] : undefined,
+                          }
+                        : undefined
+                )}
                 onClick={handleClick}
                 className="block w-full h-full flex-1"
                 aria-hidden="true"

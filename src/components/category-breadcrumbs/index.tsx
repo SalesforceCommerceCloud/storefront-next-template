@@ -18,13 +18,15 @@ import { useTranslation } from 'react-i18next';
 import { Link } from '@/components/link';
 import type { ShopperProducts } from '@/scapi';
 import { ChevronRight } from 'lucide-react';
-import { routes, routeHref } from '@/route-paths';
+import { createCategoryUrl, routes } from '@/route-paths';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 
 type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
 type PathRecord = NonNullable<PrimaryCategory['parentCategoryTree']>[number];
 
 export default function CategoryBreadcrumbs({ category }: { category: PrimaryCategory }): ReactElement {
     const { t } = useTranslation('category');
+    const seoUrlContext = useSeoUrlContext();
     const items: PathRecord[] = category.parentCategoryTree ?? [{ id: category.id, name: category.name }];
     return (
         <nav aria-label={t('breadcrumbs.label')} className="mb-6">
@@ -40,7 +42,7 @@ export default function CategoryBreadcrumbs({ category }: { category: PrimaryCat
                         <li key={item.id} className="flex items-center">
                             <ChevronRight className="mx-1 size-3" />
                             <Link
-                                to={routeHref(routes.category, { categoryId: item.id ?? '' })}
+                                to={createCategoryUrl({ categoryId: item.id, slugSegments: [] }, seoUrlContext)}
                                 className="hover:underline"
                                 aria-current={isLast ? 'page' : undefined}>
                                 {item.name}

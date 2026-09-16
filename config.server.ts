@@ -662,6 +662,8 @@ export default defineConfig<Config>(
             url: {
                 prefix: '/:siteId/:localeId',
                 excludeRoutes: ['/resource/**', '/action/**'],
+                // Add site-keyed `seoRoutes` only after the PDP/PLP grammar and authoritative
+                // category-slug inputs are available for every enabled site. See README-MULTI-SITE.md.
             },
             security: {
                 turnstile: {

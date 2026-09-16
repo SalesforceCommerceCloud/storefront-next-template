@@ -19,7 +19,7 @@ import { useScapiFetcher } from './use-scapi-fetcher';
 
 export interface UseSearchSuggestionsOptions {
     q: string;
-    expand?: ('images' | 'prices' | 'custom_product_properties')[];
+    expand?: ('images' | 'prices' | 'custom_product_properties' | 'slug')[];
     limit?: number;
     currency?: string;
     includeEinsteinSuggestedPhrases?: boolean;

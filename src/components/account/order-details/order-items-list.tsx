@@ -27,8 +27,9 @@ import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { useTranslation } from 'react-i18next';
 import type { EnrichedProductItem } from '@/lib/product/product-utils';
 import type { ShopperOrders, ShopperProducts } from '@/scapi';
-import { routes, routeHref } from '@/route-paths';
+import { createProductUrl } from '@/route-paths';
 import { accountPrimaryButtonClasses } from '@/lib/account-action-styles';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 // @sfdc-extension-block-start SFDC_EXT_RATINGS_REVIEWS
 import { getOrderLineReviewKey } from '@/components/account/order-details/order-line-review-key';
 import { UITarget } from '@/targets/ui-target';
@@ -63,6 +64,7 @@ export function OrderItemsList({
     const { t } = useTranslation('account');
     const { t: tProduct } = useTranslation('product');
     const { currency } = useSite();
+    const seoUrlContext = useSeoUrlContext();
     const showLineReviews = submittedReviewLineKeys != null && onOrderLineReviewSubmitted != null;
 
     if (items.length === 0) {
@@ -84,19 +86,24 @@ export function OrderItemsList({
                 const reviewSubmitted = submittedReviewLineKeys?.has(lineReviewKey) ?? false;
                 // @sfdc-extension-block-end SFDC_EXT_RATINGS_REVIEWS
                 const enrichedItem: EnrichedProductItem = { ...productData, ...item } as EnrichedProductItem;
+                const productImage = <ProductItemVariantImage productItem={enrichedItem} className="h-24 w-24" />;
                 return (
                     <li key={productKey} data-testid="order-item">
                         <div className="flex flex-col gap-4 rounded-ui border border-muted-foreground/20 bg-card p-4 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center">
-                            <Link
-                                to={routeHref(routes.product, { productId: item.productId ?? '' })}
-                                className="flex-shrink-0 block"
-                                aria-label={
-                                    productName
-                                        ? tProduct('viewProductAriaLabel', { productName })
-                                        : t('orders.productImageLinkFallback')
-                                }>
-                                <ProductItemVariantImage productItem={enrichedItem} className="h-24 w-24" />
-                            </Link>
+                            {item.productId ? (
+                                <Link
+                                    to={createProductUrl({ productId: item.productId }, seoUrlContext)}
+                                    className="flex-shrink-0 block"
+                                    aria-label={
+                                        productName
+                                            ? tProduct('viewProductAriaLabel', { productName })
+                                            : t('orders.productImageLinkFallback')
+                                    }>
+                                    {productImage}
+                                </Link>
+                            ) : (
+                                <div className="flex-shrink-0">{productImage}</div>
+                            )}
                             <div className="min-w-0 flex-1 space-y-1">
                                 <ProductItemVariantName productItem={enrichedItem} headingLevel="h4" />
                                 <ProductItemVariantAttributes productItem={enrichedItem} />
@@ -132,7 +139,7 @@ export function OrderItemsList({
                                         variant="default"
                                         size="sm"
                                         className={`${accountPrimaryButtonClasses} text-xs`}>
-                                        <Link to={routeHref(routes.product, { productId: item.productId })}>
+                                        <Link to={createProductUrl({ productId: item.productId }, seoUrlContext)}>
                                             {t('orders.buyAgain')}
                                         </Link>
                                     </Button>

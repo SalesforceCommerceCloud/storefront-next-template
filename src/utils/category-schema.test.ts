@@ -512,6 +512,39 @@ describe('generateCategorySchema', () => {
         expect(items[0].item.offers?.url).toBe('https://example.com/en-US/product/product-1');
     });
 
+    it('uses configured product URLs and SCAPI slugs in structured data', () => {
+        const schema = generateCategorySchema({
+            category: baseCategory,
+            searchResult: {
+                ...baseSearchResult,
+                hits: [
+                    {
+                        productId: 'product-1',
+                        productName: 'Product 1',
+                        slug: 'modern-shirt',
+                        price: 29.99,
+                        currency: defaultCurrency,
+                    },
+                ],
+            },
+            pageUrl: 'https://example.com/global/en-GB/c/test-category-123',
+            defaultCurrency,
+            seoUrlContext: {
+                siteId: 'RefArch',
+                seoRoutes: {
+                    RefArch: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        });
+
+        const product = schema.mainEntity?.itemListElement?.[0].item;
+        expect(product?.url).toBe('https://example.com/global/en-GB/p/modern-shirt/product-1');
+        expect(product?.offers?.url).toBe('https://example.com/global/en-GB/p/modern-shirt/product-1');
+    });
+
     it('should handle invalid pageUrl gracefully', () => {
         const invalidUrl = 'not-a-valid-url';
 

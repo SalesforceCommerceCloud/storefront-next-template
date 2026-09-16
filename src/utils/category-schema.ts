@@ -15,6 +15,7 @@
  */
 import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import type { AppConfig } from '@/types/config';
+import type { SeoUrlContext } from '@/route-paths';
 import { buildProductSchemaUrl, buildCategorySchemaUrl } from './schema-url';
 
 /**
@@ -63,14 +64,17 @@ export interface CategorySchema extends Record<string, unknown> {
 function getProductUrl(
     product: ShopperSearch.schemas['ProductSearchHit'],
     pageUrl: string,
-    baseUrl: string
+    baseUrl: string,
+    seoUrlContext?: SeoUrlContext
 ): string | undefined {
     // Use common schema URL builder to construct product URLs.
     // This ensures consistency across all schema generation.
     return buildProductSchemaUrl({
         productId: product.productId,
+        slug: product.slug,
         origin: baseUrl,
         currentPageUrl: pageUrl,
+        seoUrlContext,
     });
 }
 
@@ -132,6 +136,7 @@ function determineAvailability(
  * @param data.pageUrl - Full URL of the category page
  * @param data.defaultCurrency - Site's default currency to use as fallback (e.g., from config.site.currency)
  * @param [data.config] - The site configuration
+ * @param [data.seoUrlContext] - Active site's optional SEO route configuration
  * @returns JSON-LD schema object for CollectionPage/ItemList
  */
 export function generateCategorySchema({
@@ -140,12 +145,14 @@ export function generateCategorySchema({
     pageUrl,
     defaultCurrency,
     config,
+    seoUrlContext,
 }: {
     category: ShopperProducts.schemas['Category'];
     searchResult: ShopperSearch.schemas['ProductSearchResult'] | null | undefined;
     pageUrl: string;
     defaultCurrency: string;
     config?: AppConfig | undefined;
+    seoUrlContext?: SeoUrlContext;
 }): CategorySchema {
     // Validate and parse pageUrl to avoid errors
     let baseUrl: string;
@@ -181,6 +188,7 @@ export function generateCategorySchema({
                     categoryId: parent.id,
                     origin: baseUrl,
                     currentPageUrl: pageUrl,
+                    seoUrlContext,
                 }),
             });
         });
@@ -198,7 +206,7 @@ export function generateCategorySchema({
     const MAX_ITEMS = 24;
     const products = searchResult?.hits?.slice(0, MAX_ITEMS) || [];
     const itemListElements = products.map((product, index) => {
-        const productUrl = getProductUrl(product, pageUrl, baseUrl);
+        const productUrl = getProductUrl(product, pageUrl, baseUrl, seoUrlContext);
 
         // Get primary image
         const imageUrl = product.image?.link || product.image?.disBaseLink;

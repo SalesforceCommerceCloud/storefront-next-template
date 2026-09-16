@@ -111,6 +111,16 @@ describe('SearchBar Component', () => {
     });
 
     describe('Basic Rendering', () => {
+        it('requests product slugs with the existing suggestions request', () => {
+            renderSearchBar();
+
+            expect(mockUseSearchSuggestions).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    expand: ['images', 'prices', 'custom_product_properties', 'slug'],
+                })
+            );
+        });
+
         it('should render search input with correct attributes', () => {
             renderSearchBar();
 

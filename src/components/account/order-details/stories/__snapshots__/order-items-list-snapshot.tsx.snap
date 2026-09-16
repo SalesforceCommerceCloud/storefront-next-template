@@ -168,7 +168,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
             <a
               class="hover:text-primary block break-words"
               data-discover="true"
-              href="/"
+              href="/RefArchGlobal/en-GB/product/prod-1"
               title="Product One"
             >
               Product One
@@ -251,7 +251,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
             <a
               class="hover:text-primary block break-words"
               data-discover="true"
-              href="/"
+              href="/RefArchGlobal/en-GB/product/prod-2"
               title="Product Two"
             >
               Product Two

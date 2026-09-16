@@ -749,6 +749,11 @@ describe('CategoryPage', () => {
                     hits: [...(mockSearchResult.hits || []), ...(mockSearchResult.hits || [])],
                 }),
                 config: mockConfig,
+                seoUrlContext: {
+                    siteId: 'RefArchGlobal',
+                    urlPrefix: undefined,
+                    seoRoutes: undefined,
+                },
                 pageUrl: 'https://example.com/category/electronics',
                 defaultCurrency: 'GBP',
             });

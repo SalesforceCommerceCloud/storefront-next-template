@@ -33,8 +33,9 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
 // Utils
 import { formatCurrency } from '@/lib/currency';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
-import { createProductUrl, getDisplayVariationValues } from '@/lib/product/product-utils';
+import { createProductUrlFromAttributes, getDisplayVariationValues } from '@/lib/product/product-utils';
 import { toImageUrl } from '@/lib/images/dynamic-image';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 
 /**
  * Props for the MyCart component
@@ -69,6 +70,7 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
     const { i18n } = useTranslation();
     const { currency } = useSite();
     const config = useConfig();
+    const seoUrlContext = useSeoUrlContext();
 
     const productItems = useMemo(() => {
         return (basket?.productItems || []).map((item, index) => {
@@ -127,7 +129,9 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                         {/* Column 2: Product Info (name, variants, price, qty) */}
                         <div className="flex-1 min-w-0">
                             <Link
-                                to={createProductUrl(productId)}
+                                to={createProductUrlFromAttributes(productId, null, 'color', null, {
+                                    context: seoUrlContext,
+                                })}
                                 className="text-sm font-semibold text-foreground hover:text-primary">
                                 {productName}
                             </Link>
@@ -190,7 +194,7 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                 </div>
             );
         });
-    }, [basket?.productItems, productMap, currency, i18n.language, config, t, tCart]);
+    }, [basket?.productItems, productMap, currency, i18n.language, config, t, tCart, seoUrlContext]);
 
     return (
         <div className="w-full">

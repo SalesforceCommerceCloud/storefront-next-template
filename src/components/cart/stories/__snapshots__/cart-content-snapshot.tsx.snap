@@ -228,7 +228,7 @@ exports[`CartContent stories snapshot > CartWithItems story renders and matches 
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Men's Classic Deer Gloves"
                                 >
                                   Men's Classic Deer Gloves
@@ -1137,7 +1137,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Men's Classic Deer Gloves"
                                 >
                                   Men's Classic Deer Gloves
@@ -1562,7 +1562,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Men's Classic Deer Gloves"
                                 >
                                   Men's Classic Deer Gloves
@@ -1943,7 +1943,7 @@ exports[`CartContent stories snapshot > CartWithPickupDelivery story renders and
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Men's Classic Deer Gloves"
                                 >
                                   Men's Classic Deer Gloves
@@ -2854,7 +2854,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Men's Classic Deer Gloves"
                                 >
                                   Men's Classic Deer Gloves
@@ -3235,7 +3235,7 @@ exports[`CartContent stories snapshot > CartWithPromotions story renders and mat
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Men's Classic Deer Gloves"
                                 >
                                   Men's Classic Deer Gloves
@@ -4549,7 +4549,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             >
                               <a
                                 class="hover:text-primary block break-words"
-                                href="/global/en-GB/product/:productId"
+                                href="/global/en-GB/product/TG508M"
                                 title="Men's Classic Deer Gloves"
                               >
                                 Men's Classic Deer Gloves
@@ -4974,7 +4974,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             >
                               <a
                                 class="hover:text-primary block break-words"
-                                href="/global/en-GB/product/:productId"
+                                href="/global/en-GB/product/TG508M"
                                 title="Men's Classic Deer Gloves"
                               >
                                 Men's Classic Deer Gloves
@@ -5355,7 +5355,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             >
                               <a
                                 class="hover:text-primary block break-words"
-                                href="/global/en-GB/product/:productId"
+                                href="/global/en-GB/product/TG508M"
                                 title="Men's Classic Deer Gloves"
                               >
                                 Men's Classic Deer Gloves
@@ -5775,7 +5775,7 @@ exports[`CartContent stories snapshot > MobileLayout story renders and matches s
                             >
                               <a
                                 class="hover:text-primary block break-words"
-                                href="/global/en-GB/product/:productId"
+                                href="/global/en-GB/product/TG508M"
                                 title="Free Silk Tie (Bonus)"
                               >
                                 Free Silk Tie (Bonus)
@@ -6159,7 +6159,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Classic Fit Shirt"
                                 >
                                   Classic Fit Shirt
@@ -6548,7 +6548,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Red Tie"
                                 >
                                   Red Tie
@@ -6805,7 +6805,7 @@ exports[`CartContent stories snapshot > WithBonusProducts story renders and matc
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Blue Tie"
                                 >
                                   Blue Tie
@@ -7647,7 +7647,7 @@ exports[`CartContent stories snapshot > WithErrorBanner story renders and matche
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Solid Silk Tie"
                                 >
                                   Solid Silk Tie
@@ -8640,7 +8640,7 @@ exports[`CartContent stories snapshot > WithGiftLine story renders and matches s
                               >
                                 <a
                                   class="hover:text-primary block break-words"
-                                  href="/global/en-GB/product/:productId"
+                                  href="/global/en-GB/product/TG508M"
                                   title="Solid Silk Tie"
                                 >
                                   Solid Silk Tie

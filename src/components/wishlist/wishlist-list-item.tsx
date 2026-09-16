@@ -23,10 +23,15 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
 import { toImageUrl } from '@/lib/images/dynamic-image';
-import { createProductUrl, getDisplayVariationValues, requiresVariantSelection } from '@/lib/product/product-utils';
+import {
+    createProductUrlFromAttributes,
+    getDisplayVariationValues,
+    requiresVariantSelection,
+} from '@/lib/product/product-utils';
 import { isAvailablePrice } from '@/lib/product/price-utils';
 import { useToast } from '@/components/toast';
 import { useAnalytics } from '@/hooks/use-analytics';
+import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import InventoryMessage from '@/components/inventory-message';
 import ProductPrice from '@/components/product-price';
 import { Button } from '@/components/ui/button';
@@ -59,6 +64,7 @@ export function WishlistListItem({ product, wishlistItem, onRemove }: WishlistLi
     const { t } = useTranslation('product');
     const config = useConfig();
     const { currency } = useSite();
+    const seoUrlContext = useSeoUrlContext();
     const { addToast } = useToast();
     const { trackWishlistItemRemoved } = useAnalytics();
     const removeFetcher = useFetcher<typeof wishlistRemoveAction>();
@@ -126,7 +132,7 @@ export function WishlistListItem({ product, wishlistItem, onRemove }: WishlistLi
     // variant is known (either a variant product or a matched variant) so the PDP pre-selects
     // the right attributes on arrival. variationValues is already resolved for both cases above.
     const masterId = product.master?.masterId ?? (product.id as string | undefined);
-    let pdpUrl = createProductUrl(masterId);
+    let pdpUrl = createProductUrlFromAttributes(masterId, null, 'color', null, { context: seoUrlContext });
     if (isSpecificVariant && Object.keys(variationValues).length > 0) {
         const params = new URLSearchParams(variationValues);
         pdpUrl = `${pdpUrl}?${params.toString()}`;

@@ -248,6 +248,11 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
                         hits: [...(searchResultCritical.hits || []), ...(searchResult.hits || [])],
                     },
                     config,
+                    seoUrlContext: {
+                        siteId: siteCtx.site.id,
+                        urlPrefix: config.url?.prefix,
+                        seoRoutes: config.url?.seoRoutes,
+                    },
                     pageUrl: schemaPageUrl,
                     defaultCurrency: currency,
                 });

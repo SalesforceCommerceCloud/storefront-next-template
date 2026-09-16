@@ -35,7 +35,7 @@
 
 import type { ShopperBasketsV2, ShopperProducts, ShopperSearch } from '@/scapi';
 import { findImageGroupBy } from '@/lib/product/image-groups-utils';
-import { routes, routeHref } from '@/route-paths';
+import { createProductUrl as createSeoProductUrl, type SeoUrlContext } from '@/route-paths';
 
 /**
  * Type definition for swatch data used in color attribute selectors
@@ -184,21 +184,21 @@ export const getDisplayVariationValues = (
  * @returns {string} The formatted product URL or '#' if productId is undefined.
  *
  * @example
- * createProductUrl('12345'); // => '/product/12345'
- * createProductUrl('12345', 'red'); // => '/product/12345?color=red'
- * createProductUrl('12345', 'L', 'size'); // => '/product/12345?size=L'
- * createProductUrl('12345', null, 'color', 'V001'); // => '/product/12345?pid=V001'
- * createProductUrl('12345', 'red', 'color', 'V001'); // => '/product/12345?color=red&pid=V001'
- * createProductUrl(undefined); // => '#'
+ * createProductUrlFromAttributes('12345'); // => '/product/12345'
+ * createProductUrlFromAttributes('12345', 'red'); // => '/product/12345?color=red'
+ * createProductUrlFromAttributes('12345', 'L', 'size'); // => '/product/12345?size=L'
+ * createProductUrlFromAttributes('12345', null, 'color', 'V001'); // => '/product/12345?pid=V001'
+ * createProductUrlFromAttributes('12345', 'red', 'color', 'V001'); // => '/product/12345?color=red&pid=V001'
+ * createProductUrlFromAttributes(undefined); // => '#'
  */
-export const createProductUrl = (
+export const createProductUrlFromAttributes = (
     productId: string | undefined,
     selectedAttributeValue: string | null = null,
     attributeType: string = 'color',
-    variantPid: string | null = null
+    variantPid: string | null = null,
+    seo?: { context: SeoUrlContext; slugSegments?: readonly string[] }
 ): string => {
     if (!productId) return '#';
-    const baseUrl = routeHref(routes.product, { productId });
     const params = new URLSearchParams();
     if (selectedAttributeValue) {
         params.set(attributeType, selectedAttributeValue);
@@ -206,8 +206,14 @@ export const createProductUrl = (
     if (variantPid) {
         params.set('pid', variantPid);
     }
-    const queryString = params.toString();
-    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+    return createSeoProductUrl(
+        {
+            productId,
+            slugSegments: seo?.slugSegments,
+            searchParams: params,
+        },
+        seo?.context
+    );
 };
 
 /**
@@ -307,9 +313,9 @@ const synthesizeVariationAttributesFromVariants = (
  */
 export const getDecoratedVariationAttributes = (
     product: ShopperSearch.schemas['ProductSearchHit'],
-    opts: { swatchViewType?: string } = {}
+    opts: { swatchViewType?: string; seoUrlContext?: SeoUrlContext } = {}
 ): DecoratedVariationAttribute[] => {
-    const { swatchViewType = 'swatch' } = opts;
+    const { swatchViewType = 'swatch', seoUrlContext } = opts;
 
     // `variationAttributes: []` falls through to the variants path — some SCAPI data sets emit
     // an empty array on search hits the same way they omit the field, both signal "no attribute
@@ -330,7 +336,14 @@ export const getDecoratedVariationAttributes = (
             }
 
             // Build href for this variation
-            const href = `${routeHref(routes.product, { productId: product.productId })}?${searchParams.toString()}`;
+            const href = createSeoProductUrl(
+                {
+                    productId: product.productId,
+                    slugSegments: product.slug ? [product.slug] : undefined,
+                    searchParams,
+                },
+                seoUrlContext
+            );
 
             // Find swatch image for this variation value
             const swatchImageGroup = findImageGroupBy(product.imageGroups || [], {

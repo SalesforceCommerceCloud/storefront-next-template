@@ -63,6 +63,7 @@ export const fetchSearchProducts = async (
             'images', // <-- TTL = 900s
             'page_meta_tags',
             'custom_properties',
+            'slug',
         ],
         allImages: true,
         allVariationProperties: true,

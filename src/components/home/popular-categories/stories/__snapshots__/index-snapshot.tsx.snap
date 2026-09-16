@@ -51,7 +51,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/womens-jewelry"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -134,7 +134,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/mens-clothing"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -217,7 +217,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/electronics"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -300,7 +300,7 @@ exports[`PopularCategories stories snapshot > CustomTitle story renders and matc
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/home-living"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -634,7 +634,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                 >
                   <a
                     class="group flex flex-col items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/womens-jewelry"
                   >
                     <div
                       class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
@@ -691,7 +691,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                 >
                   <a
                     class="group flex flex-col items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/mens-clothing"
                   >
                     <div
                       class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
@@ -748,7 +748,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                 >
                   <a
                     class="group flex flex-col items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/electronics"
                   >
                     <div
                       class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
@@ -805,7 +805,7 @@ exports[`PopularCategories stories snapshot > LeftAlignedWithShopAll story rende
                 >
                   <a
                     class="group flex flex-col items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/home-living"
                   >
                     <div
                       class="relative w-full overflow-hidden rounded-ui bg-muted aspect-square"
@@ -1091,7 +1091,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/womens-jewelry"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1174,7 +1174,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/mens-clothing"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1257,7 +1257,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/electronics"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1340,7 +1340,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/home-living"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1423,7 +1423,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/sports-outdoors"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1506,7 +1506,7 @@ exports[`PopularCategories stories snapshot > MoreThanFourCategories story rende
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/beauty-health"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1716,7 +1716,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/womens-jewelry"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1799,7 +1799,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/mens-clothing"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1882,7 +1882,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/electronics"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -1965,7 +1965,7 @@ exports[`PopularCategories stories snapshot > WithCustomSubtitle story renders a
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/home-living"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2163,7 +2163,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/womens-jewelry"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2246,7 +2246,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/mens-clothing"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2329,7 +2329,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/electronics"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2412,7 +2412,7 @@ exports[`PopularCategories stories snapshot > WithDirectData story renders and m
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/home-living"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2610,7 +2610,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/category-1"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2674,7 +2674,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/category-2"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2738,7 +2738,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/category-3"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
@@ -2802,7 +2802,7 @@ exports[`PopularCategories stories snapshot > WithoutImages story renders and ma
                 >
                   <a
                     class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-full w-full"
-                    href="/RefArchGlobal/en-GB/category/:categoryId"
+                    href="/RefArchGlobal/en-GB/category/category-4"
                   >
                     <div
                       class="group relative overflow-hidden bg-muted h-full"
