@@ -42,3 +42,8 @@ export async function waitForStorybookReady(canvasElement: HTMLElement, timeout 
  */
 const defaultSite = mockConfig.commerce.sites[0];
 export const SITE_PREFIX = `/${defaultSite.id}/${defaultSite.defaultLocale}`;
+
+/**
+ * Re-export StoryTestWrapper for use in snapshot tests. Provides RouterProvider + SiteProvider + context providers.
+ */
+export { StoryTestWrapper } from './test-wrapper';

@@ -142,6 +142,11 @@ const mockSingleVariantProduct: ShopperSearch.schemas['ProductSearchHit'] = {
     ],
 };
 
+// The quick-add button's aria-label is `${label} ${productName}`. The label is the `product:quickAdd`
+// i18n key, which verticals override (luxury renders "Discover"), so match on the product name —
+// test-controlled and vertical-independent (role="button" excludes the tile's link/heading).
+const quickAddButtonName = (product: { productName?: string }): RegExp => new RegExp(product.productName ?? '', 'i');
+
 const renderTile = (
     props: Partial<React.ComponentProps<typeof ProductTile>> = {},
     wrapperProps: { config?: AppConfig; currency?: string } = {}
@@ -273,7 +278,7 @@ describe('ProductTile — rendering', () => {
 
     test('renders a quick-add button with the default label', () => {
         renderTile();
-        expect(screen.getByRole('button', { name: /quick add/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) })).toBeInTheDocument();
     });
 
     test('renders a quick-add button with a custom label', () => {
@@ -284,13 +289,17 @@ describe('ProductTile — rendering', () => {
     test('places the quick-add as an absolute overlay over the image by default', () => {
         renderTile();
         // Default 'overlay' placement: the button lives in the absolutely-positioned hover overlay.
-        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).not.toBeNull();
+        expect(
+            screen.getByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) }).closest('.absolute')
+        ).not.toBeNull();
     });
 
     test('places the quick-add inline at the tile bottom when quickAddPlacement="inline"', () => {
         renderTile({ quickAddPlacement: 'inline' });
         // Inline placement: the button is in-flow in the info section, not the absolute overlay.
-        expect(screen.getByRole('button', { name: /quick add/i }).closest('.absolute')).toBeNull();
+        expect(
+            screen.getByRole('button', { name: quickAddButtonName(mockSingleVariantProduct) }).closest('.absolute')
+        ).toBeNull();
     });
 });
 
@@ -519,7 +528,7 @@ describe('ProductTile — quick-add pre-selection', () => {
         const user = userEvent.setup();
         renderTile({ product: mockMasterProduct });
 
-        await user.click(screen.getByRole('button', { name: /quick add/i }));
+        await user.click(screen.getByRole('button', { name: quickAddButtonName(mockMasterProduct) }));
 
         const dialog = await screen.findByRole('dialog');
         // Represented variant is { color: 'CHARCWL', size: '036', width: 'S' },
@@ -533,7 +542,7 @@ describe('ProductTile — quick-add pre-selection', () => {
         const user = userEvent.setup();
         renderTile({ product: mockMasterProduct });
 
-        await user.click(screen.getByRole('button', { name: /quick add/i }));
+        await user.click(screen.getByRole('button', { name: quickAddButtonName(mockMasterProduct) }));
 
         const dialog = await screen.findByRole('dialog');
         expect(await getDialogVariationRadio(dialog, user, 'Color', /Charcoal/)).toBeChecked();

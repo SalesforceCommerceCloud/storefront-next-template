@@ -33,6 +33,10 @@ const contentCardDefaults = {
     showBorder: true,
 } as const;
 
+export type ContentCardLayout = 'overlay' | 'split' | 'stack' | 'prose' | 'callout' | 'tile';
+
+const EDITORIAL_LAYOUTS: ReadonlySet<ContentCardLayout> = new Set(['split', 'stack', 'prose', 'callout', 'tile']);
+
 interface ContentCardProps extends ComponentProps<'div'> {
     title?: string;
     titleTypography?: string;
@@ -51,6 +55,14 @@ interface ContentCardProps extends ComponentProps<'div'> {
     showBackground?: boolean;
     showBorder?: boolean;
     loading?: 'lazy' | 'eager';
+    /**
+     * Editorial layouts for long-form pages. Default `overlay` keeps the canonical
+     * image-scrim card. Split/stack put the image beside or above heading-first copy
+     * so legal and care pages stay readable. Prose, callout, and tile are text-first.
+     */
+    layout?: ContentCardLayout;
+    /** Small kicker above the title (e.g. "01" on a tile). */
+    eyebrow?: string;
 
     // Page Designer props (need to be extracted to avoid passing to DOM)
     regionId?: string;
@@ -148,6 +160,8 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
             showBackground = contentCardDefaults.showBackground,
             showBorder = contentCardDefaults.showBorder,
             loading = 'lazy',
+            layout = 'overlay',
+            eyebrow,
             regionId: _regionId,
             component: _component,
             componentData: _componentData,
@@ -198,28 +212,36 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
         // original hardcoded look verbatim, so untouched cards are unchanged.
         const titleTypographyClass = TITLE_TYPOGRAPHY_CLASS[normalizeTypography(titleTypography)];
         const descriptionTypographyClass = DESCRIPTION_TYPOGRAPHY_CLASS[normalizeTypography(descriptionTypography)];
+        const editorial = EDITORIAL_LAYOUTS.has(layout);
+        const headingFirst = editorial;
+        const hideImage = layout === 'prose' || layout === 'callout' || layout === 'tile';
+        const showImage = Boolean(imageSrc) && !hideImage;
 
-        // Title/description/CTA. Shared by the image branch (rendered as a
-        // gradient overlay) and the text-only branch (rendered on the card
-        // surface) so authored copy is never silently dropped when an image is
-        // absent. `onImage` swaps the overlay-only affordances (light-on-dark
-        // text colors) for surface-appropriate ones.
         const renderContent = (onImage: boolean) =>
             hasContent && (
                 <div className="relative z-10">
+                    {eyebrow ? (
+                        <p
+                            className={cn(
+                                'mb-3 text-[0.6875rem] font-medium uppercase tracking-[0.18em]',
+                                onImage ? 'text-card' : 'text-muted-foreground'
+                            )}>
+                            {eyebrow}
+                        </p>
+                    ) : null}
                     {hasText && (
-                        <div className={cn('flex-1 flex flex-col justify-end', cardDescriptionClassName)}>
-                            {/*
-                             * Source order is heading-first (<h3> before <p>) for assistive tech,
-                             * while `order-*` preserves the visual layout (description above title,
-                             * both bottom-aligned via justify-end).
-                             */}
+                        <div
+                            className={cn(
+                                'flex-1 flex flex-col',
+                                headingFirst ? 'gap-3' : 'justify-end',
+                                cardDescriptionClassName
+                            )}>
                             {resolvedTitle && (
                                 <h3
                                     className={cn(
-                                        'order-2',
+                                        !headingFirst && 'order-2',
                                         titleTypographyClass,
-                                        'mb-4',
+                                        headingFirst ? 'mb-0' : 'mb-4',
                                         onImage ? 'text-card' : 'text-foreground'
                                     )}>
                                     {resolvedTitle}
@@ -228,9 +250,10 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                             {resolvedDescription && (
                                 <p
                                     className={cn(
-                                        'order-1',
+                                        !headingFirst && 'order-1',
                                         descriptionTypographyClass,
-                                        'mb-2 whitespace-pre-line',
+                                        headingFirst ? 'mb-0' : 'mb-2',
+                                        'whitespace-pre-line',
                                         onImage ? 'text-muted' : 'text-muted-foreground'
                                     )}>
                                     {resolvedDescription}
@@ -244,6 +267,7 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                             variant="default"
                             className={cn(
                                 'w-fit text-sm font-medium leading-5 text-primary-foreground',
+                                headingFirst && 'mt-4',
                                 buttonClassName
                             )}>
                             <Link to={buttonLink} aria-label={buttonAriaLabel}>
@@ -254,25 +278,67 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                 </div>
             );
 
+        const media =
+            showImage && imageSrc ? (
+                <div
+                    {...(showEmptyState && { 'data-slot': 'empty-state' })}
+                    className={cn(
+                        'relative overflow-hidden bg-secondary/20',
+                        layout === 'split' && 'aspect-[4/3] md:aspect-auto md:min-h-full',
+                        layout === 'stack' && 'aspect-[16/9]',
+                        layout === 'overlay' && 'aspect-[4/3]'
+                    )}>
+                    <img
+                        src={resolveAssetUrl(imageSrc)}
+                        alt={showEmptyState ? '' : imageAlt || resolvedTitle || ''}
+                        className="h-full w-full object-cover"
+                        style={{ objectPosition }}
+                        loading={loading}
+                    />
+                </div>
+            ) : null;
+
         return (
             <Card
                 ref={ref}
+                {...(editorial ? { 'data-layout': layout } : {})}
                 className={cn(
                     'relative h-full overflow-hidden',
-                    showBackground ? 'ring-secondary/40 bg-muted/50' : 'bg-transparent',
-                    !showBorder && 'border-0 ',
+                    layout === 'callout' && 'border-0 border-l-2 border-l-primary bg-secondary shadow-none ring-0',
+                    layout === 'prose' && 'border-0 bg-transparent shadow-none ring-0',
+                    layout !== 'callout' &&
+                        layout !== 'prose' &&
+                        (showBackground ? 'ring-secondary/40 bg-muted/50' : 'bg-transparent'),
+                    layout !== 'callout' && layout !== 'prose' && !showBorder && 'border-0 ',
+                    layout === 'tile' && 'bg-card',
                     className
                 )}
                 {...props}>
-                {imageSrc ? (
+                {layout === 'split' && showImage ? (
+                    <CardContent className="grid p-0 md:grid-cols-2 md:items-stretch">
+                        {media}
+                        {hasContent ? (
+                            <div className={cn('flex flex-col justify-center p-6 md:p-10', cardFooterClassName)}>
+                                {renderContent(false)}
+                            </div>
+                        ) : null}
+                    </CardContent>
+                ) : layout === 'stack' && showImage ? (
+                    <CardContent className="p-0">
+                        {media}
+                        {hasContent ? (
+                            <div className={cn('flex flex-col p-6 md:p-8', cardFooterClassName)}>
+                                {renderContent(false)}
+                            </div>
+                        ) : null}
+                    </CardContent>
+                ) : showImage && imageSrc && layout === 'overlay' ? (
                     <CardContent className="p-0">
                         <div
                             {...(showEmptyState && { 'data-slot': 'empty-state' })}
                             className="relative aspect-[4/3] overflow-hidden bg-secondary/20">
                             <img
                                 src={resolveAssetUrl(imageSrc)}
-                                // Empty-state placeholder is decorative: the same title text is rendered
-                                // as a heading below, so an alt would make a screen reader read it twice.
                                 alt={showEmptyState ? '' : imageAlt || resolvedTitle || ''}
                                 className="w-full h-full object-cover"
                                 style={{ objectPosition }}
@@ -284,16 +350,6 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                                         'absolute inset-0 flex flex-col justify-end p-6 md:p-8',
                                         cardFooterClassName
                                     )}>
-                                    {/*
-                                     * Scrim for WCAG 1.4.3. Must paint ABOVE the sibling <img>: a negative
-                                     * z-index here pushed it behind the image, darkening nothing (white title
-                                     * and description measured ~1.2:1 over light photos). The title/description
-                                     * block is bottom-anchored but unbounded in height (long descriptions, the
-                                     * Heading 1-6 typography presets), so it can extend anywhere up the card. A
-                                     * gradient that fades to transparent at the top (as popular-category uses)
-                                     * would drop white text below 4.5:1 wherever content reaches that lighter
-                                     * zone. The gradient here is floored at black/60 (never lighter) so contrast
-                                     * stays >=4.5:1 (actually ~5.7:1) at every point text can occupy. */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/75 to-black/60" />
                                     {renderContent(true)}
                                 </div>
@@ -303,7 +359,16 @@ export const ContentCard = forwardRef<HTMLDivElement, ContentCardProps>(
                 ) : (
                     hasContent && (
                         <CardContent className="p-0">
-                            <div className={cn('flex flex-col justify-end p-6 md:p-8', cardFooterClassName)}>
+                            <div
+                                className={cn(
+                                    'flex flex-col',
+                                    layout === 'prose' && 'max-w-prose px-0 py-2',
+                                    layout === 'callout' && 'px-6 py-5 md:px-8',
+                                    layout === 'tile' && 'justify-start p-6 md:p-8',
+                                    layout === 'overlay' && 'justify-end p-6 md:p-8',
+                                    (layout === 'split' || layout === 'stack') && 'p-6 md:p-8',
+                                    cardFooterClassName
+                                )}>
                                 {renderContent(false)}
                             </div>
                         </CardContent>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, within } from 'storybook/test';
+import { expect } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { action } from 'storybook/actions';
@@ -145,15 +145,16 @@ This is the initial state before any search is performed.
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
 
-        // Verify form is rendered
-        const form = canvasElement.querySelector('form');
-        await expect(form).toBeInTheDocument();
+        // Verify the store locator section is rendered (common to both fashion form and luxury boutique locator)
+        const section = canvasElement.querySelector('section[aria-labelledby="store-locator-heading"]');
+        await expect(section).toBeInTheDocument();
 
-        // Verify postal code input is present
-        const postalInput = await canvas.findByPlaceholderText(/postal code/i, {}, { timeout: 5000 });
-        await expect(postalInput).toBeInTheDocument();
+        // Verify the locator content is present — could be a form (fashion) or boutique locator (luxury)
+        const locatorContent = section?.querySelector(
+            '[data-slot="luxury-boutique-locator"], form, [data-testid="boutique-locator"]'
+        );
+        await expect(locatorContent).toBeInTheDocument();
     },
 };
 
@@ -178,9 +179,9 @@ The component automatically adapts for mobile screens.
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
 
-        // Verify form is rendered
-        const form = canvasElement.querySelector('form');
-        await expect(form).toBeInTheDocument();
+        // Verify the store locator section is rendered (common to both fashion form and luxury boutique locator)
+        const section = canvasElement.querySelector('section[aria-labelledby="store-locator-heading"]');
+        await expect(section).toBeInTheDocument();
     },
 };
 
@@ -204,14 +205,15 @@ The component provides a clean layout for desktop screens.
     },
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
-        const canvas = within(canvasElement);
 
-        // Verify form is rendered
-        const form = canvasElement.querySelector('form');
-        await expect(form).toBeInTheDocument();
+        // Verify the store locator section is rendered (common to both fashion form and luxury boutique locator)
+        const section = canvasElement.querySelector('section[aria-labelledby="store-locator-heading"]');
+        await expect(section).toBeInTheDocument();
 
-        // Verify postal code input is present
-        const postalInput = await canvas.findByPlaceholderText(/postal code/i, {}, { timeout: 5000 });
-        await expect(postalInput).toBeInTheDocument();
+        // Verify the locator content is present — could be a form (fashion) or boutique locator (luxury)
+        const locatorContent = section?.querySelector(
+            '[data-slot="luxury-boutique-locator"], form, [data-testid="boutique-locator"]'
+        );
+        await expect(locatorContent).toBeInTheDocument();
     },
 };

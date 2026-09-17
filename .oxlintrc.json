@@ -14,6 +14,7 @@
         "**/cartridges/**/cartridge/scripts/**/*.js",
         "**/cartridges/**/cartridge/rest-apis/**/*.js",
         "e2e/**",
+        "tsconfig.luxury.json",
         ".storybook/**/*",
         "build/**/*",
         "coverage/**/*",

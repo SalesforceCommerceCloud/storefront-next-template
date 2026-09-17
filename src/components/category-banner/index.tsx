@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigation, useRouteLoaderData } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import type { ShopperProducts, ShopperSearch } from '@/scapi';
-import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { toImageUrl } from '@/lib/images/dynamic-image';
-
-type CategoryRouteData = {
-    category: ShopperProducts.schemas['Category'];
-    searchResultCritical: ShopperSearch.schemas['ProductSearchResult'];
-};
+import { useCategoryBannerData } from './use-category-banner-data';
 
 /**
  * Fallback banner for Product Listing Pages when no hero component is configured
@@ -33,39 +24,9 @@ type CategoryRouteData = {
  * Image resolution: c_slotBannerImage → category.image → bg-muted.
  */
 export default function CategoryBanner() {
-    const loaderData = useRouteLoaderData<CategoryRouteData>('routes/_app.category.$categoryId');
     const { t } = useTranslation('category');
-    const navigation = useNavigation();
-    const location = useLocation();
-    const config = useConfig();
-
-    const category = loaderData?.category;
-    const total = loaderData?.searchResultCritical?.total;
-
-    const isCountPending = useMemo(() => {
-        if (navigation.state === 'idle' || !navigation.location) return false;
-        if (navigation.location.pathname !== location.pathname) return false;
-        const current = new URLSearchParams(location.search);
-        const next = new URLSearchParams(navigation.location.search);
-        return ['refine', 'sort', 'offset'].some(
-            (param) => current.getAll(param).join(',') !== next.getAll(param).join(',')
-        );
-    }, [navigation.state, navigation.location, location.pathname, location.search]);
-
-    const rootCategoryName = category?.parentCategoryTree?.find((p) => p.id !== 'root')?.name;
-    const categoryName = category?.name;
-
-    const categoryImageUrl =
-        (typeof category?.c_slotBannerImage === 'string' && category.c_slotBannerImage) ||
-        (typeof category?.image === 'string' && category.image) ||
-        undefined;
-    const imageSrc = toImageUrl({ src: categoryImageUrl, config }) ?? categoryImageUrl;
-
-    const [imageFailed, setImageFailed] = useState(false);
-    useEffect(() => setImageFailed(false), [categoryImageUrl]);
-    const handleImageError = useCallback(() => setImageFailed(true), []);
-
-    const hasImage = !!imageSrc && !imageFailed;
+    const { rootCategoryName, categoryName, imageSrc, hasImage, handleImageError, total, isCountPending } =
+        useCategoryBannerData();
 
     return (
         <div className="relative w-full overflow-hidden h-[250px] md:h-[300px] lg:h-[350px]">

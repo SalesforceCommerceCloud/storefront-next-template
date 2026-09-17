@@ -131,6 +131,13 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
     parameters: {
+        // Mock /resource/boutiques for luxury's store-locator hook (fetches on mount)
+        mockRoutes: [
+            {
+                path: '/resource/boutiques',
+                loader: () => ({ success: true, stores: [] }),
+            },
+        ],
         docs: {
             description: {
                 story: `
@@ -171,6 +178,13 @@ This is the default state when the sheet is open.
 
 export const MobileLayout: Story = {
     parameters: {
+        // Mock /resource/boutiques for luxury's store-locator hook (fetches on mount)
+        mockRoutes: [
+            {
+                path: '/resource/boutiques',
+                loader: () => ({ success: true, stores: [] }),
+            },
+        ],
         docs: {
             description: {
                 story: `
@@ -213,6 +227,13 @@ The component automatically adapts for mobile screens.
 
 export const DesktopLayout: Story = {
     parameters: {
+        // Mock /resource/boutiques for luxury's store-locator hook (fetches on mount)
+        mockRoutes: [
+            {
+                path: '/resource/boutiques',
+                loader: () => ({ success: true, stores: [] }),
+            },
+        ],
         docs: {
             description: {
                 story: `

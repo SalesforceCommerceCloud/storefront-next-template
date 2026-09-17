@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 const vertical = process.env.VERTICAL ?? 'fashion';
-// PDP script budget raised @W-24210721 (+1000 B, 482000 → 483000 footwear /
-// 475000 → 476000 others): the Shopper Agent env-var rename adds a
-// `resolveShopperAgentConfig` helper plus imports in `root.tsx`, both headers,
-// and Account Help so the "new wins over legacy" precedence lives in one
-// place. Footwear PDP CI measured 482434 across five runs (over the prior 482000
-// ceiling); the helper is irreducible — it is the compatibility gate — so absorb
-// the ~434 B with modest headroom rather than dropping the deprecation shim.
-const productScriptSizeLimit = vertical === 'footwear' ? 483000 : 476000;
+// Footwear ships the heaviest PDP bundle, so its product-page script budget runs above the shared
+// baseline. Two increases stack here: this branch raised footwear to 485 KB for the canonical
+// `useVariationMedia` hook (multi-axis PDP imagery, W-24144914), and main raised every tier ~1 KB
+// (W-24210721) for the Shopper Agent env-var `resolveShopperAgentConfig` compatibility helper that
+// ships in root.tsx + both headers + Account Help (footwear PDP measured 482434 for that alone).
+// Footwear absorbs both (486 KB). Furniture's PDP now measures 476289 across five deterministic runs
+// — the branch's canonical mega-menu/region-id normalization plus main's shell helper push it just
+// past the 476 KB baseline — so it takes a dedicated 477 KB tier; the other verticals still fit 476 KB.
+const productScriptSizeLimit = vertical === 'footwear' ? 486000 : vertical === 'furniture' ? 477000 : 476000;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
-const cartScriptSizeLimit = vertical === 'footwear' ? 534000 : 530000;
+// Footwear ships the heaviest cart shared-chunk baseline. Its cart measures 534398 across five
+// deterministic runs — the branch's mega-menu `hasBanner` predicate + Page-Designer-safe region-id
+// normalization ship on every route's shell, and main's Shopper Agent shell helper adds ~1 KB — so
+// its ceiling is 535 KB. Luxury (added to the Lighthouse matrix in W-24144914) shares a heavier tier
+// at 533 KB; other verticals fit the 530 KB baseline.
+const cartScriptSizeLimit = vertical === 'footwear' ? 535000 : vertical === 'luxury' ? 533000 : 530000;
 
 module.exports = {
     ci: {

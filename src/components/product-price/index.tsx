@@ -93,6 +93,21 @@ export default function ProductPrice({
     const priceData = useMemo(() => getPriceData(product, { quantity, currency }), [product, quantity, currency]);
     const { listPrice, currentPrice, isASet, isMaster, isOnSale, isRange, maxPrice, hasPrice } = priceData;
 
+    // Price on request: for high-value or bespoke items where pricing is determined by consultation
+    if ((product as { c_priceOnRequest?: boolean }).c_priceOnRequest) {
+        return (
+            <div className={cn('items-center gap-2', className)}>
+                <span data-slot="price-on-request" aria-hidden="true">
+                    {t('price.onRequest')}
+                </span>
+                <span className="sr-only">
+                    {labelForA11y ? `${labelForA11y} ` : ''}
+                    {t('price.onRequest')}
+                </span>
+            </div>
+        );
+    }
+
     // No price-book entry for the active currency: SCAPI omits the price, so show "Price unavailable"
     // rather than a misleading 0/free. Basket and order line items always report hasPrice, so this
     // only affects catalog surfaces (PLP, PDP, tiles). `allowMissingPrice` opts out (e.g. bonus

@@ -21,6 +21,7 @@ const logger = createLogger();
 const onClient = typeof window !== 'undefined';
 
 let pendingOpen = false;
+let pendingMessage: string | null = null;
 
 /** Trusted domains for the Commerce Client (Cimulate) messaging bundle. */
 const TRUSTED_CIMULATE_DOMAINS = ['cimulate.ai', 'sfcc-store-internal.net'];
@@ -168,6 +169,14 @@ export function flushPendingCimulateActions(): void {
         pendingOpen = false;
         openCimulateWidget(true);
     }
+    if (pendingMessage) {
+        const message = pendingMessage;
+        const send = window.CimulateMessaging?.eventHandlers?.messaging?.sendMessage;
+        if (typeof send === 'function') {
+            pendingMessage = null;
+            send(message);
+        }
+    }
 }
 
 /**
@@ -182,6 +191,27 @@ export function openAgentWidget(): void {
         openCimulateWidget(true);
     } catch (error) {
         logger.error('Error opening agent widget', { error });
+    }
+}
+
+/**
+ * Opens the Commerce Client widget and sends a shopper message.
+ * If the SDK hasn't loaded yet, queues the message for when it becomes available.
+ */
+export function openAgentWidgetAndSendMessage(message: string): void {
+    if (!onClient) return;
+
+    try {
+        window.dispatchEvent(new Event(CIMULATE_LOAD_EVENT));
+        openCimulateWidget(true);
+        const send = window.CimulateMessaging?.eventHandlers?.messaging?.sendMessage;
+        if (typeof send === 'function') {
+            send(message);
+        } else {
+            pendingMessage = message;
+        }
+    } catch (error) {
+        logger.error('Error opening agent widget with message', { error });
     }
 }
 

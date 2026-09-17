@@ -19,6 +19,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import 'reflect-metadata';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import ResponsiveNavigationMenu, {
+    categoryHasBanner,
     MEGA_MENU_REGION_IDS,
     MegaMenuMetadata,
     regionHasContent,
@@ -314,6 +315,14 @@ describe('ResponsiveNavigationMenu Component', () => {
             expect(resolveMegaMenuRegionId(undefined, true)).toBeUndefined();
         });
 
+        it('normalizes non-word chars in a category id so the region id stays Page-Designer-valid', () => {
+            // Hyphenated cgids (limited-editions, shop-by-price) would produce region ids that fail
+            // Page Designer's ^[\w]+$ pattern; they must map to the sanitized, declared underscore id.
+            const regionIds = new Set(['region_limited_editions', 'region_shop_by_price']);
+            expect(resolveMegaMenuRegionId('limited-editions', true, regionIds)).toBe('region_limited_editions');
+            expect(resolveMegaMenuRegionId('shop-by-price', true, regionIds)).toBe('region_shop_by_price');
+        });
+
         it('does not double-prefix a category id that already starts with region_', () => {
             // A category literally named `region_men` derives `region_region_men`, which is not declared.
             expect(resolveMegaMenuRegionId('region_men', true)).toBeUndefined();
@@ -353,6 +362,28 @@ describe('regionHasContent', () => {
 
     it('is false when the component resolved to null', () => {
         expect(regionHasContent(null, 'region_women')).toBe(false);
+    });
+});
+
+describe('categoryHasBanner', () => {
+    const category = (extra: Partial<ShopperProducts.schemas['Category']>): ShopperProducts.schemas['Category'] =>
+        ({ id: 'women', name: 'Women', ...extra }) as ShopperProducts.schemas['Category'];
+
+    it('is true only for a non-empty c_headerMenuBanner', () => {
+        expect(categoryHasBanner(category({ c_headerMenuBanner: '<p>Banner</p>' }))).toBe(true);
+    });
+
+    it('does NOT match c_slotBannerImage on its own — that widening is vertical-local, not canonical', () => {
+        // Regression guard: the shared engine must not render a header banner for every vertical that
+        // sets c_slotBannerImage (e.g. a PLP banner). Verticals that want that pass their own
+        // `hasBanner` predicate; the default here stays c_headerMenuBanner-only.
+        expect(categoryHasBanner(category({ c_slotBannerImage: '/on/demandware.static/-/banner.jpg' }))).toBe(false);
+    });
+
+    it('is false for empty strings, missing fields, and an undefined category', () => {
+        expect(categoryHasBanner(category({ c_headerMenuBanner: '' }))).toBe(false);
+        expect(categoryHasBanner(category({}))).toBe(false);
+        expect(categoryHasBanner(undefined)).toBe(false);
     });
 });
 

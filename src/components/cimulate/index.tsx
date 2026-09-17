@@ -107,6 +107,7 @@ export default CimulateAgent;
 export {
     openCimulateWidget,
     openAgentWidget,
+    openAgentWidgetAndSendMessage,
     validateCimulateConfig,
     isCimulateEnabled,
     resolveShopperAgentConfig,

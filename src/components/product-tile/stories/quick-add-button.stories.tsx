@@ -93,7 +93,10 @@ export const Default: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const button = canvas.getByRole('button', { name: /quick add/i });
+        // The default label is the `product.quickAdd` locale key, which verticals translate (e.g.
+        // luxury → "Discover"), so match the button by the product name that its aria-label always
+        // includes (`${label} ${productName}`) rather than the vertical-specific label text.
+        const button = canvas.getByRole('button', { name: /classic cotton t-shirt/i });
         await expect(button).toBeInTheDocument();
         await expect(button).toBeEnabled();
     },
@@ -141,7 +144,9 @@ export const ModalOpen: Story = {
     play: async ({ canvasElement }) => {
         await waitForStorybookReady(canvasElement);
         const canvas = within(canvasElement);
-        const button = canvas.getByRole('button', { name: /quick add/i });
+        // Match by product name (always in the aria-label), so the default i18n label — which some
+        // verticals translate (e.g. luxury → "Discover") — doesn't break this shared interaction.
+        const button = canvas.getByRole('button', { name: /classic cotton t-shirt/i });
         await userEvent.click(button);
     },
 };

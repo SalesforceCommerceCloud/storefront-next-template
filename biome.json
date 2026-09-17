@@ -35,6 +35,7 @@
             "!**/cartridges/**/cartridge/scripts/**/*.js",
             "!!**/e2e/**",
             "!!e2e/**",
+            "!tsconfig.luxury.json",
             "!.storybook/**",
             "!_local/**",
             "!**/__snapshots__/**",

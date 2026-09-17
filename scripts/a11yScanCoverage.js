@@ -125,6 +125,18 @@ const ALLOWLIST = {
     '_app.swatches': 'deferred:auto-discovery,vertical-exclusive (furniture) auth-gated page, no Scenario yet',
     '_app.category.fabric-swatches':
         'deferred:auto-discovery,vertical-exclusive (furniture) 301 redirect to /swatches, no visual content to scan',
+    // Luxury vertical-exclusive routes (initial provisioning W-24144914). e2e a11y Scenarios are a
+    // design-parity follow-up; the content/legal pages are low-interactivity static content.
+    '_app.accessibility': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
+    '_app.care': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
+    '_app.privacy': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
+    '_app.privacy-choices': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
+    '_app.terms': 'deferred:auto-discovery,vertical-exclusive (luxury) static content page, no Scenario yet',
+    '_app.boutiques': 'deferred:auto-discovery,vertical-exclusive (luxury) boutique locator, no Scenario yet',
+    '_app.find-your-watch': 'deferred:auto-discovery,vertical-exclusive (luxury) watch-finder page, no Scenario yet',
+    '_app.collections._index': 'deferred:auto-discovery,vertical-exclusive (luxury) collections index, no Scenario yet',
+    '_app.collections.$collection':
+        'deferred:auto-discovery,vertical-exclusive (luxury) collection detail page, no Scenario yet',
     '_app.account.overview': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.passkeys': 'deferred:auto-discovery,auth-gated, no Scenario yet',
     '_app.account.store-preferences': 'deferred:auto-discovery,auth-gated, no Scenario yet',

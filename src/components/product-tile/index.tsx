@@ -47,9 +47,6 @@ import { useWishlistLoader } from '@/providers/wishlist';
 import { PickupIcon } from '@/components/icons';
 import { QuickAddButton } from './quick-add-button';
 import { ProductTileSwatchesSkeleton } from '@/components/category-skeleton';
-import { Component } from '@/lib/decorators/component';
-import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
-import { RegionDefinition } from '@/lib/decorators/region-definition';
 import type { ComponentType } from '@/components/region';
 import { ProductImageContainer } from '@/components/product-image';
 import ProductPrice from '@/components/product-price';
@@ -58,6 +55,10 @@ import { StarRating } from '@/components/product-ratings/star-rating';
 import { UITarget } from '@/targets/ui-target';
 import { Card } from '@/components/ui/card';
 import { loader as loaders } from './loaders';
+import { getPageDesignerStyleClasses } from './page-designer-styles';
+import { Component } from '@/lib/decorators/component';
+import { AttributeDefinition } from '@/lib/decorators/attribute-definition';
+import { RegionDefinition } from '@/lib/decorators/region-definition';
 
 const LazySwatches = lazy(() => import('./swatches').then((m) => ({ default: m.ProductTileSwatches })));
 
@@ -72,210 +73,6 @@ const PRODUCT_TILE_MAX_SWATCHES = 3;
  * chunks). Only ever resolved on the design-mode empty-state path.
  */
 const EMPTY_STATE_PLACEHOLDER_SRC = '/images/content-placeholder.svg';
-
-/* v8 ignore start - do not test decorators in unit tests, decorator functionality is tested separately*/
-@Component('productTile', {
-    name: 'Product Tile',
-    description: 'Configurable product tile with customizable styling for images, typography, and hover effects',
-    group: 'Content',
-})
-@RegionDefinition([])
-// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
-export class ProductTileMetadata {
-    @AttributeDefinition({
-        id: 'productId',
-        name: 'Product',
-        description: 'Select a product to render in this tile.',
-        type: 'product',
-    })
-    productId?: string;
-
-    @AttributeDefinition({
-        id: 'objectFit',
-        name: 'Image Object Fit',
-        description: 'How the product image should fit within its container',
-        type: 'enum',
-        values: ['contain', 'cover', 'fill', 'none', 'scale-down'],
-        defaultValue: 'contain',
-    })
-    objectFit?: string;
-
-    @AttributeDefinition({
-        id: 'borderRadius',
-        name: 'Border Radius',
-        description: 'Corner roundness of the tile card',
-        type: 'enum',
-        values: ['none', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', 'full'],
-        defaultValue: 'xl',
-    })
-    borderRadius?: string;
-
-    @AttributeDefinition({
-        id: 'boxShadow',
-        name: 'Box Shadow',
-        description: 'Shadow effect for the tile card',
-        type: 'enum',
-        values: ['none', 'sm', 'md', 'lg', 'xl', '2xl'],
-        defaultValue: 'sm',
-    })
-    boxShadow?: string;
-
-    @AttributeDefinition({
-        id: 'padding',
-        name: 'Padding',
-        description: 'Padding on all sides of the tile',
-        type: 'enum',
-        values: ['0', '2', '4', '6', '8'],
-        defaultValue: '0',
-    })
-    padding?: string;
-
-    @AttributeDefinition({
-        id: 'margin',
-        name: 'Margin',
-        description: 'Margin on all sides of the tile',
-        type: 'enum',
-        values: ['0', '2', '4', '6', '8'],
-        defaultValue: '0',
-    })
-    margin?: string;
-
-    @AttributeDefinition({
-        id: 'fontWeight',
-        name: 'Font Weight',
-        description: 'Weight of the product name text',
-        type: 'enum',
-        values: ['normal', 'medium', 'semibold', 'bold'],
-        defaultValue: 'semibold',
-    })
-    fontWeight?: string;
-
-    @AttributeDefinition({
-        id: 'letterSpacing',
-        name: 'Letter Spacing',
-        description: 'Spacing between letters in product name',
-        type: 'enum',
-        values: ['tighter', 'tight', 'normal', 'wide', 'wider'],
-        defaultValue: 'normal',
-    })
-    letterSpacing?: string;
-
-    @AttributeDefinition({
-        id: 'hoverEffect',
-        name: 'Hover Effect',
-        description: 'Interactive hover effect for the tile',
-        type: 'enum',
-        values: ['default', 'scale', 'shadow', 'lift'],
-        defaultValue: 'default',
-    })
-    hoverEffect?: string;
-}
-/* v8 ignore stop */
-
-const getPageDesignerStyleClasses = ({
-    objectFit,
-    borderRadius,
-    boxShadow,
-    padding,
-    margin,
-    fontWeight,
-    letterSpacing,
-    hoverEffect,
-}: Partial<ProductTileProps>) => {
-    const classes: string[] = [];
-
-    if (objectFit) {
-        const fitMap = {
-            contain: '[&_img]:!object-contain',
-            cover: '[&_img]:!object-cover',
-            fill: '[&_img]:!object-fill',
-            none: '[&_img]:!object-none',
-            'scale-down': '[&_img]:!object-scale-down',
-        };
-        classes.push(fitMap[objectFit]);
-    }
-
-    if (borderRadius) {
-        const radiusMap: Record<string, string> = {
-            none: '!rounded-none',
-            xs: '!rounded-xs',
-            sm: '!rounded-sm',
-            md: '!rounded-md',
-            lg: '!rounded-lg',
-            xl: '!rounded-xl',
-            '2xl': '!rounded-2xl',
-            '3xl': '!rounded-3xl',
-            '4xl': '!rounded-4xl',
-            full: '!rounded-full',
-        };
-        classes.push(radiusMap[borderRadius] || '!rounded-none');
-    }
-
-    if (boxShadow === 'none') {
-        classes.push('!shadow-none hover:!shadow-none');
-    } else if (boxShadow) {
-        const shadowMap = {
-            sm: '!shadow-sm hover:!shadow-sm',
-            md: '!shadow-md hover:!shadow-md',
-            lg: '!shadow-lg hover:!shadow-lg',
-            xl: '!shadow-xl hover:!shadow-xl',
-            '2xl': '!shadow-2xl hover:!shadow-2xl',
-        };
-        classes.push(shadowMap[boxShadow]);
-    }
-
-    if (padding && padding !== '0') {
-        const paddingMap: Record<string, string> = {
-            '2': 'p-2',
-            '4': 'p-4',
-            '6': 'p-6',
-            '8': 'p-8',
-        };
-        classes.push(paddingMap[padding]);
-    }
-
-    if (margin && margin !== '0') {
-        const marginMap: Record<string, string> = {
-            '2': 'm-2',
-            '4': 'm-4',
-            '6': 'm-6',
-            '8': 'm-8',
-        };
-        classes.push(marginMap[margin]);
-    }
-
-    if (fontWeight) {
-        const weightMap = {
-            normal: '[&_a]:!font-normal',
-            medium: '[&_a]:!font-medium',
-            semibold: '[&_a]:!font-semibold',
-            bold: '[&_a]:!font-bold',
-        };
-        classes.push(weightMap[fontWeight]);
-    }
-
-    if (letterSpacing) {
-        const spacingMap = {
-            tighter: '[&_a]:!tracking-tighter',
-            tight: '[&_a]:!tracking-tight',
-            normal: '[&_a]:!tracking-normal',
-            wide: '[&_a]:!tracking-wide',
-            wider: '[&_a]:!tracking-wider',
-        };
-        classes.push(spacingMap[letterSpacing]);
-    }
-
-    if (hoverEffect && hoverEffect !== 'default') {
-        const hoverMap = {
-            scale: 'hover:!scale-105 !transition-transform !duration-200 hover:!shadow-md',
-            shadow: 'hover:!shadow-xl !transition-shadow !duration-200',
-            lift: 'hover:!-translate-y-1 hover:!shadow-lg !transition-all !duration-200',
-        };
-        classes.push(hoverMap[hoverEffect]);
-    }
-
-    return classes.join(' ');
-};
 
 export interface ProductTileProps extends ComponentProps<'div'> {
     product?: ShopperSearch.schemas['ProductSearchHit'];
@@ -784,4 +581,103 @@ export const loader = loaders.server;
 export { ProductTile };
 // oxlint-disable-next-line react-refresh/only-export-components
 export { ProductTileProvider, useProductTileContext } from './context';
+/* v8 ignore start - do not test decorators in unit tests, decorator functionality is tested separately*/
+@Component('productTile', {
+    name: 'Product Tile',
+    description: 'Configurable product tile with customizable styling for images, typography, and hover effects',
+    group: 'Content',
+})
+@RegionDefinition([])
+// oxlint-disable-next-line react/only-export-components -- oxlint flags the co-exported Page Designer metadata class; eslint-plugin-react-refresh does not
+export class ProductTileMetadata {
+    @AttributeDefinition({
+        id: 'productId',
+        name: 'Product',
+        description: 'Select a product to render in this tile.',
+        type: 'product',
+    })
+    productId?: string;
+
+    @AttributeDefinition({
+        id: 'objectFit',
+        name: 'Image Object Fit',
+        description: 'How the product image should fit within its container',
+        type: 'enum',
+        values: ['contain', 'cover', 'fill', 'none', 'scale-down'],
+        defaultValue: 'contain',
+    })
+    objectFit?: string;
+
+    @AttributeDefinition({
+        id: 'borderRadius',
+        name: 'Border Radius',
+        description: 'Corner roundness of the tile card',
+        type: 'enum',
+        values: ['none', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', 'full'],
+        defaultValue: 'xl',
+    })
+    borderRadius?: string;
+
+    @AttributeDefinition({
+        id: 'boxShadow',
+        name: 'Box Shadow',
+        description: 'Shadow effect for the tile card',
+        type: 'enum',
+        values: ['none', 'sm', 'md', 'lg', 'xl', '2xl'],
+        defaultValue: 'sm',
+    })
+    boxShadow?: string;
+
+    @AttributeDefinition({
+        id: 'padding',
+        name: 'Padding',
+        description: 'Padding on all sides of the tile',
+        type: 'enum',
+        values: ['0', '2', '4', '6', '8'],
+        defaultValue: '0',
+    })
+    padding?: string;
+
+    @AttributeDefinition({
+        id: 'margin',
+        name: 'Margin',
+        description: 'Margin on all sides of the tile',
+        type: 'enum',
+        values: ['0', '2', '4', '6', '8'],
+        defaultValue: '0',
+    })
+    margin?: string;
+
+    @AttributeDefinition({
+        id: 'fontWeight',
+        name: 'Font Weight',
+        description: 'Weight of the product name text',
+        type: 'enum',
+        values: ['normal', 'medium', 'semibold', 'bold'],
+        defaultValue: 'semibold',
+    })
+    fontWeight?: string;
+
+    @AttributeDefinition({
+        id: 'letterSpacing',
+        name: 'Letter Spacing',
+        description: 'Spacing between letters in product name',
+        type: 'enum',
+        values: ['tighter', 'tight', 'normal', 'wide', 'wider'],
+        defaultValue: 'normal',
+    })
+    letterSpacing?: string;
+
+    @AttributeDefinition({
+        id: 'hoverEffect',
+        name: 'Hover Effect',
+        description: 'Interactive hover effect for the tile',
+        type: 'enum',
+        values: ['default', 'scale', 'shadow', 'lift'],
+        defaultValue: 'default',
+    })
+    hoverEffect?: string;
+}
+/* v8 ignore stop */
+
 export default ProductTile;

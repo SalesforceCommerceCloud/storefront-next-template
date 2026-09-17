@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it, expect } from 'vitest';
-import { resolveShopperAgentConfig, type CimulateConfig } from './cimulate.utils';
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import {
+    flushPendingCimulateActions,
+    openAgentWidgetAndSendMessage,
+    resolveShopperAgentConfig,
+    type CimulateConfig,
+} from './cimulate.utils';
 
 const populated: CimulateConfig = {
     enabled: 'true',
@@ -39,6 +44,53 @@ const emptyDefault: CimulateConfig = {
     salesforceOrgId: '',
     esDeveloperName: '',
 };
+
+describe('openAgentWidgetAndSendMessage', () => {
+    afterEach(() => {
+        window.CimulateMessaging = {
+            injectMessagingWidget: vi.fn(),
+            eventHandlers: {
+                components: { toggleWidgetOpen: vi.fn() },
+                messaging: { sendMessage: vi.fn() },
+            },
+        };
+        flushPendingCimulateActions();
+        delete window.CimulateMessaging;
+    });
+
+    test('opens the widget and sends when the SDK is ready', () => {
+        const sendMessage = vi.fn();
+        const toggleWidgetOpen = vi.fn();
+        window.CimulateMessaging = {
+            injectMessagingWidget: vi.fn(),
+            eventHandlers: {
+                components: { toggleWidgetOpen },
+                messaging: { sendMessage },
+            },
+        };
+
+        openAgentWidgetAndSendMessage('Help me find a watch.');
+
+        expect(toggleWidgetOpen).toHaveBeenCalledWith(true);
+        expect(sendMessage).toHaveBeenCalledWith('Help me find a watch.');
+    });
+
+    test('queues the message until the SDK is flushed', () => {
+        const sendMessage = vi.fn();
+        openAgentWidgetAndSendMessage('queued');
+        expect(sendMessage).not.toHaveBeenCalled();
+
+        window.CimulateMessaging = {
+            injectMessagingWidget: vi.fn(),
+            eventHandlers: {
+                components: { toggleWidgetOpen: vi.fn() },
+                messaging: { sendMessage },
+            },
+        };
+        flushPendingCimulateActions();
+        expect(sendMessage).toHaveBeenCalledWith('queued');
+    });
+});
 
 describe('resolveShopperAgentConfig', () => {
     it('returns commerce.shopperAgent when it is populated', () => {

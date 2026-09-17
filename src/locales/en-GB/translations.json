@@ -1859,7 +1859,8 @@
                 "preOrder": "Pre-order: ",
                 "backOrder": "Back order: "
             },
-            "unavailable": "Inventory unavailable"
+            "unavailable": "Inventory unavailable",
+            "allocated": "Limited allocation"
         },
         "selectAllOptions": "Select all your options above",
         "description": "Description",
@@ -2043,7 +2044,8 @@
             "range": "{{min}} – {{max}}",
             "rangeA11y": "Price range from {{min}} to {{max}}",
             "listPriceFrom": "List price from {{price}}",
-            "listPrice": "List price: {{price}}"
+            "listPrice": "List price: {{price}}",
+            "onRequest": "Price on request"
         },
         "removingFromWishlist": "Removing from wishlist...",
         "inWishlist": "In your wishlist"

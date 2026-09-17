@@ -206,8 +206,8 @@
         "server": [
             {
                 "name": "**/*",
-                "limit": "6.4 mB",
-                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measures ~6,201 kB, making it the largest vertical — bumped 6.2 mB → 6.3 mB to admit it. Uncompressed. Follow-up: server-bundle diet (footwear and cosmetic are the largest) to bring this back under 6 mB."
+                "limit": "6.6 mB",
+                "comment": "Server build (SSR bundle). The cosmetic vertical was already at ~6,005 kB on main before this branch; the passkey routes/hooks + account.passkeys i18n keys pushed it to ~6,011 kB (6 mB → 6.1 mB). Guest order lookup's cancel/return action routes (action.order-lookup-cancel.ts, action.order-lookup-return.ts, cancel-error.ts) add ~15.5 kB, measuring ~6,115.5 kB — bumped 6.1 mB → 6.2 mB to admit it. Delivery estimates add private destination-cookie and resource-route handling, measuring 6,206 kB in the cosmetic vertical. The footwear vertical's server code (PDP recommendation rails in pdp-recommendations.server.ts, the size-guide route, colorway/width/size selectors) measured ~6,201 kB, bumped 6.2 mB → 6.3 mB, then main's growth carried the matrix to 6,309–6,385 kB (furniture largest). Luxury (W-24144914) is now the heaviest — its boutique locator/appointment/directory routes, watch-finder tool, and store-locator extension measure the direct luxury server build at ~6,472 kB — so the limit rises 6.4 mB → 6.6 mB. Uncompressed. Follow-up: server-bundle diet to bring this back under 6 mB."
             }
         ],
         "client": [
@@ -239,8 +239,8 @@
             },
             {
                 "name": "assets/\\(routes\\)-_checkout.checkout.*.js",
-                "limit": "100 kB",
-                "comment": "Checkout route chunk; at ~95 kB after eager-importing the four always-mounted step components (ContactInfo, ShippingAddress, ShippingOptions, Payment) to eliminate a 273 ms hydration-time long task and 100+ ms TBT. See W-23528585 spec (docs/internal/specs/W-23528585-checkout-perf-cls-tbt.md, Decision 1) for the eager-vs-lazy tradeoff. Follow-up: route-level modulepreload for the remaining lazy chunks will let this shrink back."
+                "limit": "102 kB",
+                "comment": "Checkout route chunk; at ~95 kB after eager-importing the four always-mounted step components (ContactInfo, ShippingAddress, ShippingOptions, Payment) to eliminate a 273 ms hydration-time long task and 100+ ms TBT. See W-23528585 spec (docs/internal/specs/W-23528585-checkout-perf-cls-tbt.md, Decision 1) for the eager-vs-lazy tradeoff. Follow-up: route-level modulepreload for the remaining lazy chunks will let this shrink back. Raised 100 → 102 kB: the luxury build (W-24144914) measures this chunk at 100.6 kB (fashion sits at 98.1 kB)."
             },
             {
                 "name": "assets/\\(package\\)-\\(@radix-ui-*\\)-*.js",
@@ -264,13 +264,13 @@
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
-                "limit": "95 kB",
-                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the direct footwear build measures it at 93.9 kB, so the 95 kB limit retains about 1.1 kB of headroom."
+                "limit": "115 kB",
+                "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Limit shared across all verticals (single global list, no per-vertical override). Luxury (W-24144914) is now the largest English chunk — its watch-finder namespace plus boutique locator/appointment/directory copy measure the direct luxury build at 112.2 kB — so the limit rises to 115 kB (~2.8 kB headroom). Lighter verticals (fashion ~87.6 kB, footwear ~93.9 kB) sit well under it."
             },
             {
                 "name": "assets/\\(locales\\)-\\(en-GB\\)-index.*.js",
-                "limit": "95 kB",
-                "comment": "English (GB) locale chunk. Same limit as en-US; translations are near-identical in size. Includes the shared PDP delivery-estimate content plus the footwear home hero + spotlight (running/casual) copy. Footwear is the largest English chunk: the direct footwear build measures it at 94.6 kB, so the 95 kB limit retains about 0.4 kB of headroom."
+                "limit": "115 kB",
+                "comment": "English (GB) locale chunk. Same limit as en-US; translations are near-identical in size. Includes the shared PDP delivery-estimate content plus the footwear home hero + spotlight (running/casual) copy. Luxury (W-24144914) is the largest English chunk — the direct luxury build measures it at 112.8 kB (watch-finder + boutique copy) — so the shared limit rises to 115 kB (~2.2 kB headroom); footwear measures 94.6 kB."
             },
             {
                 "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",
@@ -346,6 +346,11 @@
                 "name": "assets/\\(package\\)-\\(i18next-browser-languagedetector\\)-*.js",
                 "limit": "55 kB",
                 "comment": "i18next language detector used by i18n. Slightly over 50 kB baseline."
+            },
+            {
+                "name": "assets/\\(package\\)-\\(@hookform-resolvers\\)-\\(zod\\)-*.js",
+                "limit": "53 kB",
+                "comment": "@hookform-resolvers/zod adapter bundled with its zod schema deps for form validation. Previously fell through to the 50 kB catch-all; the CI luxury build (W-24144914) measures it at 51.1 kB (local builds ~48.9 kB), so it gets a dedicated 53 kB entry rather than loosening the global catch-all."
             },
             {
                 "name": "**/*",

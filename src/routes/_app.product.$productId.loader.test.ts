@@ -62,6 +62,15 @@ vi.mock('@/lib/page-designer/page-loader.server', () => ({
     fetchPageWithComponentData: mockFetchPageWithComponentData,
 }));
 
+// @sfdc-extension-block-start SFDC_EXT_PRODUCT_CONTENT
+// `resolvePdpSections` is supplied by the product-content extension and its section shape can vary
+// between builds. This suite only exercises getPageData/loader logic and never asserts pdpCollapsibles,
+// so stub it to keep the test independent of that section wiring (which is covered by its own tests).
+vi.mock('@/extensions/product-content/lib/pdp-sections', () => ({
+    resolvePdpSections: () => [],
+}));
+// @sfdc-extension-block-end SFDC_EXT_PRODUCT_CONTENT
+
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { selectedStoreContext } from '@/extensions/store-locator/middlewares/selected-store.server';
 // @sfdc-extension-block-end SFDC_EXT_BOPIS

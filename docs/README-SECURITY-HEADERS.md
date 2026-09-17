@@ -74,6 +74,7 @@ Opt-in features (e.g., Cimulate messaging widget) contribute their exact configu
 | Feature | Contributor ID | Directives | Activation |
 |---|---|---|---|
 | Shopper Agent (Commerce Client / Cimulate) | `cimulate` | `script-src`, `connect-src`, `img-src`, `style-src`, `font-src`, `frame-src` | Resolved shopper-agent config's `enabled` is `true` or `'true'` (`commerce.shopperAgent` preferred, `cimulateAgent` legacy) |
+| OpenStreetMap tiles | `openstreetmap-embed` | `img-src` | `VERTICAL=luxury` (boutique map) |
 
 Origins are derived from the resolved shopper-agent config (`commerceClientScriptSourceUrl`, `scrt2Url`, `commerceClientLogoUrl`) — no new config to set.
 

@@ -111,7 +111,9 @@ describe('QuickAddButton', () => {
 
     test('renders the button with the default label', () => {
         renderButton();
-        expect(screen.getByRole('button', { name: /quick add test product/i })).toBeInTheDocument();
+        // The label prefix is an i18n string verticals override (luxury renders "Discover"); match on
+        // the product name that the aria-label always includes (test-controlled, vertical-independent).
+        expect(screen.getByRole('button', { name: /test product/i })).toBeInTheDocument();
     });
 
     test('renders the button with a custom label', () => {
@@ -125,7 +127,7 @@ describe('QuickAddButton', () => {
 
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: /quick add/i }));
+        await user.click(screen.getByRole('button', { name: /test product/i }));
 
         expect(await screen.findByRole('dialog')).toBeInTheDocument();
     });
@@ -134,7 +136,7 @@ describe('QuickAddButton', () => {
         const user = userEvent.setup();
         renderButton({ selectedColorValue: 'navy' });
 
-        await user.click(screen.getByRole('button', { name: /quick add/i }));
+        await user.click(screen.getByRole('button', { name: /test product/i }));
         await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
         expect(
@@ -146,7 +148,7 @@ describe('QuickAddButton', () => {
         const user = userEvent.setup();
         renderButton();
 
-        await user.click(screen.getByRole('button', { name: /quick add/i }));
+        await user.click(screen.getByRole('button', { name: /test product/i }));
         await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
         expect(await screen.findByText('PDP loaded: /global/en-GB/product/test-product')).toBeInTheDocument();
@@ -158,7 +160,7 @@ describe('QuickAddButton', () => {
         vi.useFakeTimers();
         renderButton();
 
-        fireEvent.click(screen.getByRole('button', { name: /quick add/i }));
+        fireEvent.click(screen.getByRole('button', { name: /test product/i }));
         expect(screen.getByRole('dialog')).toBeInTheDocument();
         expect(modalLifecycle.mounts).toBe(1);
         expect(modalLifecycle.unmounts).toBe(0);

@@ -64,7 +64,7 @@ in the JSON value for `PUBLIC__app__commerce__shopperAgent` (or the legacy `PUBL
 ## Usage
 
 - **Root layout** — `<CimulateAgent />` mounts when the resolved shopper-agent config's `enabled` is truthy. The resolver `resolveShopperAgentConfig(appConfig)` from `@/components/cimulate` returns `config.commerce.shopperAgent` when populated, else the legacy `config.cimulateAgent`. No extra wiring needed.
-- **Open widget programmatically** — `openCimulateWidget()` or provider-aware `openAgentWidget()` from `@/components/cimulate`.
+- **Open widget programmatically** — `openCimulateWidget()`, provider-aware `openAgentWidget()`, or `openAgentWidgetAndSendMessage()` from `@/components/cimulate`.
 
 ## Security
 

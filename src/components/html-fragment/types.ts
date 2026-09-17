@@ -49,6 +49,30 @@ export interface SpecTableGroup {
  * an alternate representation (e.g. metric ↔ imperial) without any runtime conversion. With
  * fewer than two views it renders as a plain 2-column table.
  */
+/**
+ * Optional call-to-action rendered below a spec table — e.g. a "Download brochure" download link or
+ * an external "Verify certification" link. Backward-compatible: absent = nothing rendered.
+ */
+export interface SpecTableCta {
+    label: string;
+    href: string;
+    /** Render as a download link (adds the `download` attribute). */
+    download?: boolean;
+    /** Open in a new tab with a safe `rel` (for external verification links). */
+    external?: boolean;
+}
+
+/**
+ * Optional leading badge rendered above a spec table — e.g. a certification pill with a short mark
+ * ("M"/"C") + label ("METAS Certified"). Backward-compatible: absent = nothing rendered. Verticals
+ * style it via the `[data-slot="spec-table-badge"]` hook.
+ */
+export interface SpecTableBadge {
+    /** Short mark shown in the leading chip (e.g. "M", "C", "A"). Optional. */
+    mark?: string;
+    label: string;
+}
+
 export interface SpecTableContent {
     contentType: 'spec-table';
     /** Flat rows for a single-section table. Provide this OR `groups`. */
@@ -60,6 +84,16 @@ export interface SpecTableContent {
     defaultViewId?: string;
     /** Accessible name for the view switch group (e.g. "Units"). */
     viewSwitchLabel?: string;
+    /** Optional CTA link/button rendered below the table (download or external verify link). */
+    cta?: SpecTableCta;
+    /** Optional leading badge/pill rendered above the rows (e.g. a certification mark). */
+    badge?: SpecTableBadge;
+    /**
+     * Row presentation. `'list'` (default) is the fixed label/value 2-column list; `'grid'` renders
+     * rows as a responsive grid of stacked label-over-value cells (a "highlights" strip). Backward-
+     * compatible: undefined = `'list'`.
+     */
+    layout?: 'list' | 'grid';
 }
 
 /** Content a PDP collapsible section can resolve to: legacy HTML, or a structured spec table. */

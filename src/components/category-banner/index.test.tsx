@@ -213,6 +213,25 @@ describe('CategoryBanner', () => {
             expect(img).toHaveAttribute('src', 'https://dis.example.com/dw/image/v2/banner.png');
         });
 
+        test('ignores a relative c_slotBannerImage catalog path and falls back to category.image', () => {
+            // Live SCAPI returns c_slotBannerImage as a relative `/on/demandware.static/...` path
+            // that resolves to a broken storefront URL; the absolute, version-stamped category.image
+            // must win instead.
+            mockUseRouteLoaderData.mockReturnValue({
+                category: {
+                    ...mockCategory,
+                    c_slotBannerImage: '/on/demandware.static/-/Sites-catalog/default/banner.png',
+                    image: 'https://mrt-host/on/demandware.static/dwabc123/category.png',
+                },
+                searchResultCritical: mockSearchResult,
+            });
+
+            renderBanner();
+
+            const img = document.querySelector('img') as HTMLImageElement;
+            expect(img).toHaveAttribute('src', 'https://mrt-host/on/demandware.static/dwabc123/category.png');
+        });
+
         test('falls back to category.image when c_slotBannerImage is absent', () => {
             mockUseRouteLoaderData.mockReturnValue({
                 category: {
