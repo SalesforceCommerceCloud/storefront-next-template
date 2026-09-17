@@ -20,6 +20,58 @@ import { handlePasswordlessCallback, handlePasswordlessLanding } from '@/lib/aut
 import { handleSocialLoginLanding } from '@/lib/api/auth/social-login.server';
 import { handleResetPasswordCallback, handleResetPasswordLanding } from '@/lib/api/auth/reset-password.server';
 import { createActionArgs, createLoaderArgs } from '@/lib/test-utils/loader-action-args';
+import { getUrlMapping } from '@/lib/api/shopper-seo.server';
+import { resolveUrlMapping } from '@/lib/seo/url-mapping.server';
+import { getAppOrigin } from '@/lib/origin';
+import { ApiError } from '@/scapi';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+
+const mockLogger = vi.hoisted(() => ({
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+}));
+
+const mockConfig = vi.hoisted(() => ({
+    features: {
+        passwordlessLogin: {
+            mode: 'callback',
+            landingUri: '/passwordless-login-landing',
+            callbackUri: '/passwordless-login-callback',
+        },
+        socialLogin: {
+            enabled: true,
+            callbackUri: '/social-callback',
+        },
+        resetPassword: {
+            landingUri: '/reset-password-landing',
+            callbackUri: '/reset-password-callback',
+        },
+    },
+    hybrid: {
+        enabled: true,
+        legacyRoutes: [{ pattern: '/legacy-products/:id', suffix: '.html' }],
+    },
+    seoFallback: {
+        sites: {
+            RefArch: {
+                redirectOrigins: ['https://approved.example'],
+                allowedQueryParameters: { product: [], category: [], redirect: [] },
+                contentOwned: false,
+            },
+        },
+    },
+    url: {
+        prefix: '/:siteId/:localeId',
+        seoRoutes: {
+            RefArch: {
+                product: { prefix: 'products' },
+                category: { prefix: 'catalog', mode: 'id-suffix' as const },
+            },
+        },
+    },
+}));
 
 // Mock passwordless-login handlers
 vi.mock('@/lib/auth/passwordless-login.server', () => ({
@@ -40,32 +92,24 @@ vi.mock('@/lib/api/auth/reset-password.server', () => ({
 
 // Mock config
 vi.mock('@salesforce/storefront-next-runtime/config', () => ({
-    getConfig: vi.fn(() => ({
-        features: {
-            passwordlessLogin: {
-                mode: 'callback',
-                landingUri: '/passwordless-login-landing',
-                callbackUri: '/passwordless-login-callback',
-            },
-            socialLogin: {
-                enabled: true,
-                callbackUri: '/social-callback',
-            },
-            resetPassword: {
-                landingUri: '/reset-password-landing',
-                callbackUri: '/reset-password-callback',
-            },
-        },
-    })),
+    getConfig: vi.fn(() => mockConfig),
 }));
 
 vi.mock('@/lib/logger.server', () => ({
-    getLogger: vi.fn(() => ({
-        error: vi.fn(),
-        warn: vi.fn(),
-        info: vi.fn(),
-        debug: vi.fn(),
-    })),
+    getLogger: vi.fn(() => mockLogger),
+}));
+
+vi.mock('@/lib/api/shopper-seo.server', () => ({
+    getUrlMapping: vi.fn(),
+}));
+
+vi.mock('@/lib/seo/url-mapping.server', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/lib/seo/url-mapping.server')>();
+    return { ...actual, resolveUrlMapping: vi.fn() };
+});
+
+vi.mock('@/lib/origin', () => ({
+    getAppOrigin: vi.fn(() => 'https://shop.example'),
 }));
 
 const mockPasswordlessCallback = vi.mocked(handlePasswordlessCallback);
@@ -73,16 +117,36 @@ const mockPasswordlessLanding = vi.mocked(handlePasswordlessLanding);
 const mockSocialLoginCallback = vi.mocked(handleSocialLoginLanding);
 const mockResetPasswordCallback = vi.mocked(handleResetPasswordCallback);
 const mockResetPasswordLanding = vi.mocked(handleResetPasswordLanding);
+const mockGetUrlMapping = vi.mocked(getUrlMapping);
+const mockResolveUrlMapping = vi.mocked(resolveUrlMapping);
+const mockGetAppOrigin = vi.mocked(getAppOrigin);
 
 describe('_empty.$.ts - Catch-all route (no layout)', () => {
     it('should export a default component', () => {
         expect(typeof CatchAllRoute).toBe('function');
     });
 
-    const mockContext = {} as any;
+    const activeSiteContext = {
+        site: {
+            id: 'RefArch',
+            alias: 'global',
+            defaultLocale: 'en-US',
+            defaultCurrency: 'USD',
+            supportedLocales: [],
+            supportedCurrencies: ['USD'],
+        },
+        locale: { id: 'en-US', alias: 'en' },
+        currency: 'USD',
+    };
+    const mockContext = {
+        get: vi.fn((key) => (key === siteContext ? activeSiteContext : undefined)),
+    } as any;
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockGetUrlMapping.mockResolvedValue(null);
+        mockResolveUrlMapping.mockReturnValue({ type: 'not-found' });
+        mockGetAppOrigin.mockReturnValue('https://shop.example');
     });
 
     describe('loader', () => {
@@ -102,6 +166,7 @@ describe('_empty.$.ts - Catch-all route (no layout)', () => {
 
             expect(mockPasswordlessLanding).toHaveBeenCalledWith(args);
             expect(result).toBe(mockResponse);
+            expect(mockGetUrlMapping).not.toHaveBeenCalled();
         });
 
         it('should handle reset password landing route', async () => {
@@ -154,6 +219,194 @@ describe('_empty.$.ts - Catch-all route (no layout)', () => {
                 expect(await (error as Response).text()).toBe('Not Found');
             }
         });
+
+        it('bypasses mapping for a legacy-owned incoming path after stripping its resolved prefix', async () => {
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/legacy-products/p1?private=query'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+            expect(mockGetUrlMapping).not.toHaveBeenCalled();
+            expect(mockResolveUrlMapping).not.toHaveBeenCalled();
+        });
+
+        it.each(['GET', 'HEAD'])('calls mapping once with a query-free segment for an unmatched %s', async (method) => {
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/old path?campaign=secret', { method }),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+            expect(mockGetUrlMapping).toHaveBeenCalledOnce();
+            expect(mockGetUrlMapping).toHaveBeenCalledWith(mockContext, 'old%20path');
+        });
+
+        it('returns the existing 404 for a mapping miss', async () => {
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/missing'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+            expect(mockResolveUrlMapping).toHaveBeenCalledWith(null, expect.any(Object));
+        });
+
+        it.each([
+            { type: 'redirect' as const, status: 301 as const, location: '/products/p1' },
+            { type: 'hybrid' as const, status: 307 as const, location: '/global/en/legacy-products/p1.html' },
+        ])('returns a document $type response', async (outcome) => {
+            mockResolveUrlMapping.mockReturnValue(outcome);
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/missing'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            const response = await loader(args);
+
+            expect(response).toBeInstanceOf(Response);
+            expect(response.status).toBe(outcome.status);
+            expect(response.headers.get('Location')).toBe(outcome.location);
+            expect(response.headers.get('X-Remix-Reload-Document')).toBe('true');
+        });
+
+        it.each(['rejected', 'not-found'] as const)('returns 404 for a %s mapping outcome', async (type) => {
+            mockResolveUrlMapping.mockReturnValue({ type });
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/missing'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+        });
+
+        it('propagates operational mapping failures by identity', async () => {
+            const failure = new Error('upstream unavailable');
+            mockGetUrlMapping.mockRejectedValue(failure);
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/missing'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toBe(failure);
+            expect(mockGetUrlMapping).toHaveBeenCalledOnce();
+        });
+
+        it('sanitizes Shopper SEO ApiError details before reaching the route error boundary', async () => {
+            const sensitiveDetail = 'private upstream diagnostic';
+            const failure = new ApiError({
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: new Headers(),
+                body: { type: 'upstream-error', title: 'Unavailable', detail: sensitiveDetail },
+                rawBody: JSON.stringify({ detail: sensitiveDetail }),
+                url: 'https://api.example.test/url-mapping?token=private',
+                method: 'GET',
+            });
+            mockGetUrlMapping.mockRejectedValue(failure);
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/missing'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            const error = await loader(args).catch((reason: unknown) => reason);
+
+            expect(error).not.toBe(failure);
+            expect(error).toBeInstanceOf(Response);
+            expect((error as Response).status).toBe(502);
+            const body = await (error as Response).text();
+            expect(body).toBe('Bad Gateway');
+            expect(body).not.toContain(sensitiveDetail);
+            expect(mockGetUrlMapping).toHaveBeenCalledOnce();
+        });
+
+        it('does not classify an upstream TypeError as malformed path encoding', async () => {
+            const failure = new TypeError('upstream serialization failed');
+            mockGetUrlMapping.mockRejectedValue(failure);
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/missing'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toBe(failure);
+            expect(mockGetUrlMapping).toHaveBeenCalledOnce();
+        });
+
+        it('returns 404 without mapping malformed percent-encoded paths', async () => {
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/bad%2'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+            expect(mockGetUrlMapping).not.toHaveBeenCalled();
+        });
+
+        it('passes active site policy, URL context, origin, request prefix, and legacy routes to the resolver', async () => {
+            const mapping = { resourceType: 'PRODUCT' as const, resourceId: 'private-resource-id' };
+            mockGetUrlMapping.mockResolvedValue(mapping);
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://internal.example/global/en/missing?campaign=secret'),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+            expect(mockResolveUrlMapping).toHaveBeenCalledWith(mapping, {
+                requestUrl: new URL(args.request.url),
+                publicOrigin: 'https://shop.example',
+                incomingPathname: '/missing',
+                sitePolicy: mockConfig.seoFallback.sites.RefArch,
+                seoUrlContext: { siteId: 'RefArch', seoRoutes: mockConfig.url.seoRoutes },
+                destinationPrefix: '/global/en',
+                buildResourceUrl: expect.any(Function),
+                legacyRoutes: mockConfig.hybrid.legacyRoutes,
+            });
+            expect(mockGetAppOrigin).toHaveBeenCalledWith(mockContext);
+        });
+
+        it('logs only bounded fields without request or mapping values', async () => {
+            const secrets = [
+                '/global/en/raw-secret-path',
+                'query-secret',
+                'https://approved.example/destination-secret',
+                'resource-secret',
+            ];
+            mockGetUrlMapping.mockResolvedValue({
+                resourceType: 'PRODUCT',
+                resourceId: secrets[3],
+                destinationUrl: secrets[2],
+            });
+            mockResolveUrlMapping.mockReturnValue({ type: 'rejected' });
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request(`https://internal.example${secrets[0]}?campaign=${secrets[1]}`),
+                mockContext,
+                { pattern: '*' }
+            );
+
+            await expect(loader(args)).rejects.toMatchObject({ status: 404 });
+            const actionArgs = createActionArgs<Route.ActionArgs>(
+                new Request(`https://internal.example${secrets[0]}?campaign=${secrets[1]}`, { method: 'POST' }),
+                mockContext,
+                { pattern: '*' }
+            );
+            await expect(action(actionArgs)).rejects.toMatchObject({ status: 405 });
+            const serializedLogs = JSON.stringify(Object.values(mockLogger).flatMap((logger) => logger.mock.calls));
+            for (const secret of secrets) expect(serializedLogs).not.toContain(secret);
+            expect(mockLogger.debug).toHaveBeenCalledWith('CatchAllRoute: loader starting', { method: 'GET' });
+            expect(mockLogger.warn).toHaveBeenCalledWith('CatchAllRoute: SEO fallback unresolved', {
+                outcome: 'rejected',
+            });
+        });
     });
 
     describe('action', () => {
@@ -202,6 +455,7 @@ describe('_empty.$.ts - Catch-all route (no layout)', () => {
                 expect((error as Response).status).toBe(405);
                 expect(await (error as Response).text()).toBe('Method Not Allowed');
             }
+            expect(mockGetUrlMapping).not.toHaveBeenCalled();
         });
     });
 

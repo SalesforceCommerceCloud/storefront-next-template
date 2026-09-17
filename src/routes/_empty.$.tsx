@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type RouterContextProvider } from 'react-router';
+import { redirectDocument, type RouterContextProvider } from 'react-router';
 import type { Route } from './+types/_empty.$';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
-import { stripPathPrefix } from '@salesforce/storefront-next-runtime/site-context';
+import { siteContext, stripPathPrefix } from '@salesforce/storefront-next-runtime/site-context';
 import { handlePasswordlessCallback, handlePasswordlessLanding } from '@/lib/auth/passwordless-login.server';
 import { handleSocialLoginLanding } from '@/lib/api/auth/social-login.server';
 import { handleResetPasswordCallback, handleResetPasswordLanding } from '@/lib/api/auth/reset-password.server';
 import { handleOtpCallback } from '@/lib/api/auth/otp-callback.server';
 import { isAbsoluteURL } from '@/lib/utils';
 import { getLogger } from '@/lib/logger.server';
+import { getUrlMapping } from '@/lib/api/shopper-seo.server';
+import { buildUrlSegment, isEligibleFallbackRequest, resolveUrlMapping } from '@/lib/seo/url-mapping.server';
+import { findLegacyRoute } from '@/middlewares/legacy-routes';
+import { getAppOrigin } from '@/lib/origin';
+import { buildUrlFromContext } from '@/lib/url.server';
+import { sanitizeShopperSeoError } from '@/lib/seo/shopper-seo-error.server';
 
 type LoaderHandler = (args: Route.LoaderArgs) => Promise<Response> | Response;
 type ActionHandler = (args: Route.ActionArgs) => Promise<Record<string, unknown>>;
@@ -143,16 +149,61 @@ export async function loader(args: Route.LoaderArgs) {
     const config = getConfig(args.context);
     const url = new URL(args.request.url);
     const strippedPath = stripPathPrefix({ pathname: url.pathname, prefix: config.url?.prefix ?? '' });
-    logger.debug('CatchAllRoute: loader starting', { pathname: url.pathname, strippedPath });
+    logger.debug('CatchAllRoute: loader starting', { method: args.request.method });
     const handler = getLoaderHandler(strippedPath, url.pathname, args.context);
 
     if (handler) {
-        logger.debug('CatchAllRoute: matched loader handler', { pathname: url.pathname });
+        logger.debug('CatchAllRoute: matched loader handler');
         return handler(args);
     }
 
-    // If no match, throw a 404
-    logger.warn('CatchAllRoute: no loader handler matched, returning 404', { pathname: url.pathname });
+    const legacyRoutes = config.hybrid.enabled ? (config.hybrid.legacyRoutes ?? []) : [];
+    if (!isEligibleFallbackRequest(args.request) || findLegacyRoute(strippedPath || '/', legacyRoutes)) {
+        logger.warn('CatchAllRoute: SEO fallback skipped', {
+            reason: isEligibleFallbackRequest(args.request) ? 'legacy-owned' : 'method',
+        });
+        throw new Response('Not Found', { status: 404 });
+    }
+
+    let urlSegment: string;
+    try {
+        urlSegment = buildUrlSegment(strippedPath);
+    } catch {
+        logger.warn('CatchAllRoute: SEO fallback skipped', { reason: 'malformed-path' });
+        throw new Response('Not Found', { status: 404 });
+    }
+
+    let mapping;
+    try {
+        mapping = await getUrlMapping(args.context, urlSegment);
+    } catch (error) {
+        logger.warn('CatchAllRoute: SEO fallback failed', { outcome: 'error' });
+        sanitizeShopperSeoError(error);
+    }
+
+    const activeSite = args.context.get(siteContext);
+    if (!activeSite) {
+        throw new Error('Site context not found. Ensure siteContextMiddleware runs before loaders.');
+    }
+    const destinationPrefix =
+        strippedPath === url.pathname ? undefined : url.pathname.slice(0, url.pathname.length - strippedPath.length);
+    const outcome = resolveUrlMapping(mapping, {
+        requestUrl: url,
+        publicOrigin: getAppOrigin(args.context),
+        incomingPathname: strippedPath || '/',
+        sitePolicy: config.seoFallback?.sites[activeSite.site.id],
+        seoUrlContext: { siteId: activeSite.site.id, seoRoutes: config.url?.seoRoutes },
+        destinationPrefix,
+        buildResourceUrl: (location) => buildUrlFromContext(location, args.context),
+        legacyRoutes,
+    });
+
+    if (outcome.type === 'redirect' || outcome.type === 'hybrid') {
+        logger.debug('CatchAllRoute: SEO fallback resolved', { outcome: outcome.type });
+        return redirectDocument(outcome.location, outcome.status);
+    }
+
+    logger.warn('CatchAllRoute: SEO fallback unresolved', { outcome: outcome.type });
     throw new Response('Not Found', { status: 404 });
 }
 
@@ -161,16 +212,16 @@ export async function action(args: Route.ActionArgs) {
     const config = getConfig(args.context);
     const url = new URL(args.request.url);
     const strippedPath = stripPathPrefix({ pathname: url.pathname, prefix: config.url?.prefix ?? '' });
-    logger.debug('CatchAllRoute: action starting', { pathname: url.pathname, strippedPath });
+    logger.debug('CatchAllRoute: action starting', { method: args.request.method });
     const handler = getActionHandler(strippedPath, url.pathname, args.context);
 
     if (handler) {
-        logger.debug('CatchAllRoute: matched action handler', { pathname: url.pathname });
+        logger.debug('CatchAllRoute: matched action handler');
         return handler(args);
     }
 
     // If no match, throw a 405 Method Not Allowed
-    logger.warn('CatchAllRoute: no action handler matched, returning 405', { pathname: url.pathname });
+    logger.warn('CatchAllRoute: no action handler matched, returning 405');
     throw new Response('Method Not Allowed', { status: 405 });
 }
 

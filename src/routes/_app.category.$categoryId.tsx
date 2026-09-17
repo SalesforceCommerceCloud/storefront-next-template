@@ -22,6 +22,7 @@ import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { fetchCategory } from '@/lib/api/categories.server';
 import { fetchSearchProducts } from '@/lib/api/search.server';
 import { decodeFinalRawSegment } from '@/lib/seo/url-resolution.server';
+import { attemptRouteSeoFallback } from '@/lib/seo/route-fallback.server';
 import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
@@ -188,6 +189,10 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     try {
         categoryData = await categoryPromise;
     } catch (e) {
+        if (e instanceof NormalizedApiError && e.status === 404) {
+            const fallback = await attemptRouteSeoFallback(context, request);
+            if (fallback) return fallback as never;
+        }
         if (e instanceof NormalizedApiError && e.status) {
             throw new Response(e.message, { status: e.status });
         }

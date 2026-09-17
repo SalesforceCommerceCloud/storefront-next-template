@@ -145,9 +145,9 @@ describe('useTransformSearchSuggestions', () => {
             },
         } as unknown as ShopperSearch.schemas['SuggestionResult'];
         const seoUrlContext = {
-            siteId: 'RefArch',
+            siteId: 'RefArchGlobal',
             seoRoutes: {
-                RefArch: {
+                RefArchGlobal: {
                     product: { prefix: 'p' },
                     category: { prefix: 'c', mode: 'id-suffix' as const },
                 },

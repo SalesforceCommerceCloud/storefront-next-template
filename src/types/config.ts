@@ -50,6 +50,16 @@ export type BadgeDetail = {
     priority?: number;
 };
 
+export type SeoFallbackSitePolicy = {
+    redirectOrigins: string[];
+    allowedQueryParameters: {
+        product: string[];
+        category: string[];
+        redirect: string[];
+    };
+    contentOwned: boolean;
+};
+
 /**
  * Shopper Agent (Commerce Client messaging widget) configuration.
  *
@@ -438,6 +448,9 @@ export type AppConfig = {
         cookieOptions?: SiteConfig['cookieOptions'];
     };
     siteDetectionConfig?: DetectionConfig;
+    seoFallback?: {
+        sites: Record<string, SeoFallbackSitePolicy>;
+    };
     url?: Url;
     security?: {
         turnstile?: {

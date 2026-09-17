@@ -34,6 +34,12 @@ import { generateCategorySchema } from '@/utils/category-schema';
 import { useAnalytics } from '@/hooks/use-analytics';
 import type { Route } from './+types/_app.category.$categoryId';
 
+const mockAttemptRouteSeoFallback = vi.hoisted(() => vi.fn());
+
+vi.mock('@/lib/seo/route-fallback.server', () => ({
+    attemptRouteSeoFallback: mockAttemptRouteSeoFallback,
+}));
+
 vi.mock('react-router', async (importOriginal) => {
     const actual = await importOriginal<typeof import('react-router')>();
     return {
@@ -320,6 +326,7 @@ describe('CategoryPage', () => {
             '@type': 'CollectionPage',
             name: 'Electronics',
         });
+        mockAttemptRouteSeoFallback.mockResolvedValue(undefined);
     });
 
     describe('Decorators', () => {
@@ -378,6 +385,14 @@ describe('CategoryPage', () => {
             expect(result.categoryId).toBe('electronics');
             expect(result.category).toEqual(mockCategory);
             expect(result.searchResultCritical).toEqual(mockSearchResult);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('passes an .html category ID unchanged to the authoritative lookup', async () => {
+            await loader(createLoaderArgs('https://example.com/category/legacy.html'));
+
+            expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'legacy.html', 1);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
         test('resolves the category ID from the final raw path segment, not the route param', async () => {
@@ -556,7 +571,28 @@ describe('CategoryPage', () => {
                 expect(error).toBeInstanceOf(Response);
                 expect(error.status).toBe(404);
                 expect(await error.text()).toBe('The requested category does not exist');
+                expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
             }
+        });
+
+        test('returns the fallback redirect for an authoritative category lookup 404', async () => {
+            const mockApiError = new ApiError({
+                status: 404,
+                statusText: 'Not Found',
+                headers: new Headers(),
+                body: { type: 'Not Found', title: 'Not Found', detail: 'missing' },
+                rawBody: '{}',
+                url: 'https://api.example.com/categories/missing',
+                method: 'GET',
+            });
+            vi.mocked(fetchCategory).mockRejectedValue(new NormalizedApiError(mockApiError));
+            const redirect = new Response(null, { status: 302, headers: { Location: '/category/current' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/category/legacy'));
+
+            expect(result).toBe(redirect);
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
         });
 
         test('should throw 500 when category fetch fails with NormalizedApiError 500', async () => {
@@ -587,6 +623,7 @@ describe('CategoryPage', () => {
                 expect(error).toBeInstanceOf(Response);
                 expect(error.status).toBe(500);
                 expect(await error.text()).toBe('An unexpected error occurred while processing the request');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
             }
         });
 
@@ -622,6 +659,7 @@ describe('CategoryPage', () => {
                 expect(error).toBeInstanceOf(Response);
                 expect(error.status).toBe(403);
                 expect(await error.text()).toBe('You do not have permission to access this category');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
             }
         });
 
@@ -701,6 +739,7 @@ describe('CategoryPage', () => {
                 expect(error).toBeInstanceOf(Response);
                 expect(error.status).toBe(500);
                 expect(await error.text()).toBe('Internal Server Error');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
             }
         });
 
@@ -714,6 +753,7 @@ describe('CategoryPage', () => {
                 expect(error).toBeInstanceOf(Response);
                 expect(error.status).toBe(500);
                 expect(await error.text()).toBe('Internal Server Error');
+                expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
             }
         });
 

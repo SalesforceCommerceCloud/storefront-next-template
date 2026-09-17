@@ -22,6 +22,7 @@ import { type ShopperProducts } from '@/scapi';
 import { fetchProductById } from '@/lib/api/products.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { decodeFinalRawSegment } from '@/lib/seo/url-resolution.server';
+import { attemptRouteSeoFallback } from '@/lib/seo/route-fallback.server';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import ProductView from '@/components/product-view';
 import ChildProducts from '@/components/product-view/child-products';
@@ -194,6 +195,10 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
             // @sfdc-extension-block-end SFDC_EXT_BOPIS
         });
     } catch (e) {
+        if (e instanceof NormalizedApiError && e.status === 404 && !variantPid) {
+            const fallback = await attemptRouteSeoFallback(context, request);
+            if (fallback) return fallback as never;
+        }
         if (e instanceof NormalizedApiError && e.status) {
             throw new Response(e.message, { status: e.status });
         }

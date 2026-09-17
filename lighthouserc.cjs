@@ -125,8 +125,12 @@ module.exports = {
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
                         // Footwear's PDP includes its size/width/colorway controls and the configurable
-                        // SEO URL generator. The mirrored payload measures 481979 B across five
-                        // deterministic CI runs, so retain modest headroom above the observed baseline.
+                        // SEO URL generator. After canonical URL convergence, the combined mirrored
+                        // payload measures 482358 B across five deterministic CI runs, so retain
+                        // modest headroom above the observed baseline.
+                        // Furniture's product overlay plus canonical URL convergence measures 475033 B
+                        // across five deterministic CI runs; its vertical-specific ceiling absorbs that
+                        // combined payload without changing the other verticals' budget.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: productScriptSizeLimit, aggregationMethod: 'median' },

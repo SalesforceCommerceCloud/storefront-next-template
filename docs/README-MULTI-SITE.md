@@ -118,6 +118,14 @@ When `seoRoutes` is present, every active site must have an entry. URL generatio
 
 Do not enable `seoRoutes` until every active site's PDP/PLP grammar and category-slug data source are available. The route-registration layer does not parse IDs or fetch slugs. The optional content prefix remains reserved for standalone-content routing.
 
+### Shopper SEO URL Rules Fallback
+
+Business Manager is the source of truth for URL Rules. Keep each site's Business Manager rules, `url.seoRoutes`, and `seoFallback.sites` policy aligned. `url.seoRoutes` registers the product and category routes that receive mapped destinations; changing a prefix requires rebuilding and redeploying the storefront.
+
+For an otherwise-unmatched `GET` or `HEAD` request, the terminal route can make one Shopper SEO URL Mapping call. It does not send the incoming query string, retry, or follow mapping chains. A valid product or category mapping redirects through the configured URL builders. Valid URL redirects and hybrid handoffs are also supported. Mapping misses and rejected results remain 404 responses; operational API errors propagate.
+
+External redirect origins and forwarded query parameters are denied unless explicitly allowed for the active Commerce site in `seoFallback.sites`. Redirect origins must be exact HTTPS origins. Content mappings remain unsupported, even when `contentOwned` is `true`, until the storefront has a concrete registered content route.
+
 ### URL Config Use Cases
 
 Below are common URL patterns you can achieve by combining `prefix` and `search`. The available `:param` placeholders are **`:siteId`** and **`:localeId`**, which are resolved from the current site and locale refs (after alias mapping).

@@ -10,6 +10,7 @@ This reference provides detailed documentation for all configuration options ava
     - [pages](#pages) - Page-specific settings
     - [commerce](#commerce) - B2C Commerce API details
     - [siteAliasMap](#sitealiasmap) - Site alias mapping configuration
+    - [seoFallback](#seofallback) - Shopper SEO URL Rules fallback policy
     - [hybrid](#hybrid) - Hybrid mode configuration
     - [auth](#auth) - Authentication configuration shared across all auth features
     - [features](#features) - Feature flags
@@ -581,6 +582,52 @@ PUBLIC__app__commerce__sites='[
 - If a locale doesn't appear in the language selector, verify it's in both the site's `supportedLocales` and `i18n.supportedLngs`
 - Ensure translation files exist for each supported locale
 - If only one currency is in `supportedCurrencies`, the currency switcher won't be displayed
+
+---
+
+## seoFallback
+
+Per-site policy for the terminal Shopper SEO URL Rules fallback. Business Manager is the URL Rules source of truth; keep its rules aligned with `url.seoRoutes` and this policy. See [Shopper SEO URL Rules Fallback](./README-MULTI-SITE.md#shopper-seo-url-rules-fallback) for request behavior.
+
+Type:
+
+```typescript
+seoFallback: {
+    sites: Record<string, {
+        redirectOrigins: string[];
+        allowedQueryParameters: {
+            product: string[];
+            category: string[];
+            redirect: string[];
+        };
+        contentOwned: boolean;
+    }>;
+}
+```
+
+Default: `{ sites: {} }`
+
+Each `sites` key is a Commerce site ID. A missing site policy fails closed. `redirectOrigins` accepts only exact HTTPS origins, without paths or credentials. The three `allowedQueryParameters` lists explicitly permit parameters on translated product, category, or redirect destinations; empty lists forward none. The incoming query string is never sent to Shopper SEO.
+
+`contentOwned` defaults to `false`. Setting it to `true` does not enable content mappings by itself; content remains unsupported until a concrete content route is registered.
+
+Example:
+
+```typescript
+seoFallback: {
+    sites: {
+        RefArchGlobal: {
+            redirectOrigins: ['https://www.example.com'],
+            allowedQueryParameters: {
+                product: ['campaign'],
+                category: ['cgid'],
+                redirect: ['source'],
+            },
+            contentOwned: false,
+        },
+    },
+}
+```
 
 ---
 

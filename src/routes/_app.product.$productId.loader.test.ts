@@ -24,6 +24,7 @@ import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 
 // Mock fetchProductById directly
 const mockFetchProductById = vi.hoisted(() => vi.fn());
+const mockAttemptRouteSeoFallback = vi.hoisted(() => vi.fn());
 // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
 const mockGetInitialDeliveryDestination = vi.hoisted(() =>
     vi.fn<() => Promise<{ postalCode: string; countryCode?: string } | null>>(() => Promise.resolve(null))
@@ -32,6 +33,10 @@ const mockGetInitialDeliveryDestination = vi.hoisted(() =>
 
 vi.mock('@/lib/api/products.server', () => ({
     fetchProductById: mockFetchProductById,
+}));
+
+vi.mock('@/lib/seo/route-fallback.server', () => ({
+    attemptRouteSeoFallback: mockAttemptRouteSeoFallback,
 }));
 
 // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
@@ -137,6 +142,7 @@ describe('Product Route Loaders', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        mockAttemptRouteSeoFallback.mockResolvedValue(undefined);
     });
 
     describe('loader function', () => {
@@ -168,6 +174,23 @@ describe('Product Route Loaders', () => {
             expect(result.product).toEqual(productWithCategory);
             // The breadcrumb source is carried on the product — no separate category fetch.
             expect(mockFetchProductById).toHaveBeenCalledTimes(1);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('passes an .html product ID unchanged to the authoritative lookup', async () => {
+            mockFetchProductById.mockResolvedValueOnce(mockProduct);
+            const request = new Request('https://example.com/product/legacy.html');
+
+            await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'legacy.html' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/product/:productId',
+            });
+
+            expect(mockFetchProductById.mock.calls[0][1]).toBe('legacy.html');
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
         // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
@@ -251,6 +274,71 @@ describe('Product Route Loaders', () => {
             const response = error as Response;
             expect(response.status).toBe(404);
             expect(await response.text()).toBe('Product not found');
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledWith(context, request);
+        });
+
+        test('returns the fallback redirect for an authoritative path lookup 404', async () => {
+            const { NormalizedApiError } = await import('@/lib/api/normalized-api-error');
+            const { ApiError } = await import('@/scapi');
+            mockFetchProductById.mockRejectedValueOnce(
+                new NormalizedApiError(
+                    new ApiError({
+                        status: 404,
+                        statusText: 'Not Found',
+                        headers: new Headers(),
+                        body: { type: 'Not Found', title: 'Not Found', detail: 'missing' },
+                        rawBody: '{}',
+                        url: 'https://api.example.com/products/missing',
+                        method: 'GET',
+                    })
+                )
+            );
+            const redirect = new Response(null, { status: 302, headers: { Location: '/product/current' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+            const request = new Request('https://example.com/product/legacy');
+
+            const result = await loader({
+                request,
+                params: { siteId: 'test-site', localeId: 'en-US', productId: 'legacy' },
+                context: mockContext,
+                url: new URL(request.url),
+                pattern: '/product/:productId',
+            });
+
+            expect(result).toBe(redirect);
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+        });
+
+        test.each([401, 403, 429, 500])('does not attempt fallback for product fetch status %s', async (status) => {
+            const { NormalizedApiError } = await import('@/lib/api/normalized-api-error');
+            const { ApiError } = await import('@/scapi');
+            mockFetchProductById.mockRejectedValueOnce(
+                new NormalizedApiError(
+                    new ApiError({
+                        status,
+                        statusText: 'Failure',
+                        headers: new Headers(),
+                        body: { type: 'Failure', title: 'Failure', detail: 'failure' },
+                        rawBody: '{}',
+                        url: 'https://api.example.com/products/failure',
+                        method: 'GET',
+                    })
+                )
+            );
+            const request = new Request('https://example.com/product/failure');
+
+            await expect(
+                loader({
+                    request,
+                    params: { siteId: 'test-site', localeId: 'en-US', productId: 'failure' },
+                    context: mockContext,
+                    url: new URL(request.url),
+                    pattern: '/product/:productId',
+                })
+            ).rejects.toBeInstanceOf(Response);
+
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
         test('throws Response 500 when product fetch fails with non-API error', async () => {
@@ -276,6 +364,7 @@ describe('Product Route Loaders', () => {
 
             expect(error).toBeInstanceOf(Response);
             expect((error as Response).status).toBe(500);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
         test('throws Response 404 when fetchProductById returns null', async () => {
@@ -319,6 +408,37 @@ describe('Product Route Loaders', () => {
 
             // Should use the pid parameter instead of productId
             expect(mockFetchProductById.mock.calls[0][1]).toBe('variant-123');
+        });
+
+        test('does not attempt fallback when a pid variation lookup returns 404', async () => {
+            const { NormalizedApiError } = await import('@/lib/api/normalized-api-error');
+            const { ApiError } = await import('@/scapi');
+            mockFetchProductById.mockRejectedValueOnce(
+                new NormalizedApiError(
+                    new ApiError({
+                        status: 404,
+                        statusText: 'Not Found',
+                        headers: new Headers(),
+                        body: { type: 'Not Found', title: 'Not Found', detail: 'Variant not found' },
+                        rawBody: '{}',
+                        url: 'https://api.example.com/products/variant',
+                        method: 'GET',
+                    })
+                )
+            );
+            const request = new Request('https://example.com/product/master?pid=variant');
+
+            await expect(
+                loader({
+                    request,
+                    params: { siteId: 'test-site', localeId: 'en-US', productId: 'master' },
+                    context: mockContext,
+                    url: new URL(request.url),
+                    pattern: '/product/:productId',
+                })
+            ).rejects.toBeInstanceOf(Response);
+
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
         test('resolves the product ID from the final raw path segment, not the route param', async () => {

@@ -248,6 +248,9 @@ export default defineConfig<Config>(
                 RefArch: 'us',
                 RefArchGlobal: 'global',
             },
+            seoFallback: {
+                sites: {},
+            },
             // Hybrid mode configuration
             // See CONFIG-OPTIONS.md#hybrid for detailed documentation
             hybrid: {
