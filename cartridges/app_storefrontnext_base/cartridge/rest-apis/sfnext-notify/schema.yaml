@@ -34,7 +34,7 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
+              anyOf:
                 - type: object
                   required: [type, recipient, data]
                   properties:
@@ -43,6 +43,9 @@ paths:
                       enum: [passwordless-magic-link]
                     recipient:
                       type: string
+                    callerHost:
+                      type: string
+                      description: Public hostname of the storefront making the request (e.g. my-store.salesforcecommercecloudsites.com). Validated against the sfnextStorefrontHosts allowlist before being used to construct magic-link URLs.
                     data:
                       type: object
                       required: [magicLinkPath]
@@ -50,7 +53,7 @@ paths:
                         magicLinkPath:
                           type: string
                           pattern: '^/'
-                          description: Path portion of the magic link (no hostname). The cartridge prepends the storefront hostname from the sfnextStorefrontHost global preference.
+                          description: Path portion of the magic link (no hostname). The cartridge prepends the storefront hostname from the sfnextStorefrontHosts global preference.
                 - type: object
                   required: [type, recipient, data]
                   properties:
@@ -59,6 +62,9 @@ paths:
                       enum: [password-reset]
                     recipient:
                       type: string
+                    callerHost:
+                      type: string
+                      description: Public hostname of the storefront making the request (e.g. my-store.salesforcecommercecloudsites.com). Validated against the sfnextStorefrontHosts allowlist before being used to construct magic-link URLs.
                     data:
                       type: object
                       required: [magicLinkPath]
@@ -66,7 +72,7 @@ paths:
                         magicLinkPath:
                           type: string
                           pattern: '^/'
-                          description: Path portion of the magic link (no hostname). The cartridge prepends the storefront hostname from the sfnextStorefrontHost global preference.
+                          description: Path portion of the magic link (no hostname). The cartridge prepends the storefront hostname from the sfnextStorefrontHosts global preference.
                 - type: object
                   required: [type, recipient, data]
                   properties:
@@ -75,30 +81,15 @@ paths:
                       enum: [otp]
                     recipient:
                       type: string
+                    callerHost:
+                      type: string
+                      description: Public hostname of the storefront making the request (e.g. my-store.salesforcecommercecloudsites.com). Validated against the sfnextStorefrontHosts allowlist before being used to construct magic-link URLs.
                     data:
                       type: object
                       required: [token]
                       properties:
                         token:
                           type: string
-                - type: object
-                  required: [type, recipient, data]
-                  properties:
-                    type:
-                      type: string
-                      enum: [glo-access-code]
-                    recipient:
-                      type: string
-                    data:
-                      type: object
-                      required: [orderNo, accessCode]
-                      properties:
-                        orderNo:
-                          type: string
-                        accessCode:
-                          type: string
-              discriminator:
-                propertyName: type
       responses:
         '200':
           description: Notification sent successfully

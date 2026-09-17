@@ -18,14 +18,16 @@ import { type RouterContextProvider } from 'react-router';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { createApiClients } from '@/lib/api-clients.server';
 import { getLogger } from '@/lib/logger.server';
+import { getAppOrigin } from '@/lib/origin';
 
 export type NotifyType = 'passwordless-magic-link' | 'password-reset' | 'otp' | 'glo-access-code';
 
 export type NotifyPayload =
     | { type: 'passwordless-magic-link'; recipient: string; data: { magicLinkPath: string } }
     | { type: 'password-reset'; recipient: string; data: { magicLinkPath: string } }
-    | { type: 'otp'; recipient: string; data: { token: string } }
-    | { type: 'glo-access-code'; recipient: string; data: { orderNo: string; accessCode: string } };
+    | { type: 'otp'; recipient: string; data: { token: string } };
+
+type NotifyPayloadWithCaller = NotifyPayload & { callerHost: string };
 
 /**
  * Sends a transactional notification via the SCAPI Custom API (`POST /notify`).
@@ -44,7 +46,9 @@ export async function sendNotification(
     payload: NotifyPayload
 ): Promise<void> {
     const clients = createApiClients(context);
-    await clients.sfnextNotify.notify({ params: {}, body: payload });
+    const callerHost = new URL(getAppOrigin(context)).hostname;
+    const body: NotifyPayloadWithCaller = { ...payload, callerHost };
+    await clients.sfnextNotify.notify({ params: {}, body });
 }
 
 /**

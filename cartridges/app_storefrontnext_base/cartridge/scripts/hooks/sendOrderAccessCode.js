@@ -22,33 +22,12 @@ var Resource = require('dw/web/Resource');
 var System = require('dw/system/System');
 var Site = require('dw/system/Site');
 var sendNotification = require('*/cartridge/scripts/helpers/sendNotification');
+var resolveStorefrontHost = require('*/cartridge/scripts/helpers/storefrontHostProvider');
+var buildOrderLookupUrl = require('*/cartridge/scripts/helpers/buildOrderLookupUrl');
 
 var log = Logger.getLogger('sfnext-notify', 'sfnext-notify');
 
 log.info('sendOrderAccessCode module loaded');
-
-/**
- * Returns the storefront's public-facing hostname.
- * Reads the `sfnextStorefrontHost` global preference; falls back to the B2C instance hostname.
- *
- * @returns {string} Hostname without protocol or trailing slash
- */
-function getStorefrontHost() {
-    try {
-        var host = System.getPreferences().getCustom()['sfnextStorefrontHost'];
-        if (host && host.trim()) {
-            return host.trim();
-        }
-    } catch (e) {
-        log.warn('Could not read sfnextStorefrontHost global preference: {0}', e.message);
-    }
-    log.warn(
-        'sfnextStorefrontHost global preference is not set. Magic-link emails will use the B2C instance hostname ({0}), ' +
-            "which is incorrect for headless storefronts. Set this preference in Business Manager to the storefront's public hostname.",
-        Site.getCurrent().httpsHostName
-    );
-    return Site.getCurrent().httpsHostName;
-}
 
 /**
  * Returns true when the sfnextNotify feature is enabled.
@@ -80,6 +59,12 @@ function isNotifyEnabled() {
  * generated access code. Signature is (order, accessCode) per the platform
  * hook contract — not (recipient, orderNo, accessCode).
  *
+ * Known limitation: the magic link uses Site.getCurrent().ID.toLowerCase() for
+ * the site segment. If your storefront registers a siteAlias in its config
+ * (e.g. RefArchGlobal → global), the generated path will use the raw site ID
+ * and won't match the aliased route. Use a CDN redirect or a custom hook
+ * override in that case.
+ *
  * @param {dw.order.Order} order - The B2C Order object
  * @param {string} accessCode - The one-time access code
  * @returns {dw.system.Status}
@@ -89,21 +74,29 @@ function sendOrderAccessCode(order, accessCode) {
         log.info('sendOrderAccessCode: sfnextNotifyEnabled is false — skipping (custom email provider in use)');
         return new Status(Status.OK);
     }
+
     log.info('sendOrderAccessCode called: orderNo={0}', order ? order.orderNo : 'null');
     if (!order || !order.customerInfo) {
         log.error('sendOrderAccessCode: order or customerInfo is null');
         return new Status(Status.ERROR, 'NULL_ORDER', 'Order or customer info is null');
     }
 
+    var storefrontHost = resolveStorefrontHost();
+    if (!storefrontHost) {
+        log.warn('sendOrderAccessCode: sfnextStorefrontHosts is not configured — sending email without lookup link');
+    }
+
     var siteId = Site.getCurrent().ID.toLowerCase();
     var locale = (request.locale || Site.getCurrent().defaultLocale || 'en_US').replace(/_/g, '-');
-    var magicLink = 'https://' + getStorefrontHost() + '/' + siteId + '/' + locale + '/order-lookup/verify/' + order.orderNo + '?token=' + encodeURIComponent(accessCode);
+    var lookupLink = storefrontHost
+        ? buildOrderLookupUrl(storefrontHost, siteId, locale, order.orderNo, accessCode)
+        : null;
 
     var result = sendNotification.send(
         order.customerInfo.email,
-        Resource.msg('gloAccessCode.subject', 'email', 'Your Order Access Code'),
-        'email/gloAccessCode',
-        { orderNo: order.orderNo, accessCode: accessCode, magicLink: magicLink }
+        Resource.msg('guestOrderLookup.subject', 'email', 'Your Order Access Code'),
+        'email/guestOrderLookup',
+        { orderNo: order.orderNo, accessCode: accessCode, lookupLink: lookupLink }
     );
 
     if (result.error) {

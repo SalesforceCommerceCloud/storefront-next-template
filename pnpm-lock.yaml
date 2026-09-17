@@ -5694,8 +5694,8 @@ packages:
     engines: {node: '>=0.12.18'}
     hasBin: true
 
-  electron-to-chromium@1.5.427:
-    resolution: {integrity: sha512-n14zb3FdsChZ2BNobqNHAJMcP3ifFv4paox2LvCrfVAQcqGiSURgbJl+PfMpHVCNFkStnNc+RRVtPBTVW5PDgw==}
+  electron-to-chromium@1.5.428:
+    resolution: {integrity: sha512-1JxbaFJj1bRKurj1uY3l4xxpU9kOUAUjcIgApj0qu1Pao5GhoIWI8iL0BeMYJ2njig1hBx0A7eKD9VGjH9wlHw==}
 
   embla-carousel-react@8.6.0:
     resolution: {integrity: sha512-0/PjqU7geVmo6F734pmPqpyHqiM99olvyecY7zdweCw+6tKEXnrE90pBiBbMMU8s5tICemzpQ3hi5EpxzGW+JA==}
@@ -7601,8 +7601,8 @@ packages:
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
 
-  moment@2.30.1:
-    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
+  moment@2.31.0:
+    resolution: {integrity: sha512-0acOTfMiWOheYS4eoWb80yYMb/JLvVv9SHbs2PehaDzfUG0Bw855SKyk0IKTnPGa5+U2bmi3W68l1+sGLX/pvw==}
 
   monocart-coverage-reports@2.12.9:
     resolution: {integrity: sha512-vtFqbC3Egl4nVa1FSIrQvMPO6HZtb9lo+3IW7/crdvrLNW2IH8lUsxaK0TsKNmMO2mhFWwqQywLV2CZelqPgwA==}
@@ -14538,7 +14538,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.23
       caniuse-lite: 1.0.30001810
-      electron-to-chromium: 1.5.427
+      electron-to-chromium: 1.5.428
       node-releases: 2.0.55
       update-browserslist-db: 1.3.3(browserslist@4.28.9)
 
@@ -14597,7 +14597,7 @@ snapshots:
   bunyan@1.8.15:
     optionalDependencies:
       dtrace-provider: 0.8.8
-      moment: 2.30.1
+      moment: 2.31.0
       mv: 2.1.1
       safe-json-stringify: 1.2.0
     optional: true
@@ -14607,7 +14607,7 @@ snapshots:
       exeunt: 1.1.0
     optionalDependencies:
       dtrace-provider: 0.8.8
-      moment: 2.30.1
+      moment: 2.31.0
       mv: 2.1.1
       safe-json-stringify: 1.2.0
     optional: true
@@ -15472,7 +15472,7 @@ snapshots:
 
   ejs@6.0.1: {}
 
-  electron-to-chromium@1.5.427: {}
+  electron-to-chromium@1.5.428: {}
 
   embla-carousel-react@8.6.0(react@19.2.3):
     dependencies:
@@ -18066,7 +18066,7 @@ snapshots:
 
   module-details-from-path@1.0.4: {}
 
-  moment@2.30.1:
+  moment@2.31.0:
     optional: true
 
   monocart-coverage-reports@2.12.9:

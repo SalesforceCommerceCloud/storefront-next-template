@@ -1,0 +1,59 @@
+<isinclude template="email/common/header"/>
+
+  <!-- Heading -->
+  <tr>
+    <td style="padding-bottom:20px;">
+      <h1 style="margin:0;font-size:22px;font-weight:600;color:#17171B;line-height:1.3;">${Resource.msg('guestOrderLookup.heading', 'email', null)}</h1>
+    </td>
+  </tr>
+
+  <!-- Instructions -->
+  <tr>
+    <td style="padding-bottom:32px;">
+      <p style="margin:0;font-size:15px;color:#35353B;line-height:1.6;">${Resource.msg('guestOrderLookup.instructionsPrefix', 'email', null)} <strong style="color:#17171B;">${pdict.orderNo}</strong>.</p>
+    </td>
+  </tr>
+
+  <!-- Access code -->
+  <tr>
+    <td style="padding-bottom:16px;">
+      <p style="margin:0 0 10px 0;font-size:13px;color:#35353B;line-height:1.5;">${Resource.msg('guestOrderLookup.accessCodeLabel', 'email', null)}</p>
+      <div style="display:inline-block;background:#F5F5F5;padding:14px 32px;">
+        <span style="font-size:28px;font-weight:700;letter-spacing:6px;color:#17171B;">${pdict.accessCode}</span>
+      </div>
+    </td>
+  </tr>
+
+  <isif condition="${!empty(pdict.lookupLink)}">
+  <!-- CTA button -->
+  <tr>
+    <td style="padding-bottom:32px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="background-color:#131315;">
+            <a href="${pdict.lookupLink}" style="display:inline-block;padding:14px 32px;font-size:14px;font-weight:600;color:#FFFFFF;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">${Resource.msg('guestOrderLookup.buttonText', 'email', null)}</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  </isif>
+
+  <!-- Disclaimer -->
+  <tr>
+    <td style="padding-bottom:16px;">
+      <p style="margin:0;font-size:12px;color:#646464;line-height:1.5;">${Resource.msg('guestOrderLookup.disclaimer', 'email', null)}</p>
+    </td>
+  </tr>
+
+  <isif condition="${!empty(pdict.lookupLink)}">
+  <!-- Copy URL fallback -->
+  <tr>
+    <td>
+      <p style="margin:0;font-size:12px;color:#646464;line-height:1.5;">${Resource.msg('guestOrderLookup.copyUrl', 'email', null)}<br>
+      <a href="${pdict.lookupLink}" style="color:#131315;word-break:break-all;">${pdict.lookupLink}</a></p>
+    </td>
+  </tr>
+  </isif>
+
+<isinclude template="email/common/footer"/>

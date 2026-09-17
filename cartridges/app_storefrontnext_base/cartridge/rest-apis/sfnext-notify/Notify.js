@@ -18,40 +18,19 @@
 
 var RESTResponseMgr = require('dw/system/RESTResponseMgr');
 var Resource = require('dw/web/Resource');
-var Site = require('dw/system/Site');
 var System = require('dw/system/System');
 var Logger = require('dw/system/Logger');
+var storefrontHostProvider = require('*/cartridge/scripts/helpers/storefrontHostProvider');
 
 var log = Logger.getLogger('sfnext-notify', 'sfnext-notify');
 
-/**
- * Returns the storefront's public-facing hostname for use in magic-link URLs.
- *
- * Reads the `sfnextStorefrontHost` global (organization-level) preference, which must
- * be set to the MRT/eCDN hostname of the storefront (e.g. `my-store.salesforcecommercecloudsites.com`).
- * In a headless deployment the B2C instance hostname differs from the storefront hostname,
- * so this preference is required for magic links to resolve correctly.
- *
- * A global preference is correct here because one MRT environment serves all B2C sites
- * in the organization — there is no per-site hostname to configure.
- *
- * Falls back to `Site.getCurrent().httpsHostName` when the preference is unset,
- * which will produce incorrect magic links in headless deployments. A warning is
- * logged so the misconfiguration is visible in the `sfnext-notify` log.
- *
- * @returns {string} Hostname without protocol or trailing slash
- */
-function getStorefrontHost() {
-    var host = System.getPreferences().getCustom()['sfnextStorefrontHost'];
-    if (host && host.trim()) {
-        return host.trim();
-    }
-    log.warn(
-        'sfnextStorefrontHost global preference is not set. Magic-link emails will use the B2C instance hostname ({0}), ' +
-            "which is incorrect for headless storefronts. Set this preference in Business Manager to the storefront's public hostname.",
-        Site.getCurrent().httpsHostName
-    );
-    return Site.getCurrent().httpsHostName;
+function renderHostNotConfigured() {
+    RESTResponseMgr.createError(
+        503,
+        'host-not-configured',
+        'Service Unavailable',
+        'sfnextStorefrontHosts is not configured or callerHost is not in the allowlist'
+    ).render();
 }
 
 /**
@@ -109,6 +88,7 @@ exports.notify = function () {
 
     var type = body.type;
     var recipient = body.recipient;
+    var callerHost = body.callerHost || null;
 
     if (!type || !recipient) {
         RESTResponseMgr.createError(
@@ -150,10 +130,24 @@ exports.notify = function () {
             ).render();
             return;
         }
-        magicLink = 'https://' + getStorefrontHost() + body.data.magicLinkPath;
-        subject = Resource.msg('passwordlessMagicLink.subject', 'email', 'Your Magic Sign-In Link');
-        templateName = 'email/passwordlessMagicLink';
-        context = { magicLink: magicLink };
+        var plHost = storefrontHostProvider(callerHost);
+        if (!plHost) {
+            renderHostNotConfigured();
+            return;
+        }
+        magicLink = 'https://' + plHost + body.data.magicLinkPath;
+        subject = Resource.msg('passwordlessLogin.subject', 'email', 'Your Magic Sign-In Link');
+        templateName = 'email/passwordlessLogin';
+        var accessCode = '';
+        try {
+            var tokenMatch = body.data.magicLinkPath.match(/[?&]token=([^&]+)/);
+            if (tokenMatch) {
+                accessCode = decodeURIComponent(tokenMatch[1]);
+            }
+        } catch (e) {
+            /* ignore */
+        }
+        context = { magicLink: magicLink, accessCode: accessCode };
     } else if (type === 'password-reset') {
         if (!body.data.magicLinkPath) {
             RESTResponseMgr.createError(
@@ -164,9 +158,14 @@ exports.notify = function () {
             ).render();
             return;
         }
-        magicLink = 'https://' + getStorefrontHost() + body.data.magicLinkPath;
-        subject = Resource.msg('passwordResetMagicLink.subject', 'email', 'Reset Your Password');
-        templateName = 'email/passwordResetMagicLink';
+        var prHost = storefrontHostProvider(callerHost);
+        if (!prHost) {
+            renderHostNotConfigured();
+            return;
+        }
+        magicLink = 'https://' + prHost + body.data.magicLinkPath;
+        subject = Resource.msg('passwordReset.subject', 'email', 'Reset Your Password');
+        templateName = 'email/passwordReset';
         context = { magicLink: magicLink };
     } else if (type === 'otp') {
         if (!body.data.token) {
@@ -178,22 +177,9 @@ exports.notify = function () {
             ).render();
             return;
         }
-        subject = Resource.msg('otpVerification.subject', 'email', 'Your Verification Code');
-        templateName = 'email/otpVerification';
+        subject = Resource.msg('registrationVerification.subject', 'email', 'Your Verification Code');
+        templateName = 'email/registrationVerification';
         context = { token: body.data.token };
-    } else if (type === 'glo-access-code') {
-        if (!body.data.orderNo || !body.data.accessCode) {
-            RESTResponseMgr.createError(
-                400,
-                'missing-fields',
-                'Bad Request',
-                'Missing data.orderNo or data.accessCode for glo-access-code type'
-            ).render();
-            return;
-        }
-        subject = Resource.msg('gloAccessCode.subject', 'email', 'Your Order Access Code');
-        templateName = 'email/gloAccessCode';
-        context = { orderNo: body.data.orderNo, accessCode: body.data.accessCode };
     } else {
         RESTResponseMgr.createError(
             400,

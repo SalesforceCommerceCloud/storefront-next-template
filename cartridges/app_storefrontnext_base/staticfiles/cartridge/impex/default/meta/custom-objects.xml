@@ -30,14 +30,15 @@
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
 
-            <attribute-definition attribute-id="sfnextStorefrontHost">
-                <display-name xml:lang="x-default">Storefront Host</display-name>
+            <attribute-definition attribute-id="sfnextStorefrontHosts">
+                <display-name xml:lang="x-default">Storefront Hosts</display-name>
                 <description xml:lang="x-default">
-                    Public-facing hostname of the MRT/eCDN storefront, without protocol or trailing slash.
-                    Example: my-store.salesforcecommercecloudsites.com
-                    Required for magic-link emails (password reset, passwordless login) to link to the correct storefront URL.
-                    If not set, magic links will use the B2C instance hostname, which will not resolve correctly
-                    in headless deployments.
+                    Comma-separated list of allowed public-facing hostnames for the MRT/eCDN storefront,
+                    without protocol or trailing slash.
+                    Example: my-store.salesforcecommercecloudsites.com,staging.salesforcecommercecloudsites.com
+                    Each entry is validated against the callerHost supplied by the BFF on notify requests.
+                    A matching entry is returned as the trusted host for constructing magic-link URLs.
+                    Required for magic-link and access-code emails in headless deployments.
                 </description>
                 <type>string</type>
                 <mandatory-flag>false</mandatory-flag>
@@ -51,7 +52,7 @@
             <attribute-group group-id="sfnext">
                 <display-name xml:lang="x-default">Storefront Next</display-name>
                 <attribute attribute-id="sfnextNotifyEnabled"/>
-                <attribute attribute-id="sfnextStorefrontHost"/>
+                <attribute attribute-id="sfnextStorefrontHosts"/>
             </attribute-group>
         </group-definitions>
     </type-extension>

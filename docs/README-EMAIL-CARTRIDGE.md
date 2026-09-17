@@ -33,21 +33,27 @@ sfnext cartridge:deploy --reload
 
 1. **Cartridge path** — add `app_storefrontnext_base` to your site's cartridge path: Administration > Sites > Manage Sites > [your site] > Settings.
 
-2. **Import global preference metadata** — import the preference definition so Business Manager knows about `sfnextStorefrontHost`:
+2. **Import global preference metadata** — import the preference definition so Business Manager knows about `sfnextStorefrontHosts`:
 
    Administration > Site Development > Import & Export > Import > Upload file:
    `cartridges/app_storefrontnext_base/staticfiles/cartridge/impex/default/meta/custom-objects.xml`
 
-   This only needs to be done once per B2C organization. It creates the `sfnext` custom preference group and registers the `sfnextStorefrontHost` attribute on `OrganizationPreferences`.
+   This only needs to be done once per B2C organization. It creates the `sfnext` custom preference group and registers the `sfnextStorefrontHosts` attribute on `OrganizationPreferences`.
 
-3. **Set the storefront hostname** — after importing the metadata, set the preference value:
+3. **Set the storefront hostname(s)** — after importing the metadata, set the preference value:
 
-   Administration > Global Preferences > Custom Preferences > `sfnext` > `Storefront Host`
+   Administration > Global Preferences > Custom Preferences > `sfnext` > `Storefront Hosts`
 
-   Enter the public-facing hostname of your MRT storefront — no protocol, no trailing slash:
+   Enter the public-facing hostname(s) of your MRT storefront as a comma-separated list — no protocol, no trailing slash. The first entry is used for magic-link construction; additional entries are accepted as valid hosts (allowlist):
 
    ```
    my-store.salesforcecommercecloudsites.com
+   ```
+
+   Or for multiple environments:
+
+   ```
+   my-store.salesforcecommercecloudsites.com,staging.salesforcecommercecloudsites.com
    ```
 
    This is a global (organization-level) preference because one MRT environment serves all B2C sites in the organization — the hostname is the same regardless of which site the email originates from. Magic-link emails (password reset, passwordless login) use this value to construct the link the shopper clicks. If not set, the cartridge falls back to `Site.getCurrent().httpsHostName` and logs a warning — links will point to the B2C instance and fail to resolve.
