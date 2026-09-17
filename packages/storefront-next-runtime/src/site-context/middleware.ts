@@ -15,6 +15,7 @@
  */
 
 import { createContext, type MiddlewareFunction, type RouterContextProvider } from 'react-router';
+import { isValidCookieDomain } from '../cookie-domain';
 import { resolveSite } from './site-detection';
 import type { SiteConfig, SiteContext, SiteSettings, Site, Locale } from './types';
 import { DEFAULT_SITE_DETECTION, DEFAULT_LOCALE_DETECTION, DEFAULT_CURRENCY_COOKIE_NAME } from './configs';
@@ -223,9 +224,11 @@ export function createSiteContextMiddleware(config: SiteConfig): MiddlewareFunct
         // global default carried in cookieOptions.domain. Resolved at serialize time because the
         // cookie instances are created before the request's site is known. serialize() merges
         // these options over the cookie's baked-in options, so this overrides only the domain.
-        // Unset → no Domain attribute (host-only scoping).
+        // Unset → no Domain attribute (host-only scoping). A misconfigured value (wildcard/
+        // separator/whitespace) also falls back to host-only rather than emit a malformed,
+        // browser-rejected Set-Cookie; the template's resolveCookieDomain logs that misconfig.
         const cookieDomain = site.cookies?.domain || settings.cookieOptions?.domain;
-        const domainOpt = cookieDomain ? { domain: cookieDomain } : {};
+        const domainOpt = cookieDomain && isValidCookieDomain(cookieDomain) ? { domain: cookieDomain } : {};
 
         const [siteSetCookie, localeSetCookie, currencySetCookie] = await Promise.all([
             shouldSetSiteCookie

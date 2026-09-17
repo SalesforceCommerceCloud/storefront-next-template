@@ -78,6 +78,7 @@ import { requestOriginMiddleware } from '@/middlewares/request-origin';
 import { getAppOrigin } from '@/lib/origin';
 import { loggingMiddleware } from '@/middlewares/logging.server';
 import { pageDesignerResolutionMiddleware } from '@/middlewares/page-designer-content-resolution.server';
+import { attributionForwardingMiddleware } from '@/middlewares/attribution-forwarding.server';
 import { siteUrlConfigMiddleware } from '@/middlewares/site-url-config.server';
 import { modeDetectionMiddlewareServer, modeDetectionMiddlewareClient } from '@/middlewares/mode-detection';
 import { maintenanceMiddleware } from '@/middlewares/maintenance.server';
@@ -102,6 +103,7 @@ import CimulateAgent, { isCimulateEnabled, resolveShopperAgentConfig } from '@/c
 // Hooks
 import { useExecutePendingAction } from '@/hooks/use-execute-pending-action';
 import { usePasskeyRegistration } from '@/hooks/use-passkey-registration';
+import { applyAttribution, useAttribution } from '@/hooks/use-attribution';
 
 // Lib/Utils
 import type { PublicSessionData } from '@/lib/api/types';
@@ -162,6 +164,10 @@ export const middleware: MiddlewareFunction<Response>[] = [
     siteUrlConfigMiddleware, // Must run after siteContextMiddleware (entry key uses site id)
     i18nextMiddleware,
     pageDesignerResolutionMiddleware,
+    // Registers a SCAPI forward of the client-written `dw_attribution` cookie onto the outbound
+    // createOrder call (W-23493124). Order-independent — the factory reads the value off the
+    // inbound request and closes over it; it depends on no other middleware's context.
+    attributionForwardingMiddleware,
     selectedStoreMiddleware /** @sfdc-extension-line SFDC_EXT_STORE_LOCATOR */,
     performanceMetricsMiddlewareServer,
     maintenanceMiddleware,
@@ -603,6 +609,18 @@ export function ErrorBoundary({ error }: { error: unknown }) {
           })
         : '/';
 
+    // Capture first-touch `dw_attribution` here too (W-23493124). A campaign link that lands
+    // directly on a 404/route error renders this ErrorBoundary instead of App, so the App-tree
+    // `AttributionCapture` never mounts and first touch would be lost for that landing. The effect
+    // is browser-only (never runs during SSR), and `applyAttribution` is fail-open, so it cannot
+    // destabilize the error page. ErrorBoundary has no Site/Config providers, so resolve the cookie
+    // domain from loader data with the same per-site-over-global precedence `useAttribution` uses;
+    // the DNT decision is read straight from the cookie inside `applyAttribution`.
+    const attributionCookieDomain = rootData?.site?.cookies?.domain || rootData?.appConfig?.cookies?.domain;
+    useEffect(() => {
+        applyAttribution(attributionCookieDomain);
+    }, [attributionCookieDomain]);
+
     // Redirect maintenance errors before rendering.
     if (error && error.toString().includes('MAINTENANCE_ERROR')) {
         return <Navigate to={routes.maintenance} replace />;
@@ -763,6 +781,7 @@ export default function App({
             </PageDesignerProvider>
             <TrackingConsentBanner />
             {typeof window !== 'undefined' && <PageViewTracker />}
+            {typeof window !== 'undefined' && <AttributionCapture />}
         </UITargetProviders>
     );
 
@@ -785,6 +804,17 @@ function AuthActionExecutor() {
 
 function PasskeyRegistrationTrigger() {
     usePasskeyRegistration();
+    return null;
+}
+
+/**
+ * Writes/clears the first-touch `dw_attribution` marketing cookie in the browser (W-23493124).
+ * Client-only (mounted behind `typeof window`) — a CDN document-cache hit never runs the SSR
+ * handler, so a server-written cookie would be lost on cached campaign landing pages; running in
+ * the browser also lets it clear the cookie the instant a shopper opts out. See `useAttribution`.
+ */
+function AttributionCapture(): null {
+    useAttribution();
     return null;
 }
 

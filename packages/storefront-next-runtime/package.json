@@ -74,6 +74,12 @@
         "default": "./dist/env.js"
       }
     },
+    "./cookie-domain": {
+      "import": {
+        "types": "./dist/cookie-domain.d.ts",
+        "default": "./dist/cookie-domain.js"
+      }
+    },
     "./assets": {
       "import": {
         "types": "./dist/assets.d.ts",

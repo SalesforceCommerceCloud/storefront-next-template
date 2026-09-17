@@ -23,6 +23,9 @@ export default defineConfig([
             'config-load': 'src/config/load-config.ts',
             assets: 'src/assets/index.ts',
             env: 'src/env/index.ts',
+            // Pure, dependency-free cookie `Domain` validator. Its own tiny entry so the templates'
+            // client bundle (dw_attribution) can import it without pulling in site-context.
+            'cookie-domain': 'src/cookie-domain.ts',
             events: 'src/events/index.ts',
             'data-store': 'src/data-store/index.ts',
             'site-context': 'src/site-context/index.ts',

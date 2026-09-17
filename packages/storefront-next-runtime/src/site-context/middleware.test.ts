@@ -408,5 +408,31 @@ describe('createSiteContextMiddleware', () => {
             expect(serializeSpy).toHaveBeenCalledWith('en-US', 'lng', { path: '/' });
             expect(serializeSpy).toHaveBeenCalledWith('USD', 'currency', {});
         });
+
+        it('falls back to host-only when the configured domain is malformed (browser-rejected)', async () => {
+            // A wildcard is one of the values isValidCookieDomain rejects; a browser would drop the
+            // cookie rather than accept it as a Domain attribute. We must not emit it.
+            const config: SiteConfig = { ...DEFAULT_CONFIG, cookieOptions: { domain: '*.example.com' } };
+            await run(config, new Request('https://example.com/us/en-US/'));
+
+            // Same shape as the host-only (unset) case above: no `domain` key on any cookie.
+            expect(serializeSpy).toHaveBeenCalledWith('site-us', 'site_id', { path: '/' });
+            expect(serializeSpy).toHaveBeenCalledWith('en-US', 'lng', { path: '/' });
+            expect(serializeSpy).toHaveBeenCalledWith('USD', 'currency', {});
+        });
+
+        it('falls back to host-only when the configured domain is an empty string', async () => {
+            // `isValidCookieDomain('')` is `true`, so the host-only fallback for a blank domain
+            // depends on the `cookieDomain &&` guard in the middleware, not on the validator. Pin
+            // that guard: a future simplification to `isValidCookieDomain(domain) ? {...} : {}` must
+            // not silently emit an empty `Domain=` for a blank config (reachable via
+            // `PUBLIC__app__cookies__domain=`).
+            const config: SiteConfig = { ...DEFAULT_CONFIG, cookieOptions: { domain: '' } };
+            await run(config, new Request('https://example.com/us/en-US/'));
+
+            expect(serializeSpy).toHaveBeenCalledWith('site-us', 'site_id', { path: '/' });
+            expect(serializeSpy).toHaveBeenCalledWith('en-US', 'lng', { path: '/' });
+            expect(serializeSpy).toHaveBeenCalledWith('USD', 'currency', {});
+        });
     });
 });

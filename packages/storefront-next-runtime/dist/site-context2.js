@@ -1,4 +1,5 @@
 import { t as isRemote } from "./env2.js";
+import { t as isValidCookieDomain } from "./cookie-domain2.js";
 import { createContext, useContext, useMemo } from "react";
 import { jsx } from "react/jsx-runtime";
 import { createContext as createContext$1, createCookie } from "react-router";
@@ -593,7 +594,7 @@ function createSiteContextMiddleware(config) {
 		const { shouldSetSiteCookie, shouldSetLocaleCookie, shouldSetCurrencyCookie } = await shouldSetCookies(request, response, settings, site, locale, currency);
 		if (!shouldSetSiteCookie && !shouldSetLocaleCookie && !shouldSetCurrencyCookie) return response;
 		const cookieDomain = site.cookies?.domain || settings.cookieOptions?.domain;
-		const domainOpt = cookieDomain ? { domain: cookieDomain } : {};
+		const domainOpt = cookieDomain && isValidCookieDomain(cookieDomain) ? { domain: cookieDomain } : {};
 		const [siteSetCookie, localeSetCookie, currencySetCookie] = await Promise.all([
 			shouldSetSiteCookie ? settings.siteCookie.serialize(site.id, {
 				path: "/",
