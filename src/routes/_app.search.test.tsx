@@ -421,6 +421,38 @@ describe('SearchPage', () => {
             await expect(loader(args)).rejects.toThrow('Search request failed');
         });
 
+        test('observes the non-critical search promise immediately so a late rejection cannot go unhandled', async () => {
+            // Mirrors entry.server.tsx's stream-timeout abort, which force-rejects any deferred
+            // promise still pending once the SSR stream times out. searchResultNonCritical is
+            // created after the loader's own searchResultCriticalPromise/pagePromise guard already
+            // ran, so it needs this second, separate Promise.allSettled observer.
+            const allSettledSpy = vi.spyOn(Promise, 'allSettled');
+
+            const args = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://example.com/search?q=shoes'),
+                mockContext,
+                { pattern: '/search' }
+            );
+
+            const result = await loader(args);
+
+            expect(allSettledSpy).toHaveBeenCalledWith([result.searchResultNonCritical]);
+            allSettledSpy.mockRestore();
+
+            // The observer must not swallow the rejection: it should still surface to any
+            // consumer that awaits/subscribes to the returned promise.
+            vi.mocked(fetchSearchProducts)
+                .mockResolvedValueOnce(mockSearchResult)
+                .mockRejectedValueOnce(new Error('Search request failed'));
+            const secondArgs = createLoaderArgs<Route.LoaderArgs>(
+                new Request('https://example.com/search?q=boots'),
+                mockContext,
+                { pattern: '/search' }
+            );
+            const secondResult = await loader(secondArgs);
+            await expect(secondResult.searchResultNonCritical).rejects.toThrow('Search request failed');
+        });
+
         test('should handle query parameters correctly', async () => {
             const args = createLoaderArgs<Route.LoaderArgs>(
                 new Request(
@@ -753,6 +785,52 @@ describe('SearchPage', () => {
                 expect(screen.getByText('shoes (25)')).toBeInTheDocument();
                 expect(screen.getByTestId('product-grid')).toBeInTheDocument();
             });
+        });
+
+        test('observes the derived hits promise immediately so a late rejection cannot go unhandled', () => {
+            // DeferredProductGrid never mounts <Await> on the render pass that creates this
+            // promise (its idle callback only fires from a useEffect), so without its own
+            // Promise.allSettled guard, the .then()-derived promise below has no consumer yet.
+            const allSettledSpy = vi.spyOn(Promise, 'allSettled');
+
+            let rejectNonCritical: (reason: unknown) => void = () => {};
+            const searchResultNonCritical = new Promise<ShopperSearch.schemas['ProductSearchResult']>(
+                (_resolve, reject) => {
+                    rejectNonCritical = reject;
+                }
+            );
+
+            const loaderData: SearchPageData = {
+                searchTerm: 'shoes',
+                searchResultCritical: mockSearchResult,
+                searchResultNonCritical,
+                page: { ...createMockPage(), componentData: {} },
+                currency: 'USD',
+                locale: 'en-US',
+                refine: [],
+                pageUrl: 'http://localhost/search',
+            };
+
+            render(
+                <MemoryRouter>
+                    <AllProvidersWrapper>
+                        <SearchPage loaderData={loaderData} />
+                    </AllProvidersWrapper>
+                </MemoryRouter>
+            );
+
+            const derivedPromises = allSettledSpy.mock.calls
+                .map(([promises]) => Array.from(promises))
+                .find((promises) => promises.length === 1 && promises[0] !== searchResultNonCritical);
+            expect(derivedPromises).toBeDefined();
+            const derivedPromise = derivedPromises?.[0];
+
+            allSettledSpy.mockRestore();
+
+            // The observer must not swallow the rejection: it should still surface to any
+            // real consumer (here, our own assertion) that awaits/subscribes to it.
+            rejectNonCritical(new Error('Search request failed'));
+            return expect(derivedPromise).rejects.toThrow('Search request failed');
         });
 
         test('marks only the top full-width Page Designer region as critical', () => {

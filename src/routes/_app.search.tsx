@@ -137,17 +137,28 @@ export async function loader(args: Route.LoaderArgs): Promise<SearchPageData> {
     const pageUrl = buildSeoPageUrl(context, requestUrl);
     const effectiveCriticalCount = searchResultCritical.hits?.length ?? 0;
 
+    const searchResultNonCritical = fetchSearchProducts(context, {
+        q,
+        limit: limit - effectiveCriticalCount,
+        offset: offset + effectiveCriticalCount,
+        sort,
+        refine,
+        currency,
+    });
+
+    // Observe immediately, same as searchResultCriticalPromise/pagePromise above: this promise is
+    // created after that guard runs, so without its own observer a slow/timed-out SCAPI response
+    // here can still be unhandled when entry.server.tsx's stream timeout force-rejects it.
+    //
+    // The footwear PDP's recommendation rails (pdp-recommendations.server.ts) guard the same
+    // stream-timeout crash differently, by racing the promise to a local timeout instead of
+    // observing it, because that path is fine degrading to an empty rail on timeout.
+    void Promise.allSettled([searchResultNonCritical]);
+
     return {
         searchTerm: q,
         searchResultCritical,
-        searchResultNonCritical: fetchSearchProducts(context, {
-            q,
-            limit: limit - effectiveCriticalCount,
-            offset: offset + effectiveCriticalCount,
-            sort,
-            refine,
-            currency,
-        }),
+        searchResultNonCritical,
         page: await pagePromise,
         pageUrl,
         refine,
@@ -242,10 +253,16 @@ export default function SearchPage({
         );
     }, [location.search, navigation.location, navigation.state]);
 
-    const nonCriticalPromise = useMemo(
-        () => searchResultNonCritical.then((r) => r.hits ?? []),
-        [searchResultNonCritical]
-    );
+    const nonCriticalPromise = useMemo(() => {
+        const hitsPromise = searchResultNonCritical.then((r) => r.hits ?? []);
+        // Observe immediately: DeferredProductGrid never mounts <Await> during the SSR render
+        // pass (useDeferredRender's idle callback is a client-only useEffect), so this derived
+        // promise has no consumer yet when it's created here. Without this guard, a stream-timeout
+        // rejection on searchResultNonCritical propagates to this unobserved promise and crashes
+        // the server the same way the loader-level guard prevents for searchResultNonCritical itself.
+        void Promise.allSettled([hitsPromise]);
+        return hitsPromise;
+    }, [searchResultNonCritical]);
 
     const [, startTransition] = useTransition();
 
