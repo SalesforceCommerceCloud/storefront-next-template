@@ -35,6 +35,17 @@ import generatedExtensionConfig from './src/extensions/config/index';
 // in a route handler.
 import generatedServerExtensionConfig from './src/extensions/config/server';
 
+export const protectedConfigPaths = [
+    'app__engagement__adapters__einstein',
+    'app__engagement__adapters__data360',
+    // intentionally lock these property at runtime override and allow the rest of config
+    'app__engagement__adapters__activeData__enabled',
+    'app__engagement__adapters__activeData__eventToggles',
+    'app__url__prefix',
+    'app__url__excludeRoutes',
+    'app__url__seoRoutes',
+];
+
 /**
  * Application Configuration
  *
@@ -740,15 +751,6 @@ export default defineConfig<Config>(
         },
     },
     {
-        protectedPaths: [
-            'app__engagement__adapters__einstein',
-            'app__engagement__adapters__data360',
-            // intentionally lock these property at runtime override and allow the rest of config
-            'app__engagement__adapters__activeData__enabled',
-            'app__engagement__adapters__activeData__eventToggles',
-            'app__url__prefix',
-            'app__url__excludeRoutes',
-            'app__url__seoRoutes',
-        ],
+        protectedPaths: protectedConfigPaths,
     }
 );
