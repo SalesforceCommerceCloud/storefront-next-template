@@ -225,12 +225,21 @@ export default defineConfig<Config>(
                 // Override via PUBLIC__app__commerce__sitesFromDal=false.
                 sitesFromDal: true,
                 // Shopper Agent (Commerce Client messaging widget) — preferred config path.
-                // No default block: the field is undefined until a merchant sets
-                // PUBLIC__app__commerce__shopperAgent (single JSON string; see
-                // src/components/cimulate/README.md). When set, it takes precedence over the
-                // legacy top-level `cimulateAgent` (PUBLIC__app__cimulateAgent). Keeping this
-                // undefined by default avoids shipping empty-string placeholders to every
-                // storefront's `window.__APP_CONFIG__`.
+                // Empty-value block is REQUIRED (not just an aesthetic default): the SDK's
+                // mergeEnvConfig only merges PUBLIC__ env-var overrides whose config path
+                // already exists in baseConfig (via extractValidPaths). Without this block,
+                // PUBLIC__app__commerce__shopperAgent is silently dropped with a
+                // "Config path does not exist in config.server.ts" warning and merchants
+                // see the widget disabled. Override via PUBLIC__app__commerce__shopperAgent
+                // (single JSON string; see src/components/cimulate/README.md). When set, it
+                // takes precedence over the legacy top-level `cimulateAgent`.
+                shopperAgent: {
+                    enabled: '',
+                    commerceClientScriptSourceUrl: '',
+                    scrt2Url: '',
+                    salesforceOrgId: '',
+                    esDeveloperName: '',
+                },
             },
             // Global default cookie attributes applied to ALL storefront cookies
             // (auth/session + site-context: site_id, locale, currency). A per-site
