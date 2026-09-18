@@ -328,6 +328,7 @@ The docs below are where architectural detail lives — consult them for tasks i
 
 **Migrations:**
 - [docs/migrations/react-router-7.18/README.md](./docs/migrations/react-router-7.18/README.md) — Upgrading your project from React Router 7.12 to 7.18.0 (security fixes, API renames, behavioral quirks)
+- [docs/migrations/seo-url-rules/README.md](./docs/migrations/seo-url-rules/README.md) — Adopting configurable SEO product and category URLs (`seoRoutes`): prerequisites, category modes, redirects, verification checklist
 
 **Development:**
 - [docs/README-HYBRID-PROXY.md](./docs/README-HYBRID-PROXY.md) — Hybrid proxy for local development

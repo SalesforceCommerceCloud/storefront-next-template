@@ -118,6 +118,52 @@ When `seoRoutes` is present, every active site must have an entry. URL generatio
 
 Do not enable `seoRoutes` until every active site's PDP/PLP grammar and category-slug data source are available. The route-registration layer does not parse IDs or fetch slugs. The optional content prefix remains reserved for standalone-content routing.
 
+For the step-by-step rollout—prerequisites, the two category modes, preventing broken indexed URLs and redirect loops, and the QA verification checklist—see the [SEO URL Rules adoption guide](./migrations/seo-url-rules/README.md).
+
+#### Mapping Business Manager URL Settings to `seoRoutes`
+
+Business Manager is the source of truth for a site's SEO URL grammar; `seoRoutes` is the build-time mirror of it. Each Business Manager URL setting maps to one `seoRoutes` field:
+
+| Business Manager (in **Merchant Tools > _Site_ > SEO & Discoverability**) | `config.server.ts` |
+|---|---|
+| Product URL segment / prefix | `seoRoutes.<siteId>.product.prefix` |
+| Category URL segment / prefix | `seoRoutes.<siteId>.category.prefix` |
+| Category URLs carry the category ID vs. a pure slug path | `seoRoutes.<siteId>.category.mode` (`id-suffix` \| `slug-path`) |
+| Content/landing URL segment / prefix | `seoRoutes.<siteId>.content.prefix` (optional) |
+| Site and locale in the path | `url.prefix` (e.g. `/:siteId/:localeId`) |
+| Locale-to-alias display | `localeAliasMap` / `siteAliasMap` |
+
+Prefixes are static segments without slashes. The mapping is manual and one-directional: a change in Business Manager reaches a deployed storefront only after you update `config.server.ts` and rebuild (`seoRoutes` is a `protectedPaths` value—see the rebuild note above). The `.html` suffix, trailing-slash, and redirect behavior for a merchant's legacy Commerce URLs are handled at the CDN / Business Manager redirect layer, not by `seoRoutes`—see [Adopting SEO URL Rules: Preventing broken indexed URLs](./migrations/seo-url-rules/README.md#preventing-broken-indexed-urls-and-redirect-loops).
+
+#### Market Street Reference Configuration
+
+Market Street is the reference storefront for the retail vertical. Its `seoRoutes` entry uses short prefixes and deterministic `id-suffix` category routing:
+
+```typescript
+url: {
+    prefix: '/:siteId/:localeId',
+    excludeRoutes: ['/resource/**', '/action/**'],
+    seoRoutes: {
+        MarketStreet: {
+            product: {prefix: 'p'},
+            category: {prefix: 'c', mode: 'id-suffix'},
+        },
+    },
+}
+```
+
+With this entry a product resolves at `/{siteId}/{localeId}/p/{slug}/{id}` and a category at `/{siteId}/{localeId}/c/{slug}/{id}`. `id-suffix` keeps category resolution deterministic—the PLP loader reads the ID from the final path segment with no SEO-mapping request.
+
+This block is a reference to copy per site, not a drop-in for the shipped `config.server.ts`. Because every active site must have an entry (see above), a single-site `seoRoutes` added to a config that serves other active sites fails the build for the omitted ones. Add an entry for every site in `commerce.sites` when you enable it.
+
+#### Non-Blocking Follow-Ups
+
+These are tracked separately from the routing layer and are **not** current behavior:
+
+- **Automatic Business Manager sync**—today the Business-Manager-to-`seoRoutes` mapping is manual and requires a rebuild. Auto-sync is a follow-up.
+- **URL-mapping request-volume hardening**—well-formed SEO URLs resolve deterministically from the path, and lookup-based resolution of unmatched or legacy URLs now ships as the terminal fallback (see [Shopper SEO URL Rules Fallback](#shopper-seo-url-rules-fallback)). Request-volume hardening of that lookup path is tracked separately.
+- **Composite category endpoint**—slug-path category resolution depends on a slug→ID data source the route layer does not supply; a composite endpoint to serve it is a follow-up.
+
 ### Shopper SEO URL Rules Fallback
 
 Business Manager is the source of truth for URL Rules. Keep each site's Business Manager rules, `url.seoRoutes`, and `seoFallback.sites` policy aligned. `url.seoRoutes` registers the product and category routes that receive mapped destinations; changing a prefix requires rebuilding and redeploying the storefront.

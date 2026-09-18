@@ -382,3 +382,15 @@ For an ecommerce storefront, `noIndex` helps by:
 - Keeping checkout, account, and other private flows out of search results
 - Preventing thin, empty, or session-specific pages from being indexed
 - Helping search engines spend more attention on high-value pages such as product, category, brand, and content pages
+
+## Crawler Rendering and Pagination
+
+Two storefront behaviors keep product and category content fully crawlable. Both are on by default; you don't configure them.
+
+### Full HTML for Crawlers
+
+The storefront streams HTML to shoppers, sending the shell as soon as it's ready. Crawlers get the complete, fully-rendered page instead. `entry.server.tsx` detects known crawler user agents with the `isbot` library and waits for the full render (`onAllReady`) before responding, so a crawler never receives a partial shell.
+
+### Crawlable Load-More Pagination
+
+Category pages (PLPs) use a JavaScript "load more" flow for shoppers, but the full result set stays crawlable through a `?page=N` query parameter. Each paginated request server-renders one result window and emits `<link rel="prev">` and `<link rel="next">` tags so a crawler can traverse the set. The canonical URL of every page in the set stays the base category URL (see [Canonical URLs](#canonical-urls)), so the paginated variants don't compete for ranking.
