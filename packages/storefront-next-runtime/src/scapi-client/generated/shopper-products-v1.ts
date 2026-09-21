@@ -188,7 +188,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the requested category. */
+                /** @description The ID or slug of the requested category. If a category exists with the given value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`). */
                 id: components["parameters"]["parameters-id"];
                 /**
                  * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -401,6 +401,11 @@ export interface components {
                  * @example iPod & MP3 Players
                  */
                 name?: string;
+                /**
+                 * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+                 * @example electronics/ipod-mp3-players
+                 */
+                slug?: string;
                 /** @description The list of ancestor categories from root to the primary category (root category node excluded). */
                 parentCategoryTree?: {
                     /**
@@ -413,6 +418,11 @@ export interface components {
                      * @example Electronics
                      */
                     name?: string;
+                    /**
+                     * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+                     * @example electronics/ipod-mp3-players
+                     */
+                    slug?: string;
                 }[];
             };
             /** @description The array of source and target product links information. */
@@ -433,6 +443,11 @@ export interface components {
              * @example Awesome Product
              */
             shortDescription?: string;
+            /**
+             * @description The SEO URL slug for the product. Only present when the slug expand is requested and the slug feature is enabled.
+             * @example modern-dress-shirt/74974310M.html
+             */
+            slug?: string;
             /**
              * @description The complete link to this product's storefront page.
              * @example https://www.example.com/on/store/Sites-MySite/default/Product-Show?pid=MyProduct
@@ -1208,6 +1223,11 @@ export interface components {
             /** @description The List of the parent categories. */
             parentCategoryTree?: components["schemas"]["PathRecord"][];
             /**
+             * @description SEO path persisted for the category. This property is omitted when no category URL mapping exists for the requested locale.
+             * @example mens/cloting
+             */
+            slug?: string;
+            /**
              * @description The URL of the category thumbnail.
              * @example https://www.exampleimage.com/images/categoryImage.jpg
              */
@@ -1227,6 +1247,11 @@ export interface components {
              * @example mens
              */
             name?: string;
+            /**
+             * @description SEO path persisted for the category. This property is omitted when no category URL mapping exists for the requested locale.
+             * @example mens/cloting
+             */
+            slug?: string;
         };
         /** @description Result document containing an array of categories. */
         CategoryResult: {
@@ -1262,14 +1287,15 @@ export interface components {
          */
         inventoryIds: components["schemas"]["InventoryId"][];
         /**
-         * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+         * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
          *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
          *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
+         *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
          * @example prices,promotions
          */
-        expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category")[];
+        expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug")[];
         /** @description The flag that indicates whether to retrieve the whole image model for the requested product. */
         allImages: boolean;
         /**
@@ -1294,14 +1320,15 @@ export interface components {
         /** @description The ID of the requested product. */
         id: components["schemas"]["ProductId"];
         /**
-         * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+         * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
          *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
          *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
+         *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
          * @example prices,promotions
          */
-        expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category")[];
+        expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug")[];
         /** @description The ID of the product whose images to retrieve. */
         productId: components["schemas"]["ProductId"];
         /**
@@ -1334,13 +1361,13 @@ export interface components {
          */
         "components-parameters-productId": components["schemas"]["ProductId"];
         /**
-         * @description The comma separated list of category IDs (max 50).
+         * @description The comma separated list of category IDs or slugs (max 50). For each value, if a category exists with that value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`).
          * @example electronics-digital-cameras,electronics-televisions
          */
         "parameters-ids": components["schemas"]["CategoryId"][];
         /** @description Specifies how many levels of nested subcategories you want the server to return. The default value is 1. Valid values are 0, 1, or 2. Only online subcategories are returned. */
         levels: 0 | 1 | 2;
-        /** @description The ID of the requested category. */
+        /** @description The ID or slug of the requested category. If a category exists with the given value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`). */
         "parameters-id": components["schemas"]["CategoryId"];
         /**
          * @description A unique shopper identifier (USID) for tracking client context.
@@ -1388,11 +1415,12 @@ export interface operations {
                  */
                 inventoryIds?: components["parameters"]["inventoryIds"];
                 /**
-                 * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+                 * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
                  *     The value "none" may be used to turn off all expand options.
                  *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
                  *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
                  *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
+                 *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
                  * @example prices,promotions
                  */
                 expand?: components["parameters"]["expand_multiId"];
@@ -1486,11 +1514,12 @@ export interface operations {
                  */
                 inventoryIds?: components["parameters"]["inventoryIds"];
                 /**
-                 * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+                 * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
                  *     The value "none" may be used to turn off all expand options.
                  *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
                  *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
                  *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
+                 *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
                  * @example prices,promotions
                  */
                 expand?: components["parameters"]["expand_singleId"];
@@ -1853,7 +1882,7 @@ export interface operations {
         parameters: {
             query: {
                 /**
-                 * @description The comma separated list of category IDs (max 50).
+                 * @description The comma separated list of category IDs or slugs (max 50). For each value, if a category exists with that value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`).
                  * @example electronics-digital-cameras,electronics-televisions
                  */
                 ids: components["parameters"]["parameters-ids"];
@@ -1961,7 +1990,7 @@ export interface operations {
                 sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
             };
             path: {
-                /** @description The ID of the requested category. */
+                /** @description The ID or slug of the requested category. If a category exists with the given value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`). */
                 id: components["parameters"]["parameters-id"];
                 /**
                  * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).

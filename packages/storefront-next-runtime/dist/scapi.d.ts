@@ -7187,6 +7187,24 @@ interface components$15 {
        */
       status?: number;
     };
+    /**
+     * @description Normalized fraud decisions for the order payment instrument.
+     *     All properties are optional and read only. The object is omitted entirely when no decisions are returned.
+     *     The values remain readable for historical orders.
+     */
+    FraudDecisions: {
+      /**
+       * @description The pre-authorization fraud decision used by the client to orchestrate checkout. Expected values are:
+       *     - `NOT_REVIEWED`: the payment instrument was not reviewed pre-authorization.
+       *     - `APPROVED`: the payment authorization can proceed.
+       *     - `CHALLENGE`: the payment authorization should be challenged with additional verification (for example, a 3D Secure challenge) before it can proceed.
+       *     - `DECLINED`: the payment authorization is declined.
+       *
+       *     A custom value may also be returned. It is read only.
+       * @example APPROVED
+       */
+      preAuthorization?: string;
+    };
     /** @description Document representing a payment card. */
     PaymentCard: {
       /**
@@ -7250,6 +7268,65 @@ interface components$15 {
        */
       validFromYear?: number;
     };
+    /**
+     * @description Normalized, shopper-relevant payment details for the order payment instrument.
+     *     All properties are optional and read only. The object is omitted entirely when no details are available for the payment.
+     *     The values remain readable for historical orders.
+     */
+    PaymentDetails: {
+      /**
+       * @description The normalized payment method type. Expected values are `bancontact`, `card`, `gift_card`, `eps`, `ideal`, `klarna`,
+       *     `sepa_debit`, `paypal`, `venmo`, `afterpay_clearpay`, `amazon_pay`, and `twint`. A custom value may also be returned. It is read only.
+       * @example card
+       */
+      type?: string;
+      /**
+       * @description The normalized card brand. Expected values are `amex`, `diners`, `discover`, `jcb`, `mastercard`,
+       *     `unionpay`, `visa`, and `unknown`. A custom value may also be returned. It is read only.
+       * @example visa
+       */
+      brand?: string;
+      /**
+       * @description The last four digits of the payment instrument. It is read only.
+       * @example 4242
+       */
+      last4?: string;
+      /**
+       * @description The normalized digital wallet used for the payment. Expected values are `apple_pay` and `google_pay`.
+       *     A custom value may also be returned. It is read only.
+       * @example apple_pay
+       */
+      walletType?: string;
+      /**
+       * Format: int32
+       * @description The month when the payment instrument expires. It is read only.
+       * @example 12
+       */
+      expirationMonth?: number;
+      /**
+       * Format: int32
+       * @description The year when the payment instrument expires. It is read only.
+       * @example 2028
+       */
+      expirationYear?: number;
+      /**
+       * @description The reference token representing the payment instrument. This is an opaque
+       *     identifier, not the card number (PAN). It is read only.
+       * @example pm_abc123
+       */
+      token?: string;
+      /**
+       * @description The type of token backing the reference token. Expected values are
+       *     `NETWORK` and `GATEWAY`. A custom value may also be returned. It is read only.
+       * @example GATEWAY
+       */
+      tokenType?: string;
+      /**
+       * @description The name of the payment instrument account holder. It is read only.
+       * @example Alex Shopper
+       */
+      accountHolderName?: string;
+    };
     /** @description Document representing a gift card response. */
     GiftCardResponse: {
       /**
@@ -7296,12 +7373,22 @@ interface components$15 {
        */
       bankRoutingNumber?: string;
       /**
+       * @description The normalized fraud decisions for the order payment instrument. It is read only.
+       *     Omitted when no decisions are returned.
+       */
+      fraudDecisions?: components$15["schemas"]["FraudDecisions"];
+      /**
        * @description The gift certificate code with the last 4 characters not masked.
        * @example ******Gzzy
        */
       maskedGiftCertificateCode?: string;
       /** @description The payment card. */
       paymentCard?: components$15["schemas"]["PaymentCard"];
+      /**
+       * @description The normalized, shopper-relevant payment details for the order payment instrument. It is read only.
+       *     Omitted when no details are available for the payment.
+       */
+      paymentDetails?: components$15["schemas"]["PaymentDetails"];
       /** @description The gift card. */
       giftCard?: components$15["schemas"]["GiftCardResponse"];
       /** @description The payment instrument ID. It is read only. */
@@ -10321,6 +10408,7 @@ interface operations$33 {
       /**
        * @description Possible Reasons:
        *     - The tax mode of the referenced basket is not set to EXTERNAL.
+       *     - One or more tax item custom attributes are invalid.
        */
       409: {
         headers: {
@@ -11615,6 +11703,7 @@ interface operations$33 {
       /**
        * @description Possible Reasons:
        *     - The tax mode of the referenced basket is not set to EXTERNAL.
+       *     - One or more tax item custom attributes are invalid.
        */
       409: {
         headers: {
@@ -13256,9 +13345,29 @@ interface paths$11 {
     put?: never;
     /**
      * Set up a new payment method reference for a customer. This endpoint only accepts a registered customer ShopperToken (JWT).
-     * @description Initiates the setup of a new payment method reference for a customer. This endpoint requires Salesforce Payments integration.
+     * @description Initiates the setup of a new payment method reference for a customer. Requires Salesforce Payments. Stripe does not require gatewayProperties. Adyen requires gatewayProperties.adyen.paymentMethod; missing that field returns 400.
      */
     post: operations$29["setupCustomerPaymentMethodReference"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizations/{organizationId}/customers/{customerId}/payment-method-references/actions/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Complete payment method reference setup for a customer. This endpoint only accepts a registered customer ShopperToken (JWT).
+     * @description Completes payment method reference setup after provider success.
+     */
+    post: operations$29["completeCustomerPaymentMethodReferenceSetup"];
     delete?: never;
     options?: never;
     head?: never;
@@ -13674,22 +13783,44 @@ interface components$11 {
        * @example card
        * @enum {string}
        */
-      type?: "card" | "sepa_debit";
+      readonly type?: "card" | "sepa_debit";
       /**
        * @description The gateway ID for the payment method. It is read only.
        * @example pm_1234567890
        */
-      id?: string;
+      readonly id?: string;
       /**
        * @description The last four digits of the payment method number. It is read only.
        * @example 4242
        */
-      last4?: string;
+      readonly last4?: string;
       /**
        * @description Account identifier
        * @example acct_1RegszI5I22eU0I3
        */
-      accountId?: string;
+      readonly accountId?: string;
+      /**
+       * @description Card brand when the payment method type is `card`.
+       * @example visa
+       */
+      readonly brand?: string;
+      /**
+       * Format: int32
+       * @description Card expiry month when the payment method type is `card`.
+       * @example 12
+       */
+      readonly expiryMonth?: number;
+      /**
+       * Format: int32
+       * @description Card expiry year when the payment method type is `card`.
+       * @example 2028
+       */
+      readonly expiryYear?: number;
+      /**
+       * @description SEPA account holder name when the payment method type is `sepa_debit`.
+       * @example Jane Doe
+       */
+      readonly accountHolderName?: string;
     };
     /** @description Person or entity who shops on Commerce Cloud storefronts by creating a shopper account in Commerce Cloud. */
     Customer: {
@@ -15719,7 +15850,7 @@ interface components$11 {
         expirationYear?: number;
       };
     };
-    /** @description Request to set up a new payment method reference. */
+    /** @description Request to set up a new payment method reference. Stripe does not require gatewayProperties. Adyen requires gatewayProperties.adyen.paymentMethod at runtime (400 if missing). */
     PaymentMethodReferenceSetupRequest: {
       /**
        * @description Payment Method Type
@@ -15727,7 +15858,7 @@ interface components$11 {
        */
       paymentMethodType?: string;
       /** @description Properties specific to the payment gateway */
-      gatewayProperties: {
+      gatewayProperties?: {
         /** @description # Stripe-specific properties. */
         stripe?: {
           [key: string]: unknown;
@@ -15756,6 +15887,14 @@ interface components$11 {
           [key: string]: unknown;
         };
       };
+    };
+    /** @description Request to complete payment method reference setup after provider success. */
+    PaymentMethodReferenceCompleteRequest: {
+      /**
+       * @description Provider setup identifier (for example Stripe SetupIntent ID or Adyen pspReference).
+       * @example seti_1Mm8s8LkdIwHu7ix0OXBfTRG
+       */
+      paymentMethodReferenceSetupId: string;
     };
     /** @description Document representing a customer product list registrant. */
     CustomerProductListRegistrant: {
@@ -15909,6 +16048,45 @@ interface components$11 {
        * @example electronics
        */
       primaryCategoryId?: string;
+      /**
+       * @description The primary category of the product, including its full ancestor breadcrumb path (root to leaf,
+       *     root category node excluded). Only present when the primary_category expand is requested.
+       */
+      primaryCategory?: {
+        /**
+         * @description The ID of the primary category.
+         * @example electronics-digital-media-players
+         */
+        id?: string;
+        /**
+         * @description The localized name of the primary category.
+         * @example iPod & MP3 Players
+         */
+        name?: string;
+        /**
+         * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+         * @example electronics/ipod-mp3-players
+         */
+        slug?: string;
+        /** @description The list of ancestor categories from root to the primary category (root category node excluded). */
+        parentCategoryTree?: {
+          /**
+           * @description The ID of the ancestor category.
+           * @example electronics
+           */
+          id?: string;
+          /**
+           * @description The name of the ancestor category.
+           * @example Electronics
+           */
+          name?: string;
+          /**
+           * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+           * @example electronics/ipod-mp3-players
+           */
+          slug?: string;
+        }[];
+      };
       /** @description The array of source and target product links information. */
       productLinks?: components$11["schemas"]["ProductLink"][];
       /**
@@ -15927,6 +16105,11 @@ interface components$11 {
        * @example Awesome Product
        */
       shortDescription?: string;
+      /**
+       * @description The SEO URL slug for the product. Only present when the slug expand is requested and the slug feature is enabled.
+       * @example modern-dress-shirt/74974310M.html
+       */
+      slug?: string;
       /**
        * @description The complete link to this product's storefront page.
        * @example https://www.example.com/on/store/Sites-MySite/default/Product-Show?pid=MyProduct
@@ -16204,6 +16387,17 @@ interface components$11 {
        * @example Buy the Long Sleeve Covered Placket Blouse for USD 61.99.
        */
       value?: string;
+      /**
+       * @description The kind of Page Meta Tag, indicating how the storefront should render the value.
+       *     Documented values are `name`, `property`, `title`, and `jsonld`:
+       *       * `name` — render as `<meta name="...">`.
+       *       * `property` — render as `<meta property="...">` (e.g. Open Graph tags).
+       *       * `title` — render as the HTML `<title>` element.
+       *       * `jsonld` — JSON-LD structured data, intended for rendering inside `<script type="application/ld+json">`.
+       *     The field may be absent when the kind cannot be determined. Clients should treat unknown values as opaque so additional kinds can be introduced without breaking the contract.
+       * @example name
+       */
+      type?: string;
     };
     /** @description Document representing price ranges for a product which happens to be a master product (per Pricebook) */
     PriceRange: {
@@ -18008,8 +18202,17 @@ interface operations$29 {
           "application/json": components$11["schemas"]["PaymentMethodReferenceSetupResponse"];
         };
       };
-      /** @description CustomerId URL parameter does not match the verified customer represented by the JWT token. */
+      /** @description The request is invalid. */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components$11["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Authentication failed or the authenticated shopper is not authorized to access the requested customer. */
+      401: {
         headers: {
           [name: string]: unknown;
         };
@@ -18019,6 +18222,98 @@ interface operations$29 {
       };
       /** @description Requested resource not found. */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components$11["schemas"]["ErrorResponse"];
+        };
+      };
+      /**
+       * @description Salesforce Payments is not enabled (instance feature toggles) or is not configured
+       *     for the requested site (org payments config, site, or zone assignment).
+       */
+      412: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components$11["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  completeCustomerPaymentMethodReferenceSetup: {
+    parameters: {
+      query: {
+        /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+        siteId: components$11["parameters"]["siteId"];
+        /** @description The zone identifier for the payment configuration. */
+        zoneId: components$11["parameters"]["zoneId"];
+      };
+      header?: {
+        /**
+         * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+         *     passed in from a trusted backend application.
+         */
+        sfdc_shopper_context?: components$11["parameters"]["sfdcShopperContext"];
+      };
+      path: {
+        /** @description The customer ID. */
+        customerId: components$11["parameters"]["customerId"];
+        /**
+         * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+         * @example f_ecom_zzxy_prd
+         */
+        organizationId: components$11["parameters"]["organizationId"];
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components$11["schemas"]["PaymentMethodReferenceCompleteRequest"];
+      };
+    };
+    responses: {
+      /** @description No content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description The request is invalid. */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components$11["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Authentication failed or the authenticated shopper is not authorized to access the requested customer. */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components$11["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Requested resource not found. */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/problem+json": components$11["schemas"]["ErrorResponse"];
+        };
+      };
+      /**
+       * @description Salesforce Payments is not enabled (instance feature toggles) or is not configured
+       *     for the requested site (org payments config, site, or zone assignment).
+       */
+      412: {
         headers: {
           [name: string]: unknown;
         };
@@ -26655,6 +26950,24 @@ interface components$6 {
        */
       status?: number;
     };
+    /**
+     * @description Normalized fraud decisions for the order payment instrument.
+     *     All properties are optional and read only. The object is omitted entirely when no decisions are returned.
+     *     The values remain readable for historical orders.
+     */
+    FraudDecisions: {
+      /**
+       * @description The pre-authorization fraud decision used by the client to orchestrate checkout. Expected values are:
+       *     - `NOT_REVIEWED`: the payment instrument was not reviewed pre-authorization.
+       *     - `APPROVED`: the payment authorization can proceed.
+       *     - `CHALLENGE`: the payment authorization should be challenged with additional verification (for example, a 3D Secure challenge) before it can proceed.
+       *     - `DECLINED`: the payment authorization is declined.
+       *
+       *     A custom value may also be returned. It is read only.
+       * @example APPROVED
+       */
+      preAuthorization?: string;
+    };
     /** @description Document representing a payment card. */
     PaymentCard: {
       /**
@@ -26718,6 +27031,65 @@ interface components$6 {
        */
       validFromYear?: number;
     };
+    /**
+     * @description Normalized, shopper-relevant payment details for the order payment instrument.
+     *     All properties are optional and read only. The object is omitted entirely when no details are available for the payment.
+     *     The values remain readable for historical orders.
+     */
+    PaymentDetails: {
+      /**
+       * @description The normalized payment method type. Expected values are `bancontact`, `card`, `gift_card`, `eps`, `ideal`, `klarna`,
+       *     `sepa_debit`, `paypal`, `venmo`, `afterpay_clearpay`, `amazon_pay`, and `twint`. A custom value may also be returned. It is read only.
+       * @example card
+       */
+      type?: string;
+      /**
+       * @description The normalized card brand. Expected values are `amex`, `diners`, `discover`, `jcb`, `mastercard`,
+       *     `unionpay`, `visa`, and `unknown`. A custom value may also be returned. It is read only.
+       * @example visa
+       */
+      brand?: string;
+      /**
+       * @description The last four digits of the payment instrument. It is read only.
+       * @example 4242
+       */
+      last4?: string;
+      /**
+       * @description The normalized digital wallet used for the payment. Expected values are `apple_pay` and `google_pay`.
+       *     A custom value may also be returned. It is read only.
+       * @example apple_pay
+       */
+      walletType?: string;
+      /**
+       * Format: int32
+       * @description The month when the payment instrument expires. It is read only.
+       * @example 12
+       */
+      expirationMonth?: number;
+      /**
+       * Format: int32
+       * @description The year when the payment instrument expires. It is read only.
+       * @example 2028
+       */
+      expirationYear?: number;
+      /**
+       * @description The reference token representing the payment instrument. This is an opaque
+       *     identifier, not the card number (PAN). It is read only.
+       * @example pm_abc123
+       */
+      token?: string;
+      /**
+       * @description The type of token backing the reference token. Expected values are
+       *     `NETWORK` and `GATEWAY`. A custom value may also be returned. It is read only.
+       * @example GATEWAY
+       */
+      tokenType?: string;
+      /**
+       * @description The name of the payment instrument account holder. It is read only.
+       * @example Alex Shopper
+       */
+      accountHolderName?: string;
+    };
     /** @description Document representing a gift card response. */
     GiftCardResponse: {
       /**
@@ -26764,12 +27136,22 @@ interface components$6 {
        */
       bankRoutingNumber?: string;
       /**
+       * @description The normalized fraud decisions for the order payment instrument. It is read only.
+       *     Omitted when no decisions are returned.
+       */
+      fraudDecisions?: components$6["schemas"]["FraudDecisions"];
+      /**
        * @description The gift certificate code with the last 4 characters not masked.
        * @example ******Gzzy
        */
       maskedGiftCertificateCode?: string;
       /** @description The payment card. */
       paymentCard?: components$6["schemas"]["PaymentCard"];
+      /**
+       * @description The normalized, shopper-relevant payment details for the order payment instrument. It is read only.
+       *     Omitted when no details are available for the payment.
+       */
+      paymentDetails?: components$6["schemas"]["PaymentDetails"];
       /** @description The gift card. */
       giftCard?: components$6["schemas"]["GiftCardResponse"];
       /** @description The payment instrument ID. It is read only. */
@@ -30264,7 +30646,7 @@ interface paths$4 {
       query?: never;
       header?: never;
       path: {
-        /** @description The ID of the requested category. */
+        /** @description The ID or slug of the requested category. If a category exists with the given value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`). */
         id: components$4["parameters"]["parameters-id"];
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -30476,6 +30858,11 @@ interface components$4 {
          * @example iPod & MP3 Players
          */
         name?: string;
+        /**
+         * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+         * @example electronics/ipod-mp3-players
+         */
+        slug?: string;
         /** @description The list of ancestor categories from root to the primary category (root category node excluded). */
         parentCategoryTree?: {
           /**
@@ -30488,6 +30875,11 @@ interface components$4 {
            * @example Electronics
            */
           name?: string;
+          /**
+           * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+           * @example electronics/ipod-mp3-players
+           */
+          slug?: string;
         }[];
       };
       /** @description The array of source and target product links information. */
@@ -30508,6 +30900,11 @@ interface components$4 {
        * @example Awesome Product
        */
       shortDescription?: string;
+      /**
+       * @description The SEO URL slug for the product. Only present when the slug expand is requested and the slug feature is enabled.
+       * @example modern-dress-shirt/74974310M.html
+       */
+      slug?: string;
       /**
        * @description The complete link to this product's storefront page.
        * @example https://www.example.com/on/store/Sites-MySite/default/Product-Show?pid=MyProduct
@@ -31283,6 +31680,11 @@ interface components$4 {
       /** @description The List of the parent categories. */
       parentCategoryTree?: components$4["schemas"]["PathRecord"][];
       /**
+       * @description SEO path persisted for the category. This property is omitted when no category URL mapping exists for the requested locale.
+       * @example mens/cloting
+       */
+      slug?: string;
+      /**
        * @description The URL of the category thumbnail.
        * @example https://www.exampleimage.com/images/categoryImage.jpg
        */
@@ -31302,6 +31704,11 @@ interface components$4 {
        * @example mens
        */
       name?: string;
+      /**
+       * @description SEO path persisted for the category. This property is omitted when no category URL mapping exists for the requested locale.
+       * @example mens/cloting
+       */
+      slug?: string;
     };
     /** @description Result document containing an array of categories. */
     CategoryResult: {
@@ -31337,14 +31744,15 @@ interface components$4 {
      */
     inventoryIds: components$4["schemas"]["InventoryId"][];
     /**
-     * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+     * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
      *     The value "none" may be used to turn off all expand options.
      *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
      *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
      *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
+     *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
      * @example prices,promotions
      */
-    expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category")[];
+    expand_multiId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug")[];
     /** @description The flag that indicates whether to retrieve the whole image model for the requested product. */
     allImages: boolean;
     /**
@@ -31369,14 +31777,15 @@ interface components$4 {
     /** @description The ID of the requested product. */
     id: components$4["schemas"]["ProductId"];
     /**
-     * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+     * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
      *     The value "none" may be used to turn off all expand options.
      *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
      *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
      *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
+     *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
      * @example prices,promotions
      */
-    expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category")[];
+    expand_singleId: ("none" | "availability" | "bundled_products" | "links" | "promotions" | "options" | "images" | "prices" | "variations" | "set_products" | "recommendations" | "shipping_methods" | "page_meta_tags" | "primary_category" | "slug")[];
     /** @description The ID of the product whose images to retrieve. */
     productId: components$4["schemas"]["ProductId"];
     /**
@@ -31409,13 +31818,13 @@ interface components$4 {
      */
     "components-parameters-productId": components$4["schemas"]["ProductId"];
     /**
-     * @description The comma separated list of category IDs (max 50).
+     * @description The comma separated list of category IDs or slugs (max 50). For each value, if a category exists with that value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`).
      * @example electronics-digital-cameras,electronics-televisions
      */
     "parameters-ids": components$4["schemas"]["CategoryId"][];
     /** @description Specifies how many levels of nested subcategories you want the server to return. The default value is 1. Valid values are 0, 1, or 2. Only online subcategories are returned. */
     levels: 0 | 1 | 2;
-    /** @description The ID of the requested category. */
+    /** @description The ID or slug of the requested category. If a category exists with the given value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`). */
     "parameters-id": components$4["schemas"]["CategoryId"];
     /**
      * @description A unique shopper identifier (USID) for tracking client context.
@@ -31462,11 +31871,12 @@ interface operations$22 {
          */
         inventoryIds?: components$4["parameters"]["inventoryIds"];
         /**
-         * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+         * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
          *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
          *     The primary_category expand returns the full breadcrumb path (root to leaf) for each product's primary category.
+         *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
          * @example prices,promotions
          */
         expand?: components$4["parameters"]["expand_multiId"];
@@ -31560,11 +31970,12 @@ interface operations$22 {
          */
         inventoryIds?: components$4["parameters"]["inventoryIds"];
         /**
-         * @description All expand parameters except page_meta_tags are used for the request when no expand parameter is provided.
+         * @description All expand parameters except page_meta_tags and slug are used for the request when no expand parameter is provided.
          *     The value "none" may be used to turn off all expand options.
          *     The page_meta_tags expand value is optional and available starting from B2C Commerce version 25.2.
          *     The availability expand is deprecated. Use the Shopper Availability API instead for better caching performance.
          *     The primary_category expand returns the full breadcrumb path (root to leaf) for the product's primary category.
+         *     The slug expand populates the slug field on the product. Available starting from B2C Commerce version 26.8.
          * @example prices,promotions
          */
         expand?: components$4["parameters"]["expand_singleId"];
@@ -31927,7 +32338,7 @@ interface operations$22 {
     parameters: {
       query: {
         /**
-         * @description The comma separated list of category IDs (max 50).
+         * @description The comma separated list of category IDs or slugs (max 50). For each value, if a category exists with that value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`).
          * @example electronics-digital-cameras,electronics-televisions
          */
         ids: components$4["parameters"]["parameters-ids"];
@@ -32035,7 +32446,7 @@ interface operations$22 {
         sfdc_shopper_context?: components$4["parameters"]["sfdcShopperContext"];
       };
       path: {
-        /** @description The ID of the requested category. */
+        /** @description The ID or slug of the requested category. If a category exists with the given value as its ID, it is returned (ID takes precedence). Otherwise, the value is treated as a slug. If a slug is provided, it must be URL-encoded (for example, `mens%2Fclothing` for the slug `mens/clothing`). */
         id: components$4["parameters"]["parameters-id"];
         /**
          * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
@@ -36289,6 +36700,11 @@ declare const operations$6: {
     readonly m: "POST";
     readonly b: "/organizations/{organizationId}";
     readonly s: "/customers/{customerId}/payment-method-references/actions/setup";
+  };
+  readonly completeCustomerPaymentMethodReferenceSetup: {
+    readonly m: "POST";
+    readonly b: "/organizations/{organizationId}";
+    readonly s: "/customers/{customerId}/payment-method-references/actions/complete";
   };
   readonly getCustomerProductLists: {
     readonly m: "GET";

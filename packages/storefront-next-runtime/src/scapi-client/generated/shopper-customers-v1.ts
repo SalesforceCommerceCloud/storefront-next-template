@@ -254,9 +254,29 @@ export interface paths {
         put?: never;
         /**
          * Set up a new payment method reference for a customer. This endpoint only accepts a registered customer ShopperToken (JWT).
-         * @description Initiates the setup of a new payment method reference for a customer. This endpoint requires Salesforce Payments integration.
+         * @description Initiates the setup of a new payment method reference for a customer. Requires Salesforce Payments. Stripe does not require gatewayProperties. Adyen requires gatewayProperties.adyen.paymentMethod; missing that field returns 400.
          */
         post: operations["setupCustomerPaymentMethodReference"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/customers/{customerId}/payment-method-references/actions/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete payment method reference setup for a customer. This endpoint only accepts a registered customer ShopperToken (JWT).
+         * @description Completes payment method reference setup after provider success.
+         */
+        post: operations["completeCustomerPaymentMethodReferenceSetup"];
         delete?: never;
         options?: never;
         head?: never;
@@ -673,22 +693,44 @@ export interface components {
              * @example card
              * @enum {string}
              */
-            type?: "card" | "sepa_debit";
+            readonly type?: "card" | "sepa_debit";
             /**
              * @description The gateway ID for the payment method. It is read only.
              * @example pm_1234567890
              */
-            id?: string;
+            readonly id?: string;
             /**
              * @description The last four digits of the payment method number. It is read only.
              * @example 4242
              */
-            last4?: string;
+            readonly last4?: string;
             /**
              * @description Account identifier
              * @example acct_1RegszI5I22eU0I3
              */
-            accountId?: string;
+            readonly accountId?: string;
+            /**
+             * @description Card brand when the payment method type is `card`.
+             * @example visa
+             */
+            readonly brand?: string;
+            /**
+             * Format: int32
+             * @description Card expiry month when the payment method type is `card`.
+             * @example 12
+             */
+            readonly expiryMonth?: number;
+            /**
+             * Format: int32
+             * @description Card expiry year when the payment method type is `card`.
+             * @example 2028
+             */
+            readonly expiryYear?: number;
+            /**
+             * @description SEPA account holder name when the payment method type is `sepa_debit`.
+             * @example Jane Doe
+             */
+            readonly accountHolderName?: string;
         };
         /** @description Person or entity who shops on Commerce Cloud storefronts by creating a shopper account in Commerce Cloud. */
         Customer: {
@@ -2718,7 +2760,7 @@ export interface components {
                 expirationYear?: number;
             };
         };
-        /** @description Request to set up a new payment method reference. */
+        /** @description Request to set up a new payment method reference. Stripe does not require gatewayProperties. Adyen requires gatewayProperties.adyen.paymentMethod at runtime (400 if missing). */
         PaymentMethodReferenceSetupRequest: {
             /**
              * @description Payment Method Type
@@ -2726,7 +2768,7 @@ export interface components {
              */
             paymentMethodType?: string;
             /** @description Properties specific to the payment gateway */
-            gatewayProperties: {
+            gatewayProperties?: {
                 /** @description # Stripe-specific properties. */
                 stripe?: {
                     [key: string]: unknown;
@@ -2755,6 +2797,14 @@ export interface components {
                     [key: string]: unknown;
                 };
             };
+        };
+        /** @description Request to complete payment method reference setup after provider success. */
+        PaymentMethodReferenceCompleteRequest: {
+            /**
+             * @description Provider setup identifier (for example Stripe SetupIntent ID or Adyen pspReference).
+             * @example seti_1Mm8s8LkdIwHu7ix0OXBfTRG
+             */
+            paymentMethodReferenceSetupId: string;
         };
         /** @description Document representing a customer product list registrant. */
         CustomerProductListRegistrant: {
@@ -2908,6 +2958,45 @@ export interface components {
              * @example electronics
              */
             primaryCategoryId?: string;
+            /**
+             * @description The primary category of the product, including its full ancestor breadcrumb path (root to leaf,
+             *     root category node excluded). Only present when the primary_category expand is requested.
+             */
+            primaryCategory?: {
+                /**
+                 * @description The ID of the primary category.
+                 * @example electronics-digital-media-players
+                 */
+                id?: string;
+                /**
+                 * @description The localized name of the primary category.
+                 * @example iPod & MP3 Players
+                 */
+                name?: string;
+                /**
+                 * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+                 * @example electronics/ipod-mp3-players
+                 */
+                slug?: string;
+                /** @description The list of ancestor categories from root to the primary category (root category node excluded). */
+                parentCategoryTree?: {
+                    /**
+                     * @description The ID of the ancestor category.
+                     * @example electronics
+                     */
+                    id?: string;
+                    /**
+                     * @description The name of the ancestor category.
+                     * @example Electronics
+                     */
+                    name?: string;
+                    /**
+                     * @description SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+                     * @example electronics/ipod-mp3-players
+                     */
+                    slug?: string;
+                }[];
+            };
             /** @description The array of source and target product links information. */
             productLinks?: components["schemas"]["ProductLink"][];
             /**
@@ -2926,6 +3015,11 @@ export interface components {
              * @example Awesome Product
              */
             shortDescription?: string;
+            /**
+             * @description The SEO URL slug for the product. Only present when the slug expand is requested and the slug feature is enabled.
+             * @example modern-dress-shirt/74974310M.html
+             */
+            slug?: string;
             /**
              * @description The complete link to this product's storefront page.
              * @example https://www.example.com/on/store/Sites-MySite/default/Product-Show?pid=MyProduct
@@ -3203,6 +3297,17 @@ export interface components {
              * @example Buy the Long Sleeve Covered Placket Blouse for USD 61.99.
              */
             value?: string;
+            /**
+             * @description The kind of Page Meta Tag, indicating how the storefront should render the value.
+             *     Documented values are `name`, `property`, `title`, and `jsonld`:
+             *       * `name` — render as `<meta name="...">`.
+             *       * `property` — render as `<meta property="...">` (e.g. Open Graph tags).
+             *       * `title` — render as the HTML `<title>` element.
+             *       * `jsonld` — JSON-LD structured data, intended for rendering inside `<script type="application/ld+json">`.
+             *     The field may be absent when the kind cannot be determined. Clients should treat unknown values as opaque so additional kinds can be introduced without breaking the contract.
+             * @example name
+             */
+            type?: string;
         };
         /** @description Document representing price ranges for a product which happens to be a master product (per Pricebook) */
         PriceRange: {
@@ -5008,8 +5113,17 @@ export interface operations {
                     "application/json": components["schemas"]["PaymentMethodReferenceSetupResponse"];
                 };
             };
-            /** @description CustomerId URL parameter does not match the verified customer represented by the JWT token. */
+            /** @description The request is invalid. */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication failed or the authenticated shopper is not authorized to access the requested customer. */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5019,6 +5133,98 @@ export interface operations {
             };
             /** @description Requested resource not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /**
+             * @description Salesforce Payments is not enabled (instance feature toggles) or is not configured
+             *     for the requested site (org payments config, site, or zone assignment).
+             */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    completeCustomerPaymentMethodReferenceSetup: {
+        parameters: {
+            query: {
+                /** @description The identifier of the site that a request is being made in the context of. Attributes might have site specific values, and some objects may only be assigned to specific sites. */
+                siteId: components["parameters"]["siteId"];
+                /** @description The zone identifier for the payment configuration. */
+                zoneId: components["parameters"]["zoneId"];
+            };
+            header?: {
+                /**
+                 * @description Shopper context information (for example clientIP, sourceCode, and customQualifiers)
+                 *     passed in from a trusted backend application.
+                 */
+                sfdc_shopper_context?: components["parameters"]["sfdcShopperContext"];
+            };
+            path: {
+                /** @description The customer ID. */
+                customerId: components["parameters"]["customerId"];
+                /**
+                 * @description An identifier for the Salesforce Commerce Cloud organization the request is being made by. It consists of a prefix 'f_ecom_' followed by a 4-character [realm identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#realm-id) and a 3-character [instance type identifier](https://developer.salesforce.com/docs/commerce/commerce-api/guide/base-url.html#instance-id).
+                 * @example f_ecom_zzxy_prd
+                 */
+                organizationId: components["parameters"]["organizationId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentMethodReferenceCompleteRequest"];
+            };
+        };
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The request is invalid. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication failed or the authenticated shopper is not authorized to access the requested customer. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Requested resource not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /**
+             * @description Salesforce Payments is not enabled (instance feature toggles) or is not configured
+             *     for the requested site (org payments config, site, or zone assignment).
+             */
+            412: {
                 headers: {
                     [name: string]: unknown;
                 };

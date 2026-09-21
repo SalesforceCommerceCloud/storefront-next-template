@@ -8,7 +8,7 @@ apis:
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-baskets-v1.ts
   shopper-baskets-v2:
-    root: ./shopper-baskets-oas-2.12.0/shopper-baskets-oas-v2-public.yaml
+    root: ./shopper-baskets-oas-2.13.4/shopper-baskets-oas-v2-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-baskets-v2.ts
   shopper-configurations-v1:
@@ -24,7 +24,7 @@ apis:
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-context-v1.ts
   shopper-customers-v1:
-    root: ./shopper-customers-oas-1.9.0/shopper-customers-oas-v1-public.yaml
+    root: ./shopper-customers-oas-1.10.0/shopper-customers-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-customers-v1.ts
   shopper-delivery-estimates-v1:
@@ -44,7 +44,7 @@ apis:
     x-openapi-ts:
       output: ../src/scapi-client/generated/auth-v1.ts
   shopper-orders-v1:
-    root: ./shopper-orders-oas-1.21.0/shopper-orders-oas-v1-public.yaml
+    root: ./shopper-orders-oas-1.22.4/shopper-orders-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-orders-v1.ts
   shopper-payments-v1:
@@ -52,7 +52,7 @@ apis:
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-payments-v1.ts
   shopper-products-v1:
-    root: ./shopper-products-oas-1.12.0/shopper-products-oas-v1-public.yaml
+    root: ./shopper-products-oas-1.13.0/shopper-products-oas-v1-public.yaml
     x-openapi-ts:
       output: ../src/scapi-client/generated/shopper-products-v1.ts
   shopper-promotions-v1:

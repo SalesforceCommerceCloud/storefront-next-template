@@ -3,7 +3,7 @@ info:
   x-api-type: Shopper
   x-api-family: Checkout
   title: Shopper Orders
-  version: 1.21.0
+  version: 1.22.4
   description: |-
     [Download API specification](https://developer.salesforce.com/static/commercecloud/commerce-api/shopper-orders/shopper-orders-oas-v1-public.yaml)
 
@@ -869,6 +869,7 @@ components:
         authorizationCode:
           authorizationUrl: https://{shortCode}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/authorize
           tokenUrl: https://{shortCode}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/token
+          refreshUrl: https://account.demandware.com/dwsso/oauth2/access_token
           scopes:
             sfcc.shopper-baskets-orders: Scope granting read-access to shopper basket or orders endpoints
             sfcc.shopper-baskets-orders.rw: Scope granting read and write access to shopper basket or orders endpoints
@@ -893,9 +894,7 @@ components:
         authorizationCode:
           authorizationUrl: https://account.demandware.com/dwsso/oauth2/authorize
           tokenUrl: https://account.demandware.com/dwsso/oauth2/access_token
-          scopes:
-            sfcc.shopper-baskets-orders: Scope granting read-access to shopper basket or orders endpoints
-            sfcc.shopper-baskets-orders.rw: Scope granting read and write access to shopper basket or orders endpoints
+          scopes: {}
     ShopperClientContextToken:
       type: oauth2
       description: |
@@ -1378,6 +1377,26 @@ components:
           type: integer
       type: object
       additionalProperties: false
+    FraudDecisions:
+      additionalProperties: false
+      description: |-
+        Normalized fraud decisions for the order payment instrument.
+        All properties are optional and read only. The object is omitted entirely when no decisions are returned.
+        The values remain readable for historical orders.
+      type: object
+      properties:
+        preAuthorization:
+          description: |-
+            The pre-authorization fraud decision used by the client to orchestrate checkout. Expected values are:
+            - `NOT_REVIEWED`: the payment instrument was not reviewed pre-authorization.
+            - `APPROVED`: the payment authorization can proceed.
+            - `CHALLENGE`: the payment authorization should be challenged with additional verification (for example, a 3D Secure challenge) before it can proceed.
+            - `DECLINED`: the payment authorization is declined.
+
+            A custom value may also be returned. It is read only.
+          maxLength: 256
+          example: APPROVED
+          type: string
     PaymentCard:
       additionalProperties: false
       description: Document representing a payment card.
@@ -1440,6 +1459,71 @@ components:
           description: The year the payment card is valid from.
           example: 2015
           type: integer
+    PaymentDetails:
+      additionalProperties: false
+      description: |-
+        Normalized, shopper-relevant payment details for the order payment instrument.
+        All properties are optional and read only. The object is omitted entirely when no details are available for the payment.
+        The values remain readable for historical orders.
+      type: object
+      properties:
+        type:
+          maxLength: 256
+          description: |-
+            The normalized payment method type. Expected values are `bancontact`, `card`, `gift_card`, `eps`, `ideal`, `klarna`,
+            `sepa_debit`, `paypal`, `venmo`, `afterpay_clearpay`, `amazon_pay`, and `twint`. A custom value may also be returned. It is read only.
+          example: card
+          type: string
+        brand:
+          maxLength: 20
+          description: |-
+            The normalized card brand. Expected values are `amex`, `diners`, `discover`, `jcb`, `mastercard`,
+            `unionpay`, `visa`, and `unknown`. A custom value may also be returned. It is read only.
+          example: visa
+          type: string
+        last4:
+          maxLength: 4
+          description: The last four digits of the payment instrument. It is read only.
+          example: '4242'
+          type: string
+        walletType:
+          maxLength: 20
+          description: |-
+            The normalized digital wallet used for the payment. Expected values are `apple_pay` and `google_pay`.
+            A custom value may also be returned. It is read only.
+          example: apple_pay
+          type: string
+        expirationMonth:
+          minimum: 1
+          maximum: 12
+          format: int32
+          description: The month when the payment instrument expires. It is read only.
+          example: 12
+          type: integer
+        expirationYear:
+          format: int32
+          description: The year when the payment instrument expires. It is read only.
+          example: 2028
+          type: integer
+        token:
+          maxLength: 40
+          description: |-
+            The reference token representing the payment instrument. This is an opaque
+            identifier, not the card number (PAN). It is read only.
+          example: pm_abc123
+          type: string
+        tokenType:
+          maxLength: 20
+          description: |-
+            The type of token backing the reference token. Expected values are
+            `NETWORK` and `GATEWAY`. A custom value may also be returned. It is read only.
+          example: GATEWAY
+          type: string
+        accountHolderName:
+          maxLength: 256
+          description: The name of the payment instrument account holder. It is read only.
+          example: Alex Shopper
+          type: string
     GiftCardResponse:
       additionalProperties: false
       description: Document representing a gift card response.
@@ -1487,6 +1571,12 @@ components:
           description: The bank routing number.
           example: '12030000'
           type: string
+        fraudDecisions:
+          description: |-
+            The normalized fraud decisions for the order payment instrument. It is read only.
+            Omitted when no decisions are returned.
+          allOf:
+            - $ref: '#/components/schemas/FraudDecisions'
         maskedGiftCertificateCode:
           description: The gift certificate code with the last 4 characters not masked.
           example: '******Gzzy'
@@ -1495,6 +1585,12 @@ components:
           description: The payment card.
           allOf:
             - $ref: '#/components/schemas/PaymentCard'
+        paymentDetails:
+          description: |-
+            The normalized, shopper-relevant payment details for the order payment instrument. It is read only.
+            Omitted when no details are available for the payment.
+          allOf:
+            - $ref: '#/components/schemas/PaymentDetails'
         giftCard:
           description: The gift card.
           allOf:

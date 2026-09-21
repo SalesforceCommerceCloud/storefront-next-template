@@ -1466,6 +1466,24 @@ export interface components {
              */
             status?: number;
         };
+        /**
+         * @description Normalized fraud decisions for the order payment instrument.
+         *     All properties are optional and read only. The object is omitted entirely when no decisions are returned.
+         *     The values remain readable for historical orders.
+         */
+        FraudDecisions: {
+            /**
+             * @description The pre-authorization fraud decision used by the client to orchestrate checkout. Expected values are:
+             *     - `NOT_REVIEWED`: the payment instrument was not reviewed pre-authorization.
+             *     - `APPROVED`: the payment authorization can proceed.
+             *     - `CHALLENGE`: the payment authorization should be challenged with additional verification (for example, a 3D Secure challenge) before it can proceed.
+             *     - `DECLINED`: the payment authorization is declined.
+             *
+             *     A custom value may also be returned. It is read only.
+             * @example APPROVED
+             */
+            preAuthorization?: string;
+        };
         /** @description Document representing a payment card. */
         PaymentCard: {
             /**
@@ -1529,6 +1547,65 @@ export interface components {
              */
             validFromYear?: number;
         };
+        /**
+         * @description Normalized, shopper-relevant payment details for the order payment instrument.
+         *     All properties are optional and read only. The object is omitted entirely when no details are available for the payment.
+         *     The values remain readable for historical orders.
+         */
+        PaymentDetails: {
+            /**
+             * @description The normalized payment method type. Expected values are `bancontact`, `card`, `gift_card`, `eps`, `ideal`, `klarna`,
+             *     `sepa_debit`, `paypal`, `venmo`, `afterpay_clearpay`, `amazon_pay`, and `twint`. A custom value may also be returned. It is read only.
+             * @example card
+             */
+            type?: string;
+            /**
+             * @description The normalized card brand. Expected values are `amex`, `diners`, `discover`, `jcb`, `mastercard`,
+             *     `unionpay`, `visa`, and `unknown`. A custom value may also be returned. It is read only.
+             * @example visa
+             */
+            brand?: string;
+            /**
+             * @description The last four digits of the payment instrument. It is read only.
+             * @example 4242
+             */
+            last4?: string;
+            /**
+             * @description The normalized digital wallet used for the payment. Expected values are `apple_pay` and `google_pay`.
+             *     A custom value may also be returned. It is read only.
+             * @example apple_pay
+             */
+            walletType?: string;
+            /**
+             * Format: int32
+             * @description The month when the payment instrument expires. It is read only.
+             * @example 12
+             */
+            expirationMonth?: number;
+            /**
+             * Format: int32
+             * @description The year when the payment instrument expires. It is read only.
+             * @example 2028
+             */
+            expirationYear?: number;
+            /**
+             * @description The reference token representing the payment instrument. This is an opaque
+             *     identifier, not the card number (PAN). It is read only.
+             * @example pm_abc123
+             */
+            token?: string;
+            /**
+             * @description The type of token backing the reference token. Expected values are
+             *     `NETWORK` and `GATEWAY`. A custom value may also be returned. It is read only.
+             * @example GATEWAY
+             */
+            tokenType?: string;
+            /**
+             * @description The name of the payment instrument account holder. It is read only.
+             * @example Alex Shopper
+             */
+            accountHolderName?: string;
+        };
         /** @description Document representing a gift card response. */
         GiftCardResponse: {
             /**
@@ -1575,12 +1652,22 @@ export interface components {
              */
             bankRoutingNumber?: string;
             /**
+             * @description The normalized fraud decisions for the order payment instrument. It is read only.
+             *     Omitted when no decisions are returned.
+             */
+            fraudDecisions?: components["schemas"]["FraudDecisions"];
+            /**
              * @description The gift certificate code with the last 4 characters not masked.
              * @example ******Gzzy
              */
             maskedGiftCertificateCode?: string;
             /** @description The payment card. */
             paymentCard?: components["schemas"]["PaymentCard"];
+            /**
+             * @description The normalized, shopper-relevant payment details for the order payment instrument. It is read only.
+             *     Omitted when no details are available for the payment.
+             */
+            paymentDetails?: components["schemas"]["PaymentDetails"];
             /** @description The gift card. */
             giftCard?: components["schemas"]["GiftCardResponse"];
             /** @description The payment instrument ID. It is read only. */
@@ -4601,6 +4688,7 @@ export interface operations {
             /**
              * @description Possible Reasons:
              *     - The tax mode of the referenced basket is not set to EXTERNAL.
+             *     - One or more tax item custom attributes are invalid.
              */
             409: {
                 headers: {
@@ -5895,6 +5983,7 @@ export interface operations {
             /**
              * @description Possible Reasons:
              *     - The tax mode of the referenced basket is not set to EXTERNAL.
+             *     - One or more tax item custom attributes are invalid.
              */
             409: {
                 headers: {

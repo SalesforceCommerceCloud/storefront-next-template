@@ -3,7 +3,7 @@ info:
   x-api-type: Shopper
   x-api-family: Customer
   title: Shopper Customers
-  version: 1.9.0
+  version: 1.10.0
   description: |-
     [Download API specification](https://developer.salesforce.com/static/commercecloud/commerce-api/shopper-customers/shopper-customers-oas-v1-public.yaml)
 
@@ -1002,7 +1002,7 @@ paths:
   /organizations/{organizationId}/customers/{customerId}/payment-method-references/actions/setup:
     post:
       summary: Set up a new payment method reference for a customer. This endpoint only accepts a registered customer ShopperToken (JWT).
-      description: Initiates the setup of a new payment method reference for a customer. This endpoint requires Salesforce Payments integration.
+      description: Initiates the setup of a new payment method reference for a customer. Requires Salesforce Payments. Stripe does not require gatewayProperties. Adyen requires gatewayProperties.adyen.paymentMethod; missing that field returns 400.
       operationId: setupCustomerPaymentMethodReference
       parameters:
         - $ref: '#/components/parameters/customerId'
@@ -1033,14 +1033,28 @@ paths:
                   $ref: '#/components/examples/setupPaymentMethodReferenceSuccess'
         '400':
           description: |
-            CustomerId URL parameter does not match the verified customer represented by the JWT token.
+            The request is invalid.
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                getCustomer404:
-                  $ref: '#/components/examples/getCustomer404'
+                invalidPaymentMethodReferenceSetup400:
+                  $ref: '#/components/examples/invalidPaymentMethodReferenceSetup400'
+                invalidPaymentMethodReferenceSetupAdyen400:
+                  $ref: '#/components/examples/invalidPaymentMethodReferenceSetupAdyen400'
+                invalidPaymentZone400:
+                  $ref: '#/components/examples/invalidPaymentZone400'
+        '401':
+          description: |
+            Authentication failed or the authenticated shopper is not authorized to access the requested customer.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                unauthorizedCustomer401:
+                  $ref: '#/components/examples/unauthorizedCustomer401'
         '404':
           description: |
             Requested resource not found.
@@ -1049,10 +1063,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                getCustomer404:
-                  $ref: '#/components/examples/getCustomer404'
-                setupPaymentMethodReferencePaymentZoneNotFound404:
-                  $ref: '#/components/examples/setupPaymentMethodReferencePaymentZoneNotFound404'
+                customerNotFound404:
+                  $ref: '#/components/examples/customerNotFound404'
+        '412':
+          description: |
+            Salesforce Payments is not enabled (instance feature toggles) or is not configured
+            for the requested site (org payments config, site, or zone assignment).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                salesforcePaymentsEnabledPreconditionFailed412:
+                  $ref: '#/components/examples/salesforcePaymentsEnabledPreconditionFailed412'
+                salesforcePaymentsConfiguredPreconditionFailed412:
+                  $ref: '#/components/examples/salesforcePaymentsConfiguredPreconditionFailed412'
+      security:
+        - RegisteredShopperToken:
+            - sfcc.shopper-myaccount.paymentinstruments.rw
+  /organizations/{organizationId}/customers/{customerId}/payment-method-references/actions/complete:
+    post:
+      summary: Complete payment method reference setup for a customer. This endpoint only accepts a registered customer ShopperToken (JWT).
+      description: Completes payment method reference setup after provider success.
+      operationId: completeCustomerPaymentMethodReferenceSetup
+      parameters:
+        - $ref: '#/components/parameters/customerId'
+        - $ref: '#/components/parameters/organizationId'
+        - $ref: '#/components/parameters/siteId'
+        - $ref: '#/components/parameters/zoneId'
+        - $ref: '#/components/parameters/sfdcShopperContext'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentMethodReferenceCompleteRequest'
+            examples:
+              PaymentMethodReferenceCompleteBody:
+                $ref: '#/components/examples/PaymentMethodReferenceCompleteBody'
+        required: true
+      responses:
+        '204':
+          description: No content
+        '400':
+          description: |
+            The request is invalid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPaymentMethodReferenceComplete400:
+                  $ref: '#/components/examples/invalidPaymentMethodReferenceComplete400'
+        '401':
+          description: |
+            Authentication failed or the authenticated shopper is not authorized to access the requested customer.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                unauthorizedCustomer401:
+                  $ref: '#/components/examples/unauthorizedCustomer401'
+        '404':
+          description: |
+            Requested resource not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                customerNotFound404:
+                  $ref: '#/components/examples/customerNotFound404'
+                paymentMethodReferenceNotFound404:
+                  $ref: '#/components/examples/paymentMethodReferenceNotFound404'
+        '412':
+          description: |
+            Salesforce Payments is not enabled (instance feature toggles) or is not configured
+            for the requested site (org payments config, site, or zone assignment).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                salesforcePaymentsEnabledPreconditionFailed412:
+                  $ref: '#/components/examples/salesforcePaymentsEnabledPreconditionFailed412'
+                salesforcePaymentsConfiguredPreconditionFailed412:
+                  $ref: '#/components/examples/salesforcePaymentsConfiguredPreconditionFailed412'
       security:
         - RegisteredShopperToken:
             - sfcc.shopper-myaccount.paymentinstruments.rw
@@ -1800,8 +1896,8 @@ components:
         authorizationCode:
           authorizationUrl: https://account.demandware.com/dwsso/oauth2/authorize
           tokenUrl: https://account.demandware.com/dwsso/oauth2/access_token
-          scopes:
-            sfcc.shopper-customers.login: Shopper Customers Login scope READONLY
+          refreshUrl: https://account.demandware.com/dwsso/oauth2/access_token
+          scopes: {}
     ShopperClientContextToken:
       type: oauth2
       description: |
@@ -2057,6 +2153,7 @@ components:
       properties:
         type:
           type: string
+          readOnly: true
           description: The payment method type. It is read only.
           example: card
           enum:
@@ -2064,20 +2161,53 @@ components:
             - sepa_debit
         id:
           type: string
+          readOnly: true
           description: The gateway ID for the payment method. It is read only.
           maxLength: 256
           example: pm_1234567890
         last4:
+          type: string
+          readOnly: true
           maxLength: 4
           description: The last four digits of the payment method number. It is read only.
           example: 4242
-          type: string
         accountId:
           type: string
+          readOnly: true
           description: Account identifier
           example: acct_1RegszI5I22eU0I3
           minLength: 1
           maxLength: 100
+        brand:
+          type: string
+          readOnly: true
+          minLength: 1
+          maxLength: 256
+          description: Card brand when the payment method type is `card`.
+          example: visa
+        expiryMonth:
+          type: integer
+          readOnly: true
+          format: int32
+          minimum: 1
+          maximum: 12
+          description: Card expiry month when the payment method type is `card`.
+          example: 12
+        expiryYear:
+          type: integer
+          readOnly: true
+          format: int32
+          minimum: 1000
+          maximum: 9999
+          description: Card expiry year when the payment method type is `card`.
+          example: 2028
+        accountHolderName:
+          type: string
+          readOnly: true
+          minLength: 1
+          maxLength: 256
+          description: SEPA account holder name when the payment method type is `sepa_debit`.
+          example: Jane Doe
     Customer:
       description: Person or entity who shops on Commerce Cloud storefronts by creating a shopper account in Commerce Cloud.
       properties:
@@ -4432,9 +4562,7 @@ components:
       description: Document representing a customer payment instrument update request. Only allows updating the default flag and card expiration date.
     PaymentMethodReferenceSetupRequest:
       type: object
-      description: Request to set up a new payment method reference.
-      required:
-        - gatewayProperties
+      description: Request to set up a new payment method reference. Stripe does not require gatewayProperties. Adyen requires gatewayProperties.adyen.paymentMethod at runtime (400 if missing).
       properties:
         paymentMethodType:
           type: string
@@ -4482,6 +4610,18 @@ components:
                 # Adyen-specific properties.
               type: object
               additionalProperties: true
+    PaymentMethodReferenceCompleteRequest:
+      type: object
+      description: Request to complete payment method reference setup after provider success.
+      required:
+        - paymentMethodReferenceSetupId
+      properties:
+        paymentMethodReferenceSetupId:
+          type: string
+          maxLength: 256
+          minLength: 1
+          description: Provider setup identifier (for example Stripe SetupIntent ID or Adyen pspReference).
+          example: seti_1Mm8s8LkdIwHu7ix0OXBfTRG
     CustomerProductListRegistrant:
       description: Document representing a customer product list registrant.
       properties:
@@ -4649,6 +4789,54 @@ components:
           description: The ID of the products primary category.
           example: electronics
           type: string
+        primaryCategory:
+          description: |-
+            The primary category of the product, including its full ancestor breadcrumb path (root to leaf,
+            root category node excluded). Only present when the primary_category expand is requested.
+          type: object
+          properties:
+            id:
+              description: The ID of the primary category.
+              example: electronics-digital-media-players
+              type: string
+              minLength: 1
+              maxLength: 256
+            name:
+              description: The localized name of the primary category.
+              example: iPod & MP3 Players
+              type: string
+              minLength: 1
+              maxLength: 256
+            slug:
+              description: SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+              example: electronics/ipod-mp3-players
+              type: string
+              minLength: 1
+              maxLength: 256
+            parentCategoryTree:
+              description: The list of ancestor categories from root to the primary category (root category node excluded).
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    description: The ID of the ancestor category.
+                    example: electronics
+                    type: string
+                    minLength: 1
+                    maxLength: 256
+                  name:
+                    description: The name of the ancestor category.
+                    example: Electronics
+                    type: string
+                    minLength: 1
+                    maxLength: 256
+                  slug:
+                    description: SEO path persisted for the primary category. This property is omitted when no category URL mapping exists for the requested locale.
+                    example: electronics/ipod-mp3-players
+                    type: string
+                    minLength: 1
+                    maxLength: 256
         productLinks:
           description: The array of source and target product links information.
           type: array
@@ -4677,6 +4865,11 @@ components:
           description: The localized product short description.
           example: Awesome Product
           type: string
+        slug:
+          description: The SEO URL slug for the product. Only present when the slug expand is requested and the slug feature is enabled.
+          example: modern-dress-shirt/74974310M.html
+          type: string
+          maxLength: 256
         slugUrl:
           description: The complete link to this product's storefront page.
           example: https://www.example.com/on/store/Sites-MySite/default/Product-Show?pid=MyProduct
@@ -5002,15 +5195,29 @@ components:
       type: object
     PageMetaTag:
       description: Document representing a Page Meta Tag object.
+      type: object
       properties:
         id:
           description: The ID of the Page Meta Tag.
           type: string
+          maxLength: 100
           example: title
         value:
           description: Locale-specific value of the Page Meta Tag, evaluated by resolving the rule set for the given Business Manager ID.
           type: string
           example: Buy the Long Sleeve Covered Placket Blouse for USD 61.99.
+        type:
+          description: |-
+            The kind of Page Meta Tag, indicating how the storefront should render the value.
+            Documented values are `name`, `property`, `title`, and `jsonld`:
+              * `name` — render as `<meta name="...">`.
+              * `property` — render as `<meta property="...">` (e.g. Open Graph tags).
+              * `title` — render as the HTML `<title>` element.
+              * `jsonld` — JSON-LD structured data, intended for rendering inside `<script type="application/ld+json">`.
+            The field may be absent when the kind cannot be determined. Clients should treat unknown values as opaque so additional kinds can be introduced without breaking the contract.
+          type: string
+          maxLength: 64
+          example: name
     PriceRange:
       description: Document representing price ranges for a product which happens to be a master product (per Pricebook)
       properties:
@@ -6026,11 +6233,15 @@ components:
         paymentMethodReferences:
           - type: card
             id: pm_card_1234567890
+            brand: visa
             last4: '4242'
+            expiryMonth: 12
+            expiryYear: 2028
             accountId: acct_1RegszI5I22eU0I3
           - type: sepa_debit
             id: pm_sepa_debit_1234567890
             last4: '5678'
+            accountHolderName: John Smith
             accountId: acct_1RegszI5I22eU0I3
         phoneBusiness: '234560003'
         phoneHome: '123450003'
@@ -6824,12 +7035,62 @@ components:
         gatewayProperties:
           stripe:
             clientSecret: seti_1Mm8s8LkdIwHu7ix0OXBfTRG_secret_NXDICkPqPeiBTAFYUKGBMVdE7
-    setupPaymentMethodReferencePaymentZoneNotFound404:
+    invalidPaymentMethodReferenceSetup400:
       value:
-        title: Payment Zone Not Found
-        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/payment-zone-not-found
-        detail: No payment zone with ID 'Amer-Zone' could be found.
-        zoneId: Amer-Zone
+        title: Bad Request
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/bad-request
+        detail: The string length constraint was violated by 'paymentMethodType'. The expected maximum length is '256'.
+        parameter: paymentMethodType
+        expected: '256'
+    invalidPaymentMethodReferenceSetupAdyen400:
+      value:
+        title: Bad Request
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/bad-request
+        detail: The null value constraint for parameter 'gatewayProperties.adyen.paymentMethod' was violated. Null isn't allowed. Please provide a value.
+        parameter: gatewayProperties.adyen.paymentMethod
+    invalidPaymentZone400:
+      value:
+        title: Invalid Payment Zone
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/invalid-payment-zone
+        detail: The provided payment zone ID 'non_existent_zone' isn't a valid Salesforce Payments zone ID.
+        zoneId: non_existent_zone
+    unauthorizedCustomer401:
+      value:
+        title: Unauthorized
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/unauthorized
+        detail: Invalid token provided.
+    customerNotFound404:
+      value:
+        title: Customer Not Found
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/customer-not-found
+        detail: No customer with ID 'abfTWMDZOgi3JPzkHjv9IhmziI' could be found.
+        customerId: abfTWMDZOgi3JPzkHjv9IhmziI
+    salesforcePaymentsEnabledPreconditionFailed412:
+      value:
+        title: Salesforce Payments Enabled Precondition Failed
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/salesforce-payments-enabled-precondition-failed
+        detail: Salesforce Payments isn't enabled.
+    salesforcePaymentsConfiguredPreconditionFailed412:
+      value:
+        title: Salesforce Payments Configured Precondition Failed
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/salesforce-payments-configured-precondition-failed
+        detail: Salesforce Payments isn't configured for this site.
+    PaymentMethodReferenceCompleteBody:
+      summary: Complete Payment Method Reference setup
+      value:
+        paymentMethodReferenceSetupId: seti_1Mm8s8LkdIwHu7ix0OXBfTRG
+    invalidPaymentMethodReferenceComplete400:
+      value:
+        title: Bad Request
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/bad-request
+        detail: The null value constraint for parameter 'paymentMethodReferenceSetupId' was violated. Null isn't allowed. Please provide a value.
+        parameter: paymentMethodReferenceSetupId
+    paymentMethodReferenceNotFound404:
+      value:
+        title: Payment Method Reference Not Found
+        type: https://api.commercecloud.salesforce.com/documentation/error/v1/errors/payment-method-reference-not-found
+        detail: No payment method reference with ID 'pm_nonexistent' could be found.
+        paymentMethodReferenceId: pm_nonexistent
     customerProductListResult:
       value:
         limit: 1
