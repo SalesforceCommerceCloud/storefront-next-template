@@ -45,7 +45,8 @@ type Rfc3339Timestamp = {
 /**
  * Returns the first merchant-authored delivery-method description available for a product.
  * The product API provides localized catalog descriptions but cannot calculate a
- * destination-specific date, so this is only used for selected Delivery Estimates failures.
+ * destination-specific date, so this is only used when Delivery Estimates returns
+ * no eligible options or fails with a fallback-eligible response.
  */
 export async function getFallbackDeliveryDescription(
     context: LoaderFunctionArgs['context'],

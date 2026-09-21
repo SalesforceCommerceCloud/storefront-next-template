@@ -234,8 +234,48 @@ describe('resource.shipping-estimate', () => {
         expect(getShippingEstimates).not.toHaveBeenCalled();
     });
 
-    it('returns a neutral empty estimate without persisting the postal code', async () => {
+    it('returns catalog delivery guidance for an empty estimate and persists a shopper-entered destination', async () => {
         vi.mocked(getShippingEstimates).mockResolvedValue(null);
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+
+        const response = await invoke(
+            request({ productId: 'product-1', zipcode: '94105', persistDestination: 'true' })
+        );
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({
+            success: false,
+            productId: 'product-1',
+            zipcode: '94105',
+            countryCode: 'US',
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+        });
+        expect(response.headers.get('Set-Cookie')).toBe('deliveryZipCode=94105');
+        expect(serialize).toHaveBeenCalledWith({ postalCode: '94105', countryCode: 'US' });
+        expect(getFallbackDeliveryDescription).toHaveBeenCalledWith(expect.anything(), 'product-1');
+    });
+
+    it('does not persist a destination for an automatic lookup with catalog delivery guidance', async () => {
+        vi.mocked(getShippingEstimates).mockResolvedValue(null);
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue('Order received within 7-10 business days');
+
+        const response = await invoke(request({ productId: 'product-1', zipcode: '94105' }));
+
+        expect(response.status).toBe(200);
+        await expect(response.json()).resolves.toEqual({
+            success: false,
+            productId: 'product-1',
+            zipcode: '94105',
+            countryCode: 'US',
+            fallbackDeliveryDescription: 'Order received within 7-10 business days',
+        });
+        expect(response.headers.get('Set-Cookie')).toBeNull();
+        expect(serialize).not.toHaveBeenCalled();
+    });
+
+    it('returns a neutral empty estimate without a catalog delivery description', async () => {
+        vi.mocked(getShippingEstimates).mockResolvedValue(null);
+        vi.mocked(getFallbackDeliveryDescription).mockResolvedValue(undefined);
 
         const response = await invoke(
             request({ productId: 'product-1', zipcode: '94105', persistDestination: 'true' })
@@ -251,7 +291,7 @@ describe('resource.shipping-estimate', () => {
         });
         expect(response.headers.get('Set-Cookie')).toBeNull();
         expect(serialize).not.toHaveBeenCalled();
-        expect(getFallbackDeliveryDescription).not.toHaveBeenCalled();
+        expect(getFallbackDeliveryDescription).toHaveBeenCalledWith(expect.anything(), 'product-1');
     });
 
     it('returns an opaque failure without persisting a failed postal-code lookup', async () => {

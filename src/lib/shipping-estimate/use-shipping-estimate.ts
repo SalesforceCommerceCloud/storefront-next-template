@@ -41,6 +41,7 @@ function normalizeDestination(destination: ShippingDestination | null | undefine
  */
 export type ShippingEstimateResponse<TEstimate> =
     | { success: true; productId: string; zipcode: string; countryCode: string; estimate: TEstimate }
+    /** SCAPI found no eligible option and the catalog has no fallback delivery guidance. */
     | { success: false; empty: true; productId: string; zipcode: string; countryCode: string }
     | {
           success: false;
