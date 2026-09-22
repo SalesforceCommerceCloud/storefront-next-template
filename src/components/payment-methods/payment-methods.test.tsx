@@ -162,7 +162,8 @@ describe('PaymentMethods', () => {
         expect(screen.queryByTestId('add-dialog')).not.toBeInTheDocument();
         expect(addToast).toHaveBeenCalledOnce();
         expect(addToast).toHaveBeenCalledWith(t('account:paymentMethods.addSuccess'), 'success');
-        expect(revalidate).toHaveBeenCalledOnce();
+        // CAP owns SFP list refresh — host must not revalidate on add complete.
+        expect(revalidate).not.toHaveBeenCalled();
     });
 
     test('keeps the dialog open when an extension add fails', async () => {

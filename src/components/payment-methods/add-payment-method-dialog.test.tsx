@@ -38,6 +38,12 @@ vi.mock('@/targets/ui-target', () => ({
     UITarget: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
 }));
 
+// When sf-payments is symlinked, transformTargets injects CAP into this dialog.
+// Stub it so host unit tests exercise the shell/context without CAP providers.
+vi.mock('@/extensions/sf-payments/components/account-add-saved-payment-method', () => ({
+    default: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+}));
+
 vi.mock('./account-payment-dialog-context', () => ({
     AddPaymentMethodDialogProvider: ({ value, children }: { value: unknown; children: React.ReactNode }) => {
         captureDialogContext(value);
@@ -116,12 +122,37 @@ describe('AddPaymentMethodDialog', () => {
         const onComplete = vi.fn();
         const onError = vi.fn();
 
-        render(<AddPaymentMethodDialog {...defaultProps} onComplete={onComplete} onError={onError} />);
+        render(
+            <AddPaymentMethodDialog
+                {...defaultProps}
+                email="shopper@example.com"
+                onComplete={onComplete}
+                onError={onError}
+            />
+        );
 
         const context = captureDialogContext.mock.lastCall?.[0] as {
+            addresses: ShopperCustomers.schemas['CustomerAddress'][];
+            email?: string;
+            isLoading: boolean;
+            onClose: () => void;
             onComplete: () => void;
             onError: (error?: unknown) => void;
         };
+
+        // CAP Account Add depends on this host dialog shape — catch drift here.
+        expect(Object.keys(context).sort()).toEqual([
+            'addresses',
+            'email',
+            'isLoading',
+            'onClose',
+            'onComplete',
+            'onError',
+        ]);
+        expect(context.addresses).toEqual(mockAddresses);
+        expect(context.email).toBe('shopper@example.com');
+        expect(context.isLoading).toBe(false);
+
         const error = new Error('setup failed');
         context.onComplete();
         context.onError(error);

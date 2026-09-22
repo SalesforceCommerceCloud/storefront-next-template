@@ -24,10 +24,15 @@ import type { ShopperCustomers } from '@/scapi';
  */
 export type AddPaymentMethodDialogContextValue = {
     addresses: ShopperCustomers.schemas['CustomerAddress'][];
+    /**
+     * Registered shopper email for Stripe SetupIntent billing_details.
+     * Required when CAP Payment Element uses fields.billing_details = 'never'.
+     */
+    email?: string;
     isLoading: boolean;
     /** Close the shared shell without treating the flow as complete. */
     onClose: () => void;
-    /** CAP finished setup/complete successfully — host closes, toasts, revalidates. */
+    /** CAP finished setup/complete — host closes + toasts. CAP refreshes the SFP list. */
     onComplete: () => void;
     /** CAP setup/complete failed — host surfaces an error; shell may stay open. */
     onError: (error?: unknown) => void;

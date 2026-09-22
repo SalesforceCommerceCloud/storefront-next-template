@@ -34,6 +34,22 @@ export interface RemovePaymentMethodDialogProps {
     isLoading?: boolean;
 }
 
+/** Expiry and/or holder — pipe only when both are present (same rule as PaymentMethodCard). */
+function buildDetailsLine(paymentMethod: PaymentMethod, isSepa: boolean): string | null {
+    if (isSepa) {
+        return paymentMethod.cardholderName.trim() || null;
+    }
+
+    const expiry =
+        paymentMethod.expiryMonth && paymentMethod.expiryYear
+            ? `${paymentMethod.expiryMonth}/${paymentMethod.expiryYear}`
+            : null;
+    const name = paymentMethod.cardholderName.trim();
+    if (expiry && name) return `${expiry} | ${name}`;
+    if (expiry) return expiry;
+    return name || null;
+}
+
 /**
  * Remove payment method confirmation dialog
  */
@@ -60,11 +76,16 @@ export function RemovePaymentMethodDialog({
 
     if (!paymentMethod) return null;
 
-    // Use lib utility to normalize card type
-    const displayName = getCardTypeDisplay({
-        paymentCard: { cardType: paymentMethod.type },
-    } as ShopperBasketsV2.schemas['OrderPaymentInstrument']);
-    const CardIcon = getCardIcon(displayName);
+    // Match PaymentMethodCard: SEPA is not a card brand — use the localized label, not raw type.
+    const isSepa = paymentMethod.type.toLowerCase() === 'sepa_debit';
+    const displayName = isSepa
+        ? t('paymentMethods.sepaDebit', { defaultValue: 'SEPA Debit' })
+        : getCardTypeDisplay({
+              paymentCard: { cardType: paymentMethod.type },
+          } as ShopperBasketsV2.schemas['OrderPaymentInstrument']);
+    const CardIcon = getCardIcon(isSepa ? '' : displayName);
+    const details = buildDetailsLine(paymentMethod, isSepa);
+    const title = paymentMethod.last4.length > 0 ? `${displayName} **** ${paymentMethod.last4}` : displayName;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,12 +107,8 @@ export function RemovePaymentMethodDialog({
                                     <CardIcon width={40} height={32} className="max-w-[40px] max-h-[32px]" />
                                 </div>
                             </div>
-                            <p className="text-base font-semibold mb-1">
-                                {displayName} **** {paymentMethod.last4}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                {paymentMethod.expiryMonth}/{paymentMethod.expiryYear} | {paymentMethod.cardholderName}
-                            </p>
+                            <p className="text-base font-semibold mb-1">{title}</p>
+                            {details ? <p className="text-xs text-muted-foreground">{details}</p> : null}
                             {paymentMethod.isDefault && (
                                 <div className="mt-2">
                                     <span className="px-2 py-0.5 bg-muted border border-border text-primary text-xs font-semibold rounded-ui">

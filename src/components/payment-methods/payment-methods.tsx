@@ -132,7 +132,8 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
         didCompleteAddRef.current = true;
         setIsAddDialogOpen(false);
         addToast(t('paymentMethods.addSuccess'), 'success');
-        void revalidator.revalidate();
+        // CAP owns the SFP list refresh via the shared keyed fetcher. Do not
+        // revalidate here — that would re-run the same fetcher and double-load.
     };
 
     const handleAddError = () => {
@@ -241,6 +242,7 @@ export function PaymentMethods({ customer }: PaymentMethodsProps): ReactElement 
                 onOpenChange={setIsAddDialogOpen}
                 onSubmitForm={handleAddSubmitForm}
                 addresses={customer?.addresses || []}
+                email={customer?.email || (customer?.login?.includes('@') ? customer.login : undefined)}
                 isLoading={
                     (paymentFetcher.state === 'submitting' || paymentFetcher.state === 'loading') &&
                     currentIntentRef.current === 'add'

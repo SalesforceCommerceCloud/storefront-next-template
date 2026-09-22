@@ -24,7 +24,17 @@ import {
 } from './account-payment-dialog-context';
 
 const addValue = (): AddPaymentMethodDialogContextValue => ({
-    addresses: [],
+    addresses: [
+        {
+            addressId: 'addr_1',
+            firstName: 'Jane',
+            lastName: 'Doe',
+            address1: '1 Market St',
+            city: 'San Francisco',
+            countryCode: 'US',
+        },
+    ],
+    email: 'jane@example.com',
     isLoading: false,
     onClose: vi.fn(),
     onComplete: vi.fn(),
@@ -32,13 +42,25 @@ const addValue = (): AddPaymentMethodDialogContextValue => ({
 });
 
 describe('account payment dialog context', () => {
-    it('exposes add-dialog values to descendants', () => {
+    it('exposes the CAP Account Add host dialog contract', () => {
         const value = addValue();
         const wrapper = ({ children }: { children: ReactNode }) => (
             <AddPaymentMethodDialogProvider value={value}>{children}</AddPaymentMethodDialogProvider>
         );
         const { result } = renderHook(() => useAddPaymentMethodDialog(), { wrapper });
+
+        // CAP AccountAddSavedPaymentMethod depends on this shape — catch host/CAP stub drift.
+        expect(Object.keys(result.current).sort()).toEqual([
+            'addresses',
+            'email',
+            'isLoading',
+            'onClose',
+            'onComplete',
+            'onError',
+        ]);
         expect(result.current).toBe(value);
+        expect(result.current.email).toBe('jane@example.com');
+        expect(result.current.addresses).toHaveLength(1);
     });
 
     it('throws when add hook is used outside its provider', () => {

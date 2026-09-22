@@ -44,8 +44,10 @@ export interface AddPaymentMethodDialogProps {
     /** Submit FormData built from form values (card fields + saveAsDefault) for server action */
     onSubmitForm: (formData: FormData) => void;
     addresses: ShopperCustomers.schemas['CustomerAddress'][];
+    /** Shopper email for CAP Stripe setup billing_details (Payment Element does not collect it). */
+    email?: string;
     isLoading?: boolean;
-    /** CAP finished setup/complete — host closes, toasts, revalidates. */
+    /** CAP finished setup/complete — host closes + toasts. CAP refreshes the SFP list. */
     onComplete?: () => void;
     /** CAP setup/complete failed. */
     onError?: (error?: unknown) => void;
@@ -60,6 +62,7 @@ export function AddPaymentMethodDialog({
     onOpenChange,
     onSubmitForm,
     addresses,
+    email,
     isLoading = false,
     onComplete,
     onError,
@@ -193,12 +196,13 @@ export function AddPaymentMethodDialog({
     const dialogContextValue = useMemo(
         () => ({
             addresses,
+            email,
             isLoading,
             onClose: handleCloseShell,
             onComplete: handleComplete,
             onError: handleError,
         }),
-        [addresses, isLoading, handleCloseShell, handleComplete, handleError]
+        [addresses, email, isLoading, handleCloseShell, handleComplete, handleError]
     );
 
     return (
