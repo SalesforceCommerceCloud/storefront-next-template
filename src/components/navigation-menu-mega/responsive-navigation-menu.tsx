@@ -28,7 +28,10 @@ import { createPortal } from 'react-dom';
 import { Await } from 'react-router';
 import { NavLink } from '@/components/link';
 import type { ShopperProducts } from '@/scapi';
-import CategoryNavigationMenu, { WithCategoryNavigationMenu } from '@/components/navigation-menu';
+import CategoryNavigationMenu, {
+    WithCategoryNavigationMenu,
+    type CategoryItemsFilter,
+} from '@/components/navigation-menu';
 import { Button } from '@/components/ui/button';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +46,20 @@ import { EmbeddedComponentRegion } from '@/components/region/embedded-component-
 import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
 
 type EmbeddedMegaMenuComponent = ComponentWithComponentData | Promise<ComponentWithComponentData | null> | undefined;
+
+type CategoryField = Extract<keyof ShopperProducts.schemas['Category'], string>;
+
+export type MegaMenuCategoryFields = {
+    contentField?: CategoryField;
+    imageField?: CategoryField;
+    orientationField?: CategoryField;
+};
+
+const DEFAULT_MEGA_MENU_CATEGORY_FIELDS: MegaMenuCategoryFields = {
+    contentField: 'c_headerMenuBanner',
+    imageField: 'c_slotBannerImage',
+    orientationField: 'c_headerMenuOrientation',
+};
 
 /**
  * Resolves the embedded-component region id for a top-level category, or `undefined` when the
@@ -94,25 +111,48 @@ export function categoryHasBanner(category?: ShopperProducts.schemas['Category']
     return typeof category?.c_headerMenuBanner === 'string' && category.c_headerMenuBanner.length > 0;
 }
 
-function isVertical(category?: ShopperProducts.schemas['Category']): category is ShopperProducts.schemas['Category'] {
+function getStringField(
+    category: ShopperProducts.schemas['Category'] | undefined,
+    field: MegaMenuCategoryFields[keyof MegaMenuCategoryFields]
+): string | undefined {
+    const value = field ? category?.[field] : undefined;
+    return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function configuredCategoryHasBanner(
+    category: ShopperProducts.schemas['Category'] | undefined,
+    fields: MegaMenuCategoryFields
+): boolean {
+    return Boolean(getStringField(category, fields.contentField) || getStringField(category, fields.imageField));
+}
+
+function isVertical(
+    category: ShopperProducts.schemas['Category'] | undefined,
+    fields: MegaMenuCategoryFields
+): boolean {
+    const orientation = fields.orientationField ? category?.[fields.orientationField] : undefined;
     // Default to vertical if not set
-    if (!category?.c_headerMenuOrientation) {
+    if (!orientation) {
         return true;
     }
     // Only horizontal if explicitly set to "horizontal"
-    return String(category.c_headerMenuOrientation).toLowerCase() !== 'horizontal';
+    return String(orientation).toLowerCase() !== 'horizontal';
 }
 
 function CategoryBanner({
     category,
+    fields,
     ...props
-}: ComponentPropsWithoutRef<'a'> & { category: ShopperProducts.schemas['Category'] }) {
+}: ComponentPropsWithoutRef<'a'> & {
+    category: ShopperProducts.schemas['Category'];
+    fields: MegaMenuCategoryFields;
+}) {
     const config = useConfig();
     const seoUrlContext = useSeoUrlContext();
-    const imageSrc = toImageUrl({ src: (category?.c_slotBannerImage as string) ?? '', config });
+    const imageSrc = toImageUrl({ src: getStringField(category, fields.imageField), config });
 
     // Transform any image URLs in the HTML banner to use DIS with WebP optimization
-    const transformedBannerHtml = transformHtmlImageUrls((category.c_headerMenuBanner as string) || '', config);
+    const transformedBannerHtml = transformHtmlImageUrls(getStringField(category, fields.contentField) ?? '', config);
 
     return (
         <NavigationMenuLink asChild>
@@ -163,16 +203,18 @@ function MegaMenuFeaturedSlot({
     embeddedComponent,
     label,
     hasBanner,
+    fields,
 }: {
     category: ShopperProducts.schemas['Category'];
     regionId: string | undefined;
     embeddedComponent: EmbeddedMegaMenuComponent;
     label: string;
     hasBanner: (category?: ShopperProducts.schemas['Category']) => boolean;
+    fields: MegaMenuCategoryFields;
 }): ReactNode {
     const bannerSlot = hasBanner(category) ? (
         <aside className="self-stretch" aria-label={label}>
-            <CategoryBanner category={category} />
+            <CategoryBanner category={category} fields={fields} />
         </aside>
     ) : null;
 
@@ -432,6 +474,15 @@ export interface ResponsiveNavigationMenuProps extends ComponentPropsWithoutRef<
     categoryFilter?: (category: ShopperProducts.schemas['Category']) => boolean;
 
     /**
+     * Category field or predicate used to filter menu items at every rendered navigation level.
+     * Route loaders using response projection must include every field read by a predicate.
+     */
+    itemsFilter?: CategoryItemsFilter;
+
+    /** Category fields used for the desktop featured-content column and its orientation. */
+    megaMenu?: MegaMenuCategoryFields;
+
+    /**
      * Optional predicate deciding whether a top-level category renders a featured banner in its
      * dropdown panel. Defaults to {@link categoryHasBanner} (the canonical `c_headerMenuBanner`
      * rule). A vertical that sources the banner from a different attribute passes its own predicate,
@@ -480,6 +531,8 @@ function ResponsiveNavigationMenuFallback(): ReactElement {
  * @param props.extraNavLinks - Optional extra navigation links for utility section
  * @param props.portalSlots - Optional portal slot names for catalog, utility, and mobile-menu sections
  * @param props.categoryFilter - Optional filter for root categories
+ * @param props.itemsFilter - Optional category field or predicate used to filter navigation items
+ * @param props.megaMenu - Optional category fields used for the desktop featured-content column
  * @param props.hasBanner - Optional predicate for whether a category shows a featured banner
  * @param props.utilityContent - Optional utility content to render in the utility portal slot
  * @returns A responsive navigation component with CSS-controlled responsive behavior
@@ -491,7 +544,9 @@ export default function ResponsiveNavigationMenu({
     regionIds,
     portalSlots,
     categoryFilter,
-    hasBanner = categoryHasBanner,
+    itemsFilter,
+    megaMenu = DEFAULT_MEGA_MENU_CATEGORY_FIELDS,
+    hasBanner,
     utilityContent,
 }: ResponsiveNavigationMenuProps): ReactElement {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -501,6 +556,7 @@ export default function ResponsiveNavigationMenu({
         width: '100%',
         maxWidth: '100%',
     };
+    const categoryBannerPredicate = hasBanner ?? ((category) => configuredCategoryHasBanner(category, megaMenu));
 
     // Element props generator
     const getElementProps = useCallback(
@@ -526,7 +582,11 @@ export default function ResponsiveNavigationMenu({
     );
 
     return (
-        <WithCategoryNavigationMenu resolve={resolve} defer={defer} fallback={<ResponsiveNavigationMenuFallback />}>
+        <WithCategoryNavigationMenu
+            resolve={resolve}
+            defer={defer}
+            itemsFilter={itemsFilter}
+            fallback={<ResponsiveNavigationMenuFallback />}>
             {({ categories }) => {
                 const mobileMenuContext: MobileMenuContextType = {
                     isOpen: mobileMenuOpen,
@@ -574,12 +634,12 @@ export default function ResponsiveNavigationMenu({
                             })}
                             propsContent={({ category }) => {
                                 const hasRegion = regionIdFor(category.id) !== undefined;
-                                const showRightColumn = hasRegion || hasBanner(category);
+                                const showRightColumn = hasRegion || categoryBannerPredicate(category);
                                 return {
                                     className: cn(
                                         portalSlots?.catalog ? 'section-container pt-5 pb-8' : 'section-container pb-6',
                                         showRightColumn &&
-                                            (isVertical(category)
+                                            (isVertical(category, megaMenu)
                                                 ? 'grid md:grid-cols-[1fr_.3fr] items-start'
                                                 : 'grid md:grid-cols-[1fr_.6fr] items-start')
                                     ),
@@ -587,7 +647,7 @@ export default function ResponsiveNavigationMenu({
                             }}
                             propsList={({ parent, categories: subCategories, level }) => {
                                 if (level === 1) {
-                                    if (isVertical(parent)) {
+                                    if (isVertical(parent, megaMenu)) {
                                         return {
                                             style: defaultListStyle,
                                             className: 'flex flex-col gap-0 p-0',
@@ -624,7 +684,8 @@ export default function ResponsiveNavigationMenu({
                                         category={parent}
                                         regionId={regionIdFor(parent.id)}
                                         embeddedComponent={embeddedComponent}
-                                        hasBanner={hasBanner}
+                                        hasBanner={categoryBannerPredicate}
+                                        fields={megaMenu}
                                         label={t('featuredContent', {
                                             category: parent.name,
                                             defaultValue: `${parent.name} featured content`,

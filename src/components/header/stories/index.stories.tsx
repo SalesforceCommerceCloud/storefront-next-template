@@ -41,6 +41,11 @@ function HeaderHarness({ authenticated }: HeaderStoryArgs): ReactElement {
                 <ResponsiveNavigationMenu
                     resolve={Promise.resolve(mockMegaMenuRootCategory)}
                     defer={Promise.resolve(mockMegaMenuSubCategories)}
+                    megaMenu={{
+                        contentField: 'c_headerMenuBanner',
+                        imageField: 'c_slotBannerImage',
+                        orientationField: 'c_headerMenuOrientation',
+                    }}
                 />
             </Header>
         </AuthProvider>

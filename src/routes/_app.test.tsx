@@ -21,6 +21,21 @@ import type { ShopperProducts } from '@/scapi';
 import DefaultLayout, { loader, shouldRevalidate } from './_app';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
+const NAVIGATION_FIELDS_SELECT_ROOT =
+    'id,name,onlineSubCategoriesCount,c_showInMenu,c_headerMenuBanner,c_slotBannerImage,c_headerMenuOrientation';
+const NAVIGATION_FIELDS_SELECT_SUB = 'id,name,onlineSubCategoriesCount,c_showInMenu';
+const { mockNavigationConfig } = vi.hoisted(() => ({
+    mockNavigationConfig: {
+        rootCategoryId: 'root',
+        maxDepth: 2,
+        filter: {
+            enabled: true,
+            attribute: 'c_showInMenu',
+            requireOnline: true,
+        },
+    },
+}));
+
 vi.mock('@/lib/api/categories.server', () => ({
     fetchCategory: vi.fn(),
     fetchCategoriesByIds: vi.fn(),
@@ -54,8 +69,25 @@ vi.mock('@/components/footer', () => ({
 }));
 
 vi.mock('@/components/navigation-menu-mega', () => ({
-    default: ({ resolve, defer }: { resolve?: unknown; defer?: unknown }) => (
-        <nav data-testid="navigation-menu-mega" data-has-resolve={!!resolve} data-has-defer={!!defer}>
+    default: ({
+        resolve,
+        defer,
+        itemsFilter,
+        megaMenu,
+    }: {
+        resolve?: unknown;
+        defer?: unknown;
+        itemsFilter?: string;
+        megaMenu?: { contentField?: string; imageField?: string; orientationField?: string };
+    }) => (
+        <nav
+            data-testid="navigation-menu-mega"
+            data-has-resolve={!!resolve}
+            data-has-defer={!!defer}
+            data-items-filter={itemsFilter}
+            data-content-field={megaMenu?.contentField}
+            data-image-field={megaMenu?.imageField}
+            data-orientation-field={megaMenu?.orientationField}>
             Navigation
         </nav>
     ),
@@ -72,15 +104,6 @@ vi.mock('@/lib/logger.server', () => ({
 
 vi.mock('@salesforce/storefront-next-runtime/config', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@salesforce/storefront-next-runtime/config')>();
-    const mockNavigationConfig = {
-        rootCategoryId: 'root',
-        maxDepth: 2,
-        filter: {
-            enabled: true,
-            attribute: 'c_showInMenu',
-            requireOnline: true,
-        },
-    };
     return {
         ...actual,
         getConfig: vi.fn(() => ({
@@ -283,6 +306,10 @@ describe('_app.tsx - Default Layout Route', () => {
                 const nav = screen.getByTestId('navigation-menu-mega');
                 expect(nav).toHaveAttribute('data-has-resolve', 'true');
                 expect(nav).toHaveAttribute('data-has-defer', 'true');
+                expect(nav).toHaveAttribute('data-items-filter', 'c_showInMenu');
+                expect(nav).toHaveAttribute('data-content-field', 'c_headerMenuBanner');
+                expect(nav).toHaveAttribute('data-image-field', 'c_slotBannerImage');
+                expect(nav).toHaveAttribute('data-orientation-field', 'c_headerMenuOrientation');
             });
         });
 
@@ -387,9 +414,14 @@ describe('_app.tsx - Default Layout Route', () => {
             const mockContext = {} as any;
             const result = loader({ context: mockContext, request: new Request('https://example.test/') } as any);
 
-            expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'root', 1);
+            expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'root', 1, {
+                select: NAVIGATION_FIELDS_SELECT_ROOT,
+                personalized: 'none',
+            });
             expect(result).toHaveProperty('root');
             expect(result).toHaveProperty('subs');
+            expect(result).not.toHaveProperty('itemsFilter');
+            expect(result).not.toHaveProperty('megaMenu');
             expect(result).toHaveProperty('headerComponent');
 
             const rootCategory = await result.root;
@@ -467,9 +499,9 @@ describe('_app.tsx - Default Layout Route', () => {
                 id: 'root',
                 name: 'Root',
                 categories: [
-                    { id: 'cat1', name: 'Category 1', onlineSubCategoriesCount: 3 },
-                    { id: 'cat2', name: 'Category 2', onlineSubCategoriesCount: 0 },
-                    { id: 'cat3', name: 'Category 3', onlineSubCategoriesCount: 5 },
+                    { id: 'cat1', name: 'Category 1', onlineSubCategoriesCount: 3, c_showInMenu: true },
+                    { id: 'cat2', name: 'Category 2', onlineSubCategoriesCount: 0, c_showInMenu: true },
+                    { id: 'cat3', name: 'Category 3', onlineSubCategoriesCount: 5, c_showInMenu: true },
                 ],
             };
 
@@ -495,10 +527,37 @@ describe('_app.tsx - Default Layout Route', () => {
             const subs = await result.subs;
 
             expect(mockFetchCategory).toHaveBeenCalledTimes(1);
-            expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'root', 1);
+            expect(mockFetchCategory).toHaveBeenCalledWith(mockContext, 'root', 1, {
+                select: NAVIGATION_FIELDS_SELECT_ROOT,
+                personalized: 'none',
+            });
             expect(mockFetchCategoriesByIds).toHaveBeenCalledTimes(1);
-            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, ['cat1', 'cat3'], 2);
+            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, ['cat1', 'cat3'], 2, {
+                select: NAVIGATION_FIELDS_SELECT_SUB,
+                personalized: 'none',
+            });
             expect(subs).toEqual([mockSubCategory3, mockSubCategory1]);
+        });
+
+        it('should not fetch descendants for root categories hidden from navigation', async () => {
+            const { fetchCategory, fetchCategoriesByIds } = await import('@/lib/api/categories.server');
+            vi.mocked(fetchCategory).mockResolvedValue({
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    { id: 'visible', name: 'Visible', onlineSubCategoriesCount: 2, c_showInMenu: true },
+                    { id: 'hidden', name: 'Hidden', onlineSubCategoriesCount: 2, c_showInMenu: false },
+                ],
+            });
+            vi.mocked(fetchCategoriesByIds).mockResolvedValue([]);
+            const mockContext = {} as any;
+            const result = loader({ context: mockContext, request: new Request('https://example.test/') } as any);
+            await result.subs;
+
+            expect(fetchCategoriesByIds).toHaveBeenCalledWith(mockContext, ['visible'], 2, {
+                select: NAVIGATION_FIELDS_SELECT_SUB,
+                personalized: 'none',
+            });
         });
 
         it('should handle root category without subcategories', async () => {
@@ -521,7 +580,10 @@ describe('_app.tsx - Default Layout Route', () => {
             const subs = await result.subs;
 
             expect(mockFetchCategory).toHaveBeenCalledTimes(1);
-            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2);
+            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2, {
+                select: NAVIGATION_FIELDS_SELECT_SUB,
+                personalized: 'none',
+            });
             expect(subs).toEqual([]);
         });
 
@@ -544,7 +606,10 @@ describe('_app.tsx - Default Layout Route', () => {
             const subs = await result.subs;
 
             expect(mockFetchCategory).toHaveBeenCalledTimes(1);
-            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2);
+            expect(mockFetchCategoriesByIds).toHaveBeenCalledWith(mockContext, [], 2, {
+                select: NAVIGATION_FIELDS_SELECT_SUB,
+                personalized: 'none',
+            });
             expect(subs).toEqual([]);
         });
 
@@ -556,7 +621,7 @@ describe('_app.tsx - Default Layout Route', () => {
             const mockRootCategory: ShopperProducts.schemas['Category'] = {
                 id: 'root',
                 name: 'Root',
-                categories: [{ id: 'cat1', name: 'Category 1', onlineSubCategoriesCount: 2 }],
+                categories: [{ id: 'cat1', name: 'Category 1', onlineSubCategoriesCount: 2, c_showInMenu: true }],
             };
 
             mockFetchCategory.mockResolvedValue(mockRootCategory);

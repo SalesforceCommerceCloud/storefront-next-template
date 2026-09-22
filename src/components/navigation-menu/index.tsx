@@ -27,16 +27,18 @@ type CategoryNavigationMenuChildProps = {
     categories: ShopperProducts.schemas['Category'][];
 };
 
+export type CategoryItemsFilter =
+    | Extract<keyof ShopperProducts.schemas['Category'], string>
+    | ((category: ShopperProducts.schemas['Category']) => boolean);
+
 type WithCategoryNavigationMenuProps = {
     children?: ReactNode | ((props: CategoryNavigationMenuChildProps) => ReactNode);
     resolve?: Promise<ShopperProducts.schemas['Category']>;
     defer?: Promise<ShopperProducts.schemas['Category'][]>;
     fallback?: ReactNode;
     errorElement?: ReactNode;
-    // Programmatically filter out items that you do not want to show. Default: 'c_showInMenu'
-    itemsFilter?:
-        | keyof ShopperProducts.schemas['Category']
-        | ((category: ShopperProducts.schemas['Category']) => boolean);
+    // Programmatically filter out items that you do not want to show. Omit to show all items.
+    itemsFilter?: CategoryItemsFilter;
 };
 
 function filterItem(
@@ -46,7 +48,10 @@ function filterItem(
     if (typeof itemsFilter === 'function') {
         return Boolean(itemsFilter(category));
     }
-    return Boolean(category[itemsFilter ?? 'c_showInMenu']);
+    if (!itemsFilter?.trim()) {
+        return true;
+    }
+    return Boolean(category[itemsFilter]);
 }
 
 function WithCategoryNavigationMenuView({
@@ -65,6 +70,12 @@ function WithCategoryNavigationMenuView({
             ),
         [rootCategory, itemsFilter]
     );
+    // Deferred responses intentionally omit root-only mega-menu fields. Index the root categories so enrichment can
+    // retain that metadata while replacing each category's nested tree with the deeper deferred response.
+    const rootCategoriesById = useMemo(
+        () => new Map(rootCategories.map((category) => [category.id, category])),
+        [rootCategories]
+    );
 
     // Stable store instance — the reference never changes, so the context provider never triggers re-renders.
     // Subscribers (via `useSyncExternalStore`) are notified on update.
@@ -74,12 +85,15 @@ function WithCategoryNavigationMenuView({
     }
 
     useEffect(() => {
+        let current = true;
         void subCategoriesPromise?.then((subCategories: ShopperProducts.schemas['Category'][]) => {
+            if (!current) return;
             storeRef.current?.update(
                 new Map(
                     subCategories.map((category: ShopperProducts.schemas['Category']) => [
                         category.id,
                         {
+                            ...rootCategoriesById.get(category.id),
                             ...category,
                             categories: category.categories?.filter((c: ShopperProducts.schemas['Category']) =>
                                 filterItem(c, itemsFilter)
@@ -89,8 +103,10 @@ function WithCategoryNavigationMenuView({
                 )
             );
         });
-        // oxlint-disable-next-line react-hooks/exhaustive-deps
-    }, [subCategoriesPromise]);
+        return () => {
+            current = false;
+        };
+    }, [subCategoriesPromise, itemsFilter, rootCategoriesById]);
 
     function renderChildren() {
         // Clone the child element and inject the `categories` prop

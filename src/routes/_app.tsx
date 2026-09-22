@@ -23,7 +23,8 @@ import { fetchCategory, fetchCategoriesByIds } from '@/lib/api/categories.server
 import { getLogger } from '@/lib/logger.server';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import ResponsiveNavigationMenu from '@/components/navigation-menu-mega';
+import ResponsiveNavigationMenu, { type MegaMenuCategoryFields } from '@/components/navigation-menu-mega';
+import type { CategoryItemsFilter } from '@/components/navigation-menu';
 import { WishlistMergeToast } from '@/components/wishlist/wishlist-merge-toast';
 import { useAuth } from '@/providers/auth';
 import { useWishlistSession } from '@/providers/wishlist';
@@ -40,6 +41,21 @@ type LoaderData = {
     headerComponent: Promise<ComponentWithComponentData | null>;
     megaMenuComponent: Promise<ComponentWithComponentData | null>;
 };
+
+const NAVIGATION_FIELDS_FILTER = 'c_showInMenu' satisfies CategoryItemsFilter;
+const NAVIGATION_FIELDS_MEGAMENU = {
+    contentField: 'c_headerMenuBanner',
+    imageField: 'c_slotBannerImage',
+    orientationField: 'c_headerMenuOrientation',
+} satisfies MegaMenuCategoryFields;
+const NAVIGATION_FIELDS_SELECT_ROOT = [
+    'id',
+    'name',
+    'onlineSubCategoriesCount',
+    NAVIGATION_FIELDS_FILTER,
+    ...Object.values(NAVIGATION_FIELDS_MEGAMENU),
+].join(',');
+const NAVIGATION_FIELDS_SELECT_SUB = ['id', 'name', 'onlineSubCategoriesCount', NAVIGATION_FIELDS_FILTER].join(',');
 
 /**
  * We're using the `shouldRevalidate` functionality to only load the navigation menu categories from the server on the
@@ -66,7 +82,10 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
 
     // Load the root category and its sub categories information
     // Depth 1 fetches the root category with its immediate children
-    const rootCategoryPromise = fetchCategory(context, rootCategoryId, 1);
+    const rootCategoryPromise = fetchCategory(context, rootCategoryId, 1, {
+        select: NAVIGATION_FIELDS_SELECT_ROOT,
+        personalized: 'none',
+    });
 
     // Load each second-level sub categories tree as well, in case the resolved root-level category has any sub
     // categories and maxDepth allows for it. We then base this composed second-level promise on the initial root
@@ -78,6 +97,7 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
                   const subCategoryIds =
                       rootCategory.categories?.reduce((acc: string[], subCategory) => {
                           if (
+                              Boolean(subCategory[NAVIGATION_FIELDS_FILTER]) &&
                               typeof subCategory.onlineSubCategoriesCount === 'number' &&
                               subCategory.onlineSubCategoriesCount > 0
                           ) {
@@ -86,7 +106,10 @@ export function loader({ context, request }: Route.LoaderArgs): LoaderData {
                           return acc;
                       }, []) ?? [];
 
-                  return fetchCategoriesByIds(context, subCategoryIds, maxDepth as 0 | 1 | 2);
+                  return fetchCategoriesByIds(context, subCategoryIds, maxDepth as 0 | 1 | 2, {
+                      select: NAVIGATION_FIELDS_SELECT_SUB,
+                      personalized: 'none',
+                  });
               })
             : Promise.resolve([]);
 
@@ -164,6 +187,8 @@ export default function DefaultLayout({
                 <ResponsiveNavigationMenu
                     resolve={refRoot.current}
                     defer={refSubs.current}
+                    itemsFilter={NAVIGATION_FIELDS_FILTER}
+                    megaMenu={NAVIGATION_FIELDS_MEGAMENU}
                     embeddedComponent={refMegaMenuComponent.current}
                 />
             </Header>

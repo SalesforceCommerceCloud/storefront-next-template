@@ -29,6 +29,12 @@ import type { ComponentWithComponentData } from '@/lib/page-designer/component-l
 import { getRegionDefinitions } from '@/lib/decorators/region-definition';
 import type { ShopperProducts } from '@/scapi';
 
+vi.mock('@/components/region/embedded-component-region', () => ({
+    EmbeddedComponentRegion: ({ regionId }: { regionId: string }) => (
+        <div data-testid="embedded-mega-menu-region" data-region-id={regionId} />
+    ),
+}));
+
 const mockCategories: ShopperProducts.schemas['Category'] = {
     id: 'root',
     name: 'Root Category',
@@ -126,6 +132,285 @@ describe('ResponsiveNavigationMenu Component', () => {
                 // Component should handle empty categories gracefully
                 expect(container).toBeInTheDocument();
             });
+        });
+
+        it('should pass itemsFilter through to category navigation', async () => {
+            const customFilterRoot: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    { id: 'visible', name: 'Visible', c_customShowInMenu: true },
+                    { id: 'hidden', name: 'Hidden', c_customShowInMenu: false },
+                ],
+            };
+            const { findAllByText, queryByText } = renderComponent({
+                resolve: Promise.resolve(customFilterRoot),
+                itemsFilter: 'c_customShowInMenu',
+            });
+
+            expect((await findAllByText('Visible')).length).toBeGreaterThan(0);
+            expect(queryByText('Hidden')).not.toBeInTheDocument();
+        });
+
+        it('should use a configured HTML content field', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'cat-1',
+                        name: 'Category 1',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_customBanner: '<p>Custom banner</p>',
+                    },
+                ],
+            };
+            const { findByText } = renderComponent({
+                resolve: Promise.resolve(root),
+                megaMenu: { contentField: 'c_customBanner' },
+            });
+
+            fireEvent.click(await findByText('Category 1'));
+
+            expect(await findByText('Custom banner')).toBeInTheDocument();
+        });
+
+        it('should retain configured image and orientation fields after deferred enrichment', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'cat-1',
+                        name: 'Category 1',
+                        onlineSubCategoriesCount: 1,
+                        c_customImage: '/images/custom-banner.jpg',
+                        c_customOrientation: 'horizontal',
+                    },
+                ],
+            };
+            const { container, findByRole, findByText } = renderComponent({
+                resolve: Promise.resolve(root),
+                defer: Promise.resolve([
+                    {
+                        id: 'cat-1',
+                        name: 'Category 1',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                    },
+                ]),
+                megaMenu: {
+                    imageField: 'c_customImage',
+                    orientationField: 'c_customOrientation',
+                },
+            });
+
+            fireEvent.click(await findByText('Category 1'));
+
+            const childLink = await findByRole('link', { name: 'Child' });
+            expect(await findByRole('img', { name: 'Category 1' })).toHaveAttribute('src', '/images/custom-banner.jpg');
+            expect(container.querySelector('.section-container')).toHaveClass('md:grid-cols-[1fr_.6fr]');
+            expect(childLink.closest('ul')).toHaveClass('grid');
+        });
+
+        it('should prefer a configured image over configured HTML content', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'cat-1',
+                        name: 'Category 1',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_customContent: '<p>Custom content</p>',
+                        c_customImage: '/images/custom-banner.jpg',
+                    },
+                ],
+            };
+            const { findByRole, findByText, queryByText } = renderComponent({
+                resolve: Promise.resolve(root),
+                megaMenu: { contentField: 'c_customContent', imageField: 'c_customImage' },
+            });
+
+            fireEvent.click(await findByText('Category 1'));
+
+            expect(await findByRole('img', { name: 'Category 1' })).toHaveAttribute('src', '/images/custom-banner.jpg');
+            expect(queryByText('Custom content')).not.toBeInTheDocument();
+        });
+
+        it('should ignore configured content and image fields with non-string values', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'cat-1',
+                        name: 'Category 1',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_customBanner: true,
+                        c_customImage: 42,
+                    },
+                ],
+            };
+            const { container, findByText, queryByRole } = renderComponent({
+                resolve: Promise.resolve(root),
+                megaMenu: { contentField: 'c_customBanner', imageField: 'c_customImage' },
+            });
+
+            fireEvent.click(await findByText('Category 1'));
+
+            await waitFor(() => expect(container.querySelector('.section-container')).toBeInTheDocument());
+            expect(queryByRole('img', { name: 'Category 1' })).not.toBeInTheDocument();
+            expect(container.querySelector('.section-container')).not.toHaveClass('grid');
+        });
+
+        it('should fall back to configured category content when a declared region is empty', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'women',
+                        name: 'Women',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_customBanner: '<p>Category fallback</p>',
+                    },
+                ],
+            };
+            const embeddedComponent = Promise.resolve({
+                id: 'mega-menu',
+                regions: [{ id: 'region_women', components: [] }],
+            } as unknown as ComponentWithComponentData);
+            const { findByText } = renderComponent({
+                resolve: Promise.resolve(root),
+                embeddedComponent,
+                megaMenu: { contentField: 'c_customBanner' },
+            });
+
+            fireEvent.click(await findByText('Women'));
+
+            expect(await findByText('Category fallback')).toBeInTheDocument();
+        });
+
+        it('should prefer populated embedded content over configured category content', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'women',
+                        name: 'Women',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_customBanner: '<p>Category fallback</p>',
+                    },
+                ],
+            };
+            const embeddedComponent = {
+                id: 'mega-menu',
+                regions: [{ id: 'region_women', components: [{ id: 'authored-content' }] }],
+            } as unknown as ComponentWithComponentData;
+            const { findByTestId, findByText, queryByText } = renderComponent({
+                resolve: Promise.resolve(root),
+                embeddedComponent,
+                megaMenu: { contentField: 'c_customBanner' },
+            });
+
+            fireEvent.click(await findByText('Women'));
+
+            expect(await findByTestId('embedded-mega-menu-region')).toHaveAttribute('data-region-id', 'region_women');
+            expect(queryByText('Category fallback')).not.toBeInTheDocument();
+        });
+
+        it('should fall back to configured category content when embedded content rejects', async () => {
+            let rejectEmbedded!: (error: Error) => void;
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'women',
+                        name: 'Women',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_customBanner: '<p>Rejected region fallback</p>',
+                    },
+                ],
+            };
+            const embeddedComponent = new Promise<ComponentWithComponentData | null>((_resolve, reject) => {
+                rejectEmbedded = reject;
+            });
+            const { findByText } = renderComponent({
+                resolve: Promise.resolve(root),
+                embeddedComponent,
+                megaMenu: { contentField: 'c_customBanner' },
+            });
+
+            fireEvent.click(await findByText('Women'));
+            act(() => {
+                rejectEmbedded(new Error('Failed to load embedded content'));
+            });
+
+            expect(await findByText('Rejected region fallback')).toBeInTheDocument();
+        });
+
+        it.each([
+            ['vertical', 'md:grid-cols-[1fr_.3fr]'],
+            ['', 'md:grid-cols-[1fr_.3fr]'],
+            ['unexpected', 'md:grid-cols-[1fr_.3fr]'],
+        ])('should use vertical layout for orientation %j', async (orientation, expectedClass) => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'cat-1',
+                        name: 'Category 1',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_customImage: '/images/custom-banner.jpg',
+                        c_customOrientation: orientation,
+                    },
+                ],
+            };
+            const { container, findByText } = renderComponent({
+                resolve: Promise.resolve(root),
+                megaMenu: {
+                    imageField: 'c_customImage',
+                    orientationField: 'c_customOrientation',
+                },
+            });
+
+            fireEvent.click(await findByText('Category 1'));
+
+            await waitFor(() => expect(container.querySelector('.section-container')).toHaveClass(expectedClass));
+        });
+
+        it('should not read legacy banner fields when megaMenu is omitted', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                name: 'Root',
+                categories: [
+                    {
+                        id: 'cat-1',
+                        name: 'Category 1',
+                        onlineSubCategoriesCount: 1,
+                        categories: [{ id: 'child', name: 'Child' }],
+                        c_headerMenuBanner: '<p>Legacy banner</p>',
+                    },
+                ],
+            };
+            const { container, findByText, queryByText } = renderComponent({ resolve: Promise.resolve(root) });
+
+            fireEvent.click(await findByText('Category 1'));
+
+            await waitFor(() => expect(container.querySelector('.section-container')).toBeInTheDocument());
+            expect(queryByText('Legacy banner')).not.toBeInTheDocument();
+            expect(container.querySelector('.section-container')).not.toHaveClass('grid');
         });
     });
 

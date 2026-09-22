@@ -26,6 +26,8 @@ import ResponsiveNavigationMenuEngine, {
     categoryHasBanner as categoryHasBannerEngine,
 } from './responsive-navigation-menu';
 
+export type { MegaMenuCategoryFields } from './responsive-navigation-menu';
+
 @Component('megaMenu', {
     name: 'Mega Menu',
     group: 'Layout',
@@ -77,7 +79,7 @@ export const categoryHasBanner = categoryHasBannerEngine;
 
 export const MobileMenuDropdown = MobileMenuDropdownEngine;
 
-// All configuration is handled internally with MEGA_MENU_REGION_IDS
+// All vertical-independent configuration is handled internally with MEGA_MENU_REGION_IDS.
 export type ResponsiveNavigationMenuProps = Omit<
     ResponsiveNavigationMenuPropsBase,
     'regionIds' | 'portalSlots' | 'categoryFilter' | 'hasBanner' | 'utilityContent'
@@ -99,8 +101,12 @@ export type ResponsiveNavigationMenuProps = Omit<
  * @param props.resolve - Promise resolving to root categories and first-level subcategories
  * @param props.defer - Promise resolving to deeper subcategory data for prefetch
  * @param props.embeddedComponent - Optional Page Designer 'mega-menu' component data
+ * @param props.itemsFilter - Optional category field or predicate used to filter navigation items
+ * @param props.megaMenu - Optional category fields used for the desktop featured-content column
  * @returns A responsive navigation component with CSS-controlled responsive behavior
  */
 export default function ResponsiveNavigationMenu(props: ResponsiveNavigationMenuProps): ReactElement {
-    return <ResponsiveNavigationMenuEngine {...props} regionIds={MEGA_MENU_REGION_IDS} />;
+    return (
+        <ResponsiveNavigationMenuEngine {...props} megaMenu={props.megaMenu ?? {}} regionIds={MEGA_MENU_REGION_IDS} />
+    );
 }

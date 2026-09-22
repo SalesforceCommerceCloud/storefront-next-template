@@ -65,6 +65,63 @@ describe('categories.server', () => {
             });
         });
 
+        it('should forward a non-empty select value as c_select', async () => {
+            const mockCategory = { id: 'root', name: 'Root Category' };
+            mockGetCategory.mockResolvedValue({ data: mockCategory });
+
+            const context = createTestContext();
+            await fetchCategory(context, 'root', 1, { select: 'id,name' });
+
+            expect(mockGetCategory).toHaveBeenCalledWith({
+                params: {
+                    path: { id: 'root' },
+                    query: { levels: 1, c_select: 'id,name' },
+                },
+            });
+        });
+
+        it('should omit c_select when select is empty', async () => {
+            mockGetCategory.mockResolvedValue({ data: { id: 'root', name: 'Root Category' } });
+
+            const context = createTestContext();
+            await fetchCategory(context, 'root', 1, { select: '' });
+
+            expect(mockGetCategory).toHaveBeenCalledWith({
+                params: {
+                    path: { id: 'root' },
+                    query: { levels: 1 },
+                },
+            });
+        });
+
+        it('should omit c_select when select is whitespace', async () => {
+            mockGetCategory.mockResolvedValue({ data: { id: 'root', name: 'Root Category' } });
+
+            const context = createTestContext();
+            await fetchCategory(context, 'root', 1, { select: '   ' });
+
+            expect(mockGetCategory).toHaveBeenCalledWith({
+                params: {
+                    path: { id: 'root' },
+                    query: { levels: 1 },
+                },
+            });
+        });
+
+        it('should forward personalized none', async () => {
+            mockGetCategory.mockResolvedValue({ data: { id: 'root', name: 'Root Category' } });
+
+            const context = createTestContext();
+            await fetchCategory(context, 'root', 1, { personalized: 'none' });
+
+            expect(mockGetCategory).toHaveBeenCalledWith({
+                params: {
+                    path: { id: 'root' },
+                    query: { levels: 1, personalized: 'none' },
+                },
+            });
+        });
+
         it('should throw NormalizedApiError when API call fails with ApiError', async () => {
             const apiError = new ApiError({
                 status: 404,
@@ -206,13 +263,21 @@ describe('categories.server', () => {
             mockGetCategories.mockResolvedValue({ data: { data: categories, limit: 2, total: 2 } });
 
             const context = createTestContext();
-            const result = await fetchCategoriesByIds(context, ['cat1', 'cat2'], 2);
+            const result = await fetchCategoriesByIds(context, ['cat1', 'cat2'], 2, {
+                select: 'id,name,onlineSubCategoriesCount,c_showInMenu',
+                personalized: 'none',
+            });
 
             expect(result).toEqual(categories);
             expect(mockGetCategories).toHaveBeenCalledTimes(1);
             expect(mockGetCategories).toHaveBeenCalledWith({
                 params: {
-                    query: { ids: ['cat1', 'cat2'], levels: 2 },
+                    query: {
+                        ids: ['cat1', 'cat2'],
+                        levels: 2,
+                        personalized: 'none',
+                        c_select: 'id,name,onlineSubCategoriesCount,c_showInMenu',
+                    },
                 },
             });
         });
@@ -225,6 +290,17 @@ describe('categories.server', () => {
             expect(mockGetCategories).not.toHaveBeenCalled();
         });
 
+        it('should omit c_select when select is whitespace', async () => {
+            mockGetCategories.mockResolvedValue({ data: { data: [], limit: 0, total: 0 } });
+
+            const context = createTestContext();
+            await fetchCategoriesByIds(context, ['cat1'], 2, { select: '   ' });
+
+            expect(mockGetCategories).toHaveBeenCalledWith({
+                params: { query: { ids: ['cat1'], levels: 2 } },
+            });
+        });
+
         it('should issue a single request for exactly 50 ids', async () => {
             const ids = Array.from({ length: 50 }, (_, i) => `cat${i}`);
             mockGetCategories.mockResolvedValue({
@@ -232,12 +308,12 @@ describe('categories.server', () => {
             });
 
             const context = createTestContext();
-            const result = await fetchCategoriesByIds(context, ids, 2);
+            const result = await fetchCategoriesByIds(context, ids, 2, { select: 'id,name' });
 
             expect(result).toHaveLength(50);
             expect(mockGetCategories).toHaveBeenCalledTimes(1);
             expect(mockGetCategories).toHaveBeenCalledWith({
-                params: { query: { ids, levels: 2 } },
+                params: { query: { ids, levels: 2, c_select: 'id,name' } },
             });
         });
 
@@ -251,11 +327,13 @@ describe('categories.server', () => {
             });
 
             const context = createTestContext();
-            const result = await fetchCategoriesByIds(context, ids, 2);
+            const result = await fetchCategoriesByIds(context, ids, 2, { select: 'id,name' });
 
             expect(mockGetCategories).toHaveBeenCalledTimes(2);
             expect((mockGetCategories.mock.calls[0][0].params.query.ids as string[]).length).toBe(50);
             expect((mockGetCategories.mock.calls[1][0].params.query.ids as string[]).length).toBe(1);
+            expect(mockGetCategories.mock.calls[0][0].params.query).toMatchObject({ c_select: 'id,name' });
+            expect(mockGetCategories.mock.calls[1][0].params.query).toMatchObject({ c_select: 'id,name' });
             expect(result).toHaveLength(51);
         });
 

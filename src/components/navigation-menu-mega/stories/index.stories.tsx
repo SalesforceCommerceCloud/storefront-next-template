@@ -21,6 +21,12 @@ import type { ShopperProducts } from '@/scapi';
 import CategoryNavigationMenuMega from '../index';
 import { mockMegaMenuRootCategory, mockMegaMenuSubCategories } from './mock-menu-data';
 
+const megaMenu = {
+    contentField: 'c_headerMenuBanner',
+    imageField: 'c_slotBannerImage',
+    orientationField: 'c_headerMenuOrientation',
+} as const;
+
 // Desktop viewport — the mega menu is gated by `lg:flex` (≥1024px).
 // Below that, only the hamburger button renders (mobile drawer).
 const desktopViewport = {
@@ -106,7 +112,11 @@ Pinned to a desktop viewport so the mega menu is visible. Toggle **Show banners*
     render: ({ showBanners }) => {
         const root = showBanners ? mockMegaMenuRootCategory : stripBanners(mockMegaMenuRootCategory);
         return (
-            <CategoryNavigationMenuMega resolve={Promise.resolve(root)} defer={Promise.resolve(subCategoriesList)} />
+            <CategoryNavigationMenuMega
+                resolve={Promise.resolve(root)}
+                defer={Promise.resolve(subCategoriesList)}
+                megaMenu={megaMenu}
+            />
         );
     },
 };
