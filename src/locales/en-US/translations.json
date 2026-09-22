@@ -41,6 +41,14 @@
         "nextImage": "Next image",
         "thumbnailImage": "Product image {{current}} of {{total}}",
         "thumbnailImageLabeled": "{{label}}, product image {{current}} of {{total}}",
+        "zoom": {
+            "open": "Zoom image",
+            "openImage": "Zoom image {{current}} of {{total}}",
+            "magnify": "Toggle image magnification",
+            "title": "Product image",
+            "description": "Zoomed product image. Click the image to magnify. When magnified, use the arrow keys to pan. Otherwise, use left and right arrow keys to change image.",
+            "counter": "{{current}} of {{total}}"
+        },
         "quickCategoryFilters": "Quick category filters",
         "carousel": {
             "play": "Play carousel",

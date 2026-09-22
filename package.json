@@ -263,6 +263,16 @@
                 "comment": "Cart item modal bundles full product editing UI: image gallery, swatches, cart actions (incl. ShareButton → @radix-ui/react-dropdown-menu), and ChildProducts"
             },
             {
+                "name": "assets/\\(hooks\\)-\\(product\\)-use-product-images.*.js",
+                "limit": "67 kB",
+                "comment": "PDP zoom (@W-24184223@): removing the redundant chunk boundary around the shared image-gallery rendering (image-gallery/index.tsx now composes gallery-content.tsx, reused by ProductZoomGallery) folds that markup into this shared product-view chunk instead of its own chunk, cutting total page script weight but growing this one. Direct builds measure cosmetic/fashion/foundations and furniture at 59.2-59.3 kB. But per-vertical Mirror builds (packages/storefront-<vertical>) flatten the vertical's own override to this same non-prefixed chunk id, so footwear's Mirror build lands its 65.6 kB override here instead of under the vertical-prefixed entry below — this limit must admit that too. Raised 61 → 67 kB (~1.4 kB headroom over footwear's mirrored measurement) to match the ceiling already budgeted for the direct-build entry below."
+            },
+            {
+                "name": "assets/\\(verticals\\)-\\(footwear\\)-\\(hooks\\)-\\(product\\)-use-product-images.*.js",
+                "limit": "67 kB",
+                "comment": "Footwear vertical override of the use-product-images hook lands in its own vertical-prefixed chunk. Same PDP zoom chunk-boundary removal as the canonical entry above; the direct Footwear build measures 65.7 kB, so retain ~1.3 kB headroom."
+            },
+            {
                 "name": "assets/\\(locales\\)-\\(en-US\\)-index.*.js",
                 "limit": "115 kB",
                 "comment": "English (US) locale chunk. Uncompressed; en-US ~62 kB baseline. Increased for cosmetic vertical translations (About Us, swatch, Store Preferences, home hero + featured-content copy), guest order lookup i18n keys (guestOrderLookup, orderLookup.verify), passkey registration upsell strings, order cancel i18n keys, order return + a11y strings including the disabled-action sr-only reasons (returnUnavailable / cancelUnavailable), localized PDP delivery-estimate content, passkey management + checkout passkey login translations merged from W-22775599/checkout-passkey-login, the Hero authoring empty-state copy (hero.emptyTitle / hero.emptyButton), and the footwear PDP copy plus home hero + spotlight (running/casual) copy. Limit shared across all verticals (single global list, no per-vertical override). Luxury (W-24144914) is now the largest English chunk — its watch-finder namespace plus boutique locator/appointment/directory copy measure the direct luxury build at 112.2 kB — so the limit rises to 115 kB (~2.8 kB headroom). Lighter verticals (fashion ~87.6 kB, footwear ~93.9 kB) sit well under it."

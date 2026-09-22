@@ -59,6 +59,9 @@ const EXCLUDED_COMPONENTS = new Set([
     'product-skeleton/index',
     'product-tile/index',
     'product-view/index',
+    // Deferred implementation wrapper — renders the shared ImageGallery with narrower card widths.
+    // The child-product-card story exercises this lazy boundary and its visual card context.
+    'product-view/child-product-card-gallery',
     'store-locator/components/footer/index',
     // Thin async wrapper (Suspense/Await) and barrel re-export, no visual rendering of their own
     'product-grid/deferred',
@@ -161,6 +164,10 @@ const EXCLUDED_COMPONENTS = new Set([
 ]);
 const STORY_ALIASES = new Map([
     ['fulfillment/cart-delivery-option', 'bopis/components/delivery-options/cart-delivery-option'],
+    // The public ImageGallery stories render the extracted gallery implementation directly through its thin wrapper.
+    ['image-gallery/gallery-content', 'image-gallery'],
+    // The public mega-menu stories exercise the extracted responsive navigation engine through its configured wrapper.
+    ['navigation-menu-mega/responsive-navigation-menu', 'navigation-menu-mega'],
 ]);
 // Ensure OUTPUT DIR exists
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -313,7 +320,8 @@ function generateCoverage() {
     const totalComponents = components.size;
     const componentsNeedingStories = totalComponents - excluded.length;
     const covered = componentsNeedingStories - missing.length;
-    const percent = componentsNeedingStories === 0 ? 100 : Math.round((covered / componentsNeedingStories) * 100);
+    const coverage = componentsNeedingStories === 0 ? 100 : (covered / componentsNeedingStories) * 100;
+    const percent = Math.round(coverage);
     // Sort missing components for better readability
     missing.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -335,7 +343,7 @@ function generateCoverage() {
     }
 
     // Check if thresholds are met
-    const storyCoverageMet = percent >= STORY_COVERAGE_THRESHOLD;
+    const storyCoverageMet = coverage >= STORY_COVERAGE_THRESHOLD;
 
     const jsonSummary = {
         timestamp: new Date().toISOString(),

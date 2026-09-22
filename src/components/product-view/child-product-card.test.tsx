@@ -22,11 +22,11 @@ import ChildProductCard from './child-product-card';
 import type { ShopperProducts } from '@/scapi';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
-// Prop-capture mock for <ImageGallery> so tests can assert that the card forwards the documented
+// Prop-capture mock for the lazy gallery so tests can assert that the card forwards the documented
 // GALLERY_WIDTHS constant (private to the module, but the only meaningful surface is what reaches
 // the gallery component).
 const capturedImageGalleryProps: { last: any } = { last: null };
-vi.mock('@/components/image-gallery', () => ({
+vi.mock('./child-product-card-gallery', () => ({
     default: (props: any) => {
         capturedImageGalleryProps.last = props;
         return <div data-testid="image-gallery" />;

@@ -33,9 +33,17 @@ function callConfigHook(plugin: ReturnType<typeof i18nPlugin>, userConfig: UserC
     }
 }
 
-function getManualChunks(plugin: ReturnType<typeof i18nPlugin>, userConfig: UserConfig = {}) {
+function getManualChunks(
+    plugin: ReturnType<typeof i18nPlugin>,
+    userConfig: UserConfig = {},
+    environment: 'client' | 'ssr' = 'client'
+) {
     const config = callConfigHook(plugin, userConfig);
-    return (config as UserConfig)?.build?.rollupOptions?.output as { manualChunks: Rollup.GetManualChunk } | undefined;
+    const viteConfig = config as UserConfig | undefined;
+    return (viteConfig?.environments?.[environment]?.build?.rollupOptions?.output ??
+        viteConfig?.build?.rollupOptions?.output) as
+        | (Rollup.OutputOptions & { manualChunks: Rollup.GetManualChunk })
+        | undefined;
 }
 
 describe('i18nPlugin', () => {
@@ -191,6 +199,66 @@ describe('i18nPlugin', () => {
             expect(result).toBe('locales-en-GB');
             expect(existingFn).not.toHaveBeenCalled();
         });
+    });
+
+    it('should configure manual chunks for both environments when the Vite Environment API is enabled', () => {
+        const clientManualChunks = vi.fn().mockReturnValue('image-gallery');
+        const rootManualChunks = vi.fn().mockReturnValue('server-components');
+        const plugin = i18nPlugin();
+        const userConfig = {
+            build: { rollupOptions: { output: { manualChunks: rootManualChunks } } },
+            environments: {
+                client: {
+                    build: {
+                        rollupOptions: {
+                            output: { manualChunks: clientManualChunks, onlyExplicitManualChunks: true },
+                        },
+                    },
+                },
+            },
+        } satisfies UserConfig;
+        const clientOutput = getManualChunks(plugin, userConfig);
+        const ssrOutput = getManualChunks(plugin, userConfig, 'ssr');
+        const clientResult = clientOutput?.manualChunks.call(
+            {} as Rollup.PluginContext,
+            '/Users/project/src/components/image-gallery/index.tsx',
+            {} as Rollup.ManualChunkMeta
+        );
+        const ssrLocaleResult = ssrOutput?.manualChunks.call(
+            {} as Rollup.PluginContext,
+            '/Users/project/src/locales/en-GB/translations.json',
+            {} as Rollup.ManualChunkMeta
+        );
+        const ssrNonLocaleResult = ssrOutput?.manualChunks.call(
+            {} as Rollup.PluginContext,
+            '/Users/project/src/components/server-only.tsx',
+            {} as Rollup.ManualChunkMeta
+        );
+
+        expect(clientResult).toBe('image-gallery');
+        expect(clientManualChunks).toHaveBeenCalled();
+        expect(ssrLocaleResult).toBe('locales-en-GB');
+        expect(ssrNonLocaleResult).toBe('server-components');
+        expect(rootManualChunks).toHaveBeenCalled();
+        expect(clientOutput?.onlyExplicitManualChunks).toBe(true);
+    });
+
+    it('should preserve an SSR output array when the Vite Environment API is enabled', () => {
+        const plugin = i18nPlugin();
+        const userConfig = {
+            environments: {
+                client: {
+                    build: { rollupOptions: { output: { format: 'es' } } },
+                },
+                ssr: {
+                    build: { rollupOptions: { output: [{ format: 'es' }, { format: 'cjs' }] } },
+                },
+            },
+        } satisfies UserConfig;
+        const config = callConfigHook(plugin, userConfig);
+
+        expect(config?.environments?.ssr).toBeUndefined();
+        expect(getManualChunks(plugin, userConfig)?.manualChunks).toBeTypeOf('function');
     });
 
     describe('custom locale pattern', () => {

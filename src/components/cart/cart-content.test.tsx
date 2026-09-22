@@ -720,7 +720,7 @@ describe('CartContent', () => {
             expect(editButton2).toHaveClass('pl-0');
         });
 
-        test('opens product modal when edit button is clicked', () => {
+        test('opens product modal when edit button is clicked', async () => {
             renderCartContent({
                 basket: mockBasket,
                 productsByItemId: mockProductMap,
@@ -732,11 +732,11 @@ describe('CartContent', () => {
             const editButton = screen.getByTestId('edit-item-item-1');
             fireEvent.click(editButton);
 
-            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(await screen.findByRole('dialog')).toBeInTheDocument();
             expect(screen.getByText(t('editItem:title'))).toBeInTheDocument();
         });
 
-        test('can close modal using close button', () => {
+        test('can close modal using close button', async () => {
             renderCartContent({
                 basket: mockBasket,
                 productsByItemId: mockProductMap,
@@ -746,7 +746,7 @@ describe('CartContent', () => {
             const editButton = screen.getByTestId('edit-item-item-1');
             fireEvent.click(editButton);
 
-            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
             const closeButton = screen.getByRole('button', { name: /close/i });
             fireEvent.click(closeButton);

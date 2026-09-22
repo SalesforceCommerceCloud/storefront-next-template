@@ -21,9 +21,6 @@ const vertical = process.env.VERTICAL ?? 'fashion';
 //     canonical `useVariationMedia` hook W-24144914 + Shopper Agent shell helper W-24210721). The
 //     attribution feature this PR adds is not the cause — it contributes ~91B (482092 without vs
 //     482183 with, within run-to-run noise).
-//   - Non-footwear PDP: this branch's 479 KB already clears main's furniture (477 KB) and base
-//     (476 KB) tiers, so the larger value covers every non-footwear vertical — the separate furniture
-//     PDP tier collapses away.
 //   - Cart: footwear 538 KB (this branch, above main's 535 KB) plus main's luxury tier, raised to
 //     536 KB (luxury joined the Lighthouse matrix in W-24144914); other verticals stay at 530 KB.
 //   - Luxury drift (post-merge CI): the merged shared shell (this branch's attribution capture +
@@ -31,8 +28,24 @@ const vertical = process.env.VERTICAL ?? 'fashion';
 //     cart 534285 (> the 533 KB luxury tier). Both are luxury-only overages (the other five verticals
 //     still pass unchanged), so luxury takes a dedicated 413 KB home tier and a 536 KB cart ceiling,
 //     each with modest headroom (~1.4-1.7 KB) over the measured median.
-const homeScriptSizeLimit = vertical === 'luxury' ? 413000 : 411000;
-const productScriptSizeLimit = vertical === 'footwear' ? 486000 : 479000;
+//   - PDP zoom (@W-24184223@, 2026-09-21): the accessible image-zoom feature extracts the shared
+//     gallery rendering out of `image-gallery/index.tsx` into `image-gallery/gallery-content.tsx` so
+//     ProductZoomGallery can reuse it without duplicating markup. The extraction adds a small,
+//     irreducible `renderImageOverlay`/`onSelectedImageIndexChange` seam that ships to every
+//     vertical's product page (footwear and furniture also enable the zoom trigger itself via their
+//     own `product-view.tsx` overlay; the lightbox chunk stays lazy-loaded behind first interaction,
+//     confirmed in `product-zoom-gallery/index.tsx`). Measured across 5 deterministic CI runs:
+//     cosmetic PDP 480699, footwear home 411851 / PDP 494105, furniture PDP 487779, luxury home
+//     414097 / PDP 487123. Fashion and foundations are unaffected and keep the unchanged base tiers.
+const homeScriptSizeLimit = vertical === 'luxury' ? 415000 : vertical === 'footwear' ? 413000 : 411000;
+const productScriptSizeLimit =
+    vertical === 'footwear'
+        ? 496000
+        : vertical === 'furniture' || vertical === 'luxury'
+          ? 489000
+          : vertical === 'cosmetic'
+            ? 482000
+            : 479000;
 const productDocumentSizeLimit = vertical === 'furniture' ? 69000 : 55000;
 const cartScriptSizeLimit = vertical === 'footwear' ? 538000 : vertical === 'luxury' ? 536000 : 530000;
 
@@ -129,13 +142,12 @@ module.exports = {
                         'categories:accessibility': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:seo': ['error', { minScore: 0.91, aggregationMethod: 'median' }],
                         'categories:best-practices': ['error', { minScore: 0.7, aggregationMethod: 'median' }],
-                        // Footwear's PDP includes its size/width/colorway controls and the configurable
-                        // SEO URL generator. After canonical URL convergence, the combined mirrored
-                        // payload measures 482358 B across five deterministic CI runs, so retain
-                        // modest headroom above the observed baseline.
-                        // Furniture's product overlay plus canonical URL convergence measures 475033 B
-                        // across five deterministic CI runs; its vertical-specific ceiling absorbs that
-                        // combined payload without changing the other verticals' budget.
+                        // Per-vertical ceilings above (`productScriptSizeLimit`) absorb each vertical's
+                        // own PDP baseline: footwear's size/width/colorway controls and SEO URL generator
+                        // plus its zoom trigger, furniture's product overlay plus its zoom trigger,
+                        // luxury's baseline drift plus the shared gallery-content extraction, and
+                        // cosmetic's shared gallery-content extraction alone. See the top-of-file comment
+                        // for the measured medians behind each tier.
                         'resource-summary:script:size': [
                             'error',
                             { maxNumericValue: productScriptSizeLimit, aggregationMethod: 'median' },

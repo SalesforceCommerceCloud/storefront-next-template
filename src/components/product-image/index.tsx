@@ -108,6 +108,7 @@ const ProductImageContainer = ({
             {/* Navigation Arrows - visible on hover */}
             {showNavigationArrows && allImages.length > 1 && (
                 <ImageNavArrows
+                    currentIndex={selectedImageIndex}
                     imageCount={allImages.length}
                     onIndexChange={setSelectedImageIndex}
                     className="opacity-0 group-hover/image:opacity-100 transition-opacity"

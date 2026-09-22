@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { useEffect } from 'react';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 
 const { t } = getTranslation();
+
+// Track mounting independently from visible dialog state. A closed-but-mounted modal
+// keeps its fetchers alive, so cart edit must tear down the deferred subtree after close.
+const modalLifecycle = { mounts: 0, unmounts: 0 };
 
 // React Router
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -35,6 +40,39 @@ vi.mock('@/hooks/use-scapi-fetcher', () => ({
         data: null,
         state: 'idle',
     }),
+}));
+
+vi.mock('@/components/cart-item-modal', () => ({
+    CartItemModal: ({
+        open,
+        onOpenChange,
+        product,
+    }: {
+        open: boolean;
+        onOpenChange: (open: boolean) => void;
+        product: { name?: string };
+    }) => {
+        useEffect(() => {
+            modalLifecycle.mounts += 1;
+            return () => {
+                modalLifecycle.unmounts += 1;
+            };
+        }, []);
+
+        return (
+            <div data-testid="cart-edit-modal-mounted">
+                {open ? (
+                    <div role="dialog" aria-label={t('editItem:title')}>
+                        <span>{t('editItem:title')}</span>
+                        <span>{product.name}</span>
+                        <button type="button" onClick={() => onOpenChange(false)}>
+                            Close
+                        </button>
+                    </div>
+                ) : null}
+            </div>
+        );
+    },
 }));
 
 const renderCartItemEditButton = (props: React.ComponentProps<typeof CartItemEditButton>) => {
@@ -59,6 +97,12 @@ const renderCartItemEditButton = (props: React.ComponentProps<typeof CartItemEdi
 describe('CartItemEditButton', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        modalLifecycle.mounts = 0;
+        modalLifecycle.unmounts = 0;
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
     const mockProduct = {
         itemId: 'test-item-123',
@@ -120,7 +164,7 @@ describe('CartItemEditButton', () => {
         await user.click(editButton);
 
         // Modal should be visible after clicking edit button
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(await screen.findByRole('dialog')).toBeInTheDocument();
         expect(screen.getByText(t('editItem:title'))).toBeInTheDocument();
     });
 
@@ -132,7 +176,7 @@ describe('CartItemEditButton', () => {
         await user.click(editButton);
 
         // Verify product name is displayed in the modal
-        expect(screen.getByText(mockProduct.name)).toBeInTheDocument();
+        expect(await screen.findByText(mockProduct.name)).toBeInTheDocument();
     });
 
     test('closes modal when close button is clicked', async () => {
@@ -144,7 +188,7 @@ describe('CartItemEditButton', () => {
         await user.click(editButton);
 
         // Verify modal is open
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
         // Close modal using the close button (X button)
         const closeButton = screen.getByRole('button', { name: /close/i });
@@ -162,7 +206,7 @@ describe('CartItemEditButton', () => {
 
         // First cycle
         await user.click(editButton);
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
         let closeButton = screen.getByRole('button', { name: /close/i });
         await user.click(closeButton);
@@ -170,11 +214,37 @@ describe('CartItemEditButton', () => {
 
         // Second cycle
         await user.click(editButton);
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
         // Get fresh reference to close button
         closeButton = screen.getByRole('button', { name: /close/i });
         await user.click(closeButton);
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    test('defers mounting until edit and unmounts after the exit animation', () => {
+        vi.useFakeTimers();
+        renderCartItemEditButton(defaultProps);
+
+        expect(modalLifecycle.mounts).toBe(0);
+        expect(screen.queryByTestId('cart-edit-modal-mounted')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByTestId('edit-item-test-item-123'));
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(modalLifecycle.mounts).toBe(1);
+
+        fireEvent.click(screen.getByRole('button', { name: /close/i }));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+        act(() => {
+            vi.advanceTimersByTime(200);
+        });
+        expect(modalLifecycle.unmounts).toBe(0);
+
+        act(() => {
+            vi.advanceTimersByTime(50);
+        });
+        expect(modalLifecycle.unmounts).toBe(1);
+        expect(screen.queryByTestId('cart-edit-modal-mounted')).not.toBeInTheDocument();
     });
 });
