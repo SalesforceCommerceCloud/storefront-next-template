@@ -21,8 +21,8 @@ import { render, cleanup } from '@testing-library/react';
 
 function normalizeReactIds(element: Element): Element {
     const clone = element.cloneNode(true) as Element;
-    for (const element of clone.querySelectorAll('[id], [aria-describedby], [aria-labelledby]')) {
-        for (const attribute of ['id', 'aria-describedby', 'aria-labelledby']) {
+    for (const element of [clone, ...clone.querySelectorAll('*')]) {
+        for (const attribute of element.getAttributeNames()) {
             const value = element.getAttribute(attribute);
             if (value) element.setAttribute(attribute, value.replace(/_r_[a-z0-9]+_/g, '__react-id__'));
         }
@@ -131,10 +131,7 @@ describe('ProductView stories snapshot', () => {
     for (const [storyName, Story] of Object.entries(composed)) {
         test(`${storyName} story renders and matches snapshot`, () => {
             const { container } = render(<Story />);
-            const snapshotElement =
-                storyName === 'OutOfStock'
-                    ? normalizeReactIds(container.firstElementChild as Element)
-                    : container.firstChild;
+            const snapshotElement = normalizeReactIds(container.firstElementChild as Element);
             expect(snapshotElement).toMatchSnapshot();
         });
     }

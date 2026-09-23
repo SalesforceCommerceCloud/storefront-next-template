@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { getCartActionButton } from '../utils/cart-action-button';
 import { buildSitePath } from '../utils/url-utils';
+import { isCartMutationResponse } from '../utils/cart-response';
 
 const { I } = inject();
 
@@ -255,7 +257,18 @@ class ProductDetailPage {
     }
 
     /**
-     * Click "Add to Cart" and report the outcome from the cart-item-add response.
+     * Gets the quantity that will be added from the PDP.
+     *
+     * The pre-select mode exposes a numeric input, while inline mode begins with
+     * a single-unit Add to Cart CTA and renders its stepper only after the add.
+     */
+    async getInitialAddQuantity(): Promise<string> {
+        const quantityInputCount = await I.grabNumberOfVisibleElements(this.locators.quantityInput);
+        return quantityInputCount > 0 ? this.getQuantity() : '1';
+    }
+
+    /**
+     * Add a product or increment its existing cart line and report the cart mutation outcome.
      *
      * The add's authoritative signal is the POST response, not the mini-cart sheet: the
      * sheet is lazy-loaded, so under a slow target a successful add can render its feedback
@@ -267,8 +280,9 @@ class ProductDetailPage {
      * the POST can resolve in ~100ms, well inside the post-click settle delay, so attaching
      * the listener after clicking would miss an already-delivered response and hang.
      *
-     * Classified by HTTP status: a 2xx add is success; a non-2xx (e.g. out of stock) is an
-     * error the caller can skip past. A missing response within the window also reads as error.
+     * Classified by HTTP status: a 2xx add or quantity update is success; a non-2xx (e.g. out of
+     * stock) is an error the caller can skip past. A missing response within the window also reads
+     * as error.
      *
      * @param timeoutSeconds - How long to wait for the add-to-cart response
      * @returns 'success' if the server confirmed the add, 'error' otherwise
@@ -277,18 +291,13 @@ class ProductDetailPage {
         try {
             const ok = (await I.usePlaywrightTo('add to cart and await response', async ({ page }: { page: Page }) => {
                 const responsePromise = page.waitForResponse(
-                    (res) =>
-                        (res.url().includes('/action/cart-item-add') ||
-                            res.url().includes('/action/cart-bundle-add')) &&
-                        res.request().method() === 'POST',
+                    (res) => isCartMutationResponse({ method: res.request().method(), url: res.url() }),
                     { timeout: timeoutSeconds * 1000 }
                 );
-                // .first() assumes a single add-to-cart button on this PDP (variation masters);
-                // set/bundle PDPs emit the testid per child + once for the set, so .first() could
-                // hit a child button — harden before pointing this flow at a set-bearing category.
-                const addToCartBtn = page.locator('[data-testid="add-to-cart"]').first();
-                await addToCartBtn.scrollIntoViewIfNeeded();
-                await addToCartBtn.click();
+                const cartActionButton = await getCartActionButton(page);
+                await expect(cartActionButton).toBeEnabled({ timeout: timeoutSeconds * 1000 });
+                await cartActionButton.scrollIntoViewIfNeeded();
+                await cartActionButton.click();
                 const response = await responsePromise;
                 return response.ok();
             })) as unknown as boolean;
@@ -320,10 +329,9 @@ class ProductDetailPage {
     async waitForAddToCartReady(timeoutSeconds: number = 10): Promise<boolean> {
         try {
             await (I.usePlaywrightTo('wait for add-to-cart button to enable', async ({ page }) => {
-                await page
-                    .locator('[data-testid="add-to-cart"]:not([disabled])')
-                    .first()
-                    .waitFor({ state: 'visible', timeout: timeoutSeconds * 1000 });
+                const cartActionButton = await getCartActionButton(page);
+                await cartActionButton.waitFor({ state: 'visible', timeout: timeoutSeconds * 1000 });
+                await expect(cartActionButton).toBeEnabled({ timeout: timeoutSeconds * 1000 });
             }) as unknown as Promise<void>);
             return true;
         } catch {

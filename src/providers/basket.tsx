@@ -416,6 +416,15 @@ export const useBasketHydrated = (): boolean => {
 };
 
 /**
+ * Hydration errors from the last basket load, or null/undefined when the last attempt succeeded or
+ * none has run. A non-empty value means the basket is hydrated but its contents are unknown.
+ */
+// oxlint-disable-next-line react-refresh/only-export-components
+export const useBasketError = (): string[] | null | undefined => {
+    return useContext(BasketContext).error;
+};
+
+/**
  * Returns a setter for updating the basket in context.
  */
 // oxlint-disable-next-line react-refresh/only-export-components

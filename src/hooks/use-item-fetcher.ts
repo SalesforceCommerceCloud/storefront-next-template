@@ -92,10 +92,11 @@ export function useItemFetcherLoading(itemId?: string): boolean {
     return useMemo(() => {
         if (!itemId) return false;
 
-        // Find all fetchers with keys starting with the itemId
-        const itemFetchers = fetchers.filter((fetcher) => fetcher.key.startsWith(itemId));
+        // Item keys are delimited. Matching the delimiter avoids treating `item-10-*`
+        // as work for `item-1`.
+        const itemFetchers = fetchers.filter((fetcher) => fetcher.key.startsWith(`${itemId}-`));
 
-        // Return true if any fetcher for this item is in 'submitting' state
-        return itemFetchers.some((fetcher) => fetcher.state === 'submitting');
+        // A mutation remains pending while React Router processes the response.
+        return itemFetchers.some((fetcher) => fetcher.state === 'submitting' || fetcher.state === 'loading');
     }, [fetchers, itemId]);
 }

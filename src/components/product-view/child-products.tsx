@@ -337,7 +337,7 @@ export default function ChildProducts({
             {/* Add to Cart / Update Cart Button */}
             <div className="flex justify-center">
                 <Button
-                    data-testid="add-to-cart"
+                    data-testid="parent-add-to-cart"
                     onClick={() => void (mode === 'edit' ? handleUpdate() : handleAddToCart())}
                     disabled={!canAddToCart || isAddingToOrUpdatingCart}
                     size="lg"

@@ -30,6 +30,7 @@ import { bundleProd } from '@/components/__mocks__/bundle-product';
 import { setProduct } from '@/components/__mocks__/set-product';
 import { mockAltSiteObject, mockBuildConfig } from '@/test-utils/config';
 import type { AppConfig } from '@/types/config';
+import { usesInlineAddToCartQuantity } from '@/lib/product/add-to-cart-quantity-mode';
 
 vi.mock('@/lib/config.ui', async (importOriginal) => {
     const actual = await importOriginal<typeof import('@/lib/config.ui')>();
@@ -211,8 +212,12 @@ describe('ProductView', () => {
             expect(await getVariationRadio(user, 'Size', /^(?:Size )?36(?:, available)?$/i)).toBeInTheDocument();
             expect(await getVariationRadio(user, 'Width', 'Short')).toBeInTheDocument();
 
-            // Quantity picker should be visible
-            expect(screen.getAllByLabelText(/quantity/i)[0]).toBeInTheDocument();
+            if (usesInlineAddToCartQuantity()) {
+                // Inline mode begins with a CTA and shows quantity only after the first add succeeds.
+                expect(screen.queryByLabelText(/^quantity$/i)).not.toBeInTheDocument();
+            } else {
+                expect(screen.getByLabelText(/^quantity$/i)).toBeInTheDocument();
+            }
 
             // Cart action buttons should be visible
             expect(screen.getByRole('button', { name: /add to cart/i })).toBeInTheDocument();
@@ -239,8 +244,11 @@ describe('ProductView', () => {
             // Should render product name
             expect(screen.getByText('Laptop Briefcase with wheels (37L)')).toBeInTheDocument();
 
-            // Should have quantity picker text and aria-label
-            expect(screen.getAllByLabelText(/quantity/i)[0]).toBeInTheDocument();
+            if (usesInlineAddToCartQuantity()) {
+                expect(screen.queryByLabelText(/^quantity$/i)).not.toBeInTheDocument();
+            } else {
+                expect(screen.getByLabelText(/^quantity$/i)).toBeInTheDocument();
+            }
 
             // Should NOT have variation swatches (no radiogroups for color/size selection)
             // Note: DeliveryOptions component may render a radiogroup for delivery options
@@ -342,10 +350,7 @@ describe('ProductView', () => {
         test('maintains proper ARIA attributes', () => {
             renderProductView({ product: mockProduct });
 
-            // Check for proper form labels
-            expect(screen.getAllByLabelText(/quantity/i)[0]).toBeInTheDocument();
-
-            // Check for proper button labels
+            // Check for proper button labels.
             expect(screen.getByRole('button', { name: /add to cart/i })).toBeInTheDocument();
             expect(screen.getByRole('button', { name: /add to wishlist/i })).toBeInTheDocument();
             expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument();

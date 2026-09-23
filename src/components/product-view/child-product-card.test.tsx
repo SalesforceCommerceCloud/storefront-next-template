@@ -758,7 +758,7 @@ describe('ChildProductCard', () => {
         // width is ~420 at `md` on PDP (lg-3-col and base mobile both stay below 420). Thumbnails are
         // grid-cols-4 of the cell. The card snaps to the shared pixel ladder (md main 420, md thumb 96)
         // so the same DIS variants are reused on cart-modal and bonus-modal during a session.
-        test('passes the documented widths to <ImageGallery> (cache-ladder rungs)', () => {
+        test('passes the documented widths to <ImageGallery> (cache-ladder rungs)', async () => {
             const standardProduct = createStandardProduct();
             const parentProduct = createSetProduct();
 
@@ -768,9 +768,11 @@ describe('ChildProductCard', () => {
                 onSelectionChange: mockOnSelectionChange,
             });
 
-            expect(capturedImageGalleryProps.last?.widths).toEqual({
-                main: { base: 360, md: 420 },
-                thumbnail: { base: 80, md: 96 },
+            await waitFor(() => {
+                expect(capturedImageGalleryProps.last?.widths).toEqual({
+                    main: { base: 360, md: 420 },
+                    thumbnail: { base: 80, md: 96 },
+                });
             });
         });
     });

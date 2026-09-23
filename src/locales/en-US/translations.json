@@ -352,6 +352,8 @@
         "increaseQuantity": "Increase quantity",
         "decreaseQuantityForProduct": "Decrement Quantity for {{productName}}",
         "increaseQuantityForProduct": "Increment Quantity for {{productName}}",
+        "removeFromCartForProduct": "Remove {{productName}} from cart",
+        "quantityInCart": "{{count}} in cart",
         "quantityInput": "Quantity",
         "quantityUpdated": "Quantity updated",
         "quantityUpdateFailed": "Failed to update quantity",

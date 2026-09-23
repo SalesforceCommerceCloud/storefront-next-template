@@ -155,7 +155,9 @@ class AddToCartFlow {
                 }
 
                 const productTitle = await productDetailPage.getProductTitle();
-                const quantity = await productDetailPage.getQuantity();
+                // Inline PDP quantity mode begins at one and only renders its stepper after
+                // the first add. Pre-select mode still exposes the numeric input.
+                const quantity = await productDetailPage.getInitialAddQuantity();
 
                 const outcome = await productDetailPage.addToCartAndWaitForOutcome(15);
                 if (outcome === 'error') {

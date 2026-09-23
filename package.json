@@ -284,8 +284,8 @@
             },
             {
                 "name": "assets/\\(locales\\)-\\(it-IT\\)-index.*.js",
-                "limit": "88 kB",
-                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Includes passkey management translations (account.passkeys), localized PDP delivery-estimate content, the footwear vertical's PDP and marketing copy (size guide, colorway/width selectors, recommendation rails), and the footwear home hero, activity-discovery rail, and spotlight copy (running/casual plus the styleForRealLife editorial card) in Italian. Adding the Italian activity-discovery and editorial copy increases this chunk by about 0.5 kB (measured in a footwear build); applied to the 86.6 kB the last Mirror footwear CI build measured, that takes it just past the previous 87 kB limit, so the limit is raised to 88 kB."
+                "limit": "89 kB",
+                "comment": "Italian locale chunk. Italian translations are ~10% more verbose than English due to language characteristics (longer words, articles, formal address forms). Baseline: it-IT ~80 kB vs en-US ~73 kB. Includes passkey management translations (account.passkeys), localized PDP delivery-estimate content, the footwear vertical's PDP and marketing copy (size guide, colorway/width selectors, recommendation rails), and the footwear home hero, activity-discovery rail, and spotlight copy (running/casual plus the styleForRealLife editorial card) in Italian. The direct footwear build measures 88.1 kB, just over the prior 88 kB ceiling, so this narrow 89 kB ceiling retains under 1 kB headroom."
             },
             {
                 "name": "assets/\\(locales\\)-\\(ja-JP\\)-index.*.js",

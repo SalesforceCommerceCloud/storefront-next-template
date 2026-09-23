@@ -321,7 +321,7 @@ describe('ChildProducts', () => {
                 mode: 'add',
             });
 
-            expect(screen.getByRole('button', { name: /add set to cart/i })).toBeInTheDocument();
+            expect(screen.getByTestId('parent-add-to-cart')).toHaveAccessibleName(/add set to cart/i);
         });
 
         test('calls handleProductSetAddToCart when adding set', async () => {
@@ -447,7 +447,7 @@ describe('ChildProducts', () => {
                 mode: 'add',
             });
 
-            expect(screen.getByRole('button', { name: /add bundle to cart/i })).toBeInTheDocument();
+            expect(screen.getByTestId('parent-add-to-cart')).toHaveAccessibleName(/add bundle to cart/i);
         });
 
         test('shows "Update Cart" button for bundles in edit mode', async () => {
