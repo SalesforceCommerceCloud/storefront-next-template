@@ -1362,6 +1362,24 @@ pagination: {
 
 ---
 
+### uiConfig.pages.product.addToCartQuantityMode
+
+Controls the PDP add-to-cart quantity experience. Configured in `src/lib/config.ui.ts`.
+
+- **`'pre-select'`** (default): shows the standard quantity selector before Add to Cart, so the shopper picks a quantity, then adds.
+- **`'inline'`**: Add to Cart adds one item, then replaces the button with an in-cart quantity stepper that syncs each tap with the basket (decrementing to zero removes the line). Opt-in per storefront. The furniture storefront enables it by default, since its shoppers rarely buy multiple large items.
+
+Example:
+
+```typescript
+// src/lib/config.ui.ts (or src/verticals/<name>/lib/config.ui.ts to opt in per vertical)
+product: {
+    addToCartQuantityMode: 'inline',
+},
+```
+
+---
+
 ### search.products.images.tile
 
 Type: `string` Optional | Default: `'medium'`

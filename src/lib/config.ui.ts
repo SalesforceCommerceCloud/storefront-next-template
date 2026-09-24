@@ -202,10 +202,11 @@ export interface UIConfig {
              */
             galleryLayout?: 'stacked' | 'mosaic';
             /**
-             * PDP quantity UX. `'inline'` adds one item and then replaces the CTA with an
-             * in-cart quantity stepper. `'pre-select'` keeps the standalone picker before add.
+             * PDP quantity UX. `'pre-select'` keeps the standalone quantity picker before add
+             * (the standard experience). `'inline'` adds one item and then replaces the CTA
+             * with an in-cart quantity stepper. Opt-in per storefront.
              *
-             * @default 'inline'
+             * @default 'pre-select'
              */
             addToCartQuantityMode?: 'inline' | 'pre-select';
         };
@@ -258,7 +259,7 @@ export const uiConfig: UIConfig = {
         },
         product: {
             showRatingAverage: false,
-            addToCartQuantityMode: 'inline',
+            addToCartQuantityMode: 'pre-select',
         },
     },
 };

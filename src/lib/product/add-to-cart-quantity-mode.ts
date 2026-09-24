@@ -17,6 +17,7 @@ import { uiConfig } from '@/lib/config.ui';
 
 /**
  * Whether the PDP replaces its initial add CTA with an in-cart quantity stepper.
- * Merchants can retain the pre-add quantity selector with the `pre-select` mode.
+ * The standard experience is the pre-add quantity selector (`pre-select`, the default);
+ * merchants opt into the inline stepper by setting `inline`. Furniture enables it by default.
  */
-export const usesInlineAddToCartQuantity = (): boolean => uiConfig.pages.product.addToCartQuantityMode !== 'pre-select';
+export const usesInlineAddToCartQuantity = (): boolean => uiConfig.pages.product.addToCartQuantityMode === 'inline';

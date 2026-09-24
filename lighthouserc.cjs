@@ -44,15 +44,20 @@ const homeScriptSizeLimit = vertical === 'luxury' ? 415000 : vertical === 'footw
 // Product ceilings re-measured after the latest upstream/main merge: the combined PDP chunk landed a
 // touch above the earlier raise on the three verticals that carry the most PDP code (CI medians:
 // footwear 499656, luxury 491466, cosmetic 486286). Each ceiling sits ~1.5 KB above its measured
-// median. Cosmetic and luxury get their own tiers so furniture (489 KB) and the fashion/foundations
-// default (485 KB), which still pass, keep their existing headroom.
+// median. Cosmetic and luxury get their own tiers so the fashion/foundations default (485 KB), which
+// still passes, keeps its existing headroom.
+// Furniture raised 489000 -> 495000 (@W-24184219@): its 489 KB tier was a carryover that was never
+// re-measured against the inline Add-to-Cart stepper baseline, and post-#2790 main merges drifted the
+// shared PDP chunk up. Furniture now medians 493467 across the five CI runs. This PR (opt-in quantity
+// mode) only adds a ~30 B config literal to the furniture config, so it is not the cause; 495000 keeps
+// the file's ~1.5 KB headroom over the measured median.
 const productScriptSizeLimit =
     vertical === 'footwear'
         ? 501000
         : vertical === 'luxury'
           ? 493000
           : vertical === 'furniture'
-            ? 489000
+            ? 495000
             : vertical === 'cosmetic'
               ? 488000
               : 485000;

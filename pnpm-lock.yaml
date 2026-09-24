@@ -7853,8 +7853,8 @@ packages:
       - which
       - write-file-atomic
 
-  npm@11.19.1:
-    resolution: {integrity: sha512-ztsxKxt/kkIaAs+2i0GU6I+DRmUdrNasxTZKJe9TCdSjKxlhah/4r/hl5ygMD6XAg1qZ9c2TNomR4qgOydp10g==}
+  npm@11.20.0:
+    resolution: {integrity: sha512-dF3EDFwbYN+N5RUip+ZYDe0NeURK5BgqKOcvT1iNtUYhTMTl0FwWhBuXrS7KtXyduqyTMS5aaQaregnHDAxNgw==}
     engines: {node: ^20.17.0 || >=22.9.0}
     hasBin: true
     bundledDependencies:
@@ -11931,7 +11931,7 @@ snapshots:
       '@oclif/core': 4.14.0
       ansis: 3.17.0
       debug: 4.4.3(supports-color@10.2.2)
-      npm: 11.19.1
+      npm: 11.20.0
       npm-package-arg: 11.0.3
       npm-run-path: 5.3.0
       object-treeify: 4.0.1
@@ -18259,7 +18259,7 @@ snapshots:
 
   npm@10.9.9: {}
 
-  npm@11.19.1: {}
+  npm@11.20.0: {}
 
   nth-check@2.1.1:
     dependencies:

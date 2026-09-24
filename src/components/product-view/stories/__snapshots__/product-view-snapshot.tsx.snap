@@ -524,6 +524,52 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
               </div>
             </div>
           </div>
+          <div
+            class="space-y-2"
+          >
+            <label
+              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+              data-slot="label"
+              for="quantity-__react-id__"
+            >
+              Quantity
+            </label>
+            <div
+              aria-label="Quantity for Men's Classic Deer Gloves"
+              class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+              role="group"
+            >
+              <button
+                aria-label="Decrement Quantity for Men's Classic Deer Gloves"
+                class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="quantity-decrement"
+                disabled=""
+              >
+                −
+              </button>
+              <input
+                class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                id="quantity-__react-id__"
+                min="1"
+                step="1"
+                type="number"
+                value="1"
+              />
+              <button
+                aria-label="Increment Quantity for Men's Classic Deer Gloves"
+                class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="quantity-increment"
+              >
+                +
+              </button>
+            </div>
+            <div
+              aria-atomic="true"
+              aria-live="polite"
+              id="quantity-__react-id__-inventory-msg"
+              role="status"
+            />
+          </div>
         </div>
         <div
           class="mt-6"
@@ -535,26 +581,15 @@ exports[`ProductView stories snapshot > MissingImages story renders and matches 
           <div
             class="flex flex-col gap-3"
           >
-            <div
-              aria-busy="true"
-              class="flex flex-col gap-2"
-              data-slot="inline-add-to-cart"
+            <button
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
+              data-size="lg"
+              data-slot="add-to-cart-button"
+              data-testid="add-to-cart"
+              data-variant="default"
             >
-              <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
-                data-size="lg"
-                data-slot="add-to-cart-button"
-                data-testid="add-to-cart"
-                data-variant="default"
-              >
-                Add to Cart
-              </button>
-              <div
-                aria-atomic="true"
-                aria-live="polite"
-                role="status"
-              />
-            </div>
+              Add to Cart
+            </button>
           </div>
         </div>
       </div>
@@ -1128,6 +1163,59 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
               </div>
             </div>
           </div>
+          <div
+            class="space-y-2"
+          >
+            <label
+              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+              data-slot="label"
+              for="quantity-__react-id__"
+            >
+              Quantity
+            </label>
+            <div
+              aria-label="Quantity for Men's Classic Deer Gloves"
+              class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+              role="group"
+            >
+              <button
+                aria-label="Decrement Quantity for Men's Classic Deer Gloves"
+                class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="quantity-decrement"
+                disabled=""
+              >
+                −
+              </button>
+              <input
+                aria-describedby="quantity-__react-id__-inventory-msg"
+                class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                id="quantity-__react-id__"
+                min="1"
+                step="1"
+                type="number"
+                value="1"
+              />
+              <button
+                aria-label="Increment Quantity for Men's Classic Deer Gloves"
+                class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="quantity-increment"
+              >
+                +
+              </button>
+            </div>
+            <div
+              aria-atomic="true"
+              aria-live="polite"
+              id="quantity-__react-id__-inventory-msg"
+              role="status"
+            >
+              <p
+                class="text-sm leading-none text-left text-destructive font-medium"
+              >
+                Out of stock for Men's Classic Deer Gloves
+              </p>
+            </div>
+          </div>
         </div>
         <div
           class="mt-6"
@@ -1139,27 +1227,16 @@ exports[`ProductView stories snapshot > OutOfStock story renders and matches sna
           <div
             class="flex flex-col gap-3"
           >
-            <div
-              aria-busy="true"
-              class="flex flex-col gap-2"
-              data-slot="inline-add-to-cart"
+            <button
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
+              data-size="lg"
+              data-slot="add-to-cart-button"
+              data-testid="add-to-cart"
+              data-variant="default"
+              disabled=""
             >
-              <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
-                data-size="lg"
-                data-slot="add-to-cart-button"
-                data-testid="add-to-cart"
-                data-variant="default"
-                disabled=""
-              >
-                Add to Cart
-              </button>
-              <div
-                aria-atomic="true"
-                aria-live="polite"
-                role="status"
-              />
-            </div>
+              Add to Cart
+            </button>
           </div>
         </div>
       </div>
@@ -1733,6 +1810,52 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
               </div>
             </div>
           </div>
+          <div
+            class="space-y-2"
+          >
+            <label
+              class="flex items-center gap-2 select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-base font-semibold leading-6 text-card-foreground"
+              data-slot="label"
+              for="quantity-__react-id__"
+            >
+              Quantity
+            </label>
+            <div
+              aria-label="Quantity for Men's Classic Deer Gloves"
+              class="inline-flex items-center border border-input rounded-ui overflow-hidden"
+              role="group"
+            >
+              <button
+                aria-label="Decrement Quantity for Men's Classic Deer Gloves"
+                class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="quantity-decrement"
+                disabled=""
+              >
+                −
+              </button>
+              <input
+                class="w-9 min-w-[2ch] text-center text-sm font-semibold leading-normal text-foreground border-0 bg-transparent focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                id="quantity-__react-id__"
+                min="1"
+                step="1"
+                type="number"
+                value="1"
+              />
+              <button
+                aria-label="Increment Quantity for Men's Classic Deer Gloves"
+                class="px-2.5 py-1.5 text-base font-semibold leading-normal text-foreground hover:bg-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="quantity-increment"
+              >
+                +
+              </button>
+            </div>
+            <div
+              aria-atomic="true"
+              aria-live="polite"
+              id="quantity-__react-id__-inventory-msg"
+              role="status"
+            />
+          </div>
         </div>
         <div
           class="mt-6"
@@ -1744,26 +1867,15 @@ exports[`ProductView stories snapshot > Playground story renders and matches sna
           <div
             class="flex flex-col gap-3"
           >
-            <div
-              aria-busy="true"
-              class="flex flex-col gap-2"
-              data-slot="inline-add-to-cart"
+            <button
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
+              data-size="lg"
+              data-slot="add-to-cart-button"
+              data-testid="add-to-cart"
+              data-variant="default"
             >
-              <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-ui transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground hover:bg-primary/90 h-10 rounded-ui px-6 has-[>svg]:px-4 w-full text-base font-semibold leading-6"
-                data-size="lg"
-                data-slot="add-to-cart-button"
-                data-testid="add-to-cart"
-                data-variant="default"
-              >
-                Add to Cart
-              </button>
-              <div
-                aria-atomic="true"
-                aria-live="polite"
-                role="status"
-              />
-            </div>
+              Add to Cart
+            </button>
           </div>
         </div>
       </div>
