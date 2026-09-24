@@ -547,6 +547,14 @@ describe('Hero Component', () => {
             expect(container.firstChild).not.toHaveClass('h-[250px]');
         });
 
+        test('fillHeight uses the carousel height in design mode', () => {
+            mockIsDesignMode = true;
+            const { container } = renderHero({ ...configured, fillHeight: true });
+
+            expect(container.firstChild).toHaveClass('h-[400px]', 'md:h-[500px]', 'lg:h-[600px]');
+            expect(container.firstChild).not.toHaveClass('h-full');
+        });
+
         test('unconfigured Hero in design mode uses the fixed banner height, ignoring the height preset', () => {
             mockIsDesignMode = true;
             const { container } = renderHero({ height: 'sm' });
@@ -554,13 +562,15 @@ describe('Hero Component', () => {
             expect(container.firstChild).not.toHaveClass('h-[250px]');
         });
 
-        test('empty-state Hero with fillHeight fills its parent instead of the fixed banner height', () => {
+        test('empty-state Hero with fillHeight uses the carousel height in design mode', () => {
             // Inside a carousel (fillHeight) an empty slide must match its configured siblings'
-            // height, not collapse to the 300px banner height.
+            // authoring height, not collapse to the fixed 300px banner height.
             mockIsDesignMode = true;
             const { container } = renderHero({ fillHeight: true });
-            expect(container.firstChild).toHaveClass('h-full');
+
+            expect(container.firstChild).toHaveClass('h-[400px]', 'md:h-[500px]', 'lg:h-[600px]');
             expect(container.firstChild).not.toHaveClass('h-[300px]');
+            expect(container.firstChild).not.toHaveClass('h-full');
         });
 
         test('unconfigured Hero on the live storefront uses the configured height preset', () => {

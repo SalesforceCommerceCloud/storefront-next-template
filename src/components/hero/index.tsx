@@ -439,9 +439,10 @@ export default function Hero({
      */
     loading?: 'eager' | 'lazy';
     /**
-     * When true, the hero fills its parent's height (h-full) instead of applying its own
-     * `height` preset — used by the carousel to enforce uniform slide heights. Not a
-     * Page-Designer attribute.
+     * When true, the hero fills its parent's height instead of applying its own `height` preset —
+     * used by the carousel to enforce uniform slide heights. Page Designer edit mode uses the
+     * carousel's fixed large height because decorator wrappers do not preserve that parent layout.
+     * Not a Page-Designer attribute.
      */
     fillHeight?: boolean;
     /**
@@ -488,9 +489,14 @@ export default function Hero({
     const titleTypo = normalizeHeroTypography(titleTypography);
     const subtitleTypo = normalizeHeroTypography(subtitleTypography);
     const resolvedButtonStyle = normalizeButtonStyle(buttonStyle);
-    // When the parent controls height (fillHeight, e.g. inside a carousel with uniform slide
-    // heights) the Hero's own height preset is ignored in favor of filling the parent.
-    const heightClass = fillHeight ? 'h-full' : HERO_HEIGHT_CLASS[normalizeHeroHeight(height)];
+    // A carousel normally gives fillHeight slides a definite parent height. Page Designer edit-mode
+    // decorators render the selected slide without that layout context, so use the carousel's
+    // fixed large height to keep its absolute image layer visible while authoring.
+    const heightClass = fillHeight
+        ? isDesignMode
+            ? HERO_HEIGHT_CLASS.lg
+            : 'h-full'
+        : HERO_HEIGHT_CLASS[normalizeHeroHeight(height)];
     const buttonVariant = BUTTON_STYLE_TO_VARIANT[resolvedButtonStyle];
 
     const overlayMode = normalizeHeroOverlay(overlay);
@@ -544,10 +550,9 @@ export default function Hero({
     const showEmptyState = isUnconfigured && isDesignMode;
 
     // The empty banner uses the fixed Figma banner height (300px) rather than the configured
-    // Hero height — the placeholder's proportions match the design at that size. When the parent
-    // controls height (fillHeight, e.g. inside a carousel with uniform slide heights) it wins, so
-    // an empty slide matches its configured siblings instead of collapsing to the banner height.
-    const rootHeightClass = showEmptyState ? (fillHeight ? 'h-full' : 'h-[300px]') : heightClass;
+    // Hero height — the placeholder's proportions match the design at that size. Carousel slides
+    // use heightClass so they match configured siblings, including the design-mode fallback height.
+    const rootHeightClass = showEmptyState && !fillHeight ? 'h-[300px]' : heightClass;
 
     return (
         <>
