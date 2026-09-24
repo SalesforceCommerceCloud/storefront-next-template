@@ -207,4 +207,33 @@ describe('CollapsibleSection', () => {
             expect(container.querySelector('summary [class*="animate-spin"]')).not.toBeInTheDocument();
         });
     });
+
+    describe('forceOpen + hideToggle — static (non-interactive) mode', () => {
+        test('renders a plain header with no <details>/<summary> disclosure control', () => {
+            const { container } = render(
+                <CollapsibleSection label="Movement" forceOpen hideToggle>
+                    <p>Spec content</p>
+                </CollapsibleSection>
+            );
+
+            // A permanently-open section has nothing to toggle, so it must not expose a focusable
+            // disclosure control that does nothing on Enter/Space.
+            expect(container.querySelector('details')).not.toBeInTheDocument();
+            expect(container.querySelector('summary')).not.toBeInTheDocument();
+
+            // The label renders as static text and the content is always visible.
+            expect(container.querySelector('[data-slot="collapsible-heading"]')?.textContent).toBe('Movement');
+            expect(screen.getByText('Spec content')).toBeInTheDocument();
+        });
+
+        test('renders footer content in static mode', () => {
+            render(
+                <CollapsibleSection label="Case" forceOpen hideToggle footer={<span>Footer note</span>}>
+                    <p>Body</p>
+                </CollapsibleSection>
+            );
+
+            expect(screen.getByText('Footer note')).toBeInTheDocument();
+        });
+    });
 });
