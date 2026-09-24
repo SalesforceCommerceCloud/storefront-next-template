@@ -48,6 +48,11 @@ export interface CimulateConfig {
     commerceClientTheme?: Record<string, string>;
     routingAttributes?: Record<string, unknown>;
     isDevelopment?: string;
+    /**
+     * Optional regex patterns matched against the current pathname. When any pattern
+     * matches, the agent widget is hidden on that page. See `ShopperAgentConfig`.
+     */
+    disabledPathPatterns?: string[];
 }
 
 /**

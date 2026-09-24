@@ -94,6 +94,12 @@ export type ShopperAgentConfig = {
     isDevelopment?: string;
     /** Optional provider identifier. Currently only `commerce-client` (Cimulate) is supported. */
     provider?: string;
+    /**
+     * Optional regex patterns matched against the current pathname (including site/locale
+     * prefix, e.g. `/global/en-GB/category/gift-certificates`). When any pattern matches,
+     * the agent widget is hidden on that page. Compiled with `new RegExp(pattern)`.
+     */
+    disabledPathPatterns?: string[];
 };
 
 /**

@@ -1764,6 +1764,7 @@ Set as a single JSON string. Defaults in `config.server.ts` are empty or disable
 | `headerText`                    | `string` (optional)                         | Widget header text.                                                  |
 | `commerceClientTheme`           | `object` (optional)                         | Theme overrides (primaryColor, fontFamily, etc.).                    |
 | `routingAttributes`             | `object` (optional)                         | Routing attributes for agent assignment.                             |
+| `disabledPathPatterns`          | `string[]` (optional)                       | Regex strings. On each navigation the code takes the URL's path (e.g. `/global/en-GB/category/gift-certificates`) and asks each regex "do you match anywhere in this path?" — if any says yes, the widget is hidden. Example: `["/category/gift-certificates(/\|$)"]`. |
 
 ---
 

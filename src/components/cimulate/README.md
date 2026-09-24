@@ -22,7 +22,7 @@ Cimulate Agent is an internal name for today's implementation of the Shopper Age
 
 **Value:** Minified JSON object with keys: `enabled`, `provider` (currently `"commerce-client"`), `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`.
 
-Optional keys: `headerText`, `disclaimerMarkdown`, `commerceClientDisplayMode` (`panel`/`dialog`/`modal`), `commerceClientPanelWidth`, `commerceClientMode`, `commerceClientLogoUrl`, `commerceClientSearchConfig`, `commerceClientTheme`, `routingAttributes`, `isDevelopment`.
+Optional keys: `headerText`, `disclaimerMarkdown`, `commerceClientDisplayMode` (`panel`/`dialog`/`modal`), `commerceClientPanelWidth`, `commerceClientMode`, `commerceClientLogoUrl`, `commerceClientSearchConfig`, `commerceClientTheme`, `routingAttributes`, `isDevelopment`, `disabledPathPatterns` (see [Hiding the agent on specific pages](#hiding-the-agent-on-specific-pages)).
 
 ### Example
 
@@ -60,6 +60,36 @@ in the JSON value for `PUBLIC__app__commerce__shopperAgent` (or the legacy `PUBL
 **Local development** — In the root directory of the storefront, find the `.env` file. Set `PUBLIC__app__commerce__shopperAgent` (or the legacy `PUBLIC__app__cimulateAgent`) to the minified JSON string.
 
 **Disable** — Omit the variable or set `enabled` to `"false"`.
+
+## Hiding the agent on specific pages
+
+Add `disabledPathPatterns` to the shopper-agent JSON to hide the widget on selected routes. Each entry is a JavaScript regex. On every navigation the code takes the current URL's path (e.g. `/global/en-GB/category/gift-certificates` — the part after the domain, before the query string) and asks each regex "do you match anywhere in this path?" — if any regex says yes, `<CimulateAgent>` does not render on that page, and a CSS rule hides the vendor widget in case its DOM was already injected on a prior navigation. No code change is required to opt pages in or out.
+
+### Example — hide on the Gift Certificates category
+
+```json
+{
+  "enabled": "true",
+  "provider": "commerce-client",
+  "commerceClientScriptSourceUrl": "https://cdn.search.cimulate.ai/copilot-widget/1.36.0/messaging.umd.js",
+  "scrt2Url": "https://your-org.salesforce-scrt.com",
+  "salesforceOrgId": "00Dxx0000000001",
+  "esDeveloperName": "My_Embedded_Service",
+  "disabledPathPatterns": ["/category/gift-certificates(/|$)"]
+}
+```
+
+Given the app runs paths like `/global/en-GB/category/gift-certificates`, the pattern above matches that exact page and any subpath under it (e.g. `/category/gift-certificates/details`), but not lookalikes such as `/category/gift-certificates-holiday`. `(/|$)` is a regex group meaning "followed by a slash, or end of string" — it anchors the match at a path-segment boundary.
+
+To disable multiple pages, add more patterns:
+
+```json
+"disabledPathPatterns": [
+  "/category/gift-certificates(/|$)",
+  "/checkout(/|$)",
+  "/account/passkeys$"
+]
+```
 
 ## Usage
 

@@ -27,6 +27,7 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
+    useLocation,
     useRevalidator,
     useRouteLoaderData,
 } from 'react-router';
@@ -764,6 +765,18 @@ export default function App({
 
     const shopperAgent = resolveShopperAgentConfig(appConfig);
     const shopperAgentEnabled = isCimulateEnabled(shopperAgent?.enabled);
+    const { pathname } = useLocation();
+    const shopperAgentDisabledByRoute = useMemo(() => {
+        const patterns = shopperAgent?.disabledPathPatterns;
+        if (!patterns || patterns.length === 0) return false;
+        return patterns.some((pat: string) => {
+            try {
+                return new RegExp(pat).test(pathname);
+            } catch {
+                return false;
+            }
+        });
+    }, [shopperAgent?.disabledPathPatterns, pathname]);
 
     const innerTree = (
         <UITargetProviders>
@@ -788,7 +801,12 @@ export default function App({
     return (
         <ComposeProviders providers={providers}>
             {passkeyEnabled ? <PasskeyRegistrationProvider>{innerTree}</PasskeyRegistrationProvider> : innerTree}
-            {shopperAgentEnabled && <CimulateAgent cimulateConfiguration={shopperAgent} />}
+            {shopperAgentEnabled && !shopperAgentDisabledByRoute && (
+                <CimulateAgent cimulateConfiguration={shopperAgent} />
+            )}
+            {shopperAgentEnabled && shopperAgentDisabledByRoute && (
+                <style>{'.commerce-client-shopper-agent{display:none !important;}'}</style>
+            )}
         </ComposeProviders>
     );
 }
