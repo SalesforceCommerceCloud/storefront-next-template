@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import debounce from 'lodash.debounce';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/toast';
@@ -65,6 +66,8 @@ export function useInlineCartQuantity({
     const { addToast } = useToast();
     const { t } = useTranslation('quantitySelector');
     const config = useConfig();
+    const debounceDelay = config.pages.cart.quantityUpdateDebounce;
+    const removeAction = config.pages.cart.removeAction;
     const cartItem = useMemo(
         () => (enabled ? findBasketItemForProduct(basket, productId, storeId) : undefined),
         [basket, enabled, productId, storeId]
@@ -72,13 +75,27 @@ export function useInlineCartQuantity({
     const itemId = cartItem?.itemId;
     const basketQuantity = cartItem?.quantity ?? 0;
     const [optimisticQuantity, setOptimisticQuantity] = useState<number | null>(null);
+    // A quantity the shopper tapped to while an update was in flight, held until the line is free so it
+    // can flush as one trailing submit instead of being dropped.
+    const pendingFlushRef = useRef<number | null>(null);
     const fetcher = useItemFetcher({ itemId, componentName: 'inline-add-to-cart' });
     const itemHasPendingMutation = useItemFetcherLoading(itemId);
     const isUpdating = fetcher.state !== 'idle' || itemHasPendingMutation;
 
+    // A new target line clears the optimistic override and any queued flush outright.
     useEffect(() => {
         setOptimisticQuantity(null);
-    }, [basketQuantity, itemId]);
+        pendingFlushRef.current = null;
+    }, [itemId]);
+
+    // A settled basket change clears the optimistic override, unless a tap made while an update was in
+    // flight is still queued to flush. In that case the optimistic value is deliberately ahead of the
+    // basket, so keep showing it until its own submit lands (see the flush effect below).
+    useEffect(() => {
+        if (pendingFlushRef.current === null) {
+            setOptimisticQuantity(null);
+        }
+    }, [basketQuantity]);
 
     useEffect(() => {
         const result = fetcher.data as BasketActionResponse | undefined;
@@ -90,11 +107,15 @@ export function useInlineCartQuantity({
             if (result.basket) {
                 updateBasket(result.basket);
             }
-            setOptimisticQuantity(null);
+            // Keep a queued in-flight tap visible; the flush effect submits it now the line is free.
+            if (pendingFlushRef.current === null) {
+                setOptimisticQuantity(null);
+            }
             return;
         }
 
         if (result.success === false) {
+            pendingFlushRef.current = null;
             setOptimisticQuantity(null);
             addToast(
                 result.error?.code === ErrorCode.OUT_OF_STOCK ? t('insufficientStock') : t('quantityUpdateFailed'),
@@ -160,39 +181,79 @@ export function useInlineCartQuantity({
               : Math.min(maxQuantity, stockLevel);
     const incrementDisabled = effectiveLimit !== undefined && quantityInCart >= effectiveLimit;
 
-    const increment = useCallback(() => {
-        if (!itemId || isUpdating || incrementDisabled) {
-            return;
-        }
+    // Coalesce rapid taps into a single basket update carrying the trailing quantity, matching the
+    // cart line-item quantity input (see use-cart-quantity-update.ts). Each tap updates the optimistic
+    // quantity immediately for responsive UI; only the final quantity is submitted once the burst
+    // settles. The absolute quantity is sent (never a delta), so an overlapping update is last-write-
+    // wins rather than corrupting the count. A trailing quantity of 0 removes the line.
+    const submitQuantity = useMemo(() => {
+        return debounce((nextQuantity: number) => {
+            if (!itemId) {
+                return;
+            }
 
-        const quantity = quantityInCart + 1;
-        setOptimisticQuantity(quantity);
-        const formData = new FormData();
-        formData.append('itemId', itemId);
-        formData.append('quantity', quantity.toString());
-        void fetcher.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
-    }, [fetcher, incrementDisabled, isUpdating, itemId, quantityInCart]);
-
-    const decrement = useCallback(() => {
-        if (!itemId || isUpdating) {
-            return;
-        }
-
-        if (quantityInCart <= 1) {
-            setOptimisticQuantity(0);
             const formData = new FormData();
             formData.append('itemId', itemId);
-            void fetcher.submit(formData, { method: 'POST', action: config.pages.cart.removeAction });
+            if (nextQuantity <= 0) {
+                void fetcher.submit(formData, { method: 'POST', action: removeAction });
+                return;
+            }
+            formData.append('quantity', nextQuantity.toString());
+            void fetcher.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
+        }, debounceDelay);
+        // fetcher is a stable submitter; recreate only when the target line, delay, or remove route changes.
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
+    }, [itemId, debounceDelay, removeAction]);
+
+    // Cancel a scheduled update when the target line changes or the control unmounts, so a queued
+    // submit never fires against a stale line or after teardown.
+    useEffect(() => {
+        return () => submitQuantity.cancel();
+    }, [submitQuantity]);
+
+    // Once an in-flight update settles and the line is free, submit the quantity the shopper tapped to
+    // while it was busy. The optimistic quantity already shows this value; send the absolute quantity so
+    // it is last-write-wins against the update that just finished.
+    useEffect(() => {
+        if (isUpdating || pendingFlushRef.current === null) {
             return;
         }
+        const nextQuantity = pendingFlushRef.current;
+        pendingFlushRef.current = null;
+        submitQuantity.cancel();
+        submitQuantity(nextQuantity);
+    }, [isUpdating, submitQuantity]);
 
-        const quantity = quantityInCart - 1;
-        setOptimisticQuantity(quantity);
-        const formData = new FormData();
-        formData.append('itemId', itemId);
-        formData.append('quantity', quantity.toString());
-        void fetcher.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
-    }, [config.pages.cart.removeAction, fetcher, isUpdating, itemId, quantityInCart]);
+    // Apply a tapped quantity: show it immediately, then either submit it (line idle) or queue it to
+    // flush once the in-flight update settles (line busy). Queueing keeps rapid taps from being dropped
+    // mid-update while still coalescing them into a single trailing submit.
+    const applyQuantity = useCallback(
+        (quantity: number) => {
+            setOptimisticQuantity(quantity);
+            submitQuantity.cancel();
+            if (isUpdating) {
+                pendingFlushRef.current = quantity;
+                return;
+            }
+            pendingFlushRef.current = null;
+            submitQuantity(quantity);
+        },
+        [isUpdating, submitQuantity]
+    );
+
+    const increment = useCallback(() => {
+        if (!itemId || incrementDisabled) {
+            return;
+        }
+        applyQuantity(quantityInCart + 1);
+    }, [applyQuantity, incrementDisabled, itemId, quantityInCart]);
+
+    const decrement = useCallback(() => {
+        if (!itemId) {
+            return;
+        }
+        applyQuantity(quantityInCart <= 1 ? 0 : quantityInCart - 1);
+    }, [applyQuantity, itemId, quantityInCart]);
 
     return { quantityInCart, increment, decrement, isUpdating, incrementDisabled, isResolvingQuantity };
 }

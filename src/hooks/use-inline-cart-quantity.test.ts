@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import type { ShopperBasketsV2 } from '@/scapi';
 import { getTranslation } from '@salesforce/storefront-next-runtime/i18n';
 import { ErrorCode } from '@/lib/error-codes';
@@ -87,6 +87,13 @@ const getSubmittedFormData = (): FormData => mockSubmit.mock.calls[0]?.[0] as Fo
 const getSubmitOptions = (): { method: string; action: string } =>
     mockSubmit.mock.calls[0]?.[1] as { method: string; action: string };
 
+// Quantity submits are debounced (see use-inline-cart-quantity.ts). Tests that assert the network
+// call use fake timers and flush the debounce window; the test config sets the delay to 750ms.
+const flushDebounce = () =>
+    act(() => {
+        vi.advanceTimersByTime(1000);
+    });
+
 describe('useInlineCartQuantity', () => {
     const { t } = getTranslation();
 
@@ -101,6 +108,11 @@ describe('useInlineCartQuantity', () => {
         mockFetcher.data = undefined;
     });
 
+    afterEach(() => {
+        // Tests opt into fake timers individually; restore real timers so async waitFor tests are unaffected.
+        vi.useRealTimers();
+    });
+
     test('does not use a basket line while the inline control is disabled', () => {
         mockBasket = createBasket([createItem({ quantity: 4 })]);
 
@@ -113,6 +125,7 @@ describe('useInlineCartQuantity', () => {
     });
 
     test('increments the selected delivery line through the cart update action', () => {
+        vi.useFakeTimers();
         mockBasket = createBasket([createItem()]);
         const { result } = renderHook(
             () => useInlineCartQuantity({ productId: 'sku-a', stockLevel: 5, enabled: true }),
@@ -124,6 +137,7 @@ describe('useInlineCartQuantity', () => {
         });
 
         expect(result.current.quantityInCart).toBe(3);
+        flushDebounce();
         expect(getSubmittedFormData()).toEqual(expect.any(FormData));
         expect(getSubmittedFormData().get('itemId')).toBe('item-1');
         expect(getSubmittedFormData().get('quantity')).toBe('3');
@@ -138,6 +152,7 @@ describe('useInlineCartQuantity', () => {
             ],
             [{ shipmentId: 'pickup-shipment', c_fromStoreId: 'store-a' }]
         );
+        vi.useFakeTimers();
         const { result } = renderHook(
             () => useInlineCartQuantity({ productId: 'sku-a', storeId: 'store-a', enabled: true }),
             { wrapper: ConfigWrapper }
@@ -148,6 +163,7 @@ describe('useInlineCartQuantity', () => {
         });
 
         expect(result.current.quantityInCart).toBe(5);
+        flushDebounce();
         expect(getSubmittedFormData().get('itemId')).toBe('pickup-line');
         expect(getSubmittedFormData().get('quantity')).toBe('5');
     });
@@ -213,6 +229,7 @@ describe('useInlineCartQuantity', () => {
     });
 
     test('decrements a multi-unit line through the cart update action', () => {
+        vi.useFakeTimers();
         mockBasket = createBasket([createItem({ quantity: 2 })]);
         const { result } = renderHook(() => useInlineCartQuantity({ productId: 'sku-a', enabled: true }), {
             wrapper: ConfigWrapper,
@@ -223,12 +240,14 @@ describe('useInlineCartQuantity', () => {
         });
 
         expect(result.current.quantityInCart).toBe(1);
+        flushDebounce();
         expect(getSubmittedFormData().get('itemId')).toBe('item-1');
         expect(getSubmittedFormData().get('quantity')).toBe('1');
         expect(getSubmitOptions()).toEqual({ method: 'PATCH', action: resourceRoutes.cartItemUpdate });
     });
 
     test('removes a single-unit line instead of submitting a zero quantity', () => {
+        vi.useFakeTimers();
         mockBasket = createBasket([createItem({ quantity: 1 })]);
         const { result } = renderHook(() => useInlineCartQuantity({ productId: 'sku-a', enabled: true }), {
             wrapper: ConfigWrapper,
@@ -239,9 +258,125 @@ describe('useInlineCartQuantity', () => {
         });
 
         expect(result.current.quantityInCart).toBe(0);
+        flushDebounce();
         expect(getSubmittedFormData().get('itemId')).toBe('item-1');
         expect(getSubmittedFormData().get('quantity')).toBeNull();
         expect(getSubmitOptions()).toEqual({ method: 'POST', action: '/action/cart-item-remove' });
+    });
+
+    test('coalesces rapid increments into a single update carrying the final quantity', () => {
+        vi.useFakeTimers();
+        mockBasket = createBasket([createItem({ quantity: 2 })]);
+        const { result } = renderHook(
+            () => useInlineCartQuantity({ productId: 'sku-a', stockLevel: 10, enabled: true }),
+            { wrapper: ConfigWrapper }
+        );
+
+        // Separate ticks so each tap sees the previous optimistic quantity, as separate taps would.
+        act(() => {
+            result.current.increment();
+        });
+        act(() => {
+            result.current.increment();
+        });
+        act(() => {
+            result.current.increment();
+        });
+
+        // Every tap advances the displayed quantity immediately.
+        expect(result.current.quantityInCart).toBe(5);
+
+        // Nothing is submitted mid-burst.
+        act(() => {
+            vi.advanceTimersByTime(500);
+        });
+        expect(mockSubmit).not.toHaveBeenCalled();
+
+        // One submit carrying the trailing quantity once the burst settles.
+        flushDebounce();
+        expect(mockSubmit).toHaveBeenCalledTimes(1);
+        expect(getSubmittedFormData().get('quantity')).toBe('5');
+        expect(getSubmitOptions()).toEqual({ method: 'PATCH', action: resourceRoutes.cartItemUpdate });
+    });
+
+    test('coalesces rapid decrements down to a single remove', () => {
+        vi.useFakeTimers();
+        mockBasket = createBasket([createItem({ quantity: 2 })]);
+        const { result } = renderHook(() => useInlineCartQuantity({ productId: 'sku-a', enabled: true }), {
+            wrapper: ConfigWrapper,
+        });
+
+        act(() => {
+            result.current.decrement();
+        });
+        act(() => {
+            result.current.decrement();
+        });
+
+        expect(result.current.quantityInCart).toBe(0);
+
+        flushDebounce();
+        expect(mockSubmit).toHaveBeenCalledTimes(1);
+        expect(getSubmittedFormData().get('quantity')).toBeNull();
+        expect(getSubmitOptions()).toEqual({ method: 'POST', action: '/action/cart-item-remove' });
+    });
+
+    test('does not drop a tap made during an in-flight update, and flushes it once the line is free', () => {
+        vi.useFakeTimers();
+        mockBasket = createBasket([createItem({ quantity: 2 })]);
+        const { result, rerender } = renderHook(
+            () => useInlineCartQuantity({ productId: 'sku-a', stockLevel: 10, enabled: true }),
+            { wrapper: ConfigWrapper }
+        );
+
+        // An update for this line is in flight.
+        mockFetcher.state = 'submitting';
+        rerender();
+        expect(result.current.isUpdating).toBe(true);
+
+        // Taps during the in-flight update still advance the displayed quantity immediately and coalesce,
+        // rather than being dropped by the busy line.
+        act(() => {
+            result.current.increment();
+        });
+        act(() => {
+            result.current.increment();
+        });
+        expect(result.current.quantityInCart).toBe(4);
+
+        // Nothing new is submitted while the line is busy.
+        flushDebounce();
+        expect(mockSubmit).not.toHaveBeenCalled();
+
+        // Once the in-flight update settles, the queued taps flush as a single trailing submit carrying
+        // the final quantity.
+        act(() => {
+            mockFetcher.state = 'idle';
+        });
+        rerender();
+        flushDebounce();
+        expect(mockSubmit).toHaveBeenCalledTimes(1);
+        expect(getSubmittedFormData().get('quantity')).toBe('4');
+        expect(getSubmitOptions()).toEqual({ method: 'PATCH', action: resourceRoutes.cartItemUpdate });
+    });
+
+    test('cancels a pending quantity update on unmount', () => {
+        vi.useFakeTimers();
+        mockBasket = createBasket([createItem({ quantity: 2 })]);
+        const { result, unmount } = renderHook(
+            () => useInlineCartQuantity({ productId: 'sku-a', stockLevel: 10, enabled: true }),
+            { wrapper: ConfigWrapper }
+        );
+
+        act(() => {
+            result.current.increment();
+        });
+        unmount();
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
+
+        expect(mockSubmit).not.toHaveBeenCalled();
     });
 
     test('publishes the returned basket after a successful mutation', async () => {
