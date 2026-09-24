@@ -21,6 +21,8 @@ import type { ShopperCustomers } from '@/scapi';
  * Host-owned add-payment dialog contract for extensions that replace
  * `sfcc.myAccount.payments.addMethod` (form body inside the shared shell).
  * Close/cancel stay on the host Dialog; CAP calls onComplete / onError after ECOM.
+ * While CAP reports busy, host blocks X / overlay / Escape so confirm+complete
+ * are not interrupted by unmount.
  */
 export type AddPaymentMethodDialogContextValue = {
     addresses: ShopperCustomers.schemas['CustomerAddress'][];
@@ -30,6 +32,11 @@ export type AddPaymentMethodDialogContextValue = {
      */
     email?: string;
     isLoading: boolean;
+    /**
+     * CAP in-flight setup/confirm/complete. Host ORs this with native `isLoading`
+     * to block dialog dismiss until the round-trip finishes.
+     */
+    setBusy: (busy: boolean) => void;
     /** Close the shared shell without treating the flow as complete. */
     onClose: () => void;
     /** CAP finished setup/complete — host closes + toasts. CAP refreshes the SFP list. */

@@ -96,8 +96,12 @@ export function AddPaymentMethodDialog({
         },
     });
 
+    // Native fetcher loading OR CAP confirm→complete — block X / overlay / Escape.
+    const [extensionBusy, setExtensionBusy] = useState(false);
+    const dismissBlocked = isLoading || extensionBusy;
+
     const handleClose = () => {
-        if (isLoading) return;
+        if (dismissBlocked) return;
         setSelectedAddress('');
         setIsAddingNewAddress(false);
         setFormError(null);
@@ -174,13 +178,22 @@ export function AddPaymentMethodDialog({
             setSelectedAddress('');
             setIsAddingNewAddress(false);
             setFormError(null);
+            setExtensionBusy(false);
             paymentForm.reset();
         }
     }, [open, paymentForm]);
 
+    const handleOpenChange = useCallback(
+        (nextOpen: boolean) => {
+            if (!nextOpen && dismissBlocked) return;
+            onOpenChange(nextOpen);
+        },
+        [dismissBlocked, onOpenChange]
+    );
+
     const handleCloseShell = useCallback(() => {
-        if (!isLoading) onOpenChange(false);
-    }, [isLoading, onOpenChange]);
+        if (!dismissBlocked) onOpenChange(false);
+    }, [dismissBlocked, onOpenChange]);
 
     const handleComplete = useCallback(() => {
         onComplete?.();
@@ -198,6 +211,7 @@ export function AddPaymentMethodDialog({
             addresses,
             email,
             isLoading,
+            setBusy: setExtensionBusy,
             onClose: handleCloseShell,
             onComplete: handleComplete,
             onError: handleError,
@@ -206,8 +220,16 @@ export function AddPaymentMethodDialog({
     );
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogContent
+                className="sm:max-w-lg max-h-[90vh] overflow-y-auto"
+                showCloseButton={!dismissBlocked}
+                onInteractOutside={(event) => {
+                    if (dismissBlocked) event.preventDefault();
+                }}
+                onEscapeKeyDown={(event) => {
+                    if (dismissBlocked) event.preventDefault();
+                }}>
                 <DialogHeader className="mb-4">
                     <DialogTitle className="text-lg font-semibold text-foreground">
                         {t('paymentMethods.addPaymentMethodTitle')}
@@ -308,10 +330,10 @@ export function AddPaymentMethodDialog({
                             </div>
 
                             <div className="flex items-center justify-end gap-3 mt-2 pt-6 border-t">
-                                <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+                                <Button variant="outline" onClick={handleClose} disabled={dismissBlocked}>
                                     {t('paymentMethods.cancel')}
                                 </Button>
-                                <Button onClick={() => void handleSubmit()} disabled={isLoading}>
+                                <Button onClick={() => void handleSubmit()} disabled={dismissBlocked}>
                                     {t('paymentMethods.save')}
                                 </Button>
                             </div>

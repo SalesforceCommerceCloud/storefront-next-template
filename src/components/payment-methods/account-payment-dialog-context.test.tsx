@@ -36,6 +36,7 @@ const addValue = (): AddPaymentMethodDialogContextValue => ({
     ],
     email: 'jane@example.com',
     isLoading: false,
+    setBusy: vi.fn(),
     onClose: vi.fn(),
     onComplete: vi.fn(),
     onError: vi.fn(),
@@ -57,6 +58,7 @@ describe('account payment dialog context', () => {
             'onClose',
             'onComplete',
             'onError',
+            'setBusy',
         ]);
         expect(result.current).toBe(value);
         expect(result.current.email).toBe('jane@example.com');

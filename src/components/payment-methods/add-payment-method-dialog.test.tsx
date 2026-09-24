@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect, vi } from 'vitest';
 import type { ShopperCustomers } from '@/scapi';
@@ -135,6 +135,7 @@ describe('AddPaymentMethodDialog', () => {
             addresses: ShopperCustomers.schemas['CustomerAddress'][];
             email?: string;
             isLoading: boolean;
+            setBusy: (busy: boolean) => void;
             onClose: () => void;
             onComplete: () => void;
             onError: (error?: unknown) => void;
@@ -148,10 +149,12 @@ describe('AddPaymentMethodDialog', () => {
             'onClose',
             'onComplete',
             'onError',
+            'setBusy',
         ]);
         expect(context.addresses).toEqual(mockAddresses);
         expect(context.email).toBe('shopper@example.com');
         expect(context.isLoading).toBe(false);
+        expect(typeof context.setBusy).toBe('function');
 
         const error = new Error('setup failed');
         context.onComplete();
@@ -160,5 +163,41 @@ describe('AddPaymentMethodDialog', () => {
         expect(onComplete).toHaveBeenCalledOnce();
         expect(onError).toHaveBeenCalledOnce();
         expect(onError).toHaveBeenCalledWith(error);
+    });
+
+    test('blocks dismiss while CAP reports busy via setBusy', async () => {
+        const user = userEvent.setup();
+        const onOpenChange = vi.fn();
+
+        render(<AddPaymentMethodDialog {...defaultProps} onOpenChange={onOpenChange} />);
+
+        const firstContext = captureDialogContext.mock.lastCall?.[0] as {
+            setBusy: (busy: boolean) => void;
+        };
+        act(() => {
+            firstContext.setBusy(true);
+        });
+
+        const busyContext = captureDialogContext.mock.lastCall?.[0] as {
+            setBusy: (busy: boolean) => void;
+            onClose: () => void;
+        };
+        busyContext.onClose();
+        expect(onOpenChange).not.toHaveBeenCalled();
+
+        // Footer Cancel is disabled while busy.
+        expect(screen.getAllByText(t('account:paymentMethods.cancel'))[0]).toBeDisabled();
+
+        act(() => {
+            busyContext.setBusy(false);
+        });
+
+        const idleContext = captureDialogContext.mock.lastCall?.[0] as { onClose: () => void };
+        idleContext.onClose();
+        expect(onOpenChange).toHaveBeenCalledWith(false);
+
+        onOpenChange.mockClear();
+        await user.click(screen.getAllByText(t('account:paymentMethods.cancel'))[0]);
+        expect(onOpenChange).toHaveBeenCalledWith(false);
     });
 });
