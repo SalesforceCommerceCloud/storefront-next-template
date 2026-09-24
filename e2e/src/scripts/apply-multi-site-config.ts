@@ -29,11 +29,13 @@
  *   tsx apply-multi-site-config.ts no-site-locale
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 
 const TEMPLATE_APP_PATH = resolve(__dirname, '../../../');
-const CONFIG_PATH = resolve(TEMPLATE_APP_PATH, 'config.server.ts');
+const BASE_CONFIG_PATH = resolve(TEMPLATE_APP_PATH, 'config.server.base.ts');
+const CONFIG_PATH = existsSync(BASE_CONFIG_PATH) ? BASE_CONFIG_PATH : resolve(TEMPLATE_APP_PATH, 'config.server.ts');
+const CONFIG_FILE_NAME = basename(CONFIG_PATH);
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -157,7 +159,7 @@ const originalConfig = config;
 // 1. Replace the url block
 const urlBlockRegex = /( {12})url:\s*\{[^}]+\},/s;
 if (!urlBlockRegex.test(config)) {
-    console.error('❌ Could not find the url: { ... } block in config.server.ts');
+    console.error(`❌ Could not find the url: { ... } block in ${CONFIG_FILE_NAME}`);
     process.exit(1);
 }
 config = config.replace(urlBlockRegex, serializeUrlBlock(preset.url));
@@ -181,7 +183,7 @@ if (detectionBlocks.length > 0) {
     const siteAliasMapRegex = /(siteAliasMap:\s*\{[^}]+\},)/s;
     const match = config.match(siteAliasMapRegex);
     if (!match) {
-        console.error('❌ Could not find siteAliasMap block in config.server.ts');
+        console.error(`❌ Could not find siteAliasMap block in ${CONFIG_FILE_NAME}`);
         writeFileSync(CONFIG_PATH, originalConfig, 'utf-8');
         process.exit(1);
     }
@@ -191,7 +193,7 @@ if (detectionBlocks.length > 0) {
 
 // 4. Write patched config
 writeFileSync(CONFIG_PATH, config, 'utf-8');
-console.log(`   ✅ Patched config.server.ts\n`);
+console.log(`   ✅ Patched ${CONFIG_FILE_NAME}\n`);
 
 // 5. Sanity check
 if (!config.includes('url:') || !config.includes('excludeRoutes') || !config.includes('defineConfig')) {
