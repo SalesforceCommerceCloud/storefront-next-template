@@ -317,10 +317,14 @@ export function useCartQuantityUpdate<
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [fetcher.state, fetcher.data, itemId, updateBasket]);
 
-    // Cleanup debounce on unmount
+    // Flush (not cancel) any pending debounced update on unmount so a quantity change made just
+    // before the mini-cart panel closes still reaches the basket. Closing the panel unmounts the
+    // line item inside the debounce window; cancelling here dropped the trailing change, so a rapid
+    // increase/decrease followed by an immediate close left the quantity unadjusted. flush() is a
+    // no-op when nothing is pending, so an unmount with no in-flight change costs nothing.
     useEffect(() => {
         return () => {
-            changeItemQuantity.cancel();
+            changeItemQuantity.flush();
         };
         // changeItemQuantity: stable debounced function, no need to recreate effect
         // Only depend on itemId to avoid premature cleanup

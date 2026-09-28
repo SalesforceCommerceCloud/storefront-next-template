@@ -399,6 +399,24 @@ describe('useInlineCartQuantity', () => {
         expect(result.current.quantityInCart).toBe(3);
     });
 
+    test('confirms a successful mutation with a toast, matching the mini-cart control', async () => {
+        mockBasket = createBasket([createItem({ quantity: 2 })]);
+        const { result, rerender } = renderHook(() => useInlineCartQuantity({ productId: 'sku-a', enabled: true }), {
+            wrapper: ConfigWrapper,
+        });
+
+        act(() => {
+            result.current.increment();
+            mockBasket = createBasket([createItem({ quantity: 3 })]);
+            mockFetcher.data = { success: true, basket: mockBasket };
+        });
+        rerender();
+
+        await waitFor(() => {
+            expect(mockAddToast).toHaveBeenCalledWith(t('quantitySelector:quantityUpdated'), 'success');
+        });
+    });
+
     test('restores the basket quantity and reports an out-of-stock rejection', async () => {
         mockBasket = createBasket([createItem({ quantity: 2 })]);
         const { result, rerender } = renderHook(() => useInlineCartQuantity({ productId: 'sku-a', enabled: true }), {

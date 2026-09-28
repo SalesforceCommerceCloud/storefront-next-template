@@ -81,6 +81,16 @@ export function useInlineCartQuantity({
     const fetcher = useItemFetcher({ itemId, componentName: 'inline-add-to-cart' });
     const itemHasPendingMutation = useItemFetcherLoading(itemId);
     const isUpdating = fetcher.state !== 'idle' || itemHasPendingMutation;
+    // Always submit through the current fetcher. React Router's useFetcher seeds its key from useId and
+    // only re-syncs to the real `${itemId}-...` key on the render after `itemId` resolves (via a
+    // render-phase setState). The debounced submitter below is created on that same transition render,
+    // so a directly-captured fetcher would post under the stale auto-generated key and its response
+    // would never reach this hook, leaving the mini cart out of sync. Reading the fetcher from a ref at
+    // call time targets the converged key instead.
+    const fetcherRef = useRef(fetcher);
+    useEffect(() => {
+        fetcherRef.current = fetcher;
+    });
 
     // A new target line clears the optimistic override and any queued flush outright.
     useEffect(() => {
@@ -111,6 +121,10 @@ export function useInlineCartQuantity({
             if (pendingFlushRef.current === null) {
                 setOptimisticQuantity(null);
             }
+            // Confirm the saved change, matching the mini-cart line-item control (see
+            // use-cart-quantity-update.ts). The PDP control is usually used with the mini cart closed,
+            // so this toast is the shopper's only signal that the basket was updated.
+            addToast(t('quantityUpdated'), 'success');
             return;
         }
 
@@ -195,14 +209,14 @@ export function useInlineCartQuantity({
             const formData = new FormData();
             formData.append('itemId', itemId);
             if (nextQuantity <= 0) {
-                void fetcher.submit(formData, { method: 'POST', action: removeAction });
+                void fetcherRef.current.submit(formData, { method: 'POST', action: removeAction });
                 return;
             }
             formData.append('quantity', nextQuantity.toString());
-            void fetcher.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
+            void fetcherRef.current.submit(formData, { method: 'PATCH', action: resourceRoutes.cartItemUpdate });
         }, debounceDelay);
-        // fetcher is a stable submitter; recreate only when the target line, delay, or remove route changes.
-        // oxlint-disable-next-line react-hooks/exhaustive-deps
+        // Submit via fetcherRef so a burst coalesces into one trailing call and always targets the
+        // current fetcher key; recreate only when the target line, delay, or remove route changes.
     }, [itemId, debounceDelay, removeAction]);
 
     // Cancel a scheduled update when the target line changes or the control unmounts, so a queued

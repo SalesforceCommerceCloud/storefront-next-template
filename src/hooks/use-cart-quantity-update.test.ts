@@ -43,6 +43,12 @@ vi.mock('@/providers/basket', () => ({
     useBasketUpdater: () => mockUpdateBasket,
 }));
 
+// Records every debounced function the hook creates so a test can assert what the unmount
+// cleanup does to the pending call (flush vs cancel).
+const debounceInstances = vi.hoisted(
+    () => [] as Array<{ cancel: ReturnType<typeof vi.fn>; flush: ReturnType<typeof vi.fn> }>
+);
+
 // Mock debounce to be synchronous for testing
 vi.mock('lodash.debounce', () => ({
     default: (fn: (...args: unknown[]) => void) => {
@@ -52,6 +58,7 @@ vi.mock('lodash.debounce', () => ({
         };
         debouncedFn.cancel = vi.fn();
         debouncedFn.flush = vi.fn();
+        debounceInstances.push(debouncedFn);
         return debouncedFn;
     },
 }));
@@ -721,6 +728,24 @@ describe('useCartQuantityUpdate', () => {
                     action: resourceRoutes.cartItemUpdate,
                 })
             );
+        });
+
+        test('flushes the pending debounced update on unmount so a change made just before the panel closes still persists', () => {
+            debounceInstances.length = 0;
+            const { unmount } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+
+            // The hook creates one debounced updater (stable via useMemo). Inspect it directly, since
+            // the debounce mock is synchronous and can't exercise real timing.
+            const debounced = debounceInstances.at(-1);
+            expect(debounced).toBeDefined();
+            expect(debounced?.flush).not.toHaveBeenCalled();
+
+            // Closing the mini-cart panel unmounts the line item. The cleanup must flush the trailing
+            // change, not cancel it, or a rapid quantity change followed by an immediate close is dropped.
+            unmount();
+
+            expect(debounced?.flush).toHaveBeenCalledTimes(1);
+            expect(debounced?.cancel).not.toHaveBeenCalled();
         });
     });
 });
