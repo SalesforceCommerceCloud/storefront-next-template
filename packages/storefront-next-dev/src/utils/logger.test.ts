@@ -205,6 +205,37 @@ describe('logger utils', () => {
             expect(logger.getLevel()).toBe('debug');
         });
 
+        // MRT injects MRT_LOG_LEVEL as a numeric string from its LogLevel enum
+        // (0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR, 5=FATAL).
+        it.each([
+            ['0', 'debug'],
+            ['1', 'debug'],
+            ['2', 'info'],
+            ['3', 'warn'],
+            ['4', 'error'],
+            ['5', 'error'],
+        ] as const)('should map numeric MRT_LOG_LEVEL=%s to %s', (mrtValue, expected) => {
+            delete process.env.SFCC_LOG_LEVEL;
+            delete process.env.DEBUG;
+            process.env.NODE_ENV = 'production';
+            process.env.MRT_LOG_LEVEL = mrtValue;
+            expect(logger.getLevel()).toBe(expected);
+        });
+
+        it('MRT_LOG_LEVEL should take precedence over SFCC_LOG_LEVEL', () => {
+            delete process.env.DEBUG;
+            process.env.MRT_LOG_LEVEL = '1'; // DEBUG
+            process.env.SFCC_LOG_LEVEL = 'error';
+            expect(logger.getLevel()).toBe('debug');
+        });
+
+        it('should fall back to SFCC_LOG_LEVEL when MRT_LOG_LEVEL is unrecognized', () => {
+            delete process.env.DEBUG;
+            process.env.MRT_LOG_LEVEL = '99';
+            process.env.SFCC_LOG_LEVEL = 'error';
+            expect(logger.getLevel()).toBe('error');
+        });
+
         it('should fall back to debug when DEBUG=true', () => {
             delete process.env.SFCC_LOG_LEVEL;
             process.env.DEBUG = 'true';

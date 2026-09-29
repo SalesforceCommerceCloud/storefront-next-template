@@ -25,6 +25,27 @@ const LEVEL_PRIORITY = {
 	info: 2,
 	debug: 3
 };
+/**
+* Type guard for a {@link LogLevel} name. Uses `Object.hasOwn` (not `in`) so
+* inherited properties like `toString` don't falsely validate an env value.
+*/
+function isLogLevel(value) {
+	return Object.hasOwn(LEVEL_PRIORITY, value);
+}
+/**
+* Managed Runtime injects `MRT_LOG_LEVEL` as a numeric string from its own
+* `LogLevel` enum (`0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR, 5=FATAL`), not a
+* level name — so it must be mapped, not matched against {@link LEVEL_PRIORITY}'s
+* keys. `TRACE` and `FATAL` clamp to the closest level this logger supports.
+*/
+const MRT_NUMERIC_TO_LEVEL = {
+	"0": "debug",
+	"1": "debug",
+	"2": "info",
+	"3": "warn",
+	"4": "error",
+	"5": "error"
+};
 let overrideLevel;
 /**
 * Returns true when the `DEBUG` env var targets sfnext or is a general enable flag.
@@ -48,8 +69,10 @@ function debugEnablesSfnext() {
 }
 function resolveLevel() {
 	if (overrideLevel) return overrideLevel;
-	const envLevel = process.env.MRT_LOG_LEVEL ?? process.env.SFCC_LOG_LEVEL;
-	if (envLevel && envLevel in LEVEL_PRIORITY) return envLevel;
+	const mrtLevel = process.env.MRT_LOG_LEVEL;
+	if (mrtLevel && mrtLevel in MRT_NUMERIC_TO_LEVEL) return MRT_NUMERIC_TO_LEVEL[mrtLevel];
+	const sfccLevel = process.env.SFCC_LOG_LEVEL;
+	if (sfccLevel && isLogLevel(sfccLevel)) return sfccLevel;
 	if (debugEnablesSfnext()) return "debug";
 	if (process.env.NODE_ENV === "production") return "warn";
 	return "info";

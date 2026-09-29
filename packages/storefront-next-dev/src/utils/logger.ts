@@ -54,7 +54,8 @@ export function getPackageVersion(packageName: string, projectDir: string): stri
 /**
  * Centralized, level-gated logger for the SDK.
  *
- * Log level is controlled by `SFCC_LOG_LEVEL` env var (`error` | `warn` | `info` | `debug`).
+ * Log level is controlled by `SFCC_LOG_LEVEL` env var (`error` | `warn` | `info` | `debug`),
+ * or on Managed Runtime by the numeric `MRT_LOG_LEVEL` (see {@link MRT_NUMERIC_TO_LEVEL}).
  * Falls back to: `DEBUG` targeting sfnext -> `debug`, `NODE_ENV=production` -> `warn`, otherwise `info`.
  */
 
@@ -65,6 +66,29 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
     warn: 1,
     info: 2,
     debug: 3,
+};
+
+/**
+ * Type guard for a {@link LogLevel} name. Uses `Object.hasOwn` (not `in`) so
+ * inherited properties like `toString` don't falsely validate an env value.
+ */
+function isLogLevel(value: string): value is LogLevel {
+    return Object.hasOwn(LEVEL_PRIORITY, value);
+}
+
+/**
+ * Managed Runtime injects `MRT_LOG_LEVEL` as a numeric string from its own
+ * `LogLevel` enum (`0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR, 5=FATAL`), not a
+ * level name — so it must be mapped, not matched against {@link LEVEL_PRIORITY}'s
+ * keys. `TRACE` and `FATAL` clamp to the closest level this logger supports.
+ */
+const MRT_NUMERIC_TO_LEVEL: Record<string, LogLevel> = {
+    '0': 'debug', // TRACE
+    '1': 'debug', // DEBUG
+    '2': 'info', // INFO
+    '3': 'warn', // WARN
+    '4': 'error', // ERROR
+    '5': 'error', // FATAL
 };
 
 let overrideLevel: LogLevel | undefined;
@@ -87,8 +111,15 @@ function debugEnablesSfnext(): boolean {
 
 function resolveLevel(): LogLevel {
     if (overrideLevel) return overrideLevel;
-    const envLevel = process.env.MRT_LOG_LEVEL ?? process.env.SFCC_LOG_LEVEL;
-    if (envLevel && envLevel in LEVEL_PRIORITY) return envLevel as LogLevel;
+
+    // MRT sets MRT_LOG_LEVEL as a number; resolve it via the numeric map first.
+    const mrtLevel = process.env.MRT_LOG_LEVEL;
+    if (mrtLevel && mrtLevel in MRT_NUMERIC_TO_LEVEL) return MRT_NUMERIC_TO_LEVEL[mrtLevel];
+
+    // SFCC_LOG_LEVEL is a level name set by the developer.
+    const sfccLevel = process.env.SFCC_LOG_LEVEL;
+    if (sfccLevel && isLogLevel(sfccLevel)) return sfccLevel;
+
     if (debugEnablesSfnext()) return 'debug';
     if (process.env.NODE_ENV === 'production') return 'warn';
     return 'info';
