@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FadeThroughImage stories snapshot > Default story renders and matches snapshot 1`] = `
+<div
+  class="relative overflow-hidden aspect-square w-[360px] bg-muted/40"
+  data-slot="fade-through-image"
+>
+  <div
+    class="absolute inset-0 h-full w-full"
+  >
+    <img
+      alt="The Classic Automatic"
+      class="object-contain h-full w-full transition-opacity duration-300 ease-out opacity-100"
+      decoding="async"
+      fetchpriority="high"
+      loading="eager"
+      src="https://via.placeholder.com/800"
+    />
+  </div>
+</div>
+`;
+
+exports[`FadeThroughImage stories snapshot > ResponsiveWidths story renders and matches snapshot 1`] = `
+<div
+  class="relative overflow-hidden aspect-square w-[360px] bg-muted/40"
+  data-slot="fade-through-image"
+>
+  <div
+    class="absolute inset-0 h-full w-full"
+  >
+    <img
+      alt="The Classic Automatic"
+      class="object-contain h-full w-full transition-opacity duration-300 ease-out opacity-100"
+      decoding="async"
+      fetchpriority="auto"
+      loading="lazy"
+      src="https://via.placeholder.com/800"
+    />
+  </div>
+</div>
+`;
