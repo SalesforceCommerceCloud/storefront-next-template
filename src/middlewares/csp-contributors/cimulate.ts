@@ -15,6 +15,7 @@
  */
 
 import type { CspContributor, CspContribution } from '@salesforce/storefront-next-runtime/security';
+import { resolveCimulateOverrideOptions } from '@/components/cimulate/cimulate.utils';
 import type { AppConfig } from '@/types/config';
 import { toCspOrigin } from './to-csp-origin.js';
 
@@ -46,7 +47,10 @@ export function createCimulateCspContributor(config: ShopperAgentCspConfig): Csp
             if (!isEnabled(config?.enabled)) return {};
 
             const widgetOrigin = origins(config?.commerceClientScriptSourceUrl);
-            const scriptSrc = widgetOrigin;
+            // A cc_overridesUrl override script is loaded as a <script>, so allow its origin.
+            // Same resolver as the widget; an inline cc_overrides map contributes no origin.
+            const { overridesUrl } = resolveCimulateOverrideOptions(config);
+            const scriptSrc = origins(config?.commerceClientScriptSourceUrl, overridesUrl);
             const connectSrc = origins(config?.scrt2Url, config?.commerceClientScriptSourceUrl);
             const imgSrc = origins(config?.commerceClientLogoUrl, config?.commerceClientScriptSourceUrl);
             const styleSrc = widgetOrigin;

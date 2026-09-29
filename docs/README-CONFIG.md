@@ -644,7 +644,7 @@ See [README-TURNSTILE.md](./README-TURNSTILE.md) and `e2e/feature-specs/checkout
 # PUBLIC__app__cimulateAgent='{"enabled":true,"provider":"commerce-client","commerceClientScriptSourceUrl":"https://...","scrt2Url":"https://...","salesforceOrgId":"...","esDeveloperName":"..."}'
 ```
 
-Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. Today the widget is provided by Cimulate (`provider: 'commerce-client'`); the top-level naming leaves room for other agent implementations in the future. See `src/components/cimulate/README.md` for setup.
+Set as a single JSON string. Required fields: `enabled`, `commerceClientScriptSourceUrl`, `scrt2Url`, `salesforceOrgId`, `esDeveloperName`. Today the widget is provided by Cimulate (`provider: 'commerce-client'`); the top-level naming leaves room for other agent implementations in the future. Optional `cc_`-prefixed keys (e.g. `cc_widgetPosition`, `cc_isOpen`, `cc_capabilitiesVersion`, `cc_enableDownloadTranscript`, `cc_progressStepsLimit`) tune the widget; some have defaults and the rest fall back to the widget's own default. See `src/components/cimulate/README.md` for the full list and setup.
 
 ### Cookie domain
 

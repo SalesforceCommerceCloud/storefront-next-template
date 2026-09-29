@@ -24,6 +24,11 @@ Cimulate Agent is an internal name for today's implementation of the Shopper Age
 
 Optional keys: `headerText`, `disclaimerMarkdown`, `commerceClientDisplayMode` (`panel`/`dialog`/`modal`), `commerceClientPanelWidth`, `commerceClientMode`, `commerceClientLogoUrl`, `commerceClientSearchConfig`, `commerceClientTheme`, `routingAttributes`, `isDevelopment`, `disabledPathPatterns` (see [Hiding the agent on specific pages](#hiding-the-agent-on-specific-pages)).
 
+Optional `cc_`-prefixed widget options. The `cc_` prefix is stripped when the config is mapped to the widget's option names.
+
+- **Defaulted when omitted:** `cc_capabilitiesVersion` (`"65"`), `cc_enableDownloadTranscript` (`true`), `cc_enableEscalationToAgent` (`false`), `cc_isOpen` (`false`), `cc_widgetPosition` (`"bottom-right"`), `cc_dialogFullHeight` (`true`).
+- **Forwarded only when set** (otherwise the widget's own default applies): `cc_messageAlignment`, `cc_autoScroll`, `cc_openLinksInNewTab`, `cc_showProductDescription`, `cc_showProductCaptions`, `cc_headerConfig`, `cc_suggestionButtonConfig`, `cc_promptsConfig`, `cc_progressStepsLimit`, and the mutually-exclusive component overrides `cc_overrides` (inline map — wins) / `cc_overridesUrl` (hosted HTTPS script).
+
 ### Example
 
 ```json
@@ -39,7 +44,11 @@ Optional keys: `headerText`, `disclaimerMarkdown`, `commerceClientDisplayMode` (
   "commerceClientDisplayMode": "panel",
   "commerceClientPanelWidth": "420px",
   "commerceClientMode": "messaging",
-  "commerceClientLogoUrl": "https://cimulate.ai/logo.png"
+  "commerceClientLogoUrl": "https://cimulate.ai/logo.png",
+  "cc_widgetPosition": "bottom-right",
+  "cc_isOpen": "false",
+  "cc_showProductDescription": "true",
+  "cc_progressStepsLimit": "4"
 }
 ```
 

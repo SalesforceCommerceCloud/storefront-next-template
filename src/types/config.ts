@@ -92,6 +92,24 @@ export type ShopperAgentConfig = {
     commerceClientTheme?: Record<string, string>;
     routingAttributes?: Record<string, unknown>;
     isDevelopment?: string;
+    /** Optional widget options; keep in sync with `CimulateConfig` in `@/components/cimulate`. */
+    cc_dialogFullHeight?: string | boolean;
+    cc_widgetPosition?: string;
+    cc_isOpen?: string | boolean;
+    cc_enableDownloadTranscript?: string | boolean;
+    cc_enableEscalationToAgent?: string | boolean;
+    cc_capabilitiesVersion?: string;
+    cc_messageAlignment?: string;
+    cc_autoScroll?: string | boolean;
+    cc_openLinksInNewTab?: string | boolean;
+    cc_showProductDescription?: string | boolean;
+    cc_showProductCaptions?: string | boolean;
+    cc_headerConfig?: Record<string, unknown>;
+    cc_suggestionButtonConfig?: Record<string, unknown>;
+    cc_promptsConfig?: Record<string, unknown>;
+    cc_overridesUrl?: string;
+    cc_overrides?: Record<string, unknown>;
+    cc_progressStepsLimit?: string | number;
     /** Optional provider identifier. Currently only `commerce-client` (Cimulate) is supported. */
     provider?: string;
     /**

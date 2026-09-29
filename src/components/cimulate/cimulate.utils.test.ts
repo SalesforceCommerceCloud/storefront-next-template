@@ -15,6 +15,7 @@
  */
 import { afterEach, describe, expect, it, test, vi } from 'vitest';
 import {
+    buildMessagingWidgetOptions,
     flushPendingCimulateActions,
     openAgentWidgetAndSendMessage,
     resolveShopperAgentConfig,
@@ -146,5 +147,207 @@ describe('resolveShopperAgentConfig', () => {
     it('returns commerce.shopperAgent when legacy is absent', () => {
         const result = resolveShopperAgentConfig({ commerce: { shopperAgent: populated } });
         expect(result).toBe(populated);
+    });
+});
+
+describe('buildMessagingWidgetOptions', () => {
+    it('applies default options when no cc_ keys are set', () => {
+        const options = buildMessagingWidgetOptions(populated);
+
+        expect(options.elementId).toBe('cimulate-messaging-container');
+        expect(options.mode).toBe('messaging');
+        expect(options.globalClassName).toBe('commerce-client-shopper-agent');
+        expect(options.isDevelopment).toBe(false);
+        // Connection fields go to messagingConfig; the defaulted knobs fill the rest.
+        expect(options.messagingConfig).toMatchObject({
+            scrt2Url: 'https://scrt2.example.salesforce.com',
+            orgId: 'org-A',
+            esDeveloperName: 'ES_A',
+            capabilitiesVersion: '65',
+            enableDownloadTranscript: true,
+            enableEscalationToAgent: false,
+        });
+        // 'panel' renders as a full-height dialog.
+        expect(options.componentConfig).toEqual({
+            isOpen: false,
+            type: 'dialog',
+            options: {
+                dialogPosition: 'bottom-right',
+                dialogFullHeight: true,
+                dialogWidth: '420px',
+            },
+        });
+    });
+
+    it('does not set routingAttributes or showProductCaptions on messagingConfig when unset', () => {
+        const { messagingConfig } = buildMessagingWidgetOptions(populated);
+        expect(messagingConfig).not.toHaveProperty('routingAttributes');
+        expect(messagingConfig).not.toHaveProperty('showProductCaptions');
+    });
+
+    it('honors explicit overrides of the defaulted keys', () => {
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            cc_capabilitiesVersion: '64',
+            cc_enableDownloadTranscript: 'false',
+            cc_enableEscalationToAgent: 'true',
+            cc_isOpen: 'true',
+            cc_widgetPosition: 'bottom-left',
+            cc_dialogFullHeight: 'false',
+            commerceClientPanelWidth: '520px',
+        });
+
+        expect(options.messagingConfig).toMatchObject({
+            capabilitiesVersion: '64',
+            enableDownloadTranscript: false,
+            enableEscalationToAgent: true,
+        });
+        expect(options.componentConfig).toEqual({
+            isOpen: true,
+            type: 'dialog',
+            options: {
+                dialogPosition: 'bottom-left',
+                dialogFullHeight: false,
+                dialogWidth: '520px',
+            },
+        });
+    });
+
+    it('omits optional pass-throughs when unset', () => {
+        const options = buildMessagingWidgetOptions(populated);
+        expect(options).not.toHaveProperty('messageAlignment');
+        expect(options).not.toHaveProperty('autoScroll');
+        expect(options).not.toHaveProperty('openLinksInNewTab');
+        expect(options).not.toHaveProperty('showProductDescription');
+        expect(options).not.toHaveProperty('progressStepsLimit');
+        expect(options).not.toHaveProperty('headerConfig');
+        expect(options).not.toHaveProperty('suggestionButtonConfig');
+        expect(options).not.toHaveProperty('promptsConfig');
+        expect(options).not.toHaveProperty('overrides');
+        expect(options).not.toHaveProperty('overridesUrl');
+    });
+
+    it('forwards optional pass-throughs when set', () => {
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            cc_messageAlignment: 'left',
+            cc_autoScroll: 'true',
+            cc_openLinksInNewTab: 'false',
+            cc_showProductDescription: 'true',
+            cc_progressStepsLimit: '4',
+            cc_headerConfig: { title: 'Shop' },
+            cc_suggestionButtonConfig: { max: 3 },
+            cc_promptsConfig: { greeting: 'Hi' },
+        });
+
+        expect(options.messageAlignment).toBe('left');
+        expect(options.autoScroll).toBe(true);
+        expect(options.openLinksInNewTab).toBe(false);
+        expect(options.showProductDescription).toBe(true);
+        expect(options.progressStepsLimit).toBe(4);
+        expect(options.headerConfig).toEqual({ title: 'Shop' });
+        expect(options.suggestionButtonConfig).toEqual({ max: 3 });
+        expect(options.promptsConfig).toEqual({ greeting: 'Hi' });
+    });
+
+    it('routes cc_showProductCaptions into messagingConfig', () => {
+        const options = buildMessagingWidgetOptions({ ...populated, cc_showProductCaptions: 'true' });
+        expect(options.messagingConfig.showProductCaptions).toBe(true);
+    });
+
+    it('coerces boolean-typed cc_ values, not just strings', () => {
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            cc_isOpen: true,
+            cc_autoScroll: false,
+            cc_enableEscalationToAgent: true,
+        });
+        expect(options.componentConfig.isOpen).toBe(true);
+        expect(options.autoScroll).toBe(false);
+        expect(options.messagingConfig.enableEscalationToAgent).toBe(true);
+    });
+
+    it('coerces a numeric cc_progressStepsLimit and drops a non-numeric one', () => {
+        expect(buildMessagingWidgetOptions({ ...populated, cc_progressStepsLimit: 6 }).progressStepsLimit).toBe(6);
+        expect(buildMessagingWidgetOptions({ ...populated, cc_progressStepsLimit: 'abc' })).not.toHaveProperty(
+            'progressStepsLimit'
+        );
+    });
+
+    it('prefers an inline cc_overrides map over cc_overridesUrl', () => {
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            cc_overrides: { ProductCard: 'CustomCard' },
+            cc_overridesUrl: 'https://cdn.example.com/overrides.js',
+        });
+        expect(options.overrides).toEqual({ ProductCard: 'CustomCard' });
+        expect(options).not.toHaveProperty('overridesUrl');
+    });
+
+    it('uses cc_overridesUrl when it is HTTPS and no inline overrides are set', () => {
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            cc_overridesUrl: 'https://cdn.example.com/overrides.js',
+        });
+        expect(options.overridesUrl).toBe('https://cdn.example.com/overrides.js');
+        expect(options).not.toHaveProperty('overrides');
+    });
+
+    it('ignores a non-HTTPS cc_overridesUrl and an empty inline map', () => {
+        const nonHttps = buildMessagingWidgetOptions({
+            ...populated,
+            cc_overridesUrl: 'http://cdn.example.com/overrides.js',
+        });
+        expect(nonHttps).not.toHaveProperty('overridesUrl');
+        expect(nonHttps).not.toHaveProperty('overrides');
+
+        const emptyMap = buildMessagingWidgetOptions({
+            ...populated,
+            cc_overrides: {},
+            cc_overridesUrl: 'https://cdn.example.com/overrides.js',
+        });
+        // Empty inline map is not a real override — fall through to the HTTPS URL.
+        expect(emptyMap.overridesUrl).toBe('https://cdn.example.com/overrides.js');
+        expect(emptyMap).not.toHaveProperty('overrides');
+    });
+
+    it('keeps a non-panel display mode with its own type and position-only options', () => {
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            commerceClientDisplayMode: 'modal',
+            cc_widgetPosition: 'top-right',
+            cc_isOpen: 'true',
+        });
+        expect(options.componentConfig).toEqual({
+            isOpen: true,
+            type: 'modal',
+            options: { dialogPosition: 'top-right' },
+        });
+    });
+
+    it('merges commerceClientTheme over the defaults', () => {
+        const options = buildMessagingWidgetOptions({ ...populated, commerceClientTheme: { primaryColor: '#ff0000' } });
+        expect(options.theme.primaryColor).toBe('#ff0000');
+        // Untouched defaults survive the merge.
+        expect(options.theme.backgroundColor).toBe('#ffffff');
+    });
+
+    it('forwards routingAttributes into messagingConfig when present', () => {
+        const options = buildMessagingWidgetOptions({ ...populated, routingAttributes: { queue: 'sales' } });
+        expect(options.messagingConfig.routingAttributes).toEqual({ queue: 'sales' });
+    });
+
+    it('passes through headerText, disclaimerMarkdown, logoUrl and searchConfig when set', () => {
+        const options = buildMessagingWidgetOptions({
+            ...populated,
+            headerText: 'Ask us anything',
+            disclaimerMarkdown: '_AI generated_',
+            commerceClientLogoUrl: 'https://cdn.example.cimulate.ai/logo.svg',
+            commerceClientSearchConfig: { placeholder: 'Search…' },
+        });
+        expect(options.headerText).toBe('Ask us anything');
+        expect(options.disclaimerMarkdown).toBe('_AI generated_');
+        expect(options.logoUrl).toBe('https://cdn.example.cimulate.ai/logo.svg');
+        expect(options.searchConfig).toEqual({ placeholder: 'Search…' });
     });
 });
