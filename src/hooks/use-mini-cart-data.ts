@@ -86,12 +86,17 @@ const fetchedSnapshotKey = (basket: ShopperBasketsV2.schemas['Basket'] | null | 
  * `BasketProvider` (`referenceBasket`): the add/edit/remove handlers and this hook's own publish-back effect write the
  * action-response basket — which carries the SCAPI-set `lastModified` — into context, so after any mutation the
  * reference revision is fresh even when item counts are unchanged (e.g. a variant swap). The comparison is directional:
- * reload only when the reference is strictly NEWER than the persisted fetcher data (a revision the cache hasn't pulled
- * yet). A reference OLDER than the cache is not staleness — it is the publish-back render-lag. When the panel is open
- * and `resource.basket-products` revalidates the fetcher post-action, the fetcher holds the new revision a render
- * before `useBasket()` (a parent `setState`) converges to it; a symmetric `!==` would read that benign lag as stale
- * and fire a redundant second load. Equal revisions mean the cache is current and is reused without a round-trip.
- * `lastModified` is SCAPI's ISO-8601 UTC timestamp, so a lexicographic `>` is a chronological comparison.
+ * reload when the reference is strictly NEWER than the persisted fetcher data (a revision the cache hasn't pulled yet).
+ * When the reference is NOT newer, the reference alone can't tell two cases apart, so the decision defers to the
+ * cookie-count signal: (a) the cache is current (equal revisions) or is one render ahead of the reference — the
+ * publish-back render-lag, where `resource.basket-products` revalidates the fetcher post-action and it holds the new
+ * revision a render before `useBasket()` (a parent `setState`) converges; there the fetcher and the cookie advance
+ * together, so their counts match and no reload fires; versus (b) a count-visible mutation persisted whose response
+ * never reached the client — a quantity change flushed as the panel closed, where the edit handler unmounts before its
+ * response lands and post-action revalidation is suppressed while closed — leaving both the reference and the cache on
+ * the old revision while the browser applies the mutation's Set-Cookie so the cookie snapshot moves ahead; the
+ * diverging count then forces the reload the reopened panel needs. `lastModified` is SCAPI's ISO-8601 UTC timestamp, so
+ * a lexicographic `>` is a chronological comparison.
  *
  * When no full basket reference is available — only the cookie snapshot, which has no `lastModified` (returning
  * visitor, nothing added this session, panel never opened) — the count-derived key is the fallback signal. It cannot
@@ -122,11 +127,23 @@ const needsMiniCartLoad = (
             ? referenceBasket.lastModified
             : undefined;
     if (referenceLastModified) {
-        // Directional: reload only when the reference revision is strictly newer than what the fetcher holds. An older
-        // reference is the publish-back render-lag (post-action revalidation lands in the fetcher a render before
-        // useBasket() converges), not a stale cache — reloading on it fires a redundant second request.
+        // Directional: reload when the reference revision is strictly newer than what the fetcher holds — a revision the
+        // cache hasn't pulled yet.
         const fetchedLastModified = fetchedBasket?.lastModified;
-        return !fetchedLastModified || referenceLastModified > fetchedLastModified;
+        if (!fetchedLastModified || referenceLastModified > fetchedLastModified) {
+            return true;
+        }
+        // Reference is not newer than the cache. Usually that means the cache is current (equal revisions) or is one
+        // render ahead — the publish-back render-lag, where post-action revalidation lands in the fetcher before
+        // useBasket() converges; reloading on that alone fires a redundant second request. But it can also mean a
+        // mutation persisted whose response never reached the client: a quantity change flushed as the panel closed
+        // (the edit handler unmounts before its response lands, and basket-products revalidation is suppressed while
+        // the panel is closed) leaves both the reference and the cache on the old revision while the browser applies
+        // the mutation's Set-Cookie, so the cookie snapshot moves ahead. Defer to the cookie-count signal: it stays
+        // equal for the render-lag case (fetcher and cookie advance together, only the reference lags) and diverges
+        // only when the cookie holds a revision neither the reference nor the cache has — forcing the reload a
+        // count-visible close-flush needs on reopen.
+        return fetchedSnapshotKey(fetchedBasket) !== currentSnapshotKey(snapshot);
     }
 
     // Cookie-only fallback: no full basket reference, so the count key is the only signal available.

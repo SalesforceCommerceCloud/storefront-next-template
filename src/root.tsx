@@ -90,7 +90,7 @@ import { errorCacheControlMiddleware } from '@/middlewares/error-cache-control.s
 
 // Providers
 import AuthProvider from '@/providers/auth';
-import BasketProvider from '@/providers/basket';
+import BasketProvider, { BasketCookieReconciler } from '@/providers/basket';
 import { ComposeProviders } from '@/providers/compose-providers';
 import { CorrelationProvider } from '@/providers/correlation';
 import { PasskeyRegistrationProvider } from '@/providers/passkey-registration';
@@ -781,6 +781,7 @@ export default function App({
     const innerTree = (
         <UITargetProviders>
             <AuthActionExecutor />
+            <BasketCookieReconciler />
             {passkeyEnabled && <PasskeyRegistrationTrigger />}
             {hybridEnabled && <BackNavigationRevalidator />}
             <PageDesignerProvider

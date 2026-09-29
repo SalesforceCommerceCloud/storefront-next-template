@@ -20,6 +20,7 @@ import type { PropsWithChildren } from 'react';
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { BasketSnapshot } from '@/middlewares/basket.server';
 import BasketProvider, {
+    BasketCookieReconciler,
     useBasket,
     useBasketHydrated,
     useBasketLoader,
@@ -78,6 +79,15 @@ vi.mock('@/hooks/use-scapi-fetcher-effect', async () => {
     };
 });
 
+// BasketCookieReconciler reads react-router's useFetchers() as a re-render heartbeat; the rest of the provider is
+// router-agnostic. A hoisted holder lets each test drive the fetcher list without standing up a data router.
+const routerFetchersMock = vi.hoisted(() => ({ current: [] as Array<{ state: string; data?: unknown }> }));
+
+vi.mock('react-router', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('react-router')>();
+    return { ...actual, useFetchers: () => routerFetchersMock.current };
+});
+
 const clearBasketCookie = () => {
     document.cookie = `${BASKET_COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 };
@@ -105,6 +115,7 @@ describe('BasketProvider hooks', () => {
         mockFetcher.state = 'idle';
         mockFetcher.errors = undefined;
         vi.mocked(useScapiFetcher).mockClear();
+        routerFetchersMock.current = [];
         clearBasketCookie();
     });
 
@@ -1404,6 +1415,139 @@ describe('BasketProvider hooks', () => {
                 expect(result.current.current).toBe(mockBasket);
             });
             expect(result.current.hydrated).toBe(true);
+        });
+    });
+
+    describe('BasketCookieReconciler', () => {
+        const T0 = '2026-01-01T00:00:00.000Z';
+        const T1 = '2026-01-01T00:05:00.000Z';
+
+        const rev = (basketId: string, lastModified: string): ShopperBasketsV2.schemas['Basket'] => ({
+            basketId,
+            lastModified,
+            productItems: [{ productId: 'p1', quantity: 2 }],
+        });
+
+        const cookieFor = (basketId: string, lastModified: string) =>
+            btoa(JSON.stringify({ basketId, totalItemCount: 3, uniqueProductCount: 1, lastModified }));
+
+        // Mounts the reconciler next to a context reader, both inside one BasketProvider seeded with a known basket.
+        const reconcilerWrapper = (props: {
+            basket?: ShopperBasketsV2.schemas['Basket'];
+            snapshot?: BasketSnapshot | null;
+        }) => {
+            const Wrapper = ({ children }: PropsWithChildren) => (
+                <BasketProvider {...props}>
+                    <BasketCookieReconciler />
+                    {children}
+                </BasketProvider>
+            );
+            Wrapper.displayName = 'BasketCookieReconcilerTestWrapper';
+            return Wrapper;
+        };
+
+        it('forces a reconciling reload when the cookie is a strictly newer revision of the same basket', async () => {
+            writeBasketCookie(cookieFor('basket-123', T1));
+
+            renderHook(() => useBasket(), {
+                wrapper: reconcilerWrapper({
+                    basket: rev('basket-123', T0),
+                    snapshot: { ...mockSnapshot, lastModified: T0 },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(mockFetcher.load).toHaveBeenCalled();
+            });
+        });
+
+        it('does not reload when the cookie matches the current revision', async () => {
+            writeBasketCookie(cookieFor('basket-123', T0));
+
+            renderHook(() => useBasket(), {
+                wrapper: reconcilerWrapper({
+                    basket: rev('basket-123', T0),
+                    snapshot: { ...mockSnapshot, lastModified: T0 },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(vi.mocked(useScapiFetcher)).toHaveBeenCalled();
+            });
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+        });
+
+        it('does not reload when the cookie is for a different basket', async () => {
+            writeBasketCookie(cookieFor('other-basket', T1));
+
+            renderHook(() => useBasket(), {
+                wrapper: reconcilerWrapper({
+                    basket: rev('basket-123', T0),
+                    snapshot: { ...mockSnapshot, lastModified: T0 },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(vi.mocked(useScapiFetcher)).toHaveBeenCalled();
+            });
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+        });
+
+        it('re-checks the cookie on fetcher activity and reconciles when it advances after mount', async () => {
+            // In sync at mount: a close-flush has not happened yet.
+            writeBasketCookie(cookieFor('basket-123', T0));
+
+            const { rerender } = renderHook(() => useBasket(), {
+                wrapper: reconcilerWrapper({
+                    basket: rev('basket-123', T0),
+                    snapshot: { ...mockSnapshot, lastModified: T0 },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(vi.mocked(useScapiFetcher)).toHaveBeenCalled();
+            });
+            expect(mockFetcher.load).not.toHaveBeenCalled();
+
+            // A mini-cart close-flush PATCH advances the cookie without republishing to context; its fetcher going
+            // in-flight is the heartbeat that makes the reconciler re-read the now-newer cookie.
+            act(() => {
+                writeBasketCookie(cookieFor('basket-123', T1));
+                routerFetchersMock.current = [{ state: 'submitting', data: undefined }];
+            });
+            rerender();
+
+            await waitFor(() => {
+                expect(mockFetcher.load).toHaveBeenCalled();
+            });
+        });
+
+        it('publishes the reconciled revision into context once the forced reload resolves', async () => {
+            const reloaded = rev('basket-123', T1);
+            writeBasketCookie(cookieFor('basket-123', T1));
+
+            const { result, rerender } = renderHook(() => useBasket(), {
+                wrapper: reconcilerWrapper({
+                    basket: rev('basket-123', T0),
+                    snapshot: { ...mockSnapshot, lastModified: T0 },
+                }),
+            });
+
+            await waitFor(() => {
+                expect(mockFetcher.load).toHaveBeenCalled();
+            });
+
+            // Simulate the forced getBasket resolving with the newer revision.
+            act(() => {
+                mockFetcher.data = reloaded;
+                mockFetcher.success = true;
+                mockFetcher.state = 'idle';
+            });
+            rerender();
+
+            await waitFor(() => {
+                expect(result.current).toEqual(reloaded);
+            });
         });
     });
 });

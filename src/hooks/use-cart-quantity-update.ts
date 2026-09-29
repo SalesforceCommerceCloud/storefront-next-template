@@ -133,10 +133,19 @@ export function useCartQuantityUpdate<
     const effectiveDebounceDelay = debounceDelay || config.pages.cart.quantityUpdateDebounce;
     const removeAction = config.pages.cart.removeAction;
 
+    // True only while THIS mounted line item has a request in flight. The fetcher is keyed by item id,
+    // so its settled data outlives the component: closing the panel mid-update unmounts the line item
+    // before the flushed request resolves, and remounting on reopen would replay a stale toast (the
+    // "Quantity updated" confirmation, or the error message on a rejected change). This ref is set when
+    // this instance submits and cleared when the response is consumed, so a fresh mount observing
+    // already-settled data stays quiet.
+    const requestInitiatedHereRef = useRef(false);
+
     // Remove item function
     const removeItem = useCallback(() => {
         if (!itemId) return;
 
+        requestInitiatedHereRef.current = true;
         const formData = new FormData();
         formData.append('itemId', itemId);
         void fetcher.submit(formData, {
@@ -181,6 +190,7 @@ export function useCartQuantityUpdate<
 
             // Track the quantity that triggered this API call
             setPendingQuantity(newQuantity);
+            requestInitiatedHereRef.current = true;
 
             const formData = new FormData();
             formData.append('itemId', itemId);
@@ -286,6 +296,12 @@ export function useCartQuantityUpdate<
     // Handle API response when API call completes
     useEffect(() => {
         if (fetcher.state === 'idle' && fetcher.data) {
+            // Consume the "this instance submitted" flag once per settled response. A remount on panel
+            // reopen re-attaches to the same keyed fetcher and sees the already-settled data, but with the
+            // flag false, so it won't replay the confirmation toast for a change the shopper already saw.
+            const initiatedHere = requestInitiatedHereRef.current;
+            requestInitiatedHereRef.current = false;
+
             if (fetcher.data.success) {
                 // Publish the new revision so useBasket() consumers stay in sync. This response is
                 // down-shaped (mutations can't send `expand=approaching_discounts`); the expanded
@@ -299,18 +315,27 @@ export function useCartQuantityUpdate<
                     lastSuccessfulQuantityRef.current = pendingQuantity;
                     setPendingQuantity(null);
                 }
-                addToast(t('quantityUpdated'), 'success');
+                // Only confirm an update this mounted line item actually made, not a deferred response
+                // replayed on reopen (the page's own quantity already reflects the flushed change).
+                if (initiatedHere) {
+                    addToast(t('quantityUpdated'), 'success');
+                }
             } else {
-                // On failure, reset to the last known good value
+                // On failure, reset to the last known good value. This bookkeeping stays unconditional (a fresh
+                // mount resets to initialValue, a no-op) to mirror the success branch's unconditional basket sync.
                 setQuantity(lastSuccessfulQuantityRef.current);
                 setPendingQuantity(null);
-                // The server rejects an increase past available stock with OUT_OF_STOCK; surface that specifically
-                // so the shopper knows to lower the quantity rather than seeing a generic "try again" message.
-                const message =
-                    fetcher.data.error?.code === ErrorCode.OUT_OF_STOCK
-                        ? t('insufficientStock')
-                        : t('quantityUpdateFailed');
-                addToast(message, 'error');
+                // Gate the error toast for the same reason as the success toast: a failed change flushed as the
+                // panel closed leaves the rejection on the keyed fetcher, and a fresh mount on reopen must not
+                // replay it. The server rejects an increase past available stock with OUT_OF_STOCK; surface that
+                // specifically so the shopper knows to lower the quantity rather than seeing a generic message.
+                if (initiatedHere) {
+                    const message =
+                        fetcher.data.error?.code === ErrorCode.OUT_OF_STOCK
+                            ? t('insufficientStock')
+                            : t('quantityUpdateFailed');
+                    addToast(message, 'error');
+                }
             }
         }
         //As addToast is unlikely to change, we don't need to include it in the dependency array

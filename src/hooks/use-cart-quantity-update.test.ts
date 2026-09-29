@@ -556,7 +556,14 @@ describe('useCartQuantityUpdate', () => {
         });
 
         test('shows the generic failure toast when the response carries no error code', async () => {
-            const { rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+            const { result, rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), {
+                wrapper: ConfigWrapper,
+            });
+
+            // Drive a real change so this instance is the one awaiting the (failed) response.
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
 
             act(() => {
                 setStableFetcher('idle', { success: false });
@@ -569,7 +576,14 @@ describe('useCartQuantityUpdate', () => {
         });
 
         test('shows the stock-specific toast when the server rejects with OUT_OF_STOCK', async () => {
-            const { rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+            const { result, rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), {
+                wrapper: ConfigWrapper,
+            });
+
+            // Drive a real change so this instance is the one awaiting the (failed) response.
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
 
             act(() => {
                 setStableFetcher('idle', { success: false, error: { code: 'OUT_OF_STOCK' } });
@@ -580,6 +594,82 @@ describe('useCartQuantityUpdate', () => {
                 expect(mockAddToast).toHaveBeenCalledWith('Not enough stock available', 'error');
             });
             expect(mockAddToast).not.toHaveBeenCalledWith('Failed to update quantity', 'error');
+        });
+    });
+
+    describe('Deferred response toast (panel reopen)', () => {
+        // The hook reads fetcher.state / fetcher.data from the fetcher passed in props (stableMockFetcher),
+        // so drive the response effect by mutating that object rather than the module-scoped mockFetcher.
+        const setStableFetcher = (state: 'idle' | 'submitting' | 'loading', data: unknown): void => {
+            (stableMockFetcher as unknown as { state: string }).state = state;
+            (stableMockFetcher as unknown as { data: unknown }).data = data;
+        };
+
+        afterEach(() => {
+            setStableFetcher('idle', null);
+        });
+
+        test('does not replay the confirmation toast when a fresh mount observes already-settled data', () => {
+            // Reopening the mini-cart remounts the line item; because the fetcher is keyed by item id, it
+            // re-attaches to the success data left by the update that was flushed as the panel closed. This
+            // mount never submitted, so it must stay quiet — the page's own quantity already reflected the change.
+            setStableFetcher('idle', { success: true, basket: { basketId: 'basket-123' } });
+            const { rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+            rerender();
+
+            expect(mockAddToast).not.toHaveBeenCalledWith('Quantity updated', 'success');
+        });
+
+        test('confirms an update this mounted line item actually made', async () => {
+            const { result, rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), {
+                wrapper: ConfigWrapper,
+            });
+
+            // Drive a real change through the hook (debounce is mocked synchronous, so this submits now).
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
+
+            act(() => {
+                setStableFetcher('idle', { success: true, basket: { basketId: 'basket-123' } });
+            });
+            rerender();
+
+            await waitFor(() => {
+                expect(mockAddToast).toHaveBeenCalledWith('Quantity updated', 'success');
+            });
+        });
+
+        test('does not replay the error toast when a fresh mount observes an already-settled failure', () => {
+            // Same replay class as the confirmation toast: a change flushed as the panel closed can be
+            // rejected server-side, leaving the failure on the keyed fetcher. A reopen remounts the line
+            // item onto that settled failure; since this mount never submitted, it must stay quiet.
+            setStableFetcher('idle', { success: false, error: { code: 'OUT_OF_STOCK' } });
+            const { rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+            rerender();
+
+            expect(mockAddToast).not.toHaveBeenCalledWith('Not enough stock available', 'error');
+            expect(mockAddToast).not.toHaveBeenCalledWith('Failed to update quantity', 'error');
+        });
+
+        test('still surfaces the error toast for a failed change this mounted line item made', async () => {
+            const { result, rerender } = renderHook(() => useCartQuantityUpdate(defaultProps), {
+                wrapper: ConfigWrapper,
+            });
+
+            // Drive a real change through the hook, then have the server reject it.
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
+
+            act(() => {
+                setStableFetcher('idle', { success: false, error: { code: 'OUT_OF_STOCK' } });
+            });
+            rerender();
+
+            await waitFor(() => {
+                expect(mockAddToast).toHaveBeenCalledWith('Not enough stock available', 'error');
+            });
         });
     });
 

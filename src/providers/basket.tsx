@@ -24,6 +24,7 @@ import {
     useState,
     useSyncExternalStore,
 } from 'react';
+import { useFetchers } from 'react-router';
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { BasketSnapshot } from '@/middlewares/basket.server';
 import { useScapiFetcher } from '@/hooks/use-scapi-fetcher';
@@ -74,6 +75,15 @@ type BasketUpdater = {
      * in-flight ref is cleared so a retry can proceed.
      */
     loadBasket: () => void;
+    /**
+     * Force a re-fetch of the full basket for the SAME basket id, bypassing `loadBasket`'s "already loaded" dedup.
+     * Needed when a mutation persisted server-side but its response never reached `current` — a mini-cart line
+     * quantity change flushed as the panel closes (see use-cart-quantity-update.ts) submits from a component that
+     * unmounts before the response lands, so `current` stays on the old revision while the basket cookie advances.
+     * Reconciling `current` from that newer cookie revision keeps `useBasket()` consumers (e.g. the PDP inline
+     * stepper) live without waiting for a mini-cart reopen. In-flight calls for the same id are still de-duped.
+     */
+    reconcileBasket: () => void;
 };
 
 const BasketUpdaterContext = createContext<BasketUpdater | undefined>(undefined);
@@ -306,6 +316,19 @@ const BasketProvider = (
         void basketFetcherRef.current.load();
     }, []);
 
+    // Same as loadBasket but forces a re-fetch for the already-loaded id by clearing loadedIdRef first — used to pull a
+    // revision that landed server-side without our getBasket seeing it (mini-cart close-flush). The inFlightIdRef guard
+    // is kept so overlapping reconcile pulses don't stack duplicate GETs; onSuccess re-arms loadedIdRef on resolution.
+    const reconcileBasket = useCallback(() => {
+        const id = basketIdForFetcherRef.current;
+        if (!id || inFlightIdRef.current === id) {
+            return;
+        }
+        loadedIdRef.current = null;
+        inFlightIdRef.current = id;
+        void basketFetcherRef.current.load();
+    }, []);
+
     useScapiFetcherEffect(basketFetcher, {
         onSuccess: (data) => {
             inFlightIdRef.current = null;
@@ -346,7 +369,10 @@ const BasketProvider = (
         },
     });
 
-    const updaterValue = useMemo(() => ({ setBasket, loadBasket }), [setBasket, loadBasket]);
+    const updaterValue = useMemo(
+        () => ({ setBasket, loadBasket, reconcileBasket }),
+        [setBasket, loadBasket, reconcileBasket]
+    );
 
     return (
         <BasketUpdaterContext.Provider value={updaterValue}>
@@ -354,6 +380,65 @@ const BasketProvider = (
         </BasketUpdaterContext.Provider>
     );
 };
+
+/**
+ * Keeps `current` reconciled with the `__sfdc_basket` cookie whenever a cart mutation advances the basket server-side
+ * without its response reaching context. Mount it once, inside the app's root `BasketProvider` and its data router (see
+ * root.tsx). It renders nothing, so the re-render on fetcher activity stays on this leaf rather than the provider
+ * subtree, and it is not rendered by `BasketProvider` itself so the provider stays usable in isolation (unit tests,
+ * Storybook) without a data router — `useFetchers()` throws outside one.
+ *
+ * ## The gap this closes
+ *
+ * Cart actions (add, quantity update, remove) respond with `{ success: true, basket }`, and their originating control
+ * normally publishes that revision via `updateBasket`. One flow can't: a mini-cart line-item quantity change flushed as
+ * the panel closes (see use-cart-quantity-update.ts) submits its PATCH from a component that unmounts before the
+ * response lands, so its own publish never runs. `resource.basket-products` revalidation is suppressed while the panel
+ * is closed, so nothing else reconciles `current` either — the PDP inline stepper (which reads `current` via
+ * `useBasket`) then shows a stale quantity until a reopen forces a reload.
+ *
+ * ## Why the cookie, not the fetcher's data
+ *
+ * React Router deletes a fetcher from `state.fetchers` in the same tick it notifies subscribers that the fetcher
+ * settled, so by the time a `useFetchers()` observer re-renders, a settled (and, for an unmounted owner, purged)
+ * fetcher's data is already gone. Reading the flushed revision back off the fetcher is therefore unreliable. The
+ * mutation's `Set-Cookie` is not: the browser applies it when the response arrives regardless of the owner unmounting,
+ * so `__sfdc_basket` carries the new revision's `lastModified`. This leaf watches `useFetchers()` purely as a re-render
+ * heartbeat — every fetcher transition, including the close-flush PATCH leaving the in-flight set once its response
+ * (and cookie) has landed, re-runs the effect below — then reads the cookie and, when it is a strictly newer revision
+ * of the same basket than `current`, forces a reconciling reload via `reconcileBasket`.
+ */
+export function BasketCookieReconciler(): null {
+    const fetchers = useFetchers();
+    const current = useBasket();
+    const reconcileBasket = useBasketReconcile();
+
+    // Count of in-flight fetchers, used only as a re-render heartbeat. React Router re-renders `useFetchers()`
+    // subscribers on every fetcher state transition; the count changes as the close-flush PATCH enters and then leaves
+    // the in-flight set, and by the time it leaves (settled → purged) its response and `Set-Cookie` have been applied.
+    // We track the count rather than fetcher data because a settled fetcher's data is purged before we can read it.
+    const inFlightFetcherCount = fetchers.filter((fetcher) => fetcher.state !== 'idle').length;
+
+    useEffect(() => {
+        if (typeof document === 'undefined' || !current?.basketId || !current.lastModified) {
+            return;
+        }
+        const cookie = parseBasketCookie(document.cookie);
+        // `lastModified` is SCAPI's ISO-8601 UTC timestamp, so a lexicographic `>` orders revisions chronologically.
+        // Reconcile only when the cookie is a strictly newer revision of the same basket — a same-or-older cookie (the
+        // common case, where the owning control already published) is a no-op, and reconcileBasket's own in-flight
+        // guard plus the getBasket response converging `current` onto the cookie revision keep this from looping.
+        if (
+            cookie?.basketId === current.basketId &&
+            cookie.lastModified &&
+            cookie.lastModified > current.lastModified
+        ) {
+            reconcileBasket();
+        }
+    }, [inFlightFetcherCount, current, reconcileBasket]);
+
+    return null;
+}
 
 /**
  * Returns the imperative basket loader exposed by {@link BasketProvider}. Calling this triggers the provider-owned
@@ -365,6 +450,20 @@ export const useBasketLoader = (): (() => void) => {
     const updater = useContext(BasketUpdaterContext);
     return useCallback(() => {
         updater?.loadBasket();
+    }, [updater]);
+};
+
+/**
+ * Returns the imperative basket reconciler exposed by {@link BasketProvider}. Unlike {@link useBasketLoader}, this forces
+ * a re-fetch even when the current basket id has already been loaded — used by {@link BasketCookieReconciler} to pull a
+ * revision that advanced server-side (via the `__sfdc_basket` cookie) without its mutation response reaching context.
+ * The result is written to context by the provider — observe it via {@link useBasket}.
+ */
+// oxlint-disable-next-line react-refresh/only-export-components
+export const useBasketReconcile = (): (() => void) => {
+    const updater = useContext(BasketUpdaterContext);
+    return useCallback(() => {
+        updater?.reconcileBasket();
     }, [updater]);
 };
 
