@@ -195,14 +195,14 @@ export const testRoutes = [
                         file: 'routes/_app.order-confirmation.$orderNo.tsx',
                     },
                     {
-                        id: 'routes/_app.category.$categoryId',
-                        path: 'category/:categoryId',
-                        file: 'routes/_app.category.$categoryId.tsx',
+                        id: 'routes/_app.c.$',
+                        path: 'c/*',
+                        file: 'routes/_app.c.$.tsx',
                     },
                     {
-                        id: 'routes/_app.product.$productId',
-                        path: 'product/:productId',
-                        file: 'routes/_app.product.$productId.tsx',
+                        id: 'routes/_app.p.$',
+                        path: 'p/*',
+                        file: 'routes/_app.p.$.tsx',
                     },
                     {
                         id: 'routes/_app.about-us',
@@ -305,9 +305,9 @@ export const testRoutesWithSiteContext = [
                                 file: 'routes/_app._index.tsx',
                             },
                             {
-                                id: 'routes/_app.product.$productId',
-                                path: 'product/:productId',
-                                file: 'routes/_app.product.$productId.tsx',
+                                id: 'routes/_app.p.$',
+                                path: 'p/*',
+                                file: 'routes/_app.p.$.tsx',
                             },
                             {
                                 id: 'routes/_app.search',

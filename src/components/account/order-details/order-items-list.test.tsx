@@ -89,7 +89,7 @@ describe('OrderItemsList', () => {
         expect(screen.getByText('£61.99')).toBeInTheDocument();
 
         const buyAgainLink = screen.getByRole('link', { name: t('account:orders.buyAgain') });
-        expect(buyAgainLink).toHaveAttribute('href', `${getSitePrefix()}/product/701643108633M`);
+        expect(buyAgainLink).toHaveAttribute('href', `${getSitePrefix()}/p/701643108633M`);
 
         expect(screen.getByText(/Size: M/)).toBeInTheDocument();
         expect(screen.getByText(/Color: Navy/)).toBeInTheDocument();
@@ -125,11 +125,11 @@ describe('OrderItemsList', () => {
         expect(screen.getByText('£20.00')).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Product One' })).toHaveAttribute(
             'href',
-            `${getSitePrefix()}/product/prod-1`
+            `${getSitePrefix()}/p/prod-1`
         );
         expect(screen.getByRole('link', { name: 'Product Two' })).toHaveAttribute(
             'href',
-            `${getSitePrefix()}/product/prod-2`
+            `${getSitePrefix()}/p/prod-2`
         );
 
         const list = screen.getByRole('list');

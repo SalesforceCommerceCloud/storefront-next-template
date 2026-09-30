@@ -207,7 +207,7 @@ export const MobileView: Story = {
         // gated on the `useSubCategory` store populating from the deferred promise,
         // which races with this play function in the test runner — covered by
         // unit tests in `navigation-menu-mega/index.test.tsx` instead.
-        const womenLink = (drawer as HTMLElement).querySelector('a[href$="/category/womens"]');
+        const womenLink = (drawer as HTMLElement).querySelector('a[href$="/c/womens"]');
         await expect(womenLink).toBeInTheDocument();
     },
 };

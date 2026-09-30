@@ -18,8 +18,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from '@/components/link';
 import type { ShopperProducts } from '@/scapi';
 import { ChevronRight } from 'lucide-react';
-import { createCategoryUrl, routes } from '@/route-paths';
+import { routes } from '@/route-paths';
 import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
+import { createCategoryUrlFromScapiCategory } from '@/lib/seo/scapi-slugs';
 
 type PrimaryCategory = NonNullable<ShopperProducts.schemas['Product']['primaryCategory']>;
 type PathRecord = NonNullable<PrimaryCategory['parentCategoryTree']>[number];
@@ -38,15 +39,20 @@ export default function CategoryBreadcrumbs({ category }: { category: PrimaryCat
                 </li>
                 {items.map((item, index) => {
                     const isLast = index === items.length - 1;
+                    const destination = createCategoryUrlFromScapiCategory(item, seoUrlContext);
                     return (
                         <li key={item.id} className="flex items-center">
                             <ChevronRight className="mx-1 size-3" />
-                            <Link
-                                to={createCategoryUrl({ categoryId: item.id, slugSegments: [] }, seoUrlContext)}
-                                className="hover:underline"
-                                aria-current={isLast ? 'page' : undefined}>
-                                {item.name}
-                            </Link>
+                            {destination ? (
+                                <Link
+                                    to={destination}
+                                    className="hover:underline"
+                                    aria-current={isLast ? 'page' : undefined}>
+                                    {item.name}
+                                </Link>
+                            ) : (
+                                <span aria-current={isLast ? 'page' : undefined}>{item.name}</span>
+                            )}
                         </li>
                     );
                 })}

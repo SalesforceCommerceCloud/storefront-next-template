@@ -72,10 +72,10 @@ export const INVALID_TEST_DATA = {
 } as const;
 
 export const TEST_PRODUCT_CATEGORIES = {
-    MENS_JACKETS: 'category/mens-clothing-jackets',
-    WOMENS_DRESSES: 'category/womens-clothing-dresses',
-    WOMENS_TOPS: 'category/womens-clothing-tops',
-    MENS_CLOTHING: 'category/mens',
+    MENS_JACKETS: 'c/mens-clothing-jackets',
+    WOMENS_DRESSES: 'c/womens-clothing-dresses',
+    WOMENS_TOPS: 'c/womens-clothing-tops',
+    MENS_CLOTHING: 'c/mens',
 } as const;
 
 /** RefArch variant IDs used by apiCartSetupFlow for direct SCAPI basket creation. */

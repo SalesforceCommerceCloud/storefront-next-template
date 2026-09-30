@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { act, fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import 'reflect-metadata';
@@ -28,6 +28,21 @@ import ResponsiveNavigationMenu, {
 import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
 import { getRegionDefinitions } from '@/lib/decorators/region-definition';
 import type { ShopperProducts } from '@/scapi';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
+import type { AppConfig } from '@/types/config';
+
+const slugPathConfig: AppConfig = {
+    ...mockConfig,
+    url: {
+        ...mockConfig.url,
+        seoRoutes: {
+            [mockSiteObject.id]: {
+                product: { prefix: 'p' },
+                category: { prefix: 'catalog', mode: 'slug-path' },
+            },
+        },
+    },
+};
 
 vi.mock('@/components/region/embedded-component-region', () => ({
     EmbeddedComponentRegion: ({ regionId }: { regionId: string }) => (
@@ -76,13 +91,16 @@ describe('ResponsiveNavigationMenu Component', () => {
     // memory-router location, so activating the trigger has to actually move the
     // router (or not). A stubbed navigate would swallow the call and let that
     // assertion pass even against the regression it is meant to catch.
-    const renderComponent = (props: Partial<React.ComponentProps<typeof ResponsiveNavigationMenu>> = {}) => {
+    const renderComponent = (
+        props: Partial<React.ComponentProps<typeof ResponsiveNavigationMenu>> = {},
+        config: AppConfig = mockConfig
+    ) => {
         const router = createMemoryRouter(
             [
                 {
                     path: '*',
                     element: (
-                        <AllProvidersWrapper>
+                        <AllProvidersWrapper config={config}>
                             <ResponsiveNavigationMenu
                                 resolve={Promise.resolve(mockCategories)}
                                 defer={Promise.resolve([])}
@@ -485,6 +503,74 @@ describe('ResponsiveNavigationMenu Component', () => {
             });
 
             expect(() => getByRole('button', { name: /expand subcategory 1\.1/i })).toThrow();
+        });
+
+        it('uses complete authoritative slugs for mobile category links', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                categories: [
+                    {
+                        id: 'internal-women-id',
+                        name: 'Women',
+                        slug: 'departments/women',
+                        c_showInMenu: true,
+                        onlineSubCategoriesCount: 1,
+                        categories: [
+                            {
+                                id: 'internal-dresses-id',
+                                name: 'Dresses',
+                                slug: 'departments/women/dresses',
+                                c_showInMenu: true,
+                            },
+                        ],
+                    },
+                ],
+            };
+            const { getByRole } = renderComponent({ resolve: Promise.resolve(root) }, slugPathConfig);
+
+            await waitFor(() => expect(getByRole('button', { name: /open menu/i })).toBeInTheDocument());
+            act(() => {
+                fireEvent.click(getByRole('button', { name: /open menu/i }));
+            });
+
+            await waitFor(() =>
+                expect(getByRole('link', { name: 'Women' })).toHaveAttribute(
+                    'href',
+                    '/global/en-GB/catalog/departments/women'
+                )
+            );
+            act(() => {
+                fireEvent.click(getByRole('button', { name: /expand women/i }));
+            });
+            expect(getByRole('link', { name: 'Dresses' })).toHaveAttribute(
+                'href',
+                '/global/en-GB/catalog/departments/women/dresses'
+            );
+        });
+
+        it('does not expose a missing-slug mobile category as an enabled link', async () => {
+            const root: ShopperProducts.schemas['Category'] = {
+                id: 'root',
+                categories: [
+                    {
+                        id: 'internal-women-id',
+                        name: 'Women',
+                        c_showInMenu: true,
+                        onlineSubCategoriesCount: 1,
+                        categories: [],
+                    },
+                ],
+            };
+            const { getByRole } = renderComponent({ resolve: Promise.resolve(root) }, slugPathConfig);
+
+            await waitFor(() => expect(getByRole('button', { name: /open menu/i })).toBeInTheDocument());
+            act(() => {
+                fireEvent.click(getByRole('button', { name: /open menu/i }));
+            });
+
+            const mobileNavigation = getByRole('navigation', { name: /mobile navigation menu/i });
+            await waitFor(() => expect(within(mobileNavigation).getByText('Women')).toBeInTheDocument());
+            expect(within(mobileNavigation).queryByRole('link', { name: 'Women' })).not.toBeInTheDocument();
         });
     });
 

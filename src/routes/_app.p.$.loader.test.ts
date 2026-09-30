@@ -17,7 +17,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import type { RouterContextProvider } from 'react-router';
 import type { ShopperProducts } from '@/scapi';
-import { loader } from './_app.product.$productId';
+import { loader } from './_app.p.$';
 import { appConfigContext } from '@salesforce/storefront-next-runtime/config';
 import { authContext } from '@/middlewares/auth.utils';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
@@ -160,15 +160,15 @@ describe('Product Route Loaders', () => {
             };
             mockFetchProductById.mockResolvedValueOnce(productWithCategory);
 
-            const request = new Request('https://example.com/product/test-product-123');
+            const request = new Request('https://example.com/p/test-product-123');
             const context = mockContext;
 
             const result = await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'test-product-123' },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(result.product).toEqual(productWithCategory);
@@ -179,14 +179,14 @@ describe('Product Route Loaders', () => {
 
         test('passes an .html product ID unchanged to the authoritative lookup', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
-            const request = new Request('https://example.com/product/legacy.html');
+            const request = new Request('https://example.com/p/legacy.html');
 
             await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', productId: 'legacy.html' },
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'legacy.html' },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(mockFetchProductById.mock.calls[0][1]).toBe('legacy.html');
@@ -197,13 +197,13 @@ describe('Product Route Loaders', () => {
         test('does not include the shopper delivery destination in cacheable PDP loader data', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
-            const request = new Request('https://example.com/product/test-product-123');
+            const request = new Request('https://example.com/p/test-product-123');
             const result = await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'test-product-123' },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(result).not.toHaveProperty('initialDestinationPromise');
@@ -225,13 +225,13 @@ describe('Product Route Loaders', () => {
             };
             mockFetchProductById.mockResolvedValueOnce(variantProduct);
 
-            const request = new Request('https://example.com/product/variant-product-123');
+            const request = new Request('https://example.com/p/variant-product-123');
             const result = await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', productId: 'variant-product-123' },
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'variant-product-123' },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(result.product).toEqual(variantProduct);
@@ -253,8 +253,8 @@ describe('Product Route Loaders', () => {
             });
             mockFetchProductById.mockRejectedValueOnce(new NormalizedApiError(apiError));
 
-            const request = new Request('https://example.com/product/nonexistent');
-            const params = { productId: 'nonexistent' };
+            const request = new Request('https://example.com/p/nonexistent');
+            const params = { '*': 'nonexistent' };
             const context = mockContext;
 
             const error = await loader({
@@ -262,7 +262,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             }).then(
                 () => {
                     throw new Error('expected loader to throw a Response');
@@ -296,14 +296,14 @@ describe('Product Route Loaders', () => {
             );
             const redirect = new Response(null, { status: 302, headers: { Location: '/product/current' } });
             mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
-            const request = new Request('https://example.com/product/legacy');
+            const request = new Request('https://example.com/p/legacy');
 
             const result = await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', productId: 'legacy' },
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'legacy' },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(result).toBe(redirect);
@@ -326,15 +326,15 @@ describe('Product Route Loaders', () => {
                     })
                 )
             );
-            const request = new Request('https://example.com/product/failure');
+            const request = new Request('https://example.com/p/failure');
 
             await expect(
                 loader({
                     request,
-                    params: { siteId: 'test-site', localeId: 'en-US', productId: 'failure' },
+                    params: { siteId: 'test-site', localeId: 'en-US', '*': 'failure' },
                     context: mockContext,
                     url: new URL(request.url),
-                    pattern: '/product/:productId',
+                    pattern: '/p/*',
                 })
             ).rejects.toBeInstanceOf(Response);
 
@@ -345,8 +345,8 @@ describe('Product Route Loaders', () => {
             const { NormalizedApiError } = await import('@/lib/api/normalized-api-error');
             mockFetchProductById.mockRejectedValueOnce(new NormalizedApiError(new TypeError('Network failure')));
 
-            const request = new Request('https://example.com/product/sku-network');
-            const params = { productId: 'sku-network' };
+            const request = new Request('https://example.com/p/sku-network');
+            const params = { '*': 'sku-network' };
             const context = mockContext;
 
             const error = await loader({
@@ -354,7 +354,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             }).then(
                 () => {
                     throw new Error('expected loader to throw a Response');
@@ -370,8 +370,8 @@ describe('Product Route Loaders', () => {
         test('throws Response 404 when fetchProductById returns null', async () => {
             mockFetchProductById.mockResolvedValueOnce(null);
 
-            const request = new Request('https://example.com/product/empty-result');
-            const params = { productId: 'empty-result' };
+            const request = new Request('https://example.com/p/empty-result');
+            const params = { '*': 'empty-result' };
             const context = mockContext;
 
             const error = await loader({
@@ -379,7 +379,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             }).then(
                 () => {
                     throw new Error('expected loader to throw a Response');
@@ -394,8 +394,8 @@ describe('Product Route Loaders', () => {
         test('handles product with variant ID in search params', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
-            const request = new Request('https://example.com/product/test-product-123?pid=variant-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123?pid=variant-123');
+            const params = { '*': 'test-product-123' };
             const context = mockContext;
 
             await loader({
@@ -403,7 +403,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             // Should use the pid parameter instead of productId
@@ -426,15 +426,15 @@ describe('Product Route Loaders', () => {
                     })
                 )
             );
-            const request = new Request('https://example.com/product/master?pid=variant');
+            const request = new Request('https://example.com/p/master?pid=variant');
 
             await expect(
                 loader({
                     request,
-                    params: { siteId: 'test-site', localeId: 'en-US', productId: 'master' },
+                    params: { siteId: 'test-site', localeId: 'en-US', '*': 'master' },
                     context: mockContext,
                     url: new URL(request.url),
-                    pattern: '/product/:productId',
+                    pattern: '/p/*',
                 })
             ).rejects.toBeInstanceOf(Response);
 
@@ -448,15 +448,20 @@ describe('Product Route Loaders', () => {
             // route param no longer carries it. The final raw path segment is authoritative.
             const request = new Request('https://example.com/en-US/p/mens/shirts/test-product-123');
 
-            await loader({
+            const response = await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', productId: 'stale-route-param' },
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'stale-route-param' },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
-            });
+                pattern: '/p/*',
+            }).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
 
             expect(mockFetchProductById.mock.calls[0][1]).toBe('test-product-123');
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/p/test-product-123');
         });
     });
 
@@ -471,8 +476,8 @@ describe('Product Route Loaders', () => {
                 name: 'Test Store',
             };
 
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123');
+            const params = { '*': 'test-product-123' };
             const context = mockContext;
 
             await loader({
@@ -480,7 +485,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             // Verify fetchProductById was called with inventoryIds parameter
@@ -497,8 +502,8 @@ describe('Product Route Loaders', () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
             mockSelectedStoreInfo = null;
 
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123');
+            const params = { '*': 'test-product-123' };
             const context = mockContext;
 
             await loader({
@@ -506,7 +511,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             // Verify fetchProductById was called without inventoryIds parameter
@@ -522,8 +527,8 @@ describe('Product Route Loaders', () => {
                 // No inventoryId
             };
 
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123');
+            const params = { '*': 'test-product-123' };
             const context = mockContext;
 
             await loader({
@@ -531,7 +536,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             // Verify fetchProductById was called without inventoryIds parameter
@@ -546,8 +551,8 @@ describe('Product Route Loaders', () => {
         test('uses pid parameter when present in URL', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
-            const request = new Request('https://example.com/product/test-product-123?pid=variant-456');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123?pid=variant-456');
+            const params = { '*': 'test-product-123' };
             const context = mockContext;
 
             await loader({
@@ -555,7 +560,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             // Should use the pid parameter instead of productId
@@ -565,8 +570,8 @@ describe('Product Route Loaders', () => {
         test('uses productId when pid parameter is not present', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123');
+            const params = { '*': 'test-product-123' };
             const context = mockContext;
 
             await loader({
@@ -574,7 +579,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             // Should use the productId from params
@@ -584,8 +589,8 @@ describe('Product Route Loaders', () => {
         test('includes all required expand parameters', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123');
+            const params = { '*': 'test-product-123' };
             const context = mockContext;
 
             await loader({
@@ -593,7 +598,7 @@ describe('Product Route Loaders', () => {
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             const callOptions = mockFetchProductById.mock.calls[0][2];
@@ -613,15 +618,15 @@ describe('Product Route Loaders', () => {
         test('passes primaryCategoryId to fetchPageWithComponentData as the category fallback', async () => {
             mockFetchProductById.mockResolvedValueOnce(mockProduct);
 
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123');
+            const params = { '*': 'test-product-123' };
 
             await loader({
                 request,
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(mockFetchPageWithComponentData).toHaveBeenCalledWith(
@@ -642,13 +647,13 @@ describe('Product Route Loaders', () => {
             };
             mockFetchProductById.mockResolvedValueOnce(productWithBoth);
 
-            const request = new Request('https://example.com/product/test-product-123');
+            const request = new Request('https://example.com/p/test-product-123');
             await loader({
                 request,
-                params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
+                params: { siteId: 'test-site', localeId: 'en-US', '*': 'test-product-123' },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(mockFetchPageWithComponentData).toHaveBeenCalledWith(
@@ -668,15 +673,15 @@ describe('Product Route Loaders', () => {
             };
             mockFetchProductById.mockResolvedValueOnce(productWithoutCategory);
 
-            const request = new Request('https://example.com/product/test-product-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123');
+            const params = { '*': 'test-product-123' };
 
             await loader({
                 request,
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(mockFetchPageWithComponentData).toHaveBeenCalledWith(
@@ -693,15 +698,15 @@ describe('Product Route Loaders', () => {
             const variantProduct = { ...mockProduct, id: 'variant-pid-123', primaryCategoryId: 'variant-cat-123' };
             mockFetchProductById.mockResolvedValueOnce(variantProduct);
 
-            const request = new Request('https://example.com/product/test-product-123?pid=variant-pid-123');
-            const params = { productId: 'test-product-123' };
+            const request = new Request('https://example.com/p/test-product-123?pid=variant-pid-123');
+            const params = { '*': 'test-product-123' };
 
             await loader({
                 request,
                 params: { siteId: 'test-site', localeId: 'en-US', ...params },
                 context: mockContext,
                 url: new URL(request.url),
-                pattern: '/product/:productId',
+                pattern: '/p/*',
             });
 
             expect(mockFetchPageWithComponentData).toHaveBeenCalledWith(

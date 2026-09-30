@@ -21,6 +21,8 @@ import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { useSearchSuggestions } from '@/hooks/use-search-suggestions';
 import { useTransformSearchSuggestions } from '@/hooks/use-transform-search-suggestions';
 import SearchBar from './search';
+import type { AppConfig } from '@/types/config';
+import { mockConfig, mockSiteObject } from '@/test-utils/config';
 
 const { t } = getTranslation();
 
@@ -76,13 +78,13 @@ const mockUseTransformSearchSuggestions = vi.mocked(useTransformSearchSuggestion
 
 // --- Helpers ---
 
-const renderSearchBar = () => {
+const renderSearchBar = (config: AppConfig = mockConfig) => {
     const router = createMemoryRouter(
         [
             {
                 path: '*',
                 element: (
-                    <AllProvidersWrapper>
+                    <AllProvidersWrapper config={config}>
                         <SearchBar />
                     </AllProvidersWrapper>
                 ),
@@ -111,8 +113,29 @@ describe('SearchBar Component', () => {
     });
 
     describe('Basic Rendering', () => {
-        it('requests product slugs with the existing suggestions request', () => {
+        it('does not request product slugs when SEO routes are disabled', () => {
             renderSearchBar();
+
+            expect(mockUseSearchSuggestions).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    expand: ['images', 'prices', 'custom_product_properties'],
+                })
+            );
+        });
+
+        it('requests product slugs with the existing suggestions request when SEO routes are enabled', () => {
+            renderSearchBar({
+                ...mockConfig,
+                url: {
+                    ...mockConfig.url,
+                    seoRoutes: {
+                        [mockSiteObject.id]: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                    },
+                },
+            });
 
             expect(mockUseSearchSuggestions).toHaveBeenCalledWith(
                 expect.objectContaining({

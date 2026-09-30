@@ -55,6 +55,7 @@ function options(overrides: Partial<ResolveUrlMappingOptions> = {}): ResolveUrlM
         seoUrlContext: { siteId: 'RefArch', seoRoutes },
         destinationPrefix: '/RefArch/en-US',
         legacyRoutes: [{ pattern: '/legacy-products/:id', suffix: '.html' }],
+        now: new Date('2026-09-25T12:00:00.000Z'),
         ...overrides,
     };
 }
@@ -358,6 +359,38 @@ describe('resource mappings', () => {
         expect(resolveUrlMapping({ resourceType: 'CONTENT_ASSET', resourceId: 'about' }, options())).toEqual({
             type: 'rejected',
         });
+    });
+});
+
+describe('mapping activation windows', () => {
+    const activeMapping: UrlMapping = { statusCode: 302, destinationUrl: '/sale' };
+
+    test.each([
+        { onlineFrom: '2026-09-25T12:00:00.000Z', onlineTo: null },
+        { onlineFrom: null, onlineTo: '2026-09-25T12:00:00.000Z' },
+        { onlineFrom: '2026-09-25T11:00:00.000Z', onlineTo: '2026-09-25T13:00:00.000Z' },
+    ])('accepts an active inclusive window: %o', (window) => {
+        expect(resolveUrlMapping({ ...activeMapping, ...window }, options())).toMatchObject({ type: 'redirect' });
+    });
+
+    test.each([
+        { onlineFrom: '2026-09-25T12:00:00.001Z' },
+        { onlineTo: '2026-09-25T11:59:59.999Z' },
+        { onlineFrom: 'not-a-date' },
+        { onlineTo: '2026-13-99' },
+        { onlineFrom: '2026-09-25' },
+        { onlineTo: '2026-02-30T00:00:00.000Z' },
+    ])('rejects an inactive or malformed window: %o', (window) => {
+        expect(resolveUrlMapping({ ...activeMapping, ...window }, options())).toEqual({ type: 'rejected' });
+    });
+
+    test('applies the window before interpreting a resource mapping', () => {
+        expect(
+            resolveUrlMapping(
+                { resourceType: 'PRODUCT', resourceId: 'p1', onlineFrom: '2026-09-26T00:00:00.000Z' },
+                options()
+            )
+        ).toEqual({ type: 'rejected' });
     });
 });
 

@@ -17,12 +17,14 @@ import { useEffect, useRef, Suspense, Fragment } from 'react';
 import { Await, useRouteLoaderData } from 'react-router';
 import type { loader as rootLoader } from '@/root';
 import { shouldRevalidate as shouldRevalidateProduct } from '@/lib/revalidation/routes/product';
-import type { Route } from './+types/_app.product.$productId';
+import type { Route } from './+types/_app.p.$';
 import { type ShopperProducts } from '@/scapi';
 import { fetchProductById } from '@/lib/api/products.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
-import { decodeFinalRawSegment } from '@/lib/seo/url-resolution.server';
+import { resolveProductRoute } from '@/lib/seo/url-resolution.server';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 import { attemptRouteSeoFallback } from '@/lib/seo/route-fallback.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
 import ProductView from '@/components/product-view';
 import ChildProducts from '@/components/product-view/child-products';
@@ -42,7 +44,7 @@ import { JsonLd } from '@/components/json-ld';
 import { SeoMeta } from '@/components/seo-meta';
 import { generateProductSchema } from '@/utils/product-schema';
 import { buildSeoPageUrl } from '@/lib/seo/page-url.server';
-import { redirectToCanonicalPath } from '@/lib/seo/canonical-redirect.server';
+import { getCanonicalProductRedirect, redirectToCanonicalPath } from '@/lib/seo/canonical-redirect.server';
 import { getLogger } from '@/lib/logger.server';
 import { UITarget } from '@/targets/ui-target';
 import ProductViewProvider from '@/providers/product-view';
@@ -142,7 +144,25 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
     const logger = getLogger(context);
     const requestUrl = new URL(request.url);
     redirectToCanonicalPath(requestUrl);
-    const productId = decodeFinalRawSegment(requestUrl, args.params);
+    const siteCtx = context.get(siteContext);
+    if (!siteCtx) {
+        logger.error('Product: site context is not available');
+        throw new Response('Site context is not available', { status: 500 });
+    }
+    const config = getConfig(context);
+    const routeResolution = resolveProductRoute({
+        url: requestUrl,
+        params: args.params,
+        urlPrefix: config.url?.prefix,
+        siteId: siteCtx.site.id,
+        seoRoutes: config.url?.seoRoutes,
+    });
+    if (!routeResolution) {
+        const fallback = await attemptRouteSeoFallback(context, request);
+        if (fallback) return fallback as never;
+        throw new Response('Product not found', { status: 404 });
+    }
+    const { productId } = routeResolution;
     const { searchParams } = requestUrl;
     const variantPid = searchParams.get('pid');
     logger.debug('Product: loader starting', {
@@ -155,11 +175,6 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
     // @sfdc-extension-block-end SFDC_EXT_BOPIS
 
     // Get currency from context for product pricing
-    const siteCtx = context.get(siteContext);
-    if (!siteCtx) {
-        logger.error('Product: site context is not available');
-        throw new Response('Site context is not available', { status: 500 });
-    }
     const { currency } = siteCtx;
 
     // Resolve the product critically. A 404 here must propagate as Response(404)
@@ -184,6 +199,7 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
                 'primary_category',
                 'promotions', // <-- TTL = 900s
                 'set_products',
+                ...getSeoSlugExpansion(config.url?.seoRoutes),
                 'variations',
             ],
             allImages: true,
@@ -207,6 +223,16 @@ export async function loader(args: Route.LoaderArgs): Promise<ProductPageData> {
 
     if (!product) {
         throw new Response('Product not found', { status: 404 });
+    }
+
+    const canonicalRedirect = getCanonicalProductRedirect({
+        requestUrl,
+        context,
+        productId,
+        product,
+    });
+    if (canonicalRedirect) {
+        throw canonicalRedirect;
     }
 
     // Resolve DIS-served swatch tiles for axes SCAPI doesn't natively decorate from hidden swatch

@@ -135,7 +135,7 @@ export interface UIConfig {
                 enabled: boolean;
             };
             /**
-             * When true, product tiles link to the master product PDP (`/product/<id>`) instead of
+             * When true, product tiles link to the master product PDP (`/p/<id>`) instead of
              * deep-linking to the search API's represented variant (`?pid=<variant>`). Use for
              * verticals where the shopper should configure the product from scratch on the PDP
              * (e.g. furniture, paired with the "Choose Options" flow). Applies to every ProductTile

@@ -91,8 +91,8 @@ function withProviders(Story: ComponentType, context: { args: Record<string, unk
         const router = createMemoryRouter(
             [
                 { path: '/', element: content },
-                { path: '/product/:id', element: <div>Product Page</div> },
-                { path: '/category/:id', element: <div>Category Page</div> },
+                { path: '/p/:id', element: <div>Product Page</div> },
+                { path: '/c/:id', element: <div>Category Page</div> },
                 { path: '/account', element: <div>Account Page</div> },
             ],
             { initialEntries: ['/'] }
@@ -130,13 +130,13 @@ type Story = StoryObj<typeof Link>;
 
 export const Default: Story = {
     args: {
-        to: '/product/123',
+        to: '/p/123',
         children: 'View Product',
     },
     parameters: {
         docs: {
             description: {
-                story: 'A Link with site context prefix applied. The href is rewritten from `/product/123` to include the site prefix.',
+                story: 'A Link with site context prefix applied. The href is rewritten from `/p/123` to include the site prefix.',
             },
         },
     },
@@ -145,13 +145,13 @@ export const Default: Story = {
         const canvas = within(canvasElement);
         const link = canvas.getByRole('link', { name: 'View Product' });
         await expect(link).toBeInTheDocument();
-        await expect(link.getAttribute('href')).toContain('/product/123');
+        await expect(link.getAttribute('href')).toContain('/p/123');
     },
 };
 
 export const CategoryLink: Story = {
     args: {
-        to: '/category/mens',
+        to: '/c/mens',
         children: 'Shop Mens',
     },
     parameters: {
@@ -166,7 +166,7 @@ export const CategoryLink: Story = {
         const canvas = within(canvasElement);
         const link = canvas.getByRole('link', { name: 'Shop Mens' });
         await expect(link).toBeInTheDocument();
-        await expect(link.getAttribute('href')).toContain('/category/mens');
+        await expect(link.getAttribute('href')).toContain('/c/mens');
     },
 };
 
@@ -222,12 +222,12 @@ export const AsNavLink: StoryObj<typeof NavLink> = {
                 Home
             </NavLink>
             <NavLink
-                to="/category/womens"
+                to="/c/womens"
                 className={({ isActive }) => (isActive ? 'font-bold underline' : 'text-muted-foreground')}>
                 Womens
             </NavLink>
             <NavLink
-                to="/category/mens"
+                to="/c/mens"
                 className={({ isActive }) => (isActive ? 'font-bold underline' : 'text-muted-foreground')}>
                 Mens
             </NavLink>

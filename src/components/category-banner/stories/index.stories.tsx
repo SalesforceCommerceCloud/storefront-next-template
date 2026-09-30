@@ -25,7 +25,7 @@ import CategoryBanner from '../index';
 // to inject ancestor-route data — each key is a route ID, value is the loader payload.
 // ---------------------------------------------------------------------------
 
-const PLP_ROUTE_ID = 'routes/_app.category.$categoryId';
+const PLP_ROUTE_ID = 'routes/_app.c.$';
 
 const menCategory = {
     id: 'men',

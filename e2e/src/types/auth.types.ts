@@ -53,7 +53,7 @@ export interface SignupFlowOptions {
     acceptTracking?: boolean;
     /** Add an item to the cart and log out after signup (default: false) */
     createBasket?: boolean;
-    /** Category URL used when createBasket is true (default: 'category/mens-clothing-jackets') */
+    /** Category URL used when createBasket is true (default: 'c/mens-clothing-jackets') */
     categoryUrl?: string;
 }
 

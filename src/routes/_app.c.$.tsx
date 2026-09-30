@@ -16,12 +16,16 @@
 import { Suspense, use, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAsyncError, useLocation, useNavigation, useRouteLoaderData } from 'react-router';
 import type { loader as rootLoader } from '@/root';
-import type { Route } from './+types/_app.category.$categoryId';
-import type { ShopperProducts, ShopperSearch } from '@/scapi';
+import type { Route } from './+types/_app.c.$';
+import { ApiError, type ShopperProducts, type ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { fetchCategory } from '@/lib/api/categories.server';
 import { fetchSearchProducts } from '@/lib/api/search.server';
-import { decodeFinalRawSegment } from '@/lib/seo/url-resolution.server';
+import {
+    applyCategoryRouteRefinement,
+    isCategoryRefinement,
+    resolveCategoryRoute,
+} from '@/lib/seo/url-resolution.server';
 import { attemptRouteSeoFallback } from '@/lib/seo/route-fallback.server';
 import { getAllQueryParams, getQueryParam, PRODUCT_SEARCH_QUERY_PARAMS } from '@/lib/query-params';
 import { getConfig, useConfig } from '@salesforce/storefront-next-runtime/config';
@@ -52,7 +56,10 @@ import { UITarget } from '@/targets/ui-target';
 import { generateCategorySchema } from '@/utils/category-schema';
 import { getAppOrigin } from '@/lib/origin';
 import { buildSeoPageUrl } from '@/lib/seo/page-url.server';
-import { redirectToCanonicalPath } from '@/lib/seo/canonical-redirect.server';
+import { createCategoryUrl, getSiteSeoRoutes } from '@/route-paths';
+import { getCategorySlugSegments } from '@/lib/seo/scapi-slugs';
+import { buildUrlFromContext } from '@/lib/url.server';
+import { getCanonicalResourceRedirect, redirectToCanonicalPath } from '@/lib/seo/canonical-redirect.server';
 import {
     getInitialFiltersOpen,
     getSearchWithoutClientOnlyParams,
@@ -109,6 +116,16 @@ type CategoryPageData = {
     offset?: number;
 };
 
+function isCategorySlugResolutionMiss(error: unknown): error is NormalizedApiError {
+    if (!(error instanceof NormalizedApiError) || error.status !== 400 || !(error.cause instanceof ApiError)) {
+        return false;
+    }
+    return (
+        error.cause.body.type ===
+        'https://api.commercecloud.salesforce.com/documentation/error/v1/errors/invalid-category-slug-refinement'
+    );
+}
+
 /**
  * Server-side loader function that fetches category data and product search results.
  * This function runs on the server during SSR and prepares data for the category page.
@@ -118,20 +135,8 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     const { context, request } = args;
     const requestUrl = new URL(request.url);
     redirectToCanonicalPath(requestUrl);
-    // Resolves the id-suffix and legacy `/category/:categoryId` grammars; slug-path mode (where
-    // the final segment is a slug, not the category ID) is not resolved here.
-    const categoryId = decodeFinalRawSegment(requestUrl, args.params);
     const { searchParams } = requestUrl;
     const logger = getLogger(context);
-    logger.debug('Category: loader starting', {
-        categoryId,
-        offset: parseInt(searchParams.get('offset') || '0', 10),
-    });
-    const sort = getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.SORT);
-    const refine = getAllQueryParams(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.REFINE);
-    const initialFiltersOpen = getInitialFiltersOpen(searchParams);
-
-    // Get currency and locale for cache-busting the page key
     const config = getConfig(context);
     const siteCtx = context.get(siteContext);
     if (!siteCtx) {
@@ -140,6 +145,26 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     }
     const { currency } = siteCtx;
     const locale = siteCtx.locale.id;
+    const routeResolution = resolveCategoryRoute({
+        url: requestUrl,
+        params: args.params,
+        urlPrefix: config.url?.prefix,
+        siteId: siteCtx.site.id,
+        seoRoutes: config.url?.seoRoutes,
+    });
+    if (!routeResolution) {
+        const fallback = await attemptRouteSeoFallback(context, request);
+        if (fallback) return fallback as never;
+        throw new Response('Category not found', { status: 404 });
+    }
+    const { categoryLookup, routeRefinement, slugPath } = routeResolution;
+    logger.debug('Category: loader starting', {
+        categoryLookup,
+        offset: parseInt(searchParams.get('offset') || '0', 10),
+    });
+    const sort = getQueryParam(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.SORT);
+    const refine = getAllQueryParams(searchParams, PRODUCT_SEARCH_QUERY_PARAMS.REFINE);
+    const initialFiltersOpen = getInitialFiltersOpen(searchParams);
     const limit = config.search.products.hits.limit;
 
     // Pagination params. Which ones are honored depends on the merchant's pagination mode:
@@ -155,12 +180,14 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     const offset = isPagedRequest ? (requestedPage - 1) * limit : requestedOffset;
     const initialFetchLimit = limit;
 
-    // Keep non-category refinements and apply exactly one category refinement.
-    // If URL already contains a cgid refine (e.g. from quick filters), honor it.
-    // Otherwise, default to the category id from the route path.
-    const effectiveRefine = refine.filter((r) => !r.startsWith('cgid='));
-    const selectedCgidRefine = refine.find((r) => r.startsWith('cgid='));
-    effectiveRefine.push(selectedCgidRefine ?? `cgid=${categoryId}`);
+    // Configured deterministic routes are authoritative. The built-in legacy route keeps its
+    // existing cgid quick-filter behavior, but still drops unsupported cgslug conflicts.
+    const effectiveRefine = config.url?.seoRoutes
+        ? applyCategoryRouteRefinement(refine, routeRefinement)
+        : [
+              ...refine.filter((refinement) => !isCategoryRefinement(refinement)),
+              refine.find((refinement) => refinement.startsWith('cgid=')) ?? routeRefinement,
+          ];
 
     // Ensure criticalCount doesn't exceed limit to prevent negative non-critical limit
     const criticalCount = config.search.products.hits.critical ?? 4;
@@ -168,7 +195,7 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
 
     // Start independent I/O together. Awaiting these promises below preserves the category error
     // mapping and the critical/non-critical search dependency without serializing their requests.
-    const categoryPromise = fetchCategory(context, categoryId, 1);
+    const categoryPromise = fetchCategory(context, categoryLookup, 1);
     const searchResultCriticalPromise = fetchSearchProducts(context, {
         limit: safeCriticalCount,
         offset,
@@ -176,14 +203,18 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         refine: effectiveRefine,
         currency,
     });
-    const pagePromise = fetchPageWithComponentData(args, {
-        aspectType: 'plp',
-        categoryId,
-    });
+    const immediatePagePromise = slugPath
+        ? undefined
+        : fetchPageWithComponentData(args, {
+              aspectType: 'plp',
+              categoryId: categoryLookup,
+          });
 
     // Observe concurrent requests immediately so an early category failure cannot leave rejected
     // promises unhandled. Awaiting the original promises below still propagates their errors.
-    void Promise.allSettled([searchResultCriticalPromise, pagePromise]);
+    void Promise.allSettled(
+        immediatePagePromise ? [searchResultCriticalPromise, immediatePagePromise] : [searchResultCriticalPromise]
+    );
 
     let categoryData: ShopperProducts.schemas['Category'] | undefined;
     try {
@@ -199,7 +230,58 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
         throw new Response('Internal Server Error', { status: 500 });
     }
 
-    const searchResultCritical = await searchResultCriticalPromise;
+    // getCategory gives IDs precedence over slugs. A single-segment slug can therefore resolve to
+    // the wrong category when another category owns that value as its ID. Require the returned
+    // authoritative slug to match before using its ID, metadata, or Page Designer context.
+    if (slugPath && categoryData.slug?.normalize('NFC') !== slugPath.normalize('NFC')) {
+        const fallback = await attemptRouteSeoFallback(context, request);
+        if (fallback) return fallback as never;
+        throw new Response('Category not found', { status: 404 });
+    }
+    const categoryId = categoryData.id;
+    const seoUrlContext = {
+        siteId: siteCtx.site.id,
+        urlPrefix: config.url?.prefix,
+        seoRoutes: config.url?.seoRoutes,
+    };
+    const categorySlugSegments = getCategorySlugSegments(categoryData);
+    const categoryRoute = getSiteSeoRoutes(seoUrlContext)?.category;
+    const shouldConvergeCategoryPath =
+        !slugPath && (!categoryRoute || (categoryRoute.mode === 'id-suffix' && categorySlugSegments));
+    if (shouldConvergeCategoryPath) {
+        const canonicalCategoryPath = createCategoryUrl(
+            { categoryId, slugSegments: categorySlugSegments ?? [] },
+            seoUrlContext
+        );
+        const canonicalRedirect = getCanonicalResourceRedirect(
+            requestUrl,
+            buildUrlFromContext(canonicalCategoryPath, context)
+        );
+        if (canonicalRedirect) {
+            throw canonicalRedirect;
+        }
+    }
+    const pagePromise =
+        immediatePagePromise ??
+        fetchPageWithComponentData(args, {
+            aspectType: 'plp',
+            categoryId,
+        });
+    void pagePromise.catch(() => undefined);
+
+    let searchResultCritical: ShopperSearch.schemas['ProductSearchResult'];
+    try {
+        searchResultCritical = await searchResultCriticalPromise;
+    } catch (error) {
+        // Only a slug-specific 400 is a deterministic resolution miss. Other validation errors,
+        // auth, throttling, network, timeout, and 5xx failures remain untouched.
+        if (slugPath && isCategorySlugResolutionMiss(error)) {
+            const fallback = await attemptRouteSeoFallback(context, request);
+            if (fallback) return fallback as never;
+            throw new Response(error.message, { status: 404 });
+        }
+        throw error;
+    }
 
     const effectiveCriticalCount = searchResultCritical.hits?.length ?? 0;
     const searchResultNonCritical = fetchSearchProducts(context, {
@@ -222,7 +304,12 @@ export async function loader(args: Route.LoaderArgs): Promise<CategoryPageData> 
     const currentPage = isPagedRequest ? requestedPage : 1;
     const buildPageUrl = (p: number): string => {
         const params = new URLSearchParams();
-        for (const r of refine) params.append('refine', r);
+        const paginationRefine = config.url?.seoRoutes
+            ? refine.filter((refinement) => !isCategoryRefinement(refinement))
+            : refine.filter((refinement) => !refinement.startsWith('cgslug='));
+        for (const r of paginationRefine) {
+            params.append('refine', r);
+        }
         if (sort) params.set('sort', sort);
         if (p > 1) params.set('page', String(p));
         const qs = params.toString();
@@ -673,7 +760,11 @@ export default function CategoryPage({
                                 role="region"
                                 aria-label={t('categoryRefinements:filtersButtonLabel')}
                                 className="w-full lg:w-64 lg:flex-shrink-0 outline-none">
-                                <CategoryRefinements result={searchResultCritical} refine={refine} />
+                                <CategoryRefinements
+                                    result={searchResultCritical}
+                                    refine={refine}
+                                    category={category}
+                                />
                             </div>
                         )}
 

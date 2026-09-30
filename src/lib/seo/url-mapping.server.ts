@@ -17,6 +17,7 @@ import type { ShopperSeo } from '@/scapi';
 import { createCategoryUrl, createProductUrl, type SeoUrlContext } from '@/route-paths';
 import { appendSuffix, findLegacyRoute, type LegacyRoute } from '@/middlewares/legacy-routes';
 import type { SeoFallbackSitePolicy } from '@/types/config';
+import { parseRfc3339Timestamp } from '@/lib/rfc3339';
 
 type UrlMapping = ShopperSeo.schemas['UrlMapping'];
 type QueryResource = keyof SeoFallbackSitePolicy['allowedQueryParameters'];
@@ -37,6 +38,7 @@ export type ResolveUrlMappingOptions = {
     destinationPrefix?: string;
     buildResourceUrl?: (location: string) => string;
     legacyRoutes: ReadonlyArray<string | LegacyRoute>;
+    now?: Date;
 };
 
 const REDIRECT_STATUSES = new Set([301, 302, 307]);
@@ -89,6 +91,17 @@ export function isEligibleFallbackRequest(request: Request): boolean {
 
 function rejected(): UrlMappingOutcome {
     return { type: 'rejected' };
+}
+
+function isMappingActive(mapping: UrlMapping, now: Date): boolean {
+    const nowTimestamp = now.getTime();
+    const onlineFrom = mapping.onlineFrom == null ? undefined : parseRfc3339Timestamp(mapping.onlineFrom);
+    const onlineTo = mapping.onlineTo == null ? undefined : parseRfc3339Timestamp(mapping.onlineTo);
+    if (!Number.isFinite(nowTimestamp) || onlineFrom === null || onlineTo === null) return false;
+    return (
+        (onlineFrom === undefined || nowTimestamp >= onlineFrom.epochMilliseconds) &&
+        (onlineTo === undefined || nowTimestamp <= onlineTo.epochMilliseconds)
+    );
 }
 
 function strictSearchParams(value: string): URLSearchParams | null {
@@ -245,6 +258,7 @@ export function resolveUrlMapping(
     options: ResolveUrlMappingOptions
 ): UrlMappingOutcome {
     if (!mapping) return { type: 'not-found' };
+    if (!isMappingActive(mapping, options.now ?? new Date())) return rejected();
 
     const publicOrigin = normalizeOrigin(options.publicOrigin);
     if (!publicOrigin) return rejected();

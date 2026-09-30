@@ -445,8 +445,8 @@ describe('mergeRoutes', () => {
                     file: 'routes/_app.tsx',
                     children: [
                         {
-                            id: 'routes/_app.category.$categoryId',
-                            file: 'routes/_app.category.$categoryId.tsx',
+                            id: 'routes/_app.c.$',
+                            file: 'routes/_app.c.$.tsx',
                             path: 'category/:categoryId',
                         },
                     ],
@@ -484,8 +484,8 @@ describe('mergeRoutes', () => {
                             path: 'order-confirmation/:orderNo',
                         },
                         {
-                            id: 'routes/_app.category.$categoryId',
-                            file: 'routes/_app.category.$categoryId.tsx',
+                            id: 'routes/_app.c.$',
+                            file: 'routes/_app.c.$.tsx',
                             path: 'category/:categoryId',
                         },
                     ],

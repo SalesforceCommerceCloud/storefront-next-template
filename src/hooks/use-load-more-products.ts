@@ -42,7 +42,7 @@ function asCategoryProductsResult(data: unknown): CategoryProductsResult | null 
 const MOBILE_QUERY = '(max-width: 767px)';
 
 /**
- * @property refine - The active search refinements (`cgid=...`, plus any facet refinements).
+ * @property refine - The active search refinements (one route-authoritative `cgid` or `cgslug`, plus facets).
  * @property sort - The active sorting option id, if any.
  * @property currency - Currency to price the additional hits in.
  * @property initialCount - How many products the route loader already rendered (the first page). The

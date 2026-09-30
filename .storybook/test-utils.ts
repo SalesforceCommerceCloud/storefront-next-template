@@ -37,7 +37,7 @@ export async function waitForStorybookReady(canvasElement: HTMLElement, timeout 
  * Do not do any fancy logic in here. This is to DRY the prefix hard-code string for tests
  * @example
  * ```ts
- * await expect(link).toHaveAttribute('href', `${SITE_PREFIX}/category/featured`);
+ * await expect(link).toHaveAttribute('href', `${SITE_PREFIX}/c/featured`);
  * ```
  */
 const defaultSite = mockConfig.commerce.sites[0];

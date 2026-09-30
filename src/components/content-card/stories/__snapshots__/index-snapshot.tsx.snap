@@ -112,7 +112,7 @@ exports[`ContentCard stories snapshot > Default story renders and matches snapsh
               data-size="default"
               data-slot="button"
               data-variant="default"
-              href="/category/featured"
+              href="/c/featured"
             >
               Shop Now
             </a>
@@ -174,7 +174,7 @@ exports[`ContentCard stories snapshot > LongCopy story renders and matches snaps
               data-size="default"
               data-slot="button"
               data-variant="default"
-              href="/category/editorial"
+              href="/c/editorial"
             >
               Browse the Full Editorial Collection
             </a>
@@ -298,7 +298,7 @@ exports[`ContentCard stories snapshot > Playground story renders and matches sna
               data-size="default"
               data-slot="button"
               data-variant="default"
-              href="/category/featured"
+              href="/c/featured"
             >
               Shop Now
             </a>
@@ -450,7 +450,7 @@ exports[`ContentCard stories snapshot > WithoutImage story renders and matches s
             data-size="default"
             data-slot="button"
             data-variant="default"
-            href="/category/featured"
+            href="/c/featured"
           >
             Shop Now
           </a>

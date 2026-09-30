@@ -58,12 +58,12 @@ describe('routes.ts', () => {
                     path: undefined,
                 }),
                 expect.objectContaining({
-                    id: 'routes/_app.category.$categoryId',
-                    path: 'category/:categoryId',
+                    id: 'routes/_app.c.$',
+                    path: 'c/*',
                 }),
                 expect.objectContaining({
-                    id: 'routes/_app.product.$productId',
-                    path: 'product/:productId',
+                    id: 'routes/_app.p.$',
+                    path: 'p/*',
                 }),
                 expect.objectContaining({
                     id: 'routes/_app.cart',

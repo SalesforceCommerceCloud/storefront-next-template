@@ -67,7 +67,7 @@ export const ProductSchema: Story = {
             image: 'https://via.placeholder.com/800',
             sku: 'classic-leather-jacket',
             productID: 'classic-leather-jacket',
-            url: 'https://store.example.com/product/classic-leather-jacket',
+            url: 'https://store.example.com/p/classic-leather-jacket',
             brand: {
                 '@type': 'Brand',
                 name: 'Example Brand',
@@ -78,7 +78,7 @@ export const ProductSchema: Story = {
                 priceCurrency: 'USD',
                 availability: 'https://schema.org/InStock',
                 itemCondition: 'https://schema.org/NewCondition',
-                url: 'https://store.example.com/product/classic-leather-jacket',
+                url: 'https://store.example.com/p/classic-leather-jacket',
             },
         },
     },
@@ -98,7 +98,7 @@ export const CategorySchema: Story = {
             '@type': 'CollectionPage',
             name: 'Electronics',
             description: 'Browse our selection of electronics products',
-            url: 'https://store.example.com/category/electronics',
+            url: 'https://store.example.com/c/electronics',
             mainEntity: {
                 '@type': 'ItemList',
                 numberOfItems: 3,

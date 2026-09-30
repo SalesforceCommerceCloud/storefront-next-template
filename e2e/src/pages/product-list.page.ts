@@ -47,13 +47,13 @@ class ProductListPage {
         ).as('Product Grid Specific'),
 
         // Product images
-        productImages: locate('a[href*="/product/"] img').as('Product Images'),
+        productImages: locate('a[href*="/p/"] img').as('Product Images'),
 
         // Product name links in tile info section (h3 > a, below image area — safe from Quick Add overlay)
-        productNameLinks: locate('h3 a[href*="/product/"]').as('Product Name Links'),
+        productNameLinks: locate('h3 a[href*="/p/"]').as('Product Name Links'),
 
         // Product titles
-        productTitles: locate('h3 a[href*="/product/"]').as('Product Titles'),
+        productTitles: locate('h3 a[href*="/p/"]').as('Product Titles'),
 
         // Product prices
         productPrices: locate('[data-testid*="price"]').as('Product Prices'),
@@ -79,7 +79,7 @@ class ProductListPage {
      * since client-side navigate() can be disrupted by overlays (e.g. consent dialogs).
      */
     async getFirstProductUrl(): Promise<string> {
-        return await I.grabAttributeFrom(locate('a[href*="/product/"]').first(), 'href');
+        return await I.grabAttributeFrom(locate('a[href*="/p/"]').first(), 'href');
     }
 
     /**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import type { ShopperProducts, ShopperExperience } from '@/scapi';
 import type { ComponentDesignMetadata } from '@salesforce/storefront-next-runtime/design/react';
 import type { ComponentType } from '@/components/region';
@@ -28,8 +28,8 @@ import { toImageUrl } from '@/lib/images/dynamic-image';
 import { useTranslation } from 'react-i18next';
 import heroImage from '/images/hero-03.webp';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
-import { createCategoryUrl } from '@/route-paths';
 import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
+import { createCategoryUrlFromScapiCategory } from '@/lib/seo/scapi-slugs';
 
 /**
  * Public-dir path to the shared authoring placeholder. Referenced by URL (not a module import) so
@@ -147,7 +147,6 @@ export default function PopularCategory({
         return null;
     }
 
-    const finalCategoryId = categoryData?.id || '';
     const finalName = showEmptyState ? tCommon('popularCategory.emptyTitle') : categoryData?.name || '';
     const finalDescription = showDescription ? categoryData?.pageDescription || categoryData?.description || '' : '';
 
@@ -161,19 +160,25 @@ export default function PopularCategory({
     const finalImageUrl: string = showEmptyState
         ? resolveAssetUrl(EMPTY_STATE_PLACEHOLDER_SRC)
         : transformedCategoryImage || fallbackImageUrl || heroImage;
+    const destination =
+        categoryData || showEmptyState
+            ? createCategoryUrlFromScapiCategory(categoryData ?? { id: '' }, seoUrlContext)
+            : undefined;
+
+    const renderDestination = (content: ReactNode, destinationClassName: string) =>
+        destination ? (
+            <Link to={destination} className={destinationClassName} {...rest}>
+                {content}
+            </Link>
+        ) : (
+            <div className={destinationClassName}>{content}</div>
+        );
 
     // 'below' layout: square image with the name as a plain label beneath it (no scrim overlay,
     // no hover "Shop Now"). Used by the footwear activity rail.
     if (labelPosition === 'below') {
-        return (
-            <Link
-                to={createCategoryUrl({ categoryId: finalCategoryId, slugSegments: [] }, seoUrlContext)}
-                className={cn(
-                    'group flex flex-col items-center gap-3',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui',
-                    className
-                )}
-                {...rest}>
+        return renderDestination(
+            <>
                 <div
                     data-slot="category-media"
                     className={cn(
@@ -197,18 +202,17 @@ export default function PopularCategory({
                 <span data-slot="category-label" className="text-sm font-medium text-foreground group-hover:underline">
                     {finalName}
                 </span>
-            </Link>
+            </>,
+            cn(
+                'group flex flex-col items-center gap-3',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-ui',
+                className
+            )
         );
     }
 
-    return (
-        <Link
-            to={createCategoryUrl({ categoryId: finalCategoryId, slugSegments: [] }, seoUrlContext)}
-            className={cn(
-                'block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                className
-            )}
-            {...rest}>
+    return renderDestination(
+        <>
             <div className="group relative overflow-hidden bg-muted h-full">
                 <div
                     data-slot="category-media"
@@ -247,6 +251,10 @@ export default function PopularCategory({
                     </div>
                 </div>
             </div>
-        </Link>
+        </>,
+        cn(
+            'block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            className
+        )
     );
 }

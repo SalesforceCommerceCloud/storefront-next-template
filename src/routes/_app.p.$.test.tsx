@@ -18,7 +18,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { use } from 'react';
 import type { ShopperProducts } from '@/scapi';
-import { loader, type ProductPageData } from './_app.product.$productId';
+import { loader, type ProductPageData } from './_app.p.$';
 
 // ProductPage reads `nonce` from the root loader. Tests render the page outside
 // a real data router, so stub `useRouteLoaderData` with a deterministic value.
@@ -202,7 +202,12 @@ vi.mock('@/lib/api/products.server', () => ({
 }));
 
 vi.mock('@/lib/seo/url-resolution.server', () => ({
-    decodeFinalRawSegment: vi.fn(),
+    resolveProductRoute: vi.fn(),
+}));
+
+const mockAttemptRouteSeoFallback = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/seo/route-fallback.server', () => ({
+    attemptRouteSeoFallback: mockAttemptRouteSeoFallback,
 }));
 
 vi.mock('@/lib/product/swatch-products.server', () => ({
@@ -241,14 +246,15 @@ vi.mock('@/extensions/product-content/lib/pdp-sections', () => ({
 import { isProductSet, isProductBundle } from '@/lib/product/product-utils';
 import { createTestContext } from '@/lib/test-utils';
 import { fetchProductById } from '@/lib/api/products.server';
-import { decodeFinalRawSegment } from '@/lib/seo/url-resolution.server';
+import { resolveProductRoute } from '@/lib/seo/url-resolution.server';
 import { resolveSwatchProductImages } from '@/lib/product/swatch-products.server';
 import { fetchPageWithComponentData } from '@/lib/page-designer/page-loader.server';
 import { generateProductSchema } from '@/utils/product-schema';
 import { getReviewsSummary, getReviews, getWriteReviewForm } from '@/extensions/ratings-reviews/lib/api/reviews.server';
 import { getBuyNowPayLaterMessage, getBuyNowPayLaterLearnMore } from '@/extensions/bnpl/lib/api/bnpl.server';
 import { getReturnsAndWarranty } from '@/extensions/product-content/lib/api/product-content.server';
-import type { Route } from './+types/_app.product.$productId';
+import type { Route } from './+types/_app.p.$';
+import config from '@/config/server';
 
 // Import the route module after mocks are set up
 
@@ -258,7 +264,7 @@ describe('Product Detail Route', () => {
         // Reset modules to ensure fresh import and createPage call
         vi.resetModules();
         // Import the route module to trigger createPage call with mocks in place
-        await import('./_app.product.$productId');
+        await import('./_app.p.$');
     });
     const mockProduct: ShopperProducts.schemas['Product'] = {
         id: 'test-product-123',
@@ -348,7 +354,7 @@ describe('Product Detail Route', () => {
         // src/lib/revalidation/routes/product.test.ts. Here we only assert the route wires up that
         // exact function, so the behavior isn't re-tested at the route.
         test('re-exports the shared product revalidation policy', async () => {
-            const { shouldRevalidate: shouldRevalidateRoute } = await import('./_app.product.$productId');
+            const { shouldRevalidate: shouldRevalidateRoute } = await import('./_app.p.$');
             const { shouldRevalidate: shouldRevalidateProduct } = await import('@/lib/revalidation/routes/product');
             expect(shouldRevalidateRoute).toBe(shouldRevalidateProduct);
         });
@@ -400,7 +406,7 @@ describe('Product Detail Route', () => {
                 shortDescription: undefined,
             };
 
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: productWithoutDescription,
                 page: mockPage,
@@ -426,7 +432,7 @@ describe('Product Detail Route', () => {
                 shortDescription: 'Test description',
             };
 
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: productWithDescription,
                 page: mockPage,
@@ -447,7 +453,7 @@ describe('Product Detail Route', () => {
             vi.mocked(isProductSet).mockReturnValue(true);
             vi.mocked(isProductBundle).mockReturnValue(false);
 
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
                 page: mockPage,
@@ -465,7 +471,7 @@ describe('Product Detail Route', () => {
             vi.mocked(isProductSet).mockReturnValue(false);
             vi.mocked(isProductBundle).mockReturnValue(true);
 
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
                 page: mockPage,
@@ -484,7 +490,7 @@ describe('Product Detail Route', () => {
         test('should include ProductRecommendations component integration', async () => {
             // This test verifies that the ProductRecommendations component is properly integrated
             // The actual rendering with Suspense and async data is handled by React and tested in integration tests
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
 
             // Verify the page component can be imported and has the correct structure
             expect(ProductPage).toBeDefined();
@@ -528,7 +534,7 @@ describe('Product Detail Route', () => {
             vi.mocked(isProductSet).mockReturnValue(false);
             vi.mocked(isProductBundle).mockReturnValue(false);
 
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
                 page: mockPage,
@@ -548,7 +554,7 @@ describe('Product Detail Route', () => {
 
         // @sfdc-extension-block-start SFDC_EXT_SHIPPING_DELIVERY
         test('passes the product ID to the delivery provider', async () => {
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
                 page: mockPage,
@@ -571,7 +577,7 @@ describe('Product Detail Route', () => {
             vi.mocked(isProductSet).mockReturnValue(false);
             vi.mocked(isProductBundle).mockReturnValue(false);
 
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: mockProduct,
                 page: mockPage,
@@ -603,7 +609,7 @@ describe('Product Detail Route', () => {
             vi.mocked(isProductSet).mockReturnValue(false);
             vi.mocked(isProductBundle).mockReturnValue(false);
 
-            const { default: ProductPage } = await import('./_app.product.$productId');
+            const { default: ProductPage } = await import('./_app.p.$');
             const mockLoaderData: ProductPageData = {
                 product: {
                     ...mockProduct,
@@ -623,23 +629,38 @@ describe('Product Detail Route', () => {
 });
 
 describe('Product Detail Route loader', () => {
-    const mockContext = createTestContext();
+    const mockContext = createTestContext({ locale: 'en-US' });
+    const seoContext = createTestContext({
+        locale: 'en-US',
+        appConfig: {
+            url: {
+                ...config.app.url,
+                seoRoutes: {
+                    [config.app.defaultSiteId]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        },
+    });
     const mockProduct = {
         id: 'test-product-123',
         name: 'Test Product',
     } as ShopperProducts.schemas['Product'];
 
-    const createLoaderArgs = (url: string): Route.LoaderArgs => ({
+    const createLoaderArgs = (url: string, context = mockContext): Route.LoaderArgs => ({
         request: new Request(url),
         url: new URL(url),
-        context: mockContext,
-        params: { siteId: 'test-site', localeId: 'en-US', productId: 'test-product-123' },
-        pattern: '/product/:productId',
+        context,
+        params: { siteId: 'test-site', localeId: 'en-US', '*': 'test-product-123' },
+        pattern: '/p/*',
     });
 
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.mocked(decodeFinalRawSegment).mockReturnValue('test-product-123');
+        vi.mocked(resolveProductRoute).mockReturnValue({ productId: 'test-product-123' });
+        mockAttemptRouteSeoFallback.mockResolvedValue(undefined);
         vi.mocked(fetchProductById).mockResolvedValue(mockProduct);
         vi.mocked(resolveSwatchProductImages).mockResolvedValue(undefined);
         vi.mocked(fetchPageWithComponentData).mockResolvedValue({} as never);
@@ -655,26 +676,96 @@ describe('Product Detail Route loader', () => {
         vi.mocked(getReturnsAndWarranty).mockResolvedValue({} as never);
     });
 
+    test('preserves the compatible product request when SEO routes are disabled', async () => {
+        await loader(createLoaderArgs('https://example.com/global/en-US/p/test-product-123'));
+
+        const options = vi.mocked(fetchProductById).mock.calls[0]?.[2];
+        expect(options?.expand).not.toContain('slug');
+    });
+
+    test('requests the product slug when SEO routes are enabled', async () => {
+        await loader(createLoaderArgs('https://example.com/p/test-product/test-product-123', seoContext));
+
+        const options = vi.mocked(fetchProductById).mock.calls[0]?.[2];
+        expect(options?.expand).toContain('slug');
+    });
+
+    test('301-redirects a stale product slug using the existing product response', async () => {
+        vi.mocked(fetchProductById).mockResolvedValue({ ...mockProduct, slug: 'current café' });
+
+        const response = await loader(
+            createLoaderArgs('https://example.com/global/en-US/p/old-slug/test-product-123?color=blue', seoContext)
+        ).then(
+            () => undefined,
+            (error: unknown) => error as Response
+        );
+
+        expect(response?.status).toBe(301);
+        expect(response?.headers.get('Location')).toBe(
+            '/global/en-US/p/current%20caf%C3%A9/test-product-123?color=blue'
+        );
+        expect(fetchProductById).toHaveBeenCalledOnce();
+        expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+    });
+
+    test('does not combine a selected variant slug with the master route ID', async () => {
+        const variant = { ...mockProduct, id: 'variant-456', slug: 'variant-slug' };
+        vi.mocked(fetchProductById).mockResolvedValue(variant);
+
+        const result = await loader(
+            createLoaderArgs(
+                'https://example.com/global/en-US/p/master-slug/test-product-123?pid=variant-456',
+                seoContext
+            )
+        );
+
+        expect(result.product).toBe(variant);
+        expect(fetchProductById).toHaveBeenCalledWith(seoContext, 'variant-456', expect.any(Object));
+        expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+    });
+
+    test('does not redirect or invent a product slug when SCAPI omits it', async () => {
+        vi.mocked(fetchProductById).mockResolvedValue({ ...mockProduct, slug: undefined });
+
+        await loader(createLoaderArgs('https://example.com/global/en-US/p/old-slug/test-product-123', seoContext));
+
+        expect(fetchProductById).toHaveBeenCalledOnce();
+        expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+    });
+
     test('converges the schema URL onto the canonical page URL, dropping the request origin and tracking params', async () => {
         // The request arrives on example.com carrying a tracking param; structured data must point
         // at the public app origin with the tracking param stripped, matching the canonical <link>
         // and og:url rather than echoing the raw request URL.
-        await loader(createLoaderArgs('https://example.com/product/test-product-123?utm_source=news&sort=price'));
+        await loader(
+            createLoaderArgs('https://example.com/global/en-US/p/test-product-123?utm_source=news&sort=price')
+        );
 
         expect(generateProductSchema).toHaveBeenCalledWith(
             mockProduct,
-            'http://localhost:3000/product/test-product-123?sort=price'
+            'http://localhost:3000/global/en-US/p/test-product-123?sort=price'
         );
+    });
+
+    test('does not look up a product when the matched alias belongs to another site', async () => {
+        vi.mocked(resolveProductRoute).mockReturnValue(null);
+        const redirect = new Response(null, { status: 302, headers: { Location: '/current-product' } });
+        mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+        const result = await loader(createLoaderArgs('https://example.com/p/test-product-123'));
+
+        expect(result).toBe(redirect);
+        expect(fetchProductById).not.toHaveBeenCalled();
     });
 
     test('301-redirects a trailing-slash product path to the canonical path, preserving the query', async () => {
         try {
-            await loader(createLoaderArgs('https://example.com/product/test-product-123/?sort=price'));
+            await loader(createLoaderArgs('https://example.com/p/test-product-123/?sort=price'));
             expect.fail('Expected loader to throw a redirect');
         } catch (error: any) {
             expect(error).toBeInstanceOf(Response);
             expect(error.status).toBe(301);
-            expect(error.headers.get('Location')).toBe('/product/test-product-123?sort=price');
+            expect(error.headers.get('Location')).toBe('/p/test-product-123?sort=price');
         }
     });
 });

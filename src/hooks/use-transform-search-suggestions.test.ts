@@ -78,14 +78,14 @@ describe('useTransformSearchSuggestions', () => {
         expect(result.current?.categorySuggestions).toEqual([
             {
                 name: 'Electronics',
-                link: '/category/cat1',
+                link: '/c/cat1',
                 type: 'category',
                 image: 'https://example.com/electronics.jpg',
                 parentCategoryName: 'Home',
             },
             {
                 name: 'Clothing',
-                link: '/category/cat2',
+                link: '/c/cat2',
                 type: 'category',
                 image: undefined,
                 parentCategoryName: 'Apparel',
@@ -121,7 +121,7 @@ describe('useTransformSearchSuggestions', () => {
         expect(result.current?.productSuggestions).toEqual([
             {
                 name: 'iPhone 15',
-                link: '/product/prod1',
+                link: '/p/prod1',
                 type: 'product',
                 image: 'https://example.com/iphone.jpg',
                 price: 999,
@@ -129,7 +129,7 @@ describe('useTransformSearchSuggestions', () => {
             },
             {
                 name: 'Samsung Galaxy',
-                link: '/product/prod2',
+                link: '/p/prod2',
                 type: 'product',
                 image: undefined,
                 price: undefined,
@@ -157,6 +157,27 @@ describe('useTransformSearchSuggestions', () => {
         const { result } = renderHook(() => useTransformSearchSuggestions(data, seoUrlContext));
 
         expect(result.current?.productSuggestions[0]?.link).toBe('/p/iphone-15/prod1');
+    });
+
+    it('uses search instead of inventing a category slug for slug-path sites', () => {
+        const data = {
+            categorySuggestions: {
+                categories: [{ id: 'internal-electronics-id', name: 'Electronics' }],
+            },
+        } as unknown as ShopperSearch.schemas['SuggestionResult'];
+        const seoUrlContext = {
+            siteId: 'RefArchGlobal',
+            seoRoutes: {
+                RefArchGlobal: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'catalog', mode: 'slug-path' as const },
+                },
+            },
+        };
+
+        const { result } = renderHook(() => useTransformSearchSuggestions(data, seoUrlContext));
+
+        expect(result.current?.categorySuggestions[0]?.link).toBe('/search?refine=cgid%3Dinternal-electronics-id');
     });
 
     it('should transform phrase suggestions correctly', () => {
@@ -259,7 +280,7 @@ describe('useTransformSearchSuggestions', () => {
             categorySuggestions: [
                 {
                     name: 'Electronics',
-                    link: '/category/electronics',
+                    link: '/c/electronics',
                     type: 'category',
                     image: 'https://example.com/electronics.jpg',
                     parentCategoryName: 'Technology',
@@ -268,7 +289,7 @@ describe('useTransformSearchSuggestions', () => {
             productSuggestions: [
                 {
                     name: 'iPhone 15 Pro',
-                    link: '/product/iphone15',
+                    link: '/p/iphone15',
                     type: 'product',
                     image: 'https://example.com/iphone15.jpg',
                     price: 1099,
@@ -331,14 +352,14 @@ describe('useTransformSearchSuggestions', () => {
         expect(result.current?.categorySuggestions).toEqual([
             {
                 name: '',
-                link: '/category/cat1',
+                link: '/c/cat1',
                 type: 'category',
                 image: undefined,
                 parentCategoryName: undefined,
             },
             {
                 name: '',
-                link: '/category/cat2',
+                link: '/c/cat2',
                 type: 'category',
                 image: undefined,
                 parentCategoryName: undefined,
@@ -348,7 +369,7 @@ describe('useTransformSearchSuggestions', () => {
         expect(result.current?.productSuggestions).toEqual([
             {
                 name: '',
-                link: '/product/prod1',
+                link: '/p/prod1',
                 type: 'product',
                 image: undefined,
                 price: undefined,
@@ -356,7 +377,7 @@ describe('useTransformSearchSuggestions', () => {
             },
             {
                 name: '',
-                link: '/product/prod2',
+                link: '/p/prod2',
                 type: 'product',
                 image: undefined,
                 price: undefined,

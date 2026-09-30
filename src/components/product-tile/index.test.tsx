@@ -206,7 +206,7 @@ describe('ProductTile — rendering', () => {
         expect(heading).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
             'href',
-            '/global/en-GB/product/simple-001'
+            '/global/en-GB/p/simple-001'
         );
     });
 
@@ -345,7 +345,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile({ product: mockMasterProduct });
         expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
             'href',
-            `/global/en-GB/product/${mockMasterProduct.productId}`
+            `/global/en-GB/p/${mockMasterProduct.productId}`
         );
     });
 
@@ -353,7 +353,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile();
         expect(screen.getByRole('link', { name: 'Simple Test Product' })).toHaveAttribute(
             'href',
-            '/global/en-GB/product/simple-001'
+            '/global/en-GB/p/simple-001'
         );
     });
 
@@ -361,7 +361,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile({ product: mockMasterProduct });
         expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
             'href',
-            `/global/en-GB/product/${mockMasterProduct.productId}?pid=750518699578M`
+            `/global/en-GB/p/${mockMasterProduct.productId}?pid=750518699578M`
         );
     });
 
@@ -369,7 +369,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile({ product: { ...mockMasterProduct, productType: { bundle: true } } });
         expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
             'href',
-            `/global/en-GB/product/${mockMasterProduct.productId}`
+            `/global/en-GB/p/${mockMasterProduct.productId}`
         );
     });
 
@@ -377,7 +377,7 @@ describe('ProductTile — PDP URL', () => {
         renderTile({ product: { ...mockMasterProduct, productType: { set: true } } });
         expect(screen.getByRole('link', { name: mockMasterProduct.productName as string })).toHaveAttribute(
             'href',
-            `/global/en-GB/product/${mockMasterProduct.productId}`
+            `/global/en-GB/p/${mockMasterProduct.productId}`
         );
     });
 
@@ -459,8 +459,8 @@ describe('ProductTile — color swatches', () => {
         const swatchRegion = await screen.findByRole('group', { name: /available colou?rs/i });
         const swatchLinks = within(swatchRegion).getAllByRole('link');
         expect(swatchLinks).toHaveLength(2);
-        expect(swatchLinks[0]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=RED');
-        expect(swatchLinks[1]).toHaveAttribute('href', '/global/en-GB/product/master-001?color=BLU');
+        expect(swatchLinks[0]).toHaveAttribute('href', '/global/en-GB/p/master-001?color=RED');
+        expect(swatchLinks[1]).toHaveAttribute('href', '/global/en-GB/p/master-001?color=BLU');
     });
 });
 

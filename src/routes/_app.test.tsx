@@ -22,8 +22,8 @@ import DefaultLayout, { loader, shouldRevalidate } from './_app';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 
 const NAVIGATION_FIELDS_SELECT_ROOT =
-    'id,name,onlineSubCategoriesCount,c_showInMenu,c_headerMenuBanner,c_slotBannerImage,c_headerMenuOrientation';
-const NAVIGATION_FIELDS_SELECT_SUB = 'id,name,onlineSubCategoriesCount,c_showInMenu';
+    'id,name,slug,onlineSubCategoriesCount,c_showInMenu,c_headerMenuBanner,c_slotBannerImage,c_headerMenuOrientation';
+const NAVIGATION_FIELDS_SELECT_SUB = 'id,name,slug,onlineSubCategoriesCount,c_showInMenu';
 const { mockNavigationConfig } = vi.hoisted(() => ({
     mockNavigationConfig: {
         rootCategoryId: 'root',

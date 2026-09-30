@@ -198,16 +198,16 @@ describe('filePathToRoute', () => {
 
         // Dynamic parameters
         [
-            '/Users/test/project/src/routes/_app.product.$productId.tsx',
+            '/Users/test/project/src/routes/_app.p.$.tsx',
             '/Users/test/project',
-            '/product/:productId',
-            'layout route _app with dynamic parameter',
+            '/p/*',
+            'layout route _app with product splat',
         ],
         [
-            '/Users/test/project/src/routes/_app.category.$categoryId.tsx',
+            '/Users/test/project/src/routes/_app.c.$.tsx',
             '/Users/test/project',
-            '/category/:categoryId',
-            'layout route _app with category parameter',
+            '/c/*',
+            'layout route _app with category splat',
         ],
 
         // Windows-style paths
@@ -224,10 +224,10 @@ describe('filePathToRoute', () => {
             'Windows path with index',
         ],
         [
-            'C:\\Users\\test\\project\\src\\routes\\_app.product.$productId.tsx',
+            'C:\\Users\\test\\project\\src\\routes\\_app.p.$.tsx',
             'C:\\Users\\test\\project',
-            '/product/:productId',
-            'Windows path with dynamic parameter',
+            '/p/*',
+            'Windows path with product splat',
         ],
 
         // Mixed path separators
@@ -287,9 +287,9 @@ describe('filePathToRoute', () => {
                 'homepage resolves to prefixed route, not root duplicate',
             ],
             [
-                '/Users/test/project/src/routes/_app.product.$productId.tsx',
+                '/Users/test/project/src/routes/_app.p.$.tsx',
                 '/Users/test/project',
-                '/:siteId/:localeId/product/:productId',
+                '/:siteId/:localeId/p/*',
                 'product page under prefix',
             ],
             [

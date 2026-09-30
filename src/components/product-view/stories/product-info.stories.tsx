@@ -277,7 +277,7 @@ The Product Info component is the main information panel on the Product Detail P
                 const router = createMemoryRouter(
                     [
                         {
-                            path: '/product/:productId',
+                            path: '/p/:productId',
                             element: (
                                 <ConfigProvider config={mockConfig}>
                                     <SiteProvider
@@ -291,7 +291,7 @@ The Product Info component is the main information panel on the Product Detail P
                             ),
                         },
                     ],
-                    { initialEntries: ['/product/test-product'] }
+                    { initialEntries: ['/p/test-product'] }
                 );
 
                 return <RouterProvider router={router} />;

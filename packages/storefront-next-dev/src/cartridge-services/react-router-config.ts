@@ -117,7 +117,7 @@ function getReactRouterRoutes(projectDirectory: string): RouteConfigEntry[] {
  * This ensures we get the exact same route resolution as React Router uses internally.
  * @param filePath - Absolute path to the route file
  * @param projectRoot - The project root directory
- * @returns The route path (e.g., '/cart', '/product/:productId')
+ * @returns The route path (e.g., '/cart', '/p/*')
  * @example
  * const route = filePathToRoute('/path/to/project/src/routes/_app.cart.tsx', '/path/to/project');
  * // Returns: '/cart'

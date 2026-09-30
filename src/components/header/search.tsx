@@ -26,6 +26,7 @@ import { useTransformSearchSuggestions } from '@/hooks/use-transform-search-sugg
 import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { getSessionJSONItem, setSessionJSONItem, clearSessionJSONItem } from '@/lib/utils';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 import { UITarget } from '@/targets/ui-target';
 
@@ -51,7 +52,7 @@ export default function SearchBar(): ReactElement {
 
     const { data: suggestions, refetch } = useSearchSuggestions({
         q: query,
-        expand: ['images', 'prices', 'custom_product_properties', 'slug'],
+        expand: ['images', 'prices', 'custom_product_properties', ...getSeoSlugExpansion(config.url?.seoRoutes)],
         includeEinsteinSuggestedPhrases: true,
         enabled: query.trim().length >= RECENT_SEARCH_MIN_LENGTH,
         includedCustomProductProperties: ['c_hideFromSearchResults'],

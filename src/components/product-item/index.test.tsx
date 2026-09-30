@@ -160,7 +160,7 @@ describe('ProductItem', () => {
             // product title as link
             const link = screen.getByRole('link', { name: 'Test Product' });
             expect(link).toBeInTheDocument();
-            expect(link).toHaveAttribute('href', `${getSitePrefix()}/product/${mockProduct.productId}`);
+            expect(link).toHaveAttribute('href', `${getSitePrefix()}/p/${mockProduct.productId}`);
             expect(link).toHaveTextContent('Test Product');
 
             // image
@@ -520,7 +520,7 @@ describe('ProductItem', () => {
             renderWithRouter(<ProductItem productItem={productWithMaster} />);
 
             const link = screen.getByRole('link', { name: 'Test Product' });
-            expect(link).toHaveAttribute('href', `${getSitePrefix()}/product/master-product-id`);
+            expect(link).toHaveAttribute('href', `${getSitePrefix()}/p/master-product-id`);
         });
     });
 

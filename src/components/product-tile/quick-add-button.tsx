@@ -22,6 +22,8 @@ import { useProductTileContext } from './context';
 interface QuickAddButtonProps {
     productId: string;
     productName: string;
+    /** Authoritative product slug returned by SCAPI, when available. */
+    productSlug?: string;
     /** Currently selected color value — pre-seeds the PDP URL when "Buy It Now" is clicked */
     selectedColorValue?: string | null;
     /**
@@ -47,6 +49,7 @@ const CartItemModal = lazy(() =>
 export function QuickAddButton({
     productId,
     productName,
+    productSlug,
     selectedColorValue,
     initialVariantSelections,
     label,
@@ -64,9 +67,10 @@ export function QuickAddButton({
         void navigate(
             createProductUrlFromAttributes(productId, selectedColorValue ?? null, 'color', null, {
                 context: seoUrlContext,
+                slug: productSlug,
             })
         );
-    }, [navigate, productId, selectedColorValue, seoUrlContext]);
+    }, [navigate, productId, productSlug, selectedColorValue, seoUrlContext]);
     const handleOpenModal = useCallback((e: MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         setOpen(true);

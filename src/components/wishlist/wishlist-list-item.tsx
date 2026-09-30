@@ -132,7 +132,10 @@ export function WishlistListItem({ product, wishlistItem, onRemove }: WishlistLi
     // variant is known (either a variant product or a matched variant) so the PDP pre-selects
     // the right attributes on arrival. variationValues is already resolved for both cases above.
     const masterId = product.master?.masterId ?? (product.id as string | undefined);
-    let pdpUrl = createProductUrlFromAttributes(masterId, null, 'color', null, { context: seoUrlContext });
+    let pdpUrl = createProductUrlFromAttributes(masterId, null, 'color', null, {
+        context: seoUrlContext,
+        slug: product.slug,
+    });
     if (isSpecificVariant && Object.keys(variationValues).length > 0) {
         const params = new URLSearchParams(variationValues);
         pdpUrl = `${pdpUrl}?${params.toString()}`;

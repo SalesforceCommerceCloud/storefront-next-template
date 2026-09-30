@@ -33,12 +33,12 @@ belong in attributes) and it mirrors MRT's own span names (`mrt.user_handler`,
 Variable detail lives in attributes, not the name:
 
 - The request method and path → `http.request.method` + `url.path`.
-- The route → `http.route`, the **route template** (`:siteId/:localeId/product/:productId`),
+- The route → `http.route`, the **route template** (`:siteId/:localeId/p/*`),
   which is bounded/low-cardinality — never the resolved path with real ids.
 - The outbound request → `sfnext.fetch` for every CLIENT span; the method, host, and
   full target live in `http.request.method`, `server.address`, and `url.full`.
 
-`http.route` is the URL route template (e.g. `:siteId/:localeId/product/:productId`),
+`http.route` is the URL route template (e.g. `:siteId/:localeId/p/*`),
 a bounded/low-cardinality value — never the raw path with real ids.
 
 `site_name` carries the **resolved SFCC site id** (e.g. `RefArchGlobal`), read from the

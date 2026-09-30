@@ -13,6 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
+
+type RouteResolutionOptions = {
+    url: URL;
+    params?: Record<string, string | undefined>;
+    urlPrefix?: string;
+    siteId: string;
+    seoRoutes?: SeoRoutesConfig;
+};
+
+export type CategoryRouteResolution = {
+    /** ID for id-suffix mode; full decoded slug hierarchy for slug-path mode. */
+    categoryLookup: string;
+    /** The single route-authoritative category refinement for every product-search phase. */
+    routeRefinement: `cgid=${string}` | `cgslug=${string}`;
+    /** Full decoded hierarchy for slug-path mode. */
+    slugPath?: string;
+};
+
+export function isCategoryRefinement(refinement: string): boolean {
+    return refinement.startsWith('cgid=') || refinement.startsWith('cgslug=');
+}
+
+/** Replace all caller-supplied category refinements with the route-authoritative value. */
+export function applyCategoryRouteRefinement(
+    refinements: readonly string[],
+    routeRefinement: CategoryRouteResolution['routeRefinement']
+): string[] {
+    return [...refinements.filter((refinement) => !isCategoryRefinement(refinement)), routeRefinement];
+}
+
+function decodeRawSegment(segment: string): string {
+    try {
+        return decodeURIComponent(segment);
+    } catch {
+        return segment;
+    }
+}
+
+function getSeoPathSegments(url: URL, urlPrefix?: string): string[] | null {
+    const pathSegments = url.pathname.split('/');
+    if (pathSegments[0] === '') pathSegments.shift();
+
+    const prefixSegments = (urlPrefix ?? '').split('/').filter(Boolean);
+    if (pathSegments.length < prefixSegments.length) return null;
+
+    for (let index = 0; index < prefixSegments.length; index++) {
+        const prefixSegment = prefixSegments[index];
+        if (!pathSegments[index]) return null;
+        if (!prefixSegment.startsWith(':') && prefixSegment !== pathSegments[index]) return null;
+    }
+
+    const resourceSegments = pathSegments.slice(prefixSegments.length);
+    while (resourceSegments.at(-1) === '') resourceSegments.pop();
+    return resourceSegments.some((segment) => segment.length === 0) ? null : resourceSegments;
+}
 
 /**
  * Returns the final raw path segment of the request URL, decoded only after it has
@@ -47,11 +103,54 @@ export function decodeFinalRawSegment(url: URL, params?: Record<string, string |
     const { pathname } = url;
     const withoutTrailingSlashes = pathname.replace(/\/+$/, '');
     const rawSegment = withoutTrailingSlashes.slice(withoutTrailingSlashes.lastIndexOf('/') + 1);
-    try {
-        return decodeURIComponent(rawSegment);
-    } catch {
-        // Malformed percent-encoding is client-supplied input at the URL boundary. Keep the
-        // raw segment so the resource lookup 404s cleanly rather than throwing a 500 from decode.
-        return rawSegment;
+    // Malformed percent-encoding is client-supplied input at the URL boundary. Keep the
+    // raw segment so the resource lookup 404s cleanly rather than throwing a 500 from decode.
+    return decodeRawSegment(rawSegment);
+}
+
+/** Resolve a product ID only when the matched alias belongs to the active site. */
+export function resolveProductRoute(options: RouteResolutionOptions): { productId: string } | null {
+    if (!options.seoRoutes) {
+        return { productId: decodeFinalRawSegment(options.url, options.params) };
     }
+
+    const siteConfig = options.seoRoutes[options.siteId];
+    if (!siteConfig) return null;
+    const pathSegments = getSeoPathSegments(options.url, options.urlPrefix);
+    if (!pathSegments) return null;
+    const [rawPrefix, ...rawResourceSegments] = pathSegments;
+    if (rawPrefix?.toLowerCase() !== siteConfig.product.prefix.toLowerCase() || rawResourceSegments.length === 0) {
+        return null;
+    }
+
+    return { productId: decodeRawSegment(rawResourceSegments.at(-1) ?? '') };
+}
+
+/** Resolve the active site's deterministic category grammar from the raw request path. */
+export function resolveCategoryRoute(options: RouteResolutionOptions): CategoryRouteResolution | null {
+    if (!options.seoRoutes) {
+        const categoryId = decodeFinalRawSegment(options.url, options.params);
+        return { categoryLookup: categoryId, routeRefinement: `cgid=${categoryId}` };
+    }
+
+    const siteConfig = options.seoRoutes[options.siteId];
+    if (!siteConfig) return null;
+    const pathSegments = getSeoPathSegments(options.url, options.urlPrefix);
+    if (!pathSegments) return null;
+    const [rawPrefix, ...rawResourceSegments] = pathSegments;
+    if (rawPrefix?.toLowerCase() !== siteConfig.category.prefix.toLowerCase() || rawResourceSegments.length === 0) {
+        return null;
+    }
+
+    if (siteConfig.category.mode === 'slug-path') {
+        const slugPath = rawResourceSegments.map(decodeRawSegment).join('/');
+        return {
+            categoryLookup: slugPath,
+            routeRefinement: `cgslug=${slugPath}`,
+            slugPath,
+        };
+    }
+
+    const categoryId = decodeRawSegment(rawResourceSegments.at(-1) ?? '');
+    return { categoryLookup: categoryId, routeRefinement: `cgid=${categoryId}` };
 }

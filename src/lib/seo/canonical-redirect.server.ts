@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { redirect } from 'react-router';
+import { redirect, type RouterContextProvider } from 'react-router';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { siteContext } from '@salesforce/storefront-next-runtime/site-context';
+import { createProductUrl, getSiteSeoRoutes } from '@/route-paths';
+import { type ShopperProducts } from '@/scapi';
+import { buildUrlFromContext } from '@/lib/url.server';
+import { isSafeSlugSegment } from '@/lib/seo/scapi-slugs';
 
 /**
  * Converge a trailing-slash path variant onto its slash-free canonical form with
@@ -39,4 +45,61 @@ export function redirectToCanonicalPath(requestUrl: URL): void {
         // oxlint-disable-next-line @typescript-eslint/only-throw-error -- redirect() returns a Response; React Router expects it thrown.
         throw redirect(`${pathname.replace(/\/+$/, '')}${requestUrl.search}`, 301);
     }
+}
+
+/**
+ * Return a redirect response when a resolved resource path differs from its
+ * authoritative same-storefront path.
+ * Callers must pass paths produced by Storefront Next route builders. Preserve
+ * request query parameters while retaining canonical site/locale parameters;
+ * canonical values win when keys collide.
+ */
+export function getCanonicalResourceRedirect(requestUrl: URL, canonicalPath: string): Response | undefined {
+    if (!canonicalPath.startsWith('/') || canonicalPath.startsWith('//') || canonicalPath.includes('\\')) return;
+
+    const canonicalUrl = new URL(canonicalPath, requestUrl.origin);
+    if (canonicalUrl.origin !== requestUrl.origin || canonicalUrl.pathname === requestUrl.pathname) return;
+
+    const query = new URLSearchParams(requestUrl.search);
+    for (const key of new Set(canonicalUrl.searchParams.keys())) {
+        query.delete(key);
+        for (const value of canonicalUrl.searchParams.getAll(key)) {
+            query.append(key, value);
+        }
+    }
+    const search = canonicalUrl.search ? `?${query.toString()}` : requestUrl.search;
+
+    return redirect(`${canonicalUrl.pathname}${search}`, 301);
+}
+
+type CanonicalProductRedirectOptions = {
+    requestUrl: URL;
+    context: Readonly<RouterContextProvider>;
+    productId: string;
+    product: Pick<ShopperProducts.schemas['Product'], 'id' | 'slug'>;
+};
+
+/** Return a redirect response when a product path differs from its authoritative Shopper API slug. */
+export function getCanonicalProductRedirect({
+    requestUrl,
+    context,
+    productId,
+    product,
+}: CanonicalProductRedirectOptions): Response | undefined {
+    if (product.id !== productId) return;
+
+    const siteCtx = context.get(siteContext);
+    if (!siteCtx) return;
+
+    const config = getConfig(context);
+    const seoUrlContext = {
+        siteId: siteCtx.site.id,
+        urlPrefix: config.url?.prefix,
+        seoRoutes: config.url?.seoRoutes,
+    };
+    const productRoute = getSiteSeoRoutes(seoUrlContext)?.product;
+    if (productRoute && (!product.slug || !isSafeSlugSegment(product.slug))) return;
+
+    const canonicalPath = createProductUrl({ productId, slug: productRoute ? product.slug : undefined }, seoUrlContext);
+    return getCanonicalResourceRedirect(requestUrl, buildUrlFromContext(canonicalPath, context));
 }

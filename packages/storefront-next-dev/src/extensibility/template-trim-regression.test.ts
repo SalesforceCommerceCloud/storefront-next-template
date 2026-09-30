@@ -87,11 +87,11 @@ function createFixture(): string {
         estimatedDeliveryTestFile,
         deliveryEstimateCalculatorTargetTestFile,
         deliveryEstimateCalculatorSkeletonFile,
-        'src/routes/_app.product.$productId.tsx',
-        'src/verticals/cosmetic/routes/_app.product.$productId.tsx',
-        'src/verticals/foundations/routes/_app.product.$productId.tsx',
-        'src/verticals/foundations/routes/_app.product.$productId.test.tsx',
-        'src/verticals/footwear/routes/_app.product.$productId.tsx',
+        'src/routes/_app.p.$.tsx',
+        'src/verticals/cosmetic/routes/_app.p.$.tsx',
+        'src/verticals/foundations/routes/_app.p.$.tsx',
+        'src/verticals/foundations/routes/_app.p.$.test.tsx',
+        'src/verticals/footwear/routes/_app.p.$.tsx',
         footwearCategoryRefinementsFile,
         'src/verticals/footwear/components/product-view/product-view.tsx',
         'src/verticals/footwear/components/product-view/product-view.test.tsx',
@@ -326,7 +326,7 @@ describe('template extension trim regressions', () => {
         expect(localeSource).not.toContain('extBopis');
 
         const foundationsProductRouteTest = fs.readFileSync(
-            path.join(root, 'src/verticals/foundations/routes/_app.product.$productId.test.tsx'),
+            path.join(root, 'src/verticals/foundations/routes/_app.p.$.test.tsx'),
             'utf8'
         );
         expectValidTypeScriptJsx(foundationsProductRouteTest);
@@ -337,10 +337,10 @@ describe('template extension trim regressions', () => {
         expect(foundationsProductRouteTest).not.toContain('pickup-context');
 
         for (const relativeFile of [
-            'src/routes/_app.product.$productId.tsx',
-            'src/verticals/cosmetic/routes/_app.product.$productId.tsx',
-            'src/verticals/foundations/routes/_app.product.$productId.tsx',
-            'src/verticals/footwear/routes/_app.product.$productId.tsx',
+            'src/routes/_app.p.$.tsx',
+            'src/verticals/cosmetic/routes/_app.p.$.tsx',
+            'src/verticals/foundations/routes/_app.p.$.tsx',
+            'src/verticals/footwear/routes/_app.p.$.tsx',
         ]) {
             const routeSource = fs.readFileSync(path.join(root, relativeFile), 'utf8');
             expectValidTypeScriptJsx(routeSource);
@@ -490,14 +490,12 @@ describe('template extension trim regressions', () => {
         expectShippingDeliveryTestCoverage(root, { shippingEnabled: false, compositionEnabled: false });
         expectFulfillmentCompositionTestCoverage(root, { bopisEnabled: false, shippingEnabled: false });
         expectFootwearCategoryRefinements(root, false);
-        expect(
-            fs.existsSync(path.join(root, 'src/verticals/foundations/routes/_app.product.$productId.test.tsx'))
-        ).toBe(false);
+        expect(fs.existsSync(path.join(root, 'src/verticals/foundations/routes/_app.p.$.test.tsx'))).toBe(false);
         for (const relativeFile of [
-            'src/routes/_app.product.$productId.tsx',
-            'src/verticals/cosmetic/routes/_app.product.$productId.tsx',
-            'src/verticals/foundations/routes/_app.product.$productId.tsx',
-            'src/verticals/footwear/routes/_app.product.$productId.tsx',
+            'src/routes/_app.p.$.tsx',
+            'src/verticals/cosmetic/routes/_app.p.$.tsx',
+            'src/verticals/foundations/routes/_app.p.$.tsx',
+            'src/verticals/footwear/routes/_app.p.$.tsx',
         ]) {
             const routeSource = fs.readFileSync(path.join(root, relativeFile), 'utf8');
             expectValidTypeScriptJsx(routeSource);

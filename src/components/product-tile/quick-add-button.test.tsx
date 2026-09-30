@@ -74,7 +74,7 @@ const renderButton = (props: Partial<ComponentProps<typeof QuickAddButton>> = {}
             // marker that exposes the resolved URL to the DOM. The path mirrors the
             // site-prefixed URL that the project's useNavigate wrapper produces.
             {
-                path: '/global/en-GB/product/:id',
+                path: '/global/en-GB/p/:id',
                 element: <PdpSink />,
             },
         ],
@@ -92,7 +92,7 @@ function PdpSink() {
     const { search } = useLocation();
     return (
         <div>
-            PDP loaded: /global/en-GB/product/{id}
+            PDP loaded: /global/en-GB/p/{id}
             {search}
         </div>
     );
@@ -139,9 +139,7 @@ describe('QuickAddButton', () => {
         await user.click(screen.getByRole('button', { name: /test product/i }));
         await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
-        expect(
-            await screen.findByText('PDP loaded: /global/en-GB/product/test-product?color=navy')
-        ).toBeInTheDocument();
+        expect(await screen.findByText('PDP loaded: /global/en-GB/p/test-product?color=navy')).toBeInTheDocument();
     });
 
     test('clicking Buy It Now navigates to the PDP without query when no color is selected', async () => {
@@ -151,7 +149,7 @@ describe('QuickAddButton', () => {
         await user.click(screen.getByRole('button', { name: /test product/i }));
         await user.click(await screen.findByRole('button', { name: /Buy It Now/i }));
 
-        expect(await screen.findByText('PDP loaded: /global/en-GB/product/test-product')).toBeInTheDocument();
+        expect(await screen.findByText('PDP loaded: /global/en-GB/p/test-product')).toBeInTheDocument();
     });
 
     // Uses fireEvent (not userEvent) so fake timers stay in control — userEvent's internal

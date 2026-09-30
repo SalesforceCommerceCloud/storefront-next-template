@@ -51,11 +51,14 @@ const NAVIGATION_FIELDS_MEGAMENU = {
 const NAVIGATION_FIELDS_SELECT_ROOT = [
     'id',
     'name',
+    'slug',
     'onlineSubCategoriesCount',
     NAVIGATION_FIELDS_FILTER,
     ...Object.values(NAVIGATION_FIELDS_MEGAMENU),
 ].join(',');
-const NAVIGATION_FIELDS_SELECT_SUB = ['id', 'name', 'onlineSubCategoriesCount', NAVIGATION_FIELDS_FILTER].join(',');
+const NAVIGATION_FIELDS_SELECT_SUB = ['id', 'name', 'slug', 'onlineSubCategoriesCount', NAVIGATION_FIELDS_FILTER].join(
+    ','
+);
 
 /**
  * We're using the `shouldRevalidate` functionality to only load the navigation menu categories from the server on the

@@ -533,8 +533,8 @@ describe('applyUrlConfig', () => {
                 layoutRoute('routes/_app', 'routes/_app.tsx', [
                     indexRoute('routes/_app._index', 'routes/_app._index.tsx'),
                     route({
-                        id: 'routes/_app.product.$productId',
-                        file: 'routes/_app.product.$productId.tsx',
+                        id: 'routes/_app.p.$',
+                        file: 'routes/_app.p.$.tsx',
                         path: '/product/:productId',
                     }),
                 ]),

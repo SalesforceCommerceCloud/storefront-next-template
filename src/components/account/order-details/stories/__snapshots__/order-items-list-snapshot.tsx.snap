@@ -14,7 +14,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
         aria-label="View Sweater"
         class="flex-shrink-0 block"
         data-discover="true"
-        href="/RefArchGlobal/en-GB/product/701643108633M"
+        href="/RefArchGlobal/en-GB/p/701643108633M"
       >
         <div
           class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -39,7 +39,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
             <a
               class="hover:text-primary block break-words"
               data-discover="true"
-              href="/RefArchGlobal/en-GB/product/701643108633M"
+              href="/RefArchGlobal/en-GB/p/701643108633M"
               title="Sweater"
             >
               Sweater
@@ -113,7 +113,7 @@ exports[`OrderItemsList stories snapshot > Default story renders and matches sna
           data-size="sm"
           data-slot="button"
           data-variant="default"
-          href="/RefArchGlobal/en-GB/product/701643108633M"
+          href="/RefArchGlobal/en-GB/p/701643108633M"
         >
           Buy Again
         </a>
@@ -145,7 +145,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
         aria-label="View Product One"
         class="flex-shrink-0 block"
         data-discover="true"
-        href="/RefArchGlobal/en-GB/product/prod-1"
+        href="/RefArchGlobal/en-GB/p/prod-1"
       >
         <div
           class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -168,7 +168,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
             <a
               class="hover:text-primary block break-words"
               data-discover="true"
-              href="/RefArchGlobal/en-GB/product/prod-1"
+              href="/RefArchGlobal/en-GB/p/prod-1"
               title="Product One"
             >
               Product One
@@ -211,7 +211,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
           data-size="sm"
           data-slot="button"
           data-variant="default"
-          href="/RefArchGlobal/en-GB/product/prod-1"
+          href="/RefArchGlobal/en-GB/p/prod-1"
         >
           Buy Again
         </a>
@@ -228,7 +228,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
         aria-label="View Product Two"
         class="flex-shrink-0 block"
         data-discover="true"
-        href="/RefArchGlobal/en-GB/product/prod-2"
+        href="/RefArchGlobal/en-GB/p/prod-2"
       >
         <div
           class="bg-muted flex-shrink-0 flex items-center justify-center aspect-square overflow-hidden rounded-ui h-24 w-24"
@@ -251,7 +251,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
             <a
               class="hover:text-primary block break-words"
               data-discover="true"
-              href="/RefArchGlobal/en-GB/product/prod-2"
+              href="/RefArchGlobal/en-GB/p/prod-2"
               title="Product Two"
             >
               Product Two
@@ -294,7 +294,7 @@ exports[`OrderItemsList stories snapshot > MultipleItems story renders and match
           data-size="sm"
           data-slot="button"
           data-variant="default"
-          href="/RefArchGlobal/en-GB/product/prod-2"
+          href="/RefArchGlobal/en-GB/p/prod-2"
         >
           Buy Again
         </a>

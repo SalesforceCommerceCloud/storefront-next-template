@@ -34,8 +34,8 @@ import {
 import type { ShopperProducts } from '@/scapi';
 import { NavLink } from '@/components/link';
 import { useSubCategory } from './context';
-import { createCategoryUrl } from '@/route-paths';
 import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
+import { createCategoryUrlFromScapiCategory } from '@/lib/seo/scapi-slugs';
 
 export type CategoryNavigationMenuListCtx = {
     level: number;
@@ -112,11 +112,14 @@ function CategoryNavigationMenuItemLeaf({
     if (isValidElement(leafContent)) {
         return leafContent;
     }
+    const destination = createCategoryUrlFromScapiCategory(itemCtx.category, seoUrlContext);
     return (
         <NavigationMenuLink {...props} className={className ?? navigationMenuTriggerStyle()} asChild>
-            <NavLink to={createCategoryUrl({ categoryId: itemCtx.category.id, slugSegments: [] }, seoUrlContext)}>
-                {itemCtx.category.name}
-            </NavLink>
+            {destination ? (
+                <NavLink to={destination}>{itemCtx.category.name}</NavLink>
+            ) : (
+                <span aria-disabled="true">{itemCtx.category.name}</span>
+            )}
         </NavigationMenuLink>
     );
 }

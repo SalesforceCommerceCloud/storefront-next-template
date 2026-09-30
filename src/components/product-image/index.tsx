@@ -90,7 +90,7 @@ const ProductImageContainer = ({
                     seoUrlContext
                         ? {
                               context: seoUrlContext,
-                              slugSegments: product.slug ? [product.slug] : undefined,
+                              slug: product.slug,
                           }
                         : undefined
                 )}

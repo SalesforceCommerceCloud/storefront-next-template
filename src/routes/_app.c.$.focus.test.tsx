@@ -23,7 +23,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import type { ShopperExperience, ShopperProducts, ShopperSearch } from '@/scapi';
-import CategoryPage, { loader } from './_app.category.$categoryId';
+import CategoryPage, { loader } from './_app.c.$';
 import type { AppConfig } from '@/types/config';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';

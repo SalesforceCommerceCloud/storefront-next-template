@@ -40,8 +40,8 @@ import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { NavigationMenuLink } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { useSubCategory } from '@/components/navigation-menu/context';
-import { createCategoryUrl } from '@/route-paths';
 import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
+import { createCategoryUrlFromScapiCategory } from '@/lib/seo/scapi-slugs';
 import { EmbeddedComponentRegion } from '@/components/region/embedded-component-region';
 import type { ComponentWithComponentData } from '@/lib/page-designer/component-loader.server';
 
@@ -149,24 +149,25 @@ function CategoryBanner({
 }) {
     const config = useConfig();
     const seoUrlContext = useSeoUrlContext();
+    const destination = createCategoryUrlFromScapiCategory(category, seoUrlContext);
     const imageSrc = toImageUrl({ src: getStringField(category, fields.imageField), config });
 
     // Transform any image URLs in the HTML banner to use DIS with WebP optimization
     const transformedBannerHtml = transformHtmlImageUrls(getStringField(category, fields.contentField) ?? '', config);
 
+    const content = imageSrc ? (
+        <img className="object-contain w-full max-w-full max-h-[512px]" src={imageSrc} alt={category.name} />
+    ) : (
+        // oxlint-disable-next-line react/no-danger
+        <div className="ml-auto" dangerouslySetInnerHTML={{ __html: transformedBannerHtml }} />
+    );
+
+    if (!destination) return <div aria-disabled="true">{content}</div>;
+
     return (
         <NavigationMenuLink asChild>
-            <NavLink {...props} to={createCategoryUrl({ categoryId: category.id, slugSegments: [] }, seoUrlContext)}>
-                {imageSrc ? (
-                    <img
-                        className="object-contain w-full max-w-full max-h-[512px]"
-                        src={imageSrc}
-                        alt={category.name}
-                    />
-                ) : (
-                    // oxlint-disable-next-line react/no-danger
-                    <div className="ml-auto" dangerouslySetInnerHTML={{ __html: transformedBannerHtml }} />
-                )}
+            <NavLink {...props} to={destination}>
+                {content}
             </NavLink>
         </NavigationMenuLink>
     );
@@ -252,20 +253,27 @@ function MegaMenuFeaturedSlot({
 function ShopAllCategoryLink({ category }: { category: ShopperProducts.schemas['Category'] }): ReactElement {
     const { t } = useTranslation('header');
     const seoUrlContext = useSeoUrlContext();
+    const destination = createCategoryUrlFromScapiCategory(category, seoUrlContext);
+    const label = t('shopAllCategory', {
+        category: category.name,
+        defaultValue: `Shop all ${category.name}`,
+    });
+    const className =
+        'block md:col-span-2 text-sm font-medium leading-5 underline underline-offset-4 hover:!bg-transparent focus:!bg-transparent hover:!text-header-menu-foreground/60 focus:!text-header-menu-foreground/60 transition-colors';
+
+    if (!destination) return <span className={className}>{label}</span>;
+
     return (
         <NavigationMenuLink asChild>
             <NavLink
-                to={createCategoryUrl({ categoryId: category.id, slugSegments: [] }, seoUrlContext)}
+                to={destination}
                 // When the panel has a featured column it is a 2-col grid whose other
                 // children are the submenu list and the banner/region aside. Span both
                 // columns so this link sits on its own row above them and the list and
                 // banner stay side by side. On panels with no featured column the
                 // container is not a grid, so col-span is inert.
-                className="block md:col-span-2 text-sm font-medium leading-5 underline underline-offset-4 hover:!bg-transparent focus:!bg-transparent hover:!text-header-menu-foreground/60 focus:!text-header-menu-foreground/60 transition-colors">
-                {t('shopAllCategory', {
-                    category: category.name,
-                    defaultValue: `Shop all ${category.name}`,
-                })}
+                className={className}>
+                {label}
             </NavLink>
         </NavigationMenuLink>
     );
@@ -298,21 +306,38 @@ function MobileMenuCategory({
     const hasChildren = hasSubcategories(category);
     const isExpanded = expandedCategories.has(category.id);
 
+    const renderCategoryLink = (
+        linkCategory: ShopperProducts.schemas['Category'],
+        className: string
+    ): ReactElement | null => {
+        const destination = createCategoryUrlFromScapiCategory(linkCategory, seoUrlContext);
+        if (!destination) {
+            return (
+                <span className={className} aria-disabled="true">
+                    {linkCategory.name}
+                </span>
+            );
+        }
+        return (
+            <NavLink to={destination} onClick={onNavigate} className={className}>
+                {linkCategory.name}
+            </NavLink>
+        );
+    };
+
     const renderSubcategoryLinks = (
         subcategories: ShopperProducts.schemas['Category'][] | undefined,
         level = 1
     ): ReactElement[] =>
         subcategories?.map((subcategory) => (
             <li key={subcategory.id}>
-                <NavLink
-                    to={createCategoryUrl({ categoryId: subcategory.id, slugSegments: [] }, seoUrlContext)}
-                    onClick={onNavigate}
-                    className={cn(
+                {renderCategoryLink(
+                    subcategory,
+                    cn(
                         'block py-2 text-sm font-medium hover:opacity-70 transition-opacity',
                         level > 1 && 'text-header-foreground/80'
-                    )}>
-                    {subcategory.name}
-                </NavLink>
+                    )
+                )}
                 {subcategory.categories?.length ? (
                     <ul className="pl-4 space-y-1">{renderSubcategoryLinks(subcategory.categories, level + 1)}</ul>
                 ) : null}
@@ -322,12 +347,7 @@ function MobileMenuCategory({
     return (
         <li>
             <div className="flex items-center justify-between">
-                <NavLink
-                    to={createCategoryUrl({ categoryId: category.id, slugSegments: [] }, seoUrlContext)}
-                    onClick={onNavigate}
-                    className="flex-1 py-3 text-base font-medium hover:opacity-70 transition-opacity">
-                    {category.name}
-                </NavLink>
+                {renderCategoryLink(category, 'flex-1 py-3 text-base font-medium hover:opacity-70 transition-opacity')}
 
                 {hasChildren && (
                     <Button

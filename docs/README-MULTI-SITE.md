@@ -74,7 +74,7 @@ url: {
         },
         RefArch: {
             product: {prefix: 'product'},
-            category: {prefix: 'category', mode: 'slug-path'},
+            category: {prefix: 'category', mode: 'id-suffix'},
         },
     },
 }
@@ -100,23 +100,22 @@ Use the semantic builders for product and category destinations. They return the
 const seoUrlContext = useSeoUrlContext()
 
 createProductUrl(
-    {productId: product.productId, slugSegments: product.slug ? [product.slug] : undefined},
+    {productId: product.productId, slug: product.slug},
     seoUrlContext,
 )
 
-createCategoryUrl(
-    {categoryId: category.id, slugSegments: categorySlugPath},
-    seoUrlContext,
-)
+createCategoryUrlFromScapiCategory(category, seoUrlContext)
 ```
 
 Product slugs are optional because the product ID remains authoritative. Category slug segments are explicit so callers cannot mistake display names for Business Manager slugs. The builders encode each segment independently and make no SCAPI or Shopper SEO calls.
 
-Product search and search-suggestion requests include `expand=slug` in their existing calls, so product tiles, typeahead results, and PLP structured data can use the configured product slug without another request. For merchant-authored internal links stored as legacy `/category/...` strings, use `createCategoryUrlFromLegacyPath()`; external and non-category destinations pass through unchanged.
+The template uses the complete hierarchy from `Category.slug` and `PathRecord.slug`. It never substitutes an ID or display name for a missing slug. In `slug-path` mode, an unresolved interactive category is disabled; a static legacy category destination degrades to the existing search route with `refine=cgid=<id>`.
+
+When `seoRoutes` is enabled, existing Shopper Products requests that feed product links, plus product search and suggestions, include `expand=slug`. PDPs, tiles, recommendations, carts, wishlists, Page Designer, typeahead, and structured data therefore use the configured slug without another request. Storefronts without SEO routes keep the compatible request shape for older B2C Commerce versions. Category suggestions do not expose an authoritative category slug; in `slug-path` mode they link to search with their category ID instead of inventing a category path. For merchant-authored internal links stored as legacy `/category/...` strings, use `createCategoryUrlFromLegacyPath()`; external and non-category destinations pass through unchanged.
 
 When `seoRoutes` is present, every active site must have an entry. URL generation fails fast for an omitted site because the compiled manifest no longer contains the legacy product and category routes.
 
-Do not enable `seoRoutes` until every active site's PDP/PLP grammar and category-slug data source are available. The route-registration layer does not parse IDs or fetch slugs. The optional content prefix remains reserved for standalone-content routing.
+Do not enable `seoRoutes` until every active site's PDP/PLP grammar is decided. `slug-path` requires Shopper Products 1.13 and Shopper Search 1.15. The optional content prefix remains reserved for standalone-content routing.
 
 For the step-by-step rollout—prerequisites, the two category modes, preventing broken indexed URLs and redirect loops, and the QA verification checklist—see the [SEO URL Rules adoption guide](./migrations/seo-url-rules/README.md).
 
@@ -162,7 +161,7 @@ These are tracked separately from the routing layer and are **not** current beha
 
 - **Automatic Business Manager sync**—today the Business-Manager-to-`seoRoutes` mapping is manual and requires a rebuild. Auto-sync is a follow-up.
 - **URL-mapping request-volume hardening**—well-formed SEO URLs resolve deterministically from the path, and lookup-based resolution of unmatched or legacy URLs now ships as the terminal fallback (see [Shopper SEO URL Rules Fallback](#shopper-seo-url-rules-fallback)). Request-volume hardening of that lookup path is tracked separately.
-- **Composite category endpoint**—slug-path category resolution depends on a slug→ID data source the route layer does not supply; a composite endpoint to serve it is a follow-up.
+- **Composite category endpoint**—the storefront currently starts category lookup and product search in parallel. A composite endpoint could consolidate those requests later, but is not required for slug-path routing.
 
 ### Shopper SEO URL Rules Fallback
 

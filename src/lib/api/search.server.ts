@@ -19,6 +19,7 @@ import { createApiClients } from '@/lib/api-clients.server';
 import { getConfig } from '@salesforce/storefront-next-runtime/config';
 import { getLogger } from '@/lib/logger.server';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 type QueryParameters = Partial<ShopperSearch.operations['productSearch']['parameters']['query']>;
 
@@ -63,7 +64,7 @@ export const fetchSearchProducts = async (
             'images', // <-- TTL = 900s
             'page_meta_tags',
             'custom_properties',
-            'slug',
+            ...getSeoSlugExpansion(appConfig.url?.seoRoutes),
         ],
         allImages: true,
         allVariationProperties: true,

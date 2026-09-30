@@ -38,7 +38,7 @@ describe('generateCategorySchema', () => {
         count: 0,
     } as ShopperSearch.schemas['ProductSearchResult'];
 
-    const validPageUrl = 'https://example.com/category/test-category-123';
+    const validPageUrl = 'https://example.com/c/test-category-123';
     const defaultCurrency = mockAltSiteObject.defaultCurrency;
 
     it('should generate a valid CollectionPage schema with required fields', () => {
@@ -109,11 +109,46 @@ describe('generateCategorySchema', () => {
 
         const breadcrumbs = schema.breadcrumb?.itemListElement || [];
         expect(breadcrumbs[0].name).toBe('Home');
-        expect(breadcrumbs[0].item).toBe('https://example.com/category/root');
+        expect(breadcrumbs[0].item).toBe('https://example.com/c/root');
         expect(breadcrumbs[1].name).toBe('Parent Category');
-        expect(breadcrumbs[1].item).toBe('https://example.com/category/parent-1');
+        expect(breadcrumbs[1].item).toBe('https://example.com/c/parent-1');
         expect(breadcrumbs[2].name).toBe('Test Category');
         expect(breadcrumbs[2].item).toBe(validPageUrl);
+    });
+
+    it('uses each authoritative SCAPI category path in slug-path breadcrumb schema', () => {
+        const categoryWithParents = {
+            ...baseCategory,
+            parentCategoryTree: [
+                { id: 'root-id', name: 'Home', slug: 'departments' },
+                { id: 'parent-id', name: 'Women', slug: 'departments/women' },
+            ],
+        } as ShopperProducts.schemas['Category'];
+        const seoUrlContext = {
+            siteId: 'RefArchGlobal',
+            urlPrefix: '/:siteId/:localeId',
+            seoRoutes: {
+                RefArchGlobal: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'catalog', mode: 'slug-path' as const },
+                },
+            },
+        };
+
+        const schema = generateCategorySchema({
+            category: categoryWithParents,
+            searchResult: baseSearchResult,
+            pageUrl: 'https://example.com/global/en-GB/catalog/departments/women/dresses',
+            defaultCurrency,
+            seoUrlContext,
+        });
+
+        expect(schema.breadcrumb?.itemListElement?.[0]?.item).toBe(
+            'https://example.com/global/en-GB/catalog/departments'
+        );
+        expect(schema.breadcrumb?.itemListElement?.[1]?.item).toBe(
+            'https://example.com/global/en-GB/catalog/departments/women'
+        );
     });
 
     it('should include current category in breadcrumb even without parentCategoryTree', () => {
@@ -174,7 +209,7 @@ describe('generateCategorySchema', () => {
         expect(items[0].position).toBe(1);
         expect(items[0].item['@type']).toBe('Product');
         expect(items[0].item.name).toBe('Product 1');
-        expect(items[0].item.url).toBe('https://example.com/product/product-1');
+        expect(items[0].item.url).toBe('https://example.com/p/product-1');
         expect(items[0].item.image).toBe('https://example.com/image1.jpg');
         expect(items[0].item.offers?.price).toBe('29.99');
         expect(items[0].item.offers?.priceCurrency).toBe(mockAltSiteObject.defaultCurrency);
@@ -479,7 +514,7 @@ describe('generateCategorySchema', () => {
     });
 
     it('should preserve site/locale prefix in generated product URLs', () => {
-        const prefixedPageUrl = 'https://example.com/en-US/category/test-category-123';
+        const prefixedPageUrl = 'https://example.com/en-US/c/test-category-123';
         const searchResultWithProduct: ShopperSearch.schemas['ProductSearchResult'] = {
             hits: [
                 {
@@ -508,8 +543,8 @@ describe('generateCategorySchema', () => {
         });
 
         const items = schema.mainEntity?.itemListElement || [];
-        expect(items[0].item.url).toBe('https://example.com/en-US/product/product-1');
-        expect(items[0].item.offers?.url).toBe('https://example.com/en-US/product/product-1');
+        expect(items[0].item.url).toBe('https://example.com/en-US/p/product-1');
+        expect(items[0].item.offers?.url).toBe('https://example.com/en-US/p/product-1');
     });
 
     it('uses configured product URLs and SCAPI slugs in structured data', () => {

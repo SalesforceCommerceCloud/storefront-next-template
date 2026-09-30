@@ -47,20 +47,20 @@ function extractResolvedOuterPrefix(pathname: string, urlPrefix?: string): strin
  * @param options - URL building options
  * @param options.origin - Public origin (scheme + host), e.g. the origin of the loader's canonical page URL
  * @param options.currentPageUrl - Current page URL (used to extract site/locale prefix)
- * @param options.path - Path to build (e.g., '/product/123', '/category/456')
+ * @param options.path - Path to build (e.g., '/p/123', '/c/456')
  * @param options.seoUrlContext - Active site's optional SEO route configuration
  * @returns Complete absolute URL for schema, or undefined if inputs are invalid
  *
  * @example
  * ```ts
- * // From category page: /global/en-GB/category/womens
- * // Build product URL: /global/en-GB/product/123
+ * // From category page: /global/en-GB/c/womens
+ * // Build product URL: /global/en-GB/p/123
  * const productUrl = buildSchemaUrl({
  *   origin: 'https://example.com',
- *   currentPageUrl: 'https://example.com/global/en-GB/category/womens',
- *   path: '/product/123'
+ *   currentPageUrl: 'https://example.com/global/en-GB/c/womens',
+ *   path: '/p/123'
  * });
- * // Result: 'https://example.com/global/en-GB/product/123'
+ * // Result: 'https://example.com/global/en-GB/p/123'
  * ```
  */
 export function buildSchemaUrl({
@@ -81,9 +81,9 @@ export function buildSchemaUrl({
 
         // Extract the prefix (site/locale path segments) before the page type segment
         // Examples:
-        // - /global/en-GB/category/123 -> prefix is /global/en-GB
-        // - /en-US/product/456 -> prefix is /en-US
-        // - /category/789 -> prefix is empty
+        // - /global/en-GB/c/123 -> prefix is /global/en-GB
+        // - /en-US/p/456 -> prefix is /en-US
+        // - /c/789 -> prefix is empty
         let prefix = extractResolvedOuterPrefix(pageUrl.pathname, seoUrlContext?.urlPrefix);
 
         // Preserve the legacy inference for direct utility callers that do not have URL configuration.
@@ -91,7 +91,7 @@ export function buildSchemaUrl({
             const siteSeoRoutes = getSiteSeoRoutes(seoUrlContext);
             const pageTypeSegments = siteSeoRoutes
                 ? [`/${siteSeoRoutes.category.prefix}/`, `/${siteSeoRoutes.product.prefix}/`, '/search']
-                : ['/category/', '/product/', '/search'];
+                : ['/c/', '/p/', '/search'];
 
             for (const segment of pageTypeSegments) {
                 const segmentIndex = pageUrl.pathname.indexOf(segment);
@@ -131,9 +131,9 @@ export function buildSchemaUrl({
  * const productUrl = buildProductSchemaUrl({
  *   productId: '12345',
  *   origin: 'https://example.com',
- *   currentPageUrl: 'https://example.com/global/en-GB/category/womens'
+ *   currentPageUrl: 'https://example.com/global/en-GB/c/womens'
  * });
- * // Result: 'https://example.com/global/en-GB/product/12345'
+ * // Result: 'https://example.com/global/en-GB/p/12345'
  * ```
  */
 export function buildProductSchemaUrl({
@@ -154,7 +154,7 @@ export function buildProductSchemaUrl({
     return buildSchemaUrl({
         origin,
         currentPageUrl,
-        path: createProductUrl({ productId, slugSegments: slug ? [slug] : undefined }, seoUrlContext),
+        path: createProductUrl({ productId, slug }, seoUrlContext),
         seoUrlContext,
     });
 }
@@ -175,9 +175,9 @@ export function buildProductSchemaUrl({
  * const categoryUrl = buildCategorySchemaUrl({
  *   categoryId: 'womens-clothing',
  *   origin: 'https://example.com',
- *   currentPageUrl: 'https://example.com/global/en-GB/category/womens'
+ *   currentPageUrl: 'https://example.com/global/en-GB/c/womens'
  * });
- * // Result: 'https://example.com/global/en-GB/category/womens-clothing'
+ * // Result: 'https://example.com/global/en-GB/c/womens-clothing'
  * ```
  */
 export function buildCategorySchemaUrl({

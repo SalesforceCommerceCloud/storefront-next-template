@@ -14,8 +14,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
     </h2>
     <a
       class="shrink-0 text-sm font-medium hover:underline"
-      href="/RefArchGlobal/en-GB/category/root"
-      to="/RefArchGlobal/en-GB/category/root"
+      href="/RefArchGlobal/en-GB/c/root"
+      to="/RefArchGlobal/en-GB/c/root"
     >
       Shop all furniture
     </a>
@@ -41,9 +41,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-1"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-1"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-1"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-1"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -92,8 +92,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 1"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-1"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-1"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-1"
           />
           <div
             class="absolute top-2 left-2 flex flex-col items-start gap-1 z-20"
@@ -171,9 +171,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-1"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-1"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-1"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-1"
           >
             Featured product 1
           </a>
@@ -326,9 +326,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-2?color=JJ908XX"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-2?color=JJ908XX"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-2?color=JJ908XX"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-2?color=JJ908XX"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -377,8 +377,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 2"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-2?pid=701642823919M"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-2?pid=701642823919M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-2?pid=701642823919M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-2?pid=701642823919M"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -458,9 +458,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-2?pid=701642823919M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-2?pid=701642823919M"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-2?pid=701642823919M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-2?pid=701642823919M"
           >
             Featured product 2
           </a>
@@ -622,9 +622,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-3?color=CHARCWL"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-3?color=CHARCWL"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-3?color=CHARCWL"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-3?color=CHARCWL"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -673,8 +673,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 3"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-3?pid=750518894461M"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-3?pid=750518894461M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-3?pid=750518894461M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-3?pid=750518894461M"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -754,9 +754,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-3?pid=750518894461M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-3?pid=750518894461M"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-3?pid=750518894461M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-3?pid=750518894461M"
           >
             Featured product 3
           </a>
@@ -903,9 +903,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-4"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-4"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-4"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-4"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -954,8 +954,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 4"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-4"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-4"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-4"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-4"
           />
           <div
             class="absolute top-2 left-2 flex flex-col items-start gap-1 z-20"
@@ -1033,9 +1033,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-4"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-4"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-4"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-4"
           >
             Featured product 4
           </a>
@@ -1188,9 +1188,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-5?color=JJ908XX"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-5?color=JJ908XX"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-5?color=JJ908XX"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-5?color=JJ908XX"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -1239,8 +1239,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 5"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-5?pid=701642823919M"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-5?pid=701642823919M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-5?pid=701642823919M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-5?pid=701642823919M"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -1320,9 +1320,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-5?pid=701642823919M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-5?pid=701642823919M"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-5?pid=701642823919M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-5?pid=701642823919M"
           >
             Featured product 5
           </a>
@@ -1484,9 +1484,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-6?color=CHARCWL"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-6?color=CHARCWL"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-6?color=CHARCWL"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-6?color=CHARCWL"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -1535,8 +1535,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 6"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-6?pid=750518894461M"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-6?pid=750518894461M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-6?pid=750518894461M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-6?pid=750518894461M"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -1616,9 +1616,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-6?pid=750518894461M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-6?pid=750518894461M"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-6?pid=750518894461M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-6?pid=750518894461M"
           >
             Featured product 6
           </a>
@@ -1765,9 +1765,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-7"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-7"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-7"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-7"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -1816,8 +1816,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 7"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-7"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-7"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-7"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-7"
           />
           <div
             class="absolute top-2 left-2 flex flex-col items-start gap-1 z-20"
@@ -1895,9 +1895,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-7"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-7"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-7"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-7"
           >
             Featured product 7
           </a>
@@ -2050,9 +2050,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
             <a
               aria-hidden="true"
               class="block w-full h-full flex-1"
-              href="/RefArchGlobal/en-GB/product/merchandising-grid-8?color=JJ908XX"
+              href="/RefArchGlobal/en-GB/p/merchandising-grid-8?color=JJ908XX"
               tabindex="-1"
-              to="/RefArchGlobal/en-GB/product/merchandising-grid-8?color=JJ908XX"
+              to="/RefArchGlobal/en-GB/p/merchandising-grid-8?color=JJ908XX"
             >
               <div
                 class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -2101,8 +2101,8 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-label="Featured product 8"
             class="absolute inset-0 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-8?pid=701642823919M"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-8?pid=701642823919M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-8?pid=701642823919M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-8?pid=701642823919M"
           />
           <div
             class="absolute top-2 right-2 flex flex-col items-end gap-2 z-20"
@@ -2182,9 +2182,9 @@ exports[`ProductMerchandisingGrid stories snapshot > Playground story renders an
           <a
             aria-hidden="true"
             class="hover:underline"
-            href="/RefArchGlobal/en-GB/product/merchandising-grid-8?pid=701642823919M"
+            href="/RefArchGlobal/en-GB/p/merchandising-grid-8?pid=701642823919M"
             tabindex="-1"
-            to="/RefArchGlobal/en-GB/product/merchandising-grid-8?pid=701642823919M"
+            to="/RefArchGlobal/en-GB/p/merchandising-grid-8?pid=701642823919M"
           >
             Featured product 8
           </a>

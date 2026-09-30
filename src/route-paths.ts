@@ -23,7 +23,7 @@ import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config
  * ## Purpose
  *
  * This file is the single source of truth for all navigable URL patterns in the app.
- * Instead of hardcoding path strings like `'/product/123'` or `'/action/cart-item-add'`
+ * Instead of hardcoding path strings like `'/p/123'` or `'/action/cart-item-add'`
  * throughout components, hooks, and route modules, all code references these constants.
  * This makes route renaming a single-file change rather than a codebase-wide find-and-replace.
  *
@@ -32,7 +32,7 @@ import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config
  * Route paths are derived from the file-system routing convention in `src/routes/`.
  * React Router v7's flat-routes naming scheme maps filenames to URL segments:
  *
- *   `_app.product.$productId.tsx` → `/product/:productId`
+ *   `_app.p.$.tsx` → `/p/*`
  *   `_app.account.orders.$orderNo.tsx` → `/account/orders/:orderNo`
  *   `action.cart-item-add.tsx` → `/action/cart-item-add`
  *   `resource.recommendations.ts` → `/resource/recommendations`
@@ -216,6 +216,9 @@ export type SeoUrlContext = {
 
 export type ProductUrlInput = {
     productId?: string;
+    /** Authoritative product slug returned by Shopper APIs. */
+    slug?: string;
+    /** Explicit decorative path segments for custom product URL grammars. */
     slugSegments?: readonly string[];
     searchParams?: URLSearchParams;
 };
@@ -225,11 +228,18 @@ export type CategoryUrlInput = {
     slugSegments: readonly string[];
 };
 
+export type CategoryNavigationInput = {
+    categoryId: string;
+    /** Complete authoritative category slug path, normalized at the SCAPI boundary. */
+    slugSegments?: readonly string[];
+    searchParams?: URLSearchParams;
+};
+
 function buildPath(segments: readonly string[]): string {
     if (segments.some((segment) => segment.length === 0)) {
         throw new Error('URL path segments must not be empty');
     }
-    return `/${segments.map(encodePathSegment).join('/')}`;
+    return `/${segments.map((segment) => encodePathSegment(segment.normalize('NFC'))).join('/')}`;
 }
 
 function encodePathSegment(segment: string): string {
@@ -263,7 +273,6 @@ export function createCategoryUrlFromLegacyPath(destination: string, context?: S
     if (!match) return destination;
 
     const categoryConfig = getSiteSeoRoutes(context)?.category;
-    if (!categoryConfig) return destination;
 
     let segments: string[];
     try {
@@ -274,19 +283,34 @@ export function createCategoryUrlFromLegacyPath(destination: string, context?: S
         return destination;
     }
     const categoryId = segments.at(-1);
-    const slugSegments = categoryConfig.mode === 'slug-path' ? segments : segments.slice(0, -1);
-    return `${createCategoryUrl({ categoryId, slugSegments }, context)}${match[2] ?? ''}`;
+    if (!categoryId) return destination;
+
+    if (!categoryConfig) {
+        return `${createCategoryUrl({ categoryId, slugSegments: [] }, context)}${match[2] ?? ''}`;
+    }
+
+    if (categoryConfig.mode === 'slug-path') {
+        const suffix = match[2] ?? '';
+        const [query, hash] = suffix.split('#', 2);
+        const searchParams = new URLSearchParams(query.startsWith('?') ? query.slice(1) : query);
+        removeCategoryRefinements(searchParams);
+        searchParams.append('refine', `cgid=${categoryId}`);
+        return `/search?${searchParams.toString()}${hash ? `#${hash}` : ''}`;
+    }
+
+    return `${createCategoryUrl({ categoryId, slugSegments: [] }, context)}${match[2] ?? ''}`;
 }
 
 /** Build a product URL without the outer site/locale prefix. */
 export function createProductUrl(
-    { productId, slugSegments = [], searchParams }: ProductUrlInput,
+    { productId, slug, slugSegments, searchParams }: ProductUrlInput,
     context?: SeoUrlContext
 ): string {
     if (!productId) return '#';
 
     const productConfig = getSiteSeoRoutes(context)?.product;
-    const segments = productConfig ? [productConfig.prefix, ...slugSegments, productId] : ['product', productId];
+    const productSlug = slugSegments ?? (slug?.trim() ? [slug] : []);
+    const segments = productConfig ? [productConfig.prefix, ...productSlug, productId] : ['p', productId];
     return appendSearchParams(buildPath(segments), searchParams);
 }
 
@@ -295,7 +319,7 @@ export function createCategoryUrl({ categoryId, slugSegments }: CategoryUrlInput
     const categoryConfig = getSiteSeoRoutes(context)?.category;
     if (!categoryConfig) {
         if (categoryId === undefined) return '#';
-        return categoryId ? buildPath(['category', categoryId]) : '/category/';
+        return categoryId ? buildPath(['c', categoryId]) : '/c/';
     }
     if (!slugSegments) {
         throw new Error('Category slug segments are required when SEO routes are configured');
@@ -308,4 +332,32 @@ export function createCategoryUrl({ categoryId, slugSegments }: CategoryUrlInput
     }
     if (!categoryId) return '#';
     return buildPath([categoryConfig.prefix, ...slugSegments, categoryId]);
+}
+
+/** Build a category destination while retaining only refinements that do not select a category. */
+export function createCategoryNavigationUrl(
+    { categoryId, slugSegments, searchParams }: CategoryNavigationInput,
+    context: SeoUrlContext
+): string | undefined {
+    const categoryConfig = getSiteSeoRoutes(context)?.category;
+    const resolvedSlugSegments = slugSegments ?? [];
+    if (categoryConfig?.mode === 'slug-path' && !resolvedSlugSegments?.length) return undefined;
+
+    const params = new URLSearchParams(searchParams);
+    removeCategoryRefinements(params);
+    params.delete('offset');
+    params.delete('page');
+
+    return appendSearchParams(
+        createCategoryUrl({ categoryId, slugSegments: resolvedSlugSegments ?? [] }, context),
+        params
+    );
+}
+
+function removeCategoryRefinements(searchParams: URLSearchParams): void {
+    const refinements = searchParams
+        .getAll('refine')
+        .filter((refinement) => !refinement.startsWith('cgid=') && !refinement.startsWith('cgslug='));
+    searchParams.delete('refine');
+    refinements.forEach((refinement) => searchParams.append('refine', refinement));
 }

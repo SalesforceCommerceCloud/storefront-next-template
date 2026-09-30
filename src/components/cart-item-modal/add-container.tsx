@@ -22,6 +22,8 @@ import { useSeoUrlContext } from '@/hooks/use-seo-url-context';
 import { createProductUrl } from '@/route-paths';
 import { isProductBundle, isProductSet } from '@/lib/product/product-utils';
 import { computeInitialVariationValues } from '@/lib/product/initial-variation-values';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
+import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { CartItemModalView } from './view';
 import type { CartItemModalProps } from './types';
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
@@ -43,6 +45,7 @@ export function CartItemModalAddContainer({
     open = false,
 }: CartItemModalAddContainerProps): ReactElement {
     const { t } = useTranslation('editItem');
+    const config = useConfig();
     // @sfdc-extension-block-start SFDC_EXT_BOPIS
     const selectedStoreInventoryId = useStoreLocator((state) => state.selectedStoreInfo?.inventoryId);
     const inventoryIds = selectedStoreInventoryId ? [selectedStoreInventoryId] : undefined;
@@ -63,6 +66,7 @@ export function CartItemModalAddContainer({
                     'images',
                     'prices',
                     'promotions',
+                    ...getSeoSlugExpansion(config.url?.seoRoutes),
                     'set_products',
                     'bundled_products',
                 ],
@@ -135,6 +139,7 @@ export function CartItemModalAddContainer({
                     'images',
                     'prices',
                     'promotions',
+                    ...getSeoSlugExpansion(config.url?.seoRoutes),
                     'set_products',
                     'bundled_products',
                 ],
@@ -251,8 +256,15 @@ export function CartItemModalAddContainer({
         if (selectedVariantId) {
             params.set('pid', selectedVariantId);
         }
-        return createProductUrl({ productId: baseProductId, searchParams: params }, seoUrlContext);
-    }, [currentProduct?.id, productId, variationValues, selectedVariantId, seoUrlContext]);
+        return createProductUrl(
+            {
+                productId: baseProductId,
+                slug: currentProduct?.slug,
+                searchParams: params,
+            },
+            seoUrlContext
+        );
+    }, [currentProduct, productId, variationValues, selectedVariantId, seoUrlContext]);
 
     return (
         <CartItemModalView

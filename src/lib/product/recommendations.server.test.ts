@@ -14,13 +14,36 @@
  * limitations under the License.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RouterContextProvider } from 'react-router';
+import { createTestContext } from '@/lib/test-utils';
+import config from '@/config/server';
+
+const createSeoContext = () =>
+    createTestContext({
+        appConfig: {
+            url: {
+                ...config.app.url,
+                seoRoutes: {
+                    [config.app.defaultSiteId]: {
+                        product: { prefix: 'p' },
+                        category: { prefix: 'c', mode: 'id-suffix' },
+                    },
+                },
+            },
+        },
+    });
 
 vi.mock('./recommendations-einstein.server', () => ({
     getEinsteinRecommendations: vi.fn(),
 }));
 vi.mock('@/lib/api/products.server', () => ({
     fetchProductsByIds: vi.fn(),
+    getDefaultProductExpansions: vi.fn((...additional: string[]) => [
+        'availability',
+        'images',
+        'prices',
+        'variations',
+        ...additional,
+    ]),
 }));
 vi.mock('@/lib/logger.server', () => ({
     getLogger: () => ({ warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() }),
@@ -40,7 +63,7 @@ describe('fetchProductRecommendations', () => {
         const { fetchProductRecommendations } = await import('./recommendations.server');
         const request = new Request('http://localhost/');
         const result = await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request },
+            { context: createSeoContext(), request },
             { name: 'home-top-revenue-for-category', products: undefined, currency: 'USD', args: { limit: 8 } }
         );
 
@@ -55,7 +78,11 @@ describe('fetchProductRecommendations', () => {
         expect(fetchProductsByIds).toHaveBeenCalledWith(
             {},
             ['p-1'],
-            expect.objectContaining({ currency: 'USD', allImages: true })
+            expect.objectContaining({
+                currency: 'USD',
+                allImages: true,
+                expand: ['availability', 'images', 'prices', 'variations', 'slug'],
+            })
         );
         expect(result.recs?.[0]).toMatchObject({ productId: 'p-1', productName: 'Test' });
         expect(result.recs?.[0]).not.toHaveProperty('id');
@@ -68,7 +95,7 @@ describe('fetchProductRecommendations', () => {
         );
         const { fetchProductRecommendations } = await import('./recommendations.server');
         const result = await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request: new Request('http://localhost/') },
+            { context: createTestContext(), request: new Request('http://localhost/') },
             { name: 'x' }
         );
         expect(result).toEqual({});
@@ -81,7 +108,7 @@ describe('fetchProductRecommendations', () => {
         );
         const { fetchProductRecommendations } = await import('./recommendations.server');
         const result = await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request: new Request('http://localhost/') },
+            { context: createTestContext(), request: new Request('http://localhost/') },
             { name: 'x' }
         );
         expect(result).toEqual({});
@@ -92,7 +119,7 @@ describe('fetchProductRecommendations', () => {
         (getEinsteinRecommendations as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('boom'));
         const { fetchProductRecommendations } = await import('./recommendations.server');
         const result = await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request: new Request('http://localhost/') },
+            { context: createTestContext(), request: new Request('http://localhost/') },
             { name: 'x' }
         );
         expect(result).toEqual({});
@@ -110,7 +137,7 @@ describe('fetchProductRecommendations', () => {
 
         const { fetchProductRecommendations } = await import('./recommendations.server');
         const result = await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request: new Request('http://localhost/') },
+            { context: createTestContext(), request: new Request('http://localhost/') },
             { name: 'x' }
         );
         expect(result).toEqual({});
@@ -122,7 +149,7 @@ describe('fetchProductRecommendations', () => {
         (getEinsteinRecommendations as ReturnType<typeof vi.fn>).mockResolvedValue({ recs: [] });
         const { fetchProductRecommendations } = await import('./recommendations.server');
         await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request: new Request('http://localhost/') },
+            { context: createTestContext(), request: new Request('http://localhost/') },
             { name: 'x' }
         );
         expect(fetchProductsByIds).not.toHaveBeenCalled();
@@ -143,14 +170,17 @@ describe('fetchProductRecommendations', () => {
 
         const { fetchProductRecommendations } = await import('./recommendations.server');
         const result = await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request: new Request('http://localhost/') },
+            { context: createTestContext(), request: new Request('http://localhost/') },
             { name: 'x' }
         );
 
         expect(fetchProductsByIds).toHaveBeenCalledWith(
             {},
             ['p-1', 'p-2'],
-            expect.objectContaining({ allImages: true })
+            expect.objectContaining({
+                allImages: true,
+                expand: ['availability', 'images', 'prices', 'variations'],
+            })
         );
         expect(result.recs).toHaveLength(2);
         expect(result.recs?.map((r) => r.productId)).toEqual(['p-1', 'p-2']);
@@ -163,7 +193,7 @@ describe('fetchProductRecommendations', () => {
         (fetchProductsByIds as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 'p-1' }]);
         const { fetchProductRecommendations } = await import('./recommendations.server');
         await fetchProductRecommendations(
-            { context: new RouterContextProvider(), request: new Request('http://localhost/') },
+            { context: createTestContext(), request: new Request('http://localhost/') },
             { name: 'x' }
         );
         const call = (fetchProductsByIds as ReturnType<typeof vi.fn>).mock.calls.at(-1);

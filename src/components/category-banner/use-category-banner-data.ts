@@ -29,7 +29,7 @@ type CategoryRouteData = {
  * Used by both canonical and vertical-specific category banner components.
  */
 export function useCategoryBannerData() {
-    const loaderData = useRouteLoaderData<CategoryRouteData>('routes/_app.category.$categoryId');
+    const loaderData = useRouteLoaderData<CategoryRouteData>('routes/_app.c.$');
     const navigation = useNavigation();
     const location = useLocation();
     const config = useConfig();

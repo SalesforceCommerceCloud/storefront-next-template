@@ -68,14 +68,14 @@ Scenario('Homepage accessibility', async () => {
 
 Scenario('Product List Page accessibility', async () => {
     const viewport = await beginScan('plp');
-    navigateTo('/category/womens-clothing-tops');
+    navigateTo('/c/womens-clothing-tops');
     productListPage.validateProductsDisplayed();
     await scanAndAssert('plp', viewport);
 }).tag('@plp');
 
 Scenario('Product Detail Page accessibility', async () => {
     const viewport = await beginScan('pdp');
-    navigateTo('/product/25502228M');
+    navigateTo('/p/25502228M');
     await productDetailPage.waitForPageReady();
     await scanAndAssert('pdp', viewport);
 }).tag('@pdp');

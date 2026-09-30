@@ -77,8 +77,8 @@ const ROUTE_GLOBS = [
 // -----------------------------------------------------------------------------
 const SCANNED_ROUTES = {
     '_app._index': 'homepage',
-    '_app.category.$categoryId': 'plp',
-    '_app.product.$productId': 'pdp',
+    '_app.c.$': 'plp',
+    '_app.p.$': 'pdp',
     '_app.search': 'search',
     '_app.cart': 'cart',
     '_checkout.checkout': 'checkout',

@@ -131,6 +131,7 @@ export default function MyCart({ basket, productMap = {} }: MyCartProps): ReactE
                             <Link
                                 to={createProductUrlFromAttributes(productId, null, 'color', null, {
                                     context: seoUrlContext,
+                                    slug: productData?.slug,
                                 })}
                                 className="text-sm font-semibold text-foreground hover:text-primary">
                                 {productName}

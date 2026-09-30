@@ -16,6 +16,7 @@
 import { describe, expect, test } from 'vitest';
 import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
 import {
+    createCategoryNavigationUrl,
     createCategoryUrl,
     createCategoryUrlFromLegacyPath,
     createProductUrl,
@@ -34,15 +35,19 @@ const seoRoutes = {
 } satisfies SeoRoutesConfig;
 
 describe('SEO URL builders', () => {
-    test('preserves legacy paths when SEO routes are not configured', () => {
+    test('uses the reference product and category splat prefixes when SEO routes are not configured', () => {
         const context = { siteId: 'Unconfigured' };
 
-        expect(createProductUrl({ productId: 'product 1', slugSegments: ['ignored-slug'] }, context)).toBe(
-            '/product/product%201'
-        );
-        expect(createCategoryUrl({ categoryId: 'category 1', slugSegments: [] }, context)).toBe(
-            '/category/category%201'
-        );
+        expect(createProductUrl({ productId: 'product 1', slug: 'ignored-slug' }, context)).toBe('/p/product%201');
+        expect(createCategoryUrl({ categoryId: 'category 1', slugSegments: [] }, context)).toBe('/c/category%201');
+    });
+
+    test('rewrites an authored legacy category path to the reference category prefix without SEO configuration', () => {
+        expect(
+            createCategoryUrlFromLegacyPath('/category/mens/clothing?color=blue#results', {
+                siteId: 'Unconfigured',
+            })
+        ).toBe('/c/clothing?color=blue#results');
     });
 
     test('rejects an active site omitted from configured SEO routes', () => {
@@ -93,12 +98,41 @@ describe('SEO URL builders', () => {
         ).toBe('/catalog/mens/clothing');
     });
 
-    test('maps an authored legacy category path to each configured category grammar', () => {
+    test('builds category navigation from the route grammar and preserves only non-category filters', () => {
+        const searchParams = new URLSearchParams();
+        searchParams.append('refine', 'cgid=mens');
+        searchParams.append('refine', 'cgslug=mens');
+        searchParams.append('refine', 'c_color=blue');
+        searchParams.set('sort', 'best-matches');
+        searchParams.set('offset', '24');
+        searchParams.set('page', '2');
+
+        const destination = createCategoryNavigationUrl(
+            { categoryId: 'shirts-id', slugSegments: ['mens', 'clothing', 'shirts'], searchParams },
+            { siteId: 'RefArch', seoRoutes }
+        );
+
+        expect(destination).toBe('/c/mens/clothing/shirts/shirts-id?sort=best-matches&refine=c_color%3Dblue');
+    });
+
+    test('uses the authoritative category slug in slug-path mode', () => {
+        expect(
+            createCategoryNavigationUrl(
+                { categoryId: 'internal-id', slugSegments: ['mens', 'clothing'] },
+                { siteId: 'SlugStore', seoRoutes }
+            )
+        ).toBe('/catalog/mens/clothing');
+        expect(
+            createCategoryNavigationUrl({ categoryId: 'internal-id' }, { siteId: 'SlugStore', seoRoutes })
+        ).toBeUndefined();
+    });
+
+    test('does not treat an authored legacy category path as authoritative slug data', () => {
         expect(
             createCategoryUrlFromLegacyPath('/category/skincare/moisturisers', { siteId: 'RefArch', seoRoutes })
-        ).toBe('/c/skincare/moisturisers');
+        ).toBe('/c/moisturisers');
         expect(createCategoryUrlFromLegacyPath('/category/mens/clothing', { siteId: 'SlugStore', seoRoutes })).toBe(
-            '/catalog/mens/clothing'
+            '/search?refine=cgid%3Dclothing'
         );
     });
 
@@ -117,7 +151,16 @@ describe('SEO URL builders', () => {
                 siteId: 'SlugStore',
                 seoRoutes,
             })
-        ).toBe('/catalog/women%2Fgirls?color=blue#results');
+        ).toBe('/search?color=blue&refine=cgid%3Dwomen%2Fgirls#results');
+    });
+
+    test('replaces stale category refinements when degrading a legacy category path to search', () => {
+        expect(
+            createCategoryUrlFromLegacyPath(
+                '/category/womens?refine=cgid%3Dold&refine=color%3Dred&refine=cgslug%3Dold-path',
+                { siteId: 'SlugStore', seoRoutes }
+            )
+        ).toBe('/search?refine=color%3Dred&refine=cgid%3Dwomens');
     });
 
     test('normalizes a trailing slash before mapping an ID-suffix category path', () => {
@@ -126,7 +169,7 @@ describe('SEO URL builders', () => {
                 siteId: 'RefArch',
                 seoRoutes,
             })
-        ).toBe('/c/skincare/moisturisers?color=blue#results');
+        ).toBe('/c/moisturisers?color=blue#results');
     });
 
     test('normalizes a trailing slash before mapping a slug-path category path', () => {
@@ -135,7 +178,7 @@ describe('SEO URL builders', () => {
                 siteId: 'SlugStore',
                 seoRoutes,
             })
-        ).toBe('/catalog/mens/clothing');
+        ).toBe('/search?refine=cgid%3Dclothing');
     });
 
     test('leaves malformed encoded authored paths unchanged', () => {
@@ -163,22 +206,19 @@ describe('SEO URL builders', () => {
         expect(createCategoryUrl({ slugSegments: [] }, { siteId: 'Unconfigured' })).toBe('#');
     });
 
-    test('preserves the legacy category root path for an explicitly empty category ID', () => {
-        expect(createCategoryUrl({ categoryId: '', slugSegments: [] }, { siteId: 'Unconfigured' })).toBe('/category/');
+    test('preserves the reference category root path for an explicitly empty category ID', () => {
+        expect(createCategoryUrl({ categoryId: '', slugSegments: [] }, { siteId: 'Unconfigured' })).toBe('/c/');
     });
 
     test('rejects empty path segments instead of emitting ambiguous double slashes', () => {
         expect(() =>
-            createProductUrl({ productId: '123', slugSegments: ['valid', ''] }, { siteId: 'RefArch', seoRoutes })
+            createCategoryUrl({ categoryId: '123', slugSegments: ['valid', ''] }, { siteId: 'RefArch', seoRoutes })
         ).toThrow('URL path segments must not be empty');
     });
 
     test('encodes Unicode and reserved punctuation in each path segment', () => {
         expect(
-            createProductUrl(
-                { productId: "café%'!()*", slugSegments: ["women's picks"] },
-                { siteId: 'RefArch', seoRoutes }
-            )
+            createProductUrl({ productId: "café%'!()*", slug: "women's picks" }, { siteId: 'RefArch', seoRoutes })
         ).toBe('/p/women%27s%20picks/caf%C3%A9%25%27%21%28%29%2A');
     });
 });

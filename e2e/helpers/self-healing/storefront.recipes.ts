@@ -122,7 +122,7 @@ export const categoryLinksRecipe: HealingRecipe = {
         'nav [role="menuitem"]', // Menu items
         'nav ul li a', // List-based navigation
         '[data-testid*="category"]', // Category test ID
-        'a[href*="/category/"]', // Category page links
+        'a[href*="/c/"]', // Category page links
         'a[href*="/c/"]', // Short category URL pattern
     ],
     context: 'Category links in main navigation menu',

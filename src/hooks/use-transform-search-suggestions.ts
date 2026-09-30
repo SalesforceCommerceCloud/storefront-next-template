@@ -16,7 +16,7 @@
 import { useMemo } from 'react';
 import type { ShopperSearch } from '@/scapi';
 import { searchUrlBuilder } from '@/lib/url';
-import { createCategoryUrl, createProductUrl, type SeoUrlContext } from '@/route-paths';
+import { createCategoryUrlFromLegacyPath, createProductUrl, type SeoUrlContext } from '@/route-paths';
 
 // Simple transformation interface for UI purposes only
 interface TransformedSuggestions {
@@ -72,7 +72,10 @@ export function useTransformSearchSuggestions(
                 const image = cat.image as ShopperSearch.schemas['Image'] | undefined;
                 return {
                     name: cat.name || '',
-                    link: createCategoryUrl({ categoryId: cat.id, slugSegments: [] }, seoUrlContext),
+                    link: createCategoryUrlFromLegacyPath(
+                        `/category/${encodeURIComponent(cat.id ?? '')}`,
+                        seoUrlContext
+                    ),
                     type: 'category',
                     image: image?.disBaseLink || image?.link,
                     parentCategoryName: cat.parentCategoryName,
@@ -93,7 +96,7 @@ export function useTransformSearchSuggestions(
                         link: createProductUrl(
                             {
                                 productId: product.productId,
-                                slugSegments: product.slug ? [product.slug] : undefined,
+                                slug: product.slug,
                             },
                             seoUrlContext
                         ),

@@ -314,6 +314,8 @@ describe('Checkout Loaders', () => {
             const { getAuth } = await import('@/middlewares/auth.server');
             const { createApiClients } = await import('@/lib/api-clients.server');
             const { siteContext } = await import('@salesforce/storefront-next-runtime/site-context');
+            const { appConfigContext } = await import('@salesforce/storefront-next-runtime/config');
+            const { default: config } = await import('@/config/server');
 
             const mockGetProducts = vi.fn(({ params }: any) =>
                 Promise.resolve({ data: { data: params.query.ids.map((id: string) => ({ id })) } })
@@ -335,9 +337,11 @@ describe('Checkout Loaders', () => {
             } as any);
 
             const args = createMockArgs();
-            args.context.get.mockImplementation((key: unknown) =>
-                key === siteContext ? { currency: 'USD' } : undefined
-            );
+            args.context.get.mockImplementation((key: unknown) => {
+                if (key === siteContext) return { currency: 'USD' };
+                if (key === appConfigContext) return config.app;
+                return undefined;
+            });
 
             const result = await loader(args);
             const productMap = await result.productMap;
@@ -349,6 +353,9 @@ describe('Checkout Loaders', () => {
             const batchSizes = mockGetProducts.mock.calls.map((call) => call[0].params.query.ids.length);
             expect(batchSizes.every((n) => n <= 24)).toBe(true); // none over the SCAPI cap
             expect(batchSizes.reduce((a, b) => a + b, 0)).toBe(25); // all IDs fetched
+            expect(mockGetProducts.mock.calls.every((call) => !call[0].params.query.expand?.includes('slug'))).toBe(
+                true
+            );
             // The batches merge back into a full itemId -> product map (one entry per basket item).
             expect(Object.keys(productMap)).toHaveLength(25);
         });

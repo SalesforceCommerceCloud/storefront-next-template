@@ -26,6 +26,8 @@ import type { ActionError } from '@/lib/error-codes';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
 import { setWishlistMergeCookie } from '@/lib/wishlist/merge-result-cookie.server';
 import { TrackingConsent } from '@/types/tracking-consent';
+import { getDefaultProductExpansions } from '@/lib/api/products.server';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 type CustomerProductList = ShopperCustomers.schemas['CustomerProductList'];
 type CustomerProductListItem = ShopperCustomers.schemas['CustomerProductListItem'];
@@ -95,6 +97,7 @@ export async function fetchProductsForWishlist(
                         ids: batchIds,
                         allImages: true,
                         perPricebook: true,
+                        expand: getDefaultProductExpansions(...getSeoSlugExpansion(config.url?.seoRoutes)),
                         ...(currency ? { currency } : {}),
                     },
                 },

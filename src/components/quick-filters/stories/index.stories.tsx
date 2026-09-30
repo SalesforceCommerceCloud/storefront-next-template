@@ -20,6 +20,9 @@ import { within, expect, userEvent } from 'storybook/test';
 import { waitForStorybookReady } from '@storybook/test-utils';
 import { useNavigate } from '@/hooks/use-navigate';
 import type { ShopperProducts } from '@/scapi';
+import { ConfigProvider } from '@salesforce/storefront-next-runtime/config';
+import { SiteProvider } from '@salesforce/storefront-next-runtime/site-context';
+import { mockConfig, mockLocale, mockSiteObject } from '@/test-utils/config';
 
 // ---------------------------------------------------------------------------
 // QuickFilters takes a `category` object and renders one chip per
@@ -74,6 +77,19 @@ const meta: Meta<typeof QuickFilters> = {
             },
         },
     },
+    decorators: [
+        (Story) => (
+            <ConfigProvider config={mockConfig}>
+                <SiteProvider
+                    site={mockSiteObject}
+                    locale={mockLocale}
+                    language={mockSiteObject.defaultLocale}
+                    currency={mockSiteObject.defaultCurrency}>
+                    <Story />
+                </SiteProvider>
+            </ConfigProvider>
+        ),
+    ],
 };
 
 export default meta;

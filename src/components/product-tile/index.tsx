@@ -257,7 +257,7 @@ const ProductTile = memo(
                 defaultVariantPid,
                 {
                     context: seoUrlContext,
-                    slugSegments: product?.slug ? [product.slug] : undefined,
+                    slug: product?.slug,
                 }
             );
             const productName = product?.productName ?? '';
@@ -450,6 +450,7 @@ const ProductTile = memo(
                                     <QuickAddButton
                                         productId={product.productId ?? ''}
                                         productName={productName}
+                                        productSlug={product.slug}
                                         selectedColorValue={selectedAttributeValue}
                                         initialVariantSelections={initialVariantSelections}
                                         label={quickAddLabel ?? t('quickAdd')}
@@ -561,6 +562,7 @@ const ProductTile = memo(
                                 <QuickAddButton
                                     productId={product.productId ?? ''}
                                     productName={productName}
+                                    productSlug={product.slug}
                                     selectedColorValue={selectedAttributeValue}
                                     initialVariantSelections={initialVariantSelections}
                                     label={quickAddLabel ?? t('quickAdd')}

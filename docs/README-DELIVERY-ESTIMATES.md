@@ -41,7 +41,7 @@ Product shipping-method descriptions are optional. The storefront uses the first
 
 ## Enable the Extension
 
-Keep the `SFDC_EXT_SHIPPING_DELIVERY` extension installed when generating or customizing the storefront. Its registry entry is in [`src/extensions/config.json`](../src/extensions/config.json), and its PDP integration is marked in [`src/routes/_app.product.$productId.tsx`](../src/routes/_app.product.$productId.tsx).
+Keep the `SFDC_EXT_SHIPPING_DELIVERY` extension installed when generating or customizing the storefront. Its registry entry is in [`src/extensions/config.json`](../src/extensions/config.json), and its PDP integration is marked in [`src/routes/_app.p.$.tsx`](../src/routes/_app.p.$.tsx).
 
 The extension registers the `sfcc.pdp.estimatedDelivery` target in [`src/extensions/shipping-delivery/target-config.json`](../src/extensions/shipping-delivery/target-config.json). The canonical PDP renders that target from [`src/components/product-view/product-info.tsx`](../src/components/product-view/product-info.tsx).
 

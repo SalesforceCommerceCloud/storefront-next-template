@@ -59,39 +59,39 @@ interface Preset {
 // ─── Presets ─────────────────────────────────────────────────────────────────
 
 const PRESETS: Record<string, Preset> = {
-    // Case 1: /:siteId/:localeId/...  →  /global/en-GB/product/123
+    // Case 1: /:siteId/:localeId/...  →  /global/en-GB/p/123
     'prefix-site-locale': {
         url: { prefix: '/:siteId/:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
     },
 
-    // Case 2: /:localeId/...  →  /en-GB/product/123
+    // Case 2: /:localeId/...  →  /en-GB/p/123
     'prefix-locale-only': {
         url: { prefix: '/:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
         localeDetectionConfig: { order: ['path', 'querystring', 'cookie', 'header'], lookupFromPathIndex: 0 },
     },
 
-    // Case 3: /:siteId/...?lng=:localeId  →  /global/product/123?lng=en-GB
+    // Case 3: /:siteId/...?lng=:localeId  →  /global/p/123?lng=en-GB
     'prefix-site-search-locale': {
         url: { prefix: '/:siteId', search: '?lng=:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         localeDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
     },
 
-    // Case 4: /...?site=:siteId&lng=:localeId  →  /product/123?site=global&lng=en-GB
+    // Case 4: /...?site=:siteId&lng=:localeId  →  /p/123?site=global&lng=en-GB
     'search-all': {
         url: { search: '?site=:siteId&lng=:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
         localeDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
     },
 
-    // Case 5: /...?lng=:localeId  →  /product/123?lng=en-GB
+    // Case 5: /...?lng=:localeId  →  /p/123?lng=en-GB
     'search-locale-only': {
         url: { search: '?lng=:localeId', excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
         localeDetectionConfig: { order: ['querystring', 'cookie', 'header'] },
     },
 
-    // Case 6: /...  →  /product/123
+    // Case 6: /...  →  /p/123
     'no-site-locale': {
         url: { excludeRoutes: ['/resource/**', '/action/**'] },
         siteDetectionConfig: { order: ['cookie', 'header'] },

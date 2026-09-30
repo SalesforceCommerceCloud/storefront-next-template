@@ -517,7 +517,7 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   <a
                     class="relative block"
                     data-discover="true"
-                    href="/global/en-GB/product/prod-1"
+                    href="/global/en-GB/p/prod-1"
                   >
                     <div
                       class="h-16 w-16 overflow-hidden border border-border bg-muted"
@@ -533,7 +533,7 @@ exports[`AccountOverview stories snapshot > Default story renders and matches sn
                   <a
                     class="relative block"
                     data-discover="true"
-                    href="/global/en-GB/product/prod-2"
+                    href="/global/en-GB/p/prod-2"
                   >
                     <div
                       class="h-16 w-16 overflow-hidden border border-border bg-muted"

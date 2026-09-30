@@ -137,7 +137,7 @@ export const LongCopy: Story = {
     args: {
         content: `
             <h2>Editorial Story Headline That Demonstrates Long Authored Copy</h2>
-            <p>This paragraph represents the kind of multi-sentence editorial content merchants author for product description pages, brand stories, and FAQ articles. It includes inline <strong>strong text</strong>, <em>emphasis</em>, and <a href="/category/featured">links</a> — verifying that the default plain-text styling reflows cleanly under realistic copy density without breaking the surrounding layout.</p>
+            <p>This paragraph represents the kind of multi-sentence editorial content merchants author for product description pages, brand stories, and FAQ articles. It includes inline <strong>strong text</strong>, <em>emphasis</em>, and <a href="/c/featured">links</a> — verifying that the default plain-text styling reflows cleanly under realistic copy density without breaking the surrounding layout.</p>
             <p>A second paragraph adds further density: it tests vertical spacing between block elements, paragraph margins, and the legibility of long-form running copy at the default font size. Merchants typically author 200-500 words for editorial sections, occasionally up to 1000+ for full brand stories.</p>
             <ul>
                 <li>Inline lists nested inside long-copy sections (this is one such item)</li>

@@ -15,11 +15,13 @@
  */
 import type { RouterContextProvider } from 'react-router';
 import type { ShopperSearch } from '@/scapi';
-import { fetchProductsByIds } from '@/lib/api/products.server';
+import { fetchProductsByIds, getDefaultProductExpansions } from '@/lib/api/products.server';
 import { getLogger } from '@/lib/logger.server';
 import { convertProductToProductSearchHit } from '@/lib/product/product-conversion';
 import { getEinsteinRecommendations, type EinsteinRecommendationResponse } from './recommendations-einstein.server';
 import type { Product, Recommendation } from '@/hooks/recommenders/use-recommenders';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 /**
  * Thin orchestrator over the Einstein recs vendor function. Single entry point used
@@ -72,9 +74,11 @@ export async function fetchProductRecommendations(
 
     let productsById: Awaited<ReturnType<typeof fetchProductsByIds>>;
     try {
+        const config = getConfig(context);
         productsById = await fetchProductsByIds(context, ids, {
             ...(currency ? { currency } : {}),
             allImages: true,
+            expand: getDefaultProductExpansions(...getSeoSlugExpansion(config.url?.seoRoutes)),
         });
     } catch (error) {
         // fetchProductsByIds wraps failures in NormalizedApiError, so the original error (client aborts,

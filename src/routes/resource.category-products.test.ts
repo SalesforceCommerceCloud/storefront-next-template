@@ -73,6 +73,15 @@ describe('resource.category-products', () => {
         expect(fetchSearchProducts).not.toHaveBeenCalled();
     });
 
+    it('returns 400 when category refinements are missing or conflict', async () => {
+        const missingCategory = await invoke(buildRequest({ refine: 'c_color=blue' }));
+        const conflictingCategories = await invoke(buildRequest({ refine: ['cgid=womens', 'cgslug=womens/shoes'] }));
+
+        expect(missingCategory.status).toBe(400);
+        expect(conflictingCategories.status).toBe(400);
+        expect(fetchSearchProducts).not.toHaveBeenCalled();
+    });
+
     it('fetches with the parsed offset/limit/sort/refine and returns hits + total', async () => {
         vi.mocked(fetchSearchProducts).mockResolvedValue({
             hits: [{ productId: 'p1' }, { productId: 'p2' }],

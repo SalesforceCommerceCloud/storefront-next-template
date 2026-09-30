@@ -173,7 +173,7 @@ In a typical production setup, a CDN sits in front of multiple MRT environments,
 
 ### Request Flow Example
 
-A user visits `https://www.example.com/basepath-1/category/womens`:
+A user visits `https://www.example.com/basepath-1/c/womens`:
 
 ```
 1. Browser
@@ -195,10 +195,10 @@ A user visits `https://www.example.com/basepath-1/category/womens`:
         |
 5. React Router (basename: '/basepath-1')
    - Strips basename from URL for route matching
-   - Matches route: /category/womens → _app.category.$categoryId.tsx
-   - request.url still contains full path: /basepath-1/category/womens
-   - useLocation() returns pathname: /category/womens (base path is stripped)
-   - Links render with base path: /basepath-1/product/123
+   - Matches route: /c/womens → _app.c.$.tsx
+   - request.url still contains full path: /basepath-1/c/womens
+   - useLocation() returns pathname: /c/womens (base path is stripped)
+   - Links render with base path: /basepath-1/p/123
         |
 6. SSR Response
    - HTML includes asset URLs with base path:

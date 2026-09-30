@@ -20,7 +20,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import { ApiError, type ShopperExperience, type ShopperProducts, type ShopperSearch } from '@/scapi';
 import { NormalizedApiError } from '@/lib/api/normalized-api-error';
-import CategoryPage, { loader, ProductListingPageMetadata, shouldRevalidate } from './_app.category.$categoryId';
+import CategoryPage, { loader, ProductListingPageMetadata, shouldRevalidate } from './_app.c.$';
 import { shouldRevalidate as sharedShouldRevalidate } from '@/lib/revalidation/routes/category';
 import { createTestContext } from '@/lib/test-utils';
 import { fetchCategory } from '@/lib/api/categories.server';
@@ -32,7 +32,7 @@ import { getRegionDefinition } from '@/lib/decorators/region-definition';
 import { AllProvidersWrapper } from '@/test-utils/context-provider';
 import { generateCategorySchema } from '@/utils/category-schema';
 import { useAnalytics } from '@/hooks/use-analytics';
-import type { Route } from './+types/_app.category.$categoryId';
+import type { Route } from './+types/_app.c.$';
 
 const mockAttemptRouteSeoFallback = vi.hoisted(() => vi.fn());
 
@@ -299,13 +299,35 @@ describe('CategoryPage', () => {
             },
         },
     } as AppConfig;
+    const mockSlugConfig = {
+        ...mockConfig,
+        url: {
+            seoRoutes: {
+                RefArchGlobal: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'catalog', mode: 'slug-path' as const },
+                },
+            },
+        },
+    } as AppConfig;
+    const mockIdSuffixConfig = {
+        ...mockConfig,
+        url: {
+            seoRoutes: {
+                RefArchGlobal: {
+                    product: { prefix: 'p' },
+                    category: { prefix: 'c', mode: 'id-suffix' as const },
+                },
+            },
+        },
+    } as AppConfig;
 
     const createLoaderArgs = (url: string, overrides?: { params?: Record<string, string> }): Route.LoaderArgs => ({
         request: new Request(url),
         url: new URL(url),
         context: mockContext,
-        params: { siteId: 'test-site', localeId: 'en-US', categoryId: 'electronics', ...overrides?.params },
-        pattern: '/category/:categoryId',
+        params: { siteId: 'test-site', localeId: 'en-US', '*': 'electronics', ...overrides?.params },
+        pattern: '/c/*',
     });
 
     beforeEach(() => {
@@ -359,7 +381,7 @@ describe('CategoryPage', () => {
 
     describe('loader', () => {
         test('should fetch category data and search results with correct parameters', async () => {
-            const args = createLoaderArgs('https://example.com/category/electronics');
+            const args = createLoaderArgs('https://example.com/c/electronics');
 
             const result = await loader(args);
 
@@ -389,31 +411,279 @@ describe('CategoryPage', () => {
         });
 
         test('passes an .html category ID unchanged to the authoritative lookup', async () => {
-            await loader(createLoaderArgs('https://example.com/category/legacy.html'));
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'legacy.html' });
+
+            await loader(createLoaderArgs('https://example.com/c/legacy.html'));
 
             expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'legacy.html', 1);
             expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
-        test('resolves the category ID from the final raw path segment, not the route param', async () => {
+        test('resolves the category ID from the final raw path segment before canonicalizing', async () => {
             // Under the SEO route alias the id-suffix URL routes through a pathless parent whose
             // `{prefix}/*` alias child owns the splat, so the authoritative category ID is the final
             // raw path segment, not the `:categoryId` route param (stale/undefined on aliased URLs).
             // The `createLoaderArgs` default leaves a stale `electronics` param to prove it's ignored.
             const args = createLoaderArgs('https://example.com/c/womens/shoes/mens-clothing');
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'mens-clothing' });
 
-            const result = await loader(args);
+            const response = await loader(args).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
 
             expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'mens-clothing', 1);
-            expect(fetchSearchProducts).toHaveBeenCalledWith(
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/c/mens-clothing');
+        });
+
+        test('301-redirects extra default-route segments to the category ID path', async () => {
+            const response = await loader(
+                createLoaderArgs('https://example.com/c/anything/electronics?refine=color%3Dblue', {
+                    params: { '*': 'anything/electronics' },
+                })
+            ).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
+
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe('/c/electronics?refine=color%3Dblue');
+        });
+
+        test('301-redirects a stale ID-suffix hierarchy without URL Mapping', async () => {
+            (getConfig as any).mockReturnValue(mockIdSuffixConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'day-moisturiser',
+                slug: 'skincare/moisturisers/day-moisturiser',
+            });
+
+            const response = await loader(
+                createLoaderArgs('https://example.com/c/old/day/day-moisturiser?refine=color%3Dblue', {
+                    params: { '*': 'day-moisturiser' },
+                })
+            ).then(
+                () => undefined,
+                (error: unknown) => error as Response
+            );
+
+            expect(response?.status).toBe(301);
+            expect(response?.headers.get('Location')).toBe(
+                '/c/skincare/moisturisers/day-moisturiser/day-moisturiser?refine=color%3Dblue'
+            );
+            expect(fetchCategory).toHaveBeenCalledOnce();
+            expect(fetchSearchProducts).toHaveBeenCalledOnce();
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('does not redirect an ID-suffix category when the authoritative slug is missing', async () => {
+            (getConfig as any).mockReturnValue(mockIdSuffixConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'electronics', slug: undefined });
+
+            const result = await loader(createLoaderArgs('https://example.com/c/old/electronics'));
+
+            expect(result.categoryId).toBe('electronics');
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('keeps slug-path mismatch handling on the existing fallback path', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({ ...mockCategory, id: 'sale', slug: 'clearance/sale' });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(
+                new Response(null, { status: 302, headers: { Location: '/catalog/sale-category' } })
+            );
+
+            const response = (await loader(
+                createLoaderArgs('https://example.com/catalog/sale')
+            )) as unknown as Response;
+
+            expect(response.headers.get('Location')).toBe('/catalog/sale-category');
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+        });
+
+        test('resolves a complete slug path without adding a second product search', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'day-moisturiser',
+                slug: 'skincare/moisturisers/day-moisturiser',
+            });
+
+            const args = createLoaderArgs(
+                'https://example.com/catalog/skincare/moisturisers/day-moisturiser?refine=cgid%3Dstale&refine=cgslug%3Dstale%2Fpath&refine=color%3Dblue'
+            );
+            const result = await loader(args);
+
+            expect(fetchCategory).toHaveBeenCalledWith(mockContext, 'skincare/moisturisers/day-moisturiser', 1);
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(2);
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(
+                1,
                 mockContext,
-                expect.objectContaining({ refine: ['cgid=mens-clothing'] })
+                expect.objectContaining({
+                    refine: ['color=blue', 'cgslug=skincare/moisturisers/day-moisturiser'],
+                })
+            );
+            expect(fetchSearchProducts).toHaveBeenNthCalledWith(
+                2,
+                mockContext,
+                expect.objectContaining({
+                    refine: ['color=blue', 'cgslug=skincare/moisturisers/day-moisturiser'],
+                })
             );
             expect(fetchPageWithComponentData).toHaveBeenCalledWith(args, {
                 aspectType: 'plp',
-                categoryId: 'mens-clothing',
+                categoryId: 'day-moisturiser',
             });
-            expect(result.categoryId).toBe('mens-clothing');
+            expect(result.categoryId).toBe('day-moisturiser');
+            expect(result.refine).toEqual(['color=blue', 'cgslug=skincare/moisturisers/day-moisturiser']);
+            expect(result.seoPagination?.nextUrl).toBe(
+                'http://localhost:3000/catalog/skincare/moisturisers/day-moisturiser?refine=color%3Dblue&page=2'
+            );
+        });
+
+        test('does not resolve an alias configured for a different site', async () => {
+            (getConfig as any).mockReturnValue({
+                ...mockConfig,
+                url: {
+                    seoRoutes: {
+                        RefArchGlobal: {
+                            product: { prefix: 'p' },
+                            category: { prefix: 'c', mode: 'id-suffix' },
+                        },
+                        OtherSite: {
+                            product: { prefix: 'product' },
+                            category: { prefix: 'catalog', mode: 'slug-path' },
+                        },
+                    },
+                },
+            } as AppConfig);
+            const redirect = new Response(null, { status: 302, headers: { Location: '/current-category' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/catalog/womens/shoes'));
+
+            expect(result).toBe(redirect);
+            expect(fetchCategory).not.toHaveBeenCalled();
+            expect(fetchSearchProducts).not.toHaveBeenCalled();
+            expect(fetchPageWithComponentData).not.toHaveBeenCalled();
+        });
+
+        test('rejects an ID-precedence collision instead of rendering the wrong slug category', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'sale',
+                slug: 'clearance/sale',
+            });
+            const redirect = new Response(null, { status: 302, headers: { Location: '/catalog/sale-category' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/catalog/sale'));
+
+            expect(result).toBe(redirect);
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+            expect(fetchPageWithComponentData).not.toHaveBeenCalled();
+        });
+
+        test('starts slug category lookup and product search together, then uses the resolved ID for Page Designer', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            let resolveCategory!: (category: ShopperProducts.schemas['Category']) => void;
+            vi.mocked(fetchCategory).mockReturnValue(
+                new Promise((resolve) => {
+                    resolveCategory = resolve;
+                })
+            );
+
+            const args = createLoaderArgs('https://example.com/catalog/womens/shoes');
+            const resultPromise = loader(args);
+
+            expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
+            expect(fetchPageWithComponentData).not.toHaveBeenCalled();
+
+            resolveCategory({ ...mockCategory, id: 'womens-shoes', slug: 'womens/shoes' });
+            await resultPromise;
+
+            expect(fetchPageWithComponentData).toHaveBeenCalledWith(args, {
+                aspectType: 'plp',
+                categoryId: 'womens-shoes',
+            });
+        });
+
+        test('uses SEO fallback for a classified Shopper Search cgslug resolution miss', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'womens-shoes',
+                slug: 'womens/shoes',
+            });
+            const resolutionMiss = new ApiError({
+                status: 400,
+                statusText: 'Bad Request',
+                headers: new Headers(),
+                body: {
+                    type: 'https://api.commercecloud.salesforce.com/documentation/error/v1/errors/invalid-category-slug-refinement',
+                    title: 'Category slug cannot be resolved',
+                    detail: 'The cgslug refinement does not resolve to a category',
+                },
+                rawBody: '{}',
+                url: 'https://api.example.com/product-search',
+                method: 'GET',
+            });
+            vi.mocked(fetchSearchProducts).mockRejectedValue(new NormalizedApiError(resolutionMiss));
+            const redirect = new Response(null, { status: 302, headers: { Location: '/catalog/current-shoes' } });
+            mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
+
+            const result = await loader(createLoaderArgs('https://example.com/catalog/womens/shoes'));
+
+            expect(result).toBe(redirect);
+            expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
+        });
+
+        test('does not remap an unrelated Shopper Search 400', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'womens-shoes',
+                slug: 'womens/shoes',
+            });
+            const invalidSort = new ApiError({
+                status: 400,
+                statusText: 'Bad Request',
+                headers: new Headers(),
+                body: {
+                    type: 'InvalidParameter',
+                    title: 'Invalid request parameter',
+                    detail: 'The requested sorting option does not exist',
+                },
+                rawBody: '{}',
+                url: 'https://api.example.com/product-search',
+                method: 'GET',
+            });
+            const error = new NormalizedApiError(invalidSort);
+            vi.mocked(fetchSearchProducts).mockRejectedValue(error);
+
+            await expect(loader(createLoaderArgs('https://example.com/catalog/womens/shoes'))).rejects.toBe(error);
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
+        });
+
+        test('does not remap an operational Shopper Search failure', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'womens-shoes',
+                slug: 'womens/shoes',
+            });
+            const operationalError = Object.assign(Object.create(NormalizedApiError.prototype), {
+                status: 503,
+                message: 'Shopper Search unavailable',
+            });
+            vi.mocked(fetchSearchProducts).mockRejectedValue(operationalError);
+
+            await expect(loader(createLoaderArgs('https://example.com/catalog/womens/shoes'))).rejects.toBe(
+                operationalError
+            );
+            expect(mockAttemptRouteSeoFallback).not.toHaveBeenCalled();
         });
 
         test('starts independent loader requests before the category resolves', async () => {
@@ -424,7 +694,7 @@ describe('CategoryPage', () => {
                 })
             );
 
-            const resultPromise = loader(createLoaderArgs('https://example.com/category/electronics'));
+            const resultPromise = loader(createLoaderArgs('https://example.com/c/electronics'));
 
             expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
             expect(fetchPageWithComponentData).toHaveBeenCalledTimes(1);
@@ -443,7 +713,7 @@ describe('CategoryPage', () => {
                 )
                 .mockResolvedValueOnce(mockSearchResult);
 
-            const resultPromise = loader(createLoaderArgs('https://example.com/category/electronics'));
+            const resultPromise = loader(createLoaderArgs('https://example.com/c/electronics'));
 
             expect(fetchSearchProducts).toHaveBeenCalledTimes(1);
 
@@ -463,12 +733,10 @@ describe('CategoryPage', () => {
             );
             let loaderResolved = false;
 
-            const resultPromise = loader(createLoaderArgs('https://example.com/category/electronics')).then(
-                (result) => {
-                    loaderResolved = true;
-                    return result;
-                }
-            );
+            const resultPromise = loader(createLoaderArgs('https://example.com/c/electronics')).then((result) => {
+                loaderResolved = true;
+                return result;
+            });
 
             await vi.waitFor(() => expect(fetchSearchProducts).toHaveBeenCalledTimes(2));
             expect(loaderResolved).toBe(false);
@@ -482,7 +750,7 @@ describe('CategoryPage', () => {
             vi.mocked(fetchSearchProducts).mockRejectedValue(new Error('Search request failed'));
             vi.mocked(fetchPageWithComponentData).mockRejectedValue(new Error('Page request failed'));
 
-            const response = await loader(createLoaderArgs('https://example.com/category/electronics')).catch(
+            const response = await loader(createLoaderArgs('https://example.com/c/electronics')).catch(
                 (error: unknown) => error
             );
 
@@ -494,7 +762,7 @@ describe('CategoryPage', () => {
         test('should handle query parameters correctly', async () => {
             await loader(
                 createLoaderArgs(
-                    'https://example.com/category/electronics?offset=20&sort=price-low-to-high&refine=color:red&refine=size:large'
+                    'https://example.com/c/electronics?offset=20&sort=price-low-to-high&refine=color:red&refine=size:large'
                 )
             );
 
@@ -508,12 +776,13 @@ describe('CategoryPage', () => {
             );
         });
 
-        test('should honor existing cgid refinement from query params', async () => {
+        test('preserves the legacy cgid selection when SEO routes are not configured', async () => {
             const result = await loader(
-                createLoaderArgs('https://example.com/category/electronics?refine=cgid%3Dwomens&refine=color%3Dblue')
+                createLoaderArgs(
+                    'https://example.com/c/electronics?refine=cgid%3Dwomens&refine=cgslug%3Dwomens%2Fshoes&refine=color%3Dblue'
+                )
             );
 
-            // Existing cgid should be preserved so quick-filter category selection is respected.
             expect(fetchSearchProducts).toHaveBeenCalledWith(
                 mockContext,
                 expect.objectContaining({
@@ -521,19 +790,37 @@ describe('CategoryPage', () => {
                 })
             );
             expect(result.refine).toEqual(['color=blue', 'cgid=womens']);
+            expect(result.seoPagination?.nextUrl).toBe(
+                'http://localhost:3000/c/electronics?refine=cgid%3Dwomens&refine=color%3Dblue&page=2'
+            );
+        });
+
+        test('replaces inbound category refinements for a configured deterministic route', async () => {
+            (getConfig as any).mockReturnValue(mockSlugConfig);
+            vi.mocked(fetchCategory).mockResolvedValue({
+                ...mockCategory,
+                id: 'electronics',
+                slug: 'electronics',
+            });
+
+            const result = await loader(
+                createLoaderArgs(
+                    'https://example.com/catalog/electronics?refine=cgid%3Dwomens&refine=cgslug%3Dwomens%2Fshoes&refine=color%3Dblue'
+                )
+            );
+
+            expect(result.refine).toEqual(['color=blue', 'cgslug=electronics']);
         });
 
         test('should return effectiveRefine as refine in loader result', async () => {
-            const result = await loader(createLoaderArgs('https://example.com/category/electronics'));
+            const result = await loader(createLoaderArgs('https://example.com/c/electronics'));
 
             expect(result.refine).toEqual(['cgid=electronics']);
         });
 
         test('should parse filters query param into initialFiltersOpen', async () => {
-            const openResult = await loader(createLoaderArgs('https://example.com/category/electronics?filters=open'));
-            const closedResult = await loader(
-                createLoaderArgs('https://example.com/category/electronics?filters=closed')
-            );
+            const openResult = await loader(createLoaderArgs('https://example.com/c/electronics?filters=open'));
+            const closedResult = await loader(createLoaderArgs('https://example.com/c/electronics?filters=closed'));
 
             expect(openResult.initialFiltersOpen).toBe(true);
             expect(closedResult.initialFiltersOpen).toBe(false);
@@ -562,8 +849,8 @@ describe('CategoryPage', () => {
 
             try {
                 await loader(
-                    createLoaderArgs('https://example.com/category/invalid', {
-                        params: { categoryId: 'invalid' },
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
                     })
                 );
                 expect.fail('Expected loader to throw');
@@ -589,7 +876,7 @@ describe('CategoryPage', () => {
             const redirect = new Response(null, { status: 302, headers: { Location: '/category/current' } });
             mockAttemptRouteSeoFallback.mockResolvedValueOnce(redirect);
 
-            const result = await loader(createLoaderArgs('https://example.com/category/legacy'));
+            const result = await loader(createLoaderArgs('https://example.com/c/legacy'));
 
             expect(result).toBe(redirect);
             expect(mockAttemptRouteSeoFallback).toHaveBeenCalledOnce();
@@ -617,7 +904,7 @@ describe('CategoryPage', () => {
             (fetchCategory as any).mockRejectedValue(new NormalizedApiError(mockApiError));
 
             try {
-                await loader(createLoaderArgs('https://example.com/category/electronics'));
+                await loader(createLoaderArgs('https://example.com/c/electronics'));
                 expect.fail('Expected loader to throw');
             } catch (error: any) {
                 expect(error).toBeInstanceOf(Response);
@@ -650,8 +937,8 @@ describe('CategoryPage', () => {
 
             try {
                 await loader(
-                    createLoaderArgs('https://example.com/category/restricted', {
-                        params: { categoryId: 'restricted' },
+                    createLoaderArgs('https://example.com/c/restricted', {
+                        params: { '*': 'restricted' },
                     })
                 );
                 expect.fail('Expected loader to throw');
@@ -682,8 +969,8 @@ describe('CategoryPage', () => {
 
             try {
                 await loader(
-                    createLoaderArgs('https://example.com/category/invalid', {
-                        params: { categoryId: 'invalid' },
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
                     })
                 );
                 expect.fail('Expected loader to throw');
@@ -713,8 +1000,8 @@ describe('CategoryPage', () => {
 
             try {
                 await loader(
-                    createLoaderArgs('https://example.com/category/invalid', {
-                        params: { categoryId: 'invalid' },
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
                     })
                 );
                 expect.fail('Expected loader to throw');
@@ -730,8 +1017,8 @@ describe('CategoryPage', () => {
 
             try {
                 await loader(
-                    createLoaderArgs('https://example.com/category/invalid', {
-                        params: { categoryId: 'invalid' },
+                    createLoaderArgs('https://example.com/c/invalid', {
+                        params: { '*': 'invalid' },
                     })
                 );
                 expect.fail('Expected loader to throw');
@@ -747,7 +1034,7 @@ describe('CategoryPage', () => {
             (fetchCategory as any).mockRejectedValue(new TypeError('Network request failed'));
 
             try {
-                await loader(createLoaderArgs('https://example.com/category/electronics'));
+                await loader(createLoaderArgs('https://example.com/c/electronics'));
                 expect.fail('Expected loader to throw');
             } catch (error: any) {
                 expect(error).toBeInstanceOf(Response);
@@ -758,7 +1045,7 @@ describe('CategoryPage', () => {
         });
 
         test('should split search results into critical and non-critical', async () => {
-            await loader(createLoaderArgs('https://example.com/category/electronics'));
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
 
             expect(fetchSearchProducts).toHaveBeenCalledTimes(2);
             expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
@@ -778,7 +1065,7 @@ describe('CategoryPage', () => {
         });
 
         test('should generate category schema promise', async () => {
-            const result = await loader(createLoaderArgs('https://example.com/category/electronics'));
+            const result = await loader(createLoaderArgs('https://example.com/c/electronics'));
             const categorySchema = await result.categorySchema;
 
             expect(categorySchema).toBeDefined();
@@ -794,7 +1081,7 @@ describe('CategoryPage', () => {
                     urlPrefix: undefined,
                     seoRoutes: undefined,
                 },
-                pageUrl: 'http://localhost:3000/category/electronics',
+                pageUrl: 'http://localhost:3000/c/electronics',
                 defaultCurrency: 'GBP',
             });
         });
@@ -803,21 +1090,21 @@ describe('CategoryPage', () => {
             // The request arrives on example.com carrying a tracking param; structured data must
             // point at the public app origin with the tracking param stripped, matching the
             // canonical <link> and og:url rather than echoing the raw request URL.
-            await loader(createLoaderArgs('https://example.com/category/electronics?utm_source=news&sort=price'));
+            await loader(createLoaderArgs('https://example.com/c/electronics?utm_source=news&sort=price'));
 
             expect(generateCategorySchema).toHaveBeenCalledWith(
-                expect.objectContaining({ pageUrl: 'http://localhost:3000/category/electronics?sort=price' })
+                expect.objectContaining({ pageUrl: 'http://localhost:3000/c/electronics?sort=price' })
             );
         });
 
         test('301-redirects a trailing-slash category path to the canonical path, preserving the query', async () => {
             try {
-                await loader(createLoaderArgs('https://example.com/category/electronics/?sort=price'));
+                await loader(createLoaderArgs('https://example.com/c/electronics/?sort=price'));
                 expect.fail('Expected loader to throw a redirect');
             } catch (error: any) {
                 expect(error).toBeInstanceOf(Response);
                 expect(error.status).toBe(301);
-                expect(error.headers.get('Location')).toBe('/category/electronics?sort=price');
+                expect(error.headers.get('Location')).toBe('/c/electronics?sort=price');
             }
         });
 
@@ -826,7 +1113,7 @@ describe('CategoryPage', () => {
                 throw new Error('Schema generation failed');
             });
 
-            const result = await loader(createLoaderArgs('https://example.com/category/electronics'));
+            const result = await loader(createLoaderArgs('https://example.com/c/electronics'));
             const categorySchema = await result.categorySchema;
 
             expect(categorySchema).toBeNull();
@@ -844,7 +1131,7 @@ describe('CategoryPage', () => {
             const partialResult = { ...mockSearchResult, hits: mockSearchResult.hits?.slice(0, 2) };
             (fetchSearchProducts as any).mockResolvedValue(partialResult);
 
-            await loader(createLoaderArgs('https://example.com/category/electronics'));
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
 
             // Verify: Critical request asks for 4
             expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
@@ -875,7 +1162,7 @@ describe('CategoryPage', () => {
             (getConfig as any).mockReturnValue(mockConfigHighCritical);
             (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
 
-            await loader(createLoaderArgs('https://example.com/category/electronics'));
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
 
             // Verify: Critical request is capped at limit (24), not using config.critical (30)
             expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
@@ -901,7 +1188,7 @@ describe('CategoryPage', () => {
             const emptyResult = { ...mockSearchResult, hits: [], total: 0 };
             (fetchSearchProducts as any).mockResolvedValue(emptyResult);
 
-            await loader(createLoaderArgs('https://example.com/category/electronics'));
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
 
             // Verify: Critical request
             expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
@@ -931,7 +1218,7 @@ describe('CategoryPage', () => {
             (getConfig as any).mockReturnValue(mockConfigSmallLimit);
             (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
 
-            await loader(createLoaderArgs('https://example.com/category/electronics'));
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
 
             // Verify: Critical request
             expect(fetchSearchProducts).toHaveBeenNthCalledWith(1, mockContext, {
@@ -961,7 +1248,7 @@ describe('CategoryPage', () => {
             (getConfig as any).mockReturnValue(mockConfigCriticalEqualsLimit);
             (fetchSearchProducts as any).mockResolvedValue(mockSearchResult);
 
-            await loader(createLoaderArgs('https://example.com/category/electronics'));
+            await loader(createLoaderArgs('https://example.com/c/electronics'));
 
             // Verify: Non-critical limit should be 0 or positive, never negative
             expect(fetchSearchProducts).toHaveBeenNthCalledWith(2, mockContext, {
@@ -998,7 +1285,7 @@ describe('CategoryPage', () => {
             };
 
             const { unmount } = render(
-                <MemoryRouter initialEntries={['/category/electronics?filters=open']}>
+                <MemoryRouter initialEntries={['/c/electronics?filters=open']}>
                     <AllProvidersWrapper>
                         <CategoryPage loaderData={openLoaderData} />
                     </AllProvidersWrapper>
@@ -1012,7 +1299,7 @@ describe('CategoryPage', () => {
             unmount();
 
             render(
-                <MemoryRouter initialEntries={['/category/electronics?filters=closed']}>
+                <MemoryRouter initialEntries={['/c/electronics?filters=closed']}>
                     <AllProvidersWrapper>
                         <CategoryPage loaderData={closedLoaderData} />
                     </AllProvidersWrapper>

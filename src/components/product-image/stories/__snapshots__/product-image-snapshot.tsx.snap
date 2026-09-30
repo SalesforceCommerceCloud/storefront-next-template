@@ -11,9 +11,9 @@ exports[`ProductImage stories snapshot > CustomAspectRatio story renders and mat
     <a
       aria-hidden="true"
       class="block w-full h-full flex-1"
-      href="/RefArchGlobal/en-GB/product/P0048M"
+      href="/RefArchGlobal/en-GB/p/P0048M"
       tabindex="-1"
-      to="/RefArchGlobal/en-GB/product/P0048M"
+      to="/RefArchGlobal/en-GB/p/P0048M"
     >
       <div
         class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -72,9 +72,9 @@ exports[`ProductImage stories snapshot > Default story renders and matches snaps
     <a
       aria-hidden="true"
       class="block w-full h-full flex-1"
-      href="/RefArchGlobal/en-GB/product/P0048M"
+      href="/RefArchGlobal/en-GB/p/P0048M"
       tabindex="-1"
-      to="/RefArchGlobal/en-GB/product/P0048M"
+      to="/RefArchGlobal/en-GB/p/P0048M"
     >
       <div
         class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -133,9 +133,9 @@ exports[`ProductImage stories snapshot > MissingImages story renders and matches
     <a
       aria-hidden="true"
       class="block w-full h-full flex-1"
-      href="/RefArchGlobal/en-GB/product/P0048M"
+      href="/RefArchGlobal/en-GB/p/P0048M"
       tabindex="-1"
-      to="/RefArchGlobal/en-GB/product/P0048M"
+      to="/RefArchGlobal/en-GB/p/P0048M"
     >
       <div
         class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -162,9 +162,9 @@ exports[`ProductImage stories snapshot > WithColorVariant story renders and matc
     <a
       aria-hidden="true"
       class="block w-full h-full flex-1"
-      href="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
+      href="/RefArchGlobal/en-GB/p/25518101M?color=JJ5QZXX"
       tabindex="-1"
-      to="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
+      to="/RefArchGlobal/en-GB/p/25518101M?color=JJ5QZXX"
     >
       <div
         class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"
@@ -223,9 +223,9 @@ exports[`ProductImage stories snapshot > WithNavigationArrows story renders and 
     <a
       aria-hidden="true"
       class="block w-full h-full flex-1"
-      href="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
+      href="/RefArchGlobal/en-GB/p/25518101M?color=JJ5QZXX"
       tabindex="-1"
-      to="/RefArchGlobal/en-GB/product/25518101M?color=JJ5QZXX"
+      to="/RefArchGlobal/en-GB/p/25518101M?color=JJ5QZXX"
     >
       <div
         class="w-full h-full object-cover transition-all duration-200 group-hover:scale-105"

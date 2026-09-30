@@ -49,7 +49,7 @@ exports[`HtmlFragment stories snapshot > LongCopy story renders and matches snap
     </em>
     , and 
     <a
-      href="/category/featured"
+      href="/c/featured"
     >
       links
     </a>

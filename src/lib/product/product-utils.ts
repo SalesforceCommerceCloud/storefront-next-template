@@ -184,11 +184,11 @@ export const getDisplayVariationValues = (
  * @returns {string} The formatted product URL or '#' if productId is undefined.
  *
  * @example
- * createProductUrlFromAttributes('12345'); // => '/product/12345'
- * createProductUrlFromAttributes('12345', 'red'); // => '/product/12345?color=red'
- * createProductUrlFromAttributes('12345', 'L', 'size'); // => '/product/12345?size=L'
- * createProductUrlFromAttributes('12345', null, 'color', 'V001'); // => '/product/12345?pid=V001'
- * createProductUrlFromAttributes('12345', 'red', 'color', 'V001'); // => '/product/12345?color=red&pid=V001'
+ * createProductUrlFromAttributes('12345'); // => '/p/12345'
+ * createProductUrlFromAttributes('12345', 'red'); // => '/p/12345?color=red'
+ * createProductUrlFromAttributes('12345', 'L', 'size'); // => '/p/12345?size=L'
+ * createProductUrlFromAttributes('12345', null, 'color', 'V001'); // => '/p/12345?pid=V001'
+ * createProductUrlFromAttributes('12345', 'red', 'color', 'V001'); // => '/p/12345?color=red&pid=V001'
  * createProductUrlFromAttributes(undefined); // => '#'
  */
 export const createProductUrlFromAttributes = (
@@ -196,7 +196,7 @@ export const createProductUrlFromAttributes = (
     selectedAttributeValue: string | null = null,
     attributeType: string = 'color',
     variantPid: string | null = null,
-    seo?: { context: SeoUrlContext; slugSegments?: readonly string[] }
+    seo?: { context: SeoUrlContext; slug?: string }
 ): string => {
     if (!productId) return '#';
     const params = new URLSearchParams();
@@ -209,7 +209,7 @@ export const createProductUrlFromAttributes = (
     return createSeoProductUrl(
         {
             productId,
-            slugSegments: seo?.slugSegments,
+            slug: seo?.slug,
             searchParams: params,
         },
         seo?.context
@@ -339,7 +339,7 @@ export const getDecoratedVariationAttributes = (
             const href = createSeoProductUrl(
                 {
                     productId: product.productId,
-                    slugSegments: product.slug ? [product.slug] : undefined,
+                    slug: product.slug,
                     searchParams,
                 },
                 seoUrlContext

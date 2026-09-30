@@ -18,8 +18,8 @@ import { describe, expect, it } from 'vitest';
 import type { SeoRoutesConfig } from '../config/types';
 import { applySeoUrlConfig } from './apply-seo-url-config';
 
-const PRODUCT_ROUTE_ID = 'routes/_app.product.$productId';
-const CATEGORY_ROUTE_ID = 'routes/_app.category.$categoryId';
+const PRODUCT_ROUTE_ID = 'routes/_app.p.$';
+const CATEGORY_ROUTE_ID = 'routes/_app.c.$';
 const WRAPPER_FILE = 'app-wrapper.tsx';
 
 function route(overrides: Partial<RouteConfigEntry> & { id: string; file: string }): RouteConfigEntry {
@@ -34,13 +34,13 @@ function createRoutes(): RouteConfigEntry[] {
             children: [
                 route({
                     id: PRODUCT_ROUTE_ID,
-                    file: 'routes/_app.product.$productId.tsx',
-                    path: 'product/:productId',
+                    file: 'routes/_app.p.$.tsx',
+                    path: 'p/*',
                 }),
                 route({
                     id: CATEGORY_ROUTE_ID,
-                    file: 'routes/_app.category.$categoryId.tsx',
-                    path: 'category/:categoryId',
+                    file: 'routes/_app.c.$.tsx',
+                    path: 'c/*',
                 }),
                 route({ id: 'routes/_app.cart', file: 'routes/_app.cart.tsx', path: 'cart' }),
                 route({
@@ -108,7 +108,7 @@ describe('applySeoUrlConfig', () => {
 
         expect(product).toMatchObject({
             id: PRODUCT_ROUTE_ID,
-            file: 'routes/_app.product.$productId.tsx',
+            file: 'routes/_app.p.$.tsx',
             path: undefined,
         });
         expect(product?.children).toEqual([
@@ -125,7 +125,7 @@ describe('applySeoUrlConfig', () => {
         ]);
         expect(category).toMatchObject({
             id: CATEGORY_ROUTE_ID,
-            file: 'routes/_app.category.$categoryId.tsx',
+            file: 'routes/_app.c.$.tsx',
             path: undefined,
         });
         expect(category?.children?.map(({ path }) => path)).toEqual(['c/*', 'category/*']);

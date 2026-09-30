@@ -17,6 +17,7 @@ import type { ShopperProducts, ShopperSearch } from '@/scapi';
 import type { AppConfig } from '@/types/config';
 import type { SeoUrlContext } from '@/route-paths';
 import { buildProductSchemaUrl, buildCategorySchemaUrl } from './schema-url';
+import { getCategorySlugSegments } from '@/lib/seo/scapi-slugs';
 
 /**
  * Schema.org CollectionPage with ItemList for Product Listing Pages
@@ -186,6 +187,7 @@ export function generateCategorySchema({
                 // Use common schema URL builder for breadcrumb category links
                 item: buildCategorySchemaUrl({
                     categoryId: parent.id,
+                    slugSegments: getCategorySlugSegments(parent),
                     origin: baseUrl,
                     currentPageUrl: pageUrl,
                     seoUrlContext,

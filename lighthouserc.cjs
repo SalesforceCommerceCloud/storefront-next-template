@@ -82,8 +82,8 @@ module.exports = {
             startServerReadyTimeout: 30000,
             url: [
                 'http://localhost:3001/RefArchGlobal/en-GB/',
-                // 'http://localhost:3001/RefArchGlobal/en-GB/category/womens-clothing-tops',
-                'http://localhost:3001/RefArchGlobal/en-GB/product/25591227M?color=JJ9DFXX',
+                // 'http://localhost:3001/RefArchGlobal/en-GB/c/womens-clothing-tops',
+                'http://localhost:3001/RefArchGlobal/en-GB/p/25591227M?color=JJ9DFXX',
                 'http://localhost:3001/RefArchGlobal/en-GB/cart',
             ],
             settings: {

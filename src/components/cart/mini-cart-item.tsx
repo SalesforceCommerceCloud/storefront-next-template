@@ -156,7 +156,7 @@ export default function MiniCartItem({
 
     // Build product URL for linking to PDP
     const productUrl = product.productId
-        ? createProductUrl({ productId: product.productId }, seoUrlContext)
+        ? createProductUrl({ productId: product.productId, slug: product.slug }, seoUrlContext)
         : undefined;
 
     return (

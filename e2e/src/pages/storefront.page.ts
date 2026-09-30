@@ -40,9 +40,9 @@ class StorefrontPage {
         categoryLinks: locate('[data-slot="navigation-menu"] a').as('Category Links'),
 
         // Product elements (homepage uses ProductCarousel > ProductTile without data-testids)
-        productTiles: locate('a[href*="/product/"]').as('Product Tiles'),
-        productImages: locate('a[href*="/product/"] img').as('Product Images'),
-        productTitles: locate('a[href*="/product/"] h3, a[href*="/product/"] h2').as('Product Titles'),
+        productTiles: locate('a[href*="/p/"]').as('Product Tiles'),
+        productImages: locate('a[href*="/p/"] img').as('Product Images'),
+        productTitles: locate('a[href*="/p/"] h3, a[href*="/p/"] h2').as('Product Titles'),
         productPrices: locate('[data-testid*="price"]').as('Product Prices'),
 
         // Footer elements
@@ -77,7 +77,7 @@ class StorefrontPage {
     }
 
     /**
-     * Navigate to an already-prefixed URL path (e.g., '/us/en-US/category/jackets').
+     * Navigate to an already-prefixed URL path (e.g., '/us/en-US/c/jackets').
      * Use for multi-site tests that construct explicit site/locale prefixes
      * instead of relying on buildSitePath().
      * @param prefixedPath - Full path including any site/locale prefix

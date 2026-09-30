@@ -103,7 +103,7 @@ class AddToCartFlow {
     /**
      * Execute the add-to-cart flow on a category page.
      *
-     * @param categoryUrl - Direct URL to category page (e.g., 'category/womens-clothing-tops')
+     * @param categoryUrl - Direct URL to category page (e.g., 'c/womens-clothing-tops')
      * @param options - preferPromotedProduct: try a product with Sale badge first;
      *                  sitePrefix: bypass buildSitePath for multi-currency/locale tests
      */

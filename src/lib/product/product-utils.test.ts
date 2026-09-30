@@ -211,43 +211,43 @@ describe('product-utils', () => {
         it('should create basic product URL without color', () => {
             const result = createProductUrlFromAttributes('12345');
 
-            expect(result).toBe('/product/12345');
+            expect(result).toBe('/p/12345');
         });
 
         it('should create product URL with color parameter', () => {
             const result = createProductUrlFromAttributes('12345', 'red');
 
-            expect(result).toBe('/product/12345?color=red');
+            expect(result).toBe('/p/12345?color=red');
         });
 
         it('should create product URL with custom attribute type', () => {
             const result = createProductUrlFromAttributes('12345', 'L', 'size');
 
-            expect(result).toBe('/product/12345?size=L');
+            expect(result).toBe('/p/12345?size=L');
         });
 
         it('should default to color when attribute type not specified', () => {
             const result = createProductUrlFromAttributes('12345', 'blue');
 
-            expect(result).toBe('/product/12345?color=blue');
+            expect(result).toBe('/p/12345?color=blue');
         });
 
         it('should create product URL with variant pid', () => {
             const result = createProductUrlFromAttributes('master-123', null, 'color', 'variant-456');
 
-            expect(result).toBe('/product/master-123?pid=variant-456');
+            expect(result).toBe('/p/master-123?pid=variant-456');
         });
 
         it('should create product URL with both color and variant pid', () => {
             const result = createProductUrlFromAttributes('master-123', 'red', 'color', 'variant-456');
 
-            expect(result).toBe('/product/master-123?color=red&pid=variant-456');
+            expect(result).toBe('/p/master-123?color=red&pid=variant-456');
         });
 
         it('should not include pid when variantPid is null', () => {
             const result = createProductUrlFromAttributes('12345', 'red', 'color', null);
 
-            expect(result).toBe('/product/12345?color=red');
+            expect(result).toBe('/p/12345?color=red');
         });
 
         it('delegates configured paths and explicit slugs to the shared URL builder', () => {
@@ -261,7 +261,7 @@ describe('product-utils', () => {
                         },
                     },
                 },
-                slugSegments: ['summer-dress'],
+                slug: 'summer-dress',
             });
 
             expect(result).toBe('/p/summer-dress/12345?color=red&pid=variant-456');
@@ -304,7 +304,7 @@ describe('product-utils', () => {
                         {
                             value: 'RED',
                             name: 'Red',
-                            href: '/product/M123?color=RED',
+                            href: '/p/M123?color=RED',
                             swatch: swatchImageGroup.images[0],
                         },
                     ],
@@ -354,13 +354,13 @@ describe('product-utils', () => {
                         {
                             value: 'RED',
                             name: 'RED',
-                            href: '/product/M123?color=RED',
+                            href: '/p/M123?color=RED',
                             swatch: swatchImageGroup.images[0],
                         },
                         {
                             value: 'BLU',
                             name: 'BLU',
-                            href: '/product/M123?color=BLU',
+                            href: '/p/M123?color=BLU',
                             swatch: undefined,
                         },
                     ],
@@ -368,8 +368,8 @@ describe('product-utils', () => {
                 {
                     id: 'size',
                     values: [
-                        { value: '10', name: '10', href: '/product/M123?size=10', swatch: undefined },
-                        { value: '11', name: '11', href: '/product/M123?size=11', swatch: undefined },
+                        { value: '10', name: '10', href: '/p/M123?size=10', swatch: undefined },
+                        { value: '11', name: '11', href: '/p/M123?size=11', swatch: undefined },
                     ],
                 },
             ]);
@@ -391,7 +391,7 @@ describe('product-utils', () => {
                         {
                             value: 'RED',
                             name: 'RED',
-                            href: '/product/M123?color=RED',
+                            href: '/p/M123?color=RED',
                             swatch: undefined,
                         },
                     ],

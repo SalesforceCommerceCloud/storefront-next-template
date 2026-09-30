@@ -41,7 +41,7 @@ synchronously during SSR, so the correct shells are rendered on the first paint
 
 ## Loader integration
 
-The PDP route loader (`src/routes/_app.product.$productId.tsx`) creates three
+The PDP route loader (`src/routes/_app.p.$.tsx`) creates three
 deferred Promises (`returnsWarranty`, `faqQuestions`, `pdpCollapsibles`) and
 passes them into `ProductContentDataProvider` (defined in
 `context/product-content-data-context.tsx`). Target wrappers read the Promises

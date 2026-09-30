@@ -23,6 +23,7 @@ import { getLogger } from '@/lib/logger.server';
 import type { ShopperDeliveryEstimates, ShopperProducts } from '@/scapi';
 import { getCountryCodeFromLocale } from '@/lib/shipping-estimate/postal-code-formats';
 import type { ShippingEstimate, ShippingEstimateOption } from '@/lib/shipping-estimate/types';
+import { compareRfc3339Timestamps } from '@/lib/rfc3339';
 
 const PICKUP_SHIPPING_METHOD_ID = '005';
 
@@ -33,13 +34,6 @@ type ScapiShippingOption = ShopperDeliveryEstimates.schemas['ShippingOption'];
 type DeliveryEstimatesResult = ShopperDeliveryEstimates.schemas['DeliveryEstimatesResult'];
 type ProductShippingMethod = NonNullable<ShopperProducts.schemas['Product']['shippingMethods']>[number] & {
     c_storePickupEnabled?: boolean;
-};
-// Exclude leap seconds and the RFC 3339 unknown-offset form so every accepted value is sortable and formatDeliveryWindow() can display it.
-const DELIVERY_ESTIMATE_TIMESTAMP = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/i;
-
-type Rfc3339Timestamp = {
-    epochSecond: number;
-    fractionalSecond: string;
 };
 
 /**
@@ -82,60 +76,9 @@ function toShippingEstimateOption(
     };
 }
 
-function parseRfc3339Timestamp(timestamp: string): Rfc3339Timestamp | null {
-    const match = timestamp.match(DELIVERY_ESTIMATE_TIMESTAMP);
-    if (!match) {
-        return null;
-    }
-
-    const [year, month, day, hour, minute, second] = match.slice(1, 7).map(Number);
-    const fractionalSecond = match[7] ?? '';
-    const offset = match[8].toUpperCase();
-    const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-    const daysInMonth = month === 2 ? (isLeapYear ? 29 : 28) : [4, 6, 9, 11].includes(month) ? 30 : 31;
-
-    if (month < 1 || month > 12 || day < 1 || day > daysInMonth || hour > 23 || minute > 59 || second > 59) {
-        return null;
-    }
-
-    if (offset !== 'Z') {
-        const [offsetHour, offsetMinute] = offset.slice(1).split(':').map(Number);
-        if (offset === '-00:00' || offsetHour > 23 || offsetMinute > 59) {
-            return null;
-        }
-    }
-
-    const epochSecond = Date.parse(timestamp.replace(/\.\d+(?=Z|[+-]\d{2}:\d{2}$)/i, '')) / 1000;
-    return Number.isFinite(epochSecond) ? { epochSecond, fractionalSecond } : null;
-}
-
-function compareFractionalSeconds(left: string, right: string): number {
-    const length = Math.max(left.length, right.length);
-    for (let index = 0; index < length; index += 1) {
-        const leftDigit = left[index] ?? '0';
-        const rightDigit = right[index] ?? '0';
-        if (leftDigit < rightDigit) return -1;
-        if (leftDigit > rightDigit) return 1;
-    }
-
-    return 0;
-}
-
-function compareRfc3339Timestamps(left: string, right: string): number {
-    const leftTimestamp = parseRfc3339Timestamp(left);
-    const rightTimestamp = parseRfc3339Timestamp(right);
-    if (!leftTimestamp || !rightTimestamp) {
-        return 0;
-    }
-
-    const epochSecondDiff = leftTimestamp.epochSecond - rightTimestamp.epochSecond;
-    return epochSecondDiff || compareFractionalSeconds(leftTimestamp.fractionalSecond, rightTimestamp.fractionalSecond);
-}
-
 function isValidDeliveryWindow(deliveryWindow: DeliveryWindow): boolean {
-    const startAt = parseRfc3339Timestamp(deliveryWindow.startAt);
-    const endAt = parseRfc3339Timestamp(deliveryWindow.endAt);
-    return !!startAt && !!endAt && compareRfc3339Timestamps(deliveryWindow.startAt, deliveryWindow.endAt) <= 0;
+    const comparison = compareRfc3339Timestamps(deliveryWindow.startAt, deliveryWindow.endAt);
+    return comparison !== null && comparison <= 0;
 }
 
 export function getEstimateCountryCode(context: LoaderFunctionArgs['context']): string {
@@ -200,10 +143,10 @@ export async function getShippingEstimates(
     }
 
     const shippingOptions = deliverableOptions.map(toShippingEstimateOption).sort((a, b) => {
-        const startAtDiff = compareRfc3339Timestamps(b.deliveryWindow.startAt, a.deliveryWindow.startAt);
+        const startAtDiff = compareRfc3339Timestamps(b.deliveryWindow.startAt, a.deliveryWindow.startAt) ?? 0;
         if (startAtDiff !== 0) return startAtDiff;
 
-        const endAtDiff = compareRfc3339Timestamps(b.deliveryWindow.endAt, a.deliveryWindow.endAt);
+        const endAtDiff = compareRfc3339Timestamps(b.deliveryWindow.endAt, a.deliveryWindow.endAt) ?? 0;
         if (endAtDiff !== 0) return endAtDiff;
 
         if (a.shippingMethodId < b.shippingMethodId) return -1;

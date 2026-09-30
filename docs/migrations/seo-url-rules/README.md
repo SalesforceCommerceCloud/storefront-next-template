@@ -18,7 +18,7 @@ repeat the mechanics.
 product and category path segments the storefront generates and serves. With it
 set, a product URL becomes `/{product-prefix}/{slug}/{id}` and a category URL
 becomes `/{category-prefix}/{slug}/{id}` (or a pure slug path—see
-[Category Modes and the Slug-Data Prerequisite](#category-modes-and-the-slug-data-prerequisite)),
+[Category Modes](#category-modes)),
 keyed per site. Without it, the storefront serves the built-in `/product/{id}`
 and `/category/{id}` grammar.
 
@@ -40,22 +40,25 @@ Do not enable `seoRoutes` until **all** of these hold:
   and URL generation throws for a site with no entry, because the compiled
   manifest no longer contains the built-in product and category routes. A
   partial map is a build-or-runtime failure, not a gradual rollout.
-- **Every active site's PDP/PLP grammar is decided** and its category-slug data
-  source is available (see
-  [Category Modes and the Slug-Data Prerequisite](#category-modes-and-the-slug-data-prerequisite)).
-  The route-registration layer does not parse IDs or fetch slugs; it only
-  registers the prefixes.
+- **Every active site's PDP/PLP grammar is decided.** Slug-path categories
+  require Shopper Products 1.13, Shopper Search 1.15, and authoritative slug
+  data at every category-link surface (see [Category Modes](#category-modes)).
 
 These are the same two gates stated in
 [README-MULTI-SITE.md, URL Config](../../README-MULTI-SITE.md#url-config). They
 are prerequisites, not warnings—a storefront that ships `seoRoutes` before they
 hold will either fail the build or fail to generate URLs for an omitted site.
 
-## No Route Files Are Renamed
+## Rename the Product and Category Route Modules
 
-Adopting `seoRoutes` does **not** rename, move, or split any file under
-`src/routes/`. The canonical `_app.product.$productId.tsx` and
-`_app.category.$categoryId.tsx` modules stay exactly where they are.
+Rename `src/routes/_app.product.$productId.tsx` to `_app.p.$.tsx` and
+`src/routes/_app.category.$categoryId.tsx` to `_app.c.$.tsx`. Rename matching
+vertical overlays and tests, and update route-ID consumers to
+`routes/_app.p.$` and `routes/_app.c.$`.
+
+Without `seoRoutes`, these modules provide the reference `/p/*` and `/c/*`
+routes. Product IDs and category IDs or slug paths are resolved from the splat
+at the loader boundary.
 
 At build time each becomes a pathless parent that owns its configured prefix
 aliases, so the registered union of prefixes routes back to the same loader and
@@ -68,7 +71,7 @@ Because the route files are unchanged, `src/route-paths.ts` needs no new entries
 for product or category destinations. Generate those URLs with the semantic
 builders instead of static patterns:
 
-- `createProductUrl({ productId, slugSegments }, seoUrlContext)`
+- `createProductUrl({ productId, slug }, seoUrlContext)`
 - `createCategoryUrl({ categoryId, slugSegments }, seoUrlContext)`
 - `createCategoryUrlFromLegacyPath(legacyPath, seoUrlContext)` for
   merchant-authored links stored as legacy `/category/...` strings
@@ -78,7 +81,7 @@ functional path only; the template's `Link` and navigation wrappers still add th
 outer `/:siteId/:localeId` prefix. They encode each segment independently and make
 no SCAPI or Shopper SEO call.
 
-## Category Modes and the Slug-Data Prerequisite
+## Category Modes
 
 `category.mode` is `id-suffix` or `slug-path`, and the difference decides what
 data you must have before enabling:
@@ -86,7 +89,7 @@ data you must have before enabling:
 | Mode | URL shape | How the PLP resolves the category | Prerequisite |
 |---|---|---|---|
 | `id-suffix` | `/{prefix}/{slug}/{id}` | Reads the category ID from the **final raw path segment** of the request URL—deterministic, no lookup | Category ID present as the last segment |
-| `slug-path` | `/{prefix}/{full-slug-path}` | The final segment is a slug, **not** the ID; the loader does not resolve slug→ID | A slug→ID data source you supply |
+| `slug-path` | `/{prefix}/{full-slug-path}` | Sends the full path to `getCategory` and uses `cgslug` in the existing product-search pipeline | Shopper Products 1.13, Shopper Search 1.15, and complete authoritative slugs at every category-link surface |
 
 `id-suffix` mode is deterministic: the category (PLP) loader resolves the
 category from the last raw path segment, so a URL like `/c/womens/dresses/25502`
@@ -98,28 +101,48 @@ configured `{prefix}/*` alias, so the legacy grammar is no longer served in-app.
 Redirect it to the new form (see
 [Preventing Broken Indexed URLs and Redirect Loops](#preventing-broken-indexed-urls-and-redirect-loops)).
 
-`slug-path` mode produces the cleanest URLs but the route layer does **not**
-translate a trailing slug back to a category ID. Until your project provides that
-slug→ID data source for a site, do not put that site in `slug-path` mode. This is
-the concrete form of the "category-slug data source is available" prerequisite in
-[Prerequisites](#prerequisites).
+In `slug-path` mode the loader starts `getCategory(fullSlug)` and the critical
+`productSearch(refine=cgslug=<fullSlug>)` together. It reuses the returned category
+ID for metadata, analytics, schema, and Page Designer context; it does not add a
+second product-search call. Query-string `cgid` and `cgslug` values cannot override
+the category selected by the route.
+
+Outbound category links use the complete `Category.slug` or `PathRecord.slug`
+hierarchy. The template does not substitute category IDs or display names for
+missing slugs. Interactive controls without a slug are disabled; static legacy
+category destinations use the existing search route with `refine=cgid=<id>`.
+Category search suggestions also use a category-ID search refinement because
+that response has no authoritative category slug.
 
 Product slugs are optional—the product ID stays authoritative and sits at the
 tail of the URL. Category slugs are optional in `id-suffix` mode too, so the
 storefront also generates slug-less `/{prefix}/{id}` category URLs; `slug-path`
-mode requires at least one slug segment. Product search and search-suggestion
-requests already include `expand=slug`, so product tiles, typeahead, and
-search-results structured data get the configured slug without an extra request.
+mode requires at least one slug segment. When `seoRoutes` is enabled, existing
+Shopper Products requests that feed product links, plus product search and
+suggestions, include `expand=slug`. PDPs, tiles, recommendations, carts,
+wishlists, Page Designer, typeahead, and structured data therefore use the
+configured slug without another request. Storefronts without SEO routes keep the
+compatible request shape for older B2C Commerce versions.
 
 ## Preventing Broken Indexed URLs and Redirect Loops
 
 Changing a product or category prefix changes every already-indexed URL for that
-resource. Handle the transition at the edge, not in the storefront:
+resource. When an ID-suffix PDP or PLP resolves successfully, Storefront Next
+compares the incoming decorative slug hierarchy with the authoritative slug
+returned by the existing Shopper API response. A stale hierarchy receives one
+`301` to the configured canonical path. This adds no lookup or URL Mapping call.
+When the authoritative slug is absent, Storefront Next keeps the valid ID route
+and does not invent or redirect a slug.
 
-- **Redirect old grammar to new with a single 301.** Map the previous prefix to
-  the new one at the CDN / Business Manager URL-redirect layer (for example
-  `/product/{id}` → `/p/{slug}/{id}`). A 301 preserves the ranking signal and
-  keeps existing inbound links working.
+Use Business Manager URL Mapping or the CDN edge for old prefixes, `.html` forms,
+slug-only historical category paths, and other URLs that cannot resolve by their
+authoritative ID. Scheduled URL Mapping redirects apply only from `onlineFrom`
+through `onlineTo`, inclusive.
+
+- **Redirect old grammar to new with a single 301.** Map forms the storefront
+  cannot resolve by authoritative ID at the CDN / Business Manager URL-redirect
+  layer (for example `/product/{id}` → `/p/{slug}/{id}`). A 301 preserves the
+  ranking signal and keeps existing inbound links working.
 - **Redirect once, to the canonical target.** The canonical target is the URL the
   storefront now generates for that resource. Do not chain redirects (old → interim
   → canonical) and do not let the new URL redirect back toward the old grammar—
@@ -213,17 +236,23 @@ per site.
       permitted in `seoFallback.sites` (hybrid: legacy-owned paths still resolve
       on the Commerce storefront).
 - [ ] **Canonical:** each PDP/PLP renders a `<link rel="canonical">` pointing at
-      the URL the storefront now generates, matching the redirect target.
+      the URL the storefront now generates, matching the redirect target. A stale
+      decorative slug on a valid ID-suffix PDP/PLP returns one `301` to that
+      canonical path without an additional lookup or URL Mapping call; missing
+      authoritative slug data keeps the valid ID route without inventing a slug.
 - [ ] **Redirects:** the legacy grammar (and any `.html` suffix form) 301s once,
-      directly to the canonical URL, with no redirect loop.
+      directly to the canonical URL, with no redirect loop. For scheduled URL
+      Mapping redirects, verify the mapping is inactive before `onlineFrom`,
+      active at both inclusive boundaries, and inactive after `onlineTo`.
 - [ ] **Sitemap:** generated sitemap entries use the new prefixes and contain no
       legacy-grammar URLs.
 - [ ] **Crawler rendering and pagination:** crawlers receive fully-rendered HTML,
       and paginated category results stay crawlable through `?page=N` with
       `rel="prev"` / `rel="next"` links. See
       [README-SEO.md, Crawler Rendering and Pagination](../../README-SEO.md#crawler-rendering-and-pagination).
-- [ ] `slug-path` sites (if any) have a working slug→ID data source; category
-      pages resolve from the slug path.
+- [ ] In `slug-path`, category links preserve the complete authoritative
+      hierarchy; missing slugs degrade without a lookup, and category pages use
+      one route-authoritative `cgslug` refinement in every search phase.
 
 ## Links
 

@@ -14,7 +14,7 @@ In this codebase, the main technical levers are **[schema.org](https://schema.or
 
 | Concern | PDP | PLP (category) |
 |--------|-----|----------------|
-| Route | [`src/routes/_app.product.$productId.tsx`](../src/routes/_app.product.$productId.tsx) | [`src/routes/_app.category.$categoryId.tsx`](../src/routes/_app.category.$categoryId.tsx) |
+| Route | [`src/routes/_app.p.$.tsx`](../src/routes/_app.p.$.tsx) | [`src/routes/_app.c.$.tsx`](../src/routes/_app.c.$.tsx) |
 | JSON-LD generator | [`src/utils/product-schema.ts`](../src/utils/product-schema.ts) | [`src/utils/category-schema.ts`](../src/utils/category-schema.ts) |
 | Public URL helpers | [`src/utils/schema-url.ts`](../src/utils/schema-url.ts) | Same |
 | JSON-LD injection | [`JsonLd`](../src/components/json-ld/index.tsx), script `id="product-schema"` | Same, `id="category-schema"` |
@@ -76,7 +76,7 @@ This keeps AEO/GEO signals consistent across locales and avoids broken or intern
 ## Tests and Stories
 
 - Unit tests: [`src/utils/category-schema.test.ts`](../src/utils/category-schema.test.ts), [`src/components/json-ld/index.test.tsx`](../src/components/json-ld/index.test.tsx)
-- Route-level coverage touches JSON-LD in [`src/routes/_app.category.$categoryId.test.tsx`](../src/routes/_app.category.$categoryId.test.tsx) and [`src/routes/_app.product.$productId.test.tsx`](../src/routes/_app.product.$productId.test.tsx)
+- Route-level coverage touches JSON-LD in [`src/routes/_app.c.$.test.tsx`](../src/routes/_app.c.$.test.tsx) and [`src/routes/_app.p.$.test.tsx`](../src/routes/_app.p.$.test.tsx)
 - Storybook: [`src/components/json-ld/stories/index.stories.tsx`](../src/components/json-ld/stories/index.stories.tsx) (includes ItemList-oriented examples)
 
 ## Related Documentation

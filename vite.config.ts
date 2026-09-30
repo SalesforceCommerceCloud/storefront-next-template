@@ -49,6 +49,8 @@ export default defineConfig(({ mode }) => {
         environments: {
             client: {
                 build: {
+                    // Emit maps for diagnostics without adding sourceMappingURL bytes to every browser chunk.
+                    sourcemap: 'hidden',
                     rollupOptions: {
                         output: {
                             // Keep gallery implementation modules at this boundary. Let Rollup place their dependencies

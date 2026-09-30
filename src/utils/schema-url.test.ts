@@ -22,68 +22,68 @@ describe('buildSchemaUrl', () => {
     it('should preserve site/locale prefix from category page', () => {
         const url = buildSchemaUrl({
             origin,
-            currentPageUrl: 'https://example.com/global/en-GB/category/womens',
-            path: '/product/12345',
+            currentPageUrl: 'https://example.com/global/en-GB/c/womens',
+            path: '/p/12345',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/product/12345');
+        expect(url).toBe('https://example.com/global/en-GB/p/12345');
     });
 
     it('should preserve site/locale prefix from product page', () => {
         const url = buildSchemaUrl({
             origin,
-            currentPageUrl: 'https://example.com/global/en-GB/product/12345',
-            path: '/category/womens',
+            currentPageUrl: 'https://example.com/global/en-GB/p/12345',
+            path: '/c/womens',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/category/womens');
+        expect(url).toBe('https://example.com/global/en-GB/c/womens');
     });
 
     it('should handle single segment prefix (locale only)', () => {
         const url = buildSchemaUrl({
             origin,
-            currentPageUrl: 'https://example.com/en-US/category/mens',
-            path: '/product/67890',
+            currentPageUrl: 'https://example.com/en-US/c/mens',
+            path: '/p/67890',
         });
 
-        expect(url).toBe('https://example.com/en-US/product/67890');
+        expect(url).toBe('https://example.com/en-US/p/67890');
     });
 
     it('should handle no prefix (root level)', () => {
         const url = buildSchemaUrl({
             origin,
-            currentPageUrl: 'https://example.com/category/accessories',
-            path: '/product/11111',
+            currentPageUrl: 'https://example.com/c/accessories',
+            path: '/p/11111',
         });
 
-        expect(url).toBe('https://example.com/product/11111');
+        expect(url).toBe('https://example.com/p/11111');
     });
 
     it('should handle path without leading slash', () => {
         const url = buildSchemaUrl({
             origin,
-            currentPageUrl: 'https://example.com/global/en-GB/category/womens',
-            path: 'product/12345',
+            currentPageUrl: 'https://example.com/global/en-GB/c/womens',
+            path: 'p/12345',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/product/12345');
+        expect(url).toBe('https://example.com/global/en-GB/p/12345');
     });
 
     it('should handle search pages', () => {
         const url = buildSchemaUrl({
             origin,
             currentPageUrl: 'https://example.com/global/en-GB/search?q=shoes',
-            path: '/product/99999',
+            path: '/p/99999',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/product/99999');
+        expect(url).toBe('https://example.com/global/en-GB/p/99999');
     });
 
     it('should return undefined if origin is missing', () => {
         const url = buildSchemaUrl({
             origin: '',
-            currentPageUrl: 'https://example.com/category/test',
-            path: '/product/123',
+            currentPageUrl: 'https://example.com/c/test',
+            path: '/p/123',
         });
 
         expect(url).toBeUndefined();
@@ -92,7 +92,7 @@ describe('buildSchemaUrl', () => {
     it('should return undefined if path is missing', () => {
         const url = buildSchemaUrl({
             origin,
-            currentPageUrl: 'https://example.com/category/test',
+            currentPageUrl: 'https://example.com/c/test',
             path: '',
         });
 
@@ -103,20 +103,20 @@ describe('buildSchemaUrl', () => {
         const url = buildSchemaUrl({
             origin,
             currentPageUrl: 'not-a-valid-url',
-            path: '/product/123',
+            path: '/p/123',
         });
 
-        expect(url).toBe('https://example.com/product/123');
+        expect(url).toBe('https://example.com/p/123');
     });
 
     it('should preserve query parameters in path', () => {
         const url = buildSchemaUrl({
             origin,
-            currentPageUrl: 'https://example.com/global/en-GB/category/womens',
-            path: '/product/12345?pid=variant1',
+            currentPageUrl: 'https://example.com/global/en-GB/c/womens',
+            path: '/p/12345?pid=variant1',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/product/12345?pid=variant1');
+        expect(url).toBe('https://example.com/global/en-GB/p/12345?pid=variant1');
     });
 });
 
@@ -127,27 +127,27 @@ describe('buildProductSchemaUrl', () => {
         const url = buildProductSchemaUrl({
             productId: '12345',
             origin,
-            currentPageUrl: 'https://example.com/global/en-GB/category/womens',
+            currentPageUrl: 'https://example.com/global/en-GB/c/womens',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/product/12345');
+        expect(url).toBe('https://example.com/global/en-GB/p/12345');
     });
 
     it('should build product URL without prefix', () => {
         const url = buildProductSchemaUrl({
             productId: '67890',
             origin,
-            currentPageUrl: 'https://example.com/category/mens',
+            currentPageUrl: 'https://example.com/c/mens',
         });
 
-        expect(url).toBe('https://example.com/product/67890');
+        expect(url).toBe('https://example.com/p/67890');
     });
 
     it('should return undefined if productId is missing', () => {
         const url = buildProductSchemaUrl({
             productId: undefined,
             origin,
-            currentPageUrl: 'https://example.com/category/test',
+            currentPageUrl: 'https://example.com/c/test',
         });
 
         expect(url).toBeUndefined();
@@ -157,7 +157,7 @@ describe('buildProductSchemaUrl', () => {
         const url = buildProductSchemaUrl({
             productId: '',
             origin,
-            currentPageUrl: 'https://example.com/category/test',
+            currentPageUrl: 'https://example.com/c/test',
         });
 
         expect(url).toBeUndefined();
@@ -167,10 +167,10 @@ describe('buildProductSchemaUrl', () => {
         const url = buildProductSchemaUrl({
             productId: '99999',
             origin,
-            currentPageUrl: 'https://example.com/global/en-GB/product/88888',
+            currentPageUrl: 'https://example.com/global/en-GB/p/88888',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/product/99999');
+        expect(url).toBe('https://example.com/global/en-GB/p/99999');
     });
 
     it('uses the active site product prefix and slug', () => {
@@ -222,27 +222,27 @@ describe('buildCategorySchemaUrl', () => {
         const url = buildCategorySchemaUrl({
             categoryId: 'womens-clothing',
             origin,
-            currentPageUrl: 'https://example.com/global/en-GB/category/womens',
+            currentPageUrl: 'https://example.com/global/en-GB/c/womens',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/category/womens-clothing');
+        expect(url).toBe('https://example.com/global/en-GB/c/womens-clothing');
     });
 
     it('should build category URL without prefix', () => {
         const url = buildCategorySchemaUrl({
             categoryId: 'mens-shoes',
             origin,
-            currentPageUrl: 'https://example.com/product/12345',
+            currentPageUrl: 'https://example.com/p/12345',
         });
 
-        expect(url).toBe('https://example.com/category/mens-shoes');
+        expect(url).toBe('https://example.com/c/mens-shoes');
     });
 
     it('should return undefined if categoryId is missing', () => {
         const url = buildCategorySchemaUrl({
             categoryId: undefined,
             origin,
-            currentPageUrl: 'https://example.com/product/test',
+            currentPageUrl: 'https://example.com/p/test',
         });
 
         expect(url).toBeUndefined();
@@ -252,7 +252,7 @@ describe('buildCategorySchemaUrl', () => {
         const url = buildCategorySchemaUrl({
             categoryId: '',
             origin,
-            currentPageUrl: 'https://example.com/product/test',
+            currentPageUrl: 'https://example.com/p/test',
         });
 
         expect(url).toBeUndefined();
@@ -265,7 +265,7 @@ describe('buildCategorySchemaUrl', () => {
             currentPageUrl: 'https://example.com/global/en-GB/search?q=bags',
         });
 
-        expect(url).toBe('https://example.com/global/en-GB/category/accessories');
+        expect(url).toBe('https://example.com/global/en-GB/c/accessories');
     });
 
     it('uses the active site category prefix for an ID-suffix URL', () => {

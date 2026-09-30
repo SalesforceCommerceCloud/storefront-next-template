@@ -160,12 +160,8 @@ describe('flatRoutes', () => {
         const baseRoutes: RouteConfigEntry[] = [
             layoutRoute('routes/_app', 'routes/_app.tsx', [
                 indexRoute('routes/_app._index', 'routes/_app._index.tsx'),
-                route('routes/_app.product.$productId', 'routes/_app.product.$productId.tsx', 'product/:productId'),
-                route(
-                    'routes/_app.category.$categoryId',
-                    'routes/_app.category.$categoryId.tsx',
-                    'category/:categoryId'
-                ),
+                route('routes/_app.p.$', 'routes/_app.p.$.tsx', 'p/*'),
+                route('routes/_app.c.$', 'routes/_app.c.$.tsx', 'c/*'),
             ]),
         ];
         mockFlatRoutes.mockResolvedValue(baseRoutes);
@@ -195,8 +191,8 @@ describe('flatRoutes', () => {
         const result = await flatRoutes();
 
         const siteWrapper = findRoute(result, 'site-context-wrapper');
-        const product = findRoute(result, 'routes/_app.product.$productId');
-        const category = findRoute(result, 'routes/_app.category.$categoryId');
+        const product = findRoute(result, 'routes/_app.p.$');
+        const category = findRoute(result, 'routes/_app.c.$');
         expect(siteWrapper?.path).toBe(':siteId/:localeId');
         expect(product?.path).toBeUndefined();
         expect(product?.children?.[0]).toMatchObject({ path: 'p/*', file: 'app-wrapper.tsx' });
@@ -207,12 +203,12 @@ describe('flatRoutes', () => {
 
     it('should register SEO aliases from a custom route directory', async () => {
         const rootDirectory = 'custom/routes';
-        const productRouteId = `${rootDirectory}/_app.product.$productId`;
-        const categoryRouteId = `${rootDirectory}/_app.category.$categoryId`;
+        const productRouteId = `${rootDirectory}/_app.p.$`;
+        const categoryRouteId = `${rootDirectory}/_app.c.$`;
         mockFlatRoutes.mockResolvedValue([
             layoutRoute(`${rootDirectory}/_app`, `${rootDirectory}/_app.tsx`, [
-                route(productRouteId, `${rootDirectory}/_app.product.$productId.tsx`, 'product/:productId'),
-                route(categoryRouteId, `${rootDirectory}/_app.category.$categoryId.tsx`, 'category/:categoryId'),
+                route(productRouteId, `${rootDirectory}/_app.p.$.tsx`, 'p/*'),
+                route(categoryRouteId, `${rootDirectory}/_app.c.$.tsx`, 'c/*'),
             ]),
         ]);
         mockLoadConfig.mockResolvedValue({
@@ -250,12 +246,8 @@ describe('flatRoutes', () => {
     it('should require the pass-through wrapper when SEO routes are configured without an outer prefix', async () => {
         mockFlatRoutes.mockResolvedValue([
             layoutRoute('routes/_app', 'routes/_app.tsx', [
-                route('routes/_app.product.$productId', 'routes/_app.product.$productId.tsx', 'product/:productId'),
-                route(
-                    'routes/_app.category.$categoryId',
-                    'routes/_app.category.$categoryId.tsx',
-                    'category/:categoryId'
-                ),
+                route('routes/_app.p.$', 'routes/_app.p.$.tsx', 'p/*'),
+                route('routes/_app.c.$', 'routes/_app.c.$.tsx', 'c/*'),
             ]),
         ]);
         mockLoadConfig.mockResolvedValue({

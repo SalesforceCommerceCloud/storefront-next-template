@@ -16,7 +16,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { getCartActionButton } from '../utils/cart-action-button';
-import { buildSitePath } from '../utils/url-utils';
+import { buildSitePath, isRoutePath } from '../utils/url-utils';
 import { isCartMutationResponse } from '../utils/cart-response';
 
 const { I } = inject();
@@ -38,12 +38,12 @@ class ProductDetailPage {
         productSKU: locate('[data-testid*="sku"], [class*="sku"]').as('Product SKU'),
 
         // Variant selectors (dynamic - size, color, etc.)
-        // Based on actual HTML: <div role="radiogroup"><a role="radio" href="/product/...">...</a></div>
+        // Based on actual HTML: <div role="radiogroup"><a role="radio" href="/p/...">...</a></div>
         variantGroups: locate('[role="radiogroup"]').as('Variant Groups'),
 
         // Link-based variant options (actual HTML structure)
         // More specific: <a> tag with role="radio" and href to product page
-        variantLinks: locate('a[role="radio"][href*="/product/"]').as('Variant Links'),
+        variantLinks: locate('a[role="radio"][href*="/p/"]').as('Variant Links'),
 
         // Legacy button-based variants (fallback)
         variantButtons: locate(
@@ -91,7 +91,7 @@ class ProductDetailPage {
 
     /**
      * Navigate directly to a product detail page.
-     * @param path - Product path including any query string (e.g. '/product/25752235M?color=YELLOSI&pid=682875540326M').
+     * @param path - Product path including any query string (e.g. '/p/25752235M?color=YELLOSI&pid=682875540326M').
      */
     navigate(path: string): void {
         I.amOnPage(buildSitePath(path));
@@ -145,7 +145,7 @@ class ProductDetailPage {
 
     /**
      * Select first available option for all link-based variants
-     * HTML pattern: <div role="radiogroup"><a role="radio" href="/product/...">...</a></div>
+     * HTML pattern: <div role="radiogroup"><a role="radio" href="/p/...">...</a></div>
      */
     private async selectVariantLinks(): Promise<void> {
         const variantGroupCount = await I.grabNumberOfVisibleElements(this.locators.variantGroups);
@@ -344,7 +344,7 @@ class ProductDetailPage {
      *
      * Changed from a synchronous `I.waitForElement(productTitle)` (which only waited for one element
      * and did not confirm the URL had navigated) to an async Playwright-based implementation that:
-     *   1. Waits for the URL to contain `/product/` (event-driven via waitForURL, not polling).
+     *   1. Waits for the URL to contain `/p/` (event-driven via waitForURL, not polling).
      *   2. Waits for any key PDP element (title, h1, or add-to-cart button) to become visible.
      * This fixed flaky E2E failures where the old approach resolved on stale elements from the
      * previous page, or timed out when the title hadn't rendered yet but the add-to-cart button had.
@@ -352,7 +352,7 @@ class ProductDetailPage {
     async waitForPageReady(timeoutSeconds: number = 30): Promise<void> {
         const timeoutMs = timeoutSeconds * 1000;
         await (I.usePlaywrightTo('wait for PDP to be ready', async ({ page }) => {
-            await page.waitForURL(/\/product\//, { timeout: timeoutMs });
+            await page.waitForURL((url: URL) => isRoutePath(url, 'p'), { timeout: timeoutMs });
             await page
                 .locator(
                     '[data-testid="product-title"], main h1, [data-testid*="add-to-cart"], button:has-text("Add to Cart"), button:has-text("Add to Bag")'

@@ -151,8 +151,8 @@ export async function flatRoutes(options?: {
         routes,
         config: urlConfig?.seoRoutes,
         routeIds: {
-            product: path.posix.join(rootDirectory ?? 'routes', '_app.product.$productId'),
-            category: path.posix.join(rootDirectory ?? 'routes', '_app.category.$categoryId'),
+            product: path.posix.join(rootDirectory ?? 'routes', '_app.p.$'),
+            category: path.posix.join(rootDirectory ?? 'routes', '_app.c.$'),
         },
         wrapperFile: APP_WRAPPER_FILE,
     });

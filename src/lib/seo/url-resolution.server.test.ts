@@ -15,7 +15,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { decodeFinalRawSegment } from './url-resolution.server';
+import { decodeFinalRawSegment, resolveCategoryRoute, resolveProductRoute } from './url-resolution.server';
+import type { SeoRoutesConfig } from '@salesforce/storefront-next-runtime/config';
 
 const idFor = (path: string) => decodeFinalRawSegment(new URL(`https://example.com${path}`));
 
@@ -65,5 +66,97 @@ describe('decodeFinalRawSegment', () => {
             decodeFinalRawSegment(new URL(`https://example.com${path}`), { '*': aliasSplat });
         expect(withSplat('/en-US/p/PROD-123', 'PROD-123')).toBe('PROD-123');
         expect(withSplat('/en-US/p/mens/shirts/PROD-123', 'mens/shirts/PROD-123')).toBe('PROD-123');
+    });
+});
+
+const seoRoutes: SeoRoutesConfig = {
+    RefArch: {
+        product: { prefix: 'p' },
+        category: { prefix: 'c', mode: 'id-suffix' },
+    },
+    SlugStore: {
+        product: { prefix: 'product' },
+        category: { prefix: 'catalog', mode: 'slug-path' },
+    },
+};
+
+describe('resolveProductRoute', () => {
+    test('accepts only the active site product prefix and reads the final raw ID segment', () => {
+        expect(
+            resolveProductRoute({
+                url: new URL('https://example.com/RefArch/en-US/p/mens/PROD%2F123'),
+                params: { '*': 'mens/PROD/123' },
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'RefArch',
+                seoRoutes,
+            })
+        ).toEqual({ productId: 'PROD/123' });
+
+        expect(
+            resolveProductRoute({
+                url: new URL('https://example.com/RefArch/en-US/product/PROD-123'),
+                params: { '*': 'PROD-123' },
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'RefArch',
+                seoRoutes,
+            })
+        ).toBeNull();
+    });
+});
+
+describe('resolveCategoryRoute', () => {
+    test('resolves an ID-suffix route to one authoritative cgid refinement', () => {
+        expect(
+            resolveCategoryRoute({
+                url: new URL('https://example.com/RefArch/en-US/c/womens/shoes/womens-shoes'),
+                params: { '*': 'womens/shoes/womens-shoes' },
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'RefArch',
+                seoRoutes,
+            })
+        ).toEqual({
+            categoryLookup: 'womens-shoes',
+            routeRefinement: 'cgid=womens-shoes',
+            slugPath: undefined,
+        });
+    });
+
+    test('preserves the complete decoded hierarchy for slug-path lookup and search', () => {
+        expect(
+            resolveCategoryRoute({
+                url: new URL('https://example.com/SlugStore/en-US/catalog/skin%20care/moisturisers/day'),
+                params: { '*': 'skin care/moisturisers/day' },
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'SlugStore',
+                seoRoutes,
+            })
+        ).toEqual({
+            categoryLookup: 'skin care/moisturisers/day',
+            routeRefinement: 'cgslug=skin care/moisturisers/day',
+            slugPath: 'skin care/moisturisers/day',
+        });
+    });
+
+    test('rejects a category alias owned by another configured site', () => {
+        expect(
+            resolveCategoryRoute({
+                url: new URL('https://example.com/RefArch/en-US/catalog/womens/shoes'),
+                params: { '*': 'womens/shoes' },
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'RefArch',
+                seoRoutes,
+            })
+        ).toBeNull();
+    });
+
+    test('rejects empty segments inside a deterministic path', () => {
+        expect(
+            resolveCategoryRoute({
+                url: new URL('https://example.com/SlugStore/en-US/catalog/womens//shoes'),
+                urlPrefix: '/:siteId/:localeId',
+                siteId: 'SlugStore',
+                seoRoutes,
+            })
+        ).toBeNull();
     });
 });

@@ -36,12 +36,14 @@ import { getAuth } from '@/middlewares/auth.server';
 import { getBasket, updateBasketResource } from '@/middlewares/basket.server';
 import { getCustomerProfileForCheckout, isRegisteredCustomer } from '@/lib/api/customer.server';
 import { getShippingMethodsForShipment } from '@/lib/api/shipping-methods.server';
-import { fetchProductsByIds } from '@/lib/api/products.server';
+import { fetchProductsByIds, getDefaultProductExpansions } from '@/lib/api/products.server';
 import { createApiClients } from '@/lib/api-clients.server';
 import { siteContext, type SiteContext } from '@salesforce/storefront-next-runtime/site-context';
 import { getGcpApiKeyLazy } from '@salesforce/storefront-next-runtime/data-store';
 import { getLoginPreferences, LOGIN_PREFERENCES_FALLBACK } from '@/lib/login-preferences.server';
 import { getLogger } from '@/lib/logger.server';
+import { getConfig } from '@salesforce/storefront-next-runtime/config';
+import { getSeoSlugExpansion } from '@/lib/seo/scapi-slugs';
 
 // @sfdc-extension-block-start SFDC_EXT_BOPIS
 import { getPickupShipment } from '@/extensions/bopis/lib/basket-utils';
@@ -208,6 +210,7 @@ async function fetchProductsInBasket(
     }
 
     const currency = (context.get(siteContext) as SiteContext).currency;
+    const config = getConfig(context);
 
     // Route through the shared helper so baskets with more than SCAPI's 24-ID getProducts
     // limit still load: fetchProductsByIds dedupes the IDs, splits them into batches of
@@ -216,6 +219,7 @@ async function fetchProductsInBasket(
         await fetchProductsByIds(context, ids, {
             allImages: true,
             perPricebook: true,
+            expand: getDefaultProductExpansions(...getSeoSlugExpansion(config.url?.seoRoutes)),
             ...(currency ? { currency } : {}),
         })
     ).reduce(

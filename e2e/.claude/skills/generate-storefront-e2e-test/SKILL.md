@@ -118,7 +118,7 @@ export {};
 import { buildSitePath } from '../../utils/url-utils';
 
 Scenario('Generate product page object', async () => {
-    I.amOnPage(buildSitePath('/product/sample-product'));
+    I.amOnPage(buildSitePath('/p/sample-product'));
     pause(); 
     // In console: I.askForPageObject("productDetail")
     // AI reads runtime DOM and generates complete page object
@@ -180,7 +180,7 @@ class ProductDetailPage {
     };
 
     navigate(productSlug: string): void {
-        I.amOnPage(buildSitePath(`/product/${productSlug}`));
+        I.amOnPage(buildSitePath(`/p/${productSlug}`));
     }
 
     async selectSize(size: string): Promise<void> {
@@ -346,7 +346,7 @@ const productCount = await storefrontPage.getProductCount();
 expect(productCount, 'Should have product tiles on homepage').to.be.greaterThan(0);
 
 const currentUrl = await I.grabCurrentUrl();
-expect(currentUrl, 'Should navigate to PDP page').to.include('/product/');
+expect(currentUrl, 'Should navigate to PDP page').to.include('/p/');
 
 const isVisible = await productPage.isProductTitleVisible();
 expect(isVisible, 'Product title should be visible').to.be.true;

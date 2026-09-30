@@ -101,6 +101,6 @@ export const Playground: Story = {
         rows: 2,
         title: 'Featured pieces',
         shopAllText: 'Shop all furniture',
-        shopAllUrl: '/category/root',
+        shopAllUrl: '/c/root',
     },
 };
