@@ -279,7 +279,7 @@ importers:
         version: 4.1.10(vitest@4.1.10)
       chromatic:
         specifier: ^18.0.1
-        version: 18.9.6
+        version: 18.10.0
       compression:
         specifier: 1.8.1
         version: 1.8.1
@@ -5052,8 +5052,8 @@ packages:
       '@chromatic-com/playwright':
         optional: true
 
-  chromatic@18.9.6:
-    resolution: {integrity: sha512-AfKJyKppMWcRg6ElhymKrvidHM7Z07lAW/ApMekEcyBkz8dew+3wPf1AtnpmZ3/NxB8mn0ppPcMQHCbb4dx0DA==}
+  chromatic@18.10.0:
+    resolution: {integrity: sha512-HwI1n+OOy2t3rGd146wKNwUYEVu3Oj+qtJ+6DgdMKkAisSa3C5kQkYrlqBI/pf2ig7o+xzCN5HQoaNovwTqkmw==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -14757,7 +14757,7 @@ snapshots:
 
   chromatic@12.2.0: {}
 
-  chromatic@18.9.6:
+  chromatic@18.10.0:
     dependencies:
       semver: 7.8.5
 

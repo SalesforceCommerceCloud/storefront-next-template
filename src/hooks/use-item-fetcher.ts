@@ -28,13 +28,24 @@ interface UseItemFetcherOptions {
 }
 
 /**
+ * Builds the fetcher key for an item-specific operation: `${itemId}-${componentName}`, or `''` when there is
+ * no itemId (a fetcher with an empty key is component-scoped, matching a bare `useFetcher()`). Exported as the
+ * single source of truth for the key format so callers that need to re-attach to the same fetcher elsewhere
+ * (e.g. the close-flush handoff read by `CartMutationToastWatcher`) derive an identical key without depending
+ * on a `fetcher.key` field — `FetcherWithComponents` does not expose one.
+ */
+export function getItemFetcherKey(itemId: string | undefined, componentName: string): string {
+    return itemId ? `${itemId}-${componentName}` : '';
+}
+
+/**
  * Custom hook that creates a useFetcher with a prefixed itemId key
  *
  * This hook provides a consistent way to create fetchers for item-specific operations
  * while ensuring unique keys to prevent conflicts between multiple instances.
  *
  * @param options - Configuration object
- * @returns The fetcher instance (key accessible via fetcher.key, loading state via fetcher.state)
+ * @returns The fetcher instance (loading state via fetcher.state). Derive the key with {@link getItemFetcherKey}.
  *
  * @example
  * ```tsx
@@ -44,21 +55,12 @@ interface UseItemFetcherOptions {
  *   componentName: 'cart-quantity-picker'
  * });
  * const isLoading = fetcher.state === 'submitting';
- *
- * // In a remove item button component
- * const fetcher = useItemFetcher({
- *   itemId: 'item-123',
- *   componentName: 'remove-item-button'
- * });
  * ```
  */
 export function useItemFetcher({ itemId, componentName }: UseItemFetcherOptions) {
-    // Generate the fetcher key with itemId prefix (or just componentName if itemId is undefined)
-    const fetcherKey = itemId ? `${itemId}-${componentName}` : '';
-
     // Create the fetcher with the generated key
     const fetcher = useFetcher({
-        key: fetcherKey,
+        key: getItemFetcherKey(itemId, componentName),
     });
 
     return fetcher;

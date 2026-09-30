@@ -88,6 +88,9 @@ import { getSecurityNonce } from '@salesforce/storefront-next-runtime/security';
 import { useSecurityNonceFromContext } from '@salesforce/storefront-next-runtime/security/react';
 import { errorCacheControlMiddleware } from '@/middlewares/error-cache-control.server';
 
+// Components
+import { CartMutationToastWatcher } from '@/components/cart/cart-mutation-toast-watcher';
+
 // Providers
 import AuthProvider from '@/providers/auth';
 import BasketProvider, { BasketCookieReconciler } from '@/providers/basket';
@@ -782,6 +785,7 @@ export default function App({
         <UITargetProviders>
             <AuthActionExecutor />
             <BasketCookieReconciler />
+            <CartMutationToastWatcher />
             {passkeyEnabled && <PasskeyRegistrationTrigger />}
             {hybridEnabled && <BackNavigationRevalidator />}
             <PageDesignerProvider

@@ -29,6 +29,8 @@ import { useNavigate } from '@/hooks/use-navigate';
 import { Link } from '@/components/link';
 import { useBasketUpdater } from '@/providers/basket';
 import { setMiniCartOpen, useMiniCartStore } from '@/hooks/mini-cart-store';
+import { getItemFetcherKey } from '@/hooks/use-item-fetcher';
+import { registerPendingCartMutation, unregisterPendingCartMutation } from '@/hooks/cart-mutation-toast-store';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import {
     Sheet,
@@ -51,14 +53,15 @@ import { buildBonusPromotionMap, getAttachedBonusPromotions } from '@/lib/cart/b
 import { getStoreIdForBasketItem } from '@/extensions/bopis/lib/basket-utils';
 import { useToast } from '@/components/toast';
 import type { action as cartItemRemoveAction } from '@/routes/action.cart-item-remove';
-import type { BasketActionResponse } from '@/routes/types/action-responses';
+import { resolveRemoveItemToast } from '@/lib/cart/cart-mutation-toast-resolvers';
 import { useTranslation } from 'react-i18next';
 import { useSite } from '@salesforce/storefront-next-runtime/site-context';
 import { UITarget } from '@/targets/ui-target';
 import { routes } from '@/route-paths';
 /**
- * Container component for MiniCartItem that handles remove functionality
- * Uses useFetcher to submit remove requests to the cart API
+ * Container component for MiniCartItem that handles remove functionality.
+ * Uses an item-keyed fetcher (key from getItemFetcherKey) to submit remove requests to the cart API, so a
+ * remove flushed as the mini-cart closes can be handed off to CartMutationToastWatcher for its toast.
  */
 const MiniCartItemContainer = memo(function MiniCartItemContainer({
     item,
@@ -77,11 +80,20 @@ const MiniCartItemContainer = memo(function MiniCartItemContainer({
     // @sfdc-extension-line SFDC_EXT_BOPIS
     isPickup?: boolean;
 }) {
-    const fetcher = useFetcher<typeof cartItemRemoveAction>();
+    // Keyed by item id so the remove request's settled data survives this container's unmount: React Router
+    // keeps it readable while some mounted useFetcher references the key, letting CartMutationToastWatcher
+    // re-attach and fire the toast when the shopper closes the drawer mid-remove. FetcherWithComponents has no
+    // `key` field, so the handoff derives the same key from getItemFetcherKey rather than reading it back.
+    const fetcherKey = getItemFetcherKey(item.itemId, 'mini-cart-remove');
+    const fetcher = useFetcher<typeof cartItemRemoveAction>({ key: fetcherKey });
     const { addToast } = useToast();
     const { t } = useTranslation('removeItem');
     const updateBasket = useBasketUpdater();
-    const processedDataRef = useRef<BasketActionResponse | null>(null);
+    // True only while THIS mounted container has a remove request in flight. The fetcher is keyed by item id,
+    // so its settled data outlives the component; a remount on reopen would otherwise replay a stale remove
+    // toast (mirroring the quantity hook's exposure). Set on submit, consumed once when the response settles,
+    // so a fresh mount observing already-settled data leaves it false and stays quiet.
+    const requestInitiatedHereRef = useRef(false);
     const pendingRemovalItemIdRef = useRef<string | null>(null);
 
     const handleRemove = useCallback(() => {
@@ -97,11 +109,18 @@ const MiniCartItemContainer = memo(function MiniCartItemContainer({
         }
         const formData = new FormData();
         formData.append('itemId', item.itemId || '');
+        // Reclaim this key from any prior close-flush handoff before submitting again: if an earlier remove
+        // is still parked in the registry (the shopper closed the panel, then reopened and clicked remove
+        // again before that first request settled), drop it so only this mounted container's response effect
+        // toasts. Otherwise the armed watcher leaf and this container would both fire for the same settled
+        // response. No-op when there's no parked entry or no key.
+        unregisterPendingCartMutation(fetcherKey);
+        requestInitiatedHereRef.current = true;
         void fetcher.submit(formData, {
             method: 'POST',
             action: removeAction,
         });
-    }, [item.itemId, removeAction, fetcher, onRemoveStart]);
+    }, [item.itemId, removeAction, fetcher, fetcherKey, onRemoveStart]);
 
     // Show toast notification when item is removed
     useEffect(() => {
@@ -110,21 +129,39 @@ const MiniCartItemContainer = memo(function MiniCartItemContainer({
             pendingRemovalItemIdRef.current = null;
         }
 
-        if (fetcher.state === 'idle' && fetcher.data && fetcher.data !== processedDataRef.current) {
-            processedDataRef.current = fetcher.data;
-            if (fetcher.data.success) {
-                if (fetcher.data.basket) {
+        if (fetcher.state === 'idle' && fetcher.data) {
+            // Consume the "this instance submitted" flag once per settled response. The keyed fetcher's data
+            // outlives this component, so a remount on reopen re-attaches to it but with the flag false, and
+            // must not re-publish the basket or replay the remove toast for a removal already shown.
+            const initiatedHere = requestInitiatedHereRef.current;
+            requestInitiatedHereRef.current = false;
+            if (initiatedHere) {
+                if (fetcher.data.success && fetcher.data.basket) {
                     // Publish the new revision so useBasket() consumers stay in sync. This response is
                     // down-shaped (mutations can't send `expand=approaching_discounts`); the expanded
                     // re-fetch supplies `approachingDiscounts` via the provider tie-break (see basket.tsx).
                     updateBasket(fetcher.data.basket);
                 }
-                addToast(t('success'), 'success');
-            } else {
-                addToast(t('failed'), 'error');
+                const { message, type } = resolveRemoveItemToast(fetcher.data, t);
+                addToast(message, type);
             }
         }
     }, [fetcher.state, fetcher.data, t, addToast, updateBasket, onRemoveEnd]);
+
+    // Hand the remove off to the root-mounted CartMutationToastWatcher if it's still in flight when this
+    // container unmounts — the shopper removed an item and closed the mini-cart in the same beat. Same
+    // mechanism as the quantity hook: the watcher keeps the keyed fetcher's settled data alive and fires the
+    // toast once. The flag is only still true here when the response hasn't been consumed, so an in-panel
+    // remove (drawer stays open, response settles into the effect above) never registers.
+    useEffect(() => {
+        return () => {
+            if (requestInitiatedHereRef.current) {
+                registerPendingCartMutation(fetcherKey, 'remove');
+            }
+        };
+        // fetcherKey: derived from item.itemId, invariant for this container
+        // oxlint-disable-next-line react-hooks/exhaustive-deps
+    }, [item.itemId]);
 
     return (
         <MiniCartItem

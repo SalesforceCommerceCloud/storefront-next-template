@@ -43,6 +43,17 @@ vi.mock('@/providers/basket', () => ({
     useBasketUpdater: () => mockUpdateBasket,
 }));
 
+// Spy on the close-flush handoff: when the line item unmounts mid-update, the cleanup hands the keyed
+// fetcher off to CartMutationToastWatcher via this registry so the toast still fires (see the describe below).
+// unregister is the owner-side reclaim: each submit drops any parked entry so a remount-and-resubmit can't
+// leave an armed watcher leaf that double-toasts the same settled response.
+const mockRegisterPendingCartMutation = vi.fn();
+const mockUnregisterPendingCartMutation = vi.fn();
+vi.mock('@/hooks/cart-mutation-toast-store', () => ({
+    registerPendingCartMutation: (...args: unknown[]) => mockRegisterPendingCartMutation(...args),
+    unregisterPendingCartMutation: (...args: unknown[]) => mockUnregisterPendingCartMutation(...args),
+}));
+
 // Records every debounced function the hook creates so a test can assert what the unmount
 // cleanup does to the pending call (flush vs cancel).
 const debounceInstances = vi.hoisted(
@@ -836,6 +847,115 @@ describe('useCartQuantityUpdate', () => {
 
             expect(debounced?.flush).toHaveBeenCalledTimes(1);
             expect(debounced?.cancel).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Close-flush handoff', () => {
+        // When the mini-cart closes in the same beat as a quantity change, the line item unmounts before the
+        // flushed request settles. The unmount cleanup hands the keyed fetcher off to CartMutationToastWatcher
+        // so the "Quantity updated" / error toast still fires exactly once. Only the mini-cart supplies
+        // fetcherKey — the cart page never unmounts mid-update, so it opts out (no handoff registered).
+        const fetcherKey = 'test-item-123-mini-cart-item';
+        const propsWithKey = { ...defaultProps, fetcherKey };
+
+        test('registers the keyed fetcher on unmount for a change this line item made', () => {
+            const { result, unmount } = renderHook(() => useCartQuantityUpdate(propsWithKey), {
+                wrapper: ConfigWrapper,
+            });
+
+            // Drive a real change (debounce mock is synchronous, so this submits and marks initiated-here).
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
+
+            // Closing the panel unmounts before the response settles.
+            unmount();
+
+            expect(mockRegisterPendingCartMutation).toHaveBeenCalledTimes(1);
+            expect(mockRegisterPendingCartMutation).toHaveBeenCalledWith(fetcherKey, 'quantity-update');
+        });
+
+        test('does not register on unmount when this line item made no change', () => {
+            const { unmount } = renderHook(() => useCartQuantityUpdate(propsWithKey), { wrapper: ConfigWrapper });
+
+            unmount();
+
+            expect(mockRegisterPendingCartMutation).not.toHaveBeenCalled();
+        });
+
+        test('does not register when no fetcherKey is supplied (cart page opts out)', () => {
+            const { result, unmount } = renderHook(() => useCartQuantityUpdate(defaultProps), {
+                wrapper: ConfigWrapper,
+            });
+
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
+            unmount();
+
+            expect(mockRegisterPendingCartMutation).not.toHaveBeenCalled();
+        });
+
+        test('does not register when the response already settled while mounted', () => {
+            const setStableFetcher = (state: 'idle' | 'submitting' | 'loading', data: unknown): void => {
+                (stableMockFetcher as unknown as { state: string }).state = state;
+                (stableMockFetcher as unknown as { data: unknown }).data = data;
+            };
+
+            const { result, rerender, unmount } = renderHook(() => useCartQuantityUpdate(propsWithKey), {
+                wrapper: ConfigWrapper,
+            });
+
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
+
+            // Response settles while the panel is still open: the effect consumes the initiated-here flag.
+            act(() => {
+                setStableFetcher('idle', { success: true, basket: { basketId: 'basket-123' } });
+            });
+            rerender();
+
+            // A later close must not re-hand-off an already-toasted change.
+            unmount();
+            setStableFetcher('idle', null);
+
+            expect(mockRegisterPendingCartMutation).not.toHaveBeenCalled();
+        });
+
+        test('reclaims the key on each quantity submit so a remount-and-resubmit cannot double-toast', () => {
+            const { result } = renderHook(() => useCartQuantityUpdate(propsWithKey), { wrapper: ConfigWrapper });
+
+            // Each debounced submit drops any parked handoff entry first. Without this, a change flushed on
+            // close (registered, watcher leaf armed) that hasn't settled when the shopper reopens and re-edits
+            // would settle with the panel OPEN — firing both the in-panel toast and the still-armed leaf.
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
+
+            expect(mockFetcher.submit).toHaveBeenCalledTimes(1);
+            expect(mockUnregisterPendingCartMutation).toHaveBeenCalledWith(fetcherKey);
+        });
+
+        test('reclaims the key when this line item submits a remove', () => {
+            const { result } = renderHook(() => useCartQuantityUpdate(propsWithKey), { wrapper: ConfigWrapper });
+
+            act(() => {
+                result.current.handleRemoveItem();
+            });
+
+            expect(mockFetcher.submit).toHaveBeenCalledTimes(1);
+            expect(mockUnregisterPendingCartMutation).toHaveBeenCalledWith(fetcherKey);
+        });
+
+        test('does not reclaim when no fetcherKey is supplied (cart page opts out)', () => {
+            const { result } = renderHook(() => useCartQuantityUpdate(defaultProps), { wrapper: ConfigWrapper });
+
+            act(() => {
+                result.current.handleQuantityChange('3', 3);
+            });
+
+            expect(mockUnregisterPendingCartMutation).not.toHaveBeenCalled();
         });
     });
 });

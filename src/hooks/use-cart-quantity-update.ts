@@ -29,10 +29,13 @@ import { useToast } from '@/components/toast';
 // Hooks
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useBasketUpdater } from '@/providers/basket';
+import { registerPendingCartMutation, unregisterPendingCartMutation } from '@/hooks/cart-mutation-toast-store';
+
+// Lib
+import { resolveQuantityUpdateToast } from '@/lib/cart/cart-mutation-toast-resolvers';
 
 // Constants
 import { resourceRoutes } from '@/route-paths';
-import { ErrorCode } from '@/lib/error-codes';
 // Types
 import type { ShopperBasketsV2 } from '@/scapi';
 import type { BasketActionResponse } from '@/routes/types/action-responses';
@@ -57,6 +60,13 @@ interface UseCartQuantityUpdateProps<
     debounceDelay?: number;
     /** Fetcher used to submit the quantity update / remove. */
     fetcher: ReturnType<typeof useFetcher<TResponse>>;
+    /**
+     * The fetcher's key (from `getItemFetcherKey`). Supplied only by the mini-cart, where closing the drawer
+     * unmounts this line item mid-update: it lets the unmount cleanup hand the still-in-flight request off to
+     * `CartMutationToastWatcher` so the toast still fires. Omitted where the line item never unmounts
+     * mid-update (e.g. the cart page), in which case no handoff is registered.
+     */
+    fetcherKey?: string;
 }
 
 interface UseCartQuantityUpdateReturn {
@@ -124,6 +134,7 @@ export function useCartQuantityUpdate<
     stockLevel,
     debounceDelay,
     fetcher,
+    fetcherKey,
 }: UseCartQuantityUpdateProps<TResponse>): UseCartQuantityUpdateReturn {
     const config = useConfig();
     const { addToast } = useToast();
@@ -145,6 +156,11 @@ export function useCartQuantityUpdate<
     const removeItem = useCallback(() => {
         if (!itemId) return;
 
+        // Reclaim this key from any prior close-flush handoff before submitting again: if an earlier request
+        // is still parked in the registry (its watcher leaf hasn't fired yet), drop it so only this mounted
+        // instance's response effect toasts. Otherwise the armed watcher leaf and this instance would both
+        // fire for the same settled response. No-op when there's no parked entry or no key.
+        if (fetcherKey) unregisterPendingCartMutation(fetcherKey);
         requestInitiatedHereRef.current = true;
         const formData = new FormData();
         formData.append('itemId', itemId);
@@ -152,7 +168,7 @@ export function useCartQuantityUpdate<
             method: 'POST',
             action: removeAction,
         });
-    }, [itemId, removeAction, fetcher]);
+    }, [itemId, removeAction, fetcher, fetcherKey]);
 
     const [stockValidationError, setStockValidationError] = useState<string | null>(() =>
         stockLevel !== undefined && stockLevel > 0 && stockLevel <= initialValue ? t('maxStockReached') : null
@@ -190,6 +206,12 @@ export function useCartQuantityUpdate<
 
             // Track the quantity that triggered this API call
             setPendingQuantity(newQuantity);
+            // Reclaim this key from any prior close-flush handoff before submitting again: if an earlier
+            // change is still parked in the registry (the shopper closed the panel, then reopened and edited
+            // before that first request settled), drop it so only this mounted instance's response effect
+            // toasts. Otherwise the armed watcher leaf and this instance would both fire for the same settled
+            // response. No-op when there's no parked entry or no key.
+            if (fetcherKey) unregisterPendingCartMutation(fetcherKey);
             requestInitiatedHereRef.current = true;
 
             const formData = new FormData();
@@ -203,6 +225,7 @@ export function useCartQuantityUpdate<
         }, effectiveDebounceDelay);
         // effectiveDebounceDelay: stable value, no need to recreate effect
         // fetcher: stable fetcher, no need to recreate effect
+        // fetcherKey: derived from itemId, invariant for this line item
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [itemId, stockLevel]);
 
@@ -315,27 +338,22 @@ export function useCartQuantityUpdate<
                     lastSuccessfulQuantityRef.current = pendingQuantity;
                     setPendingQuantity(null);
                 }
-                // Only confirm an update this mounted line item actually made, not a deferred response
-                // replayed on reopen (the page's own quantity already reflects the flushed change).
-                if (initiatedHere) {
-                    addToast(t('quantityUpdated'), 'success');
-                }
             } else {
                 // On failure, reset to the last known good value. This bookkeeping stays unconditional (a fresh
                 // mount resets to initialValue, a no-op) to mirror the success branch's unconditional basket sync.
                 setQuantity(lastSuccessfulQuantityRef.current);
                 setPendingQuantity(null);
-                // Gate the error toast for the same reason as the success toast: a failed change flushed as the
-                // panel closed leaves the rejection on the keyed fetcher, and a fresh mount on reopen must not
-                // replay it. The server rejects an increase past available stock with OUT_OF_STOCK; surface that
-                // specifically so the shopper knows to lower the quantity rather than seeing a generic message.
-                if (initiatedHere) {
-                    const message =
-                        fetcher.data.error?.code === ErrorCode.OUT_OF_STOCK
-                            ? t('insufficientStock')
-                            : t('quantityUpdateFailed');
-                    addToast(message, 'error');
-                }
+            }
+
+            // Only notify for an update this mounted line item actually made, not a deferred response replayed
+            // on reopen (the page's own quantity already reflects the flushed change). When the shopper closes
+            // the mini-cart mid-update this instance unmounts before the response settles, so that toast is
+            // fired by CartMutationToastWatcher instead (see the unmount cleanup below). resolveQuantityUpdateToast
+            // is the single source of truth for the copy, shared with the watcher, and covers both branches:
+            // the success confirmation and the error notice (OUT_OF_STOCK vs generic).
+            if (initiatedHere) {
+                const { message, type } = resolveQuantityUpdateToast(fetcher.data, t);
+                addToast(message, type);
             }
         }
         //As addToast is unlikely to change, we don't need to include it in the dependency array
@@ -350,8 +368,20 @@ export function useCartQuantityUpdate<
     useEffect(() => {
         return () => {
             changeItemQuantity.flush();
+            // If a request this line item initiated is still unsettled as we unmount — the shopper closed the
+            // mini-cart in the same beat as the change, so flush() above just fired the trailing edit (or an
+            // earlier submission is still awaiting its response) — hand the keyed fetcher off to the root-mounted
+            // CartMutationToastWatcher. It keeps React Router from purging the settled data and fires the
+            // confirmation / error toast once, so the notification isn't lost with this unmounting instance.
+            // The flag is only still true here when the response has NOT yet been consumed (see the effect
+            // above), so a settled-while-mounted change never registers and never double-toasts. fetcherKey is
+            // supplied only by the mini-cart (where this unmount happens); without it there's nothing to hand off.
+            if (requestInitiatedHereRef.current && fetcherKey) {
+                registerPendingCartMutation(fetcherKey, 'quantity-update');
+            }
         };
         // changeItemQuantity: stable debounced function, no need to recreate effect
+        // fetcherKey: derived from itemId, invariant for this line item
         // Only depend on itemId to avoid premature cleanup
         // oxlint-disable-next-line react-hooks/exhaustive-deps
     }, [itemId]);

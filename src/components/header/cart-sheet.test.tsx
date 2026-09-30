@@ -24,6 +24,8 @@ import { setMiniCartOpen } from '@/hooks/mini-cart-store';
 const mockUpdateBasket = vi.fn();
 const mockSubmit = vi.fn();
 const mockAddToast = vi.fn();
+const mockRegisterPendingCartMutation = vi.fn();
+const mockUnregisterPendingCartMutation = vi.fn();
 const mockT = (key: string) => key;
 const mockI18n = { language: 'en-US' };
 
@@ -99,6 +101,13 @@ vi.mock('@/hooks/use-navigate', () => ({
 
 vi.mock('@/components/toast', () => ({
     useToast: () => ({ addToast: mockAddToast }),
+}));
+
+// Spy on the close-flush handoff plus the reclaim-on-resubmit. cart-sheet registers a pending mutation on
+// close-before-settle and unregisters (reclaims the key) whenever this mounted container submits a remove.
+vi.mock('@/hooks/cart-mutation-toast-store', () => ({
+    registerPendingCartMutation: (...args: unknown[]) => mockRegisterPendingCartMutation(...args),
+    unregisterPendingCartMutation: (...args: unknown[]) => mockUnregisterPendingCartMutation(...args),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -361,6 +370,86 @@ describe('CartSheet remove flow', () => {
 
         expect(screen.getByText('Test Product')).toBeVisible();
         expect(mockAddToast).toHaveBeenCalledWith('failed', 'error');
+    });
+});
+
+describe('CartSheet remove close-flush handoff (W-24310245)', () => {
+    const renderCartSheet = () =>
+        render(
+            <CartSheet>
+                <button>open-mini-cart</button>
+            </CartSheet>
+        );
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        currentFetcher = { state: 'idle', data: undefined, submit: mockSubmit };
+        currentPathname = '/';
+        setMiniCartOpen(true);
+    });
+
+    afterEach(() => {
+        setMiniCartOpen(false);
+    });
+
+    it('hands the remove off to the watcher when the drawer closes before the request settles', async () => {
+        const user = userEvent.setup();
+        const { unmount } = renderCartSheet();
+
+        // Shopper removes an item, then closes the mini-cart in the same beat: the request is still in flight
+        // (the mocked submit never resolves), so unmounting must register the keyed fetcher for the watcher.
+        await user.click(screen.getByRole('button', { name: 'remove-item' }));
+        expect(mockSubmit).toHaveBeenCalledTimes(1);
+
+        unmount();
+
+        expect(mockRegisterPendingCartMutation).toHaveBeenCalledWith('item-1-mini-cart-remove', 'remove');
+    });
+
+    it('does not hand off when the drawer closes without a remove in flight', () => {
+        const { unmount } = renderCartSheet();
+
+        unmount();
+
+        expect(mockRegisterPendingCartMutation).not.toHaveBeenCalled();
+    });
+
+    it('does not hand off an in-panel remove that already settled while mounted', async () => {
+        const user = userEvent.setup();
+        const { rerender, unmount } = renderCartSheet();
+
+        await user.click(screen.getByRole('button', { name: 'remove-item' }));
+
+        // Response arrives while the drawer is still open: the settled-response effect consumes the flag and
+        // fires the toast in place, so a later close must not re-register the (already shown) removal.
+        currentFetcher = {
+            state: 'idle',
+            data: { success: true, basket: { basketId: 'basket-1', productItems: [] } },
+            submit: mockSubmit,
+        };
+        rerender(
+            <CartSheet>
+                <button>open-mini-cart</button>
+            </CartSheet>
+        );
+        expect(mockAddToast).toHaveBeenCalledWith('success', 'success');
+
+        unmount();
+
+        expect(mockRegisterPendingCartMutation).not.toHaveBeenCalled();
+    });
+
+    it('reclaims the key from any parked handoff when it submits a remove', async () => {
+        const user = userEvent.setup();
+        renderCartSheet();
+
+        // On (re)submit the mounted container reclaims its key so a still-armed watcher leaf from an earlier
+        // close-flush handoff can't also fire for this response. Guards the double-toast race when a shopper
+        // closes the panel mid-remove, reopens before it settles, then clicks remove again.
+        await user.click(screen.getByRole('button', { name: 'remove-item' }));
+
+        expect(mockSubmit).toHaveBeenCalledTimes(1);
+        expect(mockUnregisterPendingCartMutation).toHaveBeenCalledWith('item-1-mini-cart-remove');
     });
 });
 

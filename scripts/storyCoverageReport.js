@@ -104,6 +104,10 @@ const EXCLUDED_COMPONENTS = new Set([
     'bopis/components/delivery-options/pickup-option-contributor',
     // Wraps Sonner's <Toaster> to apply app-level config; no visual content of its own.
     'toast/app-toaster',
+    // Root-mounted headless watcher: mounts a keyed useFetcher leaf per pending close-flush
+    // handoff to fire the mini-cart confirmation/error toast after the drawer (and its line item)
+    // has unmounted. No visual surface of its own; covered by cart-mutation-toast-watcher unit tests.
+    'cart/cart-mutation-toast-watcher',
     // Page Designer Region and Component Wrapper, there is no value in having storybook stories for these
     'region/component',
     'region/component-data-context',

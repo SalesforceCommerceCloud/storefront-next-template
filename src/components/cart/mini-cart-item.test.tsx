@@ -53,6 +53,7 @@ vi.mock('@/hooks/use-item-fetcher', () => ({
         state: 'idle',
         submit: vi.fn(),
     }),
+    getItemFetcherKey: (itemId: string, componentName: string) => (itemId ? `${itemId}-${componentName}` : ''),
 }));
 
 vi.mock('@/hooks/use-cart-quantity-update', () => ({

@@ -24,7 +24,7 @@ import { Link } from '@/components/link';
 import type { ShopperBasketsV2, ShopperProducts } from '@/scapi';
 
 // Hooks
-import { useItemFetcher } from '@/hooks/use-item-fetcher';
+import { getItemFetcherKey, useItemFetcher } from '@/hooks/use-item-fetcher';
 import { useCartQuantityUpdate } from '@/hooks/use-cart-quantity-update';
 import { useConfig } from '@salesforce/storefront-next-runtime/config';
 import { useTranslation } from 'react-i18next';
@@ -118,6 +118,7 @@ export default function MiniCartItem({
     const seoUrlContext = useSeoUrlContext();
     const productAltFallback = tMiniCart('productAltFallback') || 'Product';
 
+    const fetcherKey = getItemFetcherKey(product.itemId || '', 'mini-cart-item');
     const fetcher = useItemFetcher({
         itemId: product.itemId || '',
         componentName: 'mini-cart-item',
@@ -138,6 +139,7 @@ export default function MiniCartItem({
         initialValue: product.quantity || 1,
         stockLevel,
         fetcher,
+        fetcherKey,
     });
 
     // Find the product image for the current variation
